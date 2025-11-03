@@ -401,6 +401,27 @@
     return createAuthHeader(host, options || {});
   }
 
+  function mprHeader(options) {
+    var resolvedOptions = options || {};
+    return {
+      init: function () {
+        var element =
+          (this && this.$el) ||
+          (this && this.el) ||
+          (this && this.element) ||
+          (this && this.host) ||
+          null;
+        if (!element) {
+          throw new Error("mprHeader requires a root element");
+        }
+        this.__mprHeaderController = createAuthHeader(element, resolvedOptions);
+      },
+      destroy: function () {
+        this.__mprHeaderController = null;
+      },
+    };
+  }
+
   function escapeHtml(value) {
     if (value === null || value === undefined) {
       return "";
@@ -411,6 +432,32 @@
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
+  }
+
+  function sanitizeHref(value) {
+    if (value === null || value === undefined) {
+      return "#";
+    }
+    var trimmed = String(value).trim();
+    if (trimmed === "") {
+      return "#";
+    }
+    if (trimmed[0] === "#" || trimmed[0] === "/") {
+      return trimmed;
+    }
+    if (trimmed.indexOf("//") === 0) {
+      return trimmed;
+    }
+    var protocolMatch = trimmed.match(/^([a-z0-9.+-]+):/i);
+    if (!protocolMatch) {
+      return trimmed;
+    }
+    var protocol = protocolMatch[1].toLowerCase();
+    var allowedProtocols = ["http", "https", "mailto", "tel"];
+    if (allowedProtocols.indexOf(protocol) === -1) {
+      return "#";
+    }
+    return trimmed;
   }
 
   var FOOTER_ROOT_CLASS = "mpr-footer";
@@ -534,7 +581,7 @@
           '<a class="' +
           FOOTER_ROOT_CLASS +
           '__link" href="' +
-          escapeHtml(link.href) +
+          escapeHtml(sanitizeHref(link.href)) +
           '">' +
           escapeHtml(link.label) +
           "</a>";
@@ -641,6 +688,7 @@
   var namespace = ensureNamespace(global);
   namespace.createAuthHeader = createAuthHeader;
   namespace.renderAuthHeader = renderAuthHeader;
+  namespace.mprHeader = mprHeader;
   namespace.renderFooter = renderFooter;
   namespace.mprFooter = mprFooter;
 })(typeof window !== "undefined" ? window : globalThis);
