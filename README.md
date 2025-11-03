@@ -243,3 +243,30 @@ Modern evergreen browsers (Chrome, Firefox, Safari, Edge). No IE.
 ## License
 
 MIT © 2025 Marco Polo Research Lab
+
+---
+
+## Component: Auth Header (experimental)
+
+This branch also ships an authentication header helper that coordinates Google Identity Services.
+
+```html
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="/static/auth-client.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@main/mpr-ui.js"></script>
+
+<div id="app-header"></div>
+<script>
+  const element = document.getElementById("app-header");
+  const controller = window.MPRUI.createAuthHeader(element, {
+    baseUrl: "https://auth.example.com",
+    siteName: "Example Portal",
+    siteLink: "/",
+    googleCredentialCallbackName: "onAuthCredential",
+  });
+
+  window.onAuthCredential = (payload) => controller.handleCredential(payload);
+</script>
+```
+
+The header fetches a nonce from `/auth/nonce`, passes it to Google Identity Services before prompting, and echoes the nonce back during `/auth/google` so servers can validate the ID token.
