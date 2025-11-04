@@ -14,11 +14,11 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 1. **Load the library** — add Alpine (optional) plus the `mpr-ui` bundle.
 
    ```html
-   <script
-     defer
-     src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
-     type="module"
-   ></script>
+   <script type="module">
+     import Alpine from "https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js";
+     window.Alpine = Alpine;
+     Alpine.start();
+   </script>
    <script
      defer
      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@1.0.0/mpr-ui.js"
@@ -39,12 +39,12 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 
    <footer x-data="mprFooter({ prefixText: 'Built by', links: footerLinks })" x-init="init()"></footer>
    <script>
-     const footerLinks = [
-       { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
-       { label: "LoopAware", url: "https://loopaware.mprlab.com" },
-     ];
-   </script>
-   ```
+    const footerLinks = [
+      { label: "Marco Polo Research Lab", href: "https://mprlab.com" },
+      { label: "LoopAware", href: "https://loopaware.mprlab.com" },
+    ];
+  </script>
+  ```
 
    Prefer an imperative call? Mount the same components with `MPRUI.renderSiteHeader(hostElement, options)` and `MPRUI.renderFooter(hostElement, options)`.
 

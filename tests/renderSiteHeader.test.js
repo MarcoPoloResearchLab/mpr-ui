@@ -119,6 +119,11 @@ function createDocumentStub() {
     setAttribute: function (name, value) {
       this.attributes[name] = String(value);
     },
+    getAttribute: function (name) {
+      return Object.prototype.hasOwnProperty.call(this.attributes, name)
+        ? this.attributes[name]
+        : null;
+    },
   };
   return {
     head: {
@@ -257,6 +262,17 @@ function resetEnvironment() {
     });
   };
   delete global.google;
+  delete global.initAuthClient;
+  global.resolveHost = function (target) {
+    if (
+      typeof target === 'string' &&
+      global.document &&
+      typeof global.document.querySelector === 'function'
+    ) {
+      return global.document.querySelector(target);
+    }
+    return target;
+  };
 }
 
 function loadLibrary() {
@@ -406,29 +422,198 @@ function testInitialAuthAvoidsDuplicateListenersOnUpdate() {
   );
 }
 
+function testCredentialFlowWithInitAuthClient() {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+
+  let sessionProfile = null;
+
+  global.fetch = function (input, init) {
+    const url = typeof input === 'string' ? input : input && input.url ? String(input.url) : '';
+    const method = init && init.method ? String(init.method).toUpperCase() : 'GET';
+    if (url === '/auth/nonce' && method === 'POST') {
+      return Promise.resolve({
+        ok: true,
+        json: function () {
+          return Promise.resolve({ nonce: 'demo-nonce-token' });
+        },
+      });
+    }
+    if (url === '/auth/google' && method === 'POST') {
+      sessionProfile = {
+        user_id: 'demo-user-42',
+        user_email: 'demo.user@example.com',
+        display: 'Demo User',
+        avatar_url: 'https://avatars.githubusercontent.com/u/9919?s=40&v=4',
+      };
+      return Promise.resolve({
+        ok: true,
+        json: function () {
+          return Promise.resolve(sessionProfile);
+        },
+      });
+    }
+    if (url === '/auth/logout' && method === 'POST') {
+      sessionProfile = null;
+      return Promise.resolve({
+        ok: true,
+        json: function () {
+          return Promise.resolve({ success: true });
+        },
+      });
+    }
+    return Promise.resolve({
+      ok: true,
+      json: function () {
+        return Promise.resolve({});
+      },
+    });
+  };
+
+  global.google = {
+    accounts: {
+      id: {
+        initialize: function () {},
+        prompt: function () {},
+      },
+    },
+  };
+
+  const bootstrapInvocations = [];
+
+  global.initAuthClient = function (config) {
+    bootstrapInvocations.push(sessionProfile ? 'authenticated' : 'unauthenticated');
+    return Promise.resolve().then(function () {
+      if (sessionProfile && typeof config.onAuthenticated === 'function') {
+        config.onAuthenticated(sessionProfile);
+        return;
+      }
+      if (typeof config.onUnauthenticated === 'function') {
+        config.onUnauthenticated();
+      }
+    });
+  };
+
+  const controller = library.renderSiteHeader(harness.host, {
+    auth: {
+      loginPath: '/auth/google',
+      logoutPath: '/auth/logout',
+      noncePath: '/auth/nonce',
+    },
+  });
+
+  const authController = controller.getAuthController();
+  assertEqual(
+    authController !== null && typeof authController === 'object',
+    true,
+    'auth controller is available when auth is configured',
+  );
+
+  return authController
+    .handleCredential({ credential: 'demo-id-token' })
+    .then(function () {
+      const lastEvent = harness.dispatchedEvents[harness.dispatchedEvents.length - 1];
+      assertEqual(
+        lastEvent && lastEvent.type,
+        'mpr-ui:auth:authenticated',
+        'authenticated event emitted after credential exchange',
+      );
+      assertEqual(
+        lastEvent && lastEvent.detail && lastEvent.detail.profile.display,
+        'Demo User',
+        'profile from bootstrap is forwarded with authenticated event',
+      );
+      assertEqual(
+        harness.host.attributes['data-user-id'],
+        'demo-user-42',
+        'dataset populated with user identifier after authentication',
+      );
+      assertEqual(
+        bootstrapInvocations.indexOf('authenticated') !== -1,
+        true,
+        'bootstrap invoked authenticated branch after exchange',
+      );
+      return authController.signOut();
+    })
+    .then(function () {
+      const eventTypes = harness.dispatchedEvents.map(function (entry) {
+        return entry.type;
+      });
+      const lastAuthIndex = eventTypes.lastIndexOf('mpr-ui:auth:authenticated');
+      const lastUnauthIndex = eventTypes.lastIndexOf('mpr-ui:auth:unauthenticated');
+      assertEqual(
+        lastUnauthIndex > lastAuthIndex,
+        true,
+        'unauthenticated event emitted after sign-out',
+      );
+      assertEqual(
+        Object.prototype.hasOwnProperty.call(
+          harness.host.attributes,
+          'data-user-id',
+        ),
+        false,
+        'user dataset cleared after sign-out',
+      );
+      assertEqual(
+        bootstrapInvocations.filter(function (state) {
+          return state === 'unauthenticated';
+        }).length >= 1,
+        true,
+        'bootstrap invoked unauthenticated branch during flow',
+      );
+    });
+}
+
 const tests = [
   ['enabling auth via update rebinds handlers', testEnablingAuthViaUpdateRebindsHandlers],
   ['initial auth avoids duplicate listeners on update', testInitialAuthAvoidsDuplicateListenersOnUpdate],
+  ['credential flow with initAuthClient dispatches auth events', testCredentialFlowWithInitAuthClient],
 ];
 
 let failures = 0;
 
-tests.forEach(function (entry) {
-  const name = entry[0];
-  const testFn = entry[1];
+function runTest(index) {
+  if (index >= tests.length) {
+    if (failures > 0) {
+      process.exitCode = 1;
+    }
+    return;
+  }
+  const name = tests[index][0];
+  const testFn = tests[index][1];
+  let result;
   try {
-    testFn();
-    // eslint-disable-next-line no-console
-    console.log('PASS', name);
+    result = testFn();
   } catch (error) {
     failures += 1;
     // eslint-disable-next-line no-console
     console.error('FAIL', name);
     // eslint-disable-next-line no-console
     console.error(error && error.stack ? error.stack : error);
+    runTest(index + 1);
+    return;
   }
-});
-
-if (failures > 0) {
-  process.exitCode = 1;
+  if (result && typeof result.then === 'function') {
+    result
+      .then(function () {
+        // eslint-disable-next-line no-console
+        console.log('PASS', name);
+        runTest(index + 1);
+      })
+      .catch(function (error) {
+        failures += 1;
+        // eslint-disable-next-line no-console
+        console.error('FAIL', name);
+        // eslint-disable-next-line no-console
+        console.error(error && error.stack ? error.stack : error);
+        runTest(index + 1);
+      });
+    return;
+  }
+  // eslint-disable-next-line no-console
+  console.log('PASS', name);
+  runTest(index + 1);
 }
+
+runTest(0);

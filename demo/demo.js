@@ -61,6 +61,16 @@ let googleCallback =
 
 const originalFetch = window.fetch;
 
+const sessionProfile = {
+  /** @type {null | {
+    user_id: string;
+    user_email: string;
+    display: string;
+    avatar_url: string;
+  }>} */
+  current: null,
+};
+
 /**
  * Creates a resolved fetch response mimicking the Fetch API.
  * @template T
@@ -91,18 +101,17 @@ window.fetch = (input, init = {}) => {
   }
   if (url.includes("/auth/google") && method === "POST") {
     appendLogEntry("Exchanged credential for profile");
-    return Promise.resolve(
-      createJsonResponse({
-        user_id: "demo-user-42",
-        user_email: "demo.user@example.com",
-        display: "Demo User",
-        avatar_url:
-          "https://avatars.githubusercontent.com/u/9919?s=40&v=4",
-      })
-    );
+    sessionProfile.current = {
+      user_id: "demo-user-42",
+      user_email: "demo.user@example.com",
+      display: "Demo User",
+      avatar_url: "https://avatars.githubusercontent.com/u/9919?s=40&v=4",
+    };
+    return Promise.resolve(createJsonResponse(sessionProfile.current));
   }
   if (url.includes("/auth/logout") && method === "POST") {
     appendLogEntry("Logged out via mock endpoint");
+    sessionProfile.current = null;
     return Promise.resolve(createJsonResponse({ success: true }));
   }
   if (originalFetch) {
@@ -127,7 +136,13 @@ window.google = {
   },
 };
 
-window.initAuthClient = ({ onUnauthenticated }) => {
+window.initAuthClient = ({ onAuthenticated, onUnauthenticated }) => {
+  const profile = sessionProfile.current;
+  if (profile && typeof onAuthenticated === "function") {
+    appendLogEntry("initAuthClient restoring authenticated session");
+    onAuthenticated(profile);
+    return Promise.resolve();
+  }
   appendLogEntry("initAuthClient invoked; marking unauthenticated");
   if (typeof onUnauthenticated === "function") {
     onUnauthenticated();
