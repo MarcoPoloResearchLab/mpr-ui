@@ -30,12 +30,12 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    ```html
    <footer x-data="mprFooter({ lines: ['Built by Marco Polo Research Lab'], links: footerLinks })" x-init="init()"></footer>
    <script>
-     const footerLinks = [
-       { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
-       { label: "LoopAware", url: "https://loopaware.mprlab.com" },
-     ];
-   </script>
-   ```
+    const footerLinks = [
+      { label: "Marco Polo Research Lab", href: "https://mprlab.com" },
+      { label: "LoopAware", href: "https://loopaware.mprlab.com" },
+    ];
+  </script>
+  ```
 
    Prefer an imperative call? Mount the same component with `MPRUI.renderFooter(hostElement, options)`.
 
