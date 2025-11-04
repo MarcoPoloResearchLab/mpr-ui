@@ -4,6 +4,9 @@ Entries record newly discovered requests or changes, with their outcomes. No ins
 
 ## Features (100–199)
 
+- [x] [MU-100] Build a sticky site header component providing auth controls, settings entry, and theme toggle. It must expose Alpine and imperative APIs and render DOM on drop-in. — Implemented sticky header in `mpr-ui.js`, documented usage, and showcased it in the demo on branch `feature/MU-100-sticky-header`.
+- [ ] [MU-101] Replace the legacy footer implementation by bundling a sticky site footer with menu, privacy link, and theme toggle directly in mpr-ui.js.
+
 ## Improvements (200–299)
 
 ## BugFixes (300–399)

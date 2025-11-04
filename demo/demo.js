@@ -4,8 +4,8 @@
  * @typedef {import("../mpr-ui.js")} MPRUIBundle
  */
 
-const authHost = /** @type {HTMLElement | null} */ (
-  document.getElementById("auth-header-host")
+const headerHost = /** @type {HTMLElement | null} */ (
+  document.getElementById("site-header")
 );
 const eventLog = /** @type {HTMLElement | null} */ (
   document.getElementById("event-log")
@@ -23,8 +23,8 @@ const profileAvatar = /** @type {HTMLElement | null} */ (
   document.getElementById("profile-avatar")
 );
 
-if (!authHost || !eventLog || !profileId || !profileEmail || !profileDisplay) {
-  throw new Error("demo: expected auth host and dataset placeholders");
+if (!headerHost || !eventLog || !profileId || !profileEmail || !profileDisplay) {
+  throw new Error("demo: expected header host and dataset placeholders");
 }
 
 /** @type {(message: string) => void} */
@@ -139,33 +139,53 @@ if (!window.MPRUI) {
   throw new Error("mpr-ui bundle did not load before demo.js");
 }
 
-const authController = window.MPRUI.createAuthHeader(authHost, {
-  loginPath: "/auth/google",
-  logoutPath: "/auth/logout",
-  noncePath: "/auth/nonce",
+const headerController = window.MPRUI.renderSiteHeader(headerHost, {
+  brand: { label: "Marco Polo Research Lab", href: "/" },
+  navLinks: [
+    { label: "Docs", href: "#docs" },
+    { label: "Support", href: "#support" },
+  ],
+  settings: { enabled: true, label: "Settings" },
+  themeToggle: { enabled: true, ariaLabel: "Toggle theme" },
+  initialTheme: "dark",
+  auth: {
+    loginPath: "/auth/google",
+    logoutPath: "/auth/logout",
+    noncePath: "/auth/nonce",
+  },
 });
 
-authHost.addEventListener("mpr-ui:auth:authenticated", (event) => {
+const authController = headerController.getAuthController();
+
+headerHost.addEventListener("mpr-ui:auth:authenticated", (event) => {
   appendLogEntry("Event: mpr-ui:auth:authenticated");
-  syncProfileDataset(authHost);
+  syncProfileDataset(headerHost);
   if (event && event.detail && event.detail.profile) {
     appendLogEntry(`User: ${event.detail.profile.display}`);
   }
 });
 
-authHost.addEventListener("mpr-ui:auth:unauthenticated", () => {
+headerHost.addEventListener("mpr-ui:auth:unauthenticated", () => {
   appendLogEntry("Event: mpr-ui:auth:unauthenticated");
-  syncProfileDataset(authHost);
+  syncProfileDataset(headerHost);
 });
 
-authHost.addEventListener("mpr-ui:auth:error", (event) => {
+headerHost.addEventListener("mpr-ui:auth:error", (event) => {
   const detail = event.detail || {};
   appendLogEntry(
     `Event: mpr-ui:auth:error (${detail.code || "unknown"})`
   );
 });
 
-syncProfileDataset(authHost);
+headerHost.addEventListener("mpr-ui:header:theme-change", (event) => {
+  appendLogEntry(`Header theme changed to ${(event.detail && event.detail.theme) || "unknown"}`);
+});
+
+headerHost.addEventListener("mpr-ui:header:settings-click", () => {
+  appendLogEntry("Settings button clicked");
+});
+
+syncProfileDataset(headerHost);
 
 const promptButton = document.getElementById("trigger-prompt");
 const completeButton = document.getElementById("complete-sign-in");
@@ -187,15 +207,26 @@ completeButton.addEventListener("click", () => {
     return;
   }
   appendLogEntry("Invoking authController.handleCredential directly");
-  authController.handleCredential({ credential: "demo-id-token" });
+  if (authController && typeof authController.handleCredential === "function") {
+    authController.handleCredential({ credential: "demo-id-token" });
+    return;
+  }
+  appendLogEntry("Auth controller unavailable; emitting fallback event");
+  headerHost.dispatchEvent(
+    new CustomEvent("mpr-ui:header:signin-click", { detail: {} })
+  );
 });
 
 signOutButton.addEventListener("click", () => {
-  authController.signOut();
+  if (authController && typeof authController.signOut === "function") {
+    authController.signOut();
+  }
 });
 
 restartButton.addEventListener("click", () => {
-  authController.restartSessionWatcher();
+  if (authController && typeof authController.restartSessionWatcher === "function") {
+    authController.restartSessionWatcher();
+  }
 });
 
 const footerHost = /** @type {HTMLElement | null} */ (

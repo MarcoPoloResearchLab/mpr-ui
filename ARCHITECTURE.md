@@ -21,13 +21,15 @@ The library assumes a CDN delivery model and no build tooling. Everything runs i
 
 When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 
-| Export                  | Description                                                                    |
-| ----------------------- | ------------------------------------------------------------------------------ |
-| `MPRUI.createAuthHeader(host, options)` | Creates the auth header controller bound to a DOM element.        |
-| `MPRUI.renderAuthHeader(host, options)` | Convenience wrapper that resolves CSS selectors before calling `createAuthHeader`. |
-| `MPRUI.mprHeader(options)`              | Factory for framework integrations (`this.$el` expected); instantiates `createAuthHeader` on `init`. |
-| `MPRUI.renderFooter(host, options)`     | Renders the marketing footer into a DOM node and returns `{ update, destroy }`. |
-| `MPRUI.mprFooter(options)`              | Framework-friendly facade; `init` wires `renderFooter`, `update` proxies, `destroy` unmounts. |
+| Export                                  | Description                                                                                          |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `MPRUI.createAuthHeader(host, options)` | Creates the auth header controller bound to a DOM element.                                           |
+| `MPRUI.renderAuthHeader(host, options)` | Convenience wrapper that resolves CSS selectors before calling `createAuthHeader`.                   |
+| `MPRUI.mprHeader(options)`              | Legacy factory that only wires the auth controller without rendering UI (kept for compatibility).    |
+| `MPRUI.renderSiteHeader(host, options)` | Renders the sticky site header, wiring auth, settings, and theme controls; returns `{ update, destroy }`. |
+| `MPRUI.mprSiteHeader(options)`          | Alpine/framework factory for the site header; `init` renders, `update` proxies, `destroy` unmounts.  |
+| `MPRUI.renderFooter(host, options)`     | Renders the marketing footer into a DOM node and returns `{ update, destroy }`.                       |
+| `MPRUI.mprFooter(options)`              | Framework-friendly facade; `init` wires `renderFooter`, `update` proxies, `destroy` unmounts.         |
 
 All helpers are side-effect free apart from DOM writes and `fetch` requests.
 
@@ -73,6 +75,44 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 - Google Identity Services script (`https://accounts.google.com/gsi/client`) must be loaded.
 - Optional `initAuthClient` global bootstraps a server-provided session (expected to return a promise).
 - Backend endpoints must accept `credentials: "include"` requests and return JSON.
+
+## Site Header Component
+
+`renderSiteHeader` produces a sticky banner that combines navigation, auth controls, and theme switching. When `auth` options are supplied it internally initialises `createAuthHeader`, so the host element still receives the `mpr-ui:auth:*` events and dataset updates documented earlier.
+
+### Markup & Styling
+
+- Outputs `<header class="mpr-header" role="banner">` with `__inner`, `__nav`, `__actions`, and `__chip` sub-elements.
+- Injects styles via `<style id="mpr-ui-header-styles">`; the header is `position: sticky` at the top (z-index `1200`), uses a translucent slate backdrop, and adapts to flex layouts.
+- Applies modifier classes to the root:
+  - `mpr-header--authenticated` shows the profile chip / hides sign-in.
+  - `mpr-header--no-auth` hides auth UI when no controller is attached.
+  - `mpr-header--no-settings` and `mpr-header--no-theme` hide optional buttons.
+
+### Options
+
+| Option                  | Type                       | Description                                                                  |
+| ----------------------- | -------------------------- | ---------------------------------------------------------------------------- |
+| `brand.label`           | `string`                   | Brand text (default "Marco Polo Research Lab").                             |
+| `brand.href`            | `string`                   | Brand link destination (default `/`).                                        |
+| `navLinks`              | `{label, href, target?}[]` | Optional navigation anchors rendered next to the brand.                      |
+| `settings.enabled`      | `boolean`                  | Shows or hides the settings button (default `true`).                         |
+| `settings.label`        | `string`                   | Settings button label (default "Settings").                                 |
+| `themeToggle.enabled`   | `boolean`                  | Shows or hides the theme toggle button (default `true`).                     |
+| `themeToggle.ariaLabel` | `string`                   | Accessible label applied to the theme toggle.                                |
+| `signInLabel`           | `string`                   | Copy for the sign-in button (default "Sign in").                            |
+| `signOutLabel`          | `string`                   | Copy for the sign-out button (default "Sign out").                          |
+| `profileLabel`          | `string`                   | Text shown above the authenticated user name (default "Signed in as").      |
+| `initialTheme`          | `"light"` \| `"dark"`     | Initial value applied to `document.documentElement.dataset.mprTheme`.         |
+| `auth`                  | `object | null`            | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |
+
+### Events
+
+- `mpr-ui:header:theme-change` — detail `{ theme }`, emitted on every toggle.
+- `mpr-ui:header:settings-click` — fired when the settings button is pressed.
+- `mpr-ui:header:signin-click` — emitted if a sign-in attempt occurs without GIS availability.
+- `mpr-ui:header:signout-click` — emitted when sign-out is requested but no controller is attached.
+- `mpr-ui:header:error` — surfaced on internal failures (e.g., GIS prompt errors).
 
 ## Footer Renderer (Bundle)
 

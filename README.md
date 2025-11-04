@@ -25,22 +25,32 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    ></script>
    ```
 
-2. **Render the footer** — use the Alpine factory or the global helper.
+2. **Render the header & footer** — use the Alpine factories or the global helpers.
 
    ```html
+   <header x-data="mprSiteHeader({
+     brand: { label: 'Marco Polo Research Lab', href: '/' },
+     navLinks: [
+       { label: 'Docs', href: '#docs' },
+       { label: 'Support', href: '#support' }
+     ],
+     auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' }
+   })" x-init="init()"></header>
+
    <footer x-data="mprFooter({ lines: ['Built by Marco Polo Research Lab'], links: footerLinks })" x-init="init()"></footer>
    <script>
      const footerLinks = [
        { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
-       { label: "LoopAware", url: "https://loopaware.mprlab.com" },
+        { label: "LoopAware", url: "https://loopaware.mprlab.com" },
      ];
    </script>
    ```
 
-   Prefer an imperative call? Mount the same component with `MPRUI.renderFooter(hostElement, options)`.
+   Prefer an imperative call? Mount the same components with `MPRUI.renderSiteHeader(hostElement, options)` and `MPRUI.renderFooter(hostElement, options)`.
 
 ## Components
 
+- **Site Header** — sticky banner with auth controls, settings trigger, and theme toggle.
 - **Footer** — marketing footer with configurable copy lines, navigation links, and generated styling.
 - **Auth Header (experimental)** — helper that orchestrates Google Identity Services login flows for standalone front-ends.
 - **Legacy footer bundle** — see [`footer.js`](footer.js) if you need dropdown/theme toggle support absent from the current bundle.
@@ -55,6 +65,7 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 Every API and integration detail is catalogued in [`ARCHITECTURE.md`](ARCHITECTURE.md), including:
 
 - Namespace exports, events, and backend expectations.
+- Header options (brand, navigation, auth wiring) and emitted events.
 - Option tables for the bundled footer and notes about the legacy dropdown-enabled footer.
 - Google Identity Services handshake sequence for the auth header helper.
 

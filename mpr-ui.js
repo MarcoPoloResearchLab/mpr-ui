@@ -401,6 +401,553 @@
     return createAuthHeader(host, options || {});
   }
 
+  var HEADER_ROOT_CLASS = "mpr-header";
+  var HEADER_STYLE_ID = "mpr-ui-header-styles";
+  var HEADER_STYLE_MARKUP =
+    "." +
+    HEADER_ROOT_CLASS +
+    "{position:sticky;top:0;width:100%;z-index:1200;background:rgba(15,23,42,0.9);backdrop-filter:blur(12px);color:#e2e8f0;border-bottom:1px solid rgba(148,163,184,0.25);box-shadow:0 4px 12px rgba(15,23,42,0.45)}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__inner{max-width:1080px;margin:0 auto;padding:0.75rem 1.5rem;display:flex;align-items:center;gap:1.5rem}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__brand{font-size:1.05rem;font-weight:700;letter-spacing:0.02em}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__brand-link{color:inherit;text-decoration:none}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__brand-link:hover{text-decoration:underline}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__nav{margin-left:auto;display:flex;gap:1rem;align-items:center}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__nav a{color:inherit;text-decoration:none;font-weight:500}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__nav a:hover{text-decoration:underline}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__actions{display:flex;gap:0.75rem;align-items:center}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__chip{display:none;flex-direction:column;align-items:flex-start;gap:0.25rem;font-size:0.85rem}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__profile-name{font-weight:600}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__button{border:none;border-radius:999px;padding:0.4rem 0.95rem;font-weight:600;cursor:pointer;background:rgba(148,163,184,0.18);color:inherit}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__button:hover{background:rgba(148,163,184,0.32)}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__button--primary{background:#38bdf8;color:#0f172a}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__button--primary:hover{background:#22d3ee}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__icon-btn{display:inline-flex;align-items:center;gap:0.35rem}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__divider{width:1px;height:24px;background:rgba(148,163,184,0.35)}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "--authenticated [data-mpr-header=\"profile\"]{display:flex}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "--authenticated [data-mpr-header=\"sign-in-button\"]{display:none}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "--no-auth [data-mpr-header=\"sign-in-button\"]{display:none}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "--no-settings [data-mpr-header=\"settings-button\"]{display:none}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "--no-theme [data-mpr-header=\"theme-toggle\"]{display:none}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__nav:empty{display:none}";
+
+  var HEADER_DEFAULTS = Object.freeze({
+    brand: Object.freeze({
+      label: "Marco Polo Research Lab",
+      href: "/",
+    }),
+    navLinks: Object.freeze([]),
+    settings: Object.freeze({
+      enabled: true,
+      label: "Settings",
+    }),
+    themeToggle: Object.freeze({
+      enabled: true,
+      ariaLabel: "Toggle theme",
+    }),
+    signInLabel: "Sign in",
+    signOutLabel: "Sign out",
+    profileLabel: "Signed in as",
+    initialTheme: "light",
+    auth: null,
+  });
+
+  function ensureHeaderStyles(documentObject) {
+    if (
+      !documentObject ||
+      typeof documentObject.createElement !== "function" ||
+      !documentObject.head
+    ) {
+      return;
+    }
+    if (documentObject.getElementById(HEADER_STYLE_ID)) {
+      return;
+    }
+    var styleElement = documentObject.createElement("style");
+    styleElement.type = "text/css";
+    styleElement.id = HEADER_STYLE_ID;
+    if (styleElement.styleSheet) {
+      styleElement.styleSheet.cssText = HEADER_STYLE_MARKUP;
+    } else {
+      styleElement.appendChild(
+        documentObject.createTextNode(HEADER_STYLE_MARKUP),
+      );
+    }
+    documentObject.head.appendChild(styleElement);
+  }
+
+  function normalizeHeaderOptions(rawOptions) {
+    var options = rawOptions && typeof rawOptions === "object" ? rawOptions : {};
+    var brandSource =
+      options.brand && typeof options.brand === "object" ? options.brand : {};
+    var settingsSource =
+      options.settings && typeof options.settings === "object"
+        ? options.settings
+        : {};
+    var themeSource =
+      options.themeToggle && typeof options.themeToggle === "object"
+        ? options.themeToggle
+        : {};
+
+    var navLinks = Array.isArray(options.navLinks)
+      ? options.navLinks
+          .map(function (link) {
+            if (!link || typeof link !== "object") {
+              return null;
+            }
+            var label =
+              typeof link.label === "string" ? link.label.trim() : "";
+            var href = typeof link.href === "string" ? link.href.trim() : "";
+            if (!label || !href) {
+              return null;
+            }
+            var target =
+              typeof link.target === "string" ? link.target.trim() : "";
+            return {
+              label: label,
+              href: href,
+              target: target || null,
+            };
+          })
+          .filter(Boolean)
+      : [];
+
+    var authOptions =
+      options.auth && typeof options.auth === "object" ? options.auth : null;
+
+    var normalized = {
+      brand: {
+        label:
+          typeof brandSource.label === "string" && brandSource.label.trim()
+            ? brandSource.label.trim()
+            : HEADER_DEFAULTS.brand.label,
+        href:
+          typeof brandSource.href === "string" && brandSource.href.trim()
+            ? brandSource.href.trim()
+            : HEADER_DEFAULTS.brand.href,
+      },
+      navLinks: navLinks,
+      settings: {
+        enabled:
+          settingsSource.enabled === undefined
+            ? HEADER_DEFAULTS.settings.enabled
+            : Boolean(settingsSource.enabled),
+        label:
+          typeof settingsSource.label === "string" &&
+          settingsSource.label.trim()
+            ? settingsSource.label.trim()
+            : HEADER_DEFAULTS.settings.label,
+      },
+      themeToggle: {
+        enabled:
+          themeSource.enabled === undefined
+            ? HEADER_DEFAULTS.themeToggle.enabled
+            : Boolean(themeSource.enabled),
+        ariaLabel:
+          typeof themeSource.ariaLabel === "string" &&
+          themeSource.ariaLabel.trim()
+            ? themeSource.ariaLabel.trim()
+            : HEADER_DEFAULTS.themeToggle.ariaLabel,
+      },
+      signInLabel:
+        typeof options.signInLabel === "string" && options.signInLabel.trim()
+          ? options.signInLabel.trim()
+          : HEADER_DEFAULTS.signInLabel,
+      signOutLabel:
+        typeof options.signOutLabel === "string" && options.signOutLabel.trim()
+          ? options.signOutLabel.trim()
+          : HEADER_DEFAULTS.signOutLabel,
+      profileLabel:
+        typeof options.profileLabel === "string" && options.profileLabel.trim()
+          ? options.profileLabel.trim()
+          : HEADER_DEFAULTS.profileLabel,
+      initialTheme:
+        options.initialTheme === "dark" ? "dark" : HEADER_DEFAULTS.initialTheme,
+      auth: authOptions,
+    };
+
+    return normalized;
+  }
+
+  function buildHeaderMarkup(options) {
+    var brandHref = escapeHtml(options.brand.href);
+    var brandLabel = escapeHtml(options.brand.label);
+    var navMarkup = options.navLinks
+      .map(function (link) {
+        var linkHref = escapeHtml(sanitizeHref(link.href));
+        var linkLabel = escapeHtml(link.label);
+        var targetAttribute = link.target
+          ? ' target="' + escapeHtml(link.target) + '"'
+          : "";
+        return (
+          '<a href="' +
+          linkHref +
+          '"' +
+          targetAttribute +
+          ">" +
+          linkLabel +
+          "</a>"
+        );
+      })
+      .join("");
+
+    return (
+      '<header class="' +
+      HEADER_ROOT_CLASS +
+      '" role="banner">' +
+      '<div class="' +
+      HEADER_ROOT_CLASS +
+      '__inner">' +
+      '<div class="' +
+      HEADER_ROOT_CLASS +
+      '__brand">' +
+      '<a data-mpr-header="brand" class="' +
+      HEADER_ROOT_CLASS +
+      '__brand-link" href="' +
+      brandHref +
+      '">' +
+      brandLabel +
+      "</a>" +
+      "</div>" +
+      '<nav data-mpr-header="nav" class="' +
+      HEADER_ROOT_CLASS +
+      '__nav" aria-label="Primary navigation">' +
+      navMarkup +
+      "</nav>" +
+      '<div class="' +
+      HEADER_ROOT_CLASS +
+      '__actions">' +
+      '<button type="button" class="' +
+      HEADER_ROOT_CLASS +
+      '__button ' +
+      HEADER_ROOT_CLASS +
+      '__icon-btn" data-mpr-header="theme-toggle">🌗<span>Theme</span></button>' +
+      '<span class="' +
+      HEADER_ROOT_CLASS +
+      '__divider"></span>' +
+      '<button type="button" class="' +
+      HEADER_ROOT_CLASS +
+      '__button" data-mpr-header="settings-button">Settings</button>' +
+      '<button type="button" class="' +
+      HEADER_ROOT_CLASS +
+      '__button ' +
+      HEADER_ROOT_CLASS +
+      '__button--primary" data-mpr-header="sign-in-button">Sign in</button>' +
+      '<div class="' +
+      HEADER_ROOT_CLASS +
+      '__chip" data-mpr-header="profile">' +
+      '<span data-mpr-header="profile-label">Signed in as</span>' +
+      '<span class="' +
+      HEADER_ROOT_CLASS +
+      '__profile-name" data-mpr-header="profile-name"></span>' +
+      '<button type="button" class="' +
+      HEADER_ROOT_CLASS +
+      '__button" data-mpr-header="sign-out-button">Sign out</button>' +
+      "</div>" +
+      "</div>" +
+      "</div>" +
+      "</header>"
+    );
+  }
+
+  function resolveHeaderElements(hostElement) {
+    return {
+      root: hostElement.querySelector("header." + HEADER_ROOT_CLASS),
+      nav: hostElement.querySelector('[data-mpr-header="nav"]'),
+      brand: hostElement.querySelector('[data-mpr-header="brand"]'),
+      themeButton: hostElement.querySelector(
+        '[data-mpr-header="theme-toggle"]',
+      ),
+      settingsButton: hostElement.querySelector(
+        '[data-mpr-header="settings-button"]',
+      ),
+      signInButton: hostElement.querySelector(
+        '[data-mpr-header="sign-in-button"]',
+      ),
+      profileContainer: hostElement.querySelector(
+        '[data-mpr-header="profile"]',
+      ),
+      profileLabel: hostElement.querySelector(
+        '[data-mpr-header="profile-label"]',
+      ),
+      profileName: hostElement.querySelector(
+        '[data-mpr-header="profile-name"]',
+      ),
+      signOutButton: hostElement.querySelector(
+        '[data-mpr-header="sign-out-button"]',
+      ),
+    };
+  }
+
+  function renderHeaderNav(navElement, navLinks) {
+    if (!navElement) {
+      return;
+    }
+    navElement.innerHTML = navLinks
+      .map(function (link) {
+        var hrefValue = escapeHtml(sanitizeHref(link.href));
+        var labelValue = escapeHtml(link.label);
+        var targetAttribute = link.target
+          ? ' target="' + escapeHtml(link.target) + '"'
+          : "";
+        return (
+          '<a href="' + hrefValue + '"' + targetAttribute + ">" + labelValue + "</a>"
+        );
+      })
+      .join("");
+  }
+
+  function updateHeaderAuthView(hostElement, elements, options, state) {
+    if (!elements.root) {
+      return;
+    }
+    if (!state || !state.profile) {
+      elements.root.classList.remove(
+        HEADER_ROOT_CLASS + "--authenticated",
+        HEADER_ROOT_CLASS + "--no-auth",
+      );
+      if (elements.profileLabel) {
+        elements.profileLabel.textContent = options.profileLabel;
+      }
+      if (elements.profileName) {
+        elements.profileName.textContent = "";
+      }
+      return;
+    }
+    elements.root.classList.add(HEADER_ROOT_CLASS + "--authenticated");
+    if (elements.profileLabel) {
+      elements.profileLabel.textContent = options.profileLabel;
+    }
+    if (elements.profileName) {
+      var preference =
+        state.profile.display || state.profile.user_email || state.profile.user_id;
+      elements.profileName.textContent = preference
+        ? String(preference)
+        : "";
+    }
+  }
+
+  function applyHeaderOptions(hostElement, elements, options) {
+    if (!elements.root) {
+      return;
+    }
+    if (elements.brand) {
+      elements.brand.textContent = options.brand.label;
+      elements.brand.setAttribute("href", sanitizeHref(options.brand.href));
+    }
+    renderHeaderNav(elements.nav, options.navLinks);
+
+    elements.root.classList.toggle(
+      HEADER_ROOT_CLASS + "--no-settings",
+      !options.settings.enabled,
+    );
+    elements.root.classList.toggle(
+      HEADER_ROOT_CLASS + "--no-theme",
+      !options.themeToggle.enabled,
+    );
+
+    if (elements.settingsButton) {
+      elements.settingsButton.textContent = options.settings.label;
+    }
+    if (elements.themeButton && options.themeToggle.ariaLabel) {
+      elements.themeButton.setAttribute(
+        "aria-label",
+        options.themeToggle.ariaLabel,
+      );
+    }
+    if (elements.signInButton) {
+      elements.signInButton.textContent = options.signInLabel;
+    }
+    if (elements.signOutButton) {
+      elements.signOutButton.textContent = options.signOutLabel;
+    }
+  }
+
+  function determineInitialTheme(options) {
+    if (!global.document || !global.document.documentElement) {
+      return "light";
+    }
+    var requested = options.initialTheme === "dark" ? "dark" : "light";
+    global.document.documentElement.setAttribute("data-mpr-theme", requested);
+    return requested;
+  }
+
+  function toggleTheme(currentTheme) {
+    return currentTheme === "dark" ? "light" : "dark";
+  }
+
+  function renderSiteHeader(target, rawOptions) {
+    var hostElement = resolveHost(target);
+    if (!hostElement || typeof hostElement !== "object") {
+      throw new Error("renderSiteHeader requires a host element");
+    }
+
+    var options = normalizeHeaderOptions(rawOptions);
+    ensureHeaderStyles(global.document || (global.window && global.window.document));
+
+    hostElement.innerHTML = buildHeaderMarkup(options);
+    var elements = resolveHeaderElements(hostElement);
+    if (!elements.root) {
+      throw new Error("renderSiteHeader failed to mount header root");
+    }
+
+    applyHeaderOptions(hostElement, elements, options);
+
+    var currentTheme = determineInitialTheme(options);
+    var authController = null;
+
+    if (options.auth) {
+      authController = createAuthHeader(hostElement, options.auth);
+    } else if (elements.root) {
+      elements.root.classList.add(HEADER_ROOT_CLASS + "--no-auth");
+    }
+
+    function dispatchHeaderEvent(type, detail) {
+      dispatchEvent(hostElement, type, detail || {});
+    }
+
+    function refreshAuthState() {
+      if (!authController) {
+        return;
+      }
+      updateHeaderAuthView(hostElement, elements, options, authController.state);
+    }
+
+    if (options.auth && elements.signInButton) {
+      elements.signInButton.addEventListener("click", function () {
+        if (
+          global.google &&
+          global.google.accounts &&
+          global.google.accounts.id &&
+          typeof global.google.accounts.id.prompt === "function"
+        ) {
+          try {
+            global.google.accounts.id.prompt();
+          } catch (_error) {
+            dispatchHeaderEvent("mpr-ui:header:error", {
+              code: "mpr-ui.header.google_prompt_failed",
+            });
+          }
+        } else {
+          dispatchHeaderEvent("mpr-ui:header:signin-click", {});
+        }
+      });
+    } else if (elements.signInButton) {
+      elements.signInButton.addEventListener("click", function () {
+        dispatchHeaderEvent("mpr-ui:header:signin-click", {});
+      });
+    }
+
+    if (elements.signOutButton) {
+      elements.signOutButton.addEventListener("click", function () {
+        if (authController && typeof authController.signOut === "function") {
+          authController.signOut();
+        } else {
+          dispatchHeaderEvent("mpr-ui:header:signout-click", {});
+        }
+      });
+    }
+
+    if (elements.settingsButton) {
+      elements.settingsButton.addEventListener("click", function () {
+        dispatchHeaderEvent("mpr-ui:header:settings-click", {});
+      });
+    }
+
+    if (elements.themeButton) {
+      elements.themeButton.addEventListener("click", function () {
+        currentTheme = toggleTheme(currentTheme);
+        if (global.document && global.document.documentElement) {
+          global.document.documentElement.setAttribute(
+            "data-mpr-theme",
+            currentTheme,
+          );
+        }
+        dispatchHeaderEvent("mpr-ui:header:theme-change", {
+          theme: currentTheme,
+        });
+      });
+    }
+
+    if (authController) {
+      hostElement.addEventListener(
+        "mpr-ui:auth:authenticated",
+        function () {
+          refreshAuthState();
+        },
+      );
+      hostElement.addEventListener(
+        "mpr-ui:auth:unauthenticated",
+        function () {
+          refreshAuthState();
+        },
+      );
+      refreshAuthState();
+    }
+
+    return {
+      update: function update(nextOptions) {
+        options = normalizeHeaderOptions(
+          Object.assign({}, options, nextOptions || {}),
+        );
+        applyHeaderOptions(hostElement, elements, options);
+        if (options.auth && !authController) {
+          authController = createAuthHeader(hostElement, options.auth);
+          refreshAuthState();
+        }
+      },
+      destroy: function destroy() {
+        hostElement.innerHTML = "";
+      },
+      getAuthController: function getAuthController() {
+        return authController;
+      },
+    };
+  }
+
   function mprHeader(options) {
     var resolvedOptions = options || {};
     return {
@@ -418,6 +965,41 @@
       },
       destroy: function () {
         this.__mprHeaderController = null;
+      },
+    };
+  }
+
+  function mprSiteHeader(options) {
+    var resolvedOptions = options || {};
+    return {
+      init: function init() {
+        var element =
+          (this && this.$el) ||
+          (this && this.el) ||
+          (this && this.element) ||
+          (this && this.host) ||
+          null;
+        if (!element) {
+          throw new Error("mprSiteHeader requires a root element");
+        }
+        this.__mprSiteHeaderController = renderSiteHeader(element, resolvedOptions);
+      },
+      update: function update(nextOptions) {
+        if (
+          this.__mprSiteHeaderController &&
+          typeof this.__mprSiteHeaderController.update === "function"
+        ) {
+          this.__mprSiteHeaderController.update(nextOptions);
+        }
+      },
+      destroy: function destroy() {
+        if (
+          this.__mprSiteHeaderController &&
+          typeof this.__mprSiteHeaderController.destroy === "function"
+        ) {
+          this.__mprSiteHeaderController.destroy();
+        }
+        this.__mprSiteHeaderController = null;
       },
     };
   }
@@ -691,4 +1273,6 @@
   namespace.mprHeader = mprHeader;
   namespace.renderFooter = renderFooter;
   namespace.mprFooter = mprFooter;
+  namespace.renderSiteHeader = renderSiteHeader;
+  namespace.mprSiteHeader = mprSiteHeader;
 })(typeof window !== "undefined" ? window : globalThis);
