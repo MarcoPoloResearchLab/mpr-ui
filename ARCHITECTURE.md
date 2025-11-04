@@ -1,154 +1,210 @@
 # ARCHITECTURE
 
-This repository ships a browser-ready UI library exposed through the `mpr-ui.js` bundle. The bundle defines Alpine-friendly factories and imperative helpers under the global `window.MPRUI` namespace. Components are designed to be CDN-loaded without a build step and integrate cleanly with Bootstrap utilities when desired.
+`mpr-ui` is delivered as a browser-ready bundle (`mpr-ui.js`) that attaches helpers to the global `window.MPRUI` namespace. The project currently ships two behaviours:
 
-## Modules
+- An authentication header controller that orchestrates Google Identity Services (GIS) sign-in flows.
+- A sticky footer renderer with dropdown navigation, privacy link, and theme toggle support.
 
-- `mpr-ui.js` — production bundle that registers the namespace and exports components.
-- `footer.js` — source for the footer component; bundled content is replicated in `mpr-ui.js`.
-- `alpine.js.md` — internal notes describing Alpine integration patterns and constraints.
+The library assumes a CDN delivery model and no build tooling. Everything runs in the browser with optional Alpine.js convenience factories.
 
-## Footer Component
+## Files and Responsibilities
 
-### Factories and APIs
+| File          | Role                                                                                         |
+| ------------- | -------------------------------------------------------------------------------------------- |
+| `mpr-ui.js`   | Production bundle exposed to consumers. Defines the namespace, auth header helpers, footer.  |
+| `footer.js`   | Legacy standalone footer bundle (includes richer dropdown/theme logic, not wired into `mpr-ui.js`). |
+| `alpine.js.md`| Notes on Alpine integration patterns.                                                        |
 
-- `mprFooter(options)` — Alpine factory used as `x-data="mprFooter({...})"`, typically paired with `x-init="init()"`.
-- `MPRUI.renderFooter(element, options)` — Imperative renderer that mounts into a DOM node.
-- `MPRUI.mprFooter(options)` — Returns a component instance exposing `.init(userOptions)`.
+> **Note:** `footer.js` predates the current bundle and is kept only for legacy consumers; the main bundle now exposes the richer footer implementation directly.
+
+## Global Namespace
+
+When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
+
+| Export                                  | Description                                                                                          |
+| --------------------------------------- | ---------------------------------------------------------------------------------------------------- |
+| `MPRUI.createAuthHeader(host, options)` | Creates the auth header controller bound to a DOM element.                                           |
+| `MPRUI.renderAuthHeader(host, options)` | Convenience wrapper that resolves CSS selectors before calling `createAuthHeader`.                   |
+| `MPRUI.mprHeader(options)`              | Legacy factory that only wires the auth controller without rendering UI (kept for compatibility).    |
+| `MPRUI.renderSiteHeader(host, options)` | Renders the sticky site header, wiring auth, settings, and theme controls; returns `{ update, destroy }`. |
+| `MPRUI.mprSiteHeader(options)`          | Alpine/framework factory for the site header; `init` renders, `update` proxies, `destroy` unmounts.  |
+| `MPRUI.renderFooter(host, options)`     | Renders the marketing footer into a DOM node and returns `{ update, destroy }`.                       |
+| `MPRUI.mprFooter(options)`              | Framework-friendly facade; `init` wires `renderFooter`, `update` proxies, `destroy` unmounts.         |
+| `MPRUI.configureTheme(config)`          | Merges global theme configuration (attribute, targets, modes) and reapplies the current mode.         |
+| `MPRUI.setThemeMode(value)`             | Sets the active theme mode and dispatches `mpr-ui:theme-change`.                                      |
+| `MPRUI.getThemeMode()`                  | Returns the active theme mode string.                                                                |
+| `MPRUI.onThemeChange(listener)`         | Subscribes to theme updates; returns an unsubscribe function.                                        |
+
+All helpers are side-effect free apart from DOM writes and `fetch` requests.
+
+## Authentication Header Controller
+
+### Lifecycle Overview
+
+1. **Initialisation** – `createAuthHeader` normalises options (paths, Google client ID) and records internal state (`status`, `profile`, `pendingNonceToken`).
+2. **State Broadcast** – Dataset attributes (`data-user-id`, `data-user-email`, `data-user-display`, `data-user-avatar-url`) mirror the current profile for CSS hooks. Custom events on the host bubble up for consumers:
+   - `mpr-ui:auth:authenticated` with `{ profile }`
+   - `mpr-ui:auth:unauthenticated` with `{ profile: null }`
+   - `mpr-ui:auth:error` with `{ code, message?, status? }`
+3. **Nonce Handling** – `requestNonceToken` POSTs to `options.noncePath` and caches the result to avoid concurrent requests.
+4. **GIS Wiring** – `configureGoogleNonce` injects the nonce into the GIS script (`#g_id_onload[data-nonce]`) and calls `google.accounts.id.initialize`.
+5. **Session Bootstrap** – If a global `initAuthClient` function exists, it is invoked to recover the current session. Otherwise, the controller awaits GIS events.
+6. **Credential Exchange** – `handleCredential` exchanges the GIS credential for a first-party session via `options.loginPath`. Success updates state and emits `authenticated`; failure emits `mpr-ui.auth.exchange_failed` and re-prompts GIS.
+7. **Logout** – `signOut` POSTs to `options.logoutPath`, clears local state, and triggers a new bootstrap.
 
 ### Options
 
-| Option                     | Type                              | Description                                                            |
-| -------------------------- | --------------------------------- | ---------------------------------------------------------------------- |
-| `elementId`                | `string`                          | Assigns `id` to the root `<footer>`.                                   |
-| `baseClass`                | `string`                          | Classes applied to the root `<footer>`.                                |
-| `innerElementId`           | `string`                          | Assigns `id` to the inner container.                                   |
-| `innerClass`               | `string`                          | Classes on inner container.                                            |
-| `wrapperClass`             | `string`                          | Classes on layout wrapper (flex, spacing, etc.).                       |
-| `brandWrapperClass`        | `string`                          | Classes for brand/prefix area.                                         |
-| `menuWrapperClass`         | `string`                          | Classes for the dropdown wrapper (e.g., `dropup`).                     |
-| `prefixClass`              | `string`                          | Classes for the “Built by …” prefix span.                              |
-| `prefixText`               | `string`                          | Text content for the prefix.                                           |
-| `toggleButtonId`           | `string`                          | `id` for dropdown trigger button.                                      |
-| `toggleButtonClass`        | `string`                          | Classes for dropdown trigger button.                                   |
-| `toggleLabel`              | `string`                          | Button label text.                                                     |
-| `menuClass`                | `string`                          | Classes for `<ul>` menu container.                                     |
-| `menuItemClass`            | `string`                          | Classes for each `<a>` menu link.                                      |
-| `privacyLinkClass`         | `string`                          | Classes for the Privacy/Terms anchor.                                  |
-| `privacyLinkHref`          | `string`                          | Href for the Privacy/Terms anchor.                                     |
-| `privacyLinkLabel`         | `string`                          | Label for the Privacy/Terms anchor.                                    |
-| `themeToggle.enabled`      | `boolean`                         | Renders a theme switch when `true`.                                    |
-| `themeToggle.wrapperClass` | `string`                          | Classes for the switch wrapper.                                        |
-| `themeToggle.inputClass`   | `string`                          | Classes for the `input[type=checkbox]`.                                |
-| `themeToggle.inputId`      | `string`                          | `id` for the switch input.                                             |
-| `themeToggle.dataTheme`    | `string`                          | Value for `data-bs-theme` on the wrapper.                              |
-| `themeToggle.ariaLabel`    | `string`                          | Accessible label for the switch.                                       |
-| `links`                    | `Array<{label,url,target?,rel?}>` | Menu links (defaults: `target="_blank"`, `rel="noopener noreferrer"`). |
+| Option              | Purpose                                                                                |
+| ------------------- | -------------------------------------------------------------------------------------- |
+| `baseUrl`           | Prefix applied to `loginPath`, `logoutPath`, and `noncePath`.                          |
+| `loginPath`         | Relative path that receives `POST { google_id_token, nonce_token }`.                   |
+| `logoutPath`        | Relative path for session termination (`POST`).                                        |
+| `noncePath`         | Endpoint that issues a nonce (`POST` -> `{ nonce: string }`).                          |
+| `googleClientId`    | Overrides the client ID discovered from `#g_id_onload[data-client_id]`.                |
+| `siteName` / `siteLink` | Metadata forwarded to custom renderers via consumer code (not used internally).   |
 
-### `data-*` Attributes
+### Public API
 
-Any host element can be configured declaratively using `data-*` attributes. Values are parsed as strings unless marked as JSON.
+`createAuthHeader` returns an object with:
 
-- `data-element-id`
-- `data-base-class`
-- `data-inner-element-id`
-- `data-inner-class`
-- `data-wrapper-class`
-- `data-brand-wrapper-class`
-- `data-menu-wrapper-class`
-- `data-prefix-class`
-- `data-prefix-text`
-- `data-toggle-button-id`
-- `data-toggle-button-class`
-- `data-toggle-label`
-- `data-menu-class`
-- `data-menu-item-class`
-- `data-privacy-link-class`
-- `data-privacy-link-href`
-- `data-privacy-link-label`
-- `data-theme-toggle` (JSON object)
-- `data-links` (JSON array)
+- `handleCredential(credentialResponse)` – call from the GIS callback.
+- `signOut()` – clears the session and restarts bootstrap.
+- `restartSessionWatcher()` – re-run bootstrap logic (useful after network loss).
+- `state` – `{ status: "unauthenticated" | "authenticated", profile }` (read-only contract for consumers).
 
-### Alpine Usage Example
+The controller automatically prompts GIS after logout or failed exchanges and suppresses duplicate events with internal signature checks.
 
-```html
-<div
-  data-base-class="mt-auto py-3 border-top"
-  data-inner-class="container"
-  data-wrapper-class="w-100 d-flex flex-column flex-md-row align-items-start align-items-md-center justify-content-between gap-3"
-  data-brand-wrapper-class="d-inline-flex align-items-center gap-2 text-body-secondary small"
-  data-menu-wrapper-class="dropup"
-  data-prefix-class="text-body-secondary fw-semibold"
-  data-prefix-text="Built by"
-  data-toggle-button-class="btn btn-link dropdown-toggle text-decoration-none px-0 fw-semibold text-body-secondary"
-  data-toggle-label="Marco Polo Research Lab"
-  data-menu-class="dropdown-menu dropdown-menu-end shadow"
-  data-menu-item-class="dropdown-item"
-  data-privacy-link-class="text-body-secondary text-decoration-none small"
-  data-privacy-link-href="/privacy"
-  data-privacy-link-label="Privacy • Terms"
-  data-theme-toggle='{"enabled":true,"wrapperClass":"form-check form-switch m-0","inputClass":"form-check-input","inputId":"public-theme-toggle","dataTheme":"light","ariaLabel":"Toggle theme"}'
-  data-links='[{"label":"Marco Polo Research Lab","url":"https://mprlab.com"},{"label":"Gravity Notes","url":"https://gravity.mprlab.com"}]'
-  x-data="mprFooter({})"
-  x-init="init()"
-></div>
-```
+### External Dependencies
 
-### Bootstrap Integration
+- Google Identity Services script (`https://accounts.google.com/gsi/client`) must be loaded.
+- Optional `initAuthClient` global bootstraps a server-provided session (expected to return a promise).
+- Backend endpoints must accept `credentials: "include"` requests and return JSON.
 
-Bootstrap is optional. When loaded, dropdown interactions are delegated to Bootstrap’s JavaScript bundle. Without it, the footer still renders markup and relies on native browser behavior.
+## Site Header Component
 
-```html
-<link
-  rel="stylesheet"
-  href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
-/>
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-```
+`renderSiteHeader` produces a sticky banner that combines navigation, auth controls, and theme switching. When `auth` options are supplied it internally initialises `createAuthHeader`, so the host element still receives the `mpr-ui:auth:*` events and dataset updates documented earlier.
 
-## Authentication Header Helper (Experimental)
+### Markup & Styling
 
-The bundle exposes an authentication header helper that coordinates Google Identity Services (GIS) sign-in flows.
+- Outputs `<header class="mpr-header" role="banner">` with `__inner`, `__nav`, `__actions`, and `__chip` sub-elements.
+- Injects styles via `<style id="mpr-ui-header-styles">`; the header is `position: sticky` at the top (z-index `1200`), uses a translucent slate backdrop, and adapts to flex layouts.
+- Applies modifier classes to the root:
+  - `mpr-header--authenticated` shows the profile chip / hides sign-in.
+  - `mpr-header--no-auth` hides auth UI when no controller is attached.
+  - `mpr-header--no-settings` and `mpr-header--no-theme` hide optional buttons.
 
-```html
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="/static/auth-client.js"></script>
-<script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@main/mpr-ui.js"></script>
+### Options
 
-<div id="app-header"></div>
-<script>
-  const element = document.getElementById("app-header");
-  const controller = window.MPRUI.createAuthHeader(element, {
-    baseUrl: "https://auth.example.com",
-    siteName: "Example Portal",
-    siteLink: "/",
-    googleCredentialCallbackName: "onAuthCredential",
-  });
+| Option                     | Type                                   | Description                                                                  |
+| -------------------------- | -------------------------------------- | ---------------------------------------------------------------------------- |
+| `brand.label`              | `string`                               | Brand text (default "Marco Polo Research Lab").                             |
+| `brand.href`               | `string`                               | Brand link destination (default `/`).                                        |
+| `navLinks`                 | `{label, href, target?}[]`             | Optional navigation anchors rendered next to the brand.                      |
+| `settings.enabled`         | `boolean`                              | Shows or hides the settings button (default `true`).                         |
+| `settings.label`           | `string`                               | Settings button label (default "Settings").                                 |
+| `themeToggle.enabled`      | `boolean`                              | Shows or hides the theme toggle button (default `true`).                     |
+| `themeToggle.ariaLabel`    | `string`                               | Accessible label applied to the theme toggle.                                |
+| `themeToggle.attribute`    | `string`                               | Attribute written to theme targets (default `data-mpr-theme`).               |
+| `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive theme state.         |
+| `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Ordered list of theme modes (default light/dark).            |
+| `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
+| `signInLabel`              | `string`                               | Copy for the sign-in button (default "Sign in").                            |
+| `signOutLabel`             | `string`                               | Copy for the sign-out button (default "Sign out").                          |
+| `profileLabel`             | `string`                               | Text shown above the authenticated user name (default "Signed in as").      |
+| `auth`                     | `object \| null`                        | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |
 
-  window.onAuthCredential = (payload) => controller.handleCredential(payload);
-</script>
-```
+Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the header host element; values are merged with programmatic options.
 
-The helper executes the following sequence:
+### Events
 
-1. Requests a nonce from `/auth/nonce` (POST with `credentials: "include"`).
-2. Injects the nonce into GIS via `data-nonce` and `google.accounts.id.initialize`.
-3. Prompts GIS (`google.accounts.id.prompt`) after configuration.
-4. Sends the returned credential plus nonce to `/auth/google`.
+- `mpr-ui:header:theme-change` — detail `{ theme }`, emitted on every toggle.
+- `mpr-ui:header:settings-click` — fired when the settings button is pressed.
+- `mpr-ui:header:signin-click` — emitted if a sign-in attempt occurs without GIS availability.
+- `mpr-ui:header:signout-click` — emitted when sign-out is requested but no controller is attached.
+- `mpr-ui:header:error` — surfaced on internal failures (e.g., GIS prompt errors).
 
-Applications must define the callback referenced by `googleCredentialCallbackName` and call `controller.handleCredential(payload)` to complete the flow.
+## Theme Manager
 
-## Security and Accessibility
+- Defaults write `data-mpr-theme` to `document.documentElement` and dispatch `mpr-ui:theme-change` on the `document` node whenever the active mode changes.
+- `MPRUI.configureTheme({ attribute, targets, modes })` merges attribute/target updates and replaces the mode collection when provided. Targets accept CSS selectors or the sentinel values `"document"` / `"body"`.
+- Modes accept `{ value, attributeValue?, classList?, dataset? }`; each dataset key becomes a `data-*` attribute on the targets and `classList` entries are added while old mode classes are removed.
+- Declarative configuration is supported via `data-theme-toggle` (JSON) and `data-theme-mode` attributes on header/footer hosts. Imperative options and dataset values are merged.
+- Consumers can observe theme changes with `MPRUI.onThemeChange(listener)` or by listening for the bubbling `mpr-ui:theme-change` event (detail `{ mode, source }`).
 
-- All user-supplied strings are sanitized before rendering.
-- `href` and `src` attributes reject dangerous schemes such as `javascript:`.
-- The footer renders as `<footer role="contentinfo">` with accessible form controls when the theme toggle is enabled.
-- GIS flows rely on HTTPS endpoints and reuse the nonce issued by the backend to prevent replay.
+## Footer Renderer (Bundle)
+
+`renderFooter` now bundles the richer dropdown/theme implementation that previously lived in `footer.js`. It injects styles via `<style id="mpr-ui-footer-styles">`, pins the footer to the bottom of the viewport (`position: sticky`), and exposes both imperative and Alpine APIs.
+
+### Options (`renderFooter` / `mprFooter`)
+
+| Option                     | Type                                   | Description                                                                   |
+| -------------------------- | -------------------------------------- | ----------------------------------------------------------------------------- |
+| `elementId`                | `string`                               | Optional `id` applied to the `<footer>` root.                                 |
+| `baseClass`                | `string`                               | Root class name (defaults to `mpr-footer`).                                   |
+| `innerClass`               | `string`                               | Wrapper class for the inner flex container.                                   |
+| `wrapperClass`             | `string`                               | Class applied to the layout wrapper around brand/menu/privacy.                |
+| `brandWrapperClass`        | `string`                               | Class for the brand/prefix container.                                         |
+| `menuWrapperClass`         | `string`                               | Class for the dropdown wrapper.                                               |
+| `prefixClass`              | `string`                               | Class applied to the prefix span (default highlights in blue).                |
+| `prefixText`               | `string`                               | Text preceding the dropdown toggle (default "Built by").                     |
+| `toggleButtonId`           | `string`                               | Optional id forwarded to the dropdown trigger button.                         |
+| `toggleButtonClass`        | `string`                               | Class for the dropdown trigger button.                                        |
+| `toggleLabel`              | `string`                               | Text rendered on the dropdown trigger (defaults to "Marco Polo Research Lab"). |
+| `menuClass`                | `string`                               | Class for the `<ul>` menu container.                                          |
+| `menuItemClass`            | `string`                               | Class for each `<a>` inside the menu.                                         |
+| `links`                    | `{label, url, target?, rel?}[]`        | Menu entries; defaults to `_blank` target + `noopener noreferrer` rel.        |
+| `privacyLinkClass`         | `string`                               | Class applied to the privacy link.                                            |
+| `privacyLinkHref`          | `string`                               | Destination for the privacy link (`#` default).                               |
+| `privacyLinkLabel`         | `string`                               | Copy for the privacy link (default "Privacy • Terms").                        |
+| `themeToggle.enabled`      | `boolean`                              | Controls whether the theme toggle renders (default `true`).                   |
+| `themeToggle.wrapperClass` | `string`                               | Class for the toggle wrapper pill.                                            |
+| `themeToggle.inputClass`   | `string`                               | Class for the `input[type=checkbox]`.                                         |
+| `themeToggle.dataTheme`    | `string`                               | Optional Bootstrap theme hint stored on the wrapper.                          |
+| `themeToggle.inputId`      | `string`                               | Optional id applied to the checkbox.                                          |
+| `themeToggle.ariaLabel`    | `string`                               | Accessible label for the checkbox (default "Toggle theme").                  |
+| `themeToggle.attribute`    | `string`                               | Attribute written to theme targets (default `data-mpr-theme`).               |
+| `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive theme state.         |
+| `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Theme options toggled by the footer switch.             |
+| `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
+
+Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the footer host element; values merge with programmatic options.
+
+### Behaviour
+
+- Dropdown menu prefers Bootstrap’s `Dropdown` if available; otherwise a light-weight native toggle keeps `aria-expanded` in sync.
+- Theme toggle emits `mpr-footer:theme-change` with `{ theme }` and also re-emits through Alpine’s `$dispatch` when present.
+- All strings are escaped; dangerous schemes for links fall back to `#`.
+
+### Controller Object
+
+- Imperative API: `renderFooter` returns `{ update(nextOptions), destroy(), getConfig() }`.
+- Alpine API: `mprFooter` exposes `{ init, update, destroy }`, wiring `$dispatch` when available.
+
+## Legacy Footer Bundle (`footer.js`)
+
+`footer.js` contains an earlier, richer footer implementation with dropdown menus, theme toggle, and extensive `data-*` configuration. It exports the same globals (`MPRUI.renderFooter`, `MPRUI.mprFooter`) and will override the bundle’s simpler version if loaded afterwards.
+
+Key differences:
+
+- Supports Bootstrap dropdown integration and theme toggles via events (`mpr-footer:theme-change`).
+- Reads configuration from `data-*` attributes and merges with provided options.
+- Emits `$dispatch` events when used within Alpine components.
+
+This bundle is now redundant; `mpr-ui.js` includes equivalent behaviour. The standalone file remains for legacy consumers but should be retired once downstream projects migrate.
+
+## Security and Accessibility Considerations
+
+- All user-facing strings are escaped before insertion.
+- `sanitizeHref` prevents `javascript:` URLs and blank values.
+- The auth header never stores credentials; it exchanges them immediately for server-side sessions.
+- `fetch` calls always include `credentials: "include"` to retain cookies.
+- Custom events bubble, enabling observers to react without accessing internals.
 
 ## CDN and Versioning
 
-Bundles are published via jsDelivr. Always pin consuming sites to a tagged version or commit when reproducibility is required.
+Load the bundle directly from jsDelivr. Pin to tags or commit hashes for deterministic builds.
 
 - `https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@1.0.0/mpr-ui.js`
 - `https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@<commit-hash>/mpr-ui.js`
 
+For applications that still rely on the legacy footer, reference `footer.js` explicitly and avoid loading the bundle in parallel.
