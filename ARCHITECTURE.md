@@ -30,6 +30,10 @@ When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 | `MPRUI.mprSiteHeader(options)`          | Alpine/framework factory for the site header; `init` renders, `update` proxies, `destroy` unmounts.  |
 | `MPRUI.renderFooter(host, options)`     | Renders the marketing footer into a DOM node and returns `{ update, destroy }`.                       |
 | `MPRUI.mprFooter(options)`              | Framework-friendly facade; `init` wires `renderFooter`, `update` proxies, `destroy` unmounts.         |
+| `MPRUI.configureTheme(config)`          | Merges global theme configuration (attribute, targets, modes) and reapplies the current mode.         |
+| `MPRUI.setThemeMode(value)`             | Sets the active theme mode and dispatches `mpr-ui:theme-change`.                                      |
+| `MPRUI.getThemeMode()`                  | Returns the active theme mode string.                                                                |
+| `MPRUI.onThemeChange(listener)`         | Subscribes to theme updates; returns an unsubscribe function.                                        |
 
 All helpers are side-effect free apart from DOM writes and `fetch` requests.
 
@@ -91,20 +95,25 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 
 ### Options
 
-| Option                  | Type                       | Description                                                                  |
-| ----------------------- | -------------------------- | ---------------------------------------------------------------------------- |
-| `brand.label`           | `string`                   | Brand text (default "Marco Polo Research Lab").                             |
-| `brand.href`            | `string`                   | Brand link destination (default `/`).                                        |
-| `navLinks`              | `{label, href, target?}[]` | Optional navigation anchors rendered next to the brand.                      |
-| `settings.enabled`      | `boolean`                  | Shows or hides the settings button (default `true`).                         |
-| `settings.label`        | `string`                   | Settings button label (default "Settings").                                 |
-| `themeToggle.enabled`   | `boolean`                  | Shows or hides the theme toggle button (default `true`).                     |
-| `themeToggle.ariaLabel` | `string`                   | Accessible label applied to the theme toggle.                                |
-| `signInLabel`           | `string`                   | Copy for the sign-in button (default "Sign in").                            |
-| `signOutLabel`          | `string`                   | Copy for the sign-out button (default "Sign out").                          |
-| `profileLabel`          | `string`                   | Text shown above the authenticated user name (default "Signed in as").      |
-| `initialTheme`          | `"light"` \| `"dark"`     | Initial value applied to `document.documentElement.dataset.mprTheme`.         |
-| `auth`                  | `object | null`            | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |
+| Option                     | Type                                   | Description                                                                  |
+| -------------------------- | -------------------------------------- | ---------------------------------------------------------------------------- |
+| `brand.label`              | `string`                               | Brand text (default "Marco Polo Research Lab").                             |
+| `brand.href`               | `string`                               | Brand link destination (default `/`).                                        |
+| `navLinks`                 | `{label, href, target?}[]`             | Optional navigation anchors rendered next to the brand.                      |
+| `settings.enabled`         | `boolean`                              | Shows or hides the settings button (default `true`).                         |
+| `settings.label`           | `string`                               | Settings button label (default "Settings").                                 |
+| `themeToggle.enabled`      | `boolean`                              | Shows or hides the theme toggle button (default `true`).                     |
+| `themeToggle.ariaLabel`    | `string`                               | Accessible label applied to the theme toggle.                                |
+| `themeToggle.attribute`    | `string`                               | Attribute written to theme targets (default `data-mpr-theme`).               |
+| `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive theme state.         |
+| `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Ordered list of theme modes (default light/dark).            |
+| `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
+| `signInLabel`              | `string`                               | Copy for the sign-in button (default "Sign in").                            |
+| `signOutLabel`             | `string`                               | Copy for the sign-out button (default "Sign out").                          |
+| `profileLabel`             | `string`                               | Text shown above the authenticated user name (default "Signed in as").      |
+| `auth`                     | `object \| null`                        | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |
+
+Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the header host element; values are merged with programmatic options.
 
 ### Events
 
@@ -113,6 +122,14 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 - `mpr-ui:header:signin-click` — emitted if a sign-in attempt occurs without GIS availability.
 - `mpr-ui:header:signout-click` — emitted when sign-out is requested but no controller is attached.
 - `mpr-ui:header:error` — surfaced on internal failures (e.g., GIS prompt errors).
+
+## Theme Manager
+
+- Defaults write `data-mpr-theme` to `document.documentElement` and dispatch `mpr-ui:theme-change` on the `document` node whenever the active mode changes.
+- `MPRUI.configureTheme({ attribute, targets, modes })` merges attribute/target updates and replaces the mode collection when provided. Targets accept CSS selectors or the sentinel values `"document"` / `"body"`.
+- Modes accept `{ value, attributeValue?, classList?, dataset? }`; each dataset key becomes a `data-*` attribute on the targets and `classList` entries are added while old mode classes are removed.
+- Declarative configuration is supported via `data-theme-toggle` (JSON) and `data-theme-mode` attributes on header/footer hosts. Imperative options and dataset values are merged.
+- Consumers can observe theme changes with `MPRUI.onThemeChange(listener)` or by listening for the bubbling `mpr-ui:theme-change` event (detail `{ mode, source }`).
 
 ## Footer Renderer (Bundle)
 
@@ -145,6 +162,12 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 | `themeToggle.dataTheme`    | `string`                               | Optional Bootstrap theme hint stored on the wrapper.                          |
 | `themeToggle.inputId`      | `string`                               | Optional id applied to the checkbox.                                          |
 | `themeToggle.ariaLabel`    | `string`                               | Accessible label for the checkbox (default "Toggle theme").                  |
+| `themeToggle.attribute`    | `string`                               | Attribute written to theme targets (default `data-mpr-theme`).               |
+| `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive theme state.         |
+| `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Theme options toggled by the footer switch.             |
+| `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
+
+Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the footer host element; values merge with programmatic options.
 
 ### Behaviour
 
