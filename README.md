@@ -37,11 +37,11 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
      auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' }
    })" x-init="init()"></header>
 
-   <footer x-data="mprFooter({ lines: ['Built by Marco Polo Research Lab'], links: footerLinks })" x-init="init()"></footer>
+   <footer x-data="mprFooter({ prefixText: 'Built by', links: footerLinks })" x-init="init()"></footer>
    <script>
      const footerLinks = [
        { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
-        { label: "LoopAware", url: "https://loopaware.mprlab.com" },
+       { label: "LoopAware", url: "https://loopaware.mprlab.com" },
      ];
    </script>
    ```
@@ -51,7 +51,7 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 ## Components
 
 - **Site Header** — sticky banner with auth controls, settings trigger, and theme toggle.
-- **Footer** — marketing footer with configurable copy lines, navigation links, and generated styling.
+- **Footer** — sticky footer with prefix dropdown menu, privacy link, and theme toggle.
 - **Auth Header (experimental)** — helper that orchestrates Google Identity Services login flows for standalone front-ends.
 - **Legacy footer bundle** — see [`footer.js`](footer.js) if you need dropdown/theme toggle support absent from the current bundle.
 

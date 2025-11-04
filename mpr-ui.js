@@ -1042,87 +1042,66 @@
     return trimmed;
   }
 
-  var FOOTER_ROOT_CLASS = "mpr-footer";
+  var FOOTER_LINK_DEFAULT_TARGET = "_blank";
+  var FOOTER_LINK_DEFAULT_REL = "noopener noreferrer";
   var FOOTER_STYLE_ID = "mpr-ui-footer-styles";
   var FOOTER_STYLE_MARKUP =
-    "." +
-    FOOTER_ROOT_CLASS +
-    "{margin-top:48px;padding:32px 0;border-top:1px solid #e2e8f0;font-size:14px;line-height:1.6;color:#475569;background:#f8fafc}" +
-    "." +
-    FOOTER_ROOT_CLASS +
-    "__container{max-width:960px;margin:0 auto;padding:0 20px;display:flex;flex-direction:column;gap:16px}" +
-    "." +
-    FOOTER_ROOT_CLASS +
-    "__lines{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}" +
-    "." +
-    FOOTER_ROOT_CLASS +
-    "__links{display:flex;flex-wrap:wrap;gap:12px;align-items:center}" +
-    "." +
-    FOOTER_ROOT_CLASS +
-    "__link{color:#1b6ef3;text-decoration:none;font-weight:500}" +
-    "." +
-    FOOTER_ROOT_CLASS +
-    "__link:hover{text-decoration:underline}" +
-    "." +
-    FOOTER_ROOT_CLASS +
-    "__copyright{margin:0;color:#64748b}";
+    '.mpr-footer{position:sticky;bottom:0;width:100%;padding:24px 0;background:rgba(15,23,42,0.92);color:#e2e8f0;border-top:1px solid rgba(148,163,184,0.25);backdrop-filter:blur(10px)}' +
+    '.mpr-footer__inner{max-width:1080px;margin:0 auto;padding:0 1.5rem;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.5rem}' +
+    '.mpr-footer__layout{display:flex;flex-wrap:wrap;align-items:center;gap:1.25rem}' +
+    '.mpr-footer__brand{display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem;font-size:0.95rem}' +
+    '.mpr-footer__prefix{font-weight:600;color:#38bdf8}' +
+    '.mpr-footer__menu-wrapper{position:relative}' +
+    '.mpr-footer__menu-button{background:rgba(148,163,184,0.22);color:inherit;border:none;border-radius:999px;padding:0.35rem 0.85rem;font-weight:600;cursor:pointer}' +
+    '.mpr-footer__menu-button:hover{background:rgba(148,163,184,0.35)}' +
+    '.mpr-footer__menu{list-style:none;margin:0;padding:0.5rem 0;position:absolute;bottom:calc(100% + 8px);right:0;min-width:220px;background:rgba(15,23,42,0.98);border-radius:0.75rem;border:1px solid rgba(148,163,184,0.25);box-shadow:0 12px 24px rgba(15,23,42,0.45);display:none}' +
+    '.mpr-footer__menu--open{display:block}' +
+    '.mpr-footer__menu-item{display:block;padding:0.5rem 0.9rem;color:#e2e8f0;text-decoration:none;font-weight:500}' +
+    '.mpr-footer__menu-item:hover{background:rgba(148,163,184,0.25)}' +
+    '.mpr-footer__privacy{color:#cbd5f5;text-decoration:none;font-size:0.85rem}' +
+    '.mpr-footer__privacy:hover{text-decoration:underline}' +
+    '.mpr-footer__theme-toggle{display:inline-flex;align-items:center;gap:0.4rem;background:rgba(148,163,184,0.15);border-radius:999px;padding:0.3rem 0.75rem;color:#e2e8f0;font-size:0.85rem}' +
+    '.mpr-footer__theme-checkbox{width:1.75rem;height:0.95rem}' +
+    '@media (max-width:768px){.mpr-footer__layout{flex-direction:column;align-items:flex-start}.mpr-footer__inner{gap:1.75rem}}';
 
-  function normalizeFooterOptions(raw) {
-    var source = raw || {};
-    var lines = Array.isArray(source.lines)
-      ? source.lines
-          .map(function (line) {
-            return typeof line === "string" ? line.trim() : "";
-          })
-          .filter(function (line) {
-            return line.length > 0;
-          })
-      : [];
-    var links = Array.isArray(source.links)
-      ? source.links
-          .map(function (link) {
-            if (!link || typeof link !== "object") {
-              return null;
-            }
-            var label =
-              typeof link.label === "string" ? link.label.trim() : "";
-            var href = typeof link.href === "string" ? link.href.trim() : "";
-            if (!label || !href) {
-              return null;
-            }
-            return { label: label, href: href };
-          })
-          .filter(function (entry) {
-            return entry !== null;
-          })
-      : [];
-    var copyrightName =
-      typeof source.copyrightName === "string"
-        ? source.copyrightName.trim()
-        : "";
-    var year =
-      typeof source.year === "number" && isFinite(source.year)
-        ? Math.floor(source.year)
-        : new Date().getFullYear();
-    return {
-      lines: lines,
-      links: links,
-      copyrightName: copyrightName,
-      year: year,
-    };
-  }
+  var FOOTER_DEFAULTS = Object.freeze({
+    elementId: "",
+    baseClass: "mpr-footer",
+    innerElementId: "",
+    innerClass: "mpr-footer__inner",
+    wrapperClass: "mpr-footer__layout",
+    brandWrapperClass: "mpr-footer__brand",
+    menuWrapperClass: "mpr-footer__menu-wrapper",
+    prefixClass: "mpr-footer__prefix",
+    prefixText: "Built by",
+    toggleButtonId: "",
+    toggleButtonClass: "mpr-footer__menu-button",
+    toggleLabel: "Marco Polo Research Lab",
+    menuClass: "mpr-footer__menu",
+    menuItemClass: "mpr-footer__menu-item",
+    privacyLinkClass: "mpr-footer__privacy",
+    privacyLinkHref: "#",
+    privacyLinkLabel: "Privacy • Terms",
+    themeToggle: Object.freeze({
+      enabled: true,
+      wrapperClass: "mpr-footer__theme-toggle",
+      inputClass: "mpr-footer__theme-checkbox",
+      dataTheme: "light",
+      inputId: "mpr-footer-theme-toggle",
+      ariaLabel: "Toggle theme",
+    }),
+    links: Object.freeze([]),
+  });
 
   function ensureFooterStyles(documentObject) {
-    if (!documentObject || typeof documentObject.createElement !== "function") {
-      return;
-    }
     if (
-      documentObject.getElementById &&
-      documentObject.getElementById(FOOTER_STYLE_ID)
+      !documentObject ||
+      typeof documentObject.createElement !== "function" ||
+      !documentObject.head
     ) {
       return;
     }
-    if (!documentObject.head || typeof documentObject.head.appendChild !== "function") {
+    if (documentObject.getElementById(FOOTER_STYLE_ID)) {
       return;
     }
     var styleElement = documentObject.createElement("style");
@@ -1131,82 +1110,493 @@
     if (styleElement.styleSheet) {
       styleElement.styleSheet.cssText = FOOTER_STYLE_MARKUP;
     } else {
-      styleElement.appendChild(
-        documentObject.createTextNode(FOOTER_STYLE_MARKUP),
-      );
+      styleElement.appendChild(documentObject.createTextNode(FOOTER_STYLE_MARKUP));
     }
     documentObject.head.appendChild(styleElement);
   }
 
-  function buildFooterMarkup(options) {
-    var html = '<div class="' + FOOTER_ROOT_CLASS + '__container">';
-    if (options.lines.length > 0) {
-      html += '<ul class="' + FOOTER_ROOT_CLASS + '__lines">';
-      for (var index = 0; index < options.lines.length; index += 1) {
-        html +=
-          '<li class="' +
-          FOOTER_ROOT_CLASS +
-          '__line">' +
-          escapeHtml(options.lines[index]) +
-          "</li>";
+  function mergeFooterObjects(targetObject) {
+    var baseObject =
+      !targetObject || typeof targetObject !== "object" ? {} : targetObject;
+    for (var index = 1; index < arguments.length; index += 1) {
+      var source = arguments[index];
+      if (!source || typeof source !== "object") {
+        continue;
       }
-      html += "</ul>";
+      Object.keys(source).forEach(function mergeSingleKey(key) {
+        var value = source[key];
+        if (Array.isArray(value)) {
+          baseObject[key] = value.slice();
+          return;
+        }
+        if (value && typeof value === "object") {
+          if (!baseObject[key] || typeof baseObject[key] !== "object") {
+            baseObject[key] = {};
+          }
+          mergeFooterObjects(baseObject[key], value);
+          return;
+        }
+        if (value !== undefined) {
+          baseObject[key] = value;
+        }
+      });
     }
-    if (options.links.length > 0) {
-      html +=
-        '<nav class="' +
-        FOOTER_ROOT_CLASS +
-        '__links" aria-label="Footer links">';
-      for (var linkIndex = 0; linkIndex < options.links.length; linkIndex += 1) {
-        var link = options.links[linkIndex];
-        html +=
-          '<a class="' +
-          FOOTER_ROOT_CLASS +
-          '__link" href="' +
-          escapeHtml(sanitizeHref(link.href)) +
-          '">' +
-          escapeHtml(link.label) +
-          "</a>";
-      }
-      html += "</nav>";
-    }
-    html +=
-      '<p class="' +
-      FOOTER_ROOT_CLASS +
-      '__copyright">&copy; ' +
-      options.year +
-      " " +
-      escapeHtml(options.copyrightName || "") +
-      "</p>";
-    html += "</div>";
-    return html;
+    return baseObject;
   }
 
-  function applyFooterClass(host) {
-    if (!host) {
-      return;
-    }
-    if (host.classList && typeof host.classList.add === "function") {
-      host.classList.add(FOOTER_ROOT_CLASS);
-      return;
-    }
-    if (typeof host.className === "string") {
-      if (host.className.indexOf(FOOTER_ROOT_CLASS) === -1) {
-        host.className = (host.className + " " + FOOTER_ROOT_CLASS).trim();
-      }
-      return;
-    }
-    host.className = FOOTER_ROOT_CLASS;
+  function escapeFooterHtml(inputValue) {
+    var value = inputValue === undefined || inputValue === null ? "" : String(inputValue);
+    return value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
-  function resolveHost(target) {
-    if (typeof target !== "string") {
-      return target;
+  function sanitizeFooterAttribute(inputValue) {
+    var raw = escapeFooterHtml(inputValue);
+    if (/^\s*javascript:/i.test(String(inputValue || ""))) {
+      return "#";
     }
-    if (!global.document || typeof global.document.querySelector !== "function") {
+    return raw;
+  }
+
+  function toFooterBoolean(inputValue) {
+    if (typeof inputValue === "boolean") {
+      return inputValue;
+    }
+    if (typeof inputValue === "string") {
+      return inputValue.toLowerCase() === "true";
+    }
+    return false;
+  }
+
+  function parseFooterJson(textValue, fallbackValue) {
+    try {
+      return JSON.parse(String(textValue));
+    } catch (_error) {
+      return fallbackValue;
+    }
+  }
+
+  function normalizeFooterLinks(candidateLinks) {
+    if (!Array.isArray(candidateLinks)) {
+      return [];
+    }
+    return candidateLinks
+      .map(function normalizeSingleLink(singleLink) {
+        if (!singleLink || typeof singleLink !== "object") {
+          return null;
+        }
+        var label = singleLink.label || singleLink.Label;
+        var url = singleLink.url || singleLink.URL;
+        if (!label || !url) {
+          return null;
+        }
+        return {
+          label: String(label),
+          url: String(url),
+          rel: singleLink.rel || singleLink.Rel || FOOTER_LINK_DEFAULT_REL,
+          target: singleLink.target || singleLink.Target || FOOTER_LINK_DEFAULT_TARGET,
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function normalizeFooterThemeToggle(themeToggleInput) {
+    var mergedToggle = mergeFooterObjects({}, FOOTER_DEFAULTS.themeToggle, themeToggleInput || {});
+    mergedToggle.enabled = toFooterBoolean(mergedToggle.enabled);
+    if (!mergedToggle.wrapperClass) {
+      mergedToggle.wrapperClass = FOOTER_DEFAULTS.themeToggle.wrapperClass;
+    }
+    if (!mergedToggle.inputClass) {
+      mergedToggle.inputClass = FOOTER_DEFAULTS.themeToggle.inputClass;
+    }
+    if (!mergedToggle.ariaLabel) {
+      mergedToggle.ariaLabel = FOOTER_DEFAULTS.themeToggle.ariaLabel;
+    }
+    return mergedToggle;
+  }
+
+  function normalizeFooterConfig() {
+    var providedConfigs = Array.prototype.slice.call(arguments);
+    var mergedConfig = mergeFooterObjects({}, FOOTER_DEFAULTS);
+    providedConfigs.forEach(function apply(config) {
+      if (!config || typeof config !== "object") {
+        return;
+      }
+      mergeFooterObjects(mergedConfig, config);
+    });
+    mergedConfig.themeToggle = normalizeFooterThemeToggle(
+      providedConfigs.reduce(function reduceToggle(current, candidate) {
+        if (candidate && typeof candidate === "object" && candidate.themeToggle) {
+          return candidate.themeToggle;
+        }
+        return current;
+      }, mergedConfig.themeToggle),
+    );
+    mergedConfig.links = normalizeFooterLinks(
+      providedConfigs.reduce(function reduceLinks(current, candidate) {
+        if (candidate && typeof candidate === "object" && Array.isArray(candidate.links)) {
+          return candidate.links;
+        }
+        return current;
+      }, mergedConfig.links),
+    );
+    return mergedConfig;
+  }
+
+  function footerQuery(rootElement, selector) {
+    if (!rootElement || !selector) {
       return null;
     }
-    return global.document.querySelector(target);
+    return rootElement.querySelector(selector);
+  }
+
+  function setFooterClass(targetElement, className) {
+    if (!targetElement || !className) {
+      return;
+    }
+    targetElement.className = className;
+  }
+
+  function buildFooterMarkup(config) {
+    var themeToggleMarkup = config.themeToggle && config.themeToggle.enabled
+      ? '<div data-mpr-footer="theme-toggle"><input type="checkbox" role="switch" data-mpr-footer="theme-toggle-input"></div>'
+      : "";
+
+    var dropdownMarkup =
+      '<div data-mpr-footer="menu-wrapper">' +
+      '<button type="button" data-mpr-footer="toggle-button" aria-haspopup="true" aria-expanded="false"></button>' +
+      '<ul data-mpr-footer="menu"></ul>' +
+      "</div>";
+
+    var layoutMarkup =
+      '<div data-mpr-footer="layout">' +
+      '<div data-mpr-footer="brand">' +
+      '<span data-mpr-footer="prefix"></span>' +
+      dropdownMarkup +
+      "</div>" +
+      '<a data-mpr-footer="privacy-link" href="' + sanitizeFooterAttribute(config.privacyLinkHref) + '"></a>' +
+      themeToggleMarkup +
+      "</div>";
+
+    return (
+      '<footer role="contentinfo" data-mpr-footer="root">' +
+      '<div data-mpr-footer="inner">' +
+      layoutMarkup +
+      "</div>" +
+      "</footer>"
+    );
+  }
+
+  function updateFooterPrivacy(containerElement, config) {
+    var privacyAnchor = footerQuery(containerElement, '[data-mpr-footer="privacy-link"]');
+    if (!privacyAnchor) {
+      return;
+    }
+    if (config.privacyLinkClass) {
+      privacyAnchor.className = config.privacyLinkClass;
+    }
+    if (config.privacyLinkHref) {
+      privacyAnchor.setAttribute("href", config.privacyLinkHref);
+    }
+    if (config.privacyLinkLabel) {
+      privacyAnchor.textContent = config.privacyLinkLabel;
+    }
+  }
+
+  function updateFooterPrefix(containerElement, config) {
+    var prefixElement = footerQuery(containerElement, '[data-mpr-footer="prefix"]');
+    if (!prefixElement) {
+      return;
+    }
+    if (config.prefixClass) {
+      prefixElement.className = config.prefixClass;
+    }
+    prefixElement.textContent = config.prefixText || "";
+  }
+
+  function updateFooterToggleButton(containerElement, config) {
+    var toggleButton = config.toggleButtonId
+      ? containerElement.querySelector('#' + sanitizeFooterAttribute(config.toggleButtonId))
+      : footerQuery(containerElement, '[data-mpr-footer="toggle-button"]');
+    if (!toggleButton) {
+      return;
+    }
+    if (config.toggleButtonClass) {
+      toggleButton.className = config.toggleButtonClass;
+    }
+    if (config.toggleLabel) {
+      toggleButton.textContent = config.toggleLabel;
+    }
+    if (config.toggleButtonId) {
+      toggleButton.id = config.toggleButtonId;
+    }
+    if (!toggleButton.hasAttribute("data-bs-toggle")) {
+      toggleButton.setAttribute("data-bs-toggle", "dropdown");
+    }
+    toggleButton.setAttribute("aria-expanded", "false");
+  }
+
+  function updateFooterMenuLinks(containerElement, config) {
+    var menuContainer = footerQuery(containerElement, '[data-mpr-footer="menu"]');
+    if (!menuContainer) {
+      return;
+    }
+    if (config.menuClass) {
+      menuContainer.className = config.menuClass;
+    }
+    var items = Array.isArray(config.links) ? config.links : [];
+    var menuItemClass = config.menuItemClass || "";
+    var markup = items
+      .map(function renderSingle(link) {
+        var hrefValue = sanitizeFooterAttribute(link.url);
+        var labelValue = escapeFooterHtml(link.label);
+        var targetValue = sanitizeFooterAttribute(link.target || FOOTER_LINK_DEFAULT_TARGET);
+        var relValue = sanitizeFooterAttribute(link.rel || FOOTER_LINK_DEFAULT_REL);
+        return (
+          '<li><a class="' +
+          sanitizeFooterAttribute(menuItemClass) +
+          '" data-mpr-footer="menu-link" href="' +
+          hrefValue +
+          '" target="' +
+          targetValue +
+          '" rel="' +
+          relValue +
+          '">' +
+          labelValue +
+          "</a></li>"
+        );
+      })
+      .join("");
+    menuContainer.innerHTML = markup;
+  }
+
+  function applyFooterStructure(containerElement, config) {
+    if (!containerElement) {
+      return;
+    }
+    var innerElement = config.innerElementId
+      ? containerElement.querySelector('#' + sanitizeFooterAttribute(config.innerElementId))
+      : footerQuery(containerElement, '[data-mpr-footer="inner"]');
+    if (innerElement && config.innerClass) {
+      setFooterClass(innerElement, config.innerClass);
+    }
+    var layoutElement = footerQuery(containerElement, '[data-mpr-footer="layout"]');
+    if (layoutElement && config.wrapperClass) {
+      setFooterClass(layoutElement, config.wrapperClass);
+    }
+    var brandElement = footerQuery(containerElement, '[data-mpr-footer="brand"]');
+    if (brandElement && config.brandWrapperClass) {
+      setFooterClass(brandElement, config.brandWrapperClass);
+    }
+    var menuWrapper = footerQuery(containerElement, '[data-mpr-footer="menu-wrapper"]');
+    if (menuWrapper && config.menuWrapperClass) {
+      setFooterClass(menuWrapper, config.menuWrapperClass);
+    }
+  }
+
+  function readFooterOptionsFromDataset(rootElement) {
+    if (!rootElement || !rootElement.dataset) {
+      return {};
+    }
+    var dataset = rootElement.dataset;
+    var options = {};
+    if (dataset.elementId) {
+      options.elementId = dataset.elementId;
+    }
+    if (dataset.baseClass) {
+      options.baseClass = dataset.baseClass;
+    }
+    if (dataset.innerElementId) {
+      options.innerElementId = dataset.innerElementId;
+    }
+    if (dataset.innerClass) {
+      options.innerClass = dataset.innerClass;
+    }
+    if (dataset.wrapperClass) {
+      options.wrapperClass = dataset.wrapperClass;
+    }
+    if (dataset.brandWrapperClass) {
+      options.brandWrapperClass = dataset.brandWrapperClass;
+    }
+    if (dataset.menuWrapperClass) {
+      options.menuWrapperClass = dataset.menuWrapperClass;
+    }
+    if (dataset.prefixClass) {
+      options.prefixClass = dataset.prefixClass;
+    }
+    if (dataset.prefixText) {
+      options.prefixText = dataset.prefixText;
+    }
+    if (dataset.toggleButtonId) {
+      options.toggleButtonId = dataset.toggleButtonId;
+    }
+    if (dataset.toggleButtonClass) {
+      options.toggleButtonClass = dataset.toggleButtonClass;
+    }
+    if (dataset.toggleLabel) {
+      options.toggleLabel = dataset.toggleLabel;
+    }
+    if (dataset.menuClass) {
+      options.menuClass = dataset.menuClass;
+    }
+    if (dataset.menuItemClass) {
+      options.menuItemClass = dataset.menuItemClass;
+    }
+    if (dataset.privacyLinkClass) {
+      options.privacyLinkClass = dataset.privacyLinkClass;
+    }
+    if (dataset.privacyLinkHref) {
+      options.privacyLinkHref = dataset.privacyLinkHref;
+    }
+    if (dataset.privacyLinkLabel) {
+      options.privacyLinkLabel = dataset.privacyLinkLabel;
+    }
+    if (dataset.themeToggle) {
+      options.themeToggle = parseFooterJson(dataset.themeToggle, {});
+    }
+    if (dataset.links) {
+      options.links = parseFooterJson(dataset.links, []);
+    }
+    return options;
+  }
+
+  function initializeFooterThemeToggle(componentContext, footerRoot) {
+    var config = componentContext.config;
+    if (!config.themeToggle || !config.themeToggle.enabled) {
+      return null;
+    }
+    var wrapperElement = footerQuery(footerRoot, '[data-mpr-footer="theme-toggle"]');
+    var inputElement = footerQuery(footerRoot, '[data-mpr-footer="theme-toggle-input"]');
+    if (!wrapperElement || !inputElement) {
+      return null;
+    }
+    if (config.themeToggle.wrapperClass) {
+      wrapperElement.className = config.themeToggle.wrapperClass;
+    }
+    if (config.themeToggle.dataTheme) {
+      wrapperElement.setAttribute("data-bs-theme", config.themeToggle.dataTheme);
+    }
+    if (config.themeToggle.inputClass) {
+      inputElement.className = config.themeToggle.inputClass;
+    }
+    if (config.themeToggle.inputId) {
+      inputElement.id = config.themeToggle.inputId;
+    }
+    if (config.themeToggle.ariaLabel) {
+      inputElement.setAttribute("aria-label", config.themeToggle.ariaLabel);
+    }
+    var inputHandler = function handleThemeSwitch(eventObject) {
+      var targetElement = eventObject.target;
+      var nextTheme = targetElement.checked ? "dark" : "light";
+      if (typeof componentContext.$dispatch === "function") {
+        componentContext.$dispatch("mpr-footer:theme-change", { theme: nextTheme });
+      }
+      dispatchEvent(footerRoot, "mpr-footer:theme-change", { theme: nextTheme });
+    };
+    inputElement.addEventListener("change", inputHandler);
+    return function cleanupThemeToggle() {
+      inputElement.removeEventListener("change", inputHandler);
+    };
+  }
+
+  function initializeFooterDropdown(footerRoot) {
+    var toggleButton = footerQuery(footerRoot, '[data-mpr-footer="toggle-button"]');
+    var menuElement = footerQuery(footerRoot, '[data-mpr-footer="menu"]');
+    if (!toggleButton || !menuElement) {
+      return null;
+    }
+    if (
+      global.bootstrap &&
+      global.bootstrap.Dropdown &&
+      typeof global.bootstrap.Dropdown.getOrCreateInstance === "function"
+    ) {
+      global.bootstrap.Dropdown.getOrCreateInstance(toggleButton, { autoClose: true });
+      return null;
+    }
+    var openClass = "mpr-footer__menu--open";
+    var toggleHandler = function (eventObject) {
+      eventObject.preventDefault();
+      var isOpen = menuElement.classList.contains(openClass);
+      menuElement.classList.toggle(openClass, !isOpen);
+      toggleButton.setAttribute("aria-expanded", (!isOpen).toString());
+    };
+    toggleButton.addEventListener("click", toggleHandler);
+    return function cleanupDropdown() {
+      toggleButton.removeEventListener("click", toggleHandler);
+      menuElement.classList.remove(openClass);
+      toggleButton.setAttribute("aria-expanded", "false");
+    };
+  }
+
+  function createFooterComponent(initialOptions) {
+    var startingOptions = initialOptions && typeof initialOptions === "object" ? initialOptions : {};
+    var component = {
+      config: normalizeFooterConfig(startingOptions),
+      $el: null,
+      cleanupHandlers: [],
+      $dispatch: null,
+      init: function init(userOptions) {
+        var datasetOptions = this.$el ? readFooterOptionsFromDataset(this.$el) : {};
+        this.config = normalizeFooterConfig(startingOptions, datasetOptions, userOptions);
+
+        ensureFooterStyles(global.document || (global.window && global.window.document));
+
+        this.cleanupHandlers.forEach(function callCleanup(callback) {
+          if (typeof callback === "function") {
+            callback();
+          }
+        });
+        this.cleanupHandlers = [];
+
+        if (!this.$el) {
+          return;
+        }
+        this.$el.innerHTML = buildFooterMarkup(this.config);
+        var footerRoot = footerQuery(this.$el, 'footer[role="contentinfo"]');
+        if (!footerRoot) {
+          return;
+        }
+        footerRoot.setAttribute("data-mpr-footer-root", "true");
+        if (this.config.elementId) {
+          footerRoot.id = this.config.elementId;
+        }
+        if (this.config.baseClass) {
+          setFooterClass(footerRoot, this.config.baseClass);
+        }
+
+        applyFooterStructure(footerRoot, this.config);
+        updateFooterPrivacy(footerRoot, this.config);
+        updateFooterPrefix(footerRoot, this.config);
+        updateFooterToggleButton(footerRoot, this.config);
+        updateFooterMenuLinks(footerRoot, this.config);
+
+        var dropdownCleanup = initializeFooterDropdown(footerRoot);
+        if (dropdownCleanup) {
+          this.cleanupHandlers.push(dropdownCleanup);
+        }
+
+        var themeCleanup = initializeFooterThemeToggle(this, footerRoot);
+        if (themeCleanup) {
+          this.cleanupHandlers.push(themeCleanup);
+        }
+      },
+      destroy: function destroy() {
+        this.cleanupHandlers.forEach(function callCleanup(callback) {
+          if (typeof callback === "function") {
+            callback();
+          }
+        });
+        this.cleanupHandlers = [];
+        if (this.$el) {
+          this.$el.innerHTML = "";
+        }
+      },
+    };
+    return component;
   }
 
   function renderFooter(target, options) {
@@ -1214,25 +1604,27 @@
     if (!host || typeof host !== "object") {
       throw new Error("renderFooter requires a host element");
     }
-    var normalized = normalizeFooterOptions(options);
-    ensureFooterStyles(global.document || (global.window && global.window.document));
-    applyFooterClass(host);
-    host.innerHTML = buildFooterMarkup(normalized);
+    var component = createFooterComponent(options);
+    component.$el = host;
+    component.init(options);
     return {
-      update: function (nextOptions) {
-        normalized = normalizeFooterOptions(nextOptions);
-        host.innerHTML = buildFooterMarkup(normalized);
+      update: function update(nextOptions) {
+        component.init(nextOptions);
       },
-      destroy: function () {
-        host.innerHTML = "";
+      destroy: function destroy() {
+        component.destroy();
+      },
+      getConfig: function getConfig() {
+        return component.config;
       },
     };
   }
 
   function mprFooter(options) {
-    var normalized = normalizeFooterOptions(options);
+    var resolvedOptions = options || {};
+    var component = createFooterComponent(resolvedOptions);
     return {
-      init: function () {
+      init: function init() {
         var element =
           (this && this.$el) ||
           (this && this.el) ||
@@ -1242,27 +1634,16 @@
         if (!element) {
           throw new Error("mprFooter requires a root element");
         }
-        this.__mprFooterController = renderFooter(element, normalized);
+        component.$el = element;
+        component.$dispatch = this.$dispatch ? this.$dispatch.bind(this) : null;
+        component.init(resolvedOptions);
       },
-      update: function (nextOptions) {
-        normalized = normalizeFooterOptions(
-          arguments.length > 0 ? nextOptions : normalized,
-        );
-        if (
-          this.__mprFooterController &&
-          typeof this.__mprFooterController.update === "function"
-        ) {
-          this.__mprFooterController.update(normalized);
-        }
+      update: function update(nextOptions) {
+        resolvedOptions = Object.assign({}, resolvedOptions, nextOptions || {});
+        component.init(resolvedOptions);
       },
-      destroy: function () {
-        if (
-          this.__mprFooterController &&
-          typeof this.__mprFooterController.destroy === "function"
-        ) {
-          this.__mprFooterController.destroy();
-          this.__mprFooterController = null;
-        }
+      destroy: function destroy() {
+        component.destroy();
       },
     };
   }

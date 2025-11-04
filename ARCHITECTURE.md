@@ -116,36 +116,46 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 
 ## Footer Renderer (Bundle)
 
-The marketing footer in `mpr-ui.js` focuses on static content. It injects a minimal stylesheet into `<head>` (id `mpr-ui-footer-styles`) and renders semantic markup.
+`renderFooter` now bundles the richer dropdown/theme implementation that previously lived in `footer.js`. It injects styles via `<style id="mpr-ui-footer-styles">`, pins the footer to the bottom of the viewport (`position: sticky`), and exposes both imperative and Alpine APIs.
 
 ### Options (`renderFooter` / `mprFooter`)
 
-| Option           | Type               | Description                                                   |
-| ---------------- | ------------------ | ------------------------------------------------------------- |
-| `lines`          | `string[]`         | Optional descriptive lines rendered as a `<ul>`.             |
-| `links`          | `{label, href}[]`  | Navigation links; sanitised to prevent dangerous schemes.    |
-| `copyrightName`  | `string`           | Organisation name shown in copyright line.                   |
-| `year`           | `number` (optional)| Year displayed; defaults to current year when omitted/invalid. |
+| Option                     | Type                                   | Description                                                                   |
+| -------------------------- | -------------------------------------- | ----------------------------------------------------------------------------- |
+| `elementId`                | `string`                               | Optional `id` applied to the `<footer>` root.                                 |
+| `baseClass`                | `string`                               | Root class name (defaults to `mpr-footer`).                                   |
+| `innerClass`               | `string`                               | Wrapper class for the inner flex container.                                   |
+| `wrapperClass`             | `string`                               | Class applied to the layout wrapper around brand/menu/privacy.                |
+| `brandWrapperClass`        | `string`                               | Class for the brand/prefix container.                                         |
+| `menuWrapperClass`         | `string`                               | Class for the dropdown wrapper.                                               |
+| `prefixClass`              | `string`                               | Class applied to the prefix span (default highlights in blue).                |
+| `prefixText`               | `string`                               | Text preceding the dropdown toggle (default "Built by").                     |
+| `toggleButtonId`           | `string`                               | Optional id forwarded to the dropdown trigger button.                         |
+| `toggleButtonClass`        | `string`                               | Class for the dropdown trigger button.                                        |
+| `toggleLabel`              | `string`                               | Text rendered on the dropdown trigger (defaults to "Marco Polo Research Lab"). |
+| `menuClass`                | `string`                               | Class for the `<ul>` menu container.                                          |
+| `menuItemClass`            | `string`                               | Class for each `<a>` inside the menu.                                         |
+| `links`                    | `{label, url, target?, rel?}[]`        | Menu entries; defaults to `_blank` target + `noopener noreferrer` rel.        |
+| `privacyLinkClass`         | `string`                               | Class applied to the privacy link.                                            |
+| `privacyLinkHref`          | `string`                               | Destination for the privacy link (`#` default).                               |
+| `privacyLinkLabel`         | `string`                               | Copy for the privacy link (default "Privacy • Terms").                        |
+| `themeToggle.enabled`      | `boolean`                              | Controls whether the theme toggle renders (default `true`).                   |
+| `themeToggle.wrapperClass` | `string`                               | Class for the toggle wrapper pill.                                            |
+| `themeToggle.inputClass`   | `string`                               | Class for the `input[type=checkbox]`.                                         |
+| `themeToggle.dataTheme`    | `string`                               | Optional Bootstrap theme hint stored on the wrapper.                          |
+| `themeToggle.inputId`      | `string`                               | Optional id applied to the checkbox.                                          |
+| `themeToggle.ariaLabel`    | `string`                               | Accessible label for the checkbox (default "Toggle theme").                  |
 
-Sanitisation rules:
+### Behaviour
 
-- Empty or unsafe `href` values fall back to `#`.
-- Protocol whitelist: `http`, `https`, `mailto`, `tel`; hashes and relative paths pass through.
-
-### DOM Contract
-
-`renderFooter` wraps content in `.mpr-footer` and injects:
-
-- `.mpr-footer__container` – layout wrapper.
-- `.mpr-footer__lines` – optional `<ul>` of copy lines.
-- `.mpr-footer__links` – `<nav>` with anchor list.
-- `.mpr-footer__copyright` – trailing paragraph.
-
-Consumers can mutate styles by overriding the injected stylesheet or targeting class names.
+- Dropdown menu prefers Bootstrap’s `Dropdown` if available; otherwise a light-weight native toggle keeps `aria-expanded` in sync.
+- Theme toggle emits `mpr-footer:theme-change` with `{ theme }` and also re-emits through Alpine’s `$dispatch` when present.
+- All strings are escaped; dangerous schemes for links fall back to `#`.
 
 ### Controller Object
 
-`renderFooter` returns `{ update(nextOptions), destroy() }`. Updates re-run normalisation and replace `innerHTML`. `destroy` clears the host.
+- Imperative API: `renderFooter` returns `{ update(nextOptions), destroy(), getConfig() }`.
+- Alpine API: `mprFooter` exposes `{ init, update, destroy }`, wiring `$dispatch` when available.
 
 ## Legacy Footer Bundle (`footer.js`)
 
@@ -157,7 +167,7 @@ Key differences:
 - Reads configuration from `data-*` attributes and merges with provided options.
 - Emits `$dispatch` events when used within Alpine components.
 
-This bundle is not currently referenced by `mpr-ui.js`. Treat it as legacy/standalone until the APIs are reconciled.
+This bundle is now redundant; `mpr-ui.js` includes equivalent behaviour. The standalone file remains for legacy consumers but should be retired once downstream projects migrate.
 
 ## Security and Accessibility Considerations
 
