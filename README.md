@@ -4,10 +4,10 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 
 ## Why mpr-ui?
 
-- Ship consistent branding and layout primitives across sites without a build pipeline.
+- Ship consistent branding primitives across sites without a build pipeline.
 - Opt into Alpine.js factories or use imperative helpers — the API surface is identical either way.
-- Security and accessibility defaults baked in: escaped strings, sanitized links, sensible roles.
-- Configure everything through JSON options or `data-*` attributes for CMS-friendly embeds.
+- Security and accessibility defaults baked in: escaped strings, sanitised links, sensible roles.
+- Configure components with plain JavaScript objects; no bundler or build tooling required.
 
 ## Quick Start
 
@@ -28,7 +28,7 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 2. **Render the footer** — use the Alpine factory or the global helper.
 
    ```html
-   <footer x-data="mprFooter({ prefixText: 'Built by', links: footerLinks })" x-init="init()"></footer>
+   <footer x-data="mprFooter({ lines: ['Built by Marco Polo Research Lab'], links: footerLinks })" x-init="init()"></footer>
    <script>
      const footerLinks = [
        { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
@@ -41,19 +41,19 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 
 ## Components
 
-- **Footer** — production-ready component shipped today with theme toggle support, dropdown menu, and privacy link.
+- **Footer** — marketing footer with configurable copy lines, navigation links, and generated styling.
 - **Auth Header (experimental)** — helper that orchestrates Google Identity Services login flows for standalone front-ends.
-- **Coming soon** — header, notice bar, and breadcrumbs follow the same API patterns so you can adopt them progressively.
+- **Legacy footer bundle** — see [`footer.js`](footer.js) if you need dropdown/theme toggle support absent from the current bundle.
 
 ## Configure and Extend
 
-Every option, attribute, and integration detail is catalogued in [`ARCHITECTURE.md`](ARCHITECTURE.md), including:
+Every API and integration detail is catalogued in [`ARCHITECTURE.md`](ARCHITECTURE.md), including:
 
-- Complete option tables and `data-*` attribute mappings.
-- Bootstrap interoperability guidance.
+- Namespace exports, events, and backend expectations.
+- Option tables for the bundled footer and notes about the legacy dropdown-enabled footer.
 - Google Identity Services handshake sequence for the auth header helper.
 
-Use that reference when you need to fine-tune layout classes, theme toggles, or authentication flows.
+Use that reference when you need to fine-tune copy, extend authentication flows, or decide between the current and legacy footer implementations.
 
 ## Contributing
 
@@ -63,4 +63,3 @@ Use that reference when you need to fine-tune layout classes, theme toggles, or 
 ## License
 
 MIT © 2025 Marco Polo Research Lab
-
