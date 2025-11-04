@@ -9,8 +9,6 @@
         color-scheme: light dark;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
           sans-serif;
-        background-color: #0f172a;
-        color: #e2e8f0;
       }
 
       body {
@@ -18,6 +16,24 @@
         min-height: 100vh;
         display: flex;
         flex-direction: column;
+      }
+
+      body.theme-light {
+        background-color: #f8fafc;
+        color: #0f172a;
+      }
+
+      body.theme-dark {
+        background-color: #0f172a;
+        color: #e2e8f0;
+      }
+
+      body.theme-light main {
+        color: #0f172a;
+      }
+
+      body.theme-dark main {
+        color: #e2e8f0;
       }
 
       main {
@@ -123,6 +139,11 @@
     <script defer src="../mpr-ui.js"></script>
   </head>
   <body>
+    <div
+      id="site-header"
+      data-theme-toggle='{"attribute":"data-demo-theme","targets":["body"],"modes":[{"value":"light","classList":["theme-light"],"dataset":{"demo-theme":"light"}},{"value":"dark","classList":["theme-dark"],"dataset":{"demo-theme":"dark"}}]}'
+      data-theme-mode="dark"
+    ></div>
     <main>
       <h1>mpr-ui Demo</h1>
       <p>
@@ -140,7 +161,10 @@
         </p>
 
         <div class="auth-card">
-          <div id="auth-header-host"></div>
+          <p>
+            Interact with the header at the top of the page and observe how the
+            dataset and events change below.
+          </p>
 
           <div class="auth-actions">
             <button id="trigger-prompt">Prompt Sign-In</button>
@@ -184,16 +208,18 @@ const controller = MPRUI.createAuthHeader(host, {
         <h2 id="footer-demo-title">Footer Helpers</h2>
         <p>
           The first example uses Alpine's <code>x-data</code> factory; the second
-          mounts the footer imperatively and updates it at runtime.
+          mounts the footer imperatively and updates it at runtime. Try toggling
+          the theme switch or opening the menu to see emitted events.
         </p>
 
         <div
           id="alpine-footer"
           x-data="mprFooter({
-            lines: ['Built by Marco Polo Research Lab', 'Reusable UI components'],
+            prefixText: 'Built by',
+            toggleLabel: 'Marco Polo Research Lab',
             links: [
-              { label: 'Marco Polo Research Lab', href: 'https://mprlab.com' },
-              { label: 'LoopAware', href: 'https://loopaware.mprlab.com' }
+              { label: 'Marco Polo Research Lab', url: 'https://mprlab.com' },
+              { label: 'LoopAware', url: 'https://loopaware.mprlab.com' }
             ]
           })"
           x-init="init()"
