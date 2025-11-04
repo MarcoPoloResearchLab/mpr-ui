@@ -18,6 +18,23 @@
         flex-direction: column;
       }
 
+      #site-header {
+        position: sticky;
+        top: 0;
+        width: 100%;
+        z-index: 1200;
+        flex-shrink: 0;
+      }
+
+      .demo-footer-slot {
+        position: sticky;
+        bottom: 0;
+        width: 100%;
+        z-index: 1200;
+        flex-shrink: 0;
+        margin-top: auto;
+      }
+
       body.theme-light {
         background-color: #f8fafc;
         color: #0f172a;
@@ -38,7 +55,7 @@
 
       main {
         flex: 1 0 auto;
-        padding: 2.5rem 1.5rem 4rem;
+        padding: 6rem 1.5rem 6rem;
         max-width: 960px;
         margin: 0 auto;
       }
@@ -136,7 +153,11 @@
       src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
       type="module"
     ></script>
-    <script defer src="../mpr-ui.js"></script>
+    <script
+      id="mpr-ui-bundle"
+      defer
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.3/mpr-ui.js"
+    ></script>
   </head>
   <body>
     <div
@@ -207,9 +228,10 @@ const controller = MPRUI.createAuthHeader(host, {
       <section aria-labelledby="footer-demo-title">
         <h2 id="footer-demo-title">Footer Helpers</h2>
         <p>
-          The first example uses Alpine's <code>x-data</code> factory; the second
-          mounts the footer imperatively and updates it at runtime. Try toggling
-          the theme switch or opening the menu to see emitted events.
+          The first example uses Alpine's <code>x-data</code> factory; the sticky
+          footer at the bottom of the page is mounted imperatively so you can
+          rotate its links in real time. Try toggling the theme switch or opening
+          the menu to see emitted events.
         </p>
 
         <div
@@ -225,12 +247,17 @@ const controller = MPRUI.createAuthHeader(host, {
           x-init="init()"
         ></div>
 
-        <div id="imperative-footer-host" style="margin-top: 2rem"></div>
         <div class="auth-actions" style="margin-top: 1rem">
           <button id="rotate-footer">Rotate Footer Links</button>
         </div>
       </section>
     </main>
+
+    <div
+      id="imperative-footer-host"
+      class="demo-footer-slot"
+      aria-label="Sticky footer host"
+    ></div>
 
     <script type="module" src="./demo.js"></script>
   </body>

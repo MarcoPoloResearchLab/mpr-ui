@@ -10,7 +10,7 @@ Entries record newly discovered requests or changes, with their outcomes. No ins
 
 ## Improvements (200–299)
 
-- [ ] [MU-200] Update the demo file to have a sticky header and footer. Use the library loaded from the CDN. The current release version is v0.0.2
+- [x] [MU-200] Update the demo file to have a sticky header and footer. Use the library loaded from the CDN. The current release version is v0.0.2 — Demo now references the v0.0.2 CDN bundle, pins the header/imperative footer hosts with sticky styling, and ships regression coverage on branch `improvement/MU-200-demo-sticky`.
 
 ## BugFixes (300–399)
 

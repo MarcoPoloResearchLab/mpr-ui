@@ -83,6 +83,27 @@
     } catch (_error) {}
   }
 
+  function resolveHost(target) {
+    if (!target) {
+      throw new Error("resolveHost requires a selector or element reference");
+    }
+    if (typeof target === "string") {
+      var documentObject = global.document || (global.window && global.window.document);
+      if (!documentObject || typeof documentObject.querySelector !== "function") {
+        throw new Error("resolveHost cannot query selectors without a document");
+      }
+      var element = documentObject.querySelector(target);
+      if (!element) {
+        throw new Error('resolveHost could not find element for selector "' + target + '"');
+      }
+      return element;
+    }
+    if (typeof target === "object") {
+      return target;
+    }
+    throw new Error("resolveHost expected a selector string or an element reference");
+  }
+
   function deepMergeOptions(target) {
     var baseObject = !target || typeof target !== "object" ? {} : target;
     for (var index = 1; index < arguments.length; index += 1) {
