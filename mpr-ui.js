@@ -1264,7 +1264,10 @@
       HEADER_ROOT_CLASS +
       '__button ' +
       HEADER_ROOT_CLASS +
-      '__icon-btn" data-mpr-header="theme-toggle">🌗<span>Theme</span></button>' +
+      '__icon-btn" data-mpr-header="theme-toggle">' +
+      '<span data-mpr-header="theme-icon" aria-hidden="true">🌙</span>' +
+      '<span>Theme</span>' +
+      "</button>" +
       '<span class="' +
       HEADER_ROOT_CLASS +
       '__divider"></span>' +
@@ -1300,6 +1303,9 @@
       brand: hostElement.querySelector('[data-mpr-header="brand"]'),
       themeButton: hostElement.querySelector(
         '[data-mpr-header="theme-toggle"]',
+      ),
+      themeIcon: hostElement.querySelector(
+        '[data-mpr-header="theme-icon"]',
       ),
       settingsButton: hostElement.querySelector(
         '[data-mpr-header="settings-button"]',
@@ -1406,6 +1412,16 @@
     }
   }
 
+  function resolveThemeIconSymbol(modeValue) {
+    if (modeValue === "dark") {
+      return "🌙";
+    }
+    if (modeValue === "light") {
+      return "☀️";
+    }
+    return "🌗";
+  }
+
   function renderSiteHeader(target, rawOptions) {
     var hostElement = resolveHost(target);
     if (!hostElement || typeof hostElement !== "object") {
@@ -1459,6 +1475,11 @@
             "aria-pressed",
             activeIndex === 1 ? "true" : "false",
           );
+        }
+        var iconSymbol = resolveThemeIconSymbol(modeValue);
+        elements.themeButton.setAttribute("data-mpr-theme-icon", iconSymbol);
+        if (elements.themeIcon) {
+          elements.themeIcon.textContent = iconSymbol;
         }
       }
     }

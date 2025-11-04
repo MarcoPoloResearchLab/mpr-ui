@@ -73,6 +73,24 @@ const sessionProfile = {
   current: null,
 };
 
+const THEME_MODE_CLASSES = ["theme-light", "theme-dark"];
+
+/**
+ * Syncs the document body class list with the active theme mode.
+ * @param {string | null | undefined} mode
+ */
+const syncBodyThemeClass = (mode) => {
+  if (!demoBody) {
+    return;
+  }
+  THEME_MODE_CLASSES.forEach((className) => {
+    demoBody.classList.remove(className);
+  });
+  const nextMode = mode === "dark" ? "dark" : "light";
+  demoBody.classList.add(`theme-${nextMode}`);
+  demoBody.dataset.demoThemeMode = nextMode;
+};
+
 if (demoBody && !demoBody.dataset.demoPalette) {
   demoBody.dataset.demoPalette = "default";
 }
@@ -174,6 +192,12 @@ const headerController = window.MPRUI.renderSiteHeader(headerHost, {
   },
 });
 
+const initialThemeMode =
+  typeof window.MPRUI.getThemeMode === "function"
+    ? window.MPRUI.getThemeMode()
+    : headerHost.getAttribute("data-mpr-theme-mode");
+syncBodyThemeClass(initialThemeMode);
+
 const authController = headerController.getAuthController();
 
 headerHost.addEventListener("mpr-ui:auth:authenticated", (event) => {
@@ -201,6 +225,7 @@ document.addEventListener("mpr-ui:theme-change", (event) => {
   appendLogEntry(
     `Global theme -> ${detail.mode || "unknown"}${detail.source ? ` (source: ${detail.source})` : ""}`,
   );
+  syncBodyThemeClass(detail.mode);
 });
 
 headerHost.addEventListener("mpr-ui:header:theme-change", (event) => {

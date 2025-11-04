@@ -193,6 +193,7 @@ function createHostHarness() {
   const nav = { innerHTML: '' };
   const brand = createElementStub({ supportsAttributes: true });
   const themeButton = createElementStub({ supportsEvents: true, supportsAttributes: true });
+  const themeIcon = createElementStub();
   const settingsButton = createElementStub({ supportsEvents: true });
   const signInButton = createElementStub({ supportsEvents: true });
   const profileContainer = createElementStub();
@@ -205,6 +206,7 @@ function createHostHarness() {
     ['[data-mpr-header="nav"]', nav],
     ['[data-mpr-header="brand"]', brand],
     ['[data-mpr-header="theme-toggle"]', themeButton],
+    ['[data-mpr-header="theme-icon"]', themeIcon],
     ['[data-mpr-header="settings-button"]', settingsButton],
     ['[data-mpr-header="sign-in-button"]', signInButton],
     ['[data-mpr-header="profile"]', profileContainer],
