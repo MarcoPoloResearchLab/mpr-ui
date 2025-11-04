@@ -1715,6 +1715,10 @@
     return raw;
   }
 
+  function sanitizeFooterHref(inputValue) {
+    return sanitizeHref(inputValue);
+  }
+
   function normalizeFooterLinks(candidateLinks) {
     if (!Array.isArray(candidateLinks)) {
       return [];
@@ -1830,7 +1834,9 @@
       '<span data-mpr-footer="prefix"></span>' +
       dropdownMarkup +
       "</div>" +
-      '<a data-mpr-footer="privacy-link" href="' + sanitizeFooterAttribute(config.privacyLinkHref) + '"></a>' +
+      '<a data-mpr-footer="privacy-link" href="' +
+      escapeFooterHtml(sanitizeFooterHref(config.privacyLinkHref)) +
+      '"></a>' +
       themeToggleMarkup +
       "</div>";
 
@@ -1852,7 +1858,7 @@
       privacyAnchor.className = config.privacyLinkClass;
     }
     if (config.privacyLinkHref) {
-      privacyAnchor.setAttribute("href", config.privacyLinkHref);
+      privacyAnchor.setAttribute("href", sanitizeFooterHref(config.privacyLinkHref));
     }
     if (config.privacyLinkLabel) {
       privacyAnchor.textContent = config.privacyLinkLabel;
@@ -1904,7 +1910,7 @@
     var menuItemClass = config.menuItemClass || "";
     var markup = items
       .map(function renderSingle(link) {
-        var hrefValue = sanitizeFooterAttribute(link.url);
+        var hrefValue = escapeFooterHtml(sanitizeFooterHref(link.url));
         var labelValue = escapeFooterHtml(link.label);
         var targetValue = sanitizeFooterAttribute(link.target || FOOTER_LINK_DEFAULT_TARGET);
         var relValue = sanitizeFooterAttribute(link.rel || FOOTER_LINK_DEFAULT_REL);
