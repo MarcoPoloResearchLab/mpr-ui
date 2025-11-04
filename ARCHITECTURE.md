@@ -3,7 +3,7 @@
 `mpr-ui` is delivered as a browser-ready bundle (`mpr-ui.js`) that attaches helpers to the global `window.MPRUI` namespace. The project currently ships two behaviours:
 
 - An authentication header controller that orchestrates Google Identity Services (GIS) sign-in flows.
-- A marketing footer renderer with a lightweight API aimed at static sites.
+- A sticky footer renderer with dropdown navigation, privacy link, and theme toggle support.
 
 The library assumes a CDN delivery model and no build tooling. Everything runs in the browser with optional Alpine.js convenience factories.
 
@@ -15,7 +15,7 @@ The library assumes a CDN delivery model and no build tooling. Everything runs i
 | `footer.js`   | Legacy standalone footer bundle (includes richer dropdown/theme logic, not wired into `mpr-ui.js`). |
 | `alpine.js.md`| Notes on Alpine integration patterns.                                                        |
 
-> **Note:** `footer.js` predates the current bundle and is not imported into `mpr-ui.js`. Loading both files on a page will race to set `window.MPRUI.renderFooter`, so prefer the bundle or the legacy file exclusively.
+> **Note:** `footer.js` predates the current bundle and is kept only for legacy consumers; the main bundle now exposes the richer footer implementation directly.
 
 ## Global Namespace
 
