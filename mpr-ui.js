@@ -838,15 +838,51 @@
 
     var currentTheme = determineInitialTheme(options);
     var authController = null;
-
-    if (options.auth) {
-      authController = createAuthHeader(hostElement, options.auth);
-    } else if (elements.root) {
-      elements.root.classList.add(HEADER_ROOT_CLASS + "--no-auth");
-    }
+    var authListenersAttached = false;
+    var signInClickHandler = null;
 
     function dispatchHeaderEvent(type, detail) {
       dispatchEvent(hostElement, type, detail || {});
+    }
+
+    function setSignInClickHandler(handler) {
+      if (!elements.signInButton) {
+        return;
+      }
+      if (signInClickHandler) {
+        elements.signInButton.removeEventListener(
+          "click",
+          signInClickHandler,
+        );
+      }
+      signInClickHandler = handler;
+      if (handler) {
+        elements.signInButton.addEventListener("click", handler);
+      }
+    }
+
+    function handleFallbackSignInClick() {
+      dispatchHeaderEvent("mpr-ui:header:signin-click", {});
+    }
+
+    function handleGoogleSignInClick() {
+      if (
+        global.google &&
+        global.google.accounts &&
+        global.google.accounts.id &&
+        typeof global.google.accounts.id.prompt === "function"
+      ) {
+        try {
+          global.google.accounts.id.prompt();
+          return;
+        } catch (_error) {
+          dispatchHeaderEvent("mpr-ui:header:error", {
+            code: "mpr-ui.header.google_prompt_failed",
+          });
+          return;
+        }
+      }
+      dispatchHeaderEvent("mpr-ui:header:signin-click", {});
     }
 
     function refreshAuthState() {
@@ -856,29 +892,45 @@
       updateHeaderAuthView(hostElement, elements, options, authController.state);
     }
 
-    if (options.auth && elements.signInButton) {
-      elements.signInButton.addEventListener("click", function () {
-        if (
-          global.google &&
-          global.google.accounts &&
-          global.google.accounts.id &&
-          typeof global.google.accounts.id.prompt === "function"
-        ) {
-          try {
-            global.google.accounts.id.prompt();
-          } catch (_error) {
-            dispatchHeaderEvent("mpr-ui:header:error", {
-              code: "mpr-ui.header.google_prompt_failed",
-            });
-          }
-        } else {
-          dispatchHeaderEvent("mpr-ui:header:signin-click", {});
-        }
-      });
-    } else if (elements.signInButton) {
-      elements.signInButton.addEventListener("click", function () {
-        dispatchHeaderEvent("mpr-ui:header:signin-click", {});
-      });
+    function handleAuthenticatedEvent() {
+      refreshAuthState();
+    }
+
+    function handleUnauthenticatedEvent() {
+      refreshAuthState();
+    }
+
+    function ensureAuthEventListeners() {
+      if (
+        authListenersAttached ||
+        !hostElement ||
+        typeof hostElement.addEventListener !== "function"
+      ) {
+        return;
+      }
+      hostElement.addEventListener(
+        "mpr-ui:auth:authenticated",
+        handleAuthenticatedEvent,
+      );
+      hostElement.addEventListener(
+        "mpr-ui:auth:unauthenticated",
+        handleUnauthenticatedEvent,
+      );
+      authListenersAttached = true;
+    }
+
+    if (options.auth) {
+      authController = createAuthHeader(hostElement, options.auth);
+    } else if (elements.root) {
+      elements.root.classList.add(HEADER_ROOT_CLASS + "--no-auth");
+    }
+
+    if (elements.signInButton) {
+      if (options.auth) {
+        setSignInClickHandler(handleGoogleSignInClick);
+      } else {
+        setSignInClickHandler(handleFallbackSignInClick);
+      }
     }
 
     if (elements.signOutButton) {
@@ -913,18 +965,7 @@
     }
 
     if (authController) {
-      hostElement.addEventListener(
-        "mpr-ui:auth:authenticated",
-        function () {
-          refreshAuthState();
-        },
-      );
-      hostElement.addEventListener(
-        "mpr-ui:auth:unauthenticated",
-        function () {
-          refreshAuthState();
-        },
-      );
+      ensureAuthEventListeners();
       refreshAuthState();
     }
 
@@ -936,7 +977,16 @@
         applyHeaderOptions(hostElement, elements, options);
         if (options.auth && !authController) {
           authController = createAuthHeader(hostElement, options.auth);
+        }
+        if (options.auth) {
+          ensureAuthEventListeners();
+          if (elements.root) {
+            elements.root.classList.remove(HEADER_ROOT_CLASS + "--no-auth");
+          }
+          setSignInClickHandler(handleGoogleSignInClick);
           refreshAuthState();
+        } else {
+          setSignInClickHandler(handleFallbackSignInClick);
         }
       },
       destroy: function destroy() {
