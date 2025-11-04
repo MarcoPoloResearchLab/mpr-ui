@@ -10,6 +10,8 @@ Entries record newly discovered requests or changes, with their outcomes. No ins
 
 ## Improvements (200–299)
 
+- [ ] [MU-200] Update the demo file to have a sticky header and footer. Use the library loaded from the CDN. The current release version is v0.0.2
+
 ## BugFixes (300–399)
 
 ## Maintenance (400–499)
