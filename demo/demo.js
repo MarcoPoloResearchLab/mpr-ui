@@ -325,3 +325,27 @@ paletteButtons.forEach((button) => {
     appendLogEntry(`Palette tokens → ${palette}`);
   });
 });
+
+const themeModeButtons = document.querySelectorAll("[data-demo-theme-mode]");
+themeModeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    if (!window.MPRUI || typeof window.MPRUI.setThemeMode !== "function") {
+      appendLogEntry("Theme mode API unavailable");
+      return;
+    }
+    const targetMode = button.getAttribute("data-demo-theme-mode");
+    if (!targetMode) {
+      return;
+    }
+    const currentMode =
+      typeof window.MPRUI.getThemeMode === "function"
+        ? window.MPRUI.getThemeMode()
+        : null;
+    const nextMode = window.MPRUI.setThemeMode(targetMode, "demo-controls");
+    appendLogEntry(
+      `Theme mode → ${nextMode || targetMode}${
+        currentMode === nextMode ? " (no change)" : ""
+      }`,
+    );
+  });
+});
