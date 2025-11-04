@@ -273,6 +273,16 @@ function loadLibrary() {
   return global.MPRUI;
 }
 
+test('rendering the header injects shared theme tokens into the document head', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {});
+
+  const themeStyle = global.document.getElementById('mpr-ui-theme-tokens');
+  assert.ok(themeStyle, 'expected theme token stylesheet to be attached');
+});
+
 test('enabling auth via update rebinds handlers', () => {
   resetEnvironment();
   const harness = createHostHarness();

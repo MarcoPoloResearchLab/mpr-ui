@@ -35,6 +35,55 @@
         margin-top: auto;
       }
 
+      body[data-demo-palette="default"] {
+        background: none;
+      }
+
+      body[data-demo-palette="sunrise"] {
+        --mpr-color-surface-primary: rgba(252, 232, 222, 0.92);
+        --mpr-color-surface-elevated: rgba(255, 247, 237, 0.98);
+        --mpr-color-text-primary: #7c2d12;
+        --mpr-color-text-muted: #9a3412;
+        --mpr-color-border: rgba(249, 210, 179, 0.6);
+        --mpr-color-divider: rgba(253, 186, 116, 0.6);
+        --mpr-chip-bg: rgba(249, 115, 22, 0.18);
+        --mpr-chip-hover-bg: rgba(249, 115, 22, 0.28);
+        --mpr-menu-hover-bg: rgba(251, 146, 60, 0.18);
+        --mpr-color-accent: #f97316;
+        --mpr-color-accent-alt: #fb923c;
+        --mpr-color-accent-contrast: #fff7ed;
+        --mpr-theme-toggle-bg: rgba(251, 191, 36, 0.2);
+        --mpr-shadow-elevated: 0 10px 24px rgba(124, 45, 18, 0.18);
+        --mpr-shadow-flyout: 0 18px 36px rgba(124, 45, 18, 0.22);
+        background-image: linear-gradient(135deg, #fff7ed 0%, #fde68a 100%);
+        color: #7c2d12;
+      }
+
+      body[data-demo-palette="forest"] {
+        --mpr-color-surface-primary: rgba(17, 42, 36, 0.94);
+        --mpr-color-surface-elevated: rgba(13, 35, 30, 0.98);
+        --mpr-color-text-primary: #dcfce7;
+        --mpr-color-text-muted: #86efac;
+        --mpr-color-border: rgba(134, 239, 172, 0.3);
+        --mpr-color-divider: rgba(34, 197, 94, 0.4);
+        --mpr-chip-bg: rgba(34, 197, 94, 0.2);
+        --mpr-chip-hover-bg: rgba(34, 197, 94, 0.32);
+        --mpr-menu-hover-bg: rgba(21, 128, 61, 0.35);
+        --mpr-color-accent: #22c55e;
+        --mpr-color-accent-alt: #16a34a;
+        --mpr-color-accent-contrast: #052e16;
+        --mpr-theme-toggle-bg: rgba(34, 197, 94, 0.18);
+        --mpr-shadow-elevated: 0 10px 24px rgba(5, 46, 22, 0.4);
+        --mpr-shadow-flyout: 0 18px 36px rgba(5, 46, 22, 0.5);
+        background-image: linear-gradient(135deg, #022c22 0%, #065f46 100%);
+        color: #dcfce7;
+      }
+
+      body[data-demo-palette="sunrise"] main,
+      body[data-demo-palette="forest"] main {
+        transition: background 0.3s ease, color 0.3s ease;
+      }
+
       body.theme-light {
         background-color: #f8fafc;
         color: #0f172a;
@@ -159,7 +208,7 @@
       src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.3/mpr-ui.js"
     ></script>
   </head>
-  <body>
+  <body data-demo-palette="default">
     <div
       id="site-header"
       data-theme-toggle='{"attribute":"data-demo-theme","targets":["body"],"modes":[{"value":"light","classList":["theme-light"],"dataset":{"demo-theme":"light"}},{"value":"dark","classList":["theme-dark"],"dataset":{"demo-theme":"dark"}}]}'
@@ -250,6 +299,23 @@ const controller = MPRUI.createAuthHeader(host, {
         <div class="auth-actions" style="margin-top: 1rem">
           <button id="rotate-footer">Rotate Footer Links</button>
         </div>
+      </section>
+
+      <section aria-labelledby="theme-demo-title">
+        <h2 id="theme-demo-title">Shared Theme Tokens</h2>
+        <p>
+          The header and footer now respond to CSS custom properties exported by
+          <code>mpr-ui.js</code>. Pick a palette to override the shared tokens without touching JavaScript.
+        </p>
+        <div class="auth-actions">
+          <button data-demo-palette-toggle="default">Default Palette</button>
+          <button data-demo-palette-toggle="sunrise">Sunrise Palette</button>
+          <button data-demo-palette-toggle="forest">Forest Palette</button>
+        </div>
+        <pre><code>body[data-demo-palette="sunrise"] {
+  --mpr-color-surface-primary: rgba(252,232,222,0.92);
+  --mpr-color-accent: #f97316;
+}</code></pre>
       </section>
     </main>
 

@@ -23,6 +23,8 @@ const profileAvatar = /** @type {HTMLElement | null} */ (
   document.getElementById("profile-avatar")
 );
 
+const demoBody = /** @type {HTMLBodyElement | null} */ (document.body);
+
 if (!headerHost || !eventLog || !profileId || !profileEmail || !profileDisplay) {
   throw new Error("demo: expected header host and dataset placeholders");
 }
@@ -70,6 +72,10 @@ const sessionProfile = {
   }>} */
   current: null,
 };
+
+if (demoBody && !demoBody.dataset.demoPalette) {
+  demoBody.dataset.demoPalette = "default";
+}
 
 /**
  * Creates a resolved fetch response mimicking the Fetch API.
@@ -298,4 +304,24 @@ footerHost.addEventListener("mpr-footer:theme-change", (event) => {
   appendLogEntry(
     `Footer theme toggled to ${detail.theme || "unknown"}${detail.source ? ` (source: ${detail.source})` : ""}`,
   );
+});
+
+const paletteButtons = document.querySelectorAll("[data-demo-palette-toggle]");
+paletteButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    if (!demoBody) {
+      appendLogEntry("Palette host body unavailable");
+      return;
+    }
+    const palette = button.getAttribute("data-demo-palette-toggle");
+    if (!palette) {
+      return;
+    }
+    if (demoBody.dataset.demoPalette === palette) {
+      appendLogEntry(`Palette tokens already set to ${palette}`);
+      return;
+    }
+    demoBody.dataset.demoPalette = palette;
+    appendLogEntry(`Palette tokens → ${palette}`);
+  });
 });
