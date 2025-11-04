@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mpr-ui Demo</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+        background-color: #0f172a;
+        color: #e2e8f0;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      main {
+        flex: 1 0 auto;
+        padding: 2.5rem 1.5rem 4rem;
+        max-width: 960px;
+        margin: 0 auto;
+      }
+
+      h1,
+      h2 {
+        color: #38bdf8;
+      }
+
+      section {
+        margin-bottom: 3rem;
+        padding: 1.5rem;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 0.75rem;
+        background: rgba(15, 23, 42, 0.65);
+        backdrop-filter: blur(4px);
+      }
+
+      pre {
+        background: rgba(15, 23, 42, 0.85);
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        overflow-x: auto;
+        margin: 1rem 0;
+      }
+
+      code {
+        font-family: "Fira Code", "SFMono-Regular", Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+        font-size: 0.875rem;
+      }
+
+      .auth-card {
+        display: grid;
+        gap: 1rem;
+        background: rgba(30, 41, 59, 0.6);
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+      }
+
+      .auth-actions {
+        display: flex;
+        gap: 1rem;
+        flex-wrap: wrap;
+      }
+
+      button {
+        background: #38bdf8;
+        color: #0f172a;
+        border: none;
+        border-radius: 999px;
+        padding: 0.6rem 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+      }
+
+      button.secondary {
+        background: rgba(148, 163, 184, 0.2);
+        color: #e2e8f0;
+      }
+
+      button:focus-visible {
+        outline: 3px solid #f59e0b;
+        outline-offset: 2px;
+      }
+
+      .event-log {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid rgba(148, 163, 184, 0.25);
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        background: rgba(15, 23, 42, 0.85);
+        font-size: 0.85rem;
+      }
+
+      dl {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 0.5rem 1rem;
+        margin: 0;
+      }
+
+      dt {
+        font-weight: 600;
+        color: #38bdf8;
+      }
+
+      footer {
+        flex-shrink: 0;
+      }
+    </style>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
+      type="module"
+    ></script>
+    <script defer src="../mpr-ui.js"></script>
+  </head>
+  <body>
+    <main>
+      <h1>mpr-ui Demo</h1>
+      <p>
+        This page runs entirely offline and demonstrates how to use the
+        <strong>authentication header</strong> and <strong>footer</strong>
+        helpers provided by <code>mpr-ui.js</code>.
+      </p>
+
+      <section aria-labelledby="auth-demo-title">
+        <h2 id="auth-demo-title">Authentication Header</h2>
+        <p>
+          The mock gateway below simulates Google Identity Services and backend
+          endpoints. Use the buttons to trigger credential exchanges and observe
+          emitted events.
+        </p>
+
+        <div class="auth-card">
+          <div id="auth-header-host"></div>
+
+          <div class="auth-actions">
+            <button id="trigger-prompt">Prompt Sign-In</button>
+            <button id="complete-sign-in">Complete Sign-In</button>
+            <button class="secondary" id="sign-out">Sign Out</button>
+            <button class="secondary" id="restart-session">
+              Restart Session Watcher
+            </button>
+          </div>
+
+          <div>
+            <h3>Current Profile Dataset</h3>
+            <dl id="profile-dataset">
+              <dt>data-user-id</dt>
+              <dd id="profile-id">—</dd>
+              <dt>data-user-email</dt>
+              <dd id="profile-email">—</dd>
+              <dt>data-user-display</dt>
+              <dd id="profile-display">—</dd>
+              <dt>data-user-avatar-url</dt>
+              <dd id="profile-avatar">—</dd>
+            </dl>
+          </div>
+
+          <div>
+            <h3>Event Log</h3>
+            <div id="event-log" class="event-log" aria-live="polite"></div>
+          </div>
+        </div>
+
+        <pre><code>// demo/auth configuration (see demo.js)
+const controller = MPRUI.createAuthHeader(host, {
+  loginPath: "/auth/google",
+  logoutPath: "/auth/logout",
+  noncePath: "/auth/nonce",
+});
+</code></pre>
+      </section>
+
+      <section aria-labelledby="footer-demo-title">
+        <h2 id="footer-demo-title">Footer Helpers</h2>
+        <p>
+          The first example uses Alpine's <code>x-data</code> factory; the second
+          mounts the footer imperatively and updates it at runtime.
+        </p>
+
+        <div
+          id="alpine-footer"
+          x-data="mprFooter({
+            lines: ['Built by Marco Polo Research Lab', 'Reusable UI components'],
+            links: [
+              { label: 'Marco Polo Research Lab', href: 'https://mprlab.com' },
+              { label: 'LoopAware', href: 'https://loopaware.mprlab.com' }
+            ]
+          })"
+          x-init="init()"
+        ></div>
+
+        <div id="imperative-footer-host" style="margin-top: 2rem"></div>
+        <div class="auth-actions" style="margin-top: 1rem">
+          <button id="rotate-footer">Rotate Footer Links</button>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="./demo.js"></script>
+  </body>
+</html>

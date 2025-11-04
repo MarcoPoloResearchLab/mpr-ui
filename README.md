@@ -45,6 +45,11 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 - **Auth Header (experimental)** — helper that orchestrates Google Identity Services login flows for standalone front-ends.
 - **Legacy footer bundle** — see [`footer.js`](footer.js) if you need dropdown/theme toggle support absent from the current bundle.
 
+## Demo
+
+- Open `demo/index.html` in a browser to explore the authentication header mock and both footer helpers.
+- The page includes an offline stub for Google Identity Services so you can trigger events without external dependencies.
+
 ## Configure and Extend
 
 Every API and integration detail is catalogued in [`ARCHITECTURE.md`](ARCHITECTURE.md), including:
