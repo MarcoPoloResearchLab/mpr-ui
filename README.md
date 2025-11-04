@@ -25,10 +25,19 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    ></script>
    ```
 
-2. **Render the footer** — use the Alpine factory or the global helper.
+2. **Render the header & footer** — use the Alpine factories or the global helpers.
 
    ```html
-   <footer x-data="mprFooter({ lines: ['Built by Marco Polo Research Lab'], links: footerLinks })" x-init="init()"></footer>
+   <header x-data="mprSiteHeader({
+     brand: { label: 'Marco Polo Research Lab', href: '/' },
+     navLinks: [
+       { label: 'Docs', href: '#docs' },
+       { label: 'Support', href: '#support' }
+     ],
+     auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' }
+   })" x-init="init()"></header>
+
+   <footer x-data="mprFooter({ prefixText: 'Built by', links: footerLinks })" x-init="init()"></footer>
    <script>
      const footerLinks = [
        { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
@@ -37,20 +46,46 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    </script>
    ```
 
-   Prefer an imperative call? Mount the same component with `MPRUI.renderFooter(hostElement, options)`.
+   Prefer an imperative call? Mount the same components with `MPRUI.renderSiteHeader(hostElement, options)` and `MPRUI.renderFooter(hostElement, options)`.
 
 ## Components
 
-- **Footer** — marketing footer with configurable copy lines, navigation links, and generated styling.
+- **Site Header** — sticky banner with auth controls, settings trigger, and theme toggle.
+- **Footer** — sticky footer with prefix dropdown menu, privacy link, and theme toggle.
 - **Auth Header (experimental)** — helper that orchestrates Google Identity Services login flows for standalone front-ends.
 - **Legacy footer bundle** — see [`footer.js`](footer.js) if you need dropdown/theme toggle support absent from the current bundle.
+
+## Demo
+
+- Open `demo/index.html` in a browser to explore the authentication header mock and both footer helpers.
+- The page includes an offline stub for Google Identity Services so you can trigger events without external dependencies.
+
+## Theme Management
+
+- Configure theme behaviour declaratively with `data-theme-toggle` and `data-theme-mode` on the header or footer host.
+
+  ```html
+  <div
+    id="site-header"
+    data-theme-toggle='{"attribute":"data-demo-theme","targets":["body"],"modes":[{"value":"light","classList":["theme-light"],"dataset":{"demo-theme":"light"}},{"value":"dark","classList":["theme-dark"],"dataset":{"demo-theme":"dark"}}]}'
+    data-theme-mode="dark"
+  ></div>
+  ```
+
+- Listen for global changes via `document.addEventListener("mpr-ui:theme-change", handler)` — the event detail contains `{ mode, source }`.
+- Programmatic helpers:
+  - `MPRUI.configureTheme({ attribute, targets, modes })`
+  - `MPRUI.setThemeMode("dark")`
+  - `MPRUI.getThemeMode()`
+  - `MPRUI.onThemeChange(listener)` (returns an unsubscribe function)
 
 ## Configure and Extend
 
 Every API and integration detail is catalogued in [`ARCHITECTURE.md`](ARCHITECTURE.md), including:
 
 - Namespace exports, events, and backend expectations.
-- Option tables for the bundled footer and notes about the legacy dropdown-enabled footer.
+- Header options (brand, navigation, auth wiring) and emitted events.
+- Option tables for the bundled footer, theme targets/modes, and notes about the legacy dropdown-enabled footer.
 - Google Identity Services handshake sequence for the auth header helper.
 
 Use that reference when you need to fine-tune copy, extend authentication flows, or decide between the current and legacy footer implementations.
