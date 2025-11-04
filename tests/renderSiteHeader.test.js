@@ -225,6 +225,7 @@ function createHostHarness() {
     nav: nav,
     brand: brand,
     themeButton: themeButton,
+    themeIcon: themeIcon,
     settingsButton: settingsButton,
     signInButton: signInButton,
     profileContainer: profileContainer,
@@ -283,6 +284,29 @@ test('rendering the header injects shared theme tokens into the document head', 
 
   const themeStyle = global.document.getElementById('mpr-ui-theme-tokens');
   assert.ok(themeStyle, 'expected theme token stylesheet to be attached');
+});
+
+test('theme toggle updates the icon when the mode changes', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+  const controller = library.renderSiteHeader(harness.host, {});
+
+  assert.equal(
+    harness.themeIcon.textContent,
+    '🌙',
+    'expected initial icon to represent the dark mode',
+  );
+
+  harness.themeButton.click();
+
+  assert.equal(
+    harness.themeIcon.textContent,
+    '☀️',
+    'expected icon to switch to the light mode glyph after toggle',
+  );
+
+  controller.destroy();
 });
 
 test('enabling auth via update rebinds handlers', () => {
