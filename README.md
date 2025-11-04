@@ -21,7 +21,7 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    </script>
    <script
      defer
-     src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@1.0.0/mpr-ui.js"
+     src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.4/mpr-ui.js"
    ></script>
    ```
 

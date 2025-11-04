@@ -73,6 +73,61 @@ const sessionProfile = {
   current: null,
 };
 
+const THEME_MODE_CLASSES = ["theme-light", "theme-dark"];
+const THEME_MODE_ICONS = {
+  light: "☀️",
+  dark: "🌙",
+};
+
+/**
+ * Ensures the header theme toggle exposes a dedicated icon element and updates its symbol.
+ * @param {string} mode
+ */
+const updateThemeToggleIcon = (mode) => {
+  const themeButton = headerHost.querySelector(
+    '[data-mpr-header="theme-toggle"]',
+  );
+  if (!themeButton) {
+    return;
+  }
+  let iconElement = themeButton.querySelector(
+    '[data-mpr-header="theme-icon"]',
+  );
+  if (!iconElement) {
+    const firstChild = themeButton.firstChild;
+    if (firstChild && firstChild.nodeType === 3) {
+      themeButton.removeChild(firstChild);
+    }
+    iconElement = document.createElement("span");
+    iconElement.setAttribute("data-mpr-header", "theme-icon");
+    iconElement.setAttribute("aria-hidden", "true");
+    if (themeButton.firstChild) {
+      themeButton.insertBefore(iconElement, themeButton.firstChild);
+    } else {
+      themeButton.append(iconElement);
+    }
+  }
+  const symbol = THEME_MODE_ICONS[mode] || THEME_MODE_ICONS.dark;
+  iconElement.textContent = symbol;
+};
+
+/**
+ * Syncs the document body class list with the active theme mode.
+ * @param {string | null | undefined} mode
+ */
+const syncBodyThemeClass = (mode) => {
+  if (!demoBody) {
+    return;
+  }
+  THEME_MODE_CLASSES.forEach((className) => {
+    demoBody.classList.remove(className);
+  });
+  const nextMode = mode === "dark" ? "dark" : "light";
+  demoBody.classList.add(`theme-${nextMode}`);
+  demoBody.dataset.demoThemeMode = nextMode;
+  updateThemeToggleIcon(nextMode);
+};
+
 if (demoBody && !demoBody.dataset.demoPalette) {
   demoBody.dataset.demoPalette = "default";
 }
@@ -174,6 +229,12 @@ const headerController = window.MPRUI.renderSiteHeader(headerHost, {
   },
 });
 
+const initialThemeMode =
+  typeof window.MPRUI.getThemeMode === "function"
+    ? window.MPRUI.getThemeMode()
+    : headerHost.getAttribute("data-mpr-theme-mode");
+syncBodyThemeClass(initialThemeMode);
+
 const authController = headerController.getAuthController();
 
 headerHost.addEventListener("mpr-ui:auth:authenticated", (event) => {
@@ -201,6 +262,7 @@ document.addEventListener("mpr-ui:theme-change", (event) => {
   appendLogEntry(
     `Global theme -> ${detail.mode || "unknown"}${detail.source ? ` (source: ${detail.source})` : ""}`,
   );
+  syncBodyThemeClass(detail.mode);
 });
 
 headerHost.addEventListener("mpr-ui:header:theme-change", (event) => {
@@ -323,5 +385,29 @@ paletteButtons.forEach((button) => {
     }
     demoBody.dataset.demoPalette = palette;
     appendLogEntry(`Palette tokens → ${palette}`);
+  });
+});
+
+const themeModeButtons = document.querySelectorAll("[data-demo-theme-mode]");
+themeModeButtons.forEach((button) => {
+  button.addEventListener("click", () => {
+    if (!window.MPRUI || typeof window.MPRUI.setThemeMode !== "function") {
+      appendLogEntry("Theme mode API unavailable");
+      return;
+    }
+    const targetMode = button.getAttribute("data-demo-theme-mode");
+    if (!targetMode) {
+      return;
+    }
+    const currentMode =
+      typeof window.MPRUI.getThemeMode === "function"
+        ? window.MPRUI.getThemeMode()
+        : null;
+    const nextMode = window.MPRUI.setThemeMode(targetMode, "demo-controls");
+    appendLogEntry(
+      `Theme mode → ${nextMode || targetMode}${
+        currentMode === nextMode ? " (no change)" : ""
+      }`,
+    );
   });
 });

@@ -102,6 +102,42 @@
         color: #e2e8f0;
       }
 
+      body.theme-light section {
+        background: rgba(255, 255, 255, 0.92);
+        border-color: rgba(148, 163, 184, 0.35);
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.08);
+      }
+
+      body.theme-light .auth-card {
+        background: rgba(226, 232, 240, 0.65);
+        color: #0f172a;
+      }
+
+      body.theme-light .event-log {
+        background: rgba(241, 245, 249, 0.9);
+        border-color: rgba(148, 163, 184, 0.4);
+        color: #0f172a;
+      }
+
+      body.theme-light pre {
+        background: #f1f5f9;
+        color: #0f172a;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+      }
+
+      body.theme-light button {
+        color: #0f172a;
+      }
+
+      body.theme-light button.secondary {
+        background: rgba(148, 163, 184, 0.22);
+        color: #0f172a;
+      }
+
+      body.theme-light code {
+        color: #0f172a;
+      }
+
       main {
         flex: 1 0 auto;
         padding: 6rem 1.5rem 6rem;
@@ -205,7 +241,7 @@
     <script
       id="mpr-ui-bundle"
       defer
-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.3/mpr-ui.js"
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.4/mpr-ui.js"
     ></script>
   </head>
   <body data-demo-palette="default">
@@ -311,6 +347,10 @@ const controller = MPRUI.createAuthHeader(host, {
           <button data-demo-palette-toggle="default">Default Palette</button>
           <button data-demo-palette-toggle="sunrise">Sunrise Palette</button>
           <button data-demo-palette-toggle="forest">Forest Palette</button>
+        </div>
+        <div class="auth-actions" style="margin-top: 1rem">
+          <button data-demo-theme-mode="light">Switch to Light Mode</button>
+          <button data-demo-theme-mode="dark">Switch to Dark Mode</button>
         </div>
         <pre><code>body[data-demo-palette="sunrise"] {
   --mpr-color-surface-primary: rgba(252,232,222,0.92);
