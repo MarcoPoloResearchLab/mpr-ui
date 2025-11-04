@@ -442,11 +442,16 @@
       if (!trimmed) {
         return currentMode;
       }
-      if (trimmed === currentMode && getModeIndex(trimmed) !== -1) {
+      var modeIndex = getModeIndex(trimmed);
+      var resolvedMode =
+        modeIndex === -1
+          ? currentConfig.modes[0].value
+          : currentConfig.modes[modeIndex].value;
+      if (resolvedMode === currentMode) {
         notifyListeners(source);
         return currentMode;
       }
-      currentMode = trimmed;
+      currentMode = resolvedMode;
       applyMode(currentMode);
       notifyListeners(source);
       return currentMode;
