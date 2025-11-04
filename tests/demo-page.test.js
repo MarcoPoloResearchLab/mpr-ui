@@ -8,11 +8,11 @@ const { join } = require('node:path');
 const demoHtmlPath = join(__dirname, '..', 'demo', 'index.html');
 const demoHtml = readFileSync(demoHtmlPath, 'utf8');
 
-test('demo loads mpr-ui from the v0.0.2 CDN bundle', () => {
+test('demo loads mpr-ui from the v0.0.3 CDN bundle', () => {
   assert.match(
     demoHtml,
-    /<script[^>]+src="https:\/\/cdn\.jsdelivr\.net\/gh\/MarcoPoloResearchLab\/mpr-ui@0\.0\.2\/mpr-ui\.js"/,
-    'Expected demo index.html to reference the v0.0.2 CDN bundle',
+    /<script[^>]+id="mpr-ui-bundle"[^>]+src="https:\/\/cdn\.jsdelivr\.net\/gh\/MarcoPoloResearchLab\/mpr-ui@0\.0\.3\/mpr-ui\.js"/,
+    'Expected demo index.html to reference the v0.0.3 CDN bundle with id="mpr-ui-bundle"',
   );
 });
 
