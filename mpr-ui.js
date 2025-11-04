@@ -1812,7 +1812,7 @@
     '.mpr-footer__menu-item:hover{background:var(--mpr-menu-hover-bg,rgba(148,163,184,0.25))}' +
     '.mpr-footer__privacy{color:var(--mpr-color-text-muted,#cbd5f5);text-decoration:none;font-size:0.85rem}' +
     '.mpr-footer__privacy:hover{text-decoration:underline}' +
-    '.mpr-footer__theme-toggle{display:inline-flex;align-items:center;gap:0.6rem;background:var(--mpr-theme-toggle-bg,rgba(148,163,184,0.15));border-radius:999px;padding:0.35rem 0.85rem;color:var(--mpr-color-text-primary,#e2e8f0);font-size:0.85rem}' +
+    '.mpr-footer__theme-toggle{display:inline-flex;align-items:center;gap:0.6rem;background:var(--mpr-theme-toggle-bg,rgba(148,163,184,0.15));border-radius:999px;padding:0.35rem 0.85rem;color:var(--mpr-color-text-primary,#e2e8f0);font-size:0.85rem;cursor:pointer}' +
     '.mpr-footer__theme-checkbox{-webkit-appearance:none;-moz-appearance:none;appearance:none;width:42px;height:24px;display:inline-block;border-radius:999px;background:var(--mpr-theme-toggle-bg,rgba(148,163,184,0.15));position:relative;border:1px solid transparent;cursor:pointer;transition:background 0.25s ease,box-shadow 0.25s ease}' +
     '.mpr-footer__theme-checkbox::after{content:"";position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:var(--mpr-color-text-primary,#e2e8f0);transition:transform 0.25s ease,background 0.25s ease}' +
     '.mpr-footer__theme-checkbox:checked{background:var(--mpr-color-accent,#38bdf8)}' +
@@ -2235,14 +2235,18 @@
       inputElement.setAttribute("aria-label", config.themeToggle.ariaLabel);
     }
 
-    var themeModes = config.themeToggle.modes;
-    var offMode = themeModes[0];
-    var onMode = themeModes[1] || themeModes[0];
+    var resolvedSettings = resolveFooterThemeModes(config.themeToggle);
+    themeManager.configure({
+      attribute: resolvedSettings.attribute,
+      targets: resolvedSettings.targets,
+      modes: resolvedSettings.modes,
+    });
 
-    function updateToggleUi(modeValue) {
-      var isActive = modeValue === onMode.value;
-      inputElement.checked = isActive;
-      wrapperElement.setAttribute("data-mpr-theme-mode", modeValue);
+    if (
+      resolvedSettings.initialMode &&
+      resolvedSettings.initialMode !== themeManager.getMode()
+    ) {
+      themeManager.setMode(resolvedSettings.initialMode, "footer:init");
     }
 
     function dispatchFooterThemeEvent(modeValue, source) {
@@ -2257,22 +2261,47 @@
       }
     }
 
-    updateToggleUi(themeManager.getMode());
+    function syncToggle(modeValue) {
+      inputElement.checked = modeValue === resolvedSettings.modes[0].value;
+      wrapperElement.setAttribute("data-mpr-theme-mode", modeValue);
+    }
 
-    var changeHandler = function handleFooterThemeChange(eventObject) {
-      var targetElement = eventObject.target;
-      var nextModeValue = targetElement.checked ? onMode.value : offMode.value;
-      themeManager.setMode(nextModeValue, "footer");
-    };
-    inputElement.addEventListener("change", changeHandler);
+    syncToggle(themeManager.getMode());
+
+    function handleToggle(eventObject) {
+      if (eventObject && typeof eventObject.preventDefault === "function") {
+        eventObject.preventDefault();
+      }
+      var currentMode = themeManager.getMode();
+      var currentIndex = 0;
+      for (var idx = 0; idx < resolvedSettings.modes.length; idx += 1) {
+        if (resolvedSettings.modes[idx].value === currentMode) {
+          currentIndex = idx;
+          break;
+        }
+      }
+      var nextMode = resolvedSettings.modes[(currentIndex + 1) % resolvedSettings.modes.length];
+      themeManager.setMode(nextMode.value, "footer");
+    }
+
+    inputElement.addEventListener("click", handleToggle);
+    inputElement.addEventListener("keydown", function handleKey(event) {
+      if (!event || typeof event.key !== "string") {
+        return;
+      }
+      if (event.key === " " || event.key === "Enter") {
+        event.preventDefault();
+        handleToggle(event);
+      }
+    });
 
     var unsubscribe = themeManager.on(function handleTheme(detail) {
-      updateToggleUi(detail.mode);
+      syncToggle(detail.mode);
       dispatchFooterThemeEvent(detail.mode, detail.source || null);
     });
 
     return function cleanupThemeToggle() {
-      inputElement.removeEventListener("change", changeHandler);
+      inputElement.removeEventListener("click", handleToggle);
       unsubscribe();
     };
   }
@@ -2366,7 +2395,7 @@
           this.cleanupHandlers.push(dropdownCleanup);
         }
 
-        var themeCleanup = initializeFooterThemeToggle(this, footerRoot);
+        var themeCleanup = initializeFooterThemeToggle(this, footerRoot, component.config);
         if (themeCleanup) {
           this.cleanupHandlers.push(themeCleanup);
         }
