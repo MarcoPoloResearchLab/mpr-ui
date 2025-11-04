@@ -146,8 +146,6 @@ const headerController = window.MPRUI.renderSiteHeader(headerHost, {
     { label: "Support", href: "#support" },
   ],
   settings: { enabled: true, label: "Settings" },
-  themeToggle: { enabled: true, ariaLabel: "Toggle theme" },
-  initialTheme: "dark",
   auth: {
     loginPath: "/auth/google",
     logoutPath: "/auth/logout",
@@ -177,8 +175,18 @@ headerHost.addEventListener("mpr-ui:auth:error", (event) => {
   );
 });
 
+document.addEventListener("mpr-ui:theme-change", (event) => {
+  const detail = event && event.detail ? event.detail : {};
+  appendLogEntry(
+    `Global theme -> ${detail.mode || "unknown"}${detail.source ? ` (source: ${detail.source})` : ""}`,
+  );
+});
+
 headerHost.addEventListener("mpr-ui:header:theme-change", (event) => {
-  appendLogEntry(`Header theme changed to ${(event.detail && event.detail.theme) || "unknown"}`);
+  const detail = event && event.detail ? event.detail : {};
+  appendLogEntry(
+    `Header theme changed to ${detail.theme || "unknown"}${detail.source ? ` (source: ${detail.source})` : ""}`,
+  );
 });
 
 headerHost.addEventListener("mpr-ui:header:settings-click", () => {
@@ -259,10 +267,6 @@ const footerController = window.MPRUI.renderFooter(footerHost, {
   privacyLinkHref: "#privacy",
   privacyLinkLabel: "Privacy • Terms",
   links: footerLinks[footerIndex],
-  themeToggle: {
-    enabled: true,
-    ariaLabel: "Toggle footer theme",
-  },
 });
 
 rotateFooterButton.addEventListener("click", () => {
@@ -275,7 +279,8 @@ rotateFooterButton.addEventListener("click", () => {
 });
 
 footerHost.addEventListener("mpr-footer:theme-change", (event) => {
+  const detail = event && event.detail ? event.detail : {};
   appendLogEntry(
-    `Footer theme toggled to ${(event.detail && event.detail.theme) || "unknown"}`
+    `Footer theme toggled to ${detail.theme || "unknown"}${detail.source ? ` (source: ${detail.source})` : ""}`,
   );
 });
