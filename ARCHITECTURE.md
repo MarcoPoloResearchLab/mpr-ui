@@ -3,7 +3,7 @@
 `mpr-ui` is delivered as a browser-ready bundle (`mpr-ui.js`) that attaches helpers to the global `window.MPRUI` namespace. The project currently ships two behaviours:
 
 - An authentication header controller that orchestrates Google Identity Services (GIS) sign-in flows.
-- A marketing footer renderer with a lightweight API aimed at static sites.
+- A sticky footer renderer with dropdown navigation, privacy link, and theme toggle support.
 
 The library assumes a CDN delivery model and no build tooling. Everything runs in the browser with optional Alpine.js convenience factories.
 
@@ -15,7 +15,7 @@ The library assumes a CDN delivery model and no build tooling. Everything runs i
 | `footer.js`   | Legacy standalone footer bundle (includes richer dropdown/theme logic, not wired into `mpr-ui.js`). |
 | `alpine.js.md`| Notes on Alpine integration patterns.                                                        |
 
-> **Note:** `footer.js` predates the current bundle and is not imported into `mpr-ui.js`. Loading both files on a page will race to set `window.MPRUI.renderFooter`, so prefer the bundle or the legacy file exclusively.
+> **Note:** `footer.js` predates the current bundle and is kept only for legacy consumers; the main bundle now exposes the richer footer implementation directly.
 
 ## Global Namespace
 
@@ -30,6 +30,10 @@ When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 | `MPRUI.mprSiteHeader(options)`          | Alpine/framework factory for the site header; `init` renders, `update` proxies, `destroy` unmounts.  |
 | `MPRUI.renderFooter(host, options)`     | Renders the marketing footer into a DOM node and returns `{ update, destroy }`.                       |
 | `MPRUI.mprFooter(options)`              | Framework-friendly facade; `init` wires `renderFooter`, `update` proxies, `destroy` unmounts.         |
+| `MPRUI.configureTheme(config)`          | Merges global theme configuration (attribute, targets, modes) and reapplies the current mode.         |
+| `MPRUI.setThemeMode(value)`             | Sets the active theme mode and dispatches `mpr-ui:theme-change`.                                      |
+| `MPRUI.getThemeMode()`                  | Returns the active theme mode string.                                                                |
+| `MPRUI.onThemeChange(listener)`         | Subscribes to theme updates; returns an unsubscribe function.                                        |
 
 All helpers are side-effect free apart from DOM writes and `fetch` requests.
 
@@ -91,20 +95,25 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 
 ### Options
 
-| Option                  | Type                       | Description                                                                  |
-| ----------------------- | -------------------------- | ---------------------------------------------------------------------------- |
-| `brand.label`           | `string`                   | Brand text (default "Marco Polo Research Lab").                             |
-| `brand.href`            | `string`                   | Brand link destination (default `/`).                                        |
-| `navLinks`              | `{label, href, target?}[]` | Optional navigation anchors rendered next to the brand.                      |
-| `settings.enabled`      | `boolean`                  | Shows or hides the settings button (default `true`).                         |
-| `settings.label`        | `string`                   | Settings button label (default "Settings").                                 |
-| `themeToggle.enabled`   | `boolean`                  | Shows or hides the theme toggle button (default `true`).                     |
-| `themeToggle.ariaLabel` | `string`                   | Accessible label applied to the theme toggle.                                |
-| `signInLabel`           | `string`                   | Copy for the sign-in button (default "Sign in").                            |
-| `signOutLabel`          | `string`                   | Copy for the sign-out button (default "Sign out").                          |
-| `profileLabel`          | `string`                   | Text shown above the authenticated user name (default "Signed in as").      |
-| `initialTheme`          | `"light"` \| `"dark"`     | Initial value applied to `document.documentElement.dataset.mprTheme`.         |
-| `auth`                  | `object | null`            | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |
+| Option                     | Type                                   | Description                                                                  |
+| -------------------------- | -------------------------------------- | ---------------------------------------------------------------------------- |
+| `brand.label`              | `string`                               | Brand text (default "Marco Polo Research Lab").                             |
+| `brand.href`               | `string`                               | Brand link destination (default `/`).                                        |
+| `navLinks`                 | `{label, href, target?}[]`             | Optional navigation anchors rendered next to the brand.                      |
+| `settings.enabled`         | `boolean`                              | Shows or hides the settings button (default `true`).                         |
+| `settings.label`           | `string`                               | Settings button label (default "Settings").                                 |
+| `themeToggle.enabled`      | `boolean`                              | Shows or hides the theme toggle button (default `true`).                     |
+| `themeToggle.ariaLabel`    | `string`                               | Accessible label applied to the theme toggle.                                |
+| `themeToggle.attribute`    | `string`                               | Attribute written to theme targets (default `data-mpr-theme`).               |
+| `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive theme state.         |
+| `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Ordered list of theme modes (default light/dark).            |
+| `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
+| `signInLabel`              | `string`                               | Copy for the sign-in button (default "Sign in").                            |
+| `signOutLabel`             | `string`                               | Copy for the sign-out button (default "Sign out").                          |
+| `profileLabel`             | `string`                               | Text shown above the authenticated user name (default "Signed in as").      |
+| `auth`                     | `object \| null`                        | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |
+
+Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the header host element; values are merged with programmatic options.
 
 ### Events
 
@@ -114,38 +123,62 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 - `mpr-ui:header:signout-click` — emitted when sign-out is requested but no controller is attached.
 - `mpr-ui:header:error` — surfaced on internal failures (e.g., GIS prompt errors).
 
+## Theme Manager
+
+- Defaults write `data-mpr-theme` to `document.documentElement` and dispatch `mpr-ui:theme-change` on the `document` node whenever the active mode changes.
+- `MPRUI.configureTheme({ attribute, targets, modes })` merges attribute/target updates and replaces the mode collection when provided. Targets accept CSS selectors or the sentinel values `"document"` / `"body"`.
+- Modes accept `{ value, attributeValue?, classList?, dataset? }`; each dataset key becomes a `data-*` attribute on the targets and `classList` entries are added while old mode classes are removed.
+- Declarative configuration is supported via `data-theme-toggle` (JSON) and `data-theme-mode` attributes on header/footer hosts. Imperative options and dataset values are merged.
+- Consumers can observe theme changes with `MPRUI.onThemeChange(listener)` or by listening for the bubbling `mpr-ui:theme-change` event (detail `{ mode, source }`).
+
 ## Footer Renderer (Bundle)
 
-The marketing footer in `mpr-ui.js` focuses on static content. It injects a minimal stylesheet into `<head>` (id `mpr-ui-footer-styles`) and renders semantic markup.
+`renderFooter` now bundles the richer dropdown/theme implementation that previously lived in `footer.js`. It injects styles via `<style id="mpr-ui-footer-styles">`, pins the footer to the bottom of the viewport (`position: sticky`), and exposes both imperative and Alpine APIs.
 
 ### Options (`renderFooter` / `mprFooter`)
 
-| Option           | Type               | Description                                                   |
-| ---------------- | ------------------ | ------------------------------------------------------------- |
-| `lines`          | `string[]`         | Optional descriptive lines rendered as a `<ul>`.             |
-| `links`          | `{label, href}[]`  | Navigation links; sanitised to prevent dangerous schemes.    |
-| `copyrightName`  | `string`           | Organisation name shown in copyright line.                   |
-| `year`           | `number` (optional)| Year displayed; defaults to current year when omitted/invalid. |
+| Option                     | Type                                   | Description                                                                   |
+| -------------------------- | -------------------------------------- | ----------------------------------------------------------------------------- |
+| `elementId`                | `string`                               | Optional `id` applied to the `<footer>` root.                                 |
+| `baseClass`                | `string`                               | Root class name (defaults to `mpr-footer`).                                   |
+| `innerClass`               | `string`                               | Wrapper class for the inner flex container.                                   |
+| `wrapperClass`             | `string`                               | Class applied to the layout wrapper around brand/menu/privacy.                |
+| `brandWrapperClass`        | `string`                               | Class for the brand/prefix container.                                         |
+| `menuWrapperClass`         | `string`                               | Class for the dropdown wrapper.                                               |
+| `prefixClass`              | `string`                               | Class applied to the prefix span (default highlights in blue).                |
+| `prefixText`               | `string`                               | Text preceding the dropdown toggle (default "Built by").                     |
+| `toggleButtonId`           | `string`                               | Optional id forwarded to the dropdown trigger button.                         |
+| `toggleButtonClass`        | `string`                               | Class for the dropdown trigger button.                                        |
+| `toggleLabel`              | `string`                               | Text rendered on the dropdown trigger (defaults to "Marco Polo Research Lab"). |
+| `menuClass`                | `string`                               | Class for the `<ul>` menu container.                                          |
+| `menuItemClass`            | `string`                               | Class for each `<a>` inside the menu.                                         |
+| `links`                    | `{label, url, target?, rel?}[]`        | Menu entries; defaults to `_blank` target + `noopener noreferrer` rel.        |
+| `privacyLinkClass`         | `string`                               | Class applied to the privacy link.                                            |
+| `privacyLinkHref`          | `string`                               | Destination for the privacy link (`#` default).                               |
+| `privacyLinkLabel`         | `string`                               | Copy for the privacy link (default "Privacy • Terms").                        |
+| `themeToggle.enabled`      | `boolean`                              | Controls whether the theme toggle renders (default `true`).                   |
+| `themeToggle.wrapperClass` | `string`                               | Class for the toggle wrapper pill.                                            |
+| `themeToggle.inputClass`   | `string`                               | Class for the `input[type=checkbox]`.                                         |
+| `themeToggle.dataTheme`    | `string`                               | Optional Bootstrap theme hint stored on the wrapper.                          |
+| `themeToggle.inputId`      | `string`                               | Optional id applied to the checkbox.                                          |
+| `themeToggle.ariaLabel`    | `string`                               | Accessible label for the checkbox (default "Toggle theme").                  |
+| `themeToggle.attribute`    | `string`                               | Attribute written to theme targets (default `data-mpr-theme`).               |
+| `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive theme state.         |
+| `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Theme options toggled by the footer switch.             |
+| `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
 
-Sanitisation rules:
+Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the footer host element; values merge with programmatic options.
 
-- Empty or unsafe `href` values fall back to `#`.
-- Protocol whitelist: `http`, `https`, `mailto`, `tel`; hashes and relative paths pass through.
+### Behaviour
 
-### DOM Contract
-
-`renderFooter` wraps content in `.mpr-footer` and injects:
-
-- `.mpr-footer__container` – layout wrapper.
-- `.mpr-footer__lines` – optional `<ul>` of copy lines.
-- `.mpr-footer__links` – `<nav>` with anchor list.
-- `.mpr-footer__copyright` – trailing paragraph.
-
-Consumers can mutate styles by overriding the injected stylesheet or targeting class names.
+- Dropdown menu prefers Bootstrap’s `Dropdown` if available; otherwise a light-weight native toggle keeps `aria-expanded` in sync.
+- Theme toggle emits `mpr-footer:theme-change` with `{ theme }` and also re-emits through Alpine’s `$dispatch` when present.
+- All strings are escaped; dangerous schemes for links fall back to `#`.
 
 ### Controller Object
 
-`renderFooter` returns `{ update(nextOptions), destroy() }`. Updates re-run normalisation and replace `innerHTML`. `destroy` clears the host.
+- Imperative API: `renderFooter` returns `{ update(nextOptions), destroy(), getConfig() }`.
+- Alpine API: `mprFooter` exposes `{ init, update, destroy }`, wiring `$dispatch` when available.
 
 ## Legacy Footer Bundle (`footer.js`)
 
@@ -157,7 +190,7 @@ Key differences:
 - Reads configuration from `data-*` attributes and merges with provided options.
 - Emits `$dispatch` events when used within Alpine components.
 
-This bundle is not currently referenced by `mpr-ui.js`. Treat it as legacy/standalone until the APIs are reconciled.
+This bundle is now redundant; `mpr-ui.js` includes equivalent behaviour. The standalone file remains for legacy consumers but should be retired once downstream projects migrate.
 
 ## Security and Accessibility Considerations
 

@@ -146,8 +146,6 @@ const headerController = window.MPRUI.renderSiteHeader(headerHost, {
     { label: "Support", href: "#support" },
   ],
   settings: { enabled: true, label: "Settings" },
-  themeToggle: { enabled: true, ariaLabel: "Toggle theme" },
-  initialTheme: "dark",
   auth: {
     loginPath: "/auth/google",
     logoutPath: "/auth/logout",
@@ -177,8 +175,18 @@ headerHost.addEventListener("mpr-ui:auth:error", (event) => {
   );
 });
 
+document.addEventListener("mpr-ui:theme-change", (event) => {
+  const detail = event && event.detail ? event.detail : {};
+  appendLogEntry(
+    `Global theme -> ${detail.mode || "unknown"}${detail.source ? ` (source: ${detail.source})` : ""}`,
+  );
+});
+
 headerHost.addEventListener("mpr-ui:header:theme-change", (event) => {
-  appendLogEntry(`Header theme changed to ${(event.detail && event.detail.theme) || "unknown"}`);
+  const detail = event && event.detail ? event.detail : {};
+  appendLogEntry(
+    `Header theme changed to ${detail.theme || "unknown"}${detail.source ? ` (source: ${detail.source})` : ""}`,
+  );
 });
 
 headerHost.addEventListener("mpr-ui:header:settings-click", () => {
@@ -242,35 +250,37 @@ if (!footerHost || !rotateFooterButton) {
 
 const footerLinks = [
   [
-    { label: "Marco Polo Research Lab", href: "https://mprlab.com" },
-    { label: "Gravity Notes", href: "https://gravity.mprlab.com" },
+    { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
+    { label: "Gravity Notes", url: "https://gravity.mprlab.com" },
   ],
   [
-    { label: "LoopAware", href: "https://loopaware.mprlab.com" },
-    { label: "GitHub", href: "https://github.com/MarcoPoloResearchLab" },
+    { label: "LoopAware", url: "https://loopaware.mprlab.com" },
+    { label: "GitHub", url: "https://github.com/MarcoPoloResearchLab" },
   ],
 ];
 
 let footerIndex = 0;
 
 const footerController = window.MPRUI.renderFooter(footerHost, {
-  lines: [
-    "mpr-ui footer rendered via imperative helper",
-    "Click rotate to swap the link set",
-  ],
+  prefixText: "Built by",
+  toggleLabel: "Marco Polo Research Lab",
+  privacyLinkHref: "#privacy",
+  privacyLinkLabel: "Privacy • Terms",
   links: footerLinks[footerIndex],
-  copyrightName: "Marco Polo Research Lab",
 });
 
 rotateFooterButton.addEventListener("click", () => {
   footerIndex = (footerIndex + 1) % footerLinks.length;
   footerController.update({
-    lines: [
-      "mpr-ui footer rendered via imperative helper",
-      `Active link set #${footerIndex + 1}`,
-    ],
+    prefixText: `Links set #${footerIndex + 1}`,
     links: footerLinks[footerIndex],
-    copyrightName: "Marco Polo Research Lab",
-    year: new Date().getFullYear(),
+    toggleLabel: footerIndex === 0 ? "Marco Polo Research Lab" : "Marco Polo Research Lab (alt)",
   });
+});
+
+footerHost.addEventListener("mpr-footer:theme-change", (event) => {
+  const detail = event && event.detail ? event.detail : {};
+  appendLogEntry(
+    `Footer theme toggled to ${detail.theme || "unknown"}${detail.source ? ` (source: ${detail.source})` : ""}`,
+  );
 });

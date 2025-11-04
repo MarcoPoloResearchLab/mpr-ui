@@ -83,6 +83,489 @@
     } catch (_error) {}
   }
 
+  function deepMergeOptions(target) {
+    var baseObject = !target || typeof target !== "object" ? {} : target;
+    for (var index = 1; index < arguments.length; index += 1) {
+      var sourceObject = arguments[index];
+      if (!sourceObject || typeof sourceObject !== "object") {
+        continue;
+      }
+      Object.keys(sourceObject).forEach(function handleKey(key) {
+        var value = sourceObject[key];
+        if (Array.isArray(value)) {
+          baseObject[key] = value.slice();
+          return;
+        }
+        if (value && typeof value === "object") {
+          if (!baseObject[key] || typeof baseObject[key] !== "object") {
+            baseObject[key] = {};
+          }
+          deepMergeOptions(baseObject[key], value);
+          return;
+        }
+        if (value !== undefined) {
+          baseObject[key] = value;
+        }
+      });
+    }
+    return baseObject;
+  }
+
+  function parseJsonValue(textValue, fallbackValue) {
+    try {
+      return JSON.parse(String(textValue));
+    } catch (_error) {
+      return fallbackValue;
+    }
+  }
+
+  var DEFAULT_THEME_ATTRIBUTE = "data-mpr-theme";
+  var DEFAULT_THEME_TARGETS = Object.freeze(["document"]);
+  var DEFAULT_THEME_MODES = Object.freeze([
+    Object.freeze({
+      value: "light",
+      attributeValue: "light",
+      classList: Object.freeze([]),
+      dataset: Object.freeze({}),
+    }),
+    Object.freeze({
+      value: "dark",
+      attributeValue: "dark",
+      classList: Object.freeze([]),
+      dataset: Object.freeze({}),
+    }),
+  ]);
+
+  function normalizeThemeTargets(targets) {
+    if (targets === undefined || targets === null) {
+      return DEFAULT_THEME_TARGETS.slice();
+    }
+    var list = Array.isArray(targets) ? targets : [targets];
+    var normalized = list
+      .map(function normalizeSingleTarget(entry) {
+        if (entry === null || entry === undefined) {
+          return null;
+        }
+        if (typeof entry === "string") {
+          var trimmed = entry.trim();
+          return trimmed ? trimmed : null;
+        }
+        if (entry && typeof entry.selector === "string") {
+          var selectorValue = entry.selector.trim();
+          return selectorValue ? selectorValue : null;
+        }
+        return null;
+      })
+      .filter(Boolean);
+    if (!normalized.length) {
+      return DEFAULT_THEME_TARGETS.slice();
+    }
+    var deduped = [];
+    var seen = Object.create(null);
+    normalized.forEach(function dedupeTarget(target) {
+      if (!seen[target]) {
+        seen[target] = true;
+        deduped.push(target);
+      }
+    });
+    return deduped;
+  }
+
+  function normalizeThemeModes(candidateModes) {
+    var list = Array.isArray(candidateModes) && candidateModes.length
+      ? candidateModes
+      : DEFAULT_THEME_MODES;
+    var normalized = [];
+    var seen = Object.create(null);
+    for (var index = 0; index < list.length; index += 1) {
+      var entry = list[index];
+      var modeValue;
+      if (entry && typeof entry.value === "string") {
+        modeValue = entry.value.trim();
+      } else if (typeof entry === "string") {
+        modeValue = entry.trim();
+      } else {
+        modeValue = "";
+      }
+      if (!modeValue || seen[modeValue]) {
+        continue;
+      }
+      seen[modeValue] = true;
+      var attributeValue =
+        entry && typeof entry.attributeValue === "string"
+          ? entry.attributeValue.trim()
+          : modeValue;
+      var classList =
+        entry && Array.isArray(entry.classList)
+          ? entry.classList
+              .map(function normalizeClass(className) {
+                return typeof className === "string"
+                  ? className.trim()
+                  : String(className);
+              })
+              .filter(Boolean)
+          : [];
+      var dataset = {};
+      if (entry && entry.dataset && typeof entry.dataset === "object") {
+        Object.keys(entry.dataset).forEach(function copyDatasetKey(key) {
+          var attrKey = String(key).trim();
+          if (!attrKey) {
+            return;
+          }
+          dataset[attrKey] = String(entry.dataset[key]);
+        });
+      }
+      normalized.push({
+        value: modeValue,
+        attributeValue: attributeValue,
+        classList: classList,
+        dataset: dataset,
+      });
+    }
+    if (!normalized.length) {
+      return DEFAULT_THEME_MODES.slice().map(function cloneDefault(mode) {
+        return {
+          value: mode.value,
+          attributeValue: mode.attributeValue,
+          classList: [].concat(mode.classList || []),
+          dataset: deepMergeOptions({}, mode.dataset || {}),
+        };
+      });
+    }
+    return normalized;
+  }
+
+  function normalizeThemeConfig(partialConfig) {
+    var config = deepMergeOptions(
+      {
+        attribute: DEFAULT_THEME_ATTRIBUTE,
+        targets: DEFAULT_THEME_TARGETS.slice(),
+        modes: DEFAULT_THEME_MODES,
+      },
+      partialConfig || {},
+    );
+    config.attribute =
+      typeof config.attribute === "string" && config.attribute.trim()
+        ? config.attribute.trim()
+        : DEFAULT_THEME_ATTRIBUTE;
+    config.targets = normalizeThemeTargets(config.targets);
+    config.modes = normalizeThemeModes(config.modes);
+    return config;
+  }
+
+  function dedupeTargets(targets) {
+    var seen = Object.create(null);
+    var deduped = [];
+    targets.forEach(function addTarget(target) {
+      if (!target) {
+        return;
+      }
+      if (!seen[target]) {
+        seen[target] = true;
+        deduped.push(target);
+      }
+    });
+    return deduped.length ? deduped : DEFAULT_THEME_TARGETS.slice();
+  }
+
+  function resolveThemeTargets(targets) {
+    if (!global.document) {
+      return [];
+    }
+    var resolved = [];
+    var seen = new WeakSet();
+    targets.forEach(function resolveSingleTarget(target) {
+      if (target === "document") {
+        if (global.document.documentElement && !seen.has(global.document.documentElement)) {
+          seen.add(global.document.documentElement);
+          resolved.push(global.document.documentElement);
+        }
+        return;
+      }
+      if (target === "body") {
+        if (global.document.body && !seen.has(global.document.body)) {
+          seen.add(global.document.body);
+          resolved.push(global.document.body);
+        }
+        return;
+      }
+      var nodeList = global.document.querySelectorAll(target);
+      for (var index = 0; index < nodeList.length; index += 1) {
+        var element = nodeList[index];
+        if (!seen.has(element)) {
+          seen.add(element);
+          resolved.push(element);
+        }
+      }
+    });
+    return resolved;
+  }
+
+  function collectThemeClassNames(modes) {
+    var classSet = Object.create(null);
+    modes.forEach(function collectClasses(mode) {
+      mode.classList.forEach(function markClass(className) {
+        classSet[className] = true;
+      });
+    });
+    return Object.keys(classSet);
+  }
+
+  function collectThemeDatasetKeys(modes) {
+    var keySet = Object.create(null);
+    modes.forEach(function collectKeys(mode) {
+      Object.keys(mode.dataset).forEach(function markKey(key) {
+        keySet[key] = true;
+      });
+    });
+    return Object.keys(keySet);
+  }
+
+  function applyThemeDatasetAttribute(element, key, value) {
+    var attributeName = key.indexOf("data-") === 0 ? key : "data-" + key;
+    if (value === null || value === undefined || value === "") {
+      element.removeAttribute(attributeName);
+      return;
+    }
+    element.setAttribute(attributeName, String(value));
+  }
+
+  var themeManager = (function createThemeManager() {
+    var currentConfig = normalizeThemeConfig({});
+    var allModeClasses = collectThemeClassNames(currentConfig.modes);
+    var allDatasetKeys = collectThemeDatasetKeys(currentConfig.modes);
+    var listeners = [];
+    var currentMode = currentConfig.modes[0].value;
+
+    function getModeIndex(modeValue) {
+      for (var index = 0; index < currentConfig.modes.length; index += 1) {
+        if (currentConfig.modes[index].value === modeValue) {
+          return index;
+        }
+      }
+      return -1;
+    }
+
+    function applyMode(modeValue) {
+      var modeIndex = getModeIndex(modeValue);
+      if (modeIndex === -1) {
+        modeIndex = 0;
+        modeValue = currentConfig.modes[0].value;
+      }
+      var activeMode = currentConfig.modes[modeIndex];
+      var targets = resolveThemeTargets(currentConfig.targets);
+      targets.forEach(function applyToElement(element) {
+        if (currentConfig.attribute) {
+          element.setAttribute(currentConfig.attribute, activeMode.attributeValue);
+        }
+        if (element.classList) {
+          allModeClasses.forEach(function removeClass(className) {
+            element.classList.remove(className);
+          });
+          activeMode.classList.forEach(function addClass(className) {
+            element.classList.add(className);
+          });
+        }
+        allDatasetKeys.forEach(function clearDataset(key) {
+          applyThemeDatasetAttribute(element, key, null);
+        });
+        Object.keys(activeMode.dataset).forEach(function assignDataset(key) {
+          applyThemeDatasetAttribute(element, key, activeMode.dataset[key]);
+        });
+      });
+    }
+
+    function notifyListeners(source) {
+      var detail = { mode: currentMode, source: source || null };
+      for (var index = 0; index < listeners.length; index += 1) {
+        try {
+          listeners[index](detail);
+        } catch (_error) {}
+      }
+      if (global.document) {
+        dispatchEvent(global.document, "mpr-ui:theme-change", detail);
+      }
+    }
+
+    function ensureInitialMode() {
+      if (!global.document || !global.document.documentElement) {
+        applyMode(currentMode);
+        return;
+      }
+      var initialValue = global.document.documentElement.getAttribute(
+        currentConfig.attribute,
+      );
+      if (initialValue && getModeIndex(initialValue) !== -1) {
+        currentMode = initialValue;
+      }
+      applyMode(currentMode);
+    }
+
+    function configure(partialConfig) {
+      if (!partialConfig || typeof partialConfig !== "object") {
+        return {
+          attribute: currentConfig.attribute,
+          targets: currentConfig.targets.slice(),
+          modes: currentConfig.modes.slice(),
+        };
+      }
+      var normalized = normalizeThemeConfig(partialConfig);
+      if (Object.prototype.hasOwnProperty.call(partialConfig, "attribute")) {
+        currentConfig.attribute = normalized.attribute;
+      }
+      if (Object.prototype.hasOwnProperty.call(partialConfig, "targets")) {
+        currentConfig.targets = dedupeTargets(
+          currentConfig.targets.concat(normalized.targets),
+        );
+      }
+      if (Object.prototype.hasOwnProperty.call(partialConfig, "modes")) {
+        currentConfig.modes = normalized.modes;
+      }
+      allModeClasses = collectThemeClassNames(currentConfig.modes);
+      allDatasetKeys = collectThemeDatasetKeys(currentConfig.modes);
+      if (getModeIndex(currentMode) === -1) {
+        currentMode = currentConfig.modes[0].value;
+      }
+      applyMode(currentMode);
+      return {
+        attribute: currentConfig.attribute,
+        targets: currentConfig.targets.slice(),
+        modes: currentConfig.modes.slice(),
+      };
+    }
+
+    function setMode(modeValue, source) {
+      if (typeof modeValue !== "string") {
+        return currentMode;
+      }
+      var trimmed = modeValue.trim();
+      if (!trimmed) {
+        return currentMode;
+      }
+      var modeIndex = getModeIndex(trimmed);
+      var resolvedMode =
+        modeIndex === -1
+          ? currentConfig.modes[0].value
+          : currentConfig.modes[modeIndex].value;
+      if (resolvedMode === currentMode) {
+        notifyListeners(source);
+        return currentMode;
+      }
+      currentMode = resolvedMode;
+      applyMode(currentMode);
+      notifyListeners(source);
+      return currentMode;
+    }
+
+    function getMode() {
+      return currentMode;
+    }
+
+    function on(listener) {
+      if (typeof listener !== "function") {
+        return function noop() {};
+      }
+      listeners.push(listener);
+      return function unsubscribe() {
+        for (var index = 0; index < listeners.length; index += 1) {
+          if (listeners[index] === listener) {
+            listeners.splice(index, 1);
+            break;
+          }
+        }
+      };
+    }
+
+    ensureInitialMode();
+
+    return {
+      configure: configure,
+      setMode: setMode,
+      getMode: getMode,
+      on: on,
+    };
+  })();
+
+  function normalizeThemeToggleCore(rawConfig, defaults) {
+    var baseline = deepMergeOptions({}, defaults || {}, rawConfig || {});
+    var enabled =
+      baseline.enabled === undefined ? true : Boolean(baseline.enabled);
+    var ariaLabel =
+      typeof baseline.ariaLabel === "string" && baseline.ariaLabel.trim()
+        ? baseline.ariaLabel.trim()
+        : defaults && defaults.ariaLabel
+        ? defaults.ariaLabel
+        : "Toggle theme";
+    var attribute =
+      typeof baseline.attribute === "string" && baseline.attribute.trim()
+        ? baseline.attribute.trim()
+        : DEFAULT_THEME_ATTRIBUTE;
+    var targets = normalizeThemeTargets(baseline.targets);
+    var modes = normalizeThemeModes(baseline.modes);
+    var initialMode = null;
+    if (typeof baseline.mode === "string" && baseline.mode.trim()) {
+      initialMode = baseline.mode.trim();
+    } else if (
+      typeof baseline.initialMode === "string" &&
+      baseline.initialMode.trim()
+    ) {
+      initialMode = baseline.initialMode.trim();
+    }
+    return {
+      enabled: enabled,
+      ariaLabel: ariaLabel,
+      attribute: attribute,
+      targets: targets,
+      modes: modes,
+      initialMode: initialMode,
+      raw: baseline,
+    };
+  }
+
+  function readHeaderOptionsFromDataset(rootElement) {
+    if (!rootElement || !rootElement.dataset) {
+      return {};
+    }
+    var dataset = rootElement.dataset;
+    var options = {};
+    if (dataset.brandLabel || dataset.brandHref) {
+      options.brand = {
+        label: dataset.brandLabel,
+        href: dataset.brandHref,
+      };
+    }
+    if (dataset.navLinks) {
+      options.navLinks = parseJsonValue(dataset.navLinks, []);
+    }
+    if (dataset.settingsLabel || dataset.settingsEnabled) {
+      options.settings = options.settings || {};
+      if (dataset.settingsLabel) {
+        options.settings.label = dataset.settingsLabel;
+      }
+      if (dataset.settingsEnabled) {
+        options.settings.enabled =
+          dataset.settingsEnabled.toLowerCase() === "true";
+      }
+    }
+    if (dataset.themeToggle) {
+      options.themeToggle = parseJsonValue(dataset.themeToggle, {});
+    }
+    if (dataset.themeMode) {
+      options.themeToggle = options.themeToggle || {};
+      options.themeToggle.mode = dataset.themeMode;
+    }
+    if (dataset.signInLabel) {
+      options.signInLabel = dataset.signInLabel;
+    }
+    if (dataset.signOutLabel) {
+      options.signOutLabel = dataset.signOutLabel;
+    }
+    if (dataset.profileLabel) {
+      options.profileLabel = dataset.profileLabel;
+    }
+    return options;
+  }
+
   function promptGoogleIfAvailable(globalObject) {
     var google = globalObject.google;
     if (
@@ -521,44 +1004,65 @@
 
   function normalizeHeaderOptions(rawOptions) {
     var options = rawOptions && typeof rawOptions === "object" ? rawOptions : {};
-    var brandSource =
-      options.brand && typeof options.brand === "object" ? options.brand : {};
-    var settingsSource =
-      options.settings && typeof options.settings === "object"
-        ? options.settings
-        : {};
-    var themeSource =
-      options.themeToggle && typeof options.themeToggle === "object"
-        ? options.themeToggle
-        : {};
+    var brandSource = deepMergeOptions({}, HEADER_DEFAULTS.brand, options.brand || {});
+    var settingsSource = deepMergeOptions(
+      {},
+      HEADER_DEFAULTS.settings,
+      options.settings || {},
+    );
+    var themeSource = options.themeToggle && typeof options.themeToggle === "object"
+      ? options.themeToggle
+      : {};
 
-    var navLinks = Array.isArray(options.navLinks)
+    var navLinksSource = Array.isArray(options.navLinks)
       ? options.navLinks
-          .map(function (link) {
-            if (!link || typeof link !== "object") {
-              return null;
-            }
-            var label =
-              typeof link.label === "string" ? link.label.trim() : "";
-            var href = typeof link.href === "string" ? link.href.trim() : "";
-            if (!label || !href) {
-              return null;
-            }
-            var target =
-              typeof link.target === "string" ? link.target.trim() : "";
-            return {
-              label: label,
-              href: href,
-              target: target || null,
-            };
-          })
-          .filter(Boolean)
       : [];
+    var navLinks = navLinksSource
+      .map(function (link) {
+        if (!link || typeof link !== "object") {
+          return null;
+        }
+        var label =
+          typeof link.label === "string" && link.label.trim()
+            ? link.label.trim()
+            : null;
+        var hrefValue = null;
+        if (typeof link.href === "string" && link.href.trim()) {
+          hrefValue = link.href.trim();
+        } else if (typeof link.url === "string" && link.url.trim()) {
+          hrefValue = link.url.trim();
+        }
+        if (!label || !hrefValue) {
+          return null;
+        }
+        var targetValue =
+          typeof link.target === "string" && link.target.trim()
+            ? link.target.trim()
+            : null;
+        return {
+          label: label,
+          href: hrefValue,
+          target: targetValue,
+        };
+      })
+      .filter(Boolean);
 
     var authOptions =
       options.auth && typeof options.auth === "object" ? options.auth : null;
 
-    var normalized = {
+    var themeDefaults = {
+      enabled: HEADER_DEFAULTS.themeToggle.enabled,
+      ariaLabel: HEADER_DEFAULTS.themeToggle.ariaLabel,
+    };
+    var themeNormalized = normalizeThemeToggleCore(themeSource, themeDefaults);
+    if (
+      typeof options.initialTheme === "string" &&
+      !themeNormalized.initialMode
+    ) {
+      themeNormalized.initialMode = options.initialTheme.trim();
+    }
+
+    return {
       brand: {
         label:
           typeof brandSource.label === "string" && brandSource.label.trim()
@@ -571,26 +1075,19 @@
       },
       navLinks: navLinks,
       settings: {
-        enabled:
-          settingsSource.enabled === undefined
-            ? HEADER_DEFAULTS.settings.enabled
-            : Boolean(settingsSource.enabled),
+        enabled: Boolean(settingsSource.enabled),
         label:
-          typeof settingsSource.label === "string" &&
-          settingsSource.label.trim()
+          typeof settingsSource.label === "string" && settingsSource.label.trim()
             ? settingsSource.label.trim()
             : HEADER_DEFAULTS.settings.label,
       },
       themeToggle: {
-        enabled:
-          themeSource.enabled === undefined
-            ? HEADER_DEFAULTS.themeToggle.enabled
-            : Boolean(themeSource.enabled),
-        ariaLabel:
-          typeof themeSource.ariaLabel === "string" &&
-          themeSource.ariaLabel.trim()
-            ? themeSource.ariaLabel.trim()
-            : HEADER_DEFAULTS.themeToggle.ariaLabel,
+        enabled: themeNormalized.enabled,
+        ariaLabel: themeNormalized.ariaLabel,
+        attribute: themeNormalized.attribute,
+        targets: themeNormalized.targets,
+        modes: themeNormalized.modes,
+        initialMode: themeNormalized.initialMode,
       },
       signInLabel:
         typeof options.signInLabel === "string" && options.signInLabel.trim()
@@ -604,12 +1101,8 @@
         typeof options.profileLabel === "string" && options.profileLabel.trim()
           ? options.profileLabel.trim()
           : HEADER_DEFAULTS.profileLabel,
-      initialTheme:
-        options.initialTheme === "dark" ? "dark" : HEADER_DEFAULTS.initialTheme,
       auth: authOptions,
     };
-
-    return normalized;
   }
 
   function buildHeaderMarkup(options) {
@@ -806,26 +1299,21 @@
     }
   }
 
-  function determineInitialTheme(options) {
-    if (!global.document || !global.document.documentElement) {
-      return "light";
-    }
-    var requested = options.initialTheme === "dark" ? "dark" : "light";
-    global.document.documentElement.setAttribute("data-mpr-theme", requested);
-    return requested;
-  }
-
-  function toggleTheme(currentTheme) {
-    return currentTheme === "dark" ? "light" : "dark";
-  }
-
   function renderSiteHeader(target, rawOptions) {
     var hostElement = resolveHost(target);
     if (!hostElement || typeof hostElement !== "object") {
       throw new Error("renderSiteHeader requires a host element");
     }
 
-    var options = normalizeHeaderOptions(rawOptions);
+    var datasetOptions = readHeaderOptionsFromDataset(hostElement);
+    var latestExternalOptions = deepMergeOptions({}, rawOptions || {});
+    var combinedOptions = deepMergeOptions(
+      {},
+      datasetOptions,
+      latestExternalOptions,
+    );
+    var options = normalizeHeaderOptions(combinedOptions);
+    var cleanupHandlers = [];
     ensureHeaderStyles(global.document || (global.window && global.window.document));
 
     hostElement.innerHTML = buildHeaderMarkup(options);
@@ -835,11 +1323,56 @@
     }
 
     applyHeaderOptions(hostElement, elements, options);
-
-    var currentTheme = determineInitialTheme(options);
     var authController = null;
     var authListenersAttached = false;
     var signInClickHandler = null;
+
+    var headerThemeConfig = options.themeToggle;
+    var themeModes = headerThemeConfig.modes;
+
+    themeManager.configure({
+      attribute: headerThemeConfig.attribute,
+      targets: headerThemeConfig.targets,
+      modes: headerThemeConfig.modes,
+    });
+
+    function updateThemeUi(modeValue) {
+      hostElement.setAttribute("data-mpr-theme-mode", modeValue);
+      if (elements.themeButton) {
+        elements.themeButton.setAttribute("data-mpr-theme-mode", modeValue);
+        if (themeModes.length >= 2) {
+          var activeIndex = 0;
+          for (var idx = 0; idx < themeModes.length; idx += 1) {
+            if (themeModes[idx].value === modeValue) {
+              activeIndex = idx;
+              break;
+            }
+          }
+          elements.themeButton.setAttribute(
+            "aria-pressed",
+            activeIndex === 1 ? "true" : "false",
+          );
+        }
+      }
+    }
+
+    if (
+      headerThemeConfig.initialMode &&
+      headerThemeConfig.initialMode !== themeManager.getMode()
+    ) {
+      themeManager.setMode(headerThemeConfig.initialMode, "header:init");
+    }
+
+    updateThemeUi(themeManager.getMode());
+
+    var unsubscribeTheme = themeManager.on(function handleThemeChange(detail) {
+      updateThemeUi(detail.mode);
+      dispatchHeaderEvent("mpr-ui:header:theme-change", {
+        theme: detail.mode,
+        source: detail.source || null,
+      });
+    });
+    cleanupHandlers.push(unsubscribeTheme);
 
     function dispatchHeaderEvent(type, detail) {
       dispatchEvent(hostElement, type, detail || {});
@@ -951,16 +1484,19 @@
 
     if (elements.themeButton) {
       elements.themeButton.addEventListener("click", function () {
-        currentTheme = toggleTheme(currentTheme);
-        if (global.document && global.document.documentElement) {
-          global.document.documentElement.setAttribute(
-            "data-mpr-theme",
-            currentTheme,
-          );
+        if (!headerThemeConfig.enabled || !themeModes.length) {
+          return;
         }
-        dispatchHeaderEvent("mpr-ui:header:theme-change", {
-          theme: currentTheme,
-        });
+        var currentModeValue = themeManager.getMode();
+        var currentIndex = 0;
+        for (var idx = 0; idx < themeModes.length; idx += 1) {
+          if (themeModes[idx].value === currentModeValue) {
+            currentIndex = idx;
+            break;
+          }
+        }
+        var nextMode = themeModes[(currentIndex + 1) % themeModes.length];
+        themeManager.setMode(nextMode.value, "header");
       });
     }
 
@@ -971,10 +1507,36 @@
 
     return {
       update: function update(nextOptions) {
-        options = normalizeHeaderOptions(
-          Object.assign({}, options, nextOptions || {}),
+        latestExternalOptions = deepMergeOptions(
+          {},
+          latestExternalOptions,
+          nextOptions || {},
         );
+        var updatedDatasetOptions = readHeaderOptionsFromDataset(hostElement);
+        var updatedCombined = deepMergeOptions(
+          {},
+          updatedDatasetOptions,
+          latestExternalOptions,
+        );
+        options = normalizeHeaderOptions(updatedCombined);
+        headerThemeConfig = options.themeToggle;
+        themeModes = headerThemeConfig.modes;
         applyHeaderOptions(hostElement, elements, options);
+        themeManager.configure({
+          attribute: headerThemeConfig.attribute,
+          targets: headerThemeConfig.targets,
+          modes: headerThemeConfig.modes,
+        });
+        if (
+          headerThemeConfig.initialMode &&
+          headerThemeConfig.initialMode !== themeManager.getMode()
+        ) {
+          themeManager.setMode(headerThemeConfig.initialMode, "header:update");
+        }
+        updateThemeUi(themeManager.getMode());
+        if (options.auth && elements.root) {
+          elements.root.classList.remove(HEADER_ROOT_CLASS + "--no-auth");
+        }
         if (options.auth && !authController) {
           authController = createAuthHeader(hostElement, options.auth);
         }
@@ -988,8 +1550,20 @@
         } else {
           setSignInClickHandler(handleFallbackSignInClick);
         }
+        if (!options.auth && authController) {
+          authController = null;
+        }
+        if (!options.auth && elements.root) {
+          elements.root.classList.add(HEADER_ROOT_CLASS + "--no-auth");
+        }
       },
       destroy: function destroy() {
+        cleanupHandlers.forEach(function invoke(handler) {
+          if (typeof handler === "function") {
+            handler();
+          }
+        });
+        cleanupHandlers = [];
         hostElement.innerHTML = "";
       },
       getAuthController: function getAuthController() {
@@ -1092,87 +1666,66 @@
     return trimmed;
   }
 
-  var FOOTER_ROOT_CLASS = "mpr-footer";
+  var FOOTER_LINK_DEFAULT_TARGET = "_blank";
+  var FOOTER_LINK_DEFAULT_REL = "noopener noreferrer";
   var FOOTER_STYLE_ID = "mpr-ui-footer-styles";
   var FOOTER_STYLE_MARKUP =
-    "." +
-    FOOTER_ROOT_CLASS +
-    "{margin-top:48px;padding:32px 0;border-top:1px solid #e2e8f0;font-size:14px;line-height:1.6;color:#475569;background:#f8fafc}" +
-    "." +
-    FOOTER_ROOT_CLASS +
-    "__container{max-width:960px;margin:0 auto;padding:0 20px;display:flex;flex-direction:column;gap:16px}" +
-    "." +
-    FOOTER_ROOT_CLASS +
-    "__lines{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:6px}" +
-    "." +
-    FOOTER_ROOT_CLASS +
-    "__links{display:flex;flex-wrap:wrap;gap:12px;align-items:center}" +
-    "." +
-    FOOTER_ROOT_CLASS +
-    "__link{color:#1b6ef3;text-decoration:none;font-weight:500}" +
-    "." +
-    FOOTER_ROOT_CLASS +
-    "__link:hover{text-decoration:underline}" +
-    "." +
-    FOOTER_ROOT_CLASS +
-    "__copyright{margin:0;color:#64748b}";
+    '.mpr-footer{position:sticky;bottom:0;width:100%;padding:24px 0;background:rgba(15,23,42,0.92);color:#e2e8f0;border-top:1px solid rgba(148,163,184,0.25);backdrop-filter:blur(10px)}' +
+    '.mpr-footer__inner{max-width:1080px;margin:0 auto;padding:0 1.5rem;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.5rem}' +
+    '.mpr-footer__layout{display:flex;flex-wrap:wrap;align-items:center;gap:1.25rem}' +
+    '.mpr-footer__brand{display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem;font-size:0.95rem}' +
+    '.mpr-footer__prefix{font-weight:600;color:#38bdf8}' +
+    '.mpr-footer__menu-wrapper{position:relative}' +
+    '.mpr-footer__menu-button{background:rgba(148,163,184,0.22);color:inherit;border:none;border-radius:999px;padding:0.35rem 0.85rem;font-weight:600;cursor:pointer}' +
+    '.mpr-footer__menu-button:hover{background:rgba(148,163,184,0.35)}' +
+    '.mpr-footer__menu{list-style:none;margin:0;padding:0.5rem 0;position:absolute;bottom:calc(100% + 8px);right:0;min-width:220px;background:rgba(15,23,42,0.98);border-radius:0.75rem;border:1px solid rgba(148,163,184,0.25);box-shadow:0 12px 24px rgba(15,23,42,0.45);display:none}' +
+    '.mpr-footer__menu--open{display:block}' +
+    '.mpr-footer__menu-item{display:block;padding:0.5rem 0.9rem;color:#e2e8f0;text-decoration:none;font-weight:500}' +
+    '.mpr-footer__menu-item:hover{background:rgba(148,163,184,0.25)}' +
+    '.mpr-footer__privacy{color:#cbd5f5;text-decoration:none;font-size:0.85rem}' +
+    '.mpr-footer__privacy:hover{text-decoration:underline}' +
+    '.mpr-footer__theme-toggle{display:inline-flex;align-items:center;gap:0.4rem;background:rgba(148,163,184,0.15);border-radius:999px;padding:0.3rem 0.75rem;color:#e2e8f0;font-size:0.85rem}' +
+    '.mpr-footer__theme-checkbox{width:1.75rem;height:0.95rem}' +
+    '@media (max-width:768px){.mpr-footer__layout{flex-direction:column;align-items:flex-start}.mpr-footer__inner{gap:1.75rem}}';
 
-  function normalizeFooterOptions(raw) {
-    var source = raw || {};
-    var lines = Array.isArray(source.lines)
-      ? source.lines
-          .map(function (line) {
-            return typeof line === "string" ? line.trim() : "";
-          })
-          .filter(function (line) {
-            return line.length > 0;
-          })
-      : [];
-    var links = Array.isArray(source.links)
-      ? source.links
-          .map(function (link) {
-            if (!link || typeof link !== "object") {
-              return null;
-            }
-            var label =
-              typeof link.label === "string" ? link.label.trim() : "";
-            var href = typeof link.href === "string" ? link.href.trim() : "";
-            if (!label || !href) {
-              return null;
-            }
-            return { label: label, href: href };
-          })
-          .filter(function (entry) {
-            return entry !== null;
-          })
-      : [];
-    var copyrightName =
-      typeof source.copyrightName === "string"
-        ? source.copyrightName.trim()
-        : "";
-    var year =
-      typeof source.year === "number" && isFinite(source.year)
-        ? Math.floor(source.year)
-        : new Date().getFullYear();
-    return {
-      lines: lines,
-      links: links,
-      copyrightName: copyrightName,
-      year: year,
-    };
-  }
+  var FOOTER_DEFAULTS = Object.freeze({
+    elementId: "",
+    baseClass: "mpr-footer",
+    innerElementId: "",
+    innerClass: "mpr-footer__inner",
+    wrapperClass: "mpr-footer__layout",
+    brandWrapperClass: "mpr-footer__brand",
+    menuWrapperClass: "mpr-footer__menu-wrapper",
+    prefixClass: "mpr-footer__prefix",
+    prefixText: "Built by",
+    toggleButtonId: "",
+    toggleButtonClass: "mpr-footer__menu-button",
+    toggleLabel: "Marco Polo Research Lab",
+    menuClass: "mpr-footer__menu",
+    menuItemClass: "mpr-footer__menu-item",
+    privacyLinkClass: "mpr-footer__privacy",
+    privacyLinkHref: "#",
+    privacyLinkLabel: "Privacy • Terms",
+    themeToggle: Object.freeze({
+      enabled: true,
+      wrapperClass: "mpr-footer__theme-toggle",
+      inputClass: "mpr-footer__theme-checkbox",
+      dataTheme: "light",
+      inputId: "mpr-footer-theme-toggle",
+      ariaLabel: "Toggle theme",
+    }),
+    links: Object.freeze([]),
+  });
 
   function ensureFooterStyles(documentObject) {
-    if (!documentObject || typeof documentObject.createElement !== "function") {
-      return;
-    }
     if (
-      documentObject.getElementById &&
-      documentObject.getElementById(FOOTER_STYLE_ID)
+      !documentObject ||
+      typeof documentObject.createElement !== "function" ||
+      !documentObject.head
     ) {
       return;
     }
-    if (!documentObject.head || typeof documentObject.head.appendChild !== "function") {
+    if (documentObject.getElementById(FOOTER_STYLE_ID)) {
       return;
     }
     var styleElement = documentObject.createElement("style");
@@ -1181,82 +1734,523 @@
     if (styleElement.styleSheet) {
       styleElement.styleSheet.cssText = FOOTER_STYLE_MARKUP;
     } else {
-      styleElement.appendChild(
-        documentObject.createTextNode(FOOTER_STYLE_MARKUP),
-      );
+      styleElement.appendChild(documentObject.createTextNode(FOOTER_STYLE_MARKUP));
     }
     documentObject.head.appendChild(styleElement);
   }
 
-  function buildFooterMarkup(options) {
-    var html = '<div class="' + FOOTER_ROOT_CLASS + '__container">';
-    if (options.lines.length > 0) {
-      html += '<ul class="' + FOOTER_ROOT_CLASS + '__lines">';
-      for (var index = 0; index < options.lines.length; index += 1) {
-        html +=
-          '<li class="' +
-          FOOTER_ROOT_CLASS +
-          '__line">' +
-          escapeHtml(options.lines[index]) +
-          "</li>";
-      }
-      html += "</ul>";
+  function mergeFooterObjects(targetObject) {
+    var args = [targetObject];
+    for (var index = 1; index < arguments.length; index += 1) {
+      args.push(arguments[index]);
     }
-    if (options.links.length > 0) {
-      html +=
-        '<nav class="' +
-        FOOTER_ROOT_CLASS +
-        '__links" aria-label="Footer links">';
-      for (var linkIndex = 0; linkIndex < options.links.length; linkIndex += 1) {
-        var link = options.links[linkIndex];
-        html +=
-          '<a class="' +
-          FOOTER_ROOT_CLASS +
-          '__link" href="' +
-          escapeHtml(sanitizeHref(link.href)) +
-          '">' +
-          escapeHtml(link.label) +
-          "</a>";
-      }
-      html += "</nav>";
-    }
-    html +=
-      '<p class="' +
-      FOOTER_ROOT_CLASS +
-      '__copyright">&copy; ' +
-      options.year +
-      " " +
-      escapeHtml(options.copyrightName || "") +
-      "</p>";
-    html += "</div>";
-    return html;
+    return deepMergeOptions.apply(null, args);
   }
 
-  function applyFooterClass(host) {
-    if (!host) {
-      return;
-    }
-    if (host.classList && typeof host.classList.add === "function") {
-      host.classList.add(FOOTER_ROOT_CLASS);
-      return;
-    }
-    if (typeof host.className === "string") {
-      if (host.className.indexOf(FOOTER_ROOT_CLASS) === -1) {
-        host.className = (host.className + " " + FOOTER_ROOT_CLASS).trim();
-      }
-      return;
-    }
-    host.className = FOOTER_ROOT_CLASS;
+  function escapeFooterHtml(inputValue) {
+    var value = inputValue === undefined || inputValue === null ? "" : String(inputValue);
+    return value
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
   }
 
-  function resolveHost(target) {
-    if (typeof target !== "string") {
-      return target;
+  function sanitizeFooterAttribute(inputValue) {
+    var raw = escapeFooterHtml(inputValue);
+    if (/^\s*javascript:/i.test(String(inputValue || ""))) {
+      return "#";
     }
-    if (!global.document || typeof global.document.querySelector !== "function") {
+    return raw;
+  }
+
+  function sanitizeFooterHref(inputValue) {
+    return sanitizeHref(inputValue);
+  }
+
+  function normalizeFooterLinks(candidateLinks) {
+    if (!Array.isArray(candidateLinks)) {
+      return [];
+    }
+    return candidateLinks
+      .map(function normalizeSingleLink(singleLink) {
+        if (!singleLink || typeof singleLink !== "object") {
+          return null;
+        }
+        var label = singleLink.label || singleLink.Label;
+        var url = singleLink.url || singleLink.URL;
+        if (!label || !url) {
+          return null;
+        }
+        return {
+          label: String(label),
+          url: String(url),
+          rel: singleLink.rel || singleLink.Rel || FOOTER_LINK_DEFAULT_REL,
+          target: singleLink.target || singleLink.Target || FOOTER_LINK_DEFAULT_TARGET,
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function normalizeFooterThemeToggle(themeToggleInput) {
+    var mergedToggle = mergeFooterObjects(
+      {},
+      FOOTER_DEFAULTS.themeToggle,
+      themeToggleInput || {},
+    );
+    var core = normalizeThemeToggleCore(mergedToggle, {
+      enabled: FOOTER_DEFAULTS.themeToggle.enabled,
+      ariaLabel: FOOTER_DEFAULTS.themeToggle.ariaLabel,
+    });
+    return {
+      enabled: core.enabled,
+      wrapperClass:
+        mergedToggle.wrapperClass || FOOTER_DEFAULTS.themeToggle.wrapperClass,
+      inputClass:
+        mergedToggle.inputClass || FOOTER_DEFAULTS.themeToggle.inputClass,
+      dataTheme:
+        typeof mergedToggle.dataTheme === "string"
+          ? mergedToggle.dataTheme
+          : FOOTER_DEFAULTS.themeToggle.dataTheme,
+      inputId:
+        typeof mergedToggle.inputId === "string"
+          ? mergedToggle.inputId
+          : FOOTER_DEFAULTS.themeToggle.inputId,
+      ariaLabel: core.ariaLabel,
+      attribute: core.attribute,
+      targets: core.targets,
+      modes: core.modes,
+      initialMode: core.initialMode,
+    };
+  }
+
+  function normalizeFooterConfig() {
+    var providedConfigs = Array.prototype.slice.call(arguments);
+    var mergedConfig = mergeFooterObjects({}, FOOTER_DEFAULTS);
+    providedConfigs.forEach(function apply(config) {
+      if (!config || typeof config !== "object") {
+        return;
+      }
+      mergeFooterObjects(mergedConfig, config);
+    });
+    mergedConfig.themeToggle = normalizeFooterThemeToggle(
+      providedConfigs.reduce(function reduceToggle(current, candidate) {
+        if (candidate && typeof candidate === "object" && candidate.themeToggle) {
+          return candidate.themeToggle;
+        }
+        return current;
+      }, mergedConfig.themeToggle),
+    );
+    mergedConfig.links = normalizeFooterLinks(
+      providedConfigs.reduce(function reduceLinks(current, candidate) {
+        if (candidate && typeof candidate === "object" && Array.isArray(candidate.links)) {
+          return candidate.links;
+        }
+        return current;
+      }, mergedConfig.links),
+    );
+    return mergedConfig;
+  }
+
+  function footerQuery(rootElement, selector) {
+    if (!rootElement || !selector) {
       return null;
     }
-    return global.document.querySelector(target);
+    return rootElement.querySelector(selector);
+  }
+
+  function setFooterClass(targetElement, className) {
+    if (!targetElement || !className) {
+      return;
+    }
+    targetElement.className = className;
+  }
+
+  function buildFooterMarkup(config) {
+    var themeToggleMarkup = config.themeToggle && config.themeToggle.enabled
+      ? '<div data-mpr-footer="theme-toggle"><input type="checkbox" role="switch" data-mpr-footer="theme-toggle-input"></div>'
+      : "";
+
+    var dropdownMarkup =
+      '<div data-mpr-footer="menu-wrapper">' +
+      '<button type="button" data-mpr-footer="toggle-button" aria-haspopup="true" aria-expanded="false"></button>' +
+      '<ul data-mpr-footer="menu"></ul>' +
+      "</div>";
+
+    var layoutMarkup =
+      '<div data-mpr-footer="layout">' +
+      '<div data-mpr-footer="brand">' +
+      '<span data-mpr-footer="prefix"></span>' +
+      dropdownMarkup +
+      "</div>" +
+      '<a data-mpr-footer="privacy-link" href="' +
+      escapeFooterHtml(sanitizeFooterHref(config.privacyLinkHref)) +
+      '"></a>' +
+      themeToggleMarkup +
+      "</div>";
+
+    return (
+      '<footer role="contentinfo" data-mpr-footer="root">' +
+      '<div data-mpr-footer="inner">' +
+      layoutMarkup +
+      "</div>" +
+      "</footer>"
+    );
+  }
+
+  function updateFooterPrivacy(containerElement, config) {
+    var privacyAnchor = footerQuery(containerElement, '[data-mpr-footer="privacy-link"]');
+    if (!privacyAnchor) {
+      return;
+    }
+    if (config.privacyLinkClass) {
+      privacyAnchor.className = config.privacyLinkClass;
+    }
+    if (config.privacyLinkHref) {
+      privacyAnchor.setAttribute("href", sanitizeFooterHref(config.privacyLinkHref));
+    }
+    if (config.privacyLinkLabel) {
+      privacyAnchor.textContent = config.privacyLinkLabel;
+    }
+  }
+
+  function updateFooterPrefix(containerElement, config) {
+    var prefixElement = footerQuery(containerElement, '[data-mpr-footer="prefix"]');
+    if (!prefixElement) {
+      return;
+    }
+    if (config.prefixClass) {
+      prefixElement.className = config.prefixClass;
+    }
+    prefixElement.textContent = config.prefixText || "";
+  }
+
+  function updateFooterToggleButton(containerElement, config) {
+    var toggleButton = config.toggleButtonId
+      ? containerElement.querySelector('#' + sanitizeFooterAttribute(config.toggleButtonId))
+      : footerQuery(containerElement, '[data-mpr-footer="toggle-button"]');
+    if (!toggleButton) {
+      return;
+    }
+    if (config.toggleButtonClass) {
+      toggleButton.className = config.toggleButtonClass;
+    }
+    if (config.toggleLabel) {
+      toggleButton.textContent = config.toggleLabel;
+    }
+    if (config.toggleButtonId) {
+      toggleButton.id = config.toggleButtonId;
+    }
+    if (!toggleButton.hasAttribute("data-bs-toggle")) {
+      toggleButton.setAttribute("data-bs-toggle", "dropdown");
+    }
+    toggleButton.setAttribute("aria-expanded", "false");
+  }
+
+  function updateFooterMenuLinks(containerElement, config) {
+    var menuContainer = footerQuery(containerElement, '[data-mpr-footer="menu"]');
+    if (!menuContainer) {
+      return;
+    }
+    if (config.menuClass) {
+      menuContainer.className = config.menuClass;
+    }
+    var items = Array.isArray(config.links) ? config.links : [];
+    var menuItemClass = config.menuItemClass || "";
+    var markup = items
+      .map(function renderSingle(link) {
+        var hrefValue = escapeFooterHtml(sanitizeFooterHref(link.url));
+        var labelValue = escapeFooterHtml(link.label);
+        var targetValue = sanitizeFooterAttribute(link.target || FOOTER_LINK_DEFAULT_TARGET);
+        var relValue = sanitizeFooterAttribute(link.rel || FOOTER_LINK_DEFAULT_REL);
+        return (
+          '<li><a class="' +
+          sanitizeFooterAttribute(menuItemClass) +
+          '" data-mpr-footer="menu-link" href="' +
+          hrefValue +
+          '" target="' +
+          targetValue +
+          '" rel="' +
+          relValue +
+          '">' +
+          labelValue +
+          "</a></li>"
+        );
+      })
+      .join("");
+    menuContainer.innerHTML = markup;
+  }
+
+  function applyFooterStructure(containerElement, config) {
+    if (!containerElement) {
+      return;
+    }
+    var innerElement = config.innerElementId
+      ? containerElement.querySelector('#' + sanitizeFooterAttribute(config.innerElementId))
+      : footerQuery(containerElement, '[data-mpr-footer="inner"]');
+    if (innerElement && config.innerClass) {
+      setFooterClass(innerElement, config.innerClass);
+    }
+    var layoutElement = footerQuery(containerElement, '[data-mpr-footer="layout"]');
+    if (layoutElement && config.wrapperClass) {
+      setFooterClass(layoutElement, config.wrapperClass);
+    }
+    var brandElement = footerQuery(containerElement, '[data-mpr-footer="brand"]');
+    if (brandElement && config.brandWrapperClass) {
+      setFooterClass(brandElement, config.brandWrapperClass);
+    }
+    var menuWrapper = footerQuery(containerElement, '[data-mpr-footer="menu-wrapper"]');
+    if (menuWrapper && config.menuWrapperClass) {
+      setFooterClass(menuWrapper, config.menuWrapperClass);
+    }
+  }
+
+  function readFooterOptionsFromDataset(rootElement) {
+    if (!rootElement || !rootElement.dataset) {
+      return {};
+    }
+    var dataset = rootElement.dataset;
+    var options = {};
+    if (dataset.elementId) {
+      options.elementId = dataset.elementId;
+    }
+    if (dataset.baseClass) {
+      options.baseClass = dataset.baseClass;
+    }
+    if (dataset.innerElementId) {
+      options.innerElementId = dataset.innerElementId;
+    }
+    if (dataset.innerClass) {
+      options.innerClass = dataset.innerClass;
+    }
+    if (dataset.wrapperClass) {
+      options.wrapperClass = dataset.wrapperClass;
+    }
+    if (dataset.brandWrapperClass) {
+      options.brandWrapperClass = dataset.brandWrapperClass;
+    }
+    if (dataset.menuWrapperClass) {
+      options.menuWrapperClass = dataset.menuWrapperClass;
+    }
+    if (dataset.prefixClass) {
+      options.prefixClass = dataset.prefixClass;
+    }
+    if (dataset.prefixText) {
+      options.prefixText = dataset.prefixText;
+    }
+    if (dataset.toggleButtonId) {
+      options.toggleButtonId = dataset.toggleButtonId;
+    }
+    if (dataset.toggleButtonClass) {
+      options.toggleButtonClass = dataset.toggleButtonClass;
+    }
+    if (dataset.toggleLabel) {
+      options.toggleLabel = dataset.toggleLabel;
+    }
+    if (dataset.menuClass) {
+      options.menuClass = dataset.menuClass;
+    }
+    if (dataset.menuItemClass) {
+      options.menuItemClass = dataset.menuItemClass;
+    }
+    if (dataset.privacyLinkClass) {
+      options.privacyLinkClass = dataset.privacyLinkClass;
+    }
+    if (dataset.privacyLinkHref) {
+      options.privacyLinkHref = dataset.privacyLinkHref;
+    }
+    if (dataset.privacyLinkLabel) {
+      options.privacyLinkLabel = dataset.privacyLinkLabel;
+    }
+    if (dataset.themeToggle) {
+      options.themeToggle = parseJsonValue(dataset.themeToggle, {});
+    }
+    if (dataset.themeMode) {
+      options.themeToggle = options.themeToggle || {};
+      options.themeToggle.mode = dataset.themeMode;
+    }
+    if (dataset.links) {
+      options.links = parseJsonValue(dataset.links, []);
+    }
+    return options;
+  }
+
+  function initializeFooterThemeToggle(componentContext, footerRoot) {
+    var config = componentContext.config;
+    if (!config.themeToggle || !config.themeToggle.enabled) {
+      return null;
+    }
+    var wrapperElement = footerQuery(footerRoot, '[data-mpr-footer="theme-toggle"]');
+    var inputElement = footerQuery(footerRoot, '[data-mpr-footer="theme-toggle-input"]');
+    if (!wrapperElement || !inputElement) {
+      return null;
+    }
+    if (config.themeToggle.wrapperClass) {
+      wrapperElement.className = config.themeToggle.wrapperClass;
+    }
+    if (config.themeToggle.dataTheme) {
+      wrapperElement.setAttribute("data-bs-theme", config.themeToggle.dataTheme);
+    }
+    if (config.themeToggle.inputClass) {
+      inputElement.className = config.themeToggle.inputClass;
+    }
+    if (config.themeToggle.inputId) {
+      inputElement.id = config.themeToggle.inputId;
+    }
+    if (config.themeToggle.ariaLabel) {
+      inputElement.setAttribute("aria-label", config.themeToggle.ariaLabel);
+    }
+
+    var themeModes = config.themeToggle.modes;
+    var offMode = themeModes[0];
+    var onMode = themeModes[1] || themeModes[0];
+
+    function updateToggleUi(modeValue) {
+      var isActive = modeValue === onMode.value;
+      inputElement.checked = isActive;
+      wrapperElement.setAttribute("data-mpr-theme-mode", modeValue);
+    }
+
+    function dispatchFooterThemeEvent(modeValue, source) {
+      var detail = { theme: modeValue, source: source || null };
+      if (typeof componentContext.$dispatch === "function") {
+        componentContext.$dispatch("mpr-footer:theme-change", detail);
+      }
+      if (componentContext.$el) {
+        dispatchEvent(componentContext.$el, "mpr-footer:theme-change", detail);
+      } else {
+        dispatchEvent(footerRoot, "mpr-footer:theme-change", detail);
+      }
+    }
+
+    updateToggleUi(themeManager.getMode());
+
+    var changeHandler = function handleFooterThemeChange(eventObject) {
+      var targetElement = eventObject.target;
+      var nextModeValue = targetElement.checked ? onMode.value : offMode.value;
+      themeManager.setMode(nextModeValue, "footer");
+    };
+    inputElement.addEventListener("change", changeHandler);
+
+    var unsubscribe = themeManager.on(function handleTheme(detail) {
+      updateToggleUi(detail.mode);
+      dispatchFooterThemeEvent(detail.mode, detail.source || null);
+    });
+
+    return function cleanupThemeToggle() {
+      inputElement.removeEventListener("change", changeHandler);
+      unsubscribe();
+    };
+  }
+
+  function initializeFooterDropdown(footerRoot) {
+    var toggleButton = footerQuery(footerRoot, '[data-mpr-footer="toggle-button"]');
+    var menuElement = footerQuery(footerRoot, '[data-mpr-footer="menu"]');
+    if (!toggleButton || !menuElement) {
+      return null;
+    }
+    if (
+      global.bootstrap &&
+      global.bootstrap.Dropdown &&
+      typeof global.bootstrap.Dropdown.getOrCreateInstance === "function"
+    ) {
+      global.bootstrap.Dropdown.getOrCreateInstance(toggleButton, { autoClose: true });
+      return null;
+    }
+    var openClass = "mpr-footer__menu--open";
+    var toggleHandler = function (eventObject) {
+      eventObject.preventDefault();
+      var isOpen = menuElement.classList.contains(openClass);
+      menuElement.classList.toggle(openClass, !isOpen);
+      toggleButton.setAttribute("aria-expanded", (!isOpen).toString());
+    };
+    toggleButton.addEventListener("click", toggleHandler);
+    return function cleanupDropdown() {
+      toggleButton.removeEventListener("click", toggleHandler);
+      menuElement.classList.remove(openClass);
+      toggleButton.setAttribute("aria-expanded", "false");
+    };
+  }
+
+  function createFooterComponent(initialOptions) {
+    var startingOptions = initialOptions && typeof initialOptions === "object" ? initialOptions : {};
+    var component = {
+      config: normalizeFooterConfig(startingOptions),
+      $el: null,
+      cleanupHandlers: [],
+      $dispatch: null,
+      init: function init(userOptions) {
+        var datasetOptions = this.$el ? readFooterOptionsFromDataset(this.$el) : {};
+        this.config = normalizeFooterConfig(startingOptions, datasetOptions, userOptions);
+
+        ensureFooterStyles(global.document || (global.window && global.window.document));
+
+        this.cleanupHandlers.forEach(function callCleanup(callback) {
+          if (typeof callback === "function") {
+            callback();
+          }
+        });
+        this.cleanupHandlers = [];
+
+        var footerTheme = this.config.themeToggle;
+        themeManager.configure({
+          attribute: footerTheme.attribute,
+          targets: footerTheme.targets,
+          modes: footerTheme.modes,
+        });
+        if (
+          footerTheme.initialMode &&
+          footerTheme.initialMode !== themeManager.getMode()
+        ) {
+          themeManager.setMode(footerTheme.initialMode, "footer:init");
+        }
+
+        if (!this.$el) {
+          return;
+        }
+        this.$el.innerHTML = buildFooterMarkup(this.config);
+        var footerRoot = footerQuery(this.$el, 'footer[role="contentinfo"]');
+        if (!footerRoot) {
+          return;
+        }
+        footerRoot.setAttribute("data-mpr-footer-root", "true");
+        if (this.config.elementId) {
+          footerRoot.id = this.config.elementId;
+        }
+        if (this.config.baseClass) {
+          setFooterClass(footerRoot, this.config.baseClass);
+        }
+
+        applyFooterStructure(footerRoot, this.config);
+        updateFooterPrivacy(footerRoot, this.config);
+        updateFooterPrefix(footerRoot, this.config);
+        updateFooterToggleButton(footerRoot, this.config);
+        updateFooterMenuLinks(footerRoot, this.config);
+
+        var dropdownCleanup = initializeFooterDropdown(footerRoot);
+        if (dropdownCleanup) {
+          this.cleanupHandlers.push(dropdownCleanup);
+        }
+
+        var themeCleanup = initializeFooterThemeToggle(this, footerRoot);
+        if (themeCleanup) {
+          this.cleanupHandlers.push(themeCleanup);
+        }
+      },
+      destroy: function destroy() {
+        this.cleanupHandlers.forEach(function callCleanup(callback) {
+          if (typeof callback === "function") {
+            callback();
+          }
+        });
+        this.cleanupHandlers = [];
+        if (this.$el) {
+          this.$el.innerHTML = "";
+        }
+      },
+    };
+    return component;
   }
 
   function renderFooter(target, options) {
@@ -1264,25 +2258,27 @@
     if (!host || typeof host !== "object") {
       throw new Error("renderFooter requires a host element");
     }
-    var normalized = normalizeFooterOptions(options);
-    ensureFooterStyles(global.document || (global.window && global.window.document));
-    applyFooterClass(host);
-    host.innerHTML = buildFooterMarkup(normalized);
+    var component = createFooterComponent(options);
+    component.$el = host;
+    component.init(options);
     return {
-      update: function (nextOptions) {
-        normalized = normalizeFooterOptions(nextOptions);
-        host.innerHTML = buildFooterMarkup(normalized);
+      update: function update(nextOptions) {
+        component.init(nextOptions);
       },
-      destroy: function () {
-        host.innerHTML = "";
+      destroy: function destroy() {
+        component.destroy();
+      },
+      getConfig: function getConfig() {
+        return component.config;
       },
     };
   }
 
   function mprFooter(options) {
-    var normalized = normalizeFooterOptions(options);
+    var resolvedOptions = options || {};
+    var component = createFooterComponent(resolvedOptions);
     return {
-      init: function () {
+      init: function init() {
         var element =
           (this && this.$el) ||
           (this && this.el) ||
@@ -1292,27 +2288,16 @@
         if (!element) {
           throw new Error("mprFooter requires a root element");
         }
-        this.__mprFooterController = renderFooter(element, normalized);
+        component.$el = element;
+        component.$dispatch = this.$dispatch ? this.$dispatch.bind(this) : null;
+        component.init(resolvedOptions);
       },
-      update: function (nextOptions) {
-        normalized = normalizeFooterOptions(
-          arguments.length > 0 ? nextOptions : normalized,
-        );
-        if (
-          this.__mprFooterController &&
-          typeof this.__mprFooterController.update === "function"
-        ) {
-          this.__mprFooterController.update(normalized);
-        }
+      update: function update(nextOptions) {
+        resolvedOptions = Object.assign({}, resolvedOptions, nextOptions || {});
+        component.init(resolvedOptions);
       },
-      destroy: function () {
-        if (
-          this.__mprFooterController &&
-          typeof this.__mprFooterController.destroy === "function"
-        ) {
-          this.__mprFooterController.destroy();
-          this.__mprFooterController = null;
-        }
+      destroy: function destroy() {
+        component.destroy();
       },
     };
   }
@@ -1325,4 +2310,12 @@
   namespace.mprFooter = mprFooter;
   namespace.renderSiteHeader = renderSiteHeader;
   namespace.mprSiteHeader = mprSiteHeader;
+  namespace.configureTheme = function configureTheme(config) {
+    return themeManager.configure(config || {});
+  };
+  namespace.setThemeMode = function setThemeMode(mode) {
+    return themeManager.setMode(mode, "external");
+  };
+  namespace.getThemeMode = themeManager.getMode;
+  namespace.onThemeChange = themeManager.on;
 })(typeof window !== "undefined" ? window : globalThis);

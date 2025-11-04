@@ -1,21 +1,11 @@
 'use strict';
+const assert = require('node:assert/strict');
 
-const assert = require('assert');
+// equal
+assert.strictEqual(actualValue, expectedValue, optionalMessage);
 
-function assertEqual(actual, expected, message) {
-  assert.strictEqual(actual, expected, message);
-}
+// deep equal
+assert.deepStrictEqual(actualObject, expectedObject, optionalMessage);
 
-function assertDeepEqual(actual, expected, message) {
-  assert.deepStrictEqual(actual, expected, message);
-}
-
-function assertThrows(fn, expectedError, message) {
-  assert.throws(fn, expectedError, message);
-}
-
-module.exports = {
-  assertEqual,
-  assertDeepEqual,
-  assertThrows,
-};
+// throws
+assert.throws(executableFunction, optionalExpectedErrorMatcher, optionalMessage);
