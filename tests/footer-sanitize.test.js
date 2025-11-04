@@ -3,7 +3,8 @@
 const fs = require('fs');
 const path = require('path');
 const vm = require('vm');
-const { assertEqual } = require('./assert');
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
 
 function loadFooterHooks() {
   const modulePath = path.join(__dirname, '..', 'mpr-ui.js');
@@ -19,43 +20,41 @@ function loadFooterHooks() {
     '})(typeof window !== "undefined" ? window : globalThis);',
     injection + '})(typeof window !== "undefined" ? window : globalThis);',
   );
-  const sandbox = {
-    console,
-    setTimeout,
-    clearTimeout,
-  };
+
+  const sandbox = { console, setTimeout, clearTimeout };
   sandbox.global = sandbox;
   sandbox.globalThis = sandbox;
+
   vm.runInNewContext(instrumented, sandbox, { filename: 'mpr-ui.js' });
   return sandbox.__TEST_HOOKS__;
 }
 
-function testPrivacyLinkRejectsDisallowedProtocols() {
+test('privacy link rewrites disallowed protocols', () => {
   const hooks = loadFooterHooks();
   const config = hooks.normalizeFooterConfig({
     privacyLinkHref: 'data:text/html,<script>alert(1)</script>',
   });
   const markup = hooks.buildFooterMarkup(config);
-  assertEqual(
+  assert.strictEqual(
     markup.includes('href="#"'),
     true,
     'Privacy link should rewrite disallowed protocols to "#"',
   );
-}
+});
 
-function testPrivacyLinkPreservesAllowedProtocols() {
+test('privacy link keeps allowed protocols', () => {
   const hooks = loadFooterHooks();
   const allowedUrl = 'https://example.com/policies';
   const config = hooks.normalizeFooterConfig({ privacyLinkHref: allowedUrl });
   const markup = hooks.buildFooterMarkup(config);
-  assertEqual(
+  assert.strictEqual(
     markup.includes('href="' + allowedUrl + '"'),
     true,
     'Privacy link should keep allowed protocols untouched',
   );
-}
+});
 
-function testMenuLinksRewriteDisallowedProtocols() {
+test('menu links rewrite disallowed protocols', () => {
   const hooks = loadFooterHooks();
   const menuElement = { className: '', innerHTML: '' };
   const container = {
@@ -67,21 +66,16 @@ function testMenuLinksRewriteDisallowedProtocols() {
     },
   };
   hooks.updateFooterMenuLinks(container, {
-    links: [
-      {
-        label: 'Dangerous',
-        url: 'data:text/html,<svg/onload=alert(1)>',
-      },
-    ],
+    links: [{ label: 'Dangerous', url: 'data:text/html,<svg/onload=alert(1)>' }],
   });
-  assertEqual(
+  assert.strictEqual(
     menuElement.innerHTML.includes('href="#"'),
     true,
     'Menu links should rewrite disallowed protocols to "#"',
   );
-}
+});
 
-function testMenuLinksPreserveAllowedProtocols() {
+test('menu links keep allowed protocols', () => {
   const hooks = loadFooterHooks();
   const menuElement = { className: '', innerHTML: '' };
   const container = {
@@ -93,42 +87,11 @@ function testMenuLinksPreserveAllowedProtocols() {
     },
   };
   hooks.updateFooterMenuLinks(container, {
-    links: [
-      {
-        label: 'Email',
-        url: 'mailto:support@example.com',
-      },
-    ],
+    links: [{ label: 'Email', url: 'mailto:support@example.com' }],
   });
-  assertEqual(
+  assert.strictEqual(
     menuElement.innerHTML.includes('href="mailto:support@example.com"'),
     true,
     'Menu links should keep allowed protocols untouched',
   );
-}
-
-const tests = [
-  ['privacy link rewrites disallowed protocols', testPrivacyLinkRejectsDisallowedProtocols],
-  ['privacy link keeps allowed protocols', testPrivacyLinkPreservesAllowedProtocols],
-  ['menu links rewrite disallowed protocols', testMenuLinksRewriteDisallowedProtocols],
-  ['menu links keep allowed protocols', testMenuLinksPreserveAllowedProtocols],
-];
-
-let failures = 0;
-
-tests.forEach(function runTestEntry(entry) {
-  const name = entry[0];
-  const testFn = entry[1];
-  try {
-    testFn();
-    console.log('✓ ' + name);
-  } catch (error) {
-    failures += 1;
-    console.error('✗ ' + name);
-    console.error(error.stack);
-  }
 });
-
-if (failures > 0) {
-  process.exitCode = 1;
-}

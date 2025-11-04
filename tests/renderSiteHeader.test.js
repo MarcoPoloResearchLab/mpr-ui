@@ -1,6 +1,7 @@
 'use strict';
 
-const { assertEqual } = require('./assert');
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
 
 function createClassList() {
   const values = new Set();
@@ -46,16 +47,11 @@ function createClassList() {
 
 function createElementStub(options) {
   const config = Object.assign(
-    {
-      classList: false,
-      supportsEvents: false,
-      supportsAttributes: false,
-    },
+    { classList: false, supportsEvents: false, supportsAttributes: false },
     options || {},
   );
-  const element = {
-    textContent: '',
-  };
+  const element = { textContent: '' };
+
   if (config.classList) {
     element.classList = createClassList();
   }
@@ -74,20 +70,17 @@ function createElementStub(options) {
   if (config.supportsEvents) {
     const listeners = {};
     element.__listeners = listeners;
+
     element.addEventListener = function (type, handler) {
       const eventType = String(type);
-      if (!listeners[eventType]) {
-        listeners[eventType] = [];
-      }
+      if (!listeners[eventType]) listeners[eventType] = [];
       if (listeners[eventType].indexOf(handler) === -1) {
         listeners[eventType].push(handler);
       }
     };
     element.removeEventListener = function (type, handler) {
       const eventType = String(type);
-      if (!listeners[eventType]) {
-        return;
-      }
+      if (!listeners[eventType]) return;
       listeners[eventType] = listeners[eventType].filter(function (entry) {
         return entry !== handler;
       });
@@ -222,7 +215,7 @@ function createHostHarness() {
 
   host.querySelector = function (selector) {
     return selectorMap.has(selector) ? selectorMap.get(selector) : null;
-  };
+    };
 
   return {
     host: host,
@@ -280,25 +273,25 @@ function loadLibrary() {
   return global.MPRUI;
 }
 
-function testEnablingAuthViaUpdateRebindsHandlers() {
+test('enabling auth via update rebinds handlers', () => {
   resetEnvironment();
   const harness = createHostHarness();
   const library = loadLibrary();
   const controller = library.renderSiteHeader(harness.host, {});
 
-  assertEqual(
+  assert.strictEqual(
     harness.root.classList.contains('mpr-header--no-auth'),
     true,
     'no-auth class applied when auth missing',
   );
-  assertEqual(
+  assert.strictEqual(
     harness.host.getListenerCount('mpr-ui:auth:authenticated'),
     0,
     'no auth listeners before enabling',
   );
 
   harness.signInButton.click();
-  assertEqual(
+  assert.strictEqual(
     harness.dispatchedEvents.filter(function (event) {
       return event.type === 'mpr-ui:header:signin-click';
     }).length,
@@ -316,26 +309,27 @@ function testEnablingAuthViaUpdateRebindsHandlers() {
       },
     },
   };
+  function testEnablingAuthViaUpdateRebindsHandlers() {}
   testEnablingAuthViaUpdateRebindsHandlers.promptCalls = 0;
 
   controller.update({ auth: {} });
 
-  assertEqual(
+  assert.strictEqual(
     harness.host.getListenerCount('mpr-ui:auth:authenticated'),
     1,
     'auth listener attached after enabling',
   );
-  assertEqual(
+  assert.strictEqual(
     harness.host.getListenerCount('mpr-ui:auth:unauthenticated'),
     1,
     'unauth listener attached after enabling',
   );
-  assertEqual(
+  assert.strictEqual(
     harness.signInButton.getListenerCount('click'),
     1,
     'sign-in button keeps a single click handler',
   );
-  assertEqual(
+  assert.strictEqual(
     harness.root.classList.contains('mpr-header--no-auth'),
     false,
     'no-auth class removed after enabling auth',
@@ -343,19 +337,19 @@ function testEnablingAuthViaUpdateRebindsHandlers() {
 
   const beforeEventCount = harness.dispatchedEvents.length;
   harness.signInButton.click();
-  assertEqual(
+  assert.strictEqual(
     testEnablingAuthViaUpdateRebindsHandlers.promptCalls,
     1,
     'google prompt invoked after enabling auth via update',
   );
-  assertEqual(
+  assert.strictEqual(
     harness.dispatchedEvents.length,
     beforeEventCount,
     'fallback sign-in event suppressed after auth is enabled',
   );
-}
+});
 
-function testInitialAuthAvoidsDuplicateListenersOnUpdate() {
+test('initial auth avoids duplicate listeners on update', () => {
   resetEnvironment();
   global.google = {
     accounts: {
@@ -367,35 +361,36 @@ function testInitialAuthAvoidsDuplicateListenersOnUpdate() {
       },
     },
   };
+  function testInitialAuthAvoidsDuplicateListenersOnUpdate() {}
   testInitialAuthAvoidsDuplicateListenersOnUpdate.promptCount = 0;
 
   const harness = createHostHarness();
   const library = loadLibrary();
   const controller = library.renderSiteHeader(harness.host, { auth: {} });
 
-  assertEqual(
+  assert.strictEqual(
     harness.root.classList.contains('mpr-header--no-auth'),
     false,
     'no-auth class not applied when auth configured initially',
   );
-  assertEqual(
+  assert.strictEqual(
     harness.host.getListenerCount('mpr-ui:auth:authenticated'),
     1,
     'auth listener attached during initial render',
   );
-  assertEqual(
+  assert.strictEqual(
     harness.host.getListenerCount('mpr-ui:auth:unauthenticated'),
     1,
     'unauth listener attached during initial render',
   );
-  assertEqual(
+  assert.strictEqual(
     harness.signInButton.getListenerCount('click'),
     1,
     'single click handler installed with initial auth',
   );
 
   harness.signInButton.click();
-  assertEqual(
+  assert.strictEqual(
     testInitialAuthAvoidsDuplicateListenersOnUpdate.promptCount,
     1,
     'google prompt triggered on click with initial auth',
@@ -403,26 +398,26 @@ function testInitialAuthAvoidsDuplicateListenersOnUpdate() {
 
   controller.update({ signInLabel: 'Log in' });
 
-  assertEqual(
+  assert.strictEqual(
     harness.host.getListenerCount('mpr-ui:auth:authenticated'),
     1,
     'auth listener not duplicated after update',
   );
-  assertEqual(
+  assert.strictEqual(
     harness.signInButton.getListenerCount('click'),
     1,
     'sign-in click handler remains singular after update',
   );
 
   harness.signInButton.click();
-  assertEqual(
+  assert.strictEqual(
     testInitialAuthAvoidsDuplicateListenersOnUpdate.promptCount,
     2,
     'google prompt handler persists after update',
   );
-}
+});
 
-function testCredentialFlowWithInitAuthClient() {
+test('credential flow with initAuthClient dispatches auth events', async () => {
   resetEnvironment();
   const harness = createHostHarness();
   const library = loadLibrary();
@@ -473,15 +468,11 @@ function testCredentialFlowWithInitAuthClient() {
 
   global.google = {
     accounts: {
-      id: {
-        initialize: function () {},
-        prompt: function () {},
-      },
+      id: { initialize: function () {}, prompt: function () {} },
     },
   };
 
   const bootstrapInvocations = [];
-
   global.initAuthClient = function (config) {
     bootstrapInvocations.push(sessionProfile ? 'authenticated' : 'unauthenticated');
     return Promise.resolve().then(function () {
@@ -496,124 +487,55 @@ function testCredentialFlowWithInitAuthClient() {
   };
 
   const controller = library.renderSiteHeader(harness.host, {
-    auth: {
-      loginPath: '/auth/google',
-      logoutPath: '/auth/logout',
-      noncePath: '/auth/nonce',
-    },
+    auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
   });
 
   const authController = controller.getAuthController();
-  assertEqual(
+  assert.ok(
     authController !== null && typeof authController === 'object',
-    true,
     'auth controller is available when auth is configured',
   );
 
-  return authController
-    .handleCredential({ credential: 'demo-id-token' })
-    .then(function () {
-      const lastEvent = harness.dispatchedEvents[harness.dispatchedEvents.length - 1];
-      assertEqual(
-        lastEvent && lastEvent.type,
-        'mpr-ui:auth:authenticated',
-        'authenticated event emitted after credential exchange',
-      );
-      assertEqual(
-        lastEvent && lastEvent.detail && lastEvent.detail.profile.display,
-        'Demo User',
-        'profile from bootstrap is forwarded with authenticated event',
-      );
-      assertEqual(
-        harness.host.attributes['data-user-id'],
-        'demo-user-42',
-        'dataset populated with user identifier after authentication',
-      );
-      assertEqual(
-        bootstrapInvocations.indexOf('authenticated') !== -1,
-        true,
-        'bootstrap invoked authenticated branch after exchange',
-      );
-      return authController.signOut();
-    })
-    .then(function () {
-      const eventTypes = harness.dispatchedEvents.map(function (entry) {
-        return entry.type;
-      });
-      const lastAuthIndex = eventTypes.lastIndexOf('mpr-ui:auth:authenticated');
-      const lastUnauthIndex = eventTypes.lastIndexOf('mpr-ui:auth:unauthenticated');
-      assertEqual(
-        lastUnauthIndex > lastAuthIndex,
-        true,
-        'unauthenticated event emitted after sign-out',
-      );
-      assertEqual(
-        Object.prototype.hasOwnProperty.call(
-          harness.host.attributes,
-          'data-user-id',
-        ),
-        false,
-        'user dataset cleared after sign-out',
-      );
-      assertEqual(
-        bootstrapInvocations.filter(function (state) {
-          return state === 'unauthenticated';
-        }).length >= 1,
-        true,
-        'bootstrap invoked unauthenticated branch during flow',
-      );
-    });
-}
+  await authController.handleCredential({ credential: 'demo-id-token' });
 
-const tests = [
-  ['enabling auth via update rebinds handlers', testEnablingAuthViaUpdateRebindsHandlers],
-  ['initial auth avoids duplicate listeners on update', testInitialAuthAvoidsDuplicateListenersOnUpdate],
-  ['credential flow with initAuthClient dispatches auth events', testCredentialFlowWithInitAuthClient],
-];
+  const lastEvent = harness.dispatchedEvents[harness.dispatchedEvents.length - 1];
+  assert.strictEqual(
+    lastEvent && lastEvent.type,
+    'mpr-ui:auth:authenticated',
+    'authenticated event emitted after credential exchange',
+  );
+  assert.strictEqual(
+    lastEvent && lastEvent.detail && lastEvent.detail.profile.display,
+    'Demo User',
+    'profile from bootstrap is forwarded with authenticated event',
+  );
+  assert.strictEqual(
+    harness.host.attributes['data-user-id'],
+    'demo-user-42',
+    'dataset populated with user identifier after authentication',
+  );
+  assert.ok(
+    bootstrapInvocations.indexOf('authenticated') !== -1,
+    'bootstrap invoked authenticated branch after exchange',
+  );
 
-let failures = 0;
+  await authController.signOut();
 
-function runTest(index) {
-  if (index >= tests.length) {
-    if (failures > 0) {
-      process.exitCode = 1;
-    }
-    return;
-  }
-  const name = tests[index][0];
-  const testFn = tests[index][1];
-  let result;
-  try {
-    result = testFn();
-  } catch (error) {
-    failures += 1;
-    // eslint-disable-next-line no-console
-    console.error('FAIL', name);
-    // eslint-disable-next-line no-console
-    console.error(error && error.stack ? error.stack : error);
-    runTest(index + 1);
-    return;
-  }
-  if (result && typeof result.then === 'function') {
-    result
-      .then(function () {
-        // eslint-disable-next-line no-console
-        console.log('PASS', name);
-        runTest(index + 1);
-      })
-      .catch(function (error) {
-        failures += 1;
-        // eslint-disable-next-line no-console
-        console.error('FAIL', name);
-        // eslint-disable-next-line no-console
-        console.error(error && error.stack ? error.stack : error);
-        runTest(index + 1);
-      });
-    return;
-  }
-  // eslint-disable-next-line no-console
-  console.log('PASS', name);
-  runTest(index + 1);
-}
-
-runTest(0);
+  const eventTypes = harness.dispatchedEvents.map(function (entry) {
+    return entry.type;
+  });
+  const lastAuthIndex = eventTypes.lastIndexOf('mpr-ui:auth:authenticated');
+  const lastUnauthIndex = eventTypes.lastIndexOf('mpr-ui:auth:unauthenticated');
+  assert.ok(lastUnauthIndex > lastAuthIndex, 'unauthenticated event emitted after sign-out');
+  assert.strictEqual(
+    Object.prototype.hasOwnProperty.call(harness.host.attributes, 'data-user-id'),
+    false,
+    'user dataset cleared after sign-out',
+  );
+  assert.ok(
+    bootstrapInvocations.filter(function (state) {
+      return state === 'unauthenticated';
+    }).length >= 1,
+    'bootstrap invoked unauthenticated branch during flow',
+  );
+});

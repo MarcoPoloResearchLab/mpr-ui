@@ -1,7 +1,8 @@
 'use strict';
 
 const path = require('path');
-const { assertEqual, assertDeepEqual } = require('./assert');
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
 
 function withFreshThemeManager(run) {
   const previousDocument = global.document;
@@ -31,7 +32,7 @@ function captureThemeEvents(namespace) {
   return { events, unsubscribe };
 }
 
-function testNormalizesInvalidModeToFallback() {
+test('normalizes invalid mode to fallback', () => {
   withFreshThemeManager(function runTest(namespace) {
     namespace.configureTheme({
       modes: [
@@ -44,18 +45,23 @@ function testNormalizesInvalidModeToFallback() {
     const { events, unsubscribe } = captureThemeEvents(namespace);
     const result = namespace.setThemeMode('invalid-mode');
     unsubscribe();
-    assertEqual(result, 'dusk', 'setThemeMode should return the applied fallback mode');
-    assertEqual(namespace.getThemeMode(), 'dusk', 'getThemeMode should match the applied fallback mode');
-    assertEqual(events.length, 1, 'Invalid mode should still notify listeners once');
-    assertDeepEqual(
+
+    assert.strictEqual(result, 'dusk', 'setThemeMode should return the applied fallback mode');
+    assert.strictEqual(
+      namespace.getThemeMode(),
+      'dusk',
+      'getThemeMode should match the applied fallback mode',
+    );
+    assert.strictEqual(events.length, 1, 'Invalid mode should still notify listeners once');
+    assert.deepStrictEqual(
       events[0],
       { mode: 'dusk', source: 'external' },
       'Listeners should receive the normalized mode in the event detail',
     );
   });
-}
+});
 
-function testInvalidModeAfterReconfigureNotifiesWithCurrentMode() {
+test('invalid mode after reconfigure notifies with current mode', () => {
   withFreshThemeManager(function runTest(namespace) {
     namespace.configureTheme({
       modes: [
@@ -66,55 +72,42 @@ function testInvalidModeAfterReconfigureNotifiesWithCurrentMode() {
     const { unsubscribe: unsubscribeInitial } = captureThemeEvents(namespace);
     namespace.setThemeMode('sunset');
     unsubscribeInitial();
+
     namespace.configureTheme({
       modes: [
         { value: 'light', attributeValue: 'light' },
         { value: 'dark', attributeValue: 'dark' },
       ],
     });
-    assertEqual(
+    assert.strictEqual(
       namespace.getThemeMode(),
       'light',
       'Reconfiguring should normalize the current mode to the first available option',
     );
+
     const { events, unsubscribe } = captureThemeEvents(namespace);
     const result = namespace.setThemeMode('sunset');
     unsubscribe();
-    assertEqual(result, 'light', 'setThemeMode should return the resolved current mode when the value is invalid');
-    assertEqual(
+
+    assert.strictEqual(
+      result,
+      'light',
+      'setThemeMode should return the resolved current mode when the value is invalid',
+    );
+    assert.strictEqual(
       namespace.getThemeMode(),
       'light',
       'Invalid updates after reconfiguration should leave the current mode untouched',
     );
-    assertEqual(events.length, 1, 'Invalid mode should still emit a notification with the normalized mode');
-    assertDeepEqual(
+    assert.strictEqual(
+      events.length,
+      1,
+      'Invalid mode should still emit a notification with the normalized mode',
+    );
+    assert.deepStrictEqual(
       events[0],
       { mode: 'light', source: 'external' },
       'Listeners should receive the normalized mode detail after invalid updates',
     );
   });
-}
-
-const tests = [
-  ['normalizes invalid mode to fallback', testNormalizesInvalidModeToFallback],
-  ['invalid mode after reconfigure notifies with current mode', testInvalidModeAfterReconfigureNotifiesWithCurrentMode],
-];
-
-let failures = 0;
-
-tests.forEach(function runTestEntry(entry) {
-  const name = entry[0];
-  const testFn = entry[1];
-  try {
-    testFn();
-    console.log('✓ ' + name);
-  } catch (error) {
-    failures += 1;
-    console.error('✗ ' + name);
-    console.error(error.stack);
-  }
 });
-
-if (failures > 0) {
-  process.exitCode = 1;
-}

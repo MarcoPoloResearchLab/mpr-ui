@@ -1,4 +1,4 @@
-# mpr-ui
+# Marco Polo Research Lab UI
 
 Reusable UI components for Marco Polo Research Lab projects, delivered as a single CDN-hosted script that works with or without Alpine.js.
 
