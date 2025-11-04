@@ -14,11 +14,11 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 1. **Load the library** — add Alpine (optional) plus the `mpr-ui` bundle.
 
    ```html
-   <script
-     defer
-     src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
-     type="module"
-   ></script>
+   <script type="module">
+     import Alpine from "https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js";
+     window.Alpine = Alpine;
+     Alpine.start();
+   </script>
    <script
      defer
      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@1.0.0/mpr-ui.js"
