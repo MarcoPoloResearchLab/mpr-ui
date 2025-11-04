@@ -1993,6 +1993,37 @@
     return rootElement.querySelector(selector);
   }
 
+  function resolveFooterThemeModes(themeToggleConfig) {
+    var config = themeToggleConfig && typeof themeToggleConfig === "object"
+      ? themeToggleConfig
+      : {};
+    var candidateModes = Array.isArray(config.modes) && config.modes.length
+      ? config.modes
+      : DEFAULT_THEME_MODES;
+    var modes = normalizeThemeModes(candidateModes);
+    var attribute =
+      typeof config.attribute === "string" && config.attribute.trim()
+        ? config.attribute.trim()
+        : DEFAULT_THEME_ATTRIBUTE;
+    var candidateTargets =
+      Array.isArray(config.targets) && config.targets.length
+        ? config.targets
+        : DEFAULT_THEME_TARGETS;
+    var targets = normalizeThemeTargets(candidateTargets);
+    var initialMode = null;
+    if (typeof config.mode === "string" && config.mode.trim()) {
+      initialMode = config.mode.trim();
+    } else if (typeof config.initialMode === "string" && config.initialMode.trim()) {
+      initialMode = config.initialMode.trim();
+    }
+    return {
+      modes: modes,
+      attribute: attribute,
+      targets: targets,
+      initialMode: initialMode,
+    };
+  }
+
   function setFooterClass(targetElement, className) {
     if (!targetElement || !className) {
       return;
@@ -2236,18 +2267,8 @@
     }
 
     var resolvedSettings = resolveFooterThemeModes(config.themeToggle);
-    themeManager.configure({
-      attribute: resolvedSettings.attribute,
-      targets: resolvedSettings.targets,
-      modes: resolvedSettings.modes,
-    });
-
-    if (
-      resolvedSettings.initialMode &&
-      resolvedSettings.initialMode !== themeManager.getMode()
-    ) {
-      themeManager.setMode(resolvedSettings.initialMode, "footer:init");
-    }
+    var toggleModes = resolvedSettings.modes.length ? resolvedSettings.modes : DEFAULT_THEME_MODES;
+    var activeIndexForChecked = toggleModes.length > 1 ? 1 : 0;
 
     function dispatchFooterThemeEvent(modeValue, source) {
       var detail = { theme: modeValue, source: source || null };
@@ -2261,47 +2282,57 @@
       }
     }
 
-    function syncToggle(modeValue) {
-      inputElement.checked = modeValue === resolvedSettings.modes[0].value;
-      wrapperElement.setAttribute("data-mpr-theme-mode", modeValue);
-    }
-
-    syncToggle(themeManager.getMode());
-
-    function handleToggle(eventObject) {
-      if (eventObject && typeof eventObject.preventDefault === "function") {
-        eventObject.preventDefault();
-      }
-      var currentMode = themeManager.getMode();
+    function syncToggleUi(modeValue) {
       var currentIndex = 0;
-      for (var idx = 0; idx < resolvedSettings.modes.length; idx += 1) {
-        if (resolvedSettings.modes[idx].value === currentMode) {
+      for (var idx = 0; idx < toggleModes.length; idx += 1) {
+        if (toggleModes[idx].value === modeValue) {
           currentIndex = idx;
           break;
         }
       }
-      var nextMode = resolvedSettings.modes[(currentIndex + 1) % resolvedSettings.modes.length];
+      inputElement.checked = currentIndex === activeIndexForChecked;
+      wrapperElement.setAttribute("data-mpr-theme-mode", modeValue);
+    }
+
+    function selectNextMode() {
+      var currentMode = themeManager.getMode();
+      var currentIndex = 0;
+      for (var idx = 0; idx < toggleModes.length; idx += 1) {
+        if (toggleModes[idx].value === currentMode) {
+          currentIndex = idx;
+          break;
+        }
+      }
+      var nextMode = toggleModes[(currentIndex + 1) % toggleModes.length];
       themeManager.setMode(nextMode.value, "footer");
     }
 
-    inputElement.addEventListener("click", handleToggle);
-    inputElement.addEventListener("keydown", function handleKey(event) {
+    function handleActivation(eventObject) {
+      if (eventObject && typeof eventObject.preventDefault === "function") {
+        eventObject.preventDefault();
+      }
+      selectNextMode();
+    }
+
+    syncToggleUi(themeManager.getMode());
+
+    inputElement.addEventListener("click", handleActivation);
+    inputElement.addEventListener("keydown", function handleKeydown(event) {
       if (!event || typeof event.key !== "string") {
         return;
       }
       if (event.key === " " || event.key === "Enter") {
-        event.preventDefault();
-        handleToggle(event);
+        handleActivation(event);
       }
     });
 
     var unsubscribe = themeManager.on(function handleTheme(detail) {
-      syncToggle(detail.mode);
+      syncToggleUi(detail.mode);
       dispatchFooterThemeEvent(detail.mode, detail.source || null);
     });
 
     return function cleanupThemeToggle() {
-      inputElement.removeEventListener("click", handleToggle);
+      inputElement.removeEventListener("click", handleActivation);
       unsubscribe();
     };
   }
@@ -2395,7 +2426,7 @@
           this.cleanupHandlers.push(dropdownCleanup);
         }
 
-        var themeCleanup = initializeFooterThemeToggle(this, footerRoot, component.config);
+        var themeCleanup = initializeFooterThemeToggle(this, footerRoot);
         if (themeCleanup) {
           this.cleanupHandlers.push(themeCleanup);
         }
