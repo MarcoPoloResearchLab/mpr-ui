@@ -1,8 +1,10 @@
 // @ts-check
 
 const bodyElement = /** @type {HTMLBodyElement} */ (document.body);
-const authBaseUrl = bodyElement.dataset.authBaseUrl || "${DEMO_AUTH_BASE_URL}";
-const googleClientId = bodyElement.dataset.googleClientId || "${DEMO_GOOGLE_CLIENT_ID}";
+const authBaseUrl = bodyElement.dataset.authBaseUrl || "http://localhost:8080";
+const googleClientId =
+  bodyElement.dataset.googleClientId ||
+  "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com";
 
 const headerHost = /** @type {HTMLElement | null} */ (
   document.getElementById("site-header")
@@ -80,7 +82,14 @@ const applyThemeMode = (mode) => {
   bodyElement.dataset.demoThemeMode = normalized;
 };
 
-configDump.textContent = JSON.stringify({ authBaseUrl, googleClientId }, null, 2);
+configDump.textContent = JSON.stringify(
+  {
+    authBaseUrl,
+    googleClientId,
+  },
+  null,
+  2,
+);
 
 let headerController = null;
 let authController = null;
@@ -93,7 +102,7 @@ headerController = window.MPRUI.renderSiteHeader(headerHost, {
   brand: { label: "Marco Polo Research Lab", href: "#" },
   navLinks: [{ label: "Docs", href: "https://mprlab.com" }],
   settings: { enabled: false },
-  googleClientId: googleClientId,
+  googleClientId,
   auth: {
     baseUrl: authBaseUrl,
     loginPath: "/auth/google",

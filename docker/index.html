@@ -3,7 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="google-client-id" content="${DEMO_GOOGLE_CLIENT_ID}" />
+    <meta
+      name="google-client-id"
+      content="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+    />
     <title>mpr-ui + TAuth Docker Demo</title>
     <style>
       :root {
@@ -176,15 +179,15 @@
     ></script>
     <script
       defer
-      src="${DEMO_AUTH_BASE_URL}/static/auth-client.js"
+      src="http://localhost:8080/static/auth-client.js"
       crossorigin="anonymous"
     ></script>
     <script type="module" defer src="./auth-demo.js"></script>
   </head>
   <body
     class="theme-dark"
-    data-auth-base-url="${DEMO_AUTH_BASE_URL}"
-    data-google-client-id="${DEMO_GOOGLE_CLIENT_ID}"
+    data-auth-base-url="http://localhost:8080"
+    data-google-client-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
   >
     <header
       id="site-header"
@@ -197,9 +200,8 @@
         <p>
           Sign in with Google via the shared <code>mpr-ui</code> header wired to a
           running TAuth instance. The demo relies on the Docker Compose setup in
-          this repository, which pairs
-          <code>ghcr.io/temirov/ghttp</code> for static hosting with the
-          <code>ghcr.io/marcopoloresearchlab/tauth</code> backend.
+          this repository, which pairs the front-end file server with the
+          TAuth backend container.
         </p>
       </section>
 
@@ -242,8 +244,8 @@
           <p class="demo-muted">
             The front-end reads the authentication base URL and Google Client ID
             from <code>data-*</code> attributes on the <code>&lt;body&gt;</code>.
-            Update those values (and the Compose <code>.env</code>) when you run
-            against your own Google OAuth client.
+            Update those values directly in this file if you run against a
+            different backend or OAuth client.
           </p>
           <pre id="config-dump"></pre>
         </div>
@@ -252,11 +254,21 @@
       <section>
         <h2 class="h4">Getting Started</h2>
         <ol>
-          <li>Provision a Google OAuth Web Client and add <code>http://localhost:8000</code> as an authorized origin.</li>
-          <li>Copy <code>docker/.env.sample</code> to <code>docker/.env</code> and populate the Google Client ID and signing key.</li>
-          <li>Update the <code>data-*</code> attributes on this page (or override via <code>docker/demo-config.js</code>) to match your OAuth client.</li>
-          <li>Run <code>docker compose up</code> from the repository root and open <code>http://localhost:8000</code>.</li>
-          <li>Click “Sign in” in the header to launch Google Identity Services and establish a session through TAuth.</li>
+          <li>
+            Provision a Google OAuth Web Client and add
+            <code>http://localhost:8000</code> as an authorized origin.
+          </li>
+          <li>
+            Update the value of
+            <code>APP_GOOGLE_WEB_CLIENT_ID</code> in <code>.env</code> to match
+            your client ID.
+          </li>
+          <li>Run <code>docker compose up</code> from the repository root.</li>
+          <li>Open <code>http://localhost:8000</code>.</li>
+          <li>
+            Click “Sign in” in the header to launch Google Identity Services and
+            establish a session through TAuth.
+          </li>
         </ol>
       </section>
     </main>

@@ -5,10 +5,10 @@ const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 
-const dockerHtmlPath = join(__dirname, '..', 'docker', 'index.html.template');
+const dockerHtmlPath = join(__dirname, '..', 'docker', 'index.html');
 const dockerHtml = readFileSync(dockerHtmlPath, 'utf8');
 
-const authScriptPath = join(__dirname, '..', 'docker', 'auth-demo.js.template');
+const authScriptPath = join(__dirname, '..', 'docker', 'auth-demo.js');
 const authScript = readFileSync(authScriptPath, 'utf8');
 
 const composePath = join(__dirname, '..', 'docker-compose.yml');
@@ -22,28 +22,28 @@ test('docker demo references the v0.0.5 mpr-ui CDN bundle', () => {
   );
 });
 
-test('docker demo loads the auth client using the configured base URL placeholder', () => {
+test('docker demo loads the auth client from the exposed backend port', () => {
   assert.match(
     dockerHtml,
-    /\$\{DEMO_AUTH_BASE_URL\}\/static\/auth-client\.js/,
-    'Expected docker/index.html.template to reference the auth client using the env placeholder',
+    /http:\/\/localhost:8080\/static\/auth-client\.js/,
+    'Expected docker/index.html to load the auth client from localhost:8080',
   );
 });
 
-test('docker auth script uses environment placeholders for configuration', () => {
+test('docker auth script embeds the baked-in configuration', () => {
   assert.match(
     authScript,
-    /\$\{DEMO_AUTH_BASE_URL\}/,
-    'Expected auth-demo.js.template to reference DEMO_AUTH_BASE_URL placeholder',
+    /http:\/\/localhost:8080/,
+    'Expected auth-demo.js to point to the localhost backend',
   );
   assert.match(
     authScript,
-    /\$\{DEMO_GOOGLE_CLIENT_ID\}/,
-    'Expected auth-demo.js.template to reference DEMO_GOOGLE_CLIENT_ID placeholder',
+    /991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r\.apps\.googleusercontent\.com/,
+    'Expected auth-demo.js to embed the default Google client ID',
   );
 });
 
-test('docker compose exposes backend and frontend ports', () => {
+test('docker compose exposes backend and frontend ports via published images', () => {
   assert.match(
     composeYaml,
     /"8080:8080"/,
@@ -56,7 +56,12 @@ test('docker compose exposes backend and frontend ports', () => {
   );
   assert.match(
     composeYaml,
-    /frontend-builder:/,
-    'Expected docker-compose.yml to define a frontend-builder service for templating assets',
+    /ghcr\.io\/tyemirov\/tauth:latest/,
+    'Expected docker-compose.yml to use the published TAuth image',
+  );
+  assert.match(
+    composeYaml,
+    /ghcr\.io\/temirov\/ghttp:latest/,
+    'Expected docker-compose.yml to use the published ghttp image for static hosting',
   );
 });
