@@ -54,4 +54,9 @@ test('docker compose exposes backend and frontend ports', () => {
     /"8000:8000"/,
     'Expected docker-compose.yml to publish frontend port 8000',
   );
+  assert.match(
+    composeYaml,
+    /docker\/frontend\.Dockerfile/,
+    'Expected docker-compose.yml to build the frontend service using the ghttp-based Dockerfile',
+  );
 });

@@ -1,6 +1,6 @@
 services:
   backend:
-    image: ghcr.io/marcopoloresearchlab/tauth:latest
+    image: ghcr.io/tyemirov/tauth:latest
     env_file:
       - ./.env
     ports:
@@ -8,7 +8,9 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: nginx:alpine
+    build:
+      context: .
+      dockerfile: docker/frontend.Dockerfile
     depends_on:
       - backend
     environment:
@@ -20,6 +22,4 @@ services:
     volumes:
       - ./docker/index.html.template:/templates/index.html.template:ro
       - ./docker/auth-demo.js.template:/templates/auth-demo.js.template:ro
-      - ./docker/entrypoint.sh:/entrypoint.sh:ro
-    command: ["/bin/sh", "/entrypoint.sh"]
     restart: unless-stopped

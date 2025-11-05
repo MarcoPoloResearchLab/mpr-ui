@@ -29,8 +29,9 @@ and the official TAuth container.
 
    This starts two services:
 
-   - `frontend` (`ghcr.io/temirov/ghttp:latest`) serving the static assets from
-     `docker/`
+   - `frontend` builds a lightweight image that runs
+     [`gHTTP`](../tools/ghttp/README.md) to render the templated assets under
+     `docker/` before serving them
    - `backend` (`ghcr.io/marcopoloresearchlab/tauth:latest`) listening on
      `http://localhost:8080`
 

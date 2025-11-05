@@ -55,6 +55,8 @@ Spin up the playground against a real TAuth backend:
 1. `cp .env.example .env` and update `APP_GOOGLE_WEB_CLIENT_ID` plus the signing key.
 2. Optional: tweak `DEMO_AUTH_BASE_URL` in the same `.env` file when the backend is exposed on a different host/port.
 3. Run `docker compose up` from the repository root and open `http://localhost:8000`.
+   The frontend service builds a lightweight image that runs
+   [`ghttp`](tools/ghttp/README.md) to serve the generated assets.
 4. Use the header’s “Sign in” button to complete the Google flow; the dataset/event log show the authenticated profile.
 
 See [docs/docker-demo.md](docs/docker-demo.md) for a deeper walkthrough, environment details, and production hardening notes.
