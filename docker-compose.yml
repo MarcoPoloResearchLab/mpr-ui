@@ -3,7 +3,8 @@ services:
     image: ghcr.io/tyemirov/tauth:latest
     env_file:
       - ./.env
-    restart: unless-stopped
+    ports:
+      - "8080:8080"
 
   frontend:
     image: ghcr.io/tyemirov/ghttp:latest
@@ -14,4 +15,3 @@ services:
       - "3000:3000"
     volumes:
       - ./docker:/srv/mpr-ui:ro
-    restart: unless-stopped
