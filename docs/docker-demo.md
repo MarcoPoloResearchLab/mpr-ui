@@ -27,13 +27,13 @@ and the official TAuth container.
    docker compose up --build
    ```
 
-   This starts two services:
+   This starts two services plus a helper container:
 
-   - `frontend` builds a lightweight image that runs
-     [`gHTTP`](../tools/ghttp/README.md) to render the templated assets under
-     `docker/` before serving them
-   - `backend` (`ghcr.io/marcopoloresearchlab/tauth:latest`) listening on
-     `http://localhost:8080`
+   - `frontend-builder` renders the templates using the values in `.env`
+     (producing static assets in a shared volume)
+   - `frontend` uses the published [`gHTTP`](../tools/ghttp/README.md) image to
+     serve those assets on port 8000
+   - `backend` (`ghcr.io/marcopoloresearchlab/tauth:latest`) handles auth flows
 
 3. **Open the UI**
 
@@ -59,7 +59,7 @@ APP_DEV_INSECURE_HTTP=true
 
 These defaults enable credentialed cookies across the `8000` (frontend) and
 `8080` (backend) ports while keeping the flow HTTP-friendly for local
-experiments. The demo automatically hydrates the front-end header/footer based
+experiments. The builder container hydrates the front-end header/footer based
 on these settings—no manual edits to the static assets are required.
 
 When deploying beyond local labs, disable `APP_DEV_INSECURE_HTTP`, serve both

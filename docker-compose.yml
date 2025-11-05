@@ -1,25 +1,38 @@
 services:
   backend:
-    image: ghcr.io/tyemirov/tauth:latest
+    image: ghcr.io/marcopoloresearchlab/tauth:latest
     env_file:
       - ./.env
     ports:
       - "8080:8080"
     restart: unless-stopped
 
-  frontend:
-    build:
-      context: .
-      dockerfile: docker/frontend.Dockerfile
+  frontend-builder:
+    image: alpine:3.20
     depends_on:
       - backend
     environment:
       - DEMO_AUTH_BASE_URL=${DEMO_AUTH_BASE_URL:-http://localhost:8080}
       - DEMO_GOOGLE_CLIENT_ID=${APP_GOOGLE_WEB_CLIENT_ID}
       - APP_GOOGLE_WEB_CLIENT_ID=${APP_GOOGLE_WEB_CLIENT_ID}
+    volumes:
+      - frontend_assets:/output
+      - ./docker/index.html.template:/templates/index.html.template:ro
+      - ./docker/auth-demo.js.template:/templates/auth-demo.js.template:ro
+      - ./docker/entrypoint.sh:/entrypoint.sh:ro
+    command: ["/bin/sh", "/entrypoint.sh"]
+
+  frontend:
+    image: ghcr.io/temirov/ghttp:latest
+    depends_on:
+      frontend-builder:
+        condition: service_completed_successfully
+    command: ["--directory", "/srv/mpr-ui", "8000"]
     ports:
       - "8000:8000"
     volumes:
-      - ./docker/index.html.template:/templates/index.html.template:ro
-      - ./docker/auth-demo.js.template:/templates/auth-demo.js.template:ro
+      - frontend_assets:/srv/mpr-ui:ro
     restart: unless-stopped
+
+volumes:
+  frontend_assets:

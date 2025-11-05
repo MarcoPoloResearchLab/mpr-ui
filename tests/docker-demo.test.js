@@ -56,7 +56,12 @@ test('docker compose exposes backend and frontend ports', () => {
   );
   assert.match(
     composeYaml,
-    /docker\/frontend\.Dockerfile/,
-    'Expected docker-compose.yml to build the frontend service using the ghttp-based Dockerfile',
+    /frontend-builder:/,
+    'Expected docker-compose.yml to define a frontend-builder service for templating assets',
+  );
+  assert.match(
+    composeYaml,
+    /ghcr\.io\/temirov\/ghttp:latest/,
+    'Expected docker-compose.yml to use the published gHTTP image for the frontend service',
   );
 });

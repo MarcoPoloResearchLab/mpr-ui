@@ -2,8 +2,7 @@
 set -eu
 
 TEMPLATE_DIR=/templates
-OUTPUT_DIR=/srv/mpr-ui
-PORT=${DEMO_FRONTEND_PORT:-8000}
+OUTPUT_DIR=/output
 
 : "${DEMO_AUTH_BASE_URL:=http://backend:8080}"
 : "${DEMO_GOOGLE_CLIENT_ID:=${APP_GOOGLE_WEB_CLIENT_ID:-}}"
@@ -26,4 +25,4 @@ envsubst '${DEMO_AUTH_BASE_URL} ${DEMO_GOOGLE_CLIENT_ID}' \
   < "$TEMPLATE_DIR/auth-demo.js.template" \
   > "$OUTPUT_DIR/auth-demo.js"
 
-exec ghttp --bind 0.0.0.0 --directory "$OUTPUT_DIR" "$PORT"
+echo "Assets rendered to $OUTPUT_DIR"
