@@ -1,7 +1,7 @@
 // @ts-check
 
 const bodyElement = /** @type {HTMLBodyElement} */ (document.body);
-const authBaseUrl = bodyElement.dataset.authBaseUrl || "http://localhost:3000";
+const authBaseUrl = bodyElement.dataset.authBaseUrl || "http://localhost:8000";
 const googleClientId =
   bodyElement.dataset.googleClientId ||
   "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com";

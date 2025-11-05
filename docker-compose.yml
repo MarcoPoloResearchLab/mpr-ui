@@ -3,6 +3,8 @@ services:
     image: ghcr.io/tyemirov/tauth:latest
     env_file:
       - ./.env
+    ports:
+      - "8000:8080"
     restart: unless-stopped
 
   frontend:
