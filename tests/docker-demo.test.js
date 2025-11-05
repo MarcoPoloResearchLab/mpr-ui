@@ -51,8 +51,8 @@ test('docker compose exposes backend and frontend ports via published images', (
   );
   assert.match(
     composeYaml,
-    /"8000:8000"/,
-    'Expected docker-compose.yml to publish frontend port 8000',
+    /"3000:3000"/,
+    'Expected docker-compose.yml to publish frontend port 3000',
   );
   assert.match(
     composeYaml,
