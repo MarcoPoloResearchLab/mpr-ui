@@ -52,7 +52,7 @@ Prefer an imperative call? Mount the same components with `MPRUI.renderSiteHeade
 
 Spin up the playground against a real TAuth backend:
 
-1. `cp docker/.env.example docker/.env` and update `APP_GOOGLE_WEB_CLIENT_ID` plus the signing key.
+1. `cp .env.example .env` and update `APP_GOOGLE_WEB_CLIENT_ID` plus the signing key.
 2. Optional: tweak `DEMO_AUTH_BASE_URL` in the same `.env` file when the backend is exposed on a different host/port.
 3. Run `docker compose up` from the repository root and open `http://localhost:8000`.
 4. Use the header’s “Sign in” button to complete the Google flow; the dataset/event log show the authenticated profile.

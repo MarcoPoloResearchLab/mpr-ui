@@ -15,11 +15,11 @@ and the official TAuth container.
 1. **Copy the sample environment file**
 
    ```bash
-   cp docker/.env.example docker/.env
+   cp .env.example .env
    ```
 
    Update `APP_GOOGLE_WEB_CLIENT_ID` and `APP_JWT_SIGNING_KEY` in
-   `docker/.env`.
+   `.env`.
 
 2. **Launch the stack**
 
@@ -42,7 +42,7 @@ and the official TAuth container.
 
 ## Environment Overview
 
-The backend service consumes `docker/.env`. Typical settings:
+The backend service consumes `.env`. Typical settings:
 
 ```
 APP_LISTEN_ADDR=:8080

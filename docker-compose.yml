@@ -2,7 +2,7 @@ services:
   backend:
     image: ghcr.io/marcopoloresearchlab/tauth:latest
     env_file:
-      - docker/.env
+      - ./.env
     ports:
       - "8080:8080"
     restart: unless-stopped
