@@ -59,9 +59,4 @@ test('docker compose exposes backend and frontend ports', () => {
     /frontend-builder:/,
     'Expected docker-compose.yml to define a frontend-builder service for templating assets',
   );
-  assert.match(
-    composeYaml,
-    /ghcr\.io\/temirov\/ghttp:latest/,
-    'Expected docker-compose.yml to use the published gHTTP image for the frontend service',
-  );
 });

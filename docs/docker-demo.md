@@ -31,8 +31,8 @@ and the official TAuth container.
 
    - `frontend-builder` renders the templates using the values in `.env`
      (producing static assets in a shared volume)
-   - `frontend` uses the published [`gHTTP`](../tools/ghttp/README.md) image to
-     serve those assets on port 8000
+   - `frontend` uses the published static file server image to serve those
+     assets on port 8000
    - `backend` (`ghcr.io/marcopoloresearchlab/tauth:latest`) handles auth flows
 
 3. **Open the UI**
