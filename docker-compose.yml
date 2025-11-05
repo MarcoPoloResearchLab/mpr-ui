@@ -1,0 +1,20 @@
+services:
+  backend:
+    image: ghcr.io/marcopoloresearchlab/tauth:latest
+    env_file:
+      - docker/.env
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
+  frontend:
+    image: ghcr.io/temirov/ghttp:latest
+    depends_on:
+      - backend
+    working_dir: /srv/mpr-ui
+    command: ["--directory", "/srv/mpr-ui", "8000"]
+    volumes:
+      - ./docker:/srv/mpr-ui:ro
+    ports:
+      - "8000:8000"
+    restart: unless-stopped

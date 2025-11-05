@@ -46,7 +46,18 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
   </script>
   ```
 
-   Prefer an imperative call? Mount the same components with `MPRUI.renderSiteHeader(hostElement, options)` and `MPRUI.renderFooter(hostElement, options)`.
+Prefer an imperative call? Mount the same components with `MPRUI.renderSiteHeader(hostElement, options)` and `MPRUI.renderFooter(hostElement, options)`.
+
+### Docker Compose Playground
+
+Spin up the playground against a real TAuth backend:
+
+1. `cp docker/.env.sample docker/.env` and update `APP_GOOGLE_WEB_CLIENT_ID` plus the signing key.
+2. Align the front-end by editing `docker/index.html` (the `data-auth-base-url` and `data-google-client-id` attributes) or by copying `docker/demo-config.sample.js` to `docker/demo-config.js` and setting the same values there.
+3. Run `docker compose up` from the repository root and open `http://localhost:8000`.
+4. Use the header’s “Sign in” button to complete the Google flow; the dataset/event log show the authenticated profile.
+
+See [docs/docker-demo.md](docs/docker-demo.md) for a deeper walkthrough, environment details, and production hardening notes.
 
 ## Components
 
@@ -59,6 +70,8 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 
 - Open `demo/index.html` in a browser to explore the authentication header mock and both footer helpers.
 - The page includes an offline stub for Google Identity Services so you can trigger events without external dependencies.
+- Prefer a full-stack experience? Use the Docker Compose playground documented in
+  [`docs/docker-demo.md`](docs/docker-demo.md) to run the demo against a real TAuth backend.
 
 ## Theme Management
 
