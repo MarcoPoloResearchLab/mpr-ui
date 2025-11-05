@@ -8,13 +8,18 @@ services:
     restart: unless-stopped
 
   frontend:
-    image: ghcr.io/temirov/ghttp:latest
+    image: nginx:alpine
     depends_on:
       - backend
-    working_dir: /srv/mpr-ui
-    command: ["--directory", "/srv/mpr-ui", "8000"]
-    volumes:
-      - ./docker:/srv/mpr-ui:ro
+    environment:
+      - DEMO_AUTH_BASE_URL=${DEMO_AUTH_BASE_URL:-http://localhost:8080}
+      - DEMO_GOOGLE_CLIENT_ID=${APP_GOOGLE_WEB_CLIENT_ID}
+      - APP_GOOGLE_WEB_CLIENT_ID=${APP_GOOGLE_WEB_CLIENT_ID}
     ports:
       - "8000:8000"
+    volumes:
+      - ./docker/index.html.template:/templates/index.html.template:ro
+      - ./docker/auth-demo.js.template:/templates/auth-demo.js.template:ro
+      - ./docker/entrypoint.sh:/entrypoint.sh:ro
+    command: ["/bin/sh", "/entrypoint.sh"]
     restart: unless-stopped

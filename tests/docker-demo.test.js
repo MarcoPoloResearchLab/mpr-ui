@@ -5,10 +5,10 @@ const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 
-const dockerHtmlPath = join(__dirname, '..', 'docker', 'index.html');
+const dockerHtmlPath = join(__dirname, '..', 'docker', 'index.html.template');
 const dockerHtml = readFileSync(dockerHtmlPath, 'utf8');
 
-const authScriptPath = join(__dirname, '..', 'docker', 'auth-demo.js');
+const authScriptPath = join(__dirname, '..', 'docker', 'auth-demo.js.template');
 const authScript = readFileSync(authScriptPath, 'utf8');
 
 const composePath = join(__dirname, '..', 'docker-compose.yml');
@@ -22,18 +22,24 @@ test('docker demo references the v0.0.5 mpr-ui CDN bundle', () => {
   );
 });
 
-test('docker demo loads the auth client from the backend origin', () => {
+test('docker demo loads the auth client using the configured base URL placeholder', () => {
   assert.match(
     dockerHtml,
-    /http:\/\/localhost:8080\/static\/auth-client\.js/,
-    'Expected docker/index.html to load auth-client.js from the backend origin',
+    /\$\{DEMO_AUTH_BASE_URL\}\/static\/auth-client\.js/,
+    'Expected docker/index.html.template to reference the auth client using the env placeholder',
   );
 });
 
-test('docker auth script defaults to the local backend', () => {
-  assert.ok(
-    authScript.includes('http://localhost:8080'),
-    'Expected auth-demo.js to default authBaseUrl to http://localhost:8080',
+test('docker auth script uses environment placeholders for configuration', () => {
+  assert.match(
+    authScript,
+    /\$\{DEMO_AUTH_BASE_URL\}/,
+    'Expected auth-demo.js.template to reference DEMO_AUTH_BASE_URL placeholder',
+  );
+  assert.match(
+    authScript,
+    /\$\{DEMO_GOOGLE_CLIENT_ID\}/,
+    'Expected auth-demo.js.template to reference DEMO_GOOGLE_CLIENT_ID placeholder',
   );
 });
 

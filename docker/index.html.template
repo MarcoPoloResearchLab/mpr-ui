@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="google-client-id" content="${DEMO_GOOGLE_CLIENT_ID}" />
+    <title>mpr-ui + TAuth Docker Demo</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+          sans-serif;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+      }
+
+      #site-header {
+        position: sticky;
+        top: 0;
+        width: 100%;
+        z-index: 1200;
+        flex-shrink: 0;
+      }
+
+      .demo-footer-slot {
+        position: sticky;
+        bottom: 0;
+        width: 100%;
+        z-index: 1200;
+        flex-shrink: 0;
+        margin-top: auto;
+      }
+
+      main {
+        flex: 1 0 auto;
+        padding: 4rem 1.5rem 5rem;
+        max-width: 960px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        margin-bottom: 0.75rem;
+        color: #38bdf8;
+      }
+
+      section {
+        margin-bottom: 2.5rem;
+        padding: 1.5rem;
+        border-radius: 0.75rem;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        background: rgba(15, 23, 42, 0.7);
+        backdrop-filter: blur(4px);
+      }
+
+      body.theme-light section {
+        background: rgba(255, 255, 255, 0.94);
+        border-color: rgba(148, 163, 184, 0.3);
+        box-shadow: 0 12px 32px rgba(15, 23, 42, 0.08);
+      }
+
+      p {
+        margin-top: 0;
+        line-height: 1.6;
+      }
+
+      .auth-grid {
+        display: grid;
+        gap: 1.25rem;
+      }
+
+      .auth-card {
+        padding: 1.25rem;
+        border-radius: 0.75rem;
+        border: 1px dashed rgba(148, 163, 184, 0.4);
+        background: rgba(15, 23, 42, 0.5);
+      }
+
+      body.theme-light .auth-card {
+        background: rgba(226, 232, 240, 0.7);
+        border-color: rgba(148, 163, 184, 0.35);
+      }
+
+      dl {
+        display: grid;
+        grid-template-columns: max-content 1fr;
+        gap: 0.35rem 0.75rem;
+        margin: 0;
+      }
+
+      dt {
+        font-weight: 600;
+        color: #38bdf8;
+      }
+
+      code,
+      pre {
+        font-family: "Fira Code", "SFMono-Regular", Menlo, Monaco, Consolas,
+          "Liberation Mono", "Courier New", monospace;
+      }
+
+      pre {
+        background: rgba(15, 23, 42, 0.85);
+        border-radius: 0.5rem;
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        padding: 0.75rem;
+        overflow-x: auto;
+        margin: 0;
+      }
+
+      body.theme-light pre {
+        background: #f5f5f5;
+        color: #0f172a;
+        border-color: rgba(148, 163, 184, 0.35);
+      }
+
+      .event-log {
+        max-height: 220px;
+        overflow-y: auto;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        background: rgba(15, 23, 42, 0.8);
+        font-size: 0.85rem;
+      }
+
+      body.theme-light .event-log {
+        background: rgba(241, 245, 249, 0.92);
+        color: #0f172a;
+      }
+
+      .button-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 1rem;
+      }
+
+      button {
+        border: none;
+        border-radius: 999px;
+        padding: 0.55rem 1.2rem;
+        font-weight: 600;
+        cursor: pointer;
+        background: #38bdf8;
+        color: #0f172a;
+      }
+
+      button.secondary {
+        background: rgba(148, 163, 184, 0.25);
+        color: inherit;
+      }
+
+      button:focus-visible {
+        outline: 3px solid #f59e0b;
+        outline-offset: 3px;
+      }
+
+      footer {
+        flex-shrink: 0;
+      }
+    </style>
+    <script
+      src="https://accounts.google.com/gsi/client"
+      async
+      defer
+    ></script>
+    <script
+      id="mpr-ui-bundle"
+      defer
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.5/mpr-ui.js"
+    ></script>
+    <script
+      defer
+      src="${DEMO_AUTH_BASE_URL}/static/auth-client.js"
+      crossorigin="anonymous"
+    ></script>
+    <script type="module" defer src="./auth-demo.js"></script>
+  </head>
+  <body
+    class="theme-dark"
+    data-auth-base-url="${DEMO_AUTH_BASE_URL}"
+    data-google-client-id="${DEMO_GOOGLE_CLIENT_ID}"
+  >
+    <header
+      id="site-header"
+      data-theme-toggle='{"attribute":"data-app-theme","targets":["body"],"modes":[{"value":"light","classList":["theme-light"],"dataset":{"appTheme":"light"}},{"value":"dark","classList":["theme-dark"],"dataset":{"appTheme":"dark"}}]}'
+      data-theme-mode="dark"
+    ></header>
+    <main>
+      <section>
+        <h1>TAuth Docker Playground</h1>
+        <p>
+          Sign in with Google via the shared <code>mpr-ui</code> header wired to a
+          running TAuth instance. The demo relies on the Docker Compose setup in
+          this repository, which pairs
+          <code>ghcr.io/temirov/ghttp</code> for static hosting with the
+          <code>ghcr.io/marcopoloresearchlab/tauth</code> backend.
+        </p>
+      </section>
+
+      <section class="auth-grid">
+        <div class="auth-card">
+          <h2 class="h4">Current Session</h2>
+          <p class="demo-muted">
+            The dataset mirrors the attributes exposed on the header element so
+            you can inspect the authenticated profile.
+          </p>
+          <dl>
+            <dt>data-user-id</dt>
+            <dd id="profile-id">—</dd>
+            <dt>data-user-email</dt>
+            <dd id="profile-email">—</dd>
+            <dt>data-user-display</dt>
+            <dd id="profile-display">—</dd>
+            <dt>data-user-avatar-url</dt>
+            <dd id="profile-avatar">—</dd>
+          </dl>
+          <div class="button-row">
+            <button id="signout-button" class="secondary">Sign out</button>
+            <button id="refresh-button" class="secondary">
+              Refresh session
+            </button>
+          </div>
+        </div>
+
+        <div class="auth-card">
+          <h2 class="h4">Event Log</h2>
+          <p class="demo-muted">
+            Each auth or theme transition is recorded here so you can observe
+            how the header broadcasts state.
+          </p>
+          <div id="event-log" class="event-log" aria-live="polite"></div>
+        </div>
+
+        <div class="auth-card">
+          <h2 class="h4">API Base URL</h2>
+          <p class="demo-muted">
+            The front-end reads the authentication base URL and Google Client ID
+            from <code>data-*</code> attributes on the <code>&lt;body&gt;</code>.
+            Update those values (and the Compose <code>.env</code>) when you run
+            against your own Google OAuth client.
+          </p>
+          <pre id="config-dump"></pre>
+        </div>
+      </section>
+
+      <section>
+        <h2 class="h4">Getting Started</h2>
+        <ol>
+          <li>Provision a Google OAuth Web Client and add <code>http://localhost:8000</code> as an authorized origin.</li>
+          <li>Copy <code>docker/.env.sample</code> to <code>docker/.env</code> and populate the Google Client ID and signing key.</li>
+          <li>Update the <code>data-*</code> attributes on this page (or override via <code>docker/demo-config.js</code>) to match your OAuth client.</li>
+          <li>Run <code>docker compose up</code> from the repository root and open <code>http://localhost:8000</code>.</li>
+          <li>Click “Sign in” in the header to launch Google Identity Services and establish a session through TAuth.</li>
+        </ol>
+      </section>
+    </main>
+
+    <div
+      id="footer-host"
+      class="demo-footer-slot"
+      aria-label="Sticky footer host"
+    ></div>
+  </body>
+</html>
