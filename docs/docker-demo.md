@@ -44,7 +44,7 @@ and the official TAuth container.
 The backend service consumes `.env`. Typical settings:
 
 ```
-APP_LISTEN_ADDR=:8080
+APP_LISTEN_ADDR=:3000
 APP_COOKIE_DOMAIN=localhost
 APP_GOOGLE_WEB_CLIENT_ID=...apps.googleusercontent.com
 APP_JWT_SIGNING_KEY=change-me
@@ -52,11 +52,11 @@ APP_ENABLE_CORS=true
 APP_CORS_ALLOWED_ORIGINS=http://localhost:8000
 APP_DEV_INSECURE_HTTP=true
 # Optional override when the frontend must talk to a non-default backend URL.
-# DEMO_AUTH_BASE_URL=http://localhost:8080
+# DEMO_AUTH_BASE_URL=http://localhost:3000
 ```
 
 These defaults enable credentialed cookies across the `8000` (frontend) and
-`8080` (backend) ports while keeping the flow HTTP-friendly for local
+`3000` (backend) ports while keeping the flow HTTP-friendly for local
 experiments. The front-end assets ship with the default Google client ID listed
 above; edit `docker/index.html` if you need to point at a different OAuth
 client.

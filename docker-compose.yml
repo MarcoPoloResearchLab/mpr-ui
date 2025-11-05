@@ -4,11 +4,11 @@ services:
     env_file:
       - ./.env
     ports:
-      - "8080:8080"
+      - "3000:3000"
     restart: unless-stopped
 
   frontend:
-    image: ghcr.io/temirov/ghttp:latest
+    image: ghcr.io/tyemirov/ghttp:latest
     depends_on:
       - backend
     command: ["--directory", "/srv/mpr-ui", "8000"]

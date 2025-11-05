@@ -25,15 +25,15 @@ test('docker demo references the v0.0.5 mpr-ui CDN bundle', () => {
 test('docker demo loads the auth client from the exposed backend port', () => {
   assert.match(
     dockerHtml,
-    /http:\/\/localhost:8080\/static\/auth-client\.js/,
-    'Expected docker/index.html to load the auth client from localhost:8080',
+    /http:\/\/localhost:3000\/static\/auth-client\.js/,
+    'Expected docker/index.html to load the auth client from localhost:3000',
   );
 });
 
 test('docker auth script embeds the baked-in configuration', () => {
   assert.match(
     authScript,
-    /http:\/\/localhost:8080/,
+    /http:\/\/localhost:3000/,
     'Expected auth-demo.js to point to the localhost backend',
   );
   assert.match(
@@ -46,8 +46,8 @@ test('docker auth script embeds the baked-in configuration', () => {
 test('docker compose exposes backend and frontend ports via published images', () => {
   assert.match(
     composeYaml,
-    /"8080:8080"/,
-    'Expected docker-compose.yml to publish backend port 8080',
+    /"3000:3000"/,
+    'Expected docker-compose.yml to publish backend port 3000',
   );
   assert.match(
     composeYaml,
@@ -61,7 +61,7 @@ test('docker compose exposes backend and frontend ports via published images', (
   );
   assert.match(
     composeYaml,
-    /ghcr\.io\/temirov\/ghttp:latest/,
+    /ghcr\.io\/tyemirov\/ghttp:latest/,
     'Expected docker-compose.yml to use the published ghttp image for static hosting',
   );
 });
