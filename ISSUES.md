@@ -42,6 +42,27 @@ volumes:
   gravity_data:
 ```
 
+- [ ] [MU-203] Include all MPRLab sites in the footer:
+```js
+const sites = Object.freeze([
+    { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
+    { label: "Gravity Notes", url: "https://gravity.mprlab.com" },
+    { label: "LoopAware", url: "https://loopaware.mprlab.com" },
+    { label: "Allergy Wheel", url: "https://allergy.mprlab.com" },
+    { label: "Social Threader", url: "https://threader.mprlab.com" },
+    { label: "RSVP", url: "https://rsvp.mprlab.com" },
+    { label: "Countdown Calendar", url: "https://countdown.mprlab.com" },
+    { label: "LLM Crossword", url: "https://llm-crossword.mprlab.com" },
+    { label: "Prompt Bubbles", url: "https://prompts.mprlab.com" },
+    { label: "Wallpapers", url: "https://wallpapers.mprlab.com" },
+  ]);
+```
+
+- [ ] [MU-204] Add google Sign in to @demo/demo.js/index.html instead of sign in button. Have a google sign in button there.
+Hardcode const GOOGLE_FALLBACK_CLIENT_ID =
+  "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"; for the purpose of the demo page
+
+
 ## BugFixes (300–399)
 
 ## Maintenance (400–499)
