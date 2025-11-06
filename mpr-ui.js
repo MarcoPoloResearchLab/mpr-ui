@@ -665,6 +665,322 @@
     };
   }
 
+  var THEME_TOGGLE_DEFAULT_ICONS = Object.freeze({
+    light: "☀️",
+    dark: "🌙",
+    unknown: "🌗",
+  });
+
+  function getThemeToggleModeIndex(modes, modeValue) {
+    if (!Array.isArray(modes)) {
+      return -1;
+    }
+    for (var index = 0; index < modes.length; index += 1) {
+      if (modes[index] && modes[index].value === modeValue) {
+        return index;
+      }
+    }
+    return -1;
+  }
+
+  function resolveNextThemeToggleMode(modes, currentValue) {
+    if (!Array.isArray(modes) || !modes.length) {
+      return currentValue || null;
+    }
+    var index = getThemeToggleModeIndex(modes, currentValue);
+    if (index === -1) {
+      return modes[0].value;
+    }
+    return modes[(index + 1) % modes.length].value;
+  }
+
+  function normalizeThemeToggleDisplayOptions(rawOptions, fallback) {
+    var baseline = deepMergeOptions(
+      {
+        enabled: true,
+        variant: "switch",
+        label: "Theme",
+        showLabel: true,
+        wrapperClass: "",
+        controlClass: "",
+        iconClass: "",
+        inputId: "",
+        dataTheme: "",
+        ariaLabel: "Toggle theme",
+        icons: {},
+        source: "theme-toggle",
+        modes: DEFAULT_THEME_MODES.slice(),
+      },
+      fallback || {},
+      rawOptions || {},
+    );
+    var normalizedIcons =
+      baseline.icons && typeof baseline.icons === "object" ? baseline.icons : {};
+    return {
+      enabled: baseline.enabled !== false,
+      variant: baseline.variant === "button" ? "button" : "switch",
+      label:
+        typeof baseline.label === "string" && baseline.label.trim()
+          ? baseline.label.trim()
+          : "Theme",
+      showLabel: baseline.showLabel !== false,
+      wrapperClass:
+        typeof baseline.wrapperClass === "string"
+          ? baseline.wrapperClass.trim()
+          : "",
+      controlClass:
+        typeof baseline.controlClass === "string"
+          ? baseline.controlClass.trim()
+          : "",
+      iconClass:
+        typeof baseline.iconClass === "string" ? baseline.iconClass.trim() : "",
+      inputId:
+        typeof baseline.inputId === "string" ? baseline.inputId.trim() : "",
+      dataTheme:
+        typeof baseline.dataTheme === "string"
+          ? baseline.dataTheme.trim()
+          : "",
+      ariaLabel:
+        typeof baseline.ariaLabel === "string" && baseline.ariaLabel.trim()
+          ? baseline.ariaLabel.trim()
+          : "Toggle theme",
+      icons: {
+        light:
+          typeof normalizedIcons.light === "string" &&
+          normalizedIcons.light.trim()
+            ? normalizedIcons.light.trim()
+            : THEME_TOGGLE_DEFAULT_ICONS.light,
+        dark:
+          typeof normalizedIcons.dark === "string" && normalizedIcons.dark.trim()
+            ? normalizedIcons.dark.trim()
+            : THEME_TOGGLE_DEFAULT_ICONS.dark,
+        unknown:
+          typeof normalizedIcons.unknown === "string" &&
+          normalizedIcons.unknown.trim()
+            ? normalizedIcons.unknown.trim()
+            : THEME_TOGGLE_DEFAULT_ICONS.unknown,
+      },
+      modes:
+        Array.isArray(baseline.modes) && baseline.modes.length
+          ? baseline.modes
+          : DEFAULT_THEME_MODES.slice(),
+      source:
+        typeof baseline.source === "string" && baseline.source.trim()
+          ? baseline.source.trim()
+          : "theme-toggle",
+    };
+  }
+
+  function buildThemeToggleMarkup(config) {
+    var labelText = escapeHtml(config.label || "Theme");
+    if (config.variant === "button") {
+      var buttonClass = config.controlClass
+        ? ' class="' + escapeHtml(config.controlClass) + '"'
+        : "";
+      var iconClass = config.iconClass
+        ? ' class="' + escapeHtml(config.iconClass) + '"'
+        : "";
+      var labelMarkup = config.showLabel === false
+        ? ""
+        : '<span data-mpr-theme-toggle="label">' + labelText + "</span>";
+      return (
+        '<button type="button" data-mpr-theme-toggle="control"' +
+        buttonClass +
+        ' aria-label="' +
+        escapeHtml(config.ariaLabel || config.label || "Toggle theme") +
+        '">' +
+        '<span data-mpr-theme-toggle="icon"' +
+        iconClass +
+        ' aria-hidden="true">' +
+        escapeHtml(config.icons.dark) +
+        "</span>" +
+        labelMarkup +
+        "</button>"
+      );
+    }
+    var inputClass = config.controlClass
+      ? ' class="' + escapeHtml(config.controlClass) + '"'
+      : "";
+    var idAttribute = config.inputId
+      ? ' id="' + escapeHtml(config.inputId) + '"'
+      : "";
+    var labelSpan = config.showLabel === false
+      ? ""
+      : '<span data-mpr-theme-toggle="label">' + labelText + "</span>";
+    return (
+      '<input type="checkbox" role="switch" data-mpr-theme-toggle="control"' +
+      inputClass +
+      idAttribute +
+      ' aria-label="' +
+      escapeHtml(config.ariaLabel || config.label || "Toggle theme") +
+      '" />' +
+      labelSpan
+    );
+  }
+
+  function initializeThemeToggle(hostElement, config) {
+    if (!hostElement || !config || !config.enabled) {
+      if (hostElement) {
+        hostElement.innerHTML = "";
+        hostElement.removeAttribute("data-mpr-theme-mode");
+      }
+      return function noopToggle() {};
+    }
+    if (config.wrapperClass) {
+      hostElement.className = config.wrapperClass;
+    }
+    if (config.dataTheme) {
+      hostElement.setAttribute("data-bs-theme", config.dataTheme);
+    } else {
+      hostElement.removeAttribute("data-bs-theme");
+    }
+    hostElement.innerHTML = buildThemeToggleMarkup(config);
+    var controlElement = hostElement.querySelector(
+      '[data-mpr-theme-toggle="control"]',
+    );
+    var iconElement = hostElement.querySelector(
+      '[data-mpr-theme-toggle="icon"]',
+    );
+    if (!controlElement) {
+      return function noopMissingControl() {};
+    }
+    var currentModes = Array.isArray(config.modes) && config.modes.length
+      ? config.modes
+      : DEFAULT_THEME_MODES.slice();
+
+    function syncToggleUi(modeValue) {
+      var modeIndex = getThemeToggleModeIndex(currentModes, modeValue);
+      var resolvedMode = modeValue;
+      if (modeIndex === -1 && currentModes.length) {
+        resolvedMode = currentModes[0].value;
+        modeIndex = 0;
+      }
+      hostElement.setAttribute("data-mpr-theme-mode", resolvedMode);
+      controlElement.setAttribute("data-mpr-theme-mode", resolvedMode);
+      if (config.variant === "button") {
+        controlElement.setAttribute(
+          "aria-pressed",
+          modeIndex === 1 ? "true" : "false",
+        );
+        if (iconElement) {
+          var iconSymbol = config.icons.unknown;
+          if (resolvedMode === "light") {
+            iconSymbol = config.icons.light;
+          } else if (resolvedMode === "dark") {
+            iconSymbol = config.icons.dark;
+          }
+          iconElement.textContent = iconSymbol;
+        }
+      } else {
+        var checked = modeIndex > 0;
+        controlElement.checked = checked;
+        controlElement.setAttribute("aria-checked", checked ? "true" : "false");
+      }
+    }
+
+    function handleActivation(eventObject) {
+      if (eventObject && typeof eventObject.preventDefault === "function") {
+        eventObject.preventDefault();
+      }
+      var nextMode = resolveNextThemeToggleMode(
+        currentModes,
+        themeManager.getMode(),
+      );
+      themeManager.setMode(nextMode, config.source || "theme-toggle");
+    }
+
+    controlElement.addEventListener("click", handleActivation);
+    if (config.variant === "switch") {
+      controlElement.addEventListener("keydown", function handleToggleKey(event) {
+        if (!event || typeof event.key !== "string") {
+          return;
+        }
+        if (event.key === " " || event.key === "Enter") {
+          handleActivation(event);
+        }
+      });
+    }
+    syncToggleUi(themeManager.getMode());
+    var unsubscribe = themeManager.on(function handleTheme(detail) {
+      syncToggleUi(detail.mode);
+    });
+    return function cleanupThemeToggle() {
+      controlElement.removeEventListener("click", handleActivation);
+      unsubscribe();
+    };
+  }
+
+  function normalizeStandaloneThemeToggleOptions(rawOptions) {
+    var base =
+      rawOptions && typeof rawOptions === "object" ? rawOptions : {};
+    var themeInput =
+      base && typeof base.theme === "object" ? base.theme : {};
+    var themeConfig = normalizeThemeToggleCore(themeInput, {
+      enabled:
+        base.enabled === undefined ? true : Boolean(base.enabled),
+      ariaLabel:
+        typeof base.ariaLabel === "string" && base.ariaLabel.trim()
+          ? base.ariaLabel.trim()
+          : "Toggle theme",
+    });
+    var displayConfig = normalizeThemeToggleDisplayOptions(
+      Object.assign({}, base, {
+        ariaLabel: themeConfig.ariaLabel,
+        modes: themeConfig.modes,
+      }),
+    );
+    return {
+      component: displayConfig,
+      theme: themeConfig,
+    };
+  }
+
+  function mountThemeToggleComponent(hostElement, normalizedOptions, configureTheme, sourceLabel) {
+    var toggleCleanup = null;
+
+    function applyOptions(nextNormalized, label) {
+      var effectiveLabel = label || "theme-toggle";
+      if (configureTheme && nextNormalized.theme) {
+        themeManager.configure({
+          attribute: nextNormalized.theme.attribute,
+          targets: nextNormalized.theme.targets,
+          modes: nextNormalized.theme.modes,
+        });
+        if (
+          nextNormalized.theme.initialMode &&
+          nextNormalized.theme.initialMode !== themeManager.getMode()
+        ) {
+          themeManager.setMode(
+            nextNormalized.theme.initialMode,
+            effectiveLabel + ":init",
+          );
+        }
+      }
+      var displayOptions = deepMergeOptions({}, nextNormalized.component);
+      if (nextNormalized.theme && nextNormalized.theme.modes) {
+        displayOptions.modes = nextNormalized.theme.modes;
+      }
+      if (toggleCleanup) {
+        toggleCleanup();
+      }
+      toggleCleanup = initializeThemeToggle(hostElement, displayOptions);
+    }
+
+    applyOptions(normalizedOptions, sourceLabel || "theme-toggle");
+
+    return {
+      update: function update(nextNormalized, label) {
+        applyOptions(nextNormalized, label || "theme-toggle");
+      },
+      destroy: function destroy() {
+        if (toggleCleanup) {
+          toggleCleanup();
+          toggleCleanup = null;
+        }
+      },
+    };
+  }
+
   function readHeaderOptionsFromDataset(rootElement) {
     if (!rootElement || !rootElement.dataset) {
       return {};
@@ -1199,6 +1515,10 @@
       ariaLabel: HEADER_DEFAULTS.themeToggle.ariaLabel,
     };
     var themeNormalized = normalizeThemeToggleCore(themeSource, themeDefaults);
+    var themeLabel =
+      typeof themeSource.label === "string" && themeSource.label.trim()
+        ? themeSource.label.trim()
+        : "Theme";
     if (
       typeof options.initialTheme === "string" &&
       !themeNormalized.initialMode
@@ -1227,6 +1547,7 @@
       },
       themeToggle: {
         enabled: themeNormalized.enabled,
+        label: themeLabel,
         ariaLabel: themeNormalized.ariaLabel,
         attribute: themeNormalized.attribute,
         targets: themeNormalized.targets,
@@ -1297,14 +1618,7 @@
       '<div class="' +
       HEADER_ROOT_CLASS +
       '__actions">' +
-      '<button type="button" class="' +
-      HEADER_ROOT_CLASS +
-      '__button ' +
-      HEADER_ROOT_CLASS +
-      '__icon-btn" data-mpr-header="theme-toggle">' +
-      '<span data-mpr-header="theme-icon" aria-hidden="true">🌙</span>' +
-      '<span>Theme</span>' +
-      "</button>" +
+      '<div data-mpr-header="theme-toggle"></div>' +
       '<span class="' +
       HEADER_ROOT_CLASS +
       '__divider"></span>' +
@@ -1338,11 +1652,8 @@
       root: hostElement.querySelector("header." + HEADER_ROOT_CLASS),
       nav: hostElement.querySelector('[data-mpr-header="nav"]'),
       brand: hostElement.querySelector('[data-mpr-header="brand"]'),
-      themeButton: hostElement.querySelector(
+      themeToggle: hostElement.querySelector(
         '[data-mpr-header="theme-toggle"]',
-      ),
-      themeIcon: hostElement.querySelector(
-        '[data-mpr-header="theme-icon"]',
       ),
       settingsButton: hostElement.querySelector(
         '[data-mpr-header="settings-button"]',
@@ -1435,12 +1746,6 @@
     if (elements.settingsButton) {
       elements.settingsButton.textContent = options.settings.label;
     }
-    if (elements.themeButton && options.themeToggle.ariaLabel) {
-      elements.themeButton.setAttribute(
-        "aria-label",
-        options.themeToggle.ariaLabel,
-      );
-    }
     if (elements.signInButton) {
       elements.signInButton.textContent = options.signInLabel;
     }
@@ -1449,14 +1754,27 @@
     }
   }
 
-  function resolveThemeIconSymbol(modeValue) {
-    if (modeValue === "dark") {
-      return "🌙";
-    }
-    if (modeValue === "light") {
-      return "☀️";
-    }
-    return "🌗";
+  function buildHeaderThemeToggleConfig(options, themeConfig) {
+    return normalizeThemeToggleDisplayOptions(
+      {
+        enabled: options.themeToggle.enabled,
+        variant: "button",
+        label: options.themeToggle.label || "Theme",
+        showLabel: true,
+        wrapperClass: "",
+        controlClass:
+          HEADER_ROOT_CLASS + "__button " + HEADER_ROOT_CLASS + "__icon-btn",
+        iconClass: "",
+        ariaLabel: options.themeToggle.ariaLabel,
+        icons: {
+          light: THEME_TOGGLE_DEFAULT_ICONS.light,
+          dark: THEME_TOGGLE_DEFAULT_ICONS.dark,
+          unknown: THEME_TOGGLE_DEFAULT_ICONS.unknown,
+        },
+        modes: themeConfig.modes,
+        source: "header",
+      },
+    );
   }
 
   function renderSiteHeader(target, rawOptions) {
@@ -1486,9 +1804,18 @@
     var authController = null;
     var authListenersAttached = false;
     var signInClickHandler = null;
+    var headerToggleCleanup = null;
+
+    function destroyHeaderToggle() {
+      if (headerToggleCleanup) {
+        headerToggleCleanup();
+        headerToggleCleanup = null;
+      }
+    }
+
+    cleanupHandlers.push(destroyHeaderToggle);
 
     var headerThemeConfig = options.themeToggle;
-    var themeModes = headerThemeConfig.modes;
 
     themeManager.configure({
       attribute: headerThemeConfig.attribute,
@@ -1496,29 +1823,17 @@
       modes: headerThemeConfig.modes,
     });
 
-    function updateThemeUi(modeValue) {
+    function updateThemeHost(modeValue) {
       hostElement.setAttribute("data-mpr-theme-mode", modeValue);
-      if (elements.themeButton) {
-        elements.themeButton.setAttribute("data-mpr-theme-mode", modeValue);
-        if (themeModes.length >= 2) {
-          var activeIndex = 0;
-          for (var idx = 0; idx < themeModes.length; idx += 1) {
-            if (themeModes[idx].value === modeValue) {
-              activeIndex = idx;
-              break;
-            }
-          }
-          elements.themeButton.setAttribute(
-            "aria-pressed",
-            activeIndex === 1 ? "true" : "false",
-          );
-        }
-        var iconSymbol = resolveThemeIconSymbol(modeValue);
-        elements.themeButton.setAttribute("data-mpr-theme-icon", iconSymbol);
-        if (elements.themeIcon) {
-          elements.themeIcon.textContent = iconSymbol;
-        }
+    }
+
+    function mountHeaderThemeToggle() {
+      destroyHeaderToggle();
+      if (!elements.themeToggle) {
+        return;
       }
+      var toggleConfig = buildHeaderThemeToggleConfig(options, headerThemeConfig);
+      headerToggleCleanup = initializeThemeToggle(elements.themeToggle, toggleConfig);
     }
 
     if (
@@ -1528,10 +1843,11 @@
       themeManager.setMode(headerThemeConfig.initialMode, "header:init");
     }
 
-    updateThemeUi(themeManager.getMode());
+    mountHeaderThemeToggle();
+    updateThemeHost(themeManager.getMode());
 
     var unsubscribeTheme = themeManager.on(function handleThemeChange(detail) {
-      updateThemeUi(detail.mode);
+      updateThemeHost(detail.mode);
       dispatchHeaderEvent("mpr-ui:header:theme-change", {
         theme: detail.mode,
         source: detail.source || null,
@@ -1647,24 +1963,6 @@
       });
     }
 
-    if (elements.themeButton) {
-      elements.themeButton.addEventListener("click", function () {
-        if (!headerThemeConfig.enabled || !themeModes.length) {
-          return;
-        }
-        var currentModeValue = themeManager.getMode();
-        var currentIndex = 0;
-        for (var idx = 0; idx < themeModes.length; idx += 1) {
-          if (themeModes[idx].value === currentModeValue) {
-            currentIndex = idx;
-            break;
-          }
-        }
-        var nextMode = themeModes[(currentIndex + 1) % themeModes.length];
-        themeManager.setMode(nextMode.value, "header");
-      });
-    }
-
     if (authController) {
       ensureAuthEventListeners();
       refreshAuthState();
@@ -1685,7 +1983,6 @@
         );
         options = normalizeHeaderOptions(updatedCombined);
         headerThemeConfig = options.themeToggle;
-        themeModes = headerThemeConfig.modes;
         applyHeaderOptions(hostElement, elements, options);
         themeManager.configure({
           attribute: headerThemeConfig.attribute,
@@ -1698,7 +1995,8 @@
         ) {
           themeManager.setMode(headerThemeConfig.initialMode, "header:update");
         }
-        updateThemeUi(themeManager.getMode());
+        mountHeaderThemeToggle();
+        updateThemeHost(themeManager.getMode());
         if (options.auth && elements.root) {
           elements.root.classList.remove(HEADER_ROOT_CLASS + "--no-auth");
         }
@@ -1899,6 +2197,7 @@
     privacyLinkLabel: "Privacy • Terms",
     themeToggle: Object.freeze({
       enabled: true,
+      label: "Theme",
       wrapperClass: "mpr-footer__theme-toggle",
       inputClass: "mpr-footer__theme-checkbox",
       dataTheme: "light",
@@ -1995,8 +2294,13 @@
       enabled: FOOTER_DEFAULTS.themeToggle.enabled,
       ariaLabel: FOOTER_DEFAULTS.themeToggle.ariaLabel,
     });
+    var labelValue =
+      typeof mergedToggle.label === "string" && mergedToggle.label.trim()
+        ? mergedToggle.label.trim()
+        : FOOTER_DEFAULTS.themeToggle.label;
     return {
       enabled: core.enabled,
+      label: labelValue,
       wrapperClass:
         mergedToggle.wrapperClass || FOOTER_DEFAULTS.themeToggle.wrapperClass,
       inputClass:
@@ -2043,6 +2347,29 @@
       }, mergedConfig.links),
     );
     return mergedConfig;
+  }
+
+  function buildFooterThemeToggleConfig(config) {
+    return normalizeThemeToggleDisplayOptions(
+      {
+        enabled: config.themeToggle.enabled,
+        variant: "switch",
+        label: config.themeToggle.label || "Theme",
+        showLabel: false,
+        wrapperClass: config.themeToggle.wrapperClass,
+        controlClass: config.themeToggle.inputClass,
+        ariaLabel: config.themeToggle.ariaLabel,
+        inputId: config.themeToggle.inputId,
+        dataTheme: config.themeToggle.dataTheme,
+        icons: {
+          light: THEME_TOGGLE_DEFAULT_ICONS.light,
+          dark: THEME_TOGGLE_DEFAULT_ICONS.dark,
+          unknown: THEME_TOGGLE_DEFAULT_ICONS.unknown,
+        },
+        modes: config.themeToggle.modes,
+        source: "footer",
+      },
+    );
   }
 
   function footerQuery(rootElement, selector) {
@@ -2092,7 +2419,7 @@
 
   function buildFooterMarkup(config) {
     var themeToggleMarkup = config.themeToggle && config.themeToggle.enabled
-      ? '<div data-mpr-footer="theme-toggle"><input type="checkbox" role="switch" data-mpr-footer="theme-toggle-input"></div>'
+      ? '<div data-mpr-footer="theme-toggle"></div>'
       : "";
 
     var dropdownMarkup =
@@ -2299,103 +2626,6 @@
     return options;
   }
 
-  function initializeFooterThemeToggle(componentContext, footerRoot) {
-    var config = componentContext.config;
-    if (!config.themeToggle || !config.themeToggle.enabled) {
-      return null;
-    }
-    var wrapperElement = footerQuery(footerRoot, '[data-mpr-footer="theme-toggle"]');
-    var inputElement = footerQuery(footerRoot, '[data-mpr-footer="theme-toggle-input"]');
-    if (!wrapperElement || !inputElement) {
-      return null;
-    }
-    if (config.themeToggle.wrapperClass) {
-      wrapperElement.className = config.themeToggle.wrapperClass;
-    }
-    if (config.themeToggle.dataTheme) {
-      wrapperElement.setAttribute("data-bs-theme", config.themeToggle.dataTheme);
-    }
-    if (config.themeToggle.inputClass) {
-      inputElement.className = config.themeToggle.inputClass;
-    }
-    if (config.themeToggle.inputId) {
-      inputElement.id = config.themeToggle.inputId;
-    }
-    if (config.themeToggle.ariaLabel) {
-      inputElement.setAttribute("aria-label", config.themeToggle.ariaLabel);
-    }
-
-    var resolvedSettings = resolveFooterThemeModes(config.themeToggle);
-    var toggleModes = resolvedSettings.modes.length ? resolvedSettings.modes : DEFAULT_THEME_MODES;
-    var activeIndexForChecked = toggleModes.length > 1 ? 1 : 0;
-
-    function dispatchFooterThemeEvent(modeValue, source) {
-      var detail = { theme: modeValue, source: source || null };
-      if (typeof componentContext.$dispatch === "function") {
-        componentContext.$dispatch("mpr-footer:theme-change", detail);
-      }
-      if (componentContext.$el) {
-        dispatchEvent(componentContext.$el, "mpr-footer:theme-change", detail);
-      } else {
-        dispatchEvent(footerRoot, "mpr-footer:theme-change", detail);
-      }
-    }
-
-    function syncToggleUi(modeValue) {
-      var currentIndex = 0;
-      for (var idx = 0; idx < toggleModes.length; idx += 1) {
-        if (toggleModes[idx].value === modeValue) {
-          currentIndex = idx;
-          break;
-        }
-      }
-      inputElement.checked = currentIndex === activeIndexForChecked;
-      wrapperElement.setAttribute("data-mpr-theme-mode", modeValue);
-    }
-
-    function selectNextMode() {
-      var currentMode = themeManager.getMode();
-      var currentIndex = 0;
-      for (var idx = 0; idx < toggleModes.length; idx += 1) {
-        if (toggleModes[idx].value === currentMode) {
-          currentIndex = idx;
-          break;
-        }
-      }
-      var nextMode = toggleModes[(currentIndex + 1) % toggleModes.length];
-      themeManager.setMode(nextMode.value, "footer");
-    }
-
-    function handleActivation(eventObject) {
-      if (eventObject && typeof eventObject.preventDefault === "function") {
-        eventObject.preventDefault();
-      }
-      selectNextMode();
-    }
-
-    syncToggleUi(themeManager.getMode());
-
-    inputElement.addEventListener("click", handleActivation);
-    inputElement.addEventListener("keydown", function handleKeydown(event) {
-      if (!event || typeof event.key !== "string") {
-        return;
-      }
-      if (event.key === " " || event.key === "Enter") {
-        handleActivation(event);
-      }
-    });
-
-    var unsubscribe = themeManager.on(function handleTheme(detail) {
-      syncToggleUi(detail.mode);
-      dispatchFooterThemeEvent(detail.mode, detail.source || null);
-    });
-
-    return function cleanupThemeToggle() {
-      inputElement.removeEventListener("click", handleActivation);
-      unsubscribe();
-    };
-  }
-
   function initializeFooterDropdown(footerRoot) {
     var toggleButton = footerQuery(footerRoot, '[data-mpr-footer="toggle-button"]');
     var menuElement = footerQuery(footerRoot, '[data-mpr-footer="menu"]');
@@ -2474,6 +2704,20 @@
           setFooterClass(footerRoot, this.config.baseClass);
         }
 
+        var self = this;
+        var footerThemeUnsubscribe = themeManager.on(function handleFooterTheme(detail) {
+          var payload = { theme: detail.mode, source: detail.source || null };
+          if (typeof self.$dispatch === "function") {
+            self.$dispatch("mpr-footer:theme-change", payload);
+          }
+          if (self.$el) {
+            dispatchEvent(self.$el, "mpr-footer:theme-change", payload);
+          } else {
+            dispatchEvent(footerRoot, "mpr-footer:theme-change", payload);
+          }
+        });
+        this.cleanupHandlers.push(footerThemeUnsubscribe);
+
         applyFooterStructure(footerRoot, this.config);
         updateFooterPrivacy(footerRoot, this.config);
         updateFooterPrefix(footerRoot, this.config);
@@ -2485,9 +2729,13 @@
           this.cleanupHandlers.push(dropdownCleanup);
         }
 
-        var themeCleanup = initializeFooterThemeToggle(this, footerRoot);
-        if (themeCleanup) {
-          this.cleanupHandlers.push(themeCleanup);
+        var toggleHost = footerQuery(footerRoot, '[data-mpr-footer="theme-toggle"]');
+        if (toggleHost) {
+          var footerToggleConfig = buildFooterThemeToggleConfig(this.config);
+          var themeCleanup = initializeThemeToggle(toggleHost, footerToggleConfig);
+          if (typeof themeCleanup === "function") {
+            this.cleanupHandlers.push(themeCleanup);
+          }
         }
       },
       destroy: function destroy() {
@@ -2554,6 +2802,76 @@
     };
   }
 
+  function renderThemeToggle(target, options) {
+    var host = resolveHost(target);
+    if (!host || typeof host !== "object") {
+      throw new Error("renderThemeToggle requires a root element");
+    }
+    var latestOptions = deepMergeOptions({}, options || {});
+    var normalized = normalizeStandaloneThemeToggleOptions(latestOptions);
+    var controller = mountThemeToggleComponent(
+      host,
+      normalized,
+      true,
+      "theme-toggle:init",
+    );
+    return {
+      update: function update(nextOptions) {
+        latestOptions = deepMergeOptions({}, latestOptions, nextOptions || {});
+        var normalizedNext = normalizeStandaloneThemeToggleOptions(latestOptions);
+        controller.update(normalizedNext, "theme-toggle:update");
+      },
+      destroy: function destroy() {
+        controller.destroy();
+        if (host && Object.prototype.hasOwnProperty.call(host, "innerHTML")) {
+          host.innerHTML = "";
+        }
+        if (host && typeof host.removeAttribute === "function") {
+          host.removeAttribute("data-mpr-theme-mode");
+        }
+      },
+    };
+  }
+
+  function mprThemeToggle(options) {
+    var resolvedOptions = options || {};
+    var controller = null;
+    return {
+      init: function init() {
+        var element =
+          (this && this.$el) ||
+          (this && this.el) ||
+          (this && this.element) ||
+          (this && this.host) ||
+          null;
+        if (!element) {
+          throw new Error("mprThemeToggle requires a root element");
+        }
+        var normalized = normalizeStandaloneThemeToggleOptions(resolvedOptions);
+        controller = mountThemeToggleComponent(
+          element,
+          normalized,
+          true,
+          "theme-toggle:init",
+        );
+      },
+      update: function update(nextOptions) {
+        resolvedOptions = deepMergeOptions({}, resolvedOptions, nextOptions || {});
+        if (!controller) {
+          return;
+        }
+        var normalized = normalizeStandaloneThemeToggleOptions(resolvedOptions);
+        controller.update(normalized, "theme-toggle:update");
+      },
+      destroy: function destroy() {
+        if (controller) {
+          controller.destroy();
+        }
+        controller = null;
+      },
+    };
+  }
+
   var namespace = ensureNamespace(global);
   namespace.createAuthHeader = createAuthHeader;
   namespace.renderAuthHeader = renderAuthHeader;
@@ -2563,6 +2881,8 @@
   namespace.renderSiteHeader = renderSiteHeader;
   namespace.mprSiteHeader = mprSiteHeader;
   namespace.getFooterSiteCatalog = getFooterSiteCatalog;
+  namespace.renderThemeToggle = renderThemeToggle;
+  namespace.mprThemeToggle = mprThemeToggle;
   namespace.configureTheme = function configureTheme(config) {
     return themeManager.configure(config || {});
   };

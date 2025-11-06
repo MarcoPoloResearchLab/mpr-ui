@@ -66,6 +66,9 @@ function createElementStub(options) {
         ? attributes[name]
         : null;
     };
+    element.removeAttribute = function (name) {
+      delete attributes[name];
+    };
   }
   if (config.supportsEvents) {
     const listeners = {};
@@ -192,8 +195,18 @@ function createHostHarness() {
   const root = createElementStub({ classList: true });
   const nav = { innerHTML: '' };
   const brand = createElementStub({ supportsAttributes: true });
-  const themeButton = createElementStub({ supportsEvents: true, supportsAttributes: true });
-  const themeIcon = createElementStub();
+  const themeToggleContainer = createElementStub({ supportsEvents: true, supportsAttributes: true });
+  const themeToggleControl = createElementStub({ supportsEvents: true, supportsAttributes: true });
+  const themeToggleIcon = createElementStub();
+  themeToggleContainer.querySelector = function (selector) {
+    if (selector === '[data-mpr-theme-toggle="control"]') {
+      return themeToggleControl;
+    }
+    if (selector === '[data-mpr-theme-toggle="icon"]') {
+      return themeToggleIcon;
+    }
+    return null;
+  };
   const settingsButton = createElementStub({ supportsEvents: true });
   const signInButton = createElementStub({ supportsEvents: true });
   const profileContainer = createElementStub();
@@ -205,8 +218,7 @@ function createHostHarness() {
     ['header.mpr-header', root],
     ['[data-mpr-header="nav"]', nav],
     ['[data-mpr-header="brand"]', brand],
-    ['[data-mpr-header="theme-toggle"]', themeButton],
-    ['[data-mpr-header="theme-icon"]', themeIcon],
+    ['[data-mpr-header="theme-toggle"]', themeToggleContainer],
     ['[data-mpr-header="settings-button"]', settingsButton],
     ['[data-mpr-header="sign-in-button"]', signInButton],
     ['[data-mpr-header="profile"]', profileContainer],
@@ -224,8 +236,8 @@ function createHostHarness() {
     root: root,
     nav: nav,
     brand: brand,
-    themeButton: themeButton,
-    themeIcon: themeIcon,
+    themeToggleControl: themeToggleControl,
+    themeToggleIcon: themeToggleIcon,
     settingsButton: settingsButton,
     signInButton: signInButton,
     profileContainer: profileContainer,
@@ -293,15 +305,15 @@ test('theme toggle updates the icon when the mode changes', () => {
   const controller = library.renderSiteHeader(harness.host, {});
 
   assert.equal(
-    harness.themeIcon.textContent,
+    harness.themeToggleIcon.textContent,
     '🌙',
     'expected initial icon to represent the dark mode',
   );
 
-  harness.themeButton.click();
+  harness.themeToggleControl.click();
 
   assert.equal(
-    harness.themeIcon.textContent,
+    harness.themeToggleIcon.textContent,
     '☀️',
     'expected icon to switch to the light mode glyph after toggle',
   );

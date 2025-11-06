@@ -70,6 +70,7 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 - **Footer** — sticky footer with prefix dropdown menu, privacy link, and theme toggle.
 - **Auth Header (experimental)** — helper that orchestrates Google Identity Services login flows for standalone front-ends.
 - **Legacy footer bundle** — see [`footer.js`](footer.js) if you need dropdown/theme toggle support absent from the current bundle.
+- **Theme Toggle** — reusable switch/button UI for cycling the global theme manager via `MPRUI.renderThemeToggle()` or the Alpine-friendly `MPRUI.mprThemeToggle()` factory.
 
 ## Demo
 

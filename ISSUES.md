@@ -39,7 +39,7 @@ Hardcode const GOOGLE_FALLBACK_CLIENT_ID =
 
 - [x] [MU-205] Relocate the MarkoPolo Research Lab site catalog into the packaged footer so the demo stays logic-free. — Exposed `getFooterSiteCatalog()` from `mpr-ui.js`, removed the duplicate site list from the demo (both Alpine and imperative examples now read from the helper), documented the API, and added regression coverage on branch `improvement/MU-205-footer-catalog` (tests: `node --test`, blocked locally by snap confinement).
 - [x] [MU-206] Bundle the shared CSS with the mpr-ui package instead of hosting styles inside the demo. — Promoted the inline demo stylesheet into `mpr-ui.css`, updated the demo to load it from the CDN, documented the new asset in README, and extended regression tests to assert sticky layout rules now live in the packaged CSS (tests: `node --test`).
-- [ ] [MU-207] Ship the toggle switch UI and behavior as part of the mpr-ui library. — Extract the toggle markup/state into a shared Alpine factory exported by `mpr-ui.js`, have header/footer consume it, and leave the demo with zero bespoke toggle code.
+- [x] [MU-207] Ship the toggle switch UI and behavior as part of the mpr-ui library. — Added the shared `renderThemeToggle`/`mprThemeToggle` helpers, refactored the header/footer to consume the shared component, removed bespoke demo toggle logic, and landed regression tests covering the new API (tests: `node --test`).
 - [ ] [MU-208] Move the Google Sign-In button into the header component and feed it the site ID on init. — Extend the header API to accept a `siteId`, initialize the GIS button internally (reusing the fallback ID when needed), and strip GIS logic from the demo bootstrap.
 
 

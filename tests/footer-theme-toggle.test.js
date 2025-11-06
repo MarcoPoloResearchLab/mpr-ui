@@ -164,10 +164,13 @@ function createFooterHostHarness() {
   const toggleButtonElement = createElementStub({ supportsEvents: true, supportsAttributes: true });
   const privacyLinkElement = createElementStub({ supportsAttributes: true });
   const themeToggleWrapper = createElementStub({ supportsAttributes: true });
-  const themeToggleInput = createElementStub({ supportsEvents: true, supportsAttributes: true });
+  const themeToggleControl = createElementStub({ supportsEvents: true, supportsAttributes: true });
   themeToggleWrapper.querySelector = function (selector) {
-    if (selector === '[data-mpr-footer="theme-toggle-input"]') {
-      return themeToggleInput;
+    if (selector === '[data-mpr-theme-toggle="control"]') {
+      return themeToggleControl;
+    }
+    if (selector === '[data-mpr-theme-toggle="icon"]') {
+      return null;
     }
     return null;
   };
@@ -189,7 +192,6 @@ function createFooterHostHarness() {
   selectors.set('[data-mpr-footer="toggle-button"]', toggleButtonElement);
   selectors.set('[data-mpr-footer="privacy-link"]', privacyLinkElement);
   selectors.set('[data-mpr-footer="theme-toggle"]', themeToggleWrapper);
-  selectors.set('[data-mpr-footer="theme-toggle-input"]', themeToggleInput);
   selectors.set('footer[role="contentinfo"]', footerElement);
 
   const host = createElementStub({ supportsEvents: true, supportsAttributes: true });
@@ -213,7 +215,7 @@ function createFooterHostHarness() {
   return {
     host,
     elements: {
-      themeToggleInput,
+      themeToggleControl,
     },
   };
 }
@@ -255,7 +257,7 @@ test('footer theme toggle switches the global theme mode to light', () => {
     'expected theme manager initial mode to be dark',
   );
 
-  elements.themeToggleInput.trigger('click');
+  elements.themeToggleControl.trigger('click');
 
   assert.equal(
     library.getThemeMode(),

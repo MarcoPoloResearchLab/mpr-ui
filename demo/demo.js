@@ -77,42 +77,6 @@ const sessionProfile = {
 };
 
 const THEME_MODE_CLASSES = ["theme-light", "theme-dark"];
-const THEME_MODE_ICONS = {
-  light: "☀️",
-  dark: "🌙",
-};
-
-/**
- * Ensures the header theme toggle exposes a dedicated icon element and updates its symbol.
- * @param {string} mode
- */
-const updateThemeToggleIcon = (mode) => {
-  const themeButton = headerHost.querySelector(
-    '[data-mpr-header="theme-toggle"]',
-  );
-  if (!themeButton) {
-    return;
-  }
-  let iconElement = themeButton.querySelector(
-    '[data-mpr-header="theme-icon"]',
-  );
-  if (!iconElement) {
-    const firstChild = themeButton.firstChild;
-    if (firstChild && firstChild.nodeType === 3) {
-      themeButton.removeChild(firstChild);
-    }
-    iconElement = document.createElement("span");
-    iconElement.setAttribute("data-mpr-header", "theme-icon");
-    iconElement.setAttribute("aria-hidden", "true");
-    if (themeButton.firstChild) {
-      themeButton.insertBefore(iconElement, themeButton.firstChild);
-    } else {
-      themeButton.append(iconElement);
-    }
-  }
-  const symbol = THEME_MODE_ICONS[mode] || THEME_MODE_ICONS.dark;
-  iconElement.textContent = symbol;
-};
 
 /**
  * Syncs the document body class list with the active theme mode.
@@ -128,7 +92,6 @@ const syncBodyThemeClass = (mode) => {
   const nextMode = mode === "dark" ? "dark" : "light";
   demoBody.classList.add(`theme-${nextMode}`);
   demoBody.dataset.demoThemeMode = nextMode;
-  updateThemeToggleIcon(nextMode);
 };
 
 if (demoBody && !demoBody.dataset.demoPalette) {
