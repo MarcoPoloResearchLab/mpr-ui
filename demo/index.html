@@ -302,22 +302,16 @@ const controller = MPRUI.createAuthHeader(host, {
 
         <div
           id="alpine-footer"
-          x-data="mprFooter({
-            prefixText: 'Built by',
-            toggleLabel: 'MPRLab Sites',
-            links: [
-              { label: 'Marco Polo Research Lab', url: 'https://mprlab.com' },
-              { label: 'Gravity Notes', url: 'https://gravity.mprlab.com' },
-              { label: 'LoopAware', url: 'https://loopaware.mprlab.com' },
-              { label: 'Allergy Wheel', url: 'https://allergy.mprlab.com' },
-              { label: 'Social Threader', url: 'https://threader.mprlab.com' },
-              { label: 'RSVP', url: 'https://rsvp.mprlab.com' },
-              { label: 'Countdown Calendar', url: 'https://countdown.mprlab.com' },
-              { label: 'LLM Crossword', url: 'https://llm-crossword.mprlab.com' },
-              { label: 'Prompt Bubbles', url: 'https://prompts.mprlab.com' },
-              { label: 'Wallpapers', url: 'https://wallpapers.mprlab.com' }
-            ]
-          })"
+          x-data="(() => {
+            const fetchCatalog = window.MPRUI && typeof window.MPRUI.getFooterSiteCatalog === 'function'
+              ? window.MPRUI.getFooterSiteCatalog
+              : () => [];
+            return mprFooter({
+              prefixText: 'Built by',
+              toggleLabel: 'MPRLab Sites',
+              links: fetchCatalog()
+            });
+          })()"
           x-init="init()"
         ></div>
 

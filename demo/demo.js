@@ -368,22 +368,14 @@ if (!footerHost || !rotateFooterButton) {
   throw new Error("demo: expected imperative footer host and button");
 }
 
-const mprLabSites = Object.freeze([
-  Object.freeze({ label: "Marco Polo Research Lab", url: "https://mprlab.com" }),
-  Object.freeze({ label: "Gravity Notes", url: "https://gravity.mprlab.com" }),
-  Object.freeze({ label: "LoopAware", url: "https://loopaware.mprlab.com" }),
-  Object.freeze({ label: "Allergy Wheel", url: "https://allergy.mprlab.com" }),
-  Object.freeze({ label: "Social Threader", url: "https://threader.mprlab.com" }),
-  Object.freeze({ label: "RSVP", url: "https://rsvp.mprlab.com" }),
-  Object.freeze({ label: "Countdown Calendar", url: "https://countdown.mprlab.com" }),
-  Object.freeze({ label: "LLM Crossword", url: "https://llm-crossword.mprlab.com" }),
-  Object.freeze({ label: "Prompt Bubbles", url: "https://prompts.mprlab.com" }),
-  Object.freeze({ label: "Wallpapers", url: "https://wallpapers.mprlab.com" }),
-]);
+const packagedFooterCatalog =
+  window.MPRUI && typeof window.MPRUI.getFooterSiteCatalog === "function"
+    ? window.MPRUI.getFooterSiteCatalog()
+    : [];
 
 const footerLinks = [
-  mprLabSites,
-  mprLabSites.slice().reverse(),
+  packagedFooterCatalog,
+  packagedFooterCatalog.slice().reverse(),
 ];
 
 let footerIndex = 0;

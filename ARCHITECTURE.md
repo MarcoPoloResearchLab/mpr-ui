@@ -31,6 +31,7 @@ When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 | `MPRUI.renderFooter(host, options)`     | Renders the marketing footer into a DOM node and returns `{ update, destroy }`.                       |
 | `MPRUI.mprFooter(options)`              | Framework-friendly facade; `init` wires `renderFooter`, `update` proxies, `destroy` unmounts.         |
 | `MPRUI.configureTheme(config)`          | Merges global theme configuration (attribute, targets, modes) and reapplies the current mode.         |
+| `MPRUI.getFooterSiteCatalog()`          | Returns a cloned array of packaged Marco Polo Research Lab links for the footer dropdown.             |
 | `MPRUI.setThemeMode(value)`             | Sets the active theme mode and dispatches `mpr-ui:theme-change`.                                      |
 | `MPRUI.getThemeMode()`                  | Returns the active theme mode string.                                                                |
 | `MPRUI.onThemeChange(listener)`         | Subscribes to theme updates; returns an unsubscribe function.                                        |

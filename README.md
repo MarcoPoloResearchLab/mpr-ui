@@ -103,6 +103,8 @@ Every API and integration detail is catalogued in [`ARCHITECTURE.md`](ARCHITECTU
 
 Use that reference when you need to fine-tune copy, extend authentication flows, or decide between the current and legacy footer implementations.
 
+- Reuse the packaged Marco Polo Research Lab network list with `MPRUI.getFooterSiteCatalog()` when you need to reorder or subset the defaults without duplicating data inside your app.
+
 ## Contributing
 
 - Open issues or PRs to propose new components.

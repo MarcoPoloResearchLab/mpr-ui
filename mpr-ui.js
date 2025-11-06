@@ -1860,6 +1860,15 @@
     Object.freeze({ label: "Wallpapers", url: "https://wallpapers.mprlab.com" }),
   ]);
 
+  function getFooterSiteCatalog() {
+    return FOOTER_LINK_CATALOG.map(function cloneCatalogEntry(entry) {
+      return {
+        label: entry.label,
+        url: entry.url,
+      };
+    });
+  }
+
   var FOOTER_DEFAULTS = Object.freeze({
     elementId: "",
     baseClass: "mpr-footer",
@@ -2543,6 +2552,7 @@
   namespace.mprFooter = mprFooter;
   namespace.renderSiteHeader = renderSiteHeader;
   namespace.mprSiteHeader = mprSiteHeader;
+  namespace.getFooterSiteCatalog = getFooterSiteCatalog;
   namespace.configureTheme = function configureTheme(config) {
     return themeManager.configure(config || {});
   };
