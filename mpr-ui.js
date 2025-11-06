@@ -144,14 +144,14 @@
   var DEFAULT_THEME_TARGETS = Object.freeze(["document"]);
   var DEFAULT_THEME_MODES = Object.freeze([
     Object.freeze({
-      value: "light",
-      attributeValue: "light",
+      value: "dark",
+      attributeValue: "dark",
       classList: Object.freeze([]),
       dataset: Object.freeze({}),
     }),
     Object.freeze({
-      value: "dark",
-      attributeValue: "dark",
+      value: "light",
+      attributeValue: "light",
       classList: Object.freeze([]),
       dataset: Object.freeze({}),
     }),
@@ -477,6 +477,16 @@
       }
       var activeMode = currentConfig.modes[modeIndex];
       var targets = resolveThemeTargets(currentConfig.targets);
+      var documentElement =
+        global.document && global.document.documentElement
+          ? global.document.documentElement
+          : null;
+      if (documentElement && currentConfig.attribute) {
+        documentElement.setAttribute(
+          currentConfig.attribute,
+          activeMode.attributeValue,
+        );
+      }
       targets.forEach(function applyToElement(element) {
         if (currentConfig.attribute) {
           element.setAttribute(currentConfig.attribute, activeMode.attributeValue);

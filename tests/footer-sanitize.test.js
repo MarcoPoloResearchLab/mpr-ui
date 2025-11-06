@@ -29,6 +29,10 @@ function loadFooterHooks() {
   return sandbox.__TEST_HOOKS__;
 }
 
+function cloneIntoCurrentRealm(value) {
+  return JSON.parse(JSON.stringify(value));
+}
+
 test('privacy link rewrites disallowed protocols', () => {
   const hooks = loadFooterHooks();
   const config = hooks.normalizeFooterConfig({
@@ -117,8 +121,9 @@ test('default footer configuration exposes the full MPRLab catalog', () => {
     rel: 'noopener noreferrer',
     target: '_blank',
   }));
+  const normalizedLinks = cloneIntoCurrentRealm(config.links);
   assert.deepStrictEqual(
-    config.links,
+    normalizedLinks,
     expectedLinks,
     'Footer defaults should expose the entire Marco Polo Research Lab network',
   );
