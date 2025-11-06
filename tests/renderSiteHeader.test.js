@@ -174,6 +174,18 @@ function createHostHarness() {
     }
   };
 
+  let markup = '';
+  Object.defineProperty(host, 'innerHTML', {
+    configurable: true,
+    enumerable: true,
+    get: function () {
+      return markup;
+    },
+    set: function (value) {
+      markup = String(value);
+    },
+  });
+
   host.dispatchEvent = function (event) {
     const eventType = event && event.type ? String(event.type) : '';
     dispatchedEvents.push({ type: eventType, detail: event ? event.detail : undefined });
@@ -190,6 +202,7 @@ function createHostHarness() {
   };
 
   const root = createElementStub({ classList: true });
+  const inner = createElementStub({ classList: true });
   const nav = { innerHTML: '' };
   const brand = createElementStub({ supportsAttributes: true });
   const themeButton = createElementStub({ supportsEvents: true, supportsAttributes: true });
@@ -203,6 +216,7 @@ function createHostHarness() {
 
   const selectorMap = new Map([
     ['header.mpr-header', root],
+    ['.mpr-header__inner', inner],
     ['[data-mpr-header="nav"]', nav],
     ['[data-mpr-header="brand"]', brand],
     ['[data-mpr-header="theme-toggle"]', themeButton],
@@ -222,6 +236,7 @@ function createHostHarness() {
   return {
     host: host,
     root: root,
+    inner: inner,
     nav: nav,
     brand: brand,
     themeButton: themeButton,
@@ -233,6 +248,9 @@ function createHostHarness() {
     profileName: profileName,
     signOutButton: signOutButton,
     dispatchedEvents: dispatchedEvents,
+    getMarkup: function () {
+      return markup;
+    },
   };
 }
 
@@ -307,6 +325,42 @@ test('theme toggle updates the icon when the mode changes', () => {
   );
 
   controller.destroy();
+});
+
+test('sticky layout applies modifier classes', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, { layout: 'sticky' });
+
+  assert.strictEqual(
+    harness.root.classList.contains('mpr-header--layout-sticky'),
+    true,
+    'expected sticky layout to attach root modifier class',
+  );
+  assert.strictEqual(
+    harness.inner.classList.contains('mpr-header__inner--layout-sticky'),
+    true,
+    'expected sticky layout to attach inner modifier class',
+  );
+});
+
+test('default layout omits sticky modifiers', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {});
+
+  assert.strictEqual(
+    harness.root.classList.contains('mpr-header--layout-sticky'),
+    false,
+    'expected default layout to exclude sticky root modifier',
+  );
+  assert.strictEqual(
+    harness.inner.classList.contains('mpr-header__inner--layout-sticky'),
+    false,
+    'expected default layout to exclude sticky inner modifier',
+  );
 });
 
 test('enabling auth via update rebinds handlers', () => {

@@ -55,6 +55,11 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 - **Auth Header (experimental)** — helper that orchestrates Google Identity Services login flows for standalone front-ends.
 - **Legacy footer bundle** — see [`footer.js`](footer.js) if you need dropdown/theme toggle support absent from the current bundle.
 
+### Site Header Layout
+
+- Pass `layout: "sticky"` to `MPRUI.renderSiteHeader` or `mprSiteHeader` to pin the banner, stretch the background to the viewport width, and keep dark-mode tokens intact.
+- Spacing is controlled through CSS custom properties on `.mpr-header`: `--mpr-header-max-width`, `--mpr-header-padding-inline`, `--mpr-header-padding-block`, `--mpr-header-gap`, and `--mpr-header-actions-gap`. Override them on the host instead of re-authoring the stylesheet.
+
 ## Demo
 
 - Open `demo/index.html` in a browser to explore the authentication header mock and both footer helpers.
