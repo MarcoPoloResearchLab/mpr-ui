@@ -32,6 +32,9 @@ When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 | `MPRUI.mprFooter(options)`              | Framework-friendly facade; `init` wires `renderFooter`, `update` proxies, `destroy` unmounts.         |
 | `MPRUI.configureTheme(config)`          | Merges global theme configuration (attribute, targets, modes) and reapplies the current mode.         |
 | `MPRUI.setThemeMode(value)`             | Sets the active theme mode and dispatches `mpr-ui:theme-change`.                                      |
+| `MPRUI.configureThemePersistence(config)` | Enables/disables persistence by wiring a storage adapter (`localStorage`, custom getters/setters); restores saved mode immediately. |
+| `MPRUI.clearThemePersistence()`         | Clears the stored mode (when possible) and leaves persistence disabled until reconfigured.            |
+| `MPRUI.wasThemeRestoredFromPersistence()` | Returns `true` when the active mode originated from persisted storage in the current session.        |
 | `MPRUI.getThemeMode()`                  | Returns the active theme mode string.                                                                |
 | `MPRUI.onThemeChange(listener)`         | Subscribes to theme updates; returns an unsubscribe function.                                        |
 
@@ -108,6 +111,7 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 | `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive theme state.         |
 | `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Ordered list of theme modes (default light/dark).            |
 | `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
+| `themeToggle.persistence`  | `{enabled?, storageKey?, storage?, load?, save?, clear?}` | Optional persistence adapter used to restore and save the active mode. |
 | `signInLabel`              | `string`                               | Copy for the sign-in button (default "Sign in").                            |
 | `signOutLabel`             | `string`                               | Copy for the sign-out button (default "Sign out").                          |
 | `profileLabel`             | `string`                               | Text shown above the authenticated user name (default "Signed in as").      |
@@ -130,6 +134,7 @@ Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to
 - Modes accept `{ value, attributeValue?, classList?, dataset? }`; each dataset key becomes a `data-*` attribute on the targets and `classList` entries are added while old mode classes are removed.
 - Declarative configuration is supported via `data-theme-toggle` (JSON) and `data-theme-mode` attributes on header/footer hosts. Imperative options and dataset values are merged.
 - Consumers can observe theme changes with `MPRUI.onThemeChange(listener)` or by listening for the bubbling `mpr-ui:theme-change` event (detail `{ mode, source }`).
+- Persistence is opt-in via `MPRUI.configureThemePersistence({ enabled, storageKey, storage, load, save })` or by supplying a `themeToggle.persistence` block on header/footer options. When configured, the restored mode is reported by `MPRUI.wasThemeRestoredFromPersistence()`. Call `MPRUI.clearThemePersistence()` to drop the stored preference.
 
 ## Footer Renderer (Bundle)
 
@@ -166,6 +171,7 @@ Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to
 | `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive theme state.         |
 | `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Theme options toggled by the footer switch.             |
 | `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
+| `themeToggle.persistence`  | `{enabled?, storageKey?, storage?, load?, save?, clear?}` | Optional persistence adapter for saving/restoring the active mode. |
 
 Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the footer host element; values merge with programmatic options.
 

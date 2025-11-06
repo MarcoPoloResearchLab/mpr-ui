@@ -111,3 +111,94 @@ test('invalid mode after reconfigure notifies with current mode', () => {
     );
   });
 });
+
+test('theme persistence restores stored mode and saves updates', () => {
+  withFreshThemeManager(function runTest(namespace) {
+    const storage = {
+      value: 'light',
+      getItem(_key) {
+        return this.value;
+      },
+      setItem(_key, nextValue) {
+        this.value = nextValue;
+      },
+      removeItem() {
+        this.value = null;
+      },
+    };
+    const { events, unsubscribe } = captureThemeEvents(namespace);
+    const persistenceState = namespace.configureThemePersistence({
+      enabled: true,
+      storageKey: 'test-theme',
+      storage,
+    });
+    unsubscribe();
+
+    assert.deepStrictEqual(
+      persistenceState,
+      { enabled: true, key: 'test-theme' },
+      'configureThemePersistence should report the active state',
+    );
+    assert.strictEqual(
+      namespace.getThemeMode(),
+      'light',
+      'Expected persisted mode to restore after configuring persistence',
+    );
+    assert.strictEqual(
+      namespace.wasThemeRestoredFromPersistence(),
+      true,
+      'Expected persistence flag to note stored mode restoration',
+    );
+    assert.strictEqual(events.length, 1, 'Expected a single persistence notification');
+    assert.deepStrictEqual(
+      events[0],
+      { mode: 'light', source: 'persistence' },
+      'Expected persistence notification to report restored mode',
+    );
+
+    namespace.setThemeMode('dark');
+    assert.strictEqual(
+      storage.value,
+      'dark',
+      'Expected storage to update when theme mode changes',
+    );
+    namespace.clearThemePersistence();
+    assert.strictEqual(
+      namespace.wasThemeRestoredFromPersistence(),
+      false,
+      'Expected persistence flag to clear after disabling persistence',
+    );
+  });
+});
+
+test('theme persistence ignores invalid stored value', () => {
+  withFreshThemeManager(function runTest(namespace) {
+    const storage = {
+      getItem() {
+        return 'invalid-mode';
+      },
+      setItem() {},
+    };
+    namespace.configureTheme({
+      modes: [
+        { value: 'daylight', attributeValue: 'daylight' },
+        { value: 'midnight', attributeValue: 'midnight' },
+      ],
+    });
+    namespace.configureThemePersistence({
+      enabled: true,
+      storageKey: 'another-theme',
+      storage,
+    });
+    assert.strictEqual(
+      namespace.getThemeMode(),
+      'daylight',
+      'Expected mode to remain unchanged when stored value is invalid',
+    );
+    assert.strictEqual(
+      namespace.wasThemeRestoredFromPersistence(),
+      false,
+      'Expected persistence flag to remain false when stored value is invalid',
+    );
+  });
+});

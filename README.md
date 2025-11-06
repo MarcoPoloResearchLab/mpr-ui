@@ -75,9 +75,13 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 - Listen for global changes via `document.addEventListener("mpr-ui:theme-change", handler)` — the event detail contains `{ mode, source }`.
 - Shared CSS custom properties (prefix `--mpr-`) ship with the CDN bundle. Override them on `:root`, `body`, or a component host to recolor the header and footer without touching JavaScript.
 - Core tokens include `--mpr-color-surface-primary`, `--mpr-color-text-primary`, `--mpr-color-accent`, `--mpr-chip-bg`, and `--mpr-shadow-elevated`. The demo page showcases palette overrides you can copy into your app.
+- Header and footer `themeToggle` objects accept a `persistence` block (`{ enabled, storageKey, storage, load, save }`). When enabled, the current mode is restored from and written to the provided storage implementation (localStorage, sessionStorage, or custom adapters).
 - Programmatic helpers:
   - `MPRUI.configureTheme({ attribute, targets, modes })`
   - `MPRUI.setThemeMode("dark")`
+  - `MPRUI.configureThemePersistence({ enabled, storageKey, storage })`
+  - `MPRUI.clearThemePersistence()`
+  - `MPRUI.wasThemeRestoredFromPersistence()`
   - `MPRUI.getThemeMode()`
   - `MPRUI.onThemeChange(listener)` (returns an unsubscribe function)
 

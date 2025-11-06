@@ -263,3 +263,59 @@ test('footer theme toggle switches the global theme mode to light', () => {
     'expected theme mode to switch to light after toggling',
   );
 });
+
+test('footer theme toggle restores persisted mode and updates storage', () => {
+  resetEnvironment();
+  let persistedValue = 'light';
+  const storage = {
+    getItem(_key) {
+      return persistedValue;
+    },
+    setItem(_key, nextValue) {
+      persistedValue = nextValue;
+    },
+  };
+  const { host, elements } = createFooterHostHarness();
+  const library = loadLibrary();
+
+  library.renderFooter(host, {
+    themeToggle: {
+      enabled: true,
+      initialMode: 'dark',
+      persistence: {
+        enabled: true,
+        storageKey: 'footer-theme',
+        storage,
+      },
+    },
+  });
+
+  assert.equal(
+    library.getThemeMode(),
+    'light',
+    'expected persisted mode to override the initial mode',
+  );
+  assert.equal(
+    persistedValue,
+    'light',
+    'expected storage to keep the restored value after rendering',
+  );
+  assert.equal(
+    elements.themeToggleInput.checked,
+    false,
+    'expected toggle input to reflect the restored light mode',
+  );
+
+  elements.themeToggleInput.trigger('click');
+
+  assert.equal(
+    library.getThemeMode(),
+    'dark',
+    'expected theme mode to switch to dark after toggling',
+  );
+  assert.equal(
+    persistedValue,
+    'dark',
+    'expected storage to update after toggling the theme',
+  );
+});

@@ -156,6 +156,7 @@
       dataset: Object.freeze({}),
     }),
   ]);
+  var DEFAULT_THEME_STORAGE_KEY = "mpr-ui-theme";
 
   var THEME_STYLE_ID = "mpr-ui-theme-tokens";
   var THEME_STYLE_MARKUP =
@@ -234,6 +235,65 @@
       styleElement.appendChild(documentObject.createTextNode(THEME_STYLE_MARKUP));
     }
     documentObject.head.appendChild(styleElement);
+  }
+
+  function normalizeThemePersistence(rawPersistence) {
+    if (!rawPersistence) {
+      return {
+        enabled: false,
+        key: DEFAULT_THEME_STORAGE_KEY,
+        storage: null,
+        load: null,
+        save: null,
+        clear: null,
+      };
+    }
+    var source;
+    if (typeof rawPersistence === "boolean") {
+      source = { enabled: rawPersistence };
+    } else if (rawPersistence && typeof rawPersistence === "object") {
+      source = rawPersistence;
+    } else {
+      source = {};
+    }
+    var enabled = source.enabled === undefined ? true : Boolean(source.enabled);
+    var keyCandidate = null;
+    if (typeof source.key === "string" && source.key.trim()) {
+      keyCandidate = source.key.trim();
+    } else if (typeof source.storageKey === "string" && source.storageKey.trim()) {
+      keyCandidate = source.storageKey.trim();
+    } else if (typeof source.persistenceKey === "string" && source.persistenceKey.trim()) {
+      keyCandidate = source.persistenceKey.trim();
+    }
+    var storageCandidate = null;
+    if (
+      source.storage &&
+      typeof source.storage.getItem === "function" &&
+      typeof source.storage.setItem === "function"
+    ) {
+      storageCandidate = source.storage;
+    } else if (
+      typeof global.localStorage !== "undefined" &&
+      global.localStorage &&
+      typeof global.localStorage.getItem === "function" &&
+      typeof global.localStorage.setItem === "function"
+    ) {
+      storageCandidate = global.localStorage;
+    }
+    var loadFn = typeof source.load === "function" ? source.load : null;
+    var saveFn = typeof source.save === "function" ? source.save : null;
+    var clearFn = typeof source.clear === "function" ? source.clear : null;
+    if (!loadFn && !saveFn && !storageCandidate) {
+      enabled = false;
+    }
+    return {
+      enabled: enabled,
+      key: keyCandidate || DEFAULT_THEME_STORAGE_KEY,
+      storage: storageCandidate,
+      load: loadFn,
+      save: saveFn,
+      clear: clearFn,
+    };
   }
 
   function normalizeThemeTargets(targets) {
@@ -341,6 +401,7 @@
         attribute: DEFAULT_THEME_ATTRIBUTE,
         targets: DEFAULT_THEME_TARGETS.slice(),
         modes: DEFAULT_THEME_MODES,
+        persistence: null,
       },
       partialConfig || {},
     );
@@ -350,6 +411,7 @@
         : DEFAULT_THEME_ATTRIBUTE;
     config.targets = normalizeThemeTargets(config.targets);
     config.modes = normalizeThemeModes(config.modes);
+    config.persistence = normalizeThemePersistence(config.persistence);
     return config;
   }
 
@@ -435,6 +497,9 @@
     var allModeClasses = collectThemeClassNames(currentConfig.modes);
     var allDatasetKeys = collectThemeDatasetKeys(currentConfig.modes);
     var listeners = [];
+    var currentPersistence = normalizeThemePersistence(currentConfig.persistence);
+    currentConfig.persistence = currentPersistence;
+    var hasRestoredPersistedMode = false;
     var currentMode = currentConfig.modes[0].value;
     for (var preferredIndex = 0; preferredIndex < currentConfig.modes.length; preferredIndex += 1) {
       if (currentConfig.modes[preferredIndex].value === "dark") {
@@ -450,6 +515,120 @@
         }
       }
       return -1;
+    }
+
+    function readPersistedMode() {
+      if (!currentPersistence || !currentPersistence.enabled) {
+        return null;
+      }
+      var stored = null;
+      try {
+        if (currentPersistence.load) {
+          stored = currentPersistence.load();
+        } else if (
+          currentPersistence.storage &&
+          typeof currentPersistence.storage.getItem === "function"
+        ) {
+          stored = currentPersistence.storage.getItem(currentPersistence.key);
+        }
+      } catch (_error) {
+        stored = null;
+      }
+      if (stored === null || stored === undefined) {
+        return null;
+      }
+      var value = String(stored).trim();
+      return value ? value : null;
+    }
+
+    function writePersistedMode(modeValue) {
+      if (!currentPersistence || !currentPersistence.enabled) {
+        return;
+      }
+      var value = typeof modeValue === "string" ? modeValue.trim() : "";
+      if (!value) {
+        clearPersistedMode();
+        return;
+      }
+      try {
+        if (currentPersistence.save) {
+          currentPersistence.save(value);
+        } else if (
+          currentPersistence.storage &&
+          typeof currentPersistence.storage.setItem === "function"
+        ) {
+          currentPersistence.storage.setItem(currentPersistence.key, value);
+        }
+      } catch (_error) {}
+    }
+
+    function clearPersistedMode() {
+      if (!currentPersistence) {
+        hasRestoredPersistedMode = false;
+        return;
+      }
+      try {
+        if (currentPersistence.clear) {
+          currentPersistence.clear();
+        } else if (
+          currentPersistence.storage &&
+          typeof currentPersistence.storage.removeItem === "function"
+        ) {
+          currentPersistence.storage.removeItem(currentPersistence.key);
+        } else if (
+          currentPersistence.storage &&
+          typeof currentPersistence.storage.setItem === "function"
+        ) {
+          currentPersistence.storage.setItem(currentPersistence.key, "");
+        }
+      } catch (_error) {}
+      currentPersistence = normalizeThemePersistence({
+        enabled: false,
+        storageKey: currentPersistence.key,
+      });
+      currentConfig.persistence = currentPersistence;
+      hasRestoredPersistedMode = false;
+    }
+
+    function restoreModeFromPersistence() {
+      if (!currentPersistence || !currentPersistence.enabled) {
+        hasRestoredPersistedMode = false;
+        return null;
+      }
+      var storedMode = readPersistedMode();
+      if (!storedMode) {
+        hasRestoredPersistedMode = false;
+        return null;
+      }
+      if (getModeIndex(storedMode) === -1) {
+        hasRestoredPersistedMode = false;
+        return null;
+      }
+      hasRestoredPersistedMode = true;
+      return storedMode;
+    }
+
+    function configurePersistence(persistenceConfig) {
+      currentPersistence = normalizeThemePersistence(persistenceConfig);
+      currentConfig.persistence = currentPersistence;
+      var restoredMode = restoreModeFromPersistence();
+      if (restoredMode && restoredMode !== currentMode) {
+        currentMode = restoredMode;
+        applyMode(currentMode);
+        notifyListeners("persistence");
+      } else if (currentPersistence && currentPersistence.enabled) {
+        writePersistedMode(currentMode);
+      } else {
+        hasRestoredPersistedMode = false;
+      }
+      return {
+        enabled: currentPersistence.enabled,
+        key: currentPersistence.key,
+      };
+    }
+
+    function wasRestoredFromPersistence() {
+      return hasRestoredPersistedMode;
     }
 
     function applyMode(modeValue) {
@@ -504,7 +683,14 @@
       if (initialValue && getModeIndex(initialValue) !== -1) {
         currentMode = initialValue;
       }
+      var restoredMode = restoreModeFromPersistence();
+      if (restoredMode && restoredMode !== currentMode) {
+        currentMode = restoredMode;
+      }
       applyMode(currentMode);
+      if (currentPersistence && currentPersistence.enabled) {
+        writePersistedMode(currentMode);
+      }
     }
 
     function configure(partialConfig) {
@@ -527,12 +713,23 @@
       if (Object.prototype.hasOwnProperty.call(partialConfig, "modes")) {
         currentConfig.modes = normalized.modes;
       }
+      if (Object.prototype.hasOwnProperty.call(partialConfig, "persistence")) {
+        currentPersistence = normalizeThemePersistence(partialConfig.persistence);
+        currentConfig.persistence = currentPersistence;
+      }
       allModeClasses = collectThemeClassNames(currentConfig.modes);
       allDatasetKeys = collectThemeDatasetKeys(currentConfig.modes);
+      var restoredMode = restoreModeFromPersistence();
+      if (restoredMode && restoredMode !== currentMode) {
+        currentMode = restoredMode;
+      }
       if (getModeIndex(currentMode) === -1) {
         currentMode = currentConfig.modes[0].value;
       }
       applyMode(currentMode);
+      if (currentPersistence && currentPersistence.enabled) {
+        writePersistedMode(currentMode);
+      }
       return {
         attribute: currentConfig.attribute,
         targets: currentConfig.targets.slice(),
@@ -559,6 +756,7 @@
       }
       currentMode = resolvedMode;
       applyMode(currentMode);
+      writePersistedMode(currentMode);
       notifyListeners(source);
       return currentMode;
     }
@@ -589,6 +787,9 @@
       setMode: setMode,
       getMode: getMode,
       on: on,
+      configurePersistence: configurePersistence,
+      clearPersistence: clearPersistedMode,
+      wasRestoredFromPersistence: wasRestoredFromPersistence,
     };
   })();
 
@@ -617,6 +818,7 @@
     ) {
       initialMode = baseline.initialMode.trim();
     }
+    var persistence = normalizeThemePersistence(baseline.persistence);
     return {
       enabled: enabled,
       ariaLabel: ariaLabel,
@@ -624,6 +826,7 @@
       targets: targets,
       modes: modes,
       initialMode: initialMode,
+      persistence: persistence,
       raw: baseline,
     };
   }
@@ -1076,6 +1279,10 @@
     themeToggle: Object.freeze({
       enabled: true,
       ariaLabel: "Toggle theme",
+      persistence: Object.freeze({
+        enabled: false,
+        storageKey: DEFAULT_THEME_STORAGE_KEY,
+      }),
     }),
     signInLabel: "Sign in",
     signOutLabel: "Sign out",
@@ -1195,6 +1402,7 @@
         targets: themeNormalized.targets,
         modes: themeNormalized.modes,
         initialMode: themeNormalized.initialMode,
+        persistence: themeNormalized.persistence,
       },
       signInLabel:
         typeof options.signInLabel === "string" && options.signInLabel.trim()
@@ -1457,6 +1665,7 @@
       attribute: headerThemeConfig.attribute,
       targets: headerThemeConfig.targets,
       modes: headerThemeConfig.modes,
+      persistence: headerThemeConfig.persistence,
     });
 
     function updateThemeUi(modeValue) {
@@ -1486,7 +1695,8 @@
 
     if (
       headerThemeConfig.initialMode &&
-      headerThemeConfig.initialMode !== themeManager.getMode()
+      headerThemeConfig.initialMode !== themeManager.getMode() &&
+      !themeManager.wasRestoredFromPersistence()
     ) {
       themeManager.setMode(headerThemeConfig.initialMode, "header:init");
     }
@@ -1654,10 +1864,12 @@
           attribute: headerThemeConfig.attribute,
           targets: headerThemeConfig.targets,
           modes: headerThemeConfig.modes,
+          persistence: headerThemeConfig.persistence,
         });
         if (
           headerThemeConfig.initialMode &&
-          headerThemeConfig.initialMode !== themeManager.getMode()
+          headerThemeConfig.initialMode !== themeManager.getMode() &&
+          !themeManager.wasRestoredFromPersistence()
         ) {
           themeManager.setMode(headerThemeConfig.initialMode, "header:update");
         }
@@ -1845,6 +2057,10 @@
       dataTheme: "light",
       inputId: "mpr-footer-theme-toggle",
       ariaLabel: "Toggle theme",
+      persistence: Object.freeze({
+        enabled: false,
+        storageKey: DEFAULT_THEME_STORAGE_KEY,
+      }),
     }),
     links: Object.freeze([]),
   });
@@ -1955,6 +2171,7 @@
       targets: core.targets,
       modes: core.modes,
       initialMode: core.initialMode,
+      persistence: core.persistence,
     };
   }
 
@@ -2391,10 +2608,12 @@
           attribute: footerTheme.attribute,
           targets: footerTheme.targets,
           modes: footerTheme.modes,
+          persistence: footerTheme.persistence,
         });
         if (
           footerTheme.initialMode &&
-          footerTheme.initialMode !== themeManager.getMode()
+          footerTheme.initialMode !== themeManager.getMode() &&
+          !themeManager.wasRestoredFromPersistence()
         ) {
           themeManager.setMode(footerTheme.initialMode, "footer:init");
         }
@@ -2508,6 +2727,15 @@
   };
   namespace.setThemeMode = function setThemeMode(mode) {
     return themeManager.setMode(mode, "external");
+  };
+  namespace.configureThemePersistence = function configureThemePersistence(config) {
+    return themeManager.configurePersistence(config || {});
+  };
+  namespace.clearThemePersistence = function clearThemePersistence() {
+    themeManager.clearPersistence();
+  };
+  namespace.wasThemeRestoredFromPersistence = function wasThemeRestoredFromPersistence() {
+    return themeManager.wasRestoredFromPersistence();
   };
   namespace.getThemeMode = themeManager.getMode;
   namespace.onThemeChange = themeManager.on;
