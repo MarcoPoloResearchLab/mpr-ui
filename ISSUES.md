@@ -40,7 +40,8 @@ Hardcode const GOOGLE_FALLBACK_CLIENT_ID =
 
 ## BugFixes (300–399)
 
-- [ ] [MU-300] Swicth to shared theme doesnt work reliably, e.g. switching from the default theme to dark mode doesnt do anything. Switching to forest palette from the light mode doesnt switch the textual elements, etc. Fixc the theme switching and document its usage.
+- [x] [MU-300] Swicth to shared theme doesnt work reliably, e.g. switching from the default theme to dark mode doesnt do anything. Switching to forest palette from the light mode doesnt switch the textual elements, etc. Fixc the theme switching and document its usage.
+— Hardened the theme manager’s configuration flow, refreshed the demo styling to rely on shared tokens, documented usage, and added regression coverage on branch `bugfix/MU-300-theme-switch` (tests: `node --test tests`, blocked locally by snap confinement).
 
 ## Maintenance (400–499)
 

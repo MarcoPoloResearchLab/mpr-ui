@@ -4,6 +4,59 @@ const path = require('path');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
+function createClassList() {
+  const values = new Set();
+  return {
+    add() {
+      for (let index = 0; index < arguments.length; index += 1) {
+        const entry = arguments[index];
+        if (entry) values.add(String(entry));
+      }
+    },
+    remove() {
+      for (let index = 0; index < arguments.length; index += 1) {
+        const entry = arguments[index];
+        values.delete(String(entry));
+      }
+    },
+    contains(entry) {
+      return values.has(String(entry));
+    },
+  };
+}
+
+function createThemeElement() {
+  const attributes = {};
+  return {
+    classList: createClassList(),
+    dataset: {},
+    setAttribute(name, value) {
+      attributes[name] = String(value);
+    },
+    getAttribute(name) {
+      return Object.prototype.hasOwnProperty.call(attributes, name)
+        ? attributes[name]
+        : null;
+    },
+    removeAttribute(name) {
+      delete attributes[name];
+    },
+  };
+}
+
+function createThemeDocument() {
+  const documentElement = createThemeElement();
+  const body = createThemeElement();
+  return {
+    documentElement,
+    body,
+    head: { appendChild() {} },
+    querySelectorAll() {
+      return [];
+    },
+  };
+}
+
 function withFreshThemeManager(run) {
   const previousDocument = global.document;
   delete global.document;
@@ -57,6 +110,70 @@ test('normalizes invalid mode to fallback', () => {
       events[0],
       { mode: 'dusk', source: 'external' },
       'Listeners should receive the normalized mode in the event detail',
+    );
+  });
+});
+
+test('configureTheme applies classes and dataset updates across targets', () => {
+  withFreshThemeManager(function runTest(namespace) {
+    global.document = createThemeDocument();
+    namespace.configureTheme({
+      attribute: 'data-demo-theme',
+      targets: ['body'],
+      modes: [
+        {
+          value: 'light',
+          attributeValue: 'light',
+          classList: ['theme-light'],
+          dataset: { 'demo-theme': 'light' },
+        },
+        {
+          value: 'dark',
+          attributeValue: 'dark',
+          classList: ['theme-dark'],
+          dataset: { 'demo-theme': 'dark' },
+        },
+      ],
+      initialMode: 'light',
+    });
+
+    assert.strictEqual(
+      namespace.getThemeMode(),
+      'light',
+      'configureTheme should honour the provided initial mode',
+    );
+    assert.strictEqual(
+      global.document.body.getAttribute('data-demo-theme'),
+      'light',
+      'Body should receive the dataset attribute for the initial mode',
+    );
+    assert.strictEqual(
+      global.document.body.classList.contains('theme-light'),
+      true,
+      'Body should include the class representing the initial mode',
+    );
+
+    namespace.setThemeMode('dark');
+
+    assert.strictEqual(
+      global.document.body.getAttribute('data-demo-theme'),
+      'dark',
+      'Body dataset attribute should update after switching modes',
+    );
+    assert.strictEqual(
+      global.document.body.classList.contains('theme-light'),
+      false,
+      'Body should remove the previous mode class',
+    );
+    assert.strictEqual(
+      global.document.body.classList.contains('theme-dark'),
+      true,
+      'Body should include the new mode class after toggling',
+    );
+    assert.strictEqual(
+      global.document.documentElement.getAttribute('data-demo-theme'),
+      'dark',
+      'Document element should receive the configured attribute value',
     );
   });
 });

@@ -341,6 +341,7 @@
         attribute: DEFAULT_THEME_ATTRIBUTE,
         targets: DEFAULT_THEME_TARGETS.slice(),
         modes: DEFAULT_THEME_MODES,
+        initialMode: null,
       },
       partialConfig || {},
     );
@@ -350,6 +351,21 @@
         : DEFAULT_THEME_ATTRIBUTE;
     config.targets = normalizeThemeTargets(config.targets);
     config.modes = normalizeThemeModes(config.modes);
+    var normalizedInitial = null;
+    if (
+      partialConfig &&
+      typeof partialConfig.mode === "string" &&
+      partialConfig.mode.trim()
+    ) {
+      normalizedInitial = partialConfig.mode.trim();
+    } else if (
+      partialConfig &&
+      typeof partialConfig.initialMode === "string" &&
+      partialConfig.initialMode.trim()
+    ) {
+      normalizedInitial = partialConfig.initialMode.trim();
+    }
+    config.initialMode = normalizedInitial;
     return config;
   }
 
@@ -436,12 +452,6 @@
     var allDatasetKeys = collectThemeDatasetKeys(currentConfig.modes);
     var listeners = [];
     var currentMode = currentConfig.modes[0].value;
-    for (var preferredIndex = 0; preferredIndex < currentConfig.modes.length; preferredIndex += 1) {
-      if (currentConfig.modes[preferredIndex].value === "dark") {
-        currentMode = currentConfig.modes[preferredIndex].value;
-        break;
-      }
-    }
 
     function getModeIndex(modeValue) {
       for (var index = 0; index < currentConfig.modes.length; index += 1) {
@@ -450,6 +460,13 @@
         }
       }
       return -1;
+    }
+
+    if (
+      currentConfig.initialMode &&
+      getModeIndex(currentConfig.initialMode) !== -1
+    ) {
+      currentMode = currentConfig.initialMode;
     }
 
     function applyMode(modeValue) {
@@ -520,12 +537,22 @@
         currentConfig.attribute = normalized.attribute;
       }
       if (Object.prototype.hasOwnProperty.call(partialConfig, "targets")) {
-        currentConfig.targets = dedupeTargets(
-          currentConfig.targets.concat(normalized.targets),
-        );
+        currentConfig.targets = dedupeTargets(normalized.targets);
       }
       if (Object.prototype.hasOwnProperty.call(partialConfig, "modes")) {
         currentConfig.modes = normalized.modes;
+      }
+      if (
+        Object.prototype.hasOwnProperty.call(partialConfig, "mode") ||
+        Object.prototype.hasOwnProperty.call(partialConfig, "initialMode")
+      ) {
+        currentConfig.initialMode = normalized.initialMode;
+        if (
+          normalized.initialMode &&
+          getModeIndex(normalized.initialMode) !== -1
+        ) {
+          currentMode = normalized.initialMode;
+        }
       }
       allModeClasses = collectThemeClassNames(currentConfig.modes);
       allDatasetKeys = collectThemeDatasetKeys(currentConfig.modes);
