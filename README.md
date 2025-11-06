@@ -11,19 +11,25 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 
 ## Quick Start
 
-1. **Load the library** — add Alpine (optional) plus the `mpr-ui` bundle.
+1. **Load the library** — add the packaged stylesheet, Alpine (optional), plus the `mpr-ui` bundle.
 
    ```html
+   <link
+     rel="stylesheet"
+     href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.5/mpr-ui.css"
+   />
    <script type="module">
      import Alpine from "https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js";
      window.Alpine = Alpine;
      Alpine.start();
    </script>
-    <script
+   <script
      defer
      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.5/mpr-ui.js"
    ></script>
    ```
+
+   The stylesheet (`mpr-ui.css`) hosts the shared layout and demo theming helpers used across the header/footer examples, so consumers can reproduce the sticky scaffolding without copying inline styles.
 
 2. **Render the header & footer** — use the Alpine factories or the global helpers.
 
