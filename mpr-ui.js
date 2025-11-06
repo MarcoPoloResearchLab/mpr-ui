@@ -537,7 +537,8 @@
         currentConfig.attribute = normalized.attribute;
       }
       if (Object.prototype.hasOwnProperty.call(partialConfig, "targets")) {
-        currentConfig.targets = dedupeTargets(normalized.targets);
+        var mergedTargets = DEFAULT_THEME_TARGETS.concat(normalized.targets);
+        currentConfig.targets = dedupeTargets(mergedTargets);
       }
       if (Object.prototype.hasOwnProperty.call(partialConfig, "modes")) {
         currentConfig.modes = normalized.modes;

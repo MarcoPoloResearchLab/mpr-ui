@@ -44,14 +44,18 @@ function createThemeElement() {
   };
 }
 
-function createThemeDocument() {
+function createThemeDocument(selectorMap) {
   const documentElement = createThemeElement();
   const body = createThemeElement();
+  const selectors = selectorMap || {};
   return {
     documentElement,
     body,
     head: { appendChild() {} },
-    querySelectorAll() {
+    querySelectorAll(selector) {
+      if (Object.prototype.hasOwnProperty.call(selectors, selector)) {
+        return selectors[selector].slice();
+      }
       return [];
     },
   };
@@ -174,6 +178,35 @@ test('configureTheme applies classes and dataset updates across targets', () => 
       global.document.documentElement.getAttribute('data-demo-theme'),
       'dark',
       'Document element should receive the configured attribute value',
+    );
+  });
+});
+
+test('configureTheme preserves the document target when extending target list', () => {
+  withFreshThemeManager(function runTest(namespace) {
+    const panel = createThemeElement();
+    global.document = createThemeDocument({ '.panel': [panel] });
+
+    namespace.configureTheme({
+      targets: ['.panel'],
+      modes: [
+        { value: 'light', attributeValue: 'light' },
+        { value: 'dark', attributeValue: 'dark' },
+      ],
+      initialMode: 'light',
+    });
+
+    namespace.setThemeMode('dark');
+
+    assert.strictEqual(
+      global.document.documentElement.getAttribute('data-mpr-theme'),
+      'dark',
+      'Document element should continue receiving updates after extending targets',
+    );
+    assert.strictEqual(
+      panel.getAttribute('data-mpr-theme'),
+      'dark',
+      'Custom target elements should receive updates alongside the document element',
     );
   });
 });
