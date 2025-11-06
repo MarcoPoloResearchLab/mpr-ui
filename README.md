@@ -39,9 +39,19 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 
    <footer x-data="mprFooter({ prefixText: 'Built by', links: footerLinks })" x-init="init()"></footer>
    <script>
+    // mpr-ui ships with the full Marco Polo Research Lab catalog by default.
+    // Override the list when you need a custom ordering or subset.
     const footerLinks = [
-      { label: "Marco Polo Research Lab", href: "https://mprlab.com" },
-      { label: "LoopAware", href: "https://loopaware.mprlab.com" },
+      { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
+      { label: "Gravity Notes", url: "https://gravity.mprlab.com" },
+      { label: "LoopAware", url: "https://loopaware.mprlab.com" },
+      { label: "Allergy Wheel", url: "https://allergy.mprlab.com" },
+      { label: "Social Threader", url: "https://threader.mprlab.com" },
+      { label: "RSVP", url: "https://rsvp.mprlab.com" },
+      { label: "Countdown Calendar", url: "https://countdown.mprlab.com" },
+      { label: "LLM Crossword", url: "https://llm-crossword.mprlab.com" },
+      { label: "Prompt Bubbles", url: "https://prompts.mprlab.com" },
+      { label: "Wallpapers", url: "https://wallpapers.mprlab.com" },
     ];
   </script>
   ```

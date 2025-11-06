@@ -15,7 +15,7 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 - [x] [MU-200] Update the demo file to have a sticky header and footer. Use the library loaded from the CDN. The current release version is v0.0.2 — Demo now references the v0.0.2 CDN bundle, pins the header/imperative footer hosts with sticky styling, and ships regression coverage on branch `improvement/MU-200-demo-sticky`.
 - [x] [MU-201] Package reusable theming for header/footer components. Ship shared CSS tokens (or optional Tailwind layer) from the CDN bundle so consuming apps can align branding by toggling predefined themes or overriding documented variables. Update the demo to showcase the palette switching and reference integration steps. — Delivered bundled CSS variable tokens, refactored header/footer styling to consume them, added demo palette toggles, and documented the customization flow.
 
-- [ ] [MU-203] Include all MPRLab sites in the footer:
+- [x] [MU-203] Include all MPRLab sites in the footer:
 ```js
 const sites = Object.freeze([
     { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
@@ -30,6 +30,7 @@ const sites = Object.freeze([
     { label: "Wallpapers", url: "https://wallpapers.mprlab.com" },
   ]);
 ```
+— Bundled the catalog into `mpr-ui.js` defaults, refreshed demo/docs, and added regression coverage on branch `improvement/MU-203-footer-sites` (tests: `node --test tests`, blocked locally by snap confinement).
 
 - [ ] [MU-204] Add google Sign in to @demo/demo.js/index.html instead of sign in button. Have a google sign in button there.
 Hardcode const GOOGLE_FALLBACK_CLIENT_ID =

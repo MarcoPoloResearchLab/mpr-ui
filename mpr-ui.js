@@ -1820,6 +1820,19 @@
     '.mpr-footer__theme-checkbox:focus-visible{outline:2px solid var(--mpr-color-accent,#38bdf8);outline-offset:3px}' +
     '@media (max-width:768px){.mpr-footer__layout{flex-direction:column;align-items:flex-start}.mpr-footer__inner{gap:1.75rem}}';
 
+  var FOOTER_LINK_CATALOG = Object.freeze([
+    Object.freeze({ label: "Marco Polo Research Lab", url: "https://mprlab.com" }),
+    Object.freeze({ label: "Gravity Notes", url: "https://gravity.mprlab.com" }),
+    Object.freeze({ label: "LoopAware", url: "https://loopaware.mprlab.com" }),
+    Object.freeze({ label: "Allergy Wheel", url: "https://allergy.mprlab.com" }),
+    Object.freeze({ label: "Social Threader", url: "https://threader.mprlab.com" }),
+    Object.freeze({ label: "RSVP", url: "https://rsvp.mprlab.com" }),
+    Object.freeze({ label: "Countdown Calendar", url: "https://countdown.mprlab.com" }),
+    Object.freeze({ label: "LLM Crossword", url: "https://llm-crossword.mprlab.com" }),
+    Object.freeze({ label: "Prompt Bubbles", url: "https://prompts.mprlab.com" }),
+    Object.freeze({ label: "Wallpapers", url: "https://wallpapers.mprlab.com" }),
+  ]);
+
   var FOOTER_DEFAULTS = Object.freeze({
     elementId: "",
     baseClass: "mpr-footer",
@@ -1832,7 +1845,7 @@
     prefixText: "Built by",
     toggleButtonId: "",
     toggleButtonClass: "mpr-footer__menu-button",
-    toggleLabel: "Marco Polo Research Lab",
+    toggleLabel: "MPRLab Sites",
     menuClass: "mpr-footer__menu",
     menuItemClass: "mpr-footer__menu-item",
     privacyLinkClass: "mpr-footer__privacy",
@@ -1846,7 +1859,7 @@
       inputId: "mpr-footer-theme-toggle",
       ariaLabel: "Toggle theme",
     }),
-    links: Object.freeze([]),
+    links: FOOTER_LINK_CATALOG,
   });
 
   function ensureFooterStyles(documentObject) {

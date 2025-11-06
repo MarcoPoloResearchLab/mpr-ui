@@ -95,3 +95,31 @@ test('menu links keep allowed protocols', () => {
     'Menu links should keep allowed protocols untouched',
   );
 });
+
+test('default footer configuration exposes the full MPRLab catalog', () => {
+  const hooks = loadFooterHooks();
+  const config = hooks.normalizeFooterConfig();
+  const defaultEntries = [
+    ['Marco Polo Research Lab', 'https://mprlab.com'],
+    ['Gravity Notes', 'https://gravity.mprlab.com'],
+    ['LoopAware', 'https://loopaware.mprlab.com'],
+    ['Allergy Wheel', 'https://allergy.mprlab.com'],
+    ['Social Threader', 'https://threader.mprlab.com'],
+    ['RSVP', 'https://rsvp.mprlab.com'],
+    ['Countdown Calendar', 'https://countdown.mprlab.com'],
+    ['LLM Crossword', 'https://llm-crossword.mprlab.com'],
+    ['Prompt Bubbles', 'https://prompts.mprlab.com'],
+    ['Wallpapers', 'https://wallpapers.mprlab.com'],
+  ];
+  const expectedLinks = defaultEntries.map(([label, url]) => ({
+    label,
+    url,
+    rel: 'noopener noreferrer',
+    target: '_blank',
+  }));
+  assert.deepStrictEqual(
+    config.links,
+    expectedLinks,
+    'Footer defaults should expose the entire Marco Polo Research Lab network',
+  );
+});

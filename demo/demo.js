@@ -331,22 +331,29 @@ if (!footerHost || !rotateFooterButton) {
   throw new Error("demo: expected imperative footer host and button");
 }
 
+const mprLabSites = Object.freeze([
+  Object.freeze({ label: "Marco Polo Research Lab", url: "https://mprlab.com" }),
+  Object.freeze({ label: "Gravity Notes", url: "https://gravity.mprlab.com" }),
+  Object.freeze({ label: "LoopAware", url: "https://loopaware.mprlab.com" }),
+  Object.freeze({ label: "Allergy Wheel", url: "https://allergy.mprlab.com" }),
+  Object.freeze({ label: "Social Threader", url: "https://threader.mprlab.com" }),
+  Object.freeze({ label: "RSVP", url: "https://rsvp.mprlab.com" }),
+  Object.freeze({ label: "Countdown Calendar", url: "https://countdown.mprlab.com" }),
+  Object.freeze({ label: "LLM Crossword", url: "https://llm-crossword.mprlab.com" }),
+  Object.freeze({ label: "Prompt Bubbles", url: "https://prompts.mprlab.com" }),
+  Object.freeze({ label: "Wallpapers", url: "https://wallpapers.mprlab.com" }),
+]);
+
 const footerLinks = [
-  [
-    { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
-    { label: "Gravity Notes", url: "https://gravity.mprlab.com" },
-  ],
-  [
-    { label: "LoopAware", url: "https://loopaware.mprlab.com" },
-    { label: "GitHub", url: "https://github.com/MarcoPoloResearchLab" },
-  ],
+  mprLabSites,
+  mprLabSites.slice().reverse(),
 ];
 
 let footerIndex = 0;
 
 const footerController = window.MPRUI.renderFooter(footerHost, {
   prefixText: "Built by",
-  toggleLabel: "Marco Polo Research Lab",
+  toggleLabel: "MPRLab Sites",
   privacyLinkHref: "#privacy",
   privacyLinkLabel: "Privacy • Terms",
   links: footerLinks[footerIndex],
@@ -357,7 +364,7 @@ rotateFooterButton.addEventListener("click", () => {
   footerController.update({
     prefixText: `Links set #${footerIndex + 1}`,
     links: footerLinks[footerIndex],
-    toggleLabel: footerIndex === 0 ? "Marco Polo Research Lab" : "Marco Polo Research Lab (alt)",
+    toggleLabel: footerIndex === 0 ? "MPRLab Sites" : "MPRLab Sites (reverse order)",
   });
 });
 
