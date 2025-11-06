@@ -32,9 +32,10 @@ const sites = Object.freeze([
 ```
 — Bundled the catalog into `mpr-ui.js` defaults, refreshed demo/docs, and added regression coverage on branch `improvement/MU-203-footer-sites` (tests: `node --test tests`, blocked locally by snap confinement).
 
-- [ ] [MU-204] Add google Sign in to @demo/demo.js/index.html instead of sign in button. Have a google sign in button there.
+- [x] [MU-204] Add google Sign in to @demo/demo.js/index.html instead of sign in button. Have a google sign in button there.
 Hardcode const GOOGLE_FALLBACK_CLIENT_ID =
   "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"; for the purpose of the demo page
+— Replaced the manual sign-in control with a rendered Google Identity button, introduced the fallback client ID, and extended the stubbed GIS flow on branch `improvement/MU-204-google-sign-in` (tests: `node --test tests`, blocked locally by snap confinement).
 
 
 ## BugFixes (300–399)

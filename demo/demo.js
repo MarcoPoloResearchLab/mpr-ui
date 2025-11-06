@@ -25,6 +25,9 @@ const profileAvatar = /** @type {HTMLElement | null} */ (
 
 const demoBody = /** @type {HTMLBodyElement | null} */ (document.body);
 
+const GOOGLE_FALLBACK_CLIENT_ID =
+  "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com";
+
 if (!headerHost || !eventLog || !profileId || !profileEmail || !profileDisplay) {
   throw new Error("demo: expected header host and dataset placeholders");
 }
@@ -188,10 +191,38 @@ window.google = {
         googleCallback = config && typeof config.callback === "function"
           ? config.callback
           : null;
-        appendLogEntry("google.accounts.id.initialize called");
+        const clientIdDescription =
+          config && typeof config.client_id === "string" && config.client_id
+            ? ` with client ${config.client_id}`
+            : "";
+        appendLogEntry(`google.accounts.id.initialize called${clientIdDescription}`);
       },
       prompt() {
         appendLogEntry("google.accounts.id.prompt invoked");
+      },
+      renderButton(targetElement, renderOptions) {
+        appendLogEntry("google.accounts.id.renderButton invoked");
+        if (!targetElement) {
+          appendLogEntry("renderButton invoked without a target element");
+          return;
+        }
+        const container = /** @type {HTMLElement} */ (targetElement);
+        container.innerHTML = "";
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "google-button";
+        button.id = "demo-google-signin-button";
+        button.setAttribute("aria-label", "Sign in with Google");
+        const buttonText =
+          renderOptions && typeof renderOptions.text === "string"
+            ? renderOptions.text
+            : "Sign in with Google";
+        button.textContent = buttonText;
+        button.addEventListener("click", () => {
+          appendLogEntry("Demo Google Sign-In button clicked");
+          deliverDemoCredential();
+        });
+        container.appendChild(button);
       },
     },
   },
@@ -226,6 +257,7 @@ const headerController = window.MPRUI.renderSiteHeader(headerHost, {
     loginPath: "/auth/google",
     logoutPath: "/auth/logout",
     noncePath: "/auth/nonce",
+    googleClientId: GOOGLE_FALLBACK_CLIENT_ID,
   },
 });
 
@@ -278,20 +310,7 @@ headerHost.addEventListener("mpr-ui:header:settings-click", () => {
 
 syncProfileDataset(headerHost);
 
-const promptButton = document.getElementById("trigger-prompt");
-const completeButton = document.getElementById("complete-sign-in");
-const signOutButton = document.getElementById("sign-out");
-const restartButton = document.getElementById("restart-session");
-
-if (!promptButton || !completeButton || !signOutButton || !restartButton) {
-  throw new Error("demo: expected auth action buttons to exist");
-}
-
-promptButton.addEventListener("click", () => {
-  window.google.accounts.id.prompt();
-});
-
-completeButton.addEventListener("click", () => {
+const deliverDemoCredential = () => {
   if (googleCallback) {
     appendLogEntry("Delivering credential via google callback");
     googleCallback({ credential: "demo-id-token" });
@@ -304,8 +323,26 @@ completeButton.addEventListener("click", () => {
   }
   appendLogEntry("Auth controller unavailable; emitting fallback event");
   headerHost.dispatchEvent(
-    new CustomEvent("mpr-ui:header:signin-click", { detail: {} })
+    new CustomEvent("mpr-ui:header:signin-click", { detail: {} }),
   );
+};
+
+const promptButton = document.getElementById("trigger-prompt");
+const googleButtonHost = document.getElementById("google-signin-container");
+const signOutButton = document.getElementById("sign-out");
+const restartButton = document.getElementById("restart-session");
+
+if (!promptButton || !googleButtonHost || !signOutButton || !restartButton) {
+  throw new Error("demo: expected auth action buttons to exist");
+}
+
+promptButton.addEventListener("click", () => {
+  window.google.accounts.id.prompt();
+});
+
+window.google.accounts.id.renderButton(googleButtonHost, {
+  theme: "outline",
+  size: "large",
 });
 
 signOutButton.addEventListener("click", () => {
