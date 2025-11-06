@@ -2,6 +2,8 @@
 
 Entries record newly discovered requests or changes, with their outcomes. No instructive content lives here. Read @NOTES.md for the process to follow when fixing issues.
 
+Read AGENTS.md , ARCHITECTURE.md , POLICY.md , NOTES.md ,  README.md and ISSUES.md . Start working on open issues. Work autonomously and stack up PRs
+
 ## Features (100–199)
 
 - [x] [MU-100] Build a sticky site header component providing auth controls, settings entry, and theme toggle. It must expose Alpine and imperative APIs and render DOM on drop-in. — Implemented sticky header in `mpr-ui.js`, documented usage, and showcased it in the demo on branch `feature/MU-100-sticky-header`.
@@ -12,35 +14,6 @@ Entries record newly discovered requests or changes, with their outcomes. No ins
 
 - [x] [MU-200] Update the demo file to have a sticky header and footer. Use the library loaded from the CDN. The current release version is v0.0.2 — Demo now references the v0.0.2 CDN bundle, pins the header/imperative footer hosts with sticky styling, and ships regression coverage on branch `improvement/MU-200-demo-sticky`.
 - [x] [MU-201] Package reusable theming for header/footer components. Ship shared CSS tokens (or optional Tailwind layer) from the CDN bundle so consuming apps can align branding by toggling predefined themes or overriding documented variables. Update the demo to showcase the palette switching and reference integration steps. — Delivered bundled CSS variable tokens, refactored header/footer styling to consume them, added demo palette toggles, and documented the customization flow.
-- [ ] [MU-202] Prepare a docker-compose example of using Google Authentication and TAuth backend to login and keep a user logged in. Use a docker image of TAuth provided by ghcr. The source code of TAuth is available under @tools/TAuth for documentation and reference. The integration examples are there and the tools/TAuth/README.md will explain the usage. Have an new index.html, based on existing @demo/demo.html, being served using ghttp web server for the front end and tauth for the backend. An example of a docker-compose for inspiration:
-```yaml
-services:
-  frontend:
-    image: ghcr.io/temirov/ghttp:latest
-    depends_on:
-      - backend
-    working_dir: /srv/gravity/frontend
-    command: ["--directory", "/srv/gravity/frontend", "8000"]
-    volumes:
-      - .:/srv/gravity:ro
-    ports:
-      - "8000:8000"
-    restart: unless-stopped
-
-  backend:
-    image: ghcr.io/marcopoloresearchlab/gravity-backend:latest
-    pull_policy: always
-    env_file:
-      - backend/.env
-    ports:
-      - "8080:8080"
-    volumes:
-      - gravity_data:/data
-    restart: unless-stopped
-
-volumes:
-  gravity_data:
-```
 
 - [ ] [MU-203] Include all MPRLab sites in the footer:
 ```js
@@ -75,3 +48,34 @@ Hardcode const GOOGLE_FALLBACK_CLIENT_ID =
 - [x] [MU-403] Prepare a demo page that demonstrates the usage of the footer and header. Delivered `demo/index.html` + `demo/demo.js` with offline GIS stub and footer examples on branch `maintenace/MU-403-demo-page`.
 
 ## Planning
+Do not work on these, not ready
+
+- [ ] Prepare a docker-compose example of using Google Authentication and TAuth backend to login and keep a user logged in. Use a docker image of TAuth provided by ghcr. The source code of TAuth is available under @tools/TAuth for documentation and reference. The integration examples are there and the tools/TAuth/README.md will explain the usage. Have an new index.html, based on existing @demo/demo.html, being served using ghttp web server for the front end and tauth for the backend. An example of a docker-compose for inspiration:
+```yaml
+services:
+  frontend:
+    image: ghcr.io/temirov/ghttp:latest
+    depends_on:
+      - backend
+    working_dir: /srv/gravity/frontend
+    command: ["--directory", "/srv/gravity/frontend", "8000"]
+    volumes:
+      - .:/srv/gravity:ro
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+
+  backend:
+    image: ghcr.io/marcopoloresearchlab/gravity-backend:latest
+    pull_policy: always
+    env_file:
+      - backend/.env
+    ports:
+      - "8080:8080"
+    volumes:
+      - gravity_data:/data
+    restart: unless-stopped
+
+volumes:
+  gravity_data:
+```
