@@ -65,6 +65,8 @@ Hardcode const GOOGLE_FALLBACK_CLIENT_ID =
 
 ## BugFixes (300–399)
 
+- [ ] [MU-300] Swicth to shared theme doesnt work reliably, e.g. switching from the default theme to dark mode doesnt do anything. Switching to forest palette from the light mode doesnt switch the textual elements, etc. Fixc the theme switching and document its usage.
+
 ## Maintenance (400–499)
 
 - [x] [MU-400] Update the documentation @README.md and focus on the usefullness to the user. Move the technical details to ARCHITECTURE.md. — Delivered user-centric README and migrated deep technical content into the new ARCHITECTURE.md reference. Resolved on branch `maintenace/MU-400-user-focused-readme` with README rewrite and new ARCHITECTURE.md reference.
