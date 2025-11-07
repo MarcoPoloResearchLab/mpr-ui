@@ -9,3 +9,4 @@
 - MU-204: Replaced the manual demo sign-in control with a Google Identity button, wired a fallback client ID, and extended the offline GIS stub to render and deliver credentials.
 - MU-205: Exposed `getFooterSiteCatalog()` so consumers can reuse the packaged footer links, updated the demo to source the catalog from the library, and added regression coverage to guard the helper.
 - MU-300: Corrected shared theme switching by honouring initial modes, reapplying tokens across targets, and updating the demo palette styling to rely on the shared CSS variables.
+- MU-301: Updated the demo palettes to scope their overrides per theme mode, bumped CDN references to v0.0.6, and added regression tests to ensure palette buttons no longer suppress global theme switches.

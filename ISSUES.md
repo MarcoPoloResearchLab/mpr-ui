@@ -129,7 +129,7 @@ Hardcode const GOOGLE_FALLBACK_CLIENT_ID =
 
 - [x] [MU-300] Swicth to shared theme doesnt work reliably, e.g. switching from the default theme to dark mode doesnt do anything. Switching to forest palette from the light mode doesnt switch the textual elements, etc. Fixc the theme switching and document its usage.
 — Hardened the theme manager’s configuration flow, refreshed the demo styling to rely on shared tokens, documented usage, and added regression coverage on branch `bugfix/MU-300-theme-switch` (tests: `node --test tests`, blocked locally by snap confinement).
-- [ ] [MU-301] Switching between themes doesnt work. Tests to reproduce: load the demo. click Sunrise Palette. click Switch to Light mode. Observe the palette staying the same.
+- [x] [MU-301] Switching between themes doesnt work. Tests to reproduce: load the demo. click Sunrise Palette. click Switch to Light mode. Observe the palette staying the same. — Scoped the palette overrides to `.theme-light`/`.theme-dark`, bumped the CDN references to v0.0.6, added regression coverage in `tests/demo-page.test.js`, and verified the fix on branch `bugfix/MU-301-theme-switch` (`node --test tests/*.test.js`).
 - [ ] [MU-302] The button signin_with is always white and god knows what is it doing on the screen. The only sign in button must be google sign in, and no other sign ins are supported. There is no Google sign in button in the header. Fix it by removing existing sign in buttons (there are two now) and adding one Google Sign in.
 
 ## Maintenance (400–499)

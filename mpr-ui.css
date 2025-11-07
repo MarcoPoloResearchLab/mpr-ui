@@ -132,7 +132,7 @@ body[data-demo-palette='forest'] {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
-body[data-demo-palette='sunrise'] {
+body[data-demo-palette='sunrise'].theme-light {
   --mpr-color-surface-primary: rgba(252, 232, 222, 0.92);
   --mpr-color-surface-elevated: rgba(255, 247, 237, 0.98);
   --mpr-color-text-primary: #7c2d12;
@@ -152,7 +152,47 @@ body[data-demo-palette='sunrise'] {
   color: var(--mpr-color-text-primary, #7c2d12);
 }
 
-body[data-demo-palette='forest'] {
+body[data-demo-palette='sunrise'].theme-dark {
+  --mpr-color-surface-primary: rgba(76, 20, 12, 0.92);
+  --mpr-color-surface-elevated: rgba(111, 38, 22, 0.96);
+  --mpr-color-text-primary: #ffedd5;
+  --mpr-color-text-muted: #fed7aa;
+  --mpr-color-border: rgba(251, 191, 36, 0.45);
+  --mpr-color-divider: rgba(249, 115, 22, 0.4);
+  --mpr-chip-bg: rgba(251, 146, 60, 0.24);
+  --mpr-chip-hover-bg: rgba(251, 146, 60, 0.35);
+  --mpr-menu-hover-bg: rgba(182, 73, 38, 0.35);
+  --mpr-color-accent: #fb923c;
+  --mpr-color-accent-alt: #f97316;
+  --mpr-color-accent-contrast: #431407;
+  --mpr-theme-toggle-bg: rgba(251, 146, 60, 0.25);
+  --mpr-shadow-elevated: 0 10px 24px rgba(67, 20, 7, 0.45);
+  --mpr-shadow-flyout: 0 18px 36px rgba(67, 20, 7, 0.55);
+  background-image: linear-gradient(135deg, #7c2d12 0%, #431407 100%);
+  color: var(--mpr-color-text-primary, #ffedd5);
+}
+
+body[data-demo-palette='forest'].theme-light {
+  --mpr-color-surface-primary: rgba(220, 252, 231, 0.92);
+  --mpr-color-surface-elevated: rgba(240, 253, 244, 0.98);
+  --mpr-color-text-primary: #064e3b;
+  --mpr-color-text-muted: #047857;
+  --mpr-color-border: rgba(16, 185, 129, 0.35);
+  --mpr-color-divider: rgba(74, 222, 128, 0.35);
+  --mpr-chip-bg: rgba(52, 211, 153, 0.2);
+  --mpr-chip-hover-bg: rgba(52, 211, 153, 0.32);
+  --mpr-menu-hover-bg: rgba(187, 247, 208, 0.35);
+  --mpr-color-accent: #10b981;
+  --mpr-color-accent-alt: #059669;
+  --mpr-color-accent-contrast: #ecfdf5;
+  --mpr-theme-toggle-bg: rgba(52, 211, 153, 0.18);
+  --mpr-shadow-elevated: 0 10px 24px rgba(15, 118, 110, 0.35);
+  --mpr-shadow-flyout: 0 18px 36px rgba(15, 118, 110, 0.45);
+  background-image: linear-gradient(135deg, #d1fae5 0%, #86efac 100%);
+  color: var(--mpr-color-text-primary, #064e3b);
+}
+
+body[data-demo-palette='forest'].theme-dark {
   --mpr-color-surface-primary: rgba(17, 42, 36, 0.94);
   --mpr-color-surface-elevated: rgba(13, 35, 30, 0.98);
   --mpr-color-text-primary: #dcfce7;
