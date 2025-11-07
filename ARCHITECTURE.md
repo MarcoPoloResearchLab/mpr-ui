@@ -28,15 +28,38 @@ When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 | `MPRUI.mprHeader(options)`              | Legacy factory that only wires the auth controller without rendering UI (kept for compatibility).    |
 | `MPRUI.renderSiteHeader(host, options)` | Renders the sticky site header, wiring auth, settings, and theme controls; returns `{ update, destroy }`. |
 | `MPRUI.mprSiteHeader(options)`          | Alpine/framework factory for the site header; `init` renders, `update` proxies, `destroy` unmounts.  |
-| `MPRUI.renderFooter(host, options)`     | Renders the marketing footer into a DOM node and returns `{ update, destroy }`.                       |
-| `MPRUI.mprFooter(options)`              | Framework-friendly facade; `init` wires `renderFooter`, `update` proxies, `destroy` unmounts.         |
-| `MPRUI.configureTheme(config)`          | Merges global theme configuration (attribute, targets, modes) and reapplies the current mode.         |
-| `MPRUI.getFooterSiteCatalog()`          | Returns a cloned array of packaged Marco Polo Research Lab links for the footer dropdown.             |
-| `MPRUI.setThemeMode(value)`             | Sets the active theme mode and dispatches `mpr-ui:theme-change`.                                      |
+| `MPRUI.renderFooter(host, options)`     | Renders the marketing footer into a DOM node and returns `{ update, destroy }`.                      |
+| `MPRUI.mprFooter(options)`              | Framework-friendly facade; `init` wires `renderFooter`, `update` proxies, `destroy` unmounts.        |
+| `MPRUI.renderThemeToggle(host, options)`| Mounts the shared theme toggle component onto a DOM node.                                            |
+| `MPRUI.mprThemeToggle(options)`         | Alpine-friendly wrapper for the shared theme toggle.                                                 |
+| `MPRUI.configureTheme(config)`          | Merges global theme configuration (attribute, targets, modes) and reapplies the current mode.        |
+| `MPRUI.setThemeMode(value)`             | Sets the active theme mode and dispatches `mpr-ui:theme-change`.                                     |
 | `MPRUI.getThemeMode()`                  | Returns the active theme mode string.                                                                |
 | `MPRUI.onThemeChange(listener)`         | Subscribes to theme updates; returns an unsubscribe function.                                        |
+| `MPRUI.getFooterSiteCatalog()`          | Returns a cloned array of packaged Marco Polo Research Lab links for the footer dropdown.            |
+| `MPRUI.createCustomElementRegistry()`   | Factory that guards `customElements.define` calls so the bundle can register once per page.          |
+| `MPRUI.MprElement`                      | Base class used by every custom element (handles `connectedCallback`, `attributeChangedCallback`, etc.). |
 
 All helpers are side-effect free apart from DOM writes and `fetch` requests.
+
+### Custom Elements
+
+The bundle auto-registers modern HTML custom elements when `window.customElements` is available. Each element extends `MprElement`, so `connectedCallback` triggers `render()`, attribute changes invoke `update()`, and `disconnectedCallback` calls `destroy()` on the underlying controller.
+
+| Tag               | Backing Helper(s)                              | Key Attributes                                                                                                                        | Emitted Events                                            |
+| ----------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
+| `<mpr-header>`    | `renderSiteHeader`, `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `site-id`, `theme-config`, `auth-config`, `login-path`, `logout-path`, `nonce-path`, etc.   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
+| `<mpr-footer>`    | `renderFooter`                                 | `prefix-text`, `links`, `toggle-label`, `privacy-link-*`, `theme-config`, dataset-based class overrides                               | `mpr-footer:theme-change`                                 |
+| `<mpr-theme-toggle>` | `renderThemeToggle`, `configureTheme`       | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`, `theme-mode`          | `mpr-ui:theme-change` (via the shared theme manager)      |
+| `<mpr-login-button>` | `createAuthHeader`, shared GIS helper       | `site-id`, `login-path`, `logout-path`, `nonce-path`, `base-url`, `button-text`, `button-size`, `button-theme`, `button-shape`        | `mpr-ui:auth:*`, `mpr-login:error`                        |
+
+Slots:
+
+- `<mpr-header>`: `brand`, `nav-left`, `nav-right`, `aux`
+- `<mpr-footer>`: `menu-prefix`, `menu-links`, `legal`
+- `<mpr-theme-toggle>` / `<mpr-login-button>` render controlled content and do not expose slots.
+
+When `customElements.define` is unavailable the helpers fall back gracefully: the registry caches null definitions and no DOM is mutated until the host polyfills the API.
 
 ## Authentication Header Controller
 
@@ -200,6 +223,17 @@ This bundle is now redundant; `mpr-ui.js` includes equivalent behaviour. The sta
 - The auth header never stores credentials; it exchanges them immediately for server-side sessions.
 - `fetch` calls always include `credentials: "include"` to retain cookies.
 - Custom events bubble, enabling observers to react without accessing internals.
+
+### Google Identity Helper
+
+`ensureGoogleIdentityClient(document)` loads `https://accounts.google.com/gsi/client` exactly once, memoising the promise so concurrent callers share the same script tag. When a Google button is needed the bundle calls `renderGoogleButton(host, siteId, options, onError)`:
+
+1. Ensures the GIS client is initialised.
+2. Calls `google.accounts.id.renderButton` with the provided options (size, theme, text).
+3. Marks the host with `data-mpr-google-ready` for CSS hooks.
+4. Reports errors through a callback so callers can dispatch domain-specific events (`mpr-ui:header:error`, `mpr-login:error`).
+
+Both the header and `<mpr-login-button>` reuse this helper, so only one script is injected per page even when the declarative and imperative surfaces coexist.
 
 ## CDN and Versioning
 

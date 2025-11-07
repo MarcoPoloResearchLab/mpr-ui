@@ -129,7 +129,7 @@ Slots let you inject custom markup without leaving declarative mode:
 
 - Header slots: `brand`, `nav-left`, `nav-right`, `aux`
 - Footer slots: `menu-prefix`, `menu-links`, `legal`
-- Login button inherits the global `mpr-ui:auth:*` events dispatched by `createAuthHeader`, so you can listen for authentication without writing any JavaScript glue.
+- Login button inherits the global `mpr-ui:auth:*` events dispatched by `createAuthHeader` and emits `mpr-login:error` when GIS cannot load, so you can listen for authentication without writing any extra glue.
 
 Custom elements re-dispatch the same events as the imperative helpers (`mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change`, `mpr-ui:footer:update`), so you can mix declarative and programmatic integrations on the same page.
 
