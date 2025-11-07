@@ -11,25 +11,32 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 
 ## Quick Start
 
-1. **Load the library** — add Alpine (optional) plus the `mpr-ui` bundle.
+1. **Load the library** — add the packaged stylesheet, Alpine (optional), plus the `mpr-ui` bundle.
 
    ```html
+   <link
+     rel="stylesheet"
+     href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.5/mpr-ui.css"
+   />
    <script type="module">
      import Alpine from "https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js";
      window.Alpine = Alpine;
      Alpine.start();
    </script>
-    <script
+   <script
      defer
      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.5/mpr-ui.js"
    ></script>
    ```
+
+   The stylesheet (`mpr-ui.css`) hosts the shared layout and demo theming helpers used across the header/footer examples, so consumers can reproduce the sticky scaffolding without copying inline styles.
 
 2. **Render the header & footer** — use the Alpine factories or the global helpers.
 
    ```html
    <header x-data="mprSiteHeader({
      brand: { label: 'Marco Polo Research Lab', href: '/' },
+     siteId: '991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com',
      navLinks: [
        { label: 'Docs', href: '#docs' },
        { label: 'Support', href: '#support' }
@@ -41,7 +48,7 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    <script>
     // mpr-ui ships with the full Marco Polo Research Lab catalog by default.
     // Override the list when you need a custom ordering or subset.
-    const footerLinks = [
+   const footerLinks = [
       { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
       { label: "Gravity Notes", url: "https://gravity.mprlab.com" },
       { label: "LoopAware", url: "https://loopaware.mprlab.com" },
@@ -52,9 +59,11 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
       { label: "LLM Crossword", url: "https://llm-crossword.mprlab.com" },
       { label: "Prompt Bubbles", url: "https://prompts.mprlab.com" },
       { label: "Wallpapers", url: "https://wallpapers.mprlab.com" },
-    ];
+   ];
   </script>
   ```
+
+   Provide your Google Identity Services client ID via `siteId`; the header auto-initializes the GIS button and falls back to our demo ID when the value is omitted.
 
    Prefer an imperative call? Mount the same components with `MPRUI.renderSiteHeader(hostElement, options)` and `MPRUI.renderFooter(hostElement, options)`.
 
@@ -64,6 +73,7 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 - **Footer** — sticky footer with prefix dropdown menu, privacy link, and theme toggle.
 - **Auth Header (experimental)** — helper that orchestrates Google Identity Services login flows for standalone front-ends.
 - **Legacy footer bundle** — see [`footer.js`](footer.js) if you need dropdown/theme toggle support absent from the current bundle.
+- **Theme Toggle** — reusable switch/button UI for cycling the global theme manager via `MPRUI.renderThemeToggle()` or the Alpine-friendly `MPRUI.mprThemeToggle()` factory.
 
 ## Demo
 
@@ -102,6 +112,8 @@ Every API and integration detail is catalogued in [`ARCHITECTURE.md`](ARCHITECTU
 - Google Identity Services handshake sequence for the auth header helper.
 
 Use that reference when you need to fine-tune copy, extend authentication flows, or decide between the current and legacy footer implementations.
+
+- Reuse the packaged Marco Polo Research Lab network list with `MPRUI.getFooterSiteCatalog()` when you need to reorder or subset the defaults without duplicating data inside your app.
 
 ## Contributing
 

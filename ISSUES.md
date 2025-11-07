@@ -9,6 +9,88 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 - [x] [MU-100] Build a sticky site header component providing auth controls, settings entry, and theme toggle. It must expose Alpine and imperative APIs and render DOM on drop-in. — Implemented sticky header in `mpr-ui.js`, documented usage, and showcased it in the demo on branch `feature/MU-100-sticky-header`.
 - [x] [MU-101] Replace the legacy footer implementation by bundling a sticky site footer with menu, privacy link, and theme toggle directly in mpr-ui.js. — Integrated the rich footer into `mpr-ui.js`, added sticky styling, documented the API, and showcased it in the demo on branch `feature/MU-101-unified-footer`.
 - [x] [MU-102] Allow declarative theme customization and cross-component theme events. Provide configurable targets, modes, and global theme helpers so other Alpine components can stay in sync. — Added global theme manager, declarative dataset support, and demo updates on branch `feature/MU-102-theme-extensibility`.
+- [ ] [MU-103] I want to use web components and identify their taxonomy and structure. I expect something like
+<mpr-header>
+<mpr-footer>
+<mpr-theme-toggle>
+<mpr-login-button>
+<mpr-settings>
+<mpr-sites>
+etc
+An example JS to support such refactoring (but only an example to set us thinking in the right direction):
+```js
+const createElementFromHTML = (htmlString) => {
+  const templateElement = document.createElement("template");
+  templateElement.innerHTML = htmlString.trim();
+  return templateElement.content.firstElementChild;
+};
+
+class MprHeader extends HTMLElement {
+  static get observedAttributes() {
+    return ["title", "logo", "home-url", "sticky", "no-container"];
+  }
+
+  constructor() {
+    super();
+    this.internalRootElement = null;
+  }
+
+  connectedCallback() {
+    this.render();
+  }
+
+  attributeChangedCallback() {
+    if (this.isConnected) this.render();
+  }
+
+  render() {
+    if (this.internalRootElement) this.internalRootElement.remove();
+
+    const headerTitle = this.getAttribute("title") || "";
+    const headerLogo = this.getAttribute("logo") || "";
+    const headerHomeUrl = this.getAttribute("home-url") || "/";
+    const isSticky = (this.getAttribute("sticky") || "true") !== "false";
+    const useContainer = (this.getAttribute("no-container") || "false") !== "true";
+
+    const stickyClassName = isSticky ? "sticky-top" : "";
+    const containerClassName = useContainer ? "container" : "";
+
+    const logoMarkup = headerLogo
+      ? `<img src="${headerLogo}" alt="Logo" style="height:32px;width:auto" class="me-2 align-text-top">`
+      : "";
+
+    const navHTML = `
+      <nav class="navbar navbar-expand-lg bg-body-tertiary border-bottom ${stickyClassName}">
+        <div class="${containerClassName}">
+          <a class="navbar-brand d-flex align-items-center gap-2" href="${headerHomeUrl}">
+            ${logoMarkup}
+            <span class="fw-semibold">${headerTitle}</span>
+          </a>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mprNav" aria-controls="mprNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+          </button>
+          <div class="collapse navbar-collapse" id="mprNav">
+            <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+              <slot name="nav-left"></slot>
+            </ul>
+            <div class="d-flex align-items-center gap-2">
+              <slot name="nav-right"></slot>
+            </div>
+          </div>
+        </div>
+      </nav>
+    `;
+
+    this.internalRootElement = createElementFromHTML(navHTML);
+    this.appendChild(this.internalRootElement);
+  }
+}
+customElements.define("mpr-header", MprHeader);
+```
+
+Identify the plan of such refactoring. The deliverable is a detailed plan on how can we prepare such change.
+
+- [ ] [MU-104] Refactor the code based on the plan delivered in MU-103
 
 ## Improvements (200–299)
 
@@ -37,11 +119,17 @@ Hardcode const GOOGLE_FALLBACK_CLIENT_ID =
   "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"; for the purpose of the demo page
 — Replaced the manual sign-in control with a rendered Google Identity button, introduced the fallback client ID, and extended the stubbed GIS flow on branch `improvement/MU-204-google-sign-in` (tests: `node --test tests`, blocked locally by snap confinement).
 
+- [x] [MU-205] Relocate the MarkoPolo Research Lab site catalog into the packaged footer so the demo stays logic-free. — Exposed `getFooterSiteCatalog()` from `mpr-ui.js`, removed the duplicate site list from the demo (both Alpine and imperative examples now read from the helper), documented the API, and added regression coverage on branch `improvement/MU-205-footer-catalog` (tests: `node --test`, blocked locally by snap confinement).
+- [x] [MU-206] Bundle the shared CSS with the mpr-ui package instead of hosting styles inside the demo. — Promoted the inline demo stylesheet into `mpr-ui.css`, updated the demo to load it from the CDN, documented the new asset in README, and extended regression tests to assert sticky layout rules now live in the packaged CSS (tests: `node --test`).
+- [x] [MU-207] Ship the toggle switch UI and behavior as part of the mpr-ui library. — Added the shared `renderThemeToggle`/`mprThemeToggle` helpers, refactored the header/footer to consume the shared component, removed bespoke demo toggle logic, and landed regression tests covering the new API (tests: `node --test`).
+- [x] [MU-208] Move the Google Sign-In button into the header component and feed it the site ID on init. — Header now accepts `siteId`, renders the GIS button natively (with fallback client ID), wires the value into auth defaults, prunes the demo’s inline GIS button, and documents/tests the new API (tests: `node --test`).
+
 
 ## BugFixes (300–399)
 
 - [x] [MU-300] Swicth to shared theme doesnt work reliably, e.g. switching from the default theme to dark mode doesnt do anything. Switching to forest palette from the light mode doesnt switch the textual elements, etc. Fixc the theme switching and document its usage.
 — Hardened the theme manager’s configuration flow, refreshed the demo styling to rely on shared tokens, documented usage, and added regression coverage on branch `bugfix/MU-300-theme-switch` (tests: `node --test tests`, blocked locally by snap confinement).
+- [ ] [MU-301] The page lost its styling outside of the footer and the header ![alt text](image.png)
 
 ## Maintenance (400–499)
 
@@ -49,6 +137,54 @@ Hardcode const GOOGLE_FALLBACK_CLIENT_ID =
 - [x] [MU-401] Ensure architrecture matches the reality of the code. Update @ARCHITECTURE.md when needed. Review the code and prepare a comprehensive ARCHITECTURE.md file with the overview of the app architecture, sufficient for understanding of a mid to senior software engineer. — Expanded ARCHITECTURE.md with accurate flow descriptions, interfaces, dependency notes, and security guidance reflecting current code. Resolved on branch `maintenace/MU-401-architecture-audit` after auditing exports, documenting auth events, and clarifying legacy footer behaviour.
 - [x] [MU-402] Review @POLICY.md and verify what code areas need improvements and refactoring. Prepare a detailed plan of refactoring. Check for bugs, missing tests, poor coding practices, uplication and slop. Ensure strong encapsulation and following the principles og @AGENTS.md and policies of @POLICY.md — Authored `docs/refactor-plan.md` documenting policy gaps, remediation tasks, and prioritised roadmap. Resolved on branch `maintenace/MU-402-refactor-plan` with actionable workstreams and testing strategy.
 - [x] [MU-403] Prepare a demo page that demonstrates the usage of the footer and header. Delivered `demo/index.html` + `demo/demo.js` with offline GIS stub and footer examples on branch `maintenace/MU-403-demo-page`.
+- [ ] [MU-404] Prepare a Github actions workflow that runs tests on every PR open against master. Here is an example for inspiration
+```yaml
+name: Go CI
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - '**/*.go'
+  pull_request:
+    paths:
+      - '**/*.go'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          check-latest: true
+          cache: true
+
+      - name: Download dependencies
+        run: go mod download
+
+      - name: Install git-filter-repo
+        run: |
+          python3 -m pip install --user git-filter-repo
+          echo "$(python3 -m site --user-base)/bin" >> "$GITHUB_PATH"
+
+      - name: Verify formatting
+        run: make check-format
+
+      - name: Run linting
+        run: make lint
+
+      - name: Run unit tests
+        run: make test-unit
+
+      - name: Run integration tests
+        run: make test-integration
+```
 
 ## Planning
 Do not work on these, not ready
