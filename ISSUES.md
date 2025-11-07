@@ -101,7 +101,7 @@ Identify the plan of such refactoring. The deliverable is a detailed plan on how
   - Delivered the standalone elements (branch `feature/MU-106-theme-login-elements`), refactored the shared Google button helper, documented/demoed the declarative usage, and added regression tests covering attribute reflection, theme toggling, and GIS rendering.
 - [x] [MU-107] Deliver `<mpr-settings>` and `<mpr-sites>` auxiliary elements with catalog rendering, CTA events, and graceful fallbacks per `docs/web-components-plan.md#mu-107-—-mpr-settings--mpr-sites`. — Added the declarative settings launcher and sites catalog components (events: `mpr-settings:toggle`, `mpr-sites:link-click`), wired demo samples, and expanded `tests/custom-elements-header-footer.test.js` on branch `feature/MU-107-settings-sites` (`node --test tests/*.test.js`).
 - [ ] [MU-108] Refresh README, ARCHITECTURE.md, and add `docs/custom-elements.md` plus demo updates that document the new tags, following `docs/web-components-plan.md#mu-108-—-documentation--samples`.
-- [ ] [MU-109] Expand unit + Puppeteer tests, configure GitHub Actions, and prep release notes to close out the custom-element rollout per `docs/web-components-plan.md#mu-109-—-testing--release-readiness`.
+- [x] [MU-109] Expand unit + Puppeteer tests, configure GitHub Actions, and prep release notes to close out the custom-element rollout per `docs/web-components-plan.md#mu-109-—-testing--release-readiness`. — Added npm test scripts (unit + Puppeteer e2e covering `<mpr-settings>`/`<mpr-sites>`/theme toggle), created a CI workflow that runs on pushes/PRs to `master`, and documented the release-readiness work on branch `feature/MU-109-release-readiness` (`npm run test`).
 
 ## Improvements (200–299)
 

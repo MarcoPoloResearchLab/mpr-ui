@@ -1,0 +1,16 @@
+{
+  "name": "mpr-ui",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Reusable UI components for Marco Polo Research Lab projects, delivered as a single CDN-hosted script.",
+  "license": "MIT",
+  "scripts": {
+    "test": "npm run test:unit && npm run test:e2e",
+    "test:unit": "node --test tests/*.test.js",
+    "test:e2e": "node tests/e2e/custom-elements.e2e.js"
+  },
+  "devDependencies": {
+    "@sparticuz/chromium": "^141.0.0",
+    "puppeteer-core": "^21.7.0"
+  }
+}
