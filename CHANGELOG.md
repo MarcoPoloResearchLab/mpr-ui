@@ -17,3 +17,4 @@
 - MU-106: Added `<mpr-theme-toggle>` and `<mpr-login-button>` custom elements, shared Google button rendering, new documentation/demo samples, and regression tests covering declarative theme switching and GIS login wiring.
 - MU-107: Delivered `<mpr-settings>` and `<mpr-sites>` with dataset reflection, scoped styles, `mpr-settings:toggle`/`mpr-sites:link-click` events, refreshed demo coverage, and new regression tests to guard the auxiliary elements.
 - MU-303: `<mpr-settings>` now derives its initial open state from the `open` attribute so declarative markup renders expanded immediately, and regression tests verify the behavior.
+- MU-304: Treat removing the `open` attribute as `false` for `<mpr-settings>`, letting attribute-driven frameworks close the panel via attribute removal; added regression coverage.

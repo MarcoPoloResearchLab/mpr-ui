@@ -4216,7 +4216,7 @@
         __computeOpenState() {
           var openAttr = this.getAttribute("open");
           if (openAttr === null || openAttr === undefined) {
-            return this.__isOpen;
+            return false;
           }
           return normalizeBooleanAttribute(openAttr, false);
         }
