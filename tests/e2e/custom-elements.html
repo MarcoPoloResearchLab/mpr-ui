@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>mpr-ui Custom Elements Fixture</title>
+    <script src="../../mpr-ui.js"></script>
+    <script>
+      window.__mprEvents = {
+        sites: [],
+        settings: [],
+        theme: [],
+      };
+      document.addEventListener("mpr-sites:link-click", (event) => {
+        window.__mprEvents.sites.push(event.detail || {});
+      });
+      document.addEventListener("mpr-settings:toggle", (event) => {
+        window.__mprEvents.settings.push(event.detail || {});
+      });
+      document.addEventListener("mpr-ui:theme-change", (event) => {
+        window.__mprEvents.theme.push(event.detail || {});
+      });
+      window.addEventListener("DOMContentLoaded", () => {
+        window.__fixtureReady = true;
+      });
+    </script>
+  </head>
+  <body>
+    <mpr-settings id="fixture-settings" label="Fixture Settings" open>
+      <div slot="panel" id="fixture-settings-panel">
+        <label>
+          <input type="checkbox" checked />
+          Stay signed in
+        </label>
+      </div>
+    </mpr-settings>
+
+    <mpr-sites
+      id="fixture-sites"
+      heading="Featured"
+      links='[
+        { "label": "Docs", "url": "https://example.com/docs" },
+        { "label": "Support", "url": "https://example.com/support" }
+      ]'
+    ></mpr-sites>
+
+    <mpr-theme-toggle id="fixture-theme-toggle"></mpr-theme-toggle>
+  </body>
+</html>
