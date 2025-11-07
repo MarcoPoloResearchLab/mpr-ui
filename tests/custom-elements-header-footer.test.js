@@ -377,6 +377,12 @@ function attachHostApi(element, selectorMap) {
   return element;
 }
 
+function flushAsync() {
+  return new Promise(function resolveLater(resolve) {
+    setTimeout(resolve, 0);
+  });
+}
+
 function createHeaderElementHarness() {
   const HeaderElement = global.customElements.get('mpr-header');
   assert.ok(HeaderElement, 'mpr-header is defined');
@@ -486,6 +492,39 @@ function createFooterElementHarness() {
     privacyLink,
     selectorMap,
   };
+}
+
+function createThemeToggleElementHarness() {
+  const ThemeToggleElement = global.customElements.get('mpr-theme-toggle');
+  assert.ok(ThemeToggleElement, 'mpr-theme-toggle is defined');
+  const control = createStubNode({ supportsEvents: true, attributes: true });
+  const icon = createStubNode({});
+  const selectorMap = new Map([
+    ['[data-mpr-theme-toggle="control"]', control],
+    ['[data-mpr-theme-toggle="icon"]', icon],
+  ]);
+  const element = attachHostApi(new ThemeToggleElement(), selectorMap);
+  return { element, control };
+}
+
+function createLoginButtonHarness(googleStub) {
+  const LoginButtonElement = global.customElements.get('mpr-login-button');
+  assert.ok(LoginButtonElement, 'mpr-login-button is defined');
+  const buttonHost = createStubNode({ attributes: true, supportsEvents: true });
+  buttonHost.setAttribute = function setAttribute(name, value) {
+    this.attributes = this.attributes || {};
+    this.attributes[name] = String(value);
+  };
+  buttonHost.querySelector = function querySelector() {
+    return null;
+  };
+  const selectorMap = new Map([['[data-mpr-login="google-button"]', buttonHost]]);
+  const element = attachHostApi(new LoginButtonElement(), selectorMap);
+  const renderCalls = [];
+  googleStub.accounts.id.renderButton = function renderButton(target, config) {
+    renderCalls.push({ target, config });
+  };
+  return { element, buttonHost, renderCalls };
 }
 
 test('mpr-header reflects attributes and updates values', () => {
@@ -641,5 +680,63 @@ test('mpr-footer reflects attributes and slot content', () => {
   assert.ok(
     harness.layout.children.indexOf(legalSlot) !== -1,
     'legal slot appended to layout container',
+  );
+});
+
+test('mpr-theme-toggle custom element toggles theme mode', () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const harness = createThemeToggleElementHarness();
+  harness.element.setAttribute(
+    'theme-config',
+    JSON.stringify({ initialMode: 'light' }),
+  );
+  harness.element.connectedCallback();
+  assert.equal(library.getThemeMode(), 'light');
+  harness.control.dispatchEvent({ type: 'click' });
+  assert.equal(
+    library.getThemeMode(),
+    'dark',
+    'clicking the control toggles the global theme mode',
+  );
+});
+
+test('mpr-login-button renders the Google button with provided site ID', async () => {
+  resetEnvironment();
+  const googleStub = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.google = googleStub;
+  const onloadElement = { setAttribute() {} };
+  global.document.getElementById = function getElement(id) {
+    if (id === 'g_id_onload') {
+      return onloadElement;
+    }
+    return null;
+  };
+  loadLibrary();
+  const { element, buttonHost, renderCalls } = createLoginButtonHarness(googleStub);
+  element.setAttribute('site-id', 'custom-site');
+  element.setAttribute('login-path', '/auth/login');
+  element.setAttribute('logout-path', '/auth/logout');
+  element.setAttribute('nonce-path', '/auth/nonce');
+  element.connectedCallback();
+  await flushAsync();
+  assert.equal(
+    element.getAttribute('data-mpr-google-site-id'),
+    'custom-site',
+    'site ID attribute reflected to dataset',
+  );
+  assert.equal(renderCalls.length, 1, 'Google renderButton invoked once');
+  assert.strictEqual(
+    renderCalls[0].target,
+    buttonHost,
+    'Google button rendered inside the element host',
   );
 });
