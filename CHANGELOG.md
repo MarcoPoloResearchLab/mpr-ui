@@ -10,3 +10,4 @@
 - MU-205: Exposed `getFooterSiteCatalog()` so consumers can reuse the packaged footer links, updated the demo to source the catalog from the library, and added regression coverage to guard the helper.
 - MU-300: Corrected shared theme switching by honouring initial modes, reapplying tokens across targets, and updating the demo palette styling to rely on the shared CSS variables.
 - MU-301: Updated the demo palettes to scope their overrides per theme mode, bumped CDN references to v0.0.6, and added regression tests to ensure palette buttons no longer suppress global theme switches.
+- MU-302: Removed the duplicate header sign-in button, render the Google Identity button (or a single fallback CTA) inside the existing slot, and refreshed the header tests to cover the new downgrade path.

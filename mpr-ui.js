@@ -1415,12 +1415,6 @@
     "--authenticated [data-mpr-header=\"profile\"]{display:flex}" +
     "." +
     HEADER_ROOT_CLASS +
-    "--authenticated [data-mpr-header=\"sign-in-button\"]{display:none}" +
-    "." +
-    HEADER_ROOT_CLASS +
-    "--no-auth [data-mpr-header=\"sign-in-button\"]{display:none}" +
-    "." +
-    HEADER_ROOT_CLASS +
     "--no-settings [data-mpr-header=\"settings-button\"]{display:none}" +
     "." +
     HEADER_ROOT_CLASS +
@@ -1664,11 +1658,6 @@
       '<div class="' +
       HEADER_ROOT_CLASS +
       '__google" data-mpr-header="google-signin"></div>' +
-      '<button type="button" class="' +
-      HEADER_ROOT_CLASS +
-      '__button ' +
-      HEADER_ROOT_CLASS +
-      '__button--primary" data-mpr-header="sign-in-button">Sign in</button>' +
       '<div class="' +
       HEADER_ROOT_CLASS +
       '__chip" data-mpr-header="profile">' +
@@ -1699,9 +1688,6 @@
       ),
       settingsButton: hostElement.querySelector(
         '[data-mpr-header="settings-button"]',
-      ),
-      signInButton: hostElement.querySelector(
-        '[data-mpr-header="sign-in-button"]',
       ),
       profileContainer: hostElement.querySelector(
         '[data-mpr-header="profile"]',
@@ -1788,9 +1774,6 @@
     if (elements.settingsButton) {
       elements.settingsButton.textContent = options.settings.label;
     }
-    if (elements.signInButton) {
-      elements.signInButton.textContent = options.signInLabel;
-    }
     if (elements.signOutButton) {
       elements.signOutButton.textContent = options.signOutLabel;
     }
@@ -1845,7 +1828,6 @@
     applyHeaderOptions(hostElement, elements, options);
     var authController = null;
     var authListenersAttached = false;
-    var signInClickHandler = null;
     var headerToggleCleanup = null;
     var googleButtonCleanup = null;
     var googleSiteId = options.siteId || GOOGLE_FALLBACK_SITE_ID;
@@ -1890,6 +1872,13 @@
       if (elements.googleSignin) {
         elements.googleSignin.innerHTML = "";
         elements.googleSignin.removeAttribute("data-mpr-google-ready");
+        elements.googleSignin.removeAttribute("role");
+        elements.googleSignin.removeAttribute("tabindex");
+        elements.googleSignin.removeAttribute("aria-label");
+        elements.googleSignin.classList.remove(
+          HEADER_ROOT_CLASS + "__button",
+          HEADER_ROOT_CLASS + "__button--primary",
+        );
       }
     }
 
@@ -1904,18 +1893,77 @@
       headerToggleCleanup = initializeThemeToggle(elements.themeToggle, toggleConfig);
     }
 
+    function renderFallbackGoogleButton(clickHandler, labelText) {
+      if (
+        !elements.googleSignin ||
+        typeof elements.googleSignin.addEventListener !== "function"
+      ) {
+        return;
+      }
+      var fallbackLabel = labelText && labelText.trim()
+        ? labelText.trim()
+        : "Sign in with Google";
+      elements.googleSignin.innerHTML = "";
+      elements.googleSignin.textContent = fallbackLabel;
+      elements.googleSignin.classList.add(
+        HEADER_ROOT_CLASS + "__button",
+        HEADER_ROOT_CLASS + "__button--primary",
+      );
+      elements.googleSignin.setAttribute("role", "button");
+      elements.googleSignin.setAttribute("tabindex", "0");
+      elements.googleSignin.setAttribute("aria-label", fallbackLabel);
+      var handleClick = function handleClick(event) {
+        if (event && typeof event.preventDefault === "function") {
+          event.preventDefault();
+        }
+        clickHandler();
+      };
+      var handleKeydown = function handleKeydown(event) {
+        if (!event || typeof event.key !== "string") {
+          return;
+        }
+        if (event.key === " " || event.key === "Enter") {
+          handleClick(event);
+        }
+      };
+      elements.googleSignin.addEventListener("click", handleClick);
+      elements.googleSignin.addEventListener("keydown", handleKeydown);
+      googleButtonCleanup = function cleanupFallbackGoogleButton() {
+        elements.googleSignin.removeEventListener("click", handleClick);
+        elements.googleSignin.removeEventListener("keydown", handleKeydown);
+        elements.googleSignin.classList.remove(
+          HEADER_ROOT_CLASS + "__button",
+          HEADER_ROOT_CLASS + "__button--primary",
+        );
+        elements.googleSignin.removeAttribute("role");
+        elements.googleSignin.removeAttribute("tabindex");
+        elements.googleSignin.removeAttribute("aria-label");
+        elements.googleSignin.textContent = "";
+      };
+    }
+
     function mountGoogleSignInButton() {
       destroyGoogleButton();
       if (!elements.googleSignin) {
         return;
       }
       elements.googleSignin.setAttribute("data-mpr-google-site-id", googleSiteId);
+      var fallbackLabel =
+        typeof options.signInLabel === "string" && options.signInLabel.trim()
+          ? options.signInLabel.trim()
+          : "Sign in with Google";
+      var hasAuth = Boolean(options.auth);
+      if (!hasAuth) {
+        renderFallbackGoogleButton(handleFallbackSignInClick, fallbackLabel);
+        return;
+      }
       if (
         !global.google ||
         !global.google.accounts ||
         !global.google.accounts.id ||
         typeof global.google.accounts.id.renderButton !== "function"
       ) {
+        renderFallbackGoogleButton(handleGoogleSignInClick, fallbackLabel);
         return;
       }
       try {
@@ -1932,6 +1980,7 @@
       } catch (_error) {
         elements.googleSignin.innerHTML = "";
         elements.googleSignin.removeAttribute("data-mpr-google-ready");
+        renderFallbackGoogleButton(handleGoogleSignInClick, fallbackLabel);
       }
     }
 
@@ -1957,22 +2006,6 @@
 
     function dispatchHeaderEvent(type, detail) {
       dispatchEvent(hostElement, type, detail || {});
-    }
-
-    function setSignInClickHandler(handler) {
-      if (!elements.signInButton) {
-        return;
-      }
-      if (signInClickHandler) {
-        elements.signInButton.removeEventListener(
-          "click",
-          signInClickHandler,
-        );
-      }
-      signInClickHandler = handler;
-      if (handler) {
-        elements.signInButton.addEventListener("click", handler);
-      }
     }
 
     function handleFallbackSignInClick() {
@@ -2039,14 +2072,6 @@
       elements.root.classList.add(HEADER_ROOT_CLASS + "--no-auth");
     }
 
-    if (elements.signInButton) {
-      if (options.auth) {
-        setSignInClickHandler(handleGoogleSignInClick);
-      } else {
-        setSignInClickHandler(handleFallbackSignInClick);
-      }
-    }
-
     if (elements.signOutButton) {
       elements.signOutButton.addEventListener("click", function () {
         if (authController && typeof authController.signOut === "function") {
@@ -2111,10 +2136,7 @@
           if (elements.root) {
             elements.root.classList.remove(HEADER_ROOT_CLASS + "--no-auth");
           }
-          setSignInClickHandler(handleGoogleSignInClick);
           refreshAuthState();
-        } else {
-          setSignInClickHandler(handleFallbackSignInClick);
         }
         if (!options.auth && authController) {
           authController = null;

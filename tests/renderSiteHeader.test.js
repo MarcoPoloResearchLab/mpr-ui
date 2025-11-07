@@ -104,6 +104,14 @@ function createElementStub(options) {
       return listeners[eventType] ? listeners[eventType].length : 0;
     };
   }
+  element.children = [];
+  element.appendChild = function (child) {
+    this.children.push(child);
+    return child;
+  };
+  element.clearChildren = function () {
+    this.children.length = 0;
+  };
   return element;
 }
 
@@ -213,8 +221,11 @@ function createHostHarness() {
     return null;
   };
   const settingsButton = createElementStub({ supportsEvents: true });
-  const signInButton = createElementStub({ supportsEvents: true });
-  const googleSigninHost = createElementStub({ supportsAttributes: true });
+  const googleSigninHost = createElementStub({
+    supportsAttributes: true,
+    supportsEvents: true,
+    classList: true,
+  });
   const profileContainer = createElementStub();
   const profileLabel = createElementStub();
   const profileName = createElementStub();
@@ -227,7 +238,6 @@ function createHostHarness() {
     ['[data-mpr-header="theme-toggle"]', themeToggleContainer],
     ['[data-mpr-header="google-signin"]', googleSigninHost],
     ['[data-mpr-header="settings-button"]', settingsButton],
-    ['[data-mpr-header="sign-in-button"]', signInButton],
     ['[data-mpr-header="profile"]', profileContainer],
     ['[data-mpr-header="profile-label"]', profileLabel],
     ['[data-mpr-header="profile-name"]', profileName],
@@ -247,7 +257,6 @@ function createHostHarness() {
     themeToggleIcon: themeToggleIcon,
     googleSigninHost: googleSigninHost,
     settingsButton: settingsButton,
-    signInButton: signInButton,
     profileContainer: profileContainer,
     profileLabel: profileLabel,
     profileName: profileName,
@@ -329,7 +338,7 @@ test('theme toggle updates the icon when the mode changes', () => {
   controller.destroy();
 });
 
-test('enabling auth via update rebinds handlers', () => {
+test('google sign-in host downgrades to a fallback CTA until auth is configured', () => {
   resetEnvironment();
   const harness = createHostHarness();
   const library = loadLibrary();
@@ -346,7 +355,7 @@ test('enabling auth via update rebinds handlers', () => {
     'no auth listeners before enabling',
   );
 
-  harness.signInButton.click();
+  harness.googleSigninHost.click();
   assert.strictEqual(
     harness.dispatchedEvents.filter(function (event) {
       return event.type === 'mpr-ui:header:signin-click';
@@ -355,18 +364,18 @@ test('enabling auth via update rebinds handlers', () => {
     'fallback sign-in event dispatched before auth is enabled',
   );
 
+  const renderCalls = [];
   global.google = {
     accounts: {
       id: {
-        prompt: function () {
-          testEnablingAuthViaUpdateRebindsHandlers.promptCalls += 1;
+        renderButton(host) {
+          renderCalls.push(host);
         },
+        prompt: function () {},
         initialize: function () {},
       },
     },
   };
-  function testEnablingAuthViaUpdateRebindsHandlers() {}
-  testEnablingAuthViaUpdateRebindsHandlers.promptCalls = 0;
 
   controller.update({ auth: {} });
 
@@ -381,27 +390,23 @@ test('enabling auth via update rebinds handlers', () => {
     'unauth listener attached after enabling',
   );
   assert.strictEqual(
-    harness.signInButton.getListenerCount('click'),
-    1,
-    'sign-in button keeps a single click handler',
-  );
-  assert.strictEqual(
     harness.root.classList.contains('mpr-header--no-auth'),
     false,
     'no-auth class removed after enabling auth',
   );
+  assert.strictEqual(renderCalls.length, 1, 'google renderButton invoked after enabling auth');
 
   const beforeEventCount = harness.dispatchedEvents.length;
-  harness.signInButton.click();
-  assert.strictEqual(
-    testEnablingAuthViaUpdateRebindsHandlers.promptCalls,
-    1,
-    'google prompt invoked after enabling auth via update',
-  );
+  harness.googleSigninHost.click();
   assert.strictEqual(
     harness.dispatchedEvents.length,
     beforeEventCount,
     'fallback sign-in event suppressed after auth is enabled',
+  );
+  assert.strictEqual(
+    harness.googleSigninHost.getListenerCount('click'),
+    0,
+    'click handlers removed once the Google button renders',
   );
 });
 
@@ -436,6 +441,24 @@ test('renderSiteHeader renders the Google button inside the header when siteId i
     'demo-site-id',
     'host should record the provided site id',
   );
+});
+
+test('google sign-in host dispatches fallback events when auth is configured but google is unavailable', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {
+    auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
+  });
+
+  const beforeEventCount = harness.dispatchedEvents.length;
+  harness.googleSigninHost.click();
+
+  const fallbackEvents = harness.dispatchedEvents.filter(function (event) {
+    return event.type === 'mpr-ui:header:signin-click';
+  }).length;
+  assert.strictEqual(beforeEventCount + 1, harness.dispatchedEvents.length, 'fallback click emits event');
+  assert.strictEqual(fallbackEvents >= 1, true, 'fallback sign-in event dispatched when google missing');
 });
 
 test('siteId falls back to the bundled default when omitted', () => {
@@ -486,20 +509,8 @@ test('initial auth avoids duplicate listeners on update', () => {
     1,
     'unauth listener attached during initial render',
   );
-  assert.strictEqual(
-    harness.signInButton.getListenerCount('click'),
-    1,
-    'single click handler installed with initial auth',
-  );
 
-  harness.signInButton.click();
-  assert.strictEqual(
-    testInitialAuthAvoidsDuplicateListenersOnUpdate.promptCount,
-    1,
-    'google prompt triggered on click with initial auth',
-  );
-
-  controller.update({ signInLabel: 'Log in' });
+  controller.update({ profileLabel: 'Account' });
 
   assert.strictEqual(
     harness.host.getListenerCount('mpr-ui:auth:authenticated'),
@@ -507,16 +518,9 @@ test('initial auth avoids duplicate listeners on update', () => {
     'auth listener not duplicated after update',
   );
   assert.strictEqual(
-    harness.signInButton.getListenerCount('click'),
+    harness.host.getListenerCount('mpr-ui:auth:unauthenticated'),
     1,
-    'sign-in click handler remains singular after update',
-  );
-
-  harness.signInButton.click();
-  assert.strictEqual(
-    testInitialAuthAvoidsDuplicateListenersOnUpdate.promptCount,
-    2,
-    'google prompt handler persists after update',
+    'unauth listener not duplicated after update',
   );
 });
 
