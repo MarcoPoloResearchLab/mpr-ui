@@ -4178,7 +4178,9 @@
             this.__panelDomId = createSettingsPanelDomId();
           }
           var attributeOptions = buildSettingsOptionsFromAttributes(this);
-          attributeOptions.open = this.__isOpen;
+          if (typeof attributeOptions.open !== "boolean") {
+            attributeOptions.open = this.__isOpen;
+          }
           var config = normalizeSettingsOptions(attributeOptions);
           var ariaControls = config.panelId || this.__panelDomId;
           this.__detachSettingsEvents();
@@ -4214,7 +4216,7 @@
         __computeOpenState() {
           var openAttr = this.getAttribute("open");
           if (openAttr === null || openAttr === undefined) {
-            return this.__isOpen;
+            return false;
           }
           return normalizeBooleanAttribute(openAttr, false);
         }

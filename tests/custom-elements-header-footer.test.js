@@ -800,28 +800,56 @@ test('mpr-settings toggles open state and dispatches events', () => {
   loadLibrary();
   const { element, button, label, panel } = createSettingsElementHarness();
   element.setAttribute('label', 'Quick Settings');
+  element.setAttribute('open', '');
   element.connectedCallback();
   assert.equal(label.textContent, 'Quick Settings');
   assert.equal(
     element.getAttribute('data-mpr-settings-open'),
-    'false',
-    'settings launcher starts closed by default',
-  );
-  button.dispatchEvent({ type: 'click', preventDefault() {} });
-  assert.equal(
-    element.getAttribute('data-mpr-settings-open'),
     'true',
-    'clicking the button opens the panel',
+    'open attribute applied on initial render',
   );
   assert.strictEqual(
     panel.getAttribute && panel.getAttribute('hidden'),
     null,
-    'panel shows when opened',
+    'panel visible when open attribute present',
+  );
+  assert.equal(
+    element.getAttribute('data-mpr-settings-open'),
+    'true',
+    'data attribute matches declarative open state',
+  );
+  element.removeAttribute('open');
+  assert.equal(
+    element.getAttribute('data-mpr-settings-open'),
+    'false',
+    'removing the open attribute closes the launcher',
+  );
+  assert.equal(
+    panel.getAttribute && panel.getAttribute('hidden'),
+    'hidden',
+    'panel hidden after attribute removal',
+  );
+  element.setAttribute('open', '');
+  assert.equal(
+    element.getAttribute('data-mpr-settings-open'),
+    'true',
+    're-adding open attribute reopens the panel',
+  );
+  button.dispatchEvent({ type: 'click', preventDefault() {} });
+  assert.equal(
+    element.getAttribute('data-mpr-settings-open'),
+    'false',
+    'clicking toggles the launcher closed',
+  );
+  assert.equal(
+    panel.getAttribute && panel.getAttribute('hidden'),
+    'hidden',
+    'panel hidden after toggle',
   );
   const lastEvent =
     element.__dispatchedEvents[element.__dispatchedEvents.length - 1];
   assert.equal(lastEvent.type, 'mpr-settings:toggle');
-  assert.equal(lastEvent.detail && lastEvent.detail.open, true);
+  assert.equal(lastEvent.detail && lastEvent.detail.open, false);
   element.setAttribute('open', 'false');
   assert.equal(
     element.getAttribute('data-mpr-settings-open'),
