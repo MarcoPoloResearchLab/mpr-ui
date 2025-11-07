@@ -194,6 +194,39 @@ const controller = MPRUI.createAuthHeader(host, {
           ></mpr-login-button>
         </div>
       </section>
+
+      <section aria-labelledby="aux-elements-title">
+        <h2 id="aux-elements-title">Auxiliary Custom Elements</h2>
+        <p>
+          Use the lightweight `<mpr-settings>` launcher to host inline controls and
+          `<mpr-sites>` to drop the packaged site catalog anywhere on the page. Both
+          components emit events so you can react without extra glue code.
+        </p>
+        <div class="custom-elements-preview">
+          <mpr-settings
+            id="demo-settings"
+            label="Demo Settings"
+            icon="🧪"
+          >
+            <div class="auth-card">
+              <label>
+                <input type="checkbox" checked />
+                <span>Enable mock beta banner</span>
+              </label>
+              <label>
+                <input type="checkbox" />
+                <span>Send weekly updates</span>
+              </label>
+            </div>
+          </mpr-settings>
+          <mpr-sites
+            id="demo-sites"
+            variant="grid"
+            columns="2"
+            heading="Featured Sites"
+          ></mpr-sites>
+        </div>
+      </section>
     </main>
 
     <div
