@@ -88,7 +88,7 @@ class MprHeader extends HTMLElement {
 customElements.define("mpr-header", MprHeader);
 ```
 
-Identify the plan of such refactoring. The deliverable is a detailed plan on how can we prepare such change.
+Identify the plan of such refactoring. The deliverable is a detailed plan on how can we prepare such change. Factor in very detailed documentation that must be delivered. The goal is designing a system that is really easy to use, and require minimal understanding to be integrated on a web page.
 
 - [ ] [MU-104] Refactor the code based on the plan delivered in MU-103
 
