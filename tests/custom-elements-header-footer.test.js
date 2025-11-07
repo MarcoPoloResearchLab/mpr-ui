@@ -818,6 +818,23 @@ test('mpr-settings toggles open state and dispatches events', () => {
     'true',
     'data attribute matches declarative open state',
   );
+  element.removeAttribute('open');
+  assert.equal(
+    element.getAttribute('data-mpr-settings-open'),
+    'false',
+    'removing the open attribute closes the launcher',
+  );
+  assert.equal(
+    panel.getAttribute && panel.getAttribute('hidden'),
+    'hidden',
+    'panel hidden after attribute removal',
+  );
+  element.setAttribute('open', '');
+  assert.equal(
+    element.getAttribute('data-mpr-settings-open'),
+    'true',
+    're-adding open attribute reopens the panel',
+  );
   button.dispatchEvent({ type: 'click', preventDefault() {} });
   assert.equal(
     element.getAttribute('data-mpr-settings-open'),
