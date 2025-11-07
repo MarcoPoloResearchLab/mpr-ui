@@ -11,3 +11,4 @@
 - MU-300: Corrected shared theme switching by honouring initial modes, reapplying tokens across targets, and updating the demo palette styling to rely on the shared CSS variables.
 - MU-301: Updated the demo palettes to scope their overrides per theme mode, bumped CDN references to v0.0.6, added regression tests, and now force manual theme mode switches to reset the palette to `default` so Light/Dark buttons always change the UI.
 - MU-302: Automatically load the Google Identity Services script, render only the official GIS button (no CTA fallback), and extend the header tests to cover script injection, asynchronous rendering, and error handling.
+- MU-103: Captured the detailed custom-elements migration plan in `docs/web-components-plan.md`, defining the taxonomy, lifecycle, testing, and documentation deliverables for the upcoming refactor.

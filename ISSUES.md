@@ -9,7 +9,7 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 - [x] [MU-100] Build a sticky site header component providing auth controls, settings entry, and theme toggle. It must expose Alpine and imperative APIs and render DOM on drop-in. — Implemented sticky header in `mpr-ui.js`, documented usage, and showcased it in the demo on branch `feature/MU-100-sticky-header`.
 - [x] [MU-101] Replace the legacy footer implementation by bundling a sticky site footer with menu, privacy link, and theme toggle directly in mpr-ui.js. — Integrated the rich footer into `mpr-ui.js`, added sticky styling, documented the API, and showcased it in the demo on branch `feature/MU-101-unified-footer`.
 - [x] [MU-102] Allow declarative theme customization and cross-component theme events. Provide configurable targets, modes, and global theme helpers so other Alpine components can stay in sync. — Added global theme manager, declarative dataset support, and demo updates on branch `feature/MU-102-theme-extensibility`.
-- [ ] [MU-103] I want to use web components and identify their taxonomy and structure. I expect something like
+- [x] [MU-103] I want to use web components and identify their taxonomy and structure. I expect something like
 <mpr-header>
 <mpr-footer>
 <mpr-theme-toggle>
@@ -89,6 +89,8 @@ customElements.define("mpr-header", MprHeader);
 ```
 
 Identify the plan of such refactoring. The deliverable is a detailed plan on how can we prepare such change. Factor in very detailed documentation that must be delivered. The goal is designing a system that is really easy to use, and require minimal understanding to be integrated on a web page.
+
+- Documented the custom-element migration plan, including taxonomy, lifecycle, testing, and documentation deliverables, in `docs/web-components-plan.md` on branch `feature/MU-103-web-components-plan`.
 
 - [ ] [MU-104] Refactor the code based on the plan delivered in MU-103
 
