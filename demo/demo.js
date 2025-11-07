@@ -26,6 +26,7 @@ const profileAvatar = /** @type {HTMLElement | null} */ (
 const demoBody = /** @type {HTMLBodyElement | null} */ (document.body);
 
 const GOOGLE_FALLBACK_CLIENT_ID =
+  (window.MPRUI && window.MPRUI.DEFAULT_GOOGLE_SITE_ID) ||
   "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com";
 
 if (!headerHost || !eventLog || !profileId || !profileEmail || !profileDisplay) {
@@ -77,42 +78,6 @@ const sessionProfile = {
 };
 
 const THEME_MODE_CLASSES = ["theme-light", "theme-dark"];
-const THEME_MODE_ICONS = {
-  light: "☀️",
-  dark: "🌙",
-};
-
-/**
- * Ensures the header theme toggle exposes a dedicated icon element and updates its symbol.
- * @param {string} mode
- */
-const updateThemeToggleIcon = (mode) => {
-  const themeButton = headerHost.querySelector(
-    '[data-mpr-header="theme-toggle"]',
-  );
-  if (!themeButton) {
-    return;
-  }
-  let iconElement = themeButton.querySelector(
-    '[data-mpr-header="theme-icon"]',
-  );
-  if (!iconElement) {
-    const firstChild = themeButton.firstChild;
-    if (firstChild && firstChild.nodeType === 3) {
-      themeButton.removeChild(firstChild);
-    }
-    iconElement = document.createElement("span");
-    iconElement.setAttribute("data-mpr-header", "theme-icon");
-    iconElement.setAttribute("aria-hidden", "true");
-    if (themeButton.firstChild) {
-      themeButton.insertBefore(iconElement, themeButton.firstChild);
-    } else {
-      themeButton.append(iconElement);
-    }
-  }
-  const symbol = THEME_MODE_ICONS[mode] || THEME_MODE_ICONS.dark;
-  iconElement.textContent = symbol;
-};
 
 /**
  * Syncs the document body class list with the active theme mode.
@@ -128,7 +93,6 @@ const syncBodyThemeClass = (mode) => {
   const nextMode = mode === "dark" ? "dark" : "light";
   demoBody.classList.add(`theme-${nextMode}`);
   demoBody.dataset.demoThemeMode = nextMode;
-  updateThemeToggleIcon(nextMode);
 };
 
 if (demoBody && !demoBody.dataset.demoPalette) {
@@ -253,11 +217,11 @@ const headerController = window.MPRUI.renderSiteHeader(headerHost, {
     { label: "Support", href: "#support" },
   ],
   settings: { enabled: true, label: "Settings" },
+  siteId: GOOGLE_FALLBACK_CLIENT_ID,
   auth: {
     loginPath: "/auth/google",
     logoutPath: "/auth/logout",
     noncePath: "/auth/nonce",
-    googleClientId: GOOGLE_FALLBACK_CLIENT_ID,
   },
 });
 
@@ -328,21 +292,15 @@ const deliverDemoCredential = () => {
 };
 
 const promptButton = document.getElementById("trigger-prompt");
-const googleButtonHost = document.getElementById("google-signin-container");
 const signOutButton = document.getElementById("sign-out");
 const restartButton = document.getElementById("restart-session");
 
-if (!promptButton || !googleButtonHost || !signOutButton || !restartButton) {
+if (!promptButton || !signOutButton || !restartButton) {
   throw new Error("demo: expected auth action buttons to exist");
 }
 
 promptButton.addEventListener("click", () => {
   window.google.accounts.id.prompt();
-});
-
-window.google.accounts.id.renderButton(googleButtonHost, {
-  theme: "outline",
-  size: "large",
 });
 
 signOutButton.addEventListener("click", () => {
