@@ -25,6 +25,10 @@ const profileAvatar = /** @type {HTMLElement | null} */ (
 
 const demoBody = /** @type {HTMLBodyElement | null} */ (document.body);
 
+const GOOGLE_FALLBACK_CLIENT_ID =
+  (window.MPRUI && window.MPRUI.DEFAULT_GOOGLE_SITE_ID) ||
+  "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com";
+
 if (!headerHost || !eventLog || !profileId || !profileEmail || !profileDisplay) {
   throw new Error("demo: expected header host and dataset placeholders");
 }
@@ -74,42 +78,6 @@ const sessionProfile = {
 };
 
 const THEME_MODE_CLASSES = ["theme-light", "theme-dark"];
-const THEME_MODE_ICONS = {
-  light: "☀️",
-  dark: "🌙",
-};
-
-/**
- * Ensures the header theme toggle exposes a dedicated icon element and updates its symbol.
- * @param {string} mode
- */
-const updateThemeToggleIcon = (mode) => {
-  const themeButton = headerHost.querySelector(
-    '[data-mpr-header="theme-toggle"]',
-  );
-  if (!themeButton) {
-    return;
-  }
-  let iconElement = themeButton.querySelector(
-    '[data-mpr-header="theme-icon"]',
-  );
-  if (!iconElement) {
-    const firstChild = themeButton.firstChild;
-    if (firstChild && firstChild.nodeType === 3) {
-      themeButton.removeChild(firstChild);
-    }
-    iconElement = document.createElement("span");
-    iconElement.setAttribute("data-mpr-header", "theme-icon");
-    iconElement.setAttribute("aria-hidden", "true");
-    if (themeButton.firstChild) {
-      themeButton.insertBefore(iconElement, themeButton.firstChild);
-    } else {
-      themeButton.append(iconElement);
-    }
-  }
-  const symbol = THEME_MODE_ICONS[mode] || THEME_MODE_ICONS.dark;
-  iconElement.textContent = symbol;
-};
 
 /**
  * Syncs the document body class list with the active theme mode.
@@ -125,7 +93,6 @@ const syncBodyThemeClass = (mode) => {
   const nextMode = mode === "dark" ? "dark" : "light";
   demoBody.classList.add(`theme-${nextMode}`);
   demoBody.dataset.demoThemeMode = nextMode;
-  updateThemeToggleIcon(nextMode);
 };
 
 if (demoBody && !demoBody.dataset.demoPalette) {
@@ -188,10 +155,38 @@ window.google = {
         googleCallback = config && typeof config.callback === "function"
           ? config.callback
           : null;
-        appendLogEntry("google.accounts.id.initialize called");
+        const clientIdDescription =
+          config && typeof config.client_id === "string" && config.client_id
+            ? ` with client ${config.client_id}`
+            : "";
+        appendLogEntry(`google.accounts.id.initialize called${clientIdDescription}`);
       },
       prompt() {
         appendLogEntry("google.accounts.id.prompt invoked");
+      },
+      renderButton(targetElement, renderOptions) {
+        appendLogEntry("google.accounts.id.renderButton invoked");
+        if (!targetElement) {
+          appendLogEntry("renderButton invoked without a target element");
+          return;
+        }
+        const container = /** @type {HTMLElement} */ (targetElement);
+        container.innerHTML = "";
+        const button = document.createElement("button");
+        button.type = "button";
+        button.className = "google-button";
+        button.id = "demo-google-signin-button";
+        button.setAttribute("aria-label", "Sign in with Google");
+        const buttonText =
+          renderOptions && typeof renderOptions.text === "string"
+            ? renderOptions.text
+            : "Sign in with Google";
+        button.textContent = buttonText;
+        button.addEventListener("click", () => {
+          appendLogEntry("Demo Google Sign-In button clicked");
+          deliverDemoCredential();
+        });
+        container.appendChild(button);
       },
     },
   },
@@ -222,6 +217,7 @@ const headerController = window.MPRUI.renderSiteHeader(headerHost, {
     { label: "Support", href: "#support" },
   ],
   settings: { enabled: true, label: "Settings" },
+  siteId: GOOGLE_FALLBACK_CLIENT_ID,
   auth: {
     loginPath: "/auth/google",
     logoutPath: "/auth/logout",
@@ -278,20 +274,7 @@ headerHost.addEventListener("mpr-ui:header:settings-click", () => {
 
 syncProfileDataset(headerHost);
 
-const promptButton = document.getElementById("trigger-prompt");
-const completeButton = document.getElementById("complete-sign-in");
-const signOutButton = document.getElementById("sign-out");
-const restartButton = document.getElementById("restart-session");
-
-if (!promptButton || !completeButton || !signOutButton || !restartButton) {
-  throw new Error("demo: expected auth action buttons to exist");
-}
-
-promptButton.addEventListener("click", () => {
-  window.google.accounts.id.prompt();
-});
-
-completeButton.addEventListener("click", () => {
+const deliverDemoCredential = () => {
   if (googleCallback) {
     appendLogEntry("Delivering credential via google callback");
     googleCallback({ credential: "demo-id-token" });
@@ -304,8 +287,20 @@ completeButton.addEventListener("click", () => {
   }
   appendLogEntry("Auth controller unavailable; emitting fallback event");
   headerHost.dispatchEvent(
-    new CustomEvent("mpr-ui:header:signin-click", { detail: {} })
+    new CustomEvent("mpr-ui:header:signin-click", { detail: {} }),
   );
+};
+
+const promptButton = document.getElementById("trigger-prompt");
+const signOutButton = document.getElementById("sign-out");
+const restartButton = document.getElementById("restart-session");
+
+if (!promptButton || !signOutButton || !restartButton) {
+  throw new Error("demo: expected auth action buttons to exist");
+}
+
+promptButton.addEventListener("click", () => {
+  window.google.accounts.id.prompt();
 });
 
 signOutButton.addEventListener("click", () => {
@@ -331,22 +326,21 @@ if (!footerHost || !rotateFooterButton) {
   throw new Error("demo: expected imperative footer host and button");
 }
 
+const packagedFooterCatalog =
+  window.MPRUI && typeof window.MPRUI.getFooterSiteCatalog === "function"
+    ? window.MPRUI.getFooterSiteCatalog()
+    : [];
+
 const footerLinks = [
-  [
-    { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
-    { label: "Gravity Notes", url: "https://gravity.mprlab.com" },
-  ],
-  [
-    { label: "LoopAware", url: "https://loopaware.mprlab.com" },
-    { label: "GitHub", url: "https://github.com/MarcoPoloResearchLab" },
-  ],
+  packagedFooterCatalog,
+  packagedFooterCatalog.slice().reverse(),
 ];
 
 let footerIndex = 0;
 
 const footerController = window.MPRUI.renderFooter(footerHost, {
   prefixText: "Built by",
-  toggleLabel: "Marco Polo Research Lab",
+  toggleLabel: "MPRLab Sites",
   privacyLinkHref: "#privacy",
   privacyLinkLabel: "Privacy • Terms",
   links: footerLinks[footerIndex],
@@ -357,7 +351,7 @@ rotateFooterButton.addEventListener("click", () => {
   footerController.update({
     prefixText: `Links set #${footerIndex + 1}`,
     links: footerLinks[footerIndex],
-    toggleLabel: footerIndex === 0 ? "Marco Polo Research Lab" : "Marco Polo Research Lab (alt)",
+    toggleLabel: footerIndex === 0 ? "MPRLab Sites" : "MPRLab Sites (reverse order)",
   });
 });
 
