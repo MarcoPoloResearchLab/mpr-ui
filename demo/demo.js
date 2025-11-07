@@ -403,5 +403,11 @@ themeModeButtons.forEach((button) => {
         currentMode === nextMode ? " (no change)" : ""
       }`,
     );
+    if (demoBody) {
+      if (demoBody.dataset.demoPalette !== "default") {
+        appendLogEntry("Resetting palette to default after manual theme switch");
+      }
+      demoBody.dataset.demoPalette = "default";
+    }
   });
 });
