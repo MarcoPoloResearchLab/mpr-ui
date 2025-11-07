@@ -181,6 +181,17 @@ const controller = MPRUI.createAuthHeader(host, {
             </a>
             <small slot="legal">© Marco Polo Research</small>
           </mpr-footer>
+          <mpr-theme-toggle
+            variant="button"
+            label="Theme"
+            theme-config='{"initialMode":"dark"}'
+          ></mpr-theme-toggle>
+          <mpr-login-button
+            site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+            login-path="/auth/google"
+            logout-path="/auth/logout"
+            nonce-path="/auth/nonce"
+          ></mpr-login-button>
         </div>
       </section>
     </main>

@@ -198,6 +198,28 @@
 
   var HEADER_SLOT_NAMES = Object.freeze(["brand", "nav-left", "nav-right", "aux"]);
   var FOOTER_SLOT_NAMES = Object.freeze(["menu-prefix", "menu-links", "legal"]);
+  var THEME_TOGGLE_ATTRIBUTE_NAMES = Object.freeze([
+    "variant",
+    "label",
+    "aria-label",
+    "show-label",
+    "wrapper-class",
+    "control-class",
+    "icon-class",
+    "theme-config",
+    "theme-mode",
+  ]);
+  var LOGIN_BUTTON_ATTRIBUTE_NAMES = Object.freeze([
+    "site-id",
+    "login-path",
+    "logout-path",
+    "nonce-path",
+    "base-url",
+    "button-text",
+    "button-theme",
+    "button-size",
+    "button-shape",
+  ]);
 
   function normalizeAttributeReflectionValue(attributeName, value) {
     if (value === null || value === undefined) {
@@ -244,6 +266,127 @@
         attributeMap,
       );
     });
+  }
+
+  function normalizeBooleanAttribute(value, fallback) {
+    if (value === null || value === undefined) {
+      return fallback;
+    }
+    if (value === "" || value === "true") {
+      return true;
+    }
+    if (value === "false") {
+      return false;
+    }
+    return Boolean(value);
+  }
+
+  function buildThemeToggleOptionsFromAttributes(hostElement) {
+    var options = {};
+    var variant = hostElement.getAttribute("variant");
+    if (variant) {
+      options.variant = variant;
+    }
+    var label = hostElement.getAttribute("label");
+    if (label) {
+      options.label = label;
+    }
+    var ariaLabel = hostElement.getAttribute("aria-label");
+    if (ariaLabel) {
+      options.ariaLabel = ariaLabel;
+    }
+    var showLabelAttr = hostElement.getAttribute("show-label");
+    if (showLabelAttr !== null) {
+      options.showLabel = normalizeBooleanAttribute(showLabelAttr, true);
+    }
+    var wrapperClass = hostElement.getAttribute("wrapper-class");
+    if (wrapperClass) {
+      options.wrapperClass = wrapperClass;
+    }
+    var controlClass = hostElement.getAttribute("control-class");
+    if (controlClass) {
+      options.controlClass = controlClass;
+    }
+    var iconClass = hostElement.getAttribute("icon-class");
+    if (iconClass) {
+      options.iconClass = iconClass;
+    }
+    var themeConfig = {};
+    var themeAttr = hostElement.getAttribute("theme-config");
+    if (themeAttr) {
+      themeConfig = parseJsonValue(themeAttr, {});
+    }
+    var modeAttr = hostElement.getAttribute("theme-mode");
+    if (modeAttr && typeof modeAttr === "string") {
+      themeConfig.initialMode = modeAttr;
+    }
+    if (Object.keys(themeConfig).length) {
+      options.theme = themeConfig;
+    }
+    return options;
+  }
+
+  function buildLoginAuthOptionsFromAttributes(hostElement) {
+    return {
+      baseUrl: hostElement.getAttribute("base-url") || "",
+      loginPath:
+        hostElement.getAttribute("login-path") || DEFAULT_OPTIONS.loginPath,
+      logoutPath:
+        hostElement.getAttribute("logout-path") || DEFAULT_OPTIONS.logoutPath,
+      noncePath:
+        hostElement.getAttribute("nonce-path") || DEFAULT_OPTIONS.noncePath,
+      googleClientId:
+        hostElement.getAttribute("site-id") || DEFAULT_OPTIONS.googleClientId,
+    };
+  }
+
+  function buildLoginButtonDisplayOptions(hostElement) {
+    var options = {};
+    var buttonText = hostElement.getAttribute("button-text");
+    if (buttonText) {
+      options.text = buttonText;
+    }
+    var buttonTheme = hostElement.getAttribute("button-theme");
+    if (buttonTheme) {
+      options.theme = buttonTheme;
+    }
+    var buttonSize = hostElement.getAttribute("button-size");
+    if (buttonSize) {
+      options.size = buttonSize;
+    }
+    var buttonShape = hostElement.getAttribute("button-shape");
+    if (buttonShape) {
+      options.shape = buttonShape;
+    }
+    return options;
+  }
+
+  function ensureLoginButtonContainer(hostElement) {
+    if (
+      hostElement.querySelector &&
+      typeof hostElement.querySelector === "function"
+    ) {
+      var existing = hostElement.querySelector('[data-mpr-login="google-button"]');
+      if (existing) {
+        return existing;
+      }
+    }
+    if (!hostElement || typeof hostElement.appendChild !== "function") {
+      return null;
+    }
+    var documentObject =
+      hostElement.ownerDocument ||
+      (global.document || (global.window && global.window.document));
+    var container = documentObject && typeof documentObject.createElement === "function"
+      ? documentObject.createElement("div")
+      : null;
+    if (!container) {
+      return null;
+    }
+    container.setAttribute("data-mpr-login", "google-button");
+    hostElement.innerHTML = "";
+    hostElement.appendChild(container);
+    return container;
   }
 
   function buildHeaderOptionsFromAttributes(hostElement) {
@@ -1285,6 +1428,79 @@
     return googleIdentityPromise;
   }
 
+  function renderGoogleButton(containerElement, siteId, buttonOptions, onError) {
+    if (!containerElement) {
+      return function noopGoogleButton() {};
+    }
+    var normalizedSiteId = siteId || GOOGLE_FALLBACK_SITE_ID;
+    containerElement.setAttribute("data-mpr-google-site-id", normalizedSiteId);
+    var isActive = true;
+    function cleanup() {
+      isActive = false;
+      if (containerElement) {
+        containerElement.innerHTML = "";
+        containerElement.removeAttribute("data-mpr-google-ready");
+      }
+    }
+    ensureGoogleIdentityClient(global.document)
+      .then(function handleGoogleReady(googleClient) {
+        if (!isActive) {
+          return;
+        }
+        var googleId =
+          googleClient &&
+          googleClient.accounts &&
+          googleClient.accounts.id &&
+          typeof googleClient.accounts.id.renderButton === "function"
+            ? googleClient.accounts.id
+            : null;
+        if (!googleId) {
+          if (onError) {
+            onError({
+              code: "mpr-ui.google_unavailable",
+            });
+          }
+          return;
+        }
+        try {
+          googleId.renderButton(
+            containerElement,
+            deepMergeOptions(
+              {
+                theme: "outline",
+                size: "large",
+                text: "signin_with",
+                type: "standard",
+              },
+              buttonOptions || {},
+            ),
+          );
+          containerElement.setAttribute("data-mpr-google-ready", "true");
+        } catch (_error) {
+          if (onError) {
+            onError({
+              code: "mpr-ui.google_render_failed",
+            });
+          }
+        }
+      })
+      .catch(function handleGoogleFailure(error) {
+        if (!isActive) {
+          return;
+        }
+        if (onError) {
+          onError({
+            code: "mpr-ui.google_script_failed",
+            message:
+              error && error.message ? String(error.message) : "google script load failed",
+          });
+        }
+      });
+    return function cleanupGoogleButton() {
+      cleanup();
+    };
+  }
+
   function createAuthHeader(rootElement, rawOptions) {
     if (!rootElement || typeof rootElement.dispatchEvent !== "function") {
       throw new Error("MPRUI.createAuthHeader requires a DOM element");
@@ -2192,57 +2408,30 @@
       if (!elements.googleSignin) {
         return;
       }
-      elements.googleSignin.setAttribute("data-mpr-google-site-id", googleSiteId);
       if (!options.auth) {
+        elements.googleSignin.removeAttribute("data-mpr-google-ready");
+        elements.googleSignin.innerHTML = "";
         return;
       }
-      var isActive = true;
-      googleButtonCleanup = function cleanupGoogleButtonSlot() {
-        isActive = false;
-        elements.googleSignin.innerHTML = "";
-        elements.googleSignin.removeAttribute("data-mpr-google-ready");
-      };
-      ensureGoogleIdentityClient(global.document)
-        .then(function handleGoogleIdentityReady(googleClient) {
-          if (!isActive) {
-            return;
-          }
-          var googleId =
-            googleClient &&
-            googleClient.accounts &&
-            googleClient.accounts.id &&
-            typeof googleClient.accounts.id.renderButton === "function"
-              ? googleClient.accounts.id
-              : null;
-          if (!googleId) {
-            dispatchHeaderEvent("mpr-ui:header:error", {
-              code: "mpr-ui.header.google_unavailable",
-            });
-            return;
-          }
-          try {
-            googleId.renderButton(elements.googleSignin, {
-              theme: "outline",
-              size: "large",
-              text: "signin_with",
-            });
-            elements.googleSignin.setAttribute("data-mpr-google-ready", "true");
-          } catch (_error) {
-            dispatchHeaderEvent("mpr-ui:header:error", {
-              code: "mpr-ui.header.google_render_failed",
-            });
-          }
-        })
-        .catch(function handleGoogleIdentityFailure(error) {
-          if (!isActive) {
-            return;
-          }
+      elements.googleSignin.setAttribute("data-mpr-google-site-id", googleSiteId);
+      googleButtonCleanup = renderGoogleButton(
+        elements.googleSignin,
+        googleSiteId,
+        { theme: "outline", size: "large", text: "signin_with" },
+        function handleGoogleError(detail) {
+          var incomingCode = detail && detail.code ? detail.code : "";
+          var codeMap = {
+            "mpr-ui.google_unavailable": "mpr-ui.header.google_unavailable",
+            "mpr-ui.google_render_failed": "mpr-ui.header.google_render_failed",
+            "mpr-ui.google_script_failed": "mpr-ui.header.google_script_failed",
+          };
+          var mappedCode = codeMap[incomingCode] || "mpr-ui.header.google_error";
           dispatchHeaderEvent("mpr-ui:header:error", {
-            code: "mpr-ui.header.google_script_failed",
-            message:
-              error && error.message ? String(error.message) : "google script load failed",
+            code: mappedCode,
+            message: detail && detail.message ? detail.message : undefined,
           });
-        });
+        },
+      );
     }
 
     if (
@@ -3410,6 +3599,105 @@
     });
   }
 
+  function defineThemeToggleElement(registry) {
+    registry.define("mpr-theme-toggle", function setupThemeToggleElement(Base) {
+      return class MprThemeToggleElement extends Base {
+        constructor() {
+          super();
+          this.__themeToggleController = null;
+        }
+        static get observedAttributes() {
+          return THEME_TOGGLE_ATTRIBUTE_NAMES;
+        }
+        render() {
+          this.__renderThemeToggle();
+        }
+        update() {
+          this.__renderThemeToggle();
+        }
+        destroy() {
+          if (
+            this.__themeToggleController &&
+            typeof this.__themeToggleController.destroy === "function"
+          ) {
+            this.__themeToggleController.destroy();
+          }
+          this.__themeToggleController = null;
+        }
+        __renderThemeToggle() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          var options = buildThemeToggleOptionsFromAttributes(this);
+          if (this.__themeToggleController) {
+            this.__themeToggleController.update(options);
+          } else {
+            this.__themeToggleController = renderThemeToggle(this, options);
+          }
+        }
+      };
+    });
+  }
+
+  function defineLoginButtonElement(registry) {
+    registry.define("mpr-login-button", function setupLoginElement(Base) {
+      return class MprLoginButtonElement extends Base {
+        constructor() {
+          super();
+          this.__authController = null;
+          this.__googleCleanup = null;
+          this.__googleHost = null;
+        }
+        static get observedAttributes() {
+          return LOGIN_BUTTON_ATTRIBUTE_NAMES;
+        }
+        render() {
+          this.__renderLoginButton();
+        }
+        update() {
+          this.__renderLoginButton();
+        }
+        destroy() {
+          if (this.__googleCleanup) {
+            this.__googleCleanup();
+            this.__googleCleanup = null;
+          }
+          this.__authController = null;
+          this.__googleHost = null;
+        }
+        __renderLoginButton() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          var container = ensureLoginButtonContainer(this);
+          if (!container) {
+            return;
+          }
+          this.__googleHost = container;
+          var authOptions = buildLoginAuthOptionsFromAttributes(this);
+          var siteId = authOptions.googleClientId || GOOGLE_FALLBACK_SITE_ID;
+          this.setAttribute("data-mpr-google-site-id", siteId);
+          if (!this.__authController) {
+            this.__authController = createAuthHeader(this, authOptions);
+          }
+          if (this.__googleCleanup) {
+            this.__googleCleanup();
+            this.__googleCleanup = null;
+          }
+          var buttonOptions = buildLoginButtonDisplayOptions(this);
+          this.__googleCleanup = renderGoogleButton(
+            container,
+            siteId,
+            buttonOptions,
+            function handleLoginError(detail) {
+              dispatchEvent(this, "mpr-login:error", detail || {});
+            }.bind(this),
+          );
+        }
+      };
+    });
+  }
+
   function registerCustomElements(namespace) {
     if (
       !namespace ||
@@ -3423,6 +3711,8 @@
     }
     defineHeaderElement(registry);
     defineFooterElement(registry);
+    defineThemeToggleElement(registry);
+    defineLoginButtonElement(registry);
   }
 
   var HTMLElementBridge =
