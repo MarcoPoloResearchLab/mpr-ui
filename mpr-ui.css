@@ -64,6 +64,23 @@ section {
   backdrop-filter: blur(4px);
 }
 
+.custom-elements-preview {
+  margin-top: 1.5rem;
+  border: 1px solid rgba(148, 163, 184, 0.35);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  background: var(--mpr-color-surface-elevated, rgba(15, 23, 42, 0.85));
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.2);
+}
+
+.custom-elements-preview mpr-header,
+.custom-elements-preview mpr-footer {
+  display: block;
+}
+
 pre {
   background: var(--mpr-color-surface-elevated, rgba(15, 23, 42, 0.85));
   padding: 0.75rem;

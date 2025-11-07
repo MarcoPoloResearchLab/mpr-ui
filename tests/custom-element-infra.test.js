@@ -159,9 +159,14 @@ test('createCustomElementRegistry defines elements once', () => {
     return class TestElement extends Base {}
   }
 
+  const initialDefinitionCount = registryState.definitions.size;
   const firstDefinition = registry.define('mpr-test', setupElement);
   assert.ok(firstDefinition, 'expected registry to return the registered class');
-  assert.equal(registryState.definitions.size, 1, 'customElements.define called once');
+  assert.equal(
+    registryState.definitions.size,
+    initialDefinitionCount + 1,
+    'customElements.define should register exactly one new element',
+  );
   assert.equal(setupCount, 1, 'setup should run on first definition');
 
   const duplicateDefinition = registry.define('mpr-test', setupElement);
@@ -172,7 +177,7 @@ test('createCustomElementRegistry defines elements once', () => {
   );
   assert.equal(
     registryState.definitions.size,
-    1,
+    initialDefinitionCount + 1,
     'registry must not re-register the same custom element',
   );
   assert.equal(setupCount, 1, 'setup should not run for cached definitions');
