@@ -4178,7 +4178,9 @@
             this.__panelDomId = createSettingsPanelDomId();
           }
           var attributeOptions = buildSettingsOptionsFromAttributes(this);
-          attributeOptions.open = this.__isOpen;
+          if (typeof attributeOptions.open !== "boolean") {
+            attributeOptions.open = this.__isOpen;
+          }
           var config = normalizeSettingsOptions(attributeOptions);
           var ariaControls = config.panelId || this.__panelDomId;
           this.__detachSettingsEvents();
