@@ -24,6 +24,9 @@
     avatar_url: "data-user-avatar-url",
   };
 
+  var GOOGLE_IDENTITY_SCRIPT_URL = "https://accounts.google.com/gsi/client";
+  var googleIdentityPromise = null;
+
   function ensureNamespace(target) {
     if (!target.MPRUI) {
       target.MPRUI = {};
@@ -1046,6 +1049,45 @@
     }
   }
 
+  function ensureGoogleIdentityClient(documentObject) {
+    if (
+      global.google &&
+      global.google.accounts &&
+      global.google.accounts.id &&
+      typeof global.google.accounts.id.renderButton === "function"
+    ) {
+      return Promise.resolve(global.google);
+    }
+    if (googleIdentityPromise) {
+      return googleIdentityPromise;
+    }
+    if (
+      !documentObject ||
+      !documentObject.head ||
+      typeof documentObject.createElement !== "function"
+    ) {
+      return Promise.reject(new Error("google_identity_unavailable"));
+    }
+    googleIdentityPromise = new Promise(function loadGoogleIdentity(resolve, reject) {
+      var scriptElement = documentObject.createElement("script");
+      var resolved = false;
+      scriptElement.src = GOOGLE_IDENTITY_SCRIPT_URL;
+      scriptElement.async = true;
+      scriptElement.defer = true;
+      scriptElement.onload = function handleGoogleIdentityLoad() {
+        resolved = true;
+        resolve(global.google || null);
+      };
+      scriptElement.onerror = function handleGoogleIdentityError() {
+        if (!resolved) {
+          reject(new Error("google_identity_script_failed"));
+        }
+      };
+      documentObject.head.appendChild(scriptElement);
+    });
+    return googleIdentityPromise;
+  }
+
   function createAuthHeader(rootElement, rawOptions) {
     if (!rootElement || typeof rootElement.dispatchEvent !== "function") {
       throw new Error("MPRUI.createAuthHeader requires a DOM element");
@@ -1419,6 +1461,9 @@
     "." +
     HEADER_ROOT_CLASS +
     "--no-theme [data-mpr-header=\"theme-toggle\"]{display:none}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "--no-auth [data-mpr-header=\"google-signin\"]{display:none}" +
     "." +
     HEADER_ROOT_CLASS +
     "__nav:empty{display:none}";
@@ -1872,13 +1917,6 @@
       if (elements.googleSignin) {
         elements.googleSignin.innerHTML = "";
         elements.googleSignin.removeAttribute("data-mpr-google-ready");
-        elements.googleSignin.removeAttribute("role");
-        elements.googleSignin.removeAttribute("tabindex");
-        elements.googleSignin.removeAttribute("aria-label");
-        elements.googleSignin.classList.remove(
-          HEADER_ROOT_CLASS + "__button",
-          HEADER_ROOT_CLASS + "__button--primary",
-        );
       }
     }
 
@@ -1902,35 +1940,53 @@
       if (!options.auth) {
         return;
       }
-      if (
-        !global.google ||
-        !global.google.accounts ||
-        !global.google.accounts.id ||
-        typeof global.google.accounts.id.renderButton !== "function"
-      ) {
-        dispatchHeaderEvent("mpr-ui:header:error", {
-          code: "mpr-ui.header.google_unavailable",
-        });
-        return;
-      }
-      try {
-        global.google.accounts.id.renderButton(elements.googleSignin, {
-          theme: "outline",
-          size: "large",
-          text: "signin_with",
-        });
-        elements.googleSignin.setAttribute("data-mpr-google-ready", "true");
-        googleButtonCleanup = function cleanupGoogleButton() {
-          elements.googleSignin.innerHTML = "";
-          elements.googleSignin.removeAttribute("data-mpr-google-ready");
-        };
-      } catch (_error) {
+      var isActive = true;
+      googleButtonCleanup = function cleanupGoogleButtonSlot() {
+        isActive = false;
         elements.googleSignin.innerHTML = "";
         elements.googleSignin.removeAttribute("data-mpr-google-ready");
-        dispatchHeaderEvent("mpr-ui:header:error", {
-          code: "mpr-ui.header.google_render_failed",
+      };
+      ensureGoogleIdentityClient(global.document)
+        .then(function handleGoogleIdentityReady(googleClient) {
+          if (!isActive) {
+            return;
+          }
+          var googleId =
+            googleClient &&
+            googleClient.accounts &&
+            googleClient.accounts.id &&
+            typeof googleClient.accounts.id.renderButton === "function"
+              ? googleClient.accounts.id
+              : null;
+          if (!googleId) {
+            dispatchHeaderEvent("mpr-ui:header:error", {
+              code: "mpr-ui.header.google_unavailable",
+            });
+            return;
+          }
+          try {
+            googleId.renderButton(elements.googleSignin, {
+              theme: "outline",
+              size: "large",
+              text: "signin_with",
+            });
+            elements.googleSignin.setAttribute("data-mpr-google-ready", "true");
+          } catch (_error) {
+            dispatchHeaderEvent("mpr-ui:header:error", {
+              code: "mpr-ui.header.google_render_failed",
+            });
+          }
+        })
+        .catch(function handleGoogleIdentityFailure(error) {
+          if (!isActive) {
+            return;
+          }
+          dispatchHeaderEvent("mpr-ui:header:error", {
+            code: "mpr-ui.header.google_script_failed",
+            message:
+              error && error.message ? String(error.message) : "google script load failed",
+          });
         });
-      }
     }
 
     if (
