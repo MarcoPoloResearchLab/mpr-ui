@@ -14,6 +14,9 @@
     siteLink: "",
   };
 
+  var GOOGLE_FALLBACK_SITE_ID =
+    "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com";
+
   var ATTRIBUTE_MAP = {
     user_id: "data-user-id",
     user_email: "data-user-email",
@@ -1001,10 +1004,13 @@
       if (dataset.settingsLabel) {
         options.settings.label = dataset.settingsLabel;
       }
-      if (dataset.settingsEnabled) {
-        options.settings.enabled =
-          dataset.settingsEnabled.toLowerCase() === "true";
-      }
+    if (dataset.settingsEnabled) {
+      options.settings.enabled =
+        dataset.settingsEnabled.toLowerCase() === "true";
+    }
+    if (dataset.siteId) {
+      options.siteId = dataset.siteId;
+    }
     }
     if (dataset.themeToggle) {
       options.themeToggle = parseJsonValue(dataset.themeToggle, {});
@@ -1375,6 +1381,12 @@
     "__actions{display:flex;gap:0.75rem;align-items:center}" +
     "." +
     HEADER_ROOT_CLASS +
+    "__google{display:none;align-items:center}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    '__google[data-mpr-google-ready="true"]{display:inline-flex}' +
+    "." +
+    HEADER_ROOT_CLASS +
     "__chip{display:none;flex-direction:column;align-items:flex-start;gap:0.25rem;font-size:0.85rem}" +
     "." +
     HEADER_ROOT_CLASS +
@@ -1509,6 +1521,28 @@
 
     var authOptions =
       options.auth && typeof options.auth === "object" ? options.auth : null;
+    var derivedSiteId =
+      typeof options.siteId === "string" && options.siteId.trim()
+        ? options.siteId.trim()
+        : null;
+    if (authOptions) {
+      var authSiteId =
+        typeof authOptions.googleClientId === "string" &&
+        authOptions.googleClientId.trim()
+          ? authOptions.googleClientId.trim()
+          : null;
+      if (!authSiteId) {
+        authOptions.googleClientId =
+          derivedSiteId || GOOGLE_FALLBACK_SITE_ID;
+        authSiteId = authOptions.googleClientId;
+      }
+      if (!derivedSiteId && authSiteId) {
+        derivedSiteId = authSiteId;
+      }
+    }
+    if (!derivedSiteId) {
+      derivedSiteId = GOOGLE_FALLBACK_SITE_ID;
+    }
 
     var themeDefaults = {
       enabled: HEADER_DEFAULTS.themeToggle.enabled,
@@ -1566,6 +1600,7 @@
         typeof options.profileLabel === "string" && options.profileLabel.trim()
           ? options.profileLabel.trim()
           : HEADER_DEFAULTS.profileLabel,
+      siteId: derivedSiteId,
       auth: authOptions,
     };
   }
@@ -1625,6 +1660,9 @@
       '<button type="button" class="' +
       HEADER_ROOT_CLASS +
       '__button" data-mpr-header="settings-button">Settings</button>' +
+      '<div class="' +
+      HEADER_ROOT_CLASS +
+      '__google" data-mpr-header="google-signin"></div>' +
       '<button type="button" class="' +
       HEADER_ROOT_CLASS +
       '__button ' +
@@ -1654,6 +1692,9 @@
       brand: hostElement.querySelector('[data-mpr-header="brand"]'),
       themeToggle: hostElement.querySelector(
         '[data-mpr-header="theme-toggle"]',
+      ),
+      googleSignin: hostElement.querySelector(
+        '[data-mpr-header="google-signin"]',
       ),
       settingsButton: hostElement.querySelector(
         '[data-mpr-header="settings-button"]',
@@ -1805,6 +1846,10 @@
     var authListenersAttached = false;
     var signInClickHandler = null;
     var headerToggleCleanup = null;
+    var googleButtonCleanup = null;
+    var googleSiteId = options.siteId || GOOGLE_FALLBACK_SITE_ID;
+    hostElement.setAttribute("data-mpr-google-site-id", googleSiteId);
+    var headerToggleCleanup = null;
 
     function destroyHeaderToggle() {
       if (headerToggleCleanup) {
@@ -1827,6 +1872,28 @@
       hostElement.setAttribute("data-mpr-theme-mode", modeValue);
     }
 
+    function destroyHeaderToggle() {
+      if (headerToggleCleanup) {
+        headerToggleCleanup();
+        headerToggleCleanup = null;
+      }
+    }
+
+    cleanupHandlers.push(destroyHeaderToggle);
+
+    function destroyGoogleButton() {
+      if (googleButtonCleanup) {
+        googleButtonCleanup();
+        googleButtonCleanup = null;
+      }
+      if (elements.googleSignin) {
+        elements.googleSignin.innerHTML = "";
+        elements.googleSignin.removeAttribute("data-mpr-google-ready");
+      }
+    }
+
+    cleanupHandlers.push(destroyGoogleButton);
+
     function mountHeaderThemeToggle() {
       destroyHeaderToggle();
       if (!elements.themeToggle) {
@@ -1834,6 +1901,37 @@
       }
       var toggleConfig = buildHeaderThemeToggleConfig(options, headerThemeConfig);
       headerToggleCleanup = initializeThemeToggle(elements.themeToggle, toggleConfig);
+    }
+
+    function mountGoogleSignInButton() {
+      destroyGoogleButton();
+      if (!elements.googleSignin) {
+        return;
+      }
+      elements.googleSignin.setAttribute("data-mpr-google-site-id", googleSiteId);
+      if (
+        !global.google ||
+        !global.google.accounts ||
+        !global.google.accounts.id ||
+        typeof global.google.accounts.id.renderButton !== "function"
+      ) {
+        return;
+      }
+      try {
+        global.google.accounts.id.renderButton(elements.googleSignin, {
+          theme: "outline",
+          size: "large",
+          text: "signin_with",
+        });
+        elements.googleSignin.setAttribute("data-mpr-google-ready", "true");
+        googleButtonCleanup = function cleanupGoogleButton() {
+          elements.googleSignin.innerHTML = "";
+          elements.googleSignin.removeAttribute("data-mpr-google-ready");
+        };
+      } catch (_error) {
+        elements.googleSignin.innerHTML = "";
+        elements.googleSignin.removeAttribute("data-mpr-google-ready");
+      }
     }
 
     if (
@@ -1844,6 +1942,7 @@
     }
 
     mountHeaderThemeToggle();
+    mountGoogleSignInButton();
     updateThemeHost(themeManager.getMode());
 
     var unsubscribeTheme = themeManager.on(function handleThemeChange(detail) {
@@ -1983,6 +2082,8 @@
         );
         options = normalizeHeaderOptions(updatedCombined);
         headerThemeConfig = options.themeToggle;
+        googleSiteId = options.siteId || GOOGLE_FALLBACK_SITE_ID;
+        hostElement.setAttribute("data-mpr-google-site-id", googleSiteId);
         applyHeaderOptions(hostElement, elements, options);
         themeManager.configure({
           attribute: headerThemeConfig.attribute,
@@ -1996,6 +2097,7 @@
           themeManager.setMode(headerThemeConfig.initialMode, "header:update");
         }
         mountHeaderThemeToggle();
+        mountGoogleSignInButton();
         updateThemeHost(themeManager.getMode());
         if (options.auth && elements.root) {
           elements.root.classList.remove(HEADER_ROOT_CLASS + "--no-auth");
@@ -2883,6 +2985,7 @@
   namespace.getFooterSiteCatalog = getFooterSiteCatalog;
   namespace.renderThemeToggle = renderThemeToggle;
   namespace.mprThemeToggle = mprThemeToggle;
+  namespace.DEFAULT_GOOGLE_SITE_ID = GOOGLE_FALLBACK_SITE_ID;
   namespace.configureTheme = function configureTheme(config) {
     return themeManager.configure(config || {});
   };

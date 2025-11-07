@@ -26,6 +26,7 @@ const profileAvatar = /** @type {HTMLElement | null} */ (
 const demoBody = /** @type {HTMLBodyElement | null} */ (document.body);
 
 const GOOGLE_FALLBACK_CLIENT_ID =
+  (window.MPRUI && window.MPRUI.DEFAULT_GOOGLE_SITE_ID) ||
   "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com";
 
 if (!headerHost || !eventLog || !profileId || !profileEmail || !profileDisplay) {
@@ -216,11 +217,11 @@ const headerController = window.MPRUI.renderSiteHeader(headerHost, {
     { label: "Support", href: "#support" },
   ],
   settings: { enabled: true, label: "Settings" },
+  siteId: GOOGLE_FALLBACK_CLIENT_ID,
   auth: {
     loginPath: "/auth/google",
     logoutPath: "/auth/logout",
     noncePath: "/auth/nonce",
-    googleClientId: GOOGLE_FALLBACK_CLIENT_ID,
   },
 });
 
@@ -291,21 +292,15 @@ const deliverDemoCredential = () => {
 };
 
 const promptButton = document.getElementById("trigger-prompt");
-const googleButtonHost = document.getElementById("google-signin-container");
 const signOutButton = document.getElementById("sign-out");
 const restartButton = document.getElementById("restart-session");
 
-if (!promptButton || !googleButtonHost || !signOutButton || !restartButton) {
+if (!promptButton || !signOutButton || !restartButton) {
   throw new Error("demo: expected auth action buttons to exist");
 }
 
 promptButton.addEventListener("click", () => {
   window.google.accounts.id.prompt();
-});
-
-window.google.accounts.id.renderButton(googleButtonHost, {
-  theme: "outline",
-  size: "large",
 });
 
 signOutButton.addEventListener("click", () => {

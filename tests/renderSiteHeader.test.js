@@ -162,6 +162,11 @@ function createHostHarness() {
     setAttribute: function (name, value) {
       host.attributes[name] = String(value);
     },
+    getAttribute: function (name) {
+      return Object.prototype.hasOwnProperty.call(host.attributes, name)
+        ? host.attributes[name]
+        : null;
+    },
     removeAttribute: function (name) {
       delete host.attributes[name];
     },
@@ -209,6 +214,7 @@ function createHostHarness() {
   };
   const settingsButton = createElementStub({ supportsEvents: true });
   const signInButton = createElementStub({ supportsEvents: true });
+  const googleSigninHost = createElementStub({ supportsAttributes: true });
   const profileContainer = createElementStub();
   const profileLabel = createElementStub();
   const profileName = createElementStub();
@@ -219,6 +225,7 @@ function createHostHarness() {
     ['[data-mpr-header="nav"]', nav],
     ['[data-mpr-header="brand"]', brand],
     ['[data-mpr-header="theme-toggle"]', themeToggleContainer],
+    ['[data-mpr-header="google-signin"]', googleSigninHost],
     ['[data-mpr-header="settings-button"]', settingsButton],
     ['[data-mpr-header="sign-in-button"]', signInButton],
     ['[data-mpr-header="profile"]', profileContainer],
@@ -238,6 +245,7 @@ function createHostHarness() {
     brand: brand,
     themeToggleControl: themeToggleControl,
     themeToggleIcon: themeToggleIcon,
+    googleSigninHost: googleSigninHost,
     settingsButton: settingsButton,
     signInButton: signInButton,
     profileContainer: profileContainer,
@@ -394,6 +402,53 @@ test('enabling auth via update rebinds handlers', () => {
     harness.dispatchedEvents.length,
     beforeEventCount,
     'fallback sign-in event suppressed after auth is enabled',
+  );
+});
+
+test('renderSiteHeader renders the Google button inside the header when siteId is provided', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const renderCalls = [];
+  global.google = {
+    accounts: {
+      id: {
+        renderButton(host, options) {
+          renderCalls.push({ host, options });
+        },
+        prompt: function () {},
+        initialize: function () {},
+      },
+    },
+  };
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {
+    siteId: 'demo-site-id',
+    auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
+  });
+  assert.strictEqual(renderCalls.length, 1, 'expected renderButton to be called once');
+  assert.strictEqual(
+    renderCalls[0].host,
+    harness.googleSigninHost,
+    'google button should mount inside the header host',
+  );
+  assert.strictEqual(
+    harness.host.getAttribute('data-mpr-google-site-id'),
+    'demo-site-id',
+    'host should record the provided site id',
+  );
+});
+
+test('siteId falls back to the bundled default when omitted', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {
+    auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
+  });
+  assert.strictEqual(
+    harness.host.getAttribute('data-mpr-google-site-id'),
+    '991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com',
+    'expected fallback site id when value missing',
   );
 });
 
