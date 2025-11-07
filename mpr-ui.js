@@ -221,6 +221,17 @@
     "button-shape",
   ]);
 
+  var SETTINGS_ATTRIBUTE_NAMES = Object.freeze([
+    "label",
+    "icon",
+    "panel-id",
+    "button-class",
+    "panel-class",
+    "open",
+  ]);
+  var SETTINGS_SLOT_NAMES = Object.freeze(["trigger", "panel"]);
+  var SITES_ATTRIBUTE_NAMES = Object.freeze(["variant", "columns", "links", "heading"]);
+
   function normalizeAttributeReflectionValue(attributeName, value) {
     if (value === null || value === undefined) {
       return null;
@@ -2654,6 +2665,191 @@
       .replace(/'/g, "&#39;");
   }
 
+  var SETTINGS_ROOT_CLASS = "mpr-settings";
+  var SETTINGS_STYLE_ID = "mpr-ui-settings-styles";
+  var SETTINGS_STYLE_MARKUP =
+    ".mpr-settings{display:flex;flex-direction:column;gap:0.75rem}" +
+    ".mpr-settings__trigger{display:flex;align-items:center;gap:0.5rem}" +
+    ".mpr-settings__button{appearance:none;border:none;border-radius:999px;padding:0.5rem 1rem;font-weight:600;background:var(--mpr-chip-bg,rgba(148,163,184,0.18));color:var(--mpr-color-text-primary,#e2e8f0);cursor:pointer;display:inline-flex;align-items:center;gap:0.5rem}" +
+    ".mpr-settings__button:hover{background:var(--mpr-chip-hover-bg,rgba(148,163,184,0.32))}" +
+    ".mpr-settings__icon{font-size:0.95rem}" +
+    ".mpr-settings__panel{border:1px solid var(--mpr-color-border,rgba(148,163,184,0.25));border-radius:1rem;padding:1rem;background:var(--mpr-color-surface-elevated,rgba(15,23,42,0.9));color:var(--mpr-color-text-primary,#e2e8f0)}" +
+    '.mpr-settings__panel[hidden]{display:none!important}';
+  var SETTINGS_DEFAULTS = Object.freeze({
+    label: "Settings",
+    icon: "⚙",
+    buttonClass: SETTINGS_ROOT_CLASS + "__button",
+    panelClass: SETTINGS_ROOT_CLASS + "__panel",
+  });
+  var SETTINGS_EMPTY_PANEL_ID_PREFIX = "mpr-settings-panel-";
+  var settingsPanelCounter = 0;
+
+  function ensureSettingsStyles(documentObject) {
+    if (
+      !documentObject ||
+      typeof documentObject.createElement !== "function" ||
+      !documentObject.head
+    ) {
+      return;
+    }
+    ensureThemeTokenStyles(documentObject);
+    if (documentObject.getElementById(SETTINGS_STYLE_ID)) {
+      return;
+    }
+    var styleElement = documentObject.createElement("style");
+    styleElement.type = "text/css";
+    styleElement.id = SETTINGS_STYLE_ID;
+    if (styleElement.styleSheet) {
+      styleElement.styleSheet.cssText = SETTINGS_STYLE_MARKUP;
+    } else {
+      styleElement.appendChild(
+        documentObject.createTextNode(SETTINGS_STYLE_MARKUP),
+      );
+    }
+    documentObject.head.appendChild(styleElement);
+  }
+
+  function buildSettingsOptionsFromAttributes(hostElement) {
+    var options = {};
+    if (!hostElement || typeof hostElement.getAttribute !== "function") {
+      return options;
+    }
+    var labelAttr = hostElement.getAttribute("label");
+    if (labelAttr) {
+      options.label = labelAttr;
+    }
+    var iconAttr = hostElement.getAttribute("icon");
+    if (iconAttr) {
+      options.icon = iconAttr;
+    }
+    var panelIdAttr = hostElement.getAttribute("panel-id");
+    if (panelIdAttr) {
+      options.panelId = panelIdAttr;
+    }
+    var buttonClassAttr = hostElement.getAttribute("button-class");
+    if (buttonClassAttr) {
+      options.buttonClass = buttonClassAttr;
+    }
+    var panelClassAttr = hostElement.getAttribute("panel-class");
+    if (panelClassAttr) {
+      options.panelClass = panelClassAttr;
+    }
+    var openAttr = hostElement.getAttribute("open");
+    if (openAttr !== null) {
+      options.open = normalizeBooleanAttribute(openAttr, true);
+    }
+    return options;
+  }
+
+  function normalizeSettingsOptions(rawOptions) {
+    var options = rawOptions && typeof rawOptions === "object" ? rawOptions : {};
+    var label =
+      typeof options.label === "string" && options.label.trim()
+        ? options.label.trim()
+        : SETTINGS_DEFAULTS.label;
+    var icon =
+      typeof options.icon === "string" && options.icon.trim()
+        ? options.icon.trim()
+        : SETTINGS_DEFAULTS.icon;
+    var panelId =
+      typeof options.panelId === "string" && options.panelId.trim()
+        ? options.panelId.trim()
+        : "";
+    var buttonClass =
+      typeof options.buttonClass === "string" && options.buttonClass.trim()
+        ? options.buttonClass.trim()
+        : SETTINGS_DEFAULTS.buttonClass;
+    var panelClass =
+      typeof options.panelClass === "string" && options.panelClass.trim()
+        ? options.panelClass.trim()
+        : SETTINGS_DEFAULTS.panelClass;
+    return {
+      label: label,
+      icon: icon,
+      panelId: panelId,
+      buttonClass: buttonClass,
+      panelClass: panelClass,
+      open: Boolean(options.open),
+    };
+  }
+
+  function buildSettingsMarkup(config, panelDomId, ariaControls) {
+    var iconMarkup = config.icon
+      ? '<span class="' +
+        SETTINGS_ROOT_CLASS +
+        '__icon" aria-hidden="true">' +
+        escapeHtml(config.icon) +
+        "</span>"
+      : "";
+    var ariaControlMarkup = ariaControls
+      ? ' aria-controls="' + escapeHtml(ariaControls) + '"'
+      : "";
+    return (
+      '<div class="' +
+      SETTINGS_ROOT_CLASS +
+      '__trigger" data-mpr-settings="trigger">' +
+      '<button type="button" class="' +
+      escapeHtml(config.buttonClass) +
+      '" data-mpr-settings="toggle" aria-expanded="' +
+      (config.open ? "true" : "false") +
+      '"' +
+      ariaControlMarkup +
+      ">" +
+      iconMarkup +
+      '<span class="' +
+      SETTINGS_ROOT_CLASS +
+      '__label" data-mpr-settings="label">' +
+      escapeHtml(config.label) +
+      "</span>" +
+      "</button>" +
+      "</div>" +
+      '<div class="' +
+      escapeHtml(config.panelClass) +
+      '" data-mpr-settings="panel"' +
+      (panelDomId ? ' id="' + escapeHtml(panelDomId) + '"' : "") +
+      (config.open ? "" : ' hidden="hidden"') +
+      "></div>"
+    );
+  }
+
+  function resolveSettingsElements(hostElement) {
+    if (!hostElement || typeof hostElement.querySelector !== "function") {
+      return {};
+    }
+    return {
+      trigger: hostElement.querySelector('[data-mpr-settings="trigger"]'),
+      button: hostElement.querySelector('[data-mpr-settings="toggle"]'),
+      label: hostElement.querySelector('[data-mpr-settings="label"]'),
+      panel: hostElement.querySelector('[data-mpr-settings="panel"]'),
+    };
+  }
+
+  function applySettingsSlotContent(slotMap, elements) {
+    if (!slotMap || !elements) {
+      return;
+    }
+    if (slotMap.trigger && slotMap.trigger.length && elements.trigger) {
+      slotMap.trigger.forEach(function appendTrigger(node) {
+        if (node && typeof elements.trigger.appendChild === "function") {
+          elements.trigger.appendChild(node);
+        }
+      });
+    }
+    if (slotMap.panel && slotMap.panel.length && elements.panel) {
+      clearNodeContents(elements.panel);
+      slotMap.panel.forEach(function appendPanel(node) {
+        if (node && typeof elements.panel.appendChild === "function") {
+          elements.panel.appendChild(node);
+        }
+      });
+    }
+  }
+
+  function createSettingsPanelDomId() {
+    settingsPanelCounter += 1;
+    return SETTINGS_EMPTY_PANEL_ID_PREFIX + settingsPanelCounter;
+  }
+
   function sanitizeHref(value) {
     if (value === null || value === undefined) {
       return "#";
@@ -2726,6 +2922,202 @@
         url: entry.url,
       };
     });
+  }
+
+  var SITES_ROOT_CLASS = "mpr-sites";
+  var SITES_STYLE_ID = "mpr-ui-sites-styles";
+  var SITES_STYLE_MARKUP =
+    ".mpr-sites{display:flex;flex-direction:column;gap:0.75rem}" +
+    ".mpr-sites__heading{margin:0;font-weight:600;color:var(--mpr-color-text-primary,#e2e8f0)}" +
+    ".mpr-sites__list{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:0.5rem}" +
+    ".mpr-sites__list--grid{display:grid;grid-template-columns:repeat(var(--mpr-sites-columns,2),minmax(0,1fr));gap:0.75rem}" +
+    ".mpr-sites__item{margin:0}" +
+    ".mpr-sites__link{display:flex;justify-content:space-between;align-items:center;padding:0.6rem 0.85rem;border-radius:0.85rem;border:1px solid var(--mpr-color-border,rgba(148,163,184,0.3));color:var(--mpr-color-text-primary,#e2e8f0);text-decoration:none;font-weight:500;background:var(--mpr-color-surface-elevated,rgba(15,23,42,0.85))}" +
+    ".mpr-sites__link:hover{border-color:var(--mpr-color-accent,#38bdf8);color:var(--mpr-color-accent,#38bdf8)}" +
+    ".mpr-sites__empty{padding:0.6rem 0.85rem;border:1px dashed var(--mpr-color-border,rgba(148,163,184,0.3));border-radius:0.85rem;text-align:center;color:var(--mpr-color-text-muted,#cbd5f5)}" +
+    ".mpr-sites--menu ." +
+    SITES_ROOT_CLASS +
+    "__list{gap:0.35rem}" +
+    ".mpr-sites--menu ." +
+    SITES_ROOT_CLASS +
+    "__link{background:transparent}";
+  var SITES_VARIANTS = Object.freeze(["list", "grid", "menu"]);
+  var SITES_DEFAULTS = Object.freeze({
+    variant: "list",
+    columns: 2,
+    heading: "",
+  });
+  var SITES_EMPTY_LABEL = "No sites available";
+
+  function ensureSitesStyles(documentObject) {
+    if (
+      !documentObject ||
+      typeof documentObject.createElement !== "function" ||
+      !documentObject.head
+    ) {
+      return;
+    }
+    ensureThemeTokenStyles(documentObject);
+    if (documentObject.getElementById(SITES_STYLE_ID)) {
+      return;
+    }
+    var styleElement = documentObject.createElement("style");
+    styleElement.type = "text/css";
+    styleElement.id = SITES_STYLE_ID;
+    if (styleElement.styleSheet) {
+      styleElement.styleSheet.cssText = SITES_STYLE_MARKUP;
+    } else {
+      styleElement.appendChild(documentObject.createTextNode(SITES_STYLE_MARKUP));
+    }
+    documentObject.head.appendChild(styleElement);
+  }
+
+  function buildSitesOptionsFromAttributes(hostElement) {
+    var options = {};
+    if (!hostElement || typeof hostElement.getAttribute !== "function") {
+      return options;
+    }
+    var variantAttr = hostElement.getAttribute("variant");
+    if (variantAttr) {
+      options.variant = variantAttr;
+    }
+    var columnsAttr = hostElement.getAttribute("columns");
+    if (columnsAttr !== null && columnsAttr !== undefined) {
+      var parsedColumns = parseInt(columnsAttr, 10);
+      if (!isNaN(parsedColumns)) {
+        options.columns = parsedColumns;
+      }
+    }
+    var headingAttr = hostElement.getAttribute("heading");
+    if (headingAttr) {
+      options.heading = headingAttr;
+    }
+    var linksAttr = hostElement.getAttribute("links");
+    if (linksAttr) {
+      options.links = parseJsonValue(linksAttr, []);
+    }
+    return options;
+  }
+
+  function normalizeSitesOptions(rawOptions) {
+    var options = rawOptions && typeof rawOptions === "object" ? rawOptions : {};
+    var variantSource =
+      typeof options.variant === "string" && options.variant.trim()
+        ? options.variant.trim().toLowerCase()
+        : SITES_DEFAULTS.variant;
+    var variant = SITES_VARIANTS.indexOf(variantSource) === -1
+      ? SITES_DEFAULTS.variant
+      : variantSource;
+    var columns = parseInt(options.columns, 10);
+    if (!columns || columns < 1) {
+      columns = SITES_DEFAULTS.columns;
+    }
+    if (columns > 4) {
+      columns = 4;
+    }
+    var heading =
+      typeof options.heading === "string" && options.heading.trim()
+        ? options.heading.trim()
+        : "";
+    var links = normalizeSitesLinks(options.links);
+    return {
+      variant: variant,
+      columns: columns,
+      heading: heading,
+      links: links,
+    };
+  }
+
+  function normalizeSitesLinks(rawLinks) {
+    var source = Array.isArray(rawLinks) ? rawLinks : null;
+    var baseList = source && source.length ? source : getFooterSiteCatalog();
+    return baseList
+      .map(function normalize(entry) {
+        if (!entry || typeof entry !== "object") {
+          return null;
+        }
+        var label =
+          typeof entry.label === "string" && entry.label.trim()
+            ? entry.label.trim()
+            : null;
+        var hrefValue =
+          typeof entry.url === "string" && entry.url.trim()
+            ? sanitizeHref(entry.url)
+            : null;
+        if (!label || !hrefValue) {
+          return null;
+        }
+        var target =
+          typeof entry.target === "string" && entry.target.trim()
+            ? entry.target.trim()
+            : FOOTER_LINK_DEFAULT_TARGET;
+        var rel =
+          typeof entry.rel === "string" && entry.rel.trim()
+            ? entry.rel.trim()
+            : FOOTER_LINK_DEFAULT_REL;
+        return {
+          label: label,
+          href: hrefValue,
+          target: target,
+          rel: rel,
+        };
+      })
+      .filter(Boolean);
+  }
+
+  function buildSitesMarkup(config) {
+    var listClass = SITES_ROOT_CLASS + "__list";
+    if (config.variant === "grid") {
+      listClass += " " + SITES_ROOT_CLASS + "__list--grid";
+    }
+    var itemsMarkup = config.links
+      .map(function renderLink(link, index) {
+        return (
+          '<li class="' +
+          SITES_ROOT_CLASS +
+          '__item"><a class="' +
+          SITES_ROOT_CLASS +
+          '__link" data-mpr-sites-index="' +
+          String(index) +
+          '" href="' +
+          escapeHtml(link.href) +
+          '" target="' +
+          escapeHtml(link.target) +
+          '" rel="' +
+          escapeHtml(link.rel) +
+          '">' +
+          escapeHtml(link.label) +
+          "</a></li>"
+        );
+      })
+      .join("");
+    var headingMarkup = config.heading
+      ? '<p class="' + SITES_ROOT_CLASS + '__heading">' + escapeHtml(config.heading) + "</p>"
+      : "";
+    if (!itemsMarkup) {
+      itemsMarkup =
+        '<li class="' +
+        SITES_ROOT_CLASS +
+        '__item"><span class="' +
+        SITES_ROOT_CLASS +
+        '__empty">' +
+        escapeHtml(SITES_EMPTY_LABEL) +
+        "</span></li>";
+    }
+    return (
+      '<div class="' +
+      SITES_ROOT_CLASS +
+      '__container" data-mpr-sites="container">' +
+      headingMarkup +
+      '<ul class="' +
+      listClass +
+      '" data-mpr-sites="list" role="list" style="--mpr-sites-columns:' +
+      String(config.columns) +
+      '">' +
+      itemsMarkup +
+      "</ul>" +
+      "</div>"
+    );
   }
 
   var FOOTER_DEFAULTS = Object.freeze({
@@ -3698,6 +4090,308 @@
     });
   }
 
+  function defineSettingsElement(registry) {
+    registry.define("mpr-settings", function setupSettingsElement(Base) {
+      return class MprSettingsElement extends Base {
+        constructor() {
+          super();
+          this.__settingsSlots = null;
+          this.__settingsSlotsCaptured = false;
+          this.__elements = null;
+          this.__panelDomId = "";
+          this.__isOpen = false;
+          this.__boundToggleHandler = this.__handleToggle.bind(this);
+        }
+        static get observedAttributes() {
+          return SETTINGS_ATTRIBUTE_NAMES;
+        }
+        get open() {
+          return this.__isOpen;
+        }
+        set open(value) {
+          this.__setOpenState(Boolean(value), "property");
+        }
+        toggle(force) {
+          if (typeof force === "boolean") {
+            this.__setOpenState(force, "api");
+            return;
+          }
+          this.__setOpenState(!this.__isOpen, "api");
+        }
+        render() {
+          this.__captureSettingsSlots();
+          this.__renderSettings();
+        }
+        update(name) {
+          if (name === "open") {
+            this.__setOpenState(this.__computeOpenState(), "attribute");
+            return;
+          }
+          this.__renderSettings();
+        }
+        destroy() {
+          this.__detachSettingsEvents();
+          this.__settingsSlots = null;
+          this.__settingsSlotsCaptured = false;
+          this.__elements = null;
+          this.__isOpen = false;
+        }
+        __captureSettingsSlots() {
+          if (this.__settingsSlotsCaptured) {
+            return;
+          }
+          var slots = captureSlotNodes(this, SETTINGS_SLOT_NAMES);
+          var defaultNodes = [];
+          while (this.firstChild) {
+            var childNode = this.firstChild;
+            this.removeChild(childNode);
+            var slotName =
+              childNode && typeof childNode.getAttribute === "function"
+                ? childNode.getAttribute("slot")
+                : childNode && typeof childNode.slot === "string"
+                ? childNode.slot
+                : null;
+            if (slotName && Object.prototype.hasOwnProperty.call(slots, slotName)) {
+              continue;
+            }
+            defaultNodes.push(childNode);
+          }
+          if (!slots.panel) {
+            slots.panel = [];
+          }
+          Array.prototype.push.apply(slots.panel, defaultNodes);
+          this.__settingsSlots = slots;
+          this.__settingsSlotsCaptured = true;
+        }
+        __renderSettings() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          var documentObject =
+            this.ownerDocument ||
+            global.document ||
+            (global.window && global.window.document) ||
+            null;
+          ensureSettingsStyles(documentObject);
+          this.classList.add(SETTINGS_ROOT_CLASS);
+          if (!this.__panelDomId) {
+            this.__panelDomId = createSettingsPanelDomId();
+          }
+          var attributeOptions = buildSettingsOptionsFromAttributes(this);
+          attributeOptions.open = this.__isOpen;
+          var config = normalizeSettingsOptions(attributeOptions);
+          var ariaControls = config.panelId || this.__panelDomId;
+          this.__detachSettingsEvents();
+          this.innerHTML = buildSettingsMarkup(config, this.__panelDomId, ariaControls);
+          this.__elements = resolveSettingsElements(this);
+          if (this.__elements && this.__elements.label) {
+            this.__elements.label.textContent = config.label;
+          }
+          if (this.__settingsSlots) {
+            applySettingsSlotContent(this.__settingsSlots, this.__elements);
+          }
+          this.__attachSettingsEvents();
+          this.__setOpenState(config.open, "render");
+        }
+        __attachSettingsEvents() {
+          if (
+            this.__elements &&
+            this.__elements.button &&
+            typeof this.__elements.button.addEventListener === "function"
+          ) {
+            this.__elements.button.addEventListener("click", this.__boundToggleHandler);
+          }
+        }
+        __detachSettingsEvents() {
+          if (
+            this.__elements &&
+            this.__elements.button &&
+            typeof this.__elements.button.removeEventListener === "function"
+          ) {
+            this.__elements.button.removeEventListener("click", this.__boundToggleHandler);
+          }
+        }
+        __computeOpenState() {
+          var openAttr = this.getAttribute("open");
+          if (openAttr === null || openAttr === undefined) {
+            return this.__isOpen;
+          }
+          return normalizeBooleanAttribute(openAttr, false);
+        }
+        __setOpenState(nextValue, source) {
+          var next = Boolean(nextValue);
+          var changed = next !== this.__isOpen;
+          this.__isOpen = next;
+          this.__applyOpenState(next);
+          if (source && source !== "render" && changed) {
+            dispatchEvent(this, "mpr-settings:toggle", {
+              panelId: this.getAttribute("panel-id") || null,
+              open: next,
+              source: source,
+            });
+          }
+        }
+        __applyOpenState(isOpen) {
+          if (!this.__elements) {
+            return;
+          }
+          this.setAttribute("data-mpr-settings-open", isOpen ? "true" : "false");
+          if (this.__elements.button && typeof this.__elements.button.setAttribute === "function") {
+            this.__elements.button.setAttribute("aria-expanded", isOpen ? "true" : "false");
+          }
+          if (this.__elements.panel) {
+            if (isOpen) {
+              this.__elements.panel.removeAttribute("hidden");
+            } else {
+              this.__elements.panel.setAttribute("hidden", "hidden");
+            }
+          }
+          var panelTarget = this.__resolvePanelTarget();
+          if (panelTarget) {
+            if (isOpen) {
+              panelTarget.removeAttribute("hidden");
+            } else {
+              panelTarget.setAttribute("hidden", "hidden");
+            }
+          }
+        }
+        __resolvePanelTarget() {
+          var targetId = this.getAttribute("panel-id");
+          if (!targetId) {
+            return null;
+          }
+          var documentObject =
+            this.ownerDocument ||
+            global.document ||
+            (global.window && global.window.document) ||
+            null;
+          if (!documentObject || typeof documentObject.getElementById !== "function") {
+            return null;
+          }
+          return documentObject.getElementById(targetId);
+        }
+        __handleToggle(event) {
+          if (event && typeof event.preventDefault === "function") {
+            event.preventDefault();
+          }
+          this.__setOpenState(!this.__isOpen, "user");
+        }
+      };
+    });
+  }
+
+  function defineSitesElement(registry) {
+    registry.define("mpr-sites", function setupSitesElement(Base) {
+      return class MprSitesElement extends Base {
+        constructor() {
+          super();
+          this.__linksConfig = [];
+          this.__linkNodes = [];
+          this.__boundLinkHandler = this.__handleLinkClick.bind(this);
+        }
+        static get observedAttributes() {
+          return SITES_ATTRIBUTE_NAMES;
+        }
+        render() {
+          this.__renderSites();
+        }
+        update() {
+          this.__renderSites();
+        }
+        destroy() {
+          this.__detachLinkHandlers();
+          this.__linksConfig = [];
+          this.__linkNodes = [];
+        }
+        __renderSites() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          var documentObject =
+            this.ownerDocument ||
+            global.document ||
+            (global.window && global.window.document) ||
+            null;
+          ensureSitesStyles(documentObject);
+          var attributeOptions = buildSitesOptionsFromAttributes(this);
+          var config = normalizeSitesOptions(attributeOptions);
+          this.__linksConfig = config.links;
+          this.classList.add(SITES_ROOT_CLASS);
+          this.classList.toggle(SITES_ROOT_CLASS + "--grid", config.variant === "grid");
+          this.classList.toggle(SITES_ROOT_CLASS + "--list", config.variant === "list");
+          this.classList.toggle(SITES_ROOT_CLASS + "--menu", config.variant === "menu");
+          this.setAttribute("data-mpr-sites-variant", config.variant);
+          this.setAttribute("data-mpr-sites-columns", String(config.columns));
+          this.setAttribute("data-mpr-sites-count", String(config.links.length));
+          this.setAttribute(
+            "data-mpr-sites-empty",
+            config.links.length ? "false" : "true",
+          );
+          this.__detachLinkHandlers();
+          this.innerHTML = buildSitesMarkup(config);
+          this.__attachLinkHandlers();
+        }
+        __attachLinkHandlers() {
+          var nodes = [];
+          if (typeof this.querySelectorAll === "function") {
+            var nodeList = this.querySelectorAll('[data-mpr-sites-index]');
+            if (nodeList && typeof nodeList.length === "number") {
+              for (var index = 0; index < nodeList.length; index += 1) {
+                nodes.push(nodeList[index]);
+              }
+            }
+          }
+          this.__linkNodes = [];
+          nodes.forEach(
+            function attach(node) {
+              if (
+                node &&
+                typeof node.addEventListener === "function" &&
+                typeof node.getAttribute === "function"
+              ) {
+                node.addEventListener("click", this.__boundLinkHandler);
+                this.__linkNodes.push(node);
+              }
+            }.bind(this),
+          );
+        }
+        __detachLinkHandlers() {
+          this.__linkNodes.forEach(
+            function detach(node) {
+              if (node && typeof node.removeEventListener === "function") {
+                node.removeEventListener("click", this.__boundLinkHandler);
+              }
+            }.bind(this),
+          );
+          this.__linkNodes = [];
+        }
+        __handleLinkClick(event) {
+          var anchor = event && event.currentTarget ? event.currentTarget : null;
+          if (!anchor || typeof anchor.getAttribute !== "function") {
+            return;
+          }
+          var indexValue = anchor.getAttribute("data-mpr-sites-index");
+          var parsedIndex = parseInt(indexValue, 10);
+          if (
+            isNaN(parsedIndex) ||
+            parsedIndex < 0 ||
+            parsedIndex >= this.__linksConfig.length
+          ) {
+            return;
+          }
+          var link = this.__linksConfig[parsedIndex];
+          dispatchEvent(this, "mpr-sites:link-click", {
+            label: link.label,
+            url: link.href,
+            target: link.target,
+            rel: link.rel,
+            index: parsedIndex,
+          });
+        }
+      };
+    });
+  }
+
   function registerCustomElements(namespace) {
     if (
       !namespace ||
@@ -3713,6 +4407,8 @@
     defineFooterElement(registry);
     defineThemeToggleElement(registry);
     defineLoginButtonElement(registry);
+    defineSettingsElement(registry);
+    defineSitesElement(registry);
   }
 
   var HTMLElementBridge =

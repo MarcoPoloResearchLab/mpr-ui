@@ -117,10 +117,18 @@ function createStubNode(options) {
       });
     };
     node.dispatchEvent = function dispatchEvent(event) {
-      const eventType = event && event.type ? String(event.type) : '';
+      const payload = event && typeof event === 'object' ? event : { type: '' };
+      if (!payload.type) {
+        payload.type = '';
+      }
+      payload.currentTarget = node;
+      if (!payload.target) {
+        payload.target = node;
+      }
+      const eventType = String(payload.type);
       const handlers = listeners[eventType] ? listeners[eventType].slice() : [];
       handlers.forEach(function invoke(handler) {
-        handler.call(node, event);
+        handler.call(node, payload);
       });
       return handlers.length > 0;
     };
@@ -319,7 +327,7 @@ function createSlotNode(text) {
   };
 }
 
-function attachHostApi(element, selectorMap) {
+function attachHostApi(element, selectorMap, multiSelectorMap) {
   const dispatchedEvents = [];
   element.__dispatchedEvents = dispatchedEvents;
 
@@ -363,6 +371,10 @@ function attachHostApi(element, selectorMap) {
     if (slotMatch) {
       const slotName = slotMatch[1];
       return this.__slotMap[slotName] ? this.__slotMap[slotName].slice() : [];
+    }
+    if (multiSelectorMap && multiSelectorMap.has(selector)) {
+      const nodes = multiSelectorMap.get(selector);
+      return nodes ? nodes.slice() : [];
     }
     return [];
   };
@@ -525,6 +537,48 @@ function createLoginButtonHarness(googleStub) {
     renderCalls.push({ target, config });
   };
   return { element, buttonHost, renderCalls };
+}
+
+function createSettingsElementHarness() {
+  const SettingsElement = global.customElements.get('mpr-settings');
+  assert.ok(SettingsElement, 'mpr-settings is defined');
+  const triggerHost = createStubNode({});
+  const button = createStubNode({ supportsEvents: true, attributes: true });
+  const label = createStubNode({});
+  const panel = createStubNode({ attributes: true });
+  const selectorMap = new Map([
+    ['[data-mpr-settings="trigger"]', triggerHost],
+    ['[data-mpr-settings="toggle"]', button],
+    ['[data-mpr-settings="label"]', label],
+    ['[data-mpr-settings="panel"]', panel],
+  ]);
+  const element = attachHostApi(new SettingsElement(), selectorMap);
+  element.dataset = element.dataset || {};
+  element.__setSlotNodes({
+    panel: [createSlotNode('Panel Slot Content')],
+  });
+  return { element, button, label, panel };
+}
+
+function createSitesElementHarness(links) {
+  const SitesElement = global.customElements.get('mpr-sites');
+  assert.ok(SitesElement, 'mpr-sites is defined');
+  const listHost = createStubNode({});
+  const anchors = Array.isArray(links)
+    ? links.map((_entry, index) =>
+        createStubNode({ attributes: true, supportsEvents: true }),
+      )
+    : [];
+  anchors.forEach((anchor, index) => {
+    anchor.attributes = anchor.attributes || {};
+    anchor.attributes['data-mpr-sites-index'] = String(index);
+  });
+  const selectorMap = new Map([['[data-mpr-sites="list"]', listHost]]);
+  const multiSelectorMap = new Map();
+  multiSelectorMap.set('[data-mpr-sites-index]', anchors);
+  const element = attachHostApi(new SitesElement(), selectorMap, multiSelectorMap);
+  element.dataset = element.dataset || {};
+  return { element, anchors };
 }
 
 test('mpr-header reflects attributes and updates values', () => {
@@ -738,5 +792,83 @@ test('mpr-login-button renders the Google button with provided site ID', async (
     renderCalls[0].target,
     buttonHost,
     'Google button rendered inside the element host',
+  );
+});
+
+test('mpr-settings toggles open state and dispatches events', () => {
+  resetEnvironment();
+  loadLibrary();
+  const { element, button, label, panel } = createSettingsElementHarness();
+  element.setAttribute('label', 'Quick Settings');
+  element.connectedCallback();
+  assert.equal(label.textContent, 'Quick Settings');
+  assert.equal(
+    element.getAttribute('data-mpr-settings-open'),
+    'false',
+    'settings launcher starts closed by default',
+  );
+  button.dispatchEvent({ type: 'click', preventDefault() {} });
+  assert.equal(
+    element.getAttribute('data-mpr-settings-open'),
+    'true',
+    'clicking the button opens the panel',
+  );
+  assert.strictEqual(
+    panel.getAttribute && panel.getAttribute('hidden'),
+    null,
+    'panel shows when opened',
+  );
+  const lastEvent =
+    element.__dispatchedEvents[element.__dispatchedEvents.length - 1];
+  assert.equal(lastEvent.type, 'mpr-settings:toggle');
+  assert.equal(lastEvent.detail && lastEvent.detail.open, true);
+  element.setAttribute('open', 'false');
+  assert.equal(
+    element.getAttribute('data-mpr-settings-open'),
+    'false',
+    'open attribute closes the launcher',
+  );
+});
+
+test('mpr-sites dispatches link click events with normalized details', () => {
+  resetEnvironment();
+  loadLibrary();
+  const links = [
+    { label: 'Docs', url: 'https://example.com/docs' },
+    { label: 'Support', url: 'https://example.com/support' },
+  ];
+  const { element, anchors } = createSitesElementHarness(links);
+  element.setAttribute('links', JSON.stringify(links));
+  element.setAttribute('variant', 'grid');
+  element.setAttribute('columns', '2');
+  element.connectedCallback();
+  assert.equal(
+    element.getAttribute('data-mpr-sites-variant'),
+    'grid',
+    'variant reflected on host dataset',
+  );
+  assert.equal(
+    element.getAttribute('data-mpr-sites-count'),
+    String(links.length),
+    'site count stored on host',
+  );
+  assert.ok(
+    anchors[0],
+    'first anchor stub is available for click simulation',
+  );
+  anchors[0].dispatchEvent({ type: 'click' });
+  const lastEvent =
+    element.__dispatchedEvents[element.__dispatchedEvents.length - 1];
+  assert.equal(lastEvent.type, 'mpr-sites:link-click');
+  assert.deepEqual(
+    lastEvent.detail,
+    {
+      label: 'Docs',
+      url: 'https://example.com/docs',
+      target: '_blank',
+      rel: 'noopener noreferrer',
+      index: 0,
+    },
+    'link click detail exposes normalized catalog entry',
   );
 });

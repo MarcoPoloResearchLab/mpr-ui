@@ -22,6 +22,13 @@ const profileDisplay = /** @type {HTMLElement | null} */ (
 const profileAvatar = /** @type {HTMLElement | null} */ (
   document.getElementById("profile-avatar")
 );
+const demoSettingsElement =
+  /** @type {(HTMLElement & { toggle?: (force?: boolean) => void }) | null} */ (
+    document.getElementById("demo-settings")
+  );
+const demoSitesElement = /** @type {HTMLElement | null} */ (
+  document.getElementById("demo-sites")
+);
 
 const demoBody = /** @type {HTMLBodyElement | null} */ (document.body);
 
@@ -221,9 +228,36 @@ headerHost.addEventListener("mpr-ui:header:theme-change", (event) => {
   );
 });
 
+const settingsElementApi =
+  demoSettingsElement &&
+  /** @type {{ toggle?: (force?: boolean) => void }} */ (demoSettingsElement);
+
 headerHost.addEventListener("mpr-ui:header:settings-click", () => {
   appendLogEntry("Settings button clicked");
+  if (settingsElementApi && typeof settingsElementApi.toggle === "function") {
+    settingsElementApi.toggle();
+  }
 });
+
+if (demoSettingsElement) {
+  demoSettingsElement.addEventListener("mpr-settings:toggle", (event) => {
+    const detail = event && event.detail ? event.detail : {};
+    appendLogEntry(
+      `mpr-settings → ${detail.open ? "open" : "closed"}${
+        detail.panelId ? ` (panel: ${detail.panelId})` : ""
+      }`,
+    );
+  });
+}
+
+if (demoSitesElement) {
+  demoSitesElement.addEventListener("mpr-sites:link-click", (event) => {
+    const detail = event && event.detail ? event.detail : {};
+    appendLogEntry(
+      `mpr-sites link → ${detail.label || "Unknown"} (${detail.url || "#"})`,
+    );
+  });
+}
 
 syncProfileDataset(headerHost);
 
