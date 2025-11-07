@@ -54,29 +54,43 @@ Additional tags can follow (e.g. `<mpr-profile-card>`, `<mpr-google-loader>`), b
 5. **Custom events**: Each element re-dispatches the relevant `mpr-ui:*` events from itself so page authors can listen without tracking nested nodes.
 6. **Accessibility**: Keep semantics identical to current markup (nav landmarks, ARIA labels) by reusing the renderers already present inside `mpr-ui.js`.
 
-## Implementation Phases (feeds MU-104)
+## Issue Breakdown
 
-1. **Infrastructure groundwork**
-   - Introduce `createCustomElementRegistry()` that guards against duplicate registrations (useful for multiple bundle loads).
-   - Extract presentation-specific DOM builders (header/footer markup) into dedicated functions to reuse between imperative and custom-element surfaces.
-   - Document the new base class in `ARCHITECTURE.md`.
-2. **Header + Footer elements**
-   - Implement `<mpr-header>` and `<mpr-footer>` first—they cover most demand and exercise auth/theme linking.
-   - Add attribute/property mapping tables to README.
-   - Extend demo with `<mpr-header>`/`<mpr-footer>` examples.
-3. **Theme + Auth controls**
-   - Implement `<mpr-theme-toggle>` and `<mpr-login-button>` using existing helpers.
-   - Ensure the toggle plays nicely with global theme state and can operate outside header/footer.
-4. **Settings & Sites utilities**
-   - `<mpr-settings>` dispatches `mpr-settings:toggle` and toggles the provided target element.
-   - `<mpr-sites>` renders the catalog either inline or via `<slot>` fallback.
-5. **Documentation + Samples**
-   - Dedicated “Custom Elements” section in README.
-   - Detailed reference in `docs/custom-elements.md` (attributes, events, examples).
-   - Demo page update with toggles to switch between Alpine/imperative and custom-element snippets.
-6. **Testing**
-   - New `node:test` suites that instantiate custom elements inside JSDOM, assert attribute reflection, event bubbling, and cleanup.
-   - Puppeteer coverage verifying `<mpr-header>` + `<mpr-footer>` render in the actual demo, GIS button appears, theme toggles propagate.
+### MU-104 — Custom Element Infrastructure
+- **Scope**: Introduce the shared `MprElement` base class, lifecycle helpers, and the guarded registration utility so the bundle can safely define custom elements multiple times.
+- **Deliverables**: `createCustomElementRegistry`, DOM builder extraction for header/footer markup, documented lifecycle diagrams in `ARCHITECTURE.md`, and smoke tests proving cleanup/update lifecycles work without leaking handles.
+- **Dependencies**: None; provides the foundation that MU-105 through MU-109 will consume.
+- **Exit criteria**: Imperative + Alpine APIs remain untouched, and the new infrastructure code is covered by `node:test` suites.
+
+### MU-105 — `<mpr-header>` + `<mpr-footer>`
+- **Scope**: Implement the flagship elements on top of the new base class, wiring options via attributes and exposing slots for brand/nav/footer overrides.
+- **Deliverables**: Attribute/property reflection (brand/site/auth/theme), slot documentation, demo examples using both tags, and regression tests covering updates/events.
+- **Dependencies**: Requires MU-104 infrastructure; informs MU-108 documentation due to new end-user surface.
+- **Exit criteria**: Elements re-dispatch auth/theme events, reuse existing renderers, and pass new DOM-focused tests.
+
+### MU-106 — `<mpr-theme-toggle>` + `<mpr-login-button>`
+- **Scope**: Provide standalone theme and auth controls so consumers can compose lighter integrations without the full header.
+- **Deliverables**: Custom elements that wrap `renderThemeToggle` and GIS button helpers, JSON attribute support for theme config, demo snippets, and targeted tests proving they react to global store changes.
+- **Dependencies**: Builds on MU-104 (base class) and reuses GIS loader logic.
+- **Exit criteria**: Multiple instances coexist without duplicate GIS injections, and toggles dispatch `mpr-ui:theme-change`.
+
+### MU-107 — `<mpr-settings>` + `<mpr-sites>`
+- **Scope**: Ship auxiliary components for settings launchers and catalog renderers so marketing pages can stay declarative.
+- **Deliverables**: Attribute-driven CTA/slot rendering, catalog data parsing, event contracts (`mpr-settings:toggle`, `mpr-sites:link-click`), and demo coverage showing integration with the footer/header components.
+- **Dependencies**: Relies on MU-104 infrastructure; optionally on MU-105 if sharing DOM builders.
+- **Exit criteria**: Components degrade gracefully when slots/data are absent and emit documented events.
+
+### MU-108 — Documentation & Samples
+- **Scope**: Update README, ARCHITECTURE, and new `docs/custom-elements.md` with attribute tables, slots, and troubleshooting guidance; overhaul the demo to highlight custom elements.
+- **Deliverables**: Copy-paste HTML examples, migration guide (imperative/Alpine → custom elements), and CSP/polyfill guidance.
+- **Dependencies**: Consumes outputs from MU-105–MU-107 once APIs stabilize.
+- **Exit criteria**: Documentation references the final tag names/attributes and the demo page showcases both the old and new integration paths.
+
+### MU-109 — Testing & Release Readiness
+- **Scope**: Harden regression coverage (unit + Puppeteer), wire CI so GitHub Actions gate PRs, and prep the release checklist for the custom-element launch.
+- **Deliverables**: New `node:test` suites for each element, Puppeteer flows exercising GIS/theme toggles, CI workflow updates, and CHANGELOG/ISSUES entries marking the rollout.
+- **Dependencies**: Final step after MU-105–MU-108; ensures confidence before publishing v0.1.0.
+- **Exit criteria**: CI green on master, demo verified, and release notes drafted.
 
 ## Documentation Deliverables
 
@@ -111,10 +125,8 @@ Additional tags can follow (e.g. `<mpr-profile-card>`, `<mpr-google-loader>`), b
 - Maintain strict CSP compatibility—no inline scripts. Custom element definitions live inside the existing module.
 - Ensure theme manager remains the single source of truth; components must not mutate inline styles directly.
 
-## Next Steps (feeds MU-104)
+## Next Steps
 
-1. Land infrastructure PR: base class + registry + shared helpers, no public surface yet.
-2. Implement `<mpr-header>` + `<mpr-footer>` with regression tests and demo updates.
-3. Roll out auxiliary elements (`<mpr-theme-toggle>`, `<mpr-login-button>`, `<mpr-settings>`, `<mpr-sites>`).
-4. Harden documentation + add migration guide showing imperative → custom-element diff.
-5. Publish release candidate (v0.1.0) once custom elements reach feature parity, then monitor adoption before deprecating Alpine factories.
+1. Execute MU-104 to land the infrastructure scaffold without exposing new tags.
+2. Implement MU-105 through MU-107 in order of dependency weight, merging each with accompanying documentation updates.
+3. Close MU-108 and MU-109 once the new surface is stable, ensuring docs/tests/CI all reflect the custom-element era before tagging the release.
