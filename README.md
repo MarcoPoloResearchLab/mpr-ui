@@ -16,7 +16,7 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    ```html
    <link
      rel="stylesheet"
-     href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.7/mpr-ui.css"
+     href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.8/mpr-ui.css"
    />
    <script type="module">
      import Alpine from "https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js";
@@ -25,7 +25,7 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    </script>
    <script
      defer
-     src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.7/mpr-ui.js"
+     src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.8/mpr-ui.js"
    ></script>
    ```
 
@@ -66,6 +66,28 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    Provide your Google Identity Services client ID via `siteId`; the header auto-initializes the GIS button and falls back to our demo ID when the value is omitted.
 
    Prefer an imperative call? Mount the same components with `MPRUI.renderSiteHeader(hostElement, options)` and `MPRUI.renderFooter(hostElement, options)`.
+
+3. **Go declarative** — drop the custom elements directly into your markup when you don’t need Alpine or imperative wiring.
+
+   ```html
+   <mpr-header
+     brand-label="Marco Polo Research Lab"
+     brand-href="/"
+     nav-links='[{ "label": "Docs", "href": "#docs" }]'
+     site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+     login-path="/auth/google"
+     logout-path="/auth/logout"
+     nonce-path="/auth/nonce"
+   ></mpr-header>
+
+   <mpr-footer prefix-text="Built by"></mpr-footer>
+   <mpr-theme-toggle></mpr-theme-toggle>
+   <mpr-login-button site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"></mpr-login-button>
+   <mpr-settings label="Settings"></mpr-settings>
+   <mpr-sites heading="Explore"></mpr-sites>
+   ```
+
+   Custom elements wrap the same helpers under the hood, so events (`mpr-ui:auth:*`, `mpr-ui:theme-change`, etc.) and dataset attributes stay identical across all integration styles.
 
 ## Components
 
@@ -113,17 +135,27 @@ Prefer zero-JS integration? Use the built-in custom elements — they wrap the e
   logout-path="/auth/logout"
   nonce-path="/auth/nonce"
 ></mpr-login-button>
+
+<mpr-settings label="Preferences" open>
+  <div slot="panel">
+    <label>
+      <input type="checkbox" checked />
+      Enable weekly digest
+    </label>
+  </div>
+</mpr-settings>
+
+<mpr-sites variant="grid" columns="2"></mpr-sites>
 ```
 
-Key attributes (camelCase dataset values under the hood):
-
-- `brand-label`, `brand-href`, `nav-links`, `settings-label`, `site-id`
-- `theme-config`, `theme-mode`
-- `sign-in-label`, `sign-out-label`, `profile-label`
-- `links`, `prefix-text`, `privacy-link-label`, `privacy-link-href`
-- `auth-config`, `login-path`, `logout-path`, `nonce-path` (header)
-- `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class` (`<mpr-theme-toggle>`)
-- `button-text`, `button-size`, `button-theme`, `button-shape`, `base-url` (`<mpr-login-button>`)
+| Element | Primary attributes | Slots | Key events |
+| --- | --- | --- | --- |
+| `<mpr-header>` | `brand-label`, `nav-links`, `site-id`, `login-path`, `logout-path`, `nonce-path`, `theme-config`, `settings-label`, `settings-enabled`, `sign-in-label`, `sign-out-label` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
+| `<mpr-footer>` | `prefix-text`, `links`, `toggle-label`, `privacy-link-label`, `privacy-link-href`, `theme-config`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
+| `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`, `theme-mode` | — | `mpr-ui:theme-change` |
+| `<mpr-login-button>` | `site-id`, `login-path`, `logout-path`, `nonce-path`, `base-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
+| `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |
+| `<mpr-sites>` | `links`, `variant` (`list`, `grid`, `menu`), `columns`, `heading` | — | `mpr-sites:link-click` |
 
 Slots let you inject custom markup without leaving declarative mode:
 
@@ -131,7 +163,7 @@ Slots let you inject custom markup without leaving declarative mode:
 - Footer slots: `menu-prefix`, `menu-links`, `legal`
 - Login button inherits the global `mpr-ui:auth:*` events dispatched by `createAuthHeader` and emits `mpr-login:error` when GIS cannot load, so you can listen for authentication without writing any extra glue.
 
-Custom elements re-dispatch the same events as the imperative helpers (`mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change`, `mpr-ui:footer:update`), so you can mix declarative and programmatic integrations on the same page.
+Custom elements re-dispatch the same events as the imperative helpers, so you can mix declarative and programmatic integrations on the same page. See [`docs/custom-elements.md`](docs/custom-elements.md) for a deep-dive covering attribute shapes, events, and migration tips (Alpine → custom elements).
 
 ## Demo
 
