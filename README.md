@@ -36,6 +36,7 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    ```html
    <header x-data="mprSiteHeader({
      brand: { label: 'Marco Polo Research Lab', href: '/' },
+     siteId: '991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com',
      navLinks: [
        { label: 'Docs', href: '#docs' },
        { label: 'Support', href: '#support' }
@@ -47,7 +48,7 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    <script>
     // mpr-ui ships with the full Marco Polo Research Lab catalog by default.
     // Override the list when you need a custom ordering or subset.
-    const footerLinks = [
+   const footerLinks = [
       { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
       { label: "Gravity Notes", url: "https://gravity.mprlab.com" },
       { label: "LoopAware", url: "https://loopaware.mprlab.com" },
@@ -58,9 +59,11 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
       { label: "LLM Crossword", url: "https://llm-crossword.mprlab.com" },
       { label: "Prompt Bubbles", url: "https://prompts.mprlab.com" },
       { label: "Wallpapers", url: "https://wallpapers.mprlab.com" },
-    ];
+   ];
   </script>
   ```
+
+   Provide your Google Identity Services client ID via `siteId`; the header auto-initializes the GIS button and falls back to our demo ID when the value is omitted.
 
    Prefer an imperative call? Mount the same components with `MPRUI.renderSiteHeader(hostElement, options)` and `MPRUI.renderFooter(hostElement, options)`.
 
