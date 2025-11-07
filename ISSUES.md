@@ -95,7 +95,8 @@ Identify the plan of such refactoring. The deliverable is a detailed plan on how
 - [x] [MU-104] Refactor the code based on the plan delivered in MU-103
   - Re-scoped to focus on the shared custom-element infrastructure (base class, registry, DOM builders) described in `docs/web-components-plan.md#mu-104-—-custom-element-infrastructure`.
   - Implemented `createCustomElementRegistry`, exported the reusable `MprElement` base class, and exposed shared header/footer DOM helpers plus regression tests on branch `feature/MU-104-custom-element-infra` (`node --test tests/*.test.js`).
-- [ ] [MU-105] Implement `<mpr-header>` and `<mpr-footer>` custom elements with attribute reflection, slots, demo coverage, and regression tests per `docs/web-components-plan.md#mu-105-—-mpr-header--mpr-footer`.
+- [x] [MU-105] Implement `<mpr-header>` and `<mpr-footer>` custom elements with attribute reflection, slots, demo coverage, and regression tests per `docs/web-components-plan.md#mu-105-—-mpr-header--mpr-footer`.
+  - Added declarative custom elements on branch `feature/MU-105-header-footer-elements`, covered attribute reflection/slot projection in `tests/custom-elements-header-footer.test.js`, documented usage in README, and extended the demo with live `<mpr-header>`/`<mpr-footer>` previews.
 - [ ] [MU-106] Ship `<mpr-theme-toggle>` and `<mpr-login-button>` custom elements that wrap the existing helpers, support JSON attributes, and prevent duplicate GIS injections as outlined in `docs/web-components-plan.md#mu-106-—-mpr-theme-toggle--mpr-login-button`.
 - [ ] [MU-107] Deliver `<mpr-settings>` and `<mpr-sites>` auxiliary elements with catalog rendering, CTA events, and graceful fallbacks per `docs/web-components-plan.md#mu-107-—-mpr-settings--mpr-sites`.
 - [ ] [MU-108] Refresh README, ARCHITECTURE.md, and add `docs/custom-elements.md` plus demo updates that document the new tags, following `docs/web-components-plan.md#mu-108-—-documentation--samples`.

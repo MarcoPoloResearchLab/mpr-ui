@@ -146,6 +146,203 @@
     }
   }
 
+  var HEADER_ATTRIBUTE_DATASET_MAP = Object.freeze({
+    "brand-label": "brandLabel",
+    "brand-href": "brandHref",
+    "nav-links": "navLinks",
+    "settings-label": "settingsLabel",
+    "settings-enabled": "settingsEnabled",
+    "site-id": "siteId",
+    "theme-config": "themeToggle",
+    "theme-mode": "themeMode",
+    "sign-in-label": "signInLabel",
+    "sign-out-label": "signOutLabel",
+    "profile-label": "profileLabel",
+  });
+
+  var HEADER_ATTRIBUTE_OBSERVERS = Object.freeze(
+    Object.keys(HEADER_ATTRIBUTE_DATASET_MAP).concat([
+      "auth-config",
+      "login-path",
+      "logout-path",
+      "nonce-path",
+    ]),
+  );
+
+  var FOOTER_ATTRIBUTE_DATASET_MAP = Object.freeze({
+    "element-id": "elementId",
+    "base-class": "baseClass",
+    "inner-element-id": "innerElementId",
+    "inner-class": "innerClass",
+    "wrapper-class": "wrapperClass",
+    "brand-wrapper-class": "brandWrapperClass",
+    "menu-wrapper-class": "menuWrapperClass",
+    "prefix-class": "prefixClass",
+    "prefix-text": "prefixText",
+    "toggle-button-id": "toggleButtonId",
+    "toggle-button-class": "toggleButtonClass",
+    "toggle-label": "toggleLabel",
+    "menu-class": "menuClass",
+    "menu-item-class": "menuItemClass",
+    "privacy-link-class": "privacyLinkClass",
+    "privacy-link-href": "privacyLinkHref",
+    "privacy-link-label": "privacyLinkLabel",
+    "theme-config": "themeToggle",
+    "theme-mode": "themeMode",
+    links: "links",
+  });
+
+  var FOOTER_ATTRIBUTE_OBSERVERS = Object.freeze(
+    Object.keys(FOOTER_ATTRIBUTE_DATASET_MAP),
+  );
+
+  var HEADER_SLOT_NAMES = Object.freeze(["brand", "nav-left", "nav-right", "aux"]);
+  var FOOTER_SLOT_NAMES = Object.freeze(["menu-prefix", "menu-links", "legal"]);
+
+  function normalizeAttributeReflectionValue(attributeName, value) {
+    if (value === null || value === undefined) {
+      return null;
+    }
+    if (attributeName === "settings-enabled") {
+      if (value === "") {
+        return "true";
+      }
+      return String(value);
+    }
+    return String(value);
+  }
+
+  function reflectAttributeToDataset(element, attributeName, rawValue, map) {
+    if (
+      !element ||
+      !map ||
+      !Object.prototype.hasOwnProperty.call(map, attributeName)
+    ) {
+      return;
+    }
+    if (!element.dataset) {
+      element.dataset = {};
+    }
+    var datasetKey = map[attributeName];
+    if (rawValue === null || rawValue === undefined) {
+      delete element.dataset[datasetKey];
+      return;
+    }
+    element.dataset[datasetKey] = String(rawValue);
+  }
+
+  function syncDatasetFromAttributes(hostElement, attributeMap) {
+    if (!hostElement || !hostElement.getAttribute || !attributeMap) {
+      return;
+    }
+    Object.keys(attributeMap).forEach(function reflect(attrName) {
+      var attrValue = hostElement.getAttribute(attrName);
+      reflectAttributeToDataset(
+        hostElement,
+        attrName,
+        normalizeAttributeReflectionValue(attrName, attrValue),
+        attributeMap,
+      );
+    });
+  }
+
+  function buildHeaderOptionsFromAttributes(hostElement) {
+    var datasetOptions = readHeaderOptionsFromDataset(hostElement);
+    var authOptions = null;
+    var rawAuth = hostElement.getAttribute
+      ? hostElement.getAttribute("auth-config")
+      : null;
+    if (rawAuth) {
+      authOptions = parseJsonValue(rawAuth, null);
+    }
+    var loginPath = hostElement.getAttribute
+      ? hostElement.getAttribute("login-path")
+      : null;
+    if (loginPath) {
+      authOptions = authOptions || {};
+      authOptions.loginPath = loginPath;
+    }
+    var logoutPath = hostElement.getAttribute
+      ? hostElement.getAttribute("logout-path")
+      : null;
+    if (logoutPath) {
+      authOptions = authOptions || {};
+      authOptions.logoutPath = logoutPath;
+    }
+    var noncePath = hostElement.getAttribute
+      ? hostElement.getAttribute("nonce-path")
+      : null;
+    if (noncePath) {
+      authOptions = authOptions || {};
+      authOptions.noncePath = noncePath;
+    }
+    var externalOptions = {};
+    if (authOptions) {
+      externalOptions.auth = authOptions;
+    }
+    return deepMergeOptions({}, datasetOptions, externalOptions);
+  }
+
+  function buildFooterOptionsFromAttributes(hostElement) {
+    var datasetOptions = readFooterOptionsFromDataset(hostElement);
+    return deepMergeOptions({}, datasetOptions);
+  }
+
+  function captureSlotNodes(hostElement, slotNames) {
+    var slots = {};
+    if (!slotNames || !slotNames.length) {
+      return slots;
+    }
+    slotNames.forEach(function initSlot(name) {
+      slots[name] = [];
+    });
+    if (!hostElement || typeof hostElement.querySelectorAll !== "function") {
+      return slots;
+    }
+    var nodes = hostElement.querySelectorAll('[slot]');
+    if (!nodes || typeof nodes.length !== "number") {
+      return slots;
+    }
+    for (var index = 0; index < nodes.length; index += 1) {
+      var node = nodes[index];
+      if (!node) {
+        continue;
+      }
+      var slotName = null;
+      if (typeof node.getAttribute === "function") {
+        slotName = node.getAttribute("slot");
+      }
+      if (!slotName && typeof node.slot === "string") {
+        slotName = node.slot;
+      }
+      if (slotName && Object.prototype.hasOwnProperty.call(slots, slotName)) {
+        slots[slotName].push(node);
+      }
+    }
+    return slots;
+  }
+
+  function clearNodeContents(targetNode) {
+    if (!targetNode) {
+      return;
+    }
+    if (typeof targetNode.innerHTML === "string") {
+      targetNode.innerHTML = "";
+    }
+    if (typeof targetNode.textContent === "string") {
+      targetNode.textContent = "";
+    }
+    if (Array.isArray(targetNode.children)) {
+      targetNode.children.length = 0;
+    }
+    if (Array.isArray(targetNode.childNodes)) {
+      targetNode.childNodes.length = 0;
+    }
+    if (typeof targetNode.clear === "function") {
+      targetNode.clear();
+    }
+  }
+
   var DEFAULT_THEME_ATTRIBUTE = "data-mpr-theme";
   var DEFAULT_THEME_TARGETS = Object.freeze(["document"]);
   var DEFAULT_THEME_MODES = Object.freeze([
@@ -1725,6 +1922,7 @@
       root: hostElement.querySelector("header." + HEADER_ROOT_CLASS),
       nav: hostElement.querySelector('[data-mpr-header="nav"]'),
       brand: hostElement.querySelector('[data-mpr-header="brand"]'),
+      brandContainer: hostElement.querySelector("." + HEADER_ROOT_CLASS + "__brand"),
       themeToggle: hostElement.querySelector(
         '[data-mpr-header="theme-toggle"]',
       ),
@@ -1746,7 +1944,57 @@
       signOutButton: hostElement.querySelector(
         '[data-mpr-header="sign-out-button"]',
       ),
+      actions: hostElement.querySelector("." + HEADER_ROOT_CLASS + "__actions"),
     };
+  }
+
+  function appendHeaderSlotNodes(target, nodes, mode) {
+    if (!target || !nodes || !nodes.length) {
+      return;
+    }
+    var usePrepend = mode === "prepend";
+    nodes.forEach(function appendNode(node) {
+      if (!node) {
+        return;
+      }
+      if (
+        usePrepend &&
+        typeof target.insertBefore === "function" &&
+        target.firstChild
+      ) {
+        target.insertBefore(node, target.firstChild);
+        return;
+      }
+      if (typeof target.appendChild === "function") {
+        target.appendChild(node);
+      }
+    });
+  }
+
+  function applyHeaderSlotContent(slotMap, elements) {
+    if (!slotMap || !elements) {
+      return;
+    }
+    if (
+      slotMap.brand &&
+      slotMap.brand.length &&
+      elements.brandContainer &&
+      typeof elements.brandContainer.appendChild === "function"
+    ) {
+      clearNodeContents(elements.brandContainer);
+      slotMap.brand.forEach(function appendBrand(node) {
+        elements.brandContainer.appendChild(node);
+      });
+    }
+    if (slotMap["nav-left"] && elements.nav) {
+      appendHeaderSlotNodes(elements.nav, slotMap["nav-left"], "prepend");
+    }
+    if (slotMap["nav-right"] && elements.nav) {
+      appendHeaderSlotNodes(elements.nav, slotMap["nav-right"], "append");
+    }
+    if (slotMap.aux && elements.actions) {
+      appendHeaderSlotNodes(elements.actions, slotMap.aux, "append");
+    }
   }
 
   function mountHeaderDom(hostElement, options) {
@@ -2493,6 +2741,54 @@
     return rootElement.querySelector(selector);
   }
 
+  function resolveFooterSlotElements(hostElement) {
+    if (!hostElement || typeof hostElement.querySelector !== "function") {
+      return {};
+    }
+    var root = hostElement.querySelector('footer[role="contentinfo"]');
+    if (!root) {
+      return {};
+    }
+    return {
+      root: root,
+      brand: footerQuery(root, '[data-mpr-footer="brand"]'),
+      menu: footerQuery(root, '[data-mpr-footer="menu"]'),
+      layout: footerQuery(root, '[data-mpr-footer="layout"]'),
+    };
+  }
+
+  function applyFooterSlotContent(slotMap, hostElement) {
+    if (!slotMap || !hostElement) {
+      return;
+    }
+    var elements = resolveFooterSlotElements(hostElement);
+    if (
+      elements.brand &&
+      slotMap["menu-prefix"] &&
+      slotMap["menu-prefix"].length
+    ) {
+      slotMap["menu-prefix"].forEach(function appendBrandSlot(node) {
+        if (node && typeof elements.brand.appendChild === "function") {
+          elements.brand.appendChild(node);
+        }
+      });
+    }
+    if (elements.menu && slotMap["menu-links"] && slotMap["menu-links"].length) {
+      slotMap["menu-links"].forEach(function appendMenuSlot(node) {
+        if (node && typeof elements.menu.appendChild === "function") {
+          elements.menu.appendChild(node);
+        }
+      });
+    }
+    if (elements.layout && slotMap.legal && slotMap.legal.length) {
+      slotMap.legal.forEach(function appendLegalSlot(node) {
+        if (node && typeof elements.layout.appendChild === "function") {
+          elements.layout.appendChild(node);
+        }
+      });
+    }
+  }
+
   function resolveFooterThemeModes(themeToggleConfig) {
     var config = themeToggleConfig && typeof themeToggleConfig === "object"
       ? themeToggleConfig
@@ -2999,6 +3295,136 @@
     };
   }
 
+  function defineHeaderElement(registry) {
+    registry.define("mpr-header", function setupHeaderElement(Base) {
+      return class MprHeaderElement extends Base {
+        constructor() {
+          super();
+          this.__headerController = null;
+          this.__headerSlots = null;
+          this.__headerSlotsCaptured = false;
+        }
+        static get observedAttributes() {
+          return HEADER_ATTRIBUTE_OBSERVERS;
+        }
+        render() {
+          this.__captureHeaderSlots();
+          syncDatasetFromAttributes(this, HEADER_ATTRIBUTE_DATASET_MAP);
+          this.__renderHeader();
+        }
+        update(name, _oldValue, newValue) {
+          reflectAttributeToDataset(
+            this,
+            name,
+            normalizeAttributeReflectionValue(name, newValue),
+            HEADER_ATTRIBUTE_DATASET_MAP,
+          );
+          this.__renderHeader();
+        }
+        destroy() {
+          if (this.__headerController && typeof this.__headerController.destroy === "function") {
+            this.__headerController.destroy();
+          }
+          this.__headerController = null;
+        }
+        __captureHeaderSlots() {
+          if (this.__headerSlotsCaptured) {
+            return;
+          }
+          this.__headerSlots = captureSlotNodes(this, HEADER_SLOT_NAMES);
+          this.__headerSlotsCaptured = true;
+        }
+        __renderHeader() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          var options = buildHeaderOptionsFromAttributes(this);
+          if (this.__headerController) {
+            this.__headerController.update(options);
+          } else {
+            this.__headerController = renderSiteHeader(this, options);
+          }
+          if (this.__headerSlots) {
+            var elements = resolveHeaderElements(this);
+            applyHeaderSlotContent(this.__headerSlots, elements);
+          }
+        }
+      };
+    });
+  }
+
+  function defineFooterElement(registry) {
+    registry.define("mpr-footer", function setupFooterElement(Base) {
+      return class MprFooterElement extends Base {
+        constructor() {
+          super();
+          this.__footerController = null;
+          this.__footerSlots = null;
+          this.__footerSlotsCaptured = false;
+        }
+        static get observedAttributes() {
+          return FOOTER_ATTRIBUTE_OBSERVERS;
+        }
+        render() {
+          this.__captureFooterSlots();
+          syncDatasetFromAttributes(this, FOOTER_ATTRIBUTE_DATASET_MAP);
+          this.__renderFooter();
+        }
+        update(name, _oldValue, newValue) {
+          reflectAttributeToDataset(
+            this,
+            name,
+            normalizeAttributeReflectionValue(name, newValue),
+            FOOTER_ATTRIBUTE_DATASET_MAP,
+          );
+          this.__renderFooter();
+        }
+        destroy() {
+          if (this.__footerController && typeof this.__footerController.destroy === "function") {
+            this.__footerController.destroy();
+          }
+          this.__footerController = null;
+        }
+        __captureFooterSlots() {
+          if (this.__footerSlotsCaptured) {
+            return;
+          }
+          this.__footerSlots = captureSlotNodes(this, FOOTER_SLOT_NAMES);
+          this.__footerSlotsCaptured = true;
+        }
+        __renderFooter() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          var options = buildFooterOptionsFromAttributes(this);
+          if (this.__footerController) {
+            this.__footerController.update(options);
+          } else {
+            this.__footerController = renderFooter(this, options);
+          }
+          if (this.__footerSlots) {
+            applyFooterSlotContent(this.__footerSlots, this);
+          }
+        }
+      };
+    });
+  }
+
+  function registerCustomElements(namespace) {
+    if (
+      !namespace ||
+      typeof namespace.createCustomElementRegistry !== "function"
+    ) {
+      return;
+    }
+    var registry = namespace.createCustomElementRegistry();
+    if (!registry || (typeof registry.supports === "function" && !registry.supports())) {
+      return;
+    }
+    defineHeaderElement(registry);
+    defineFooterElement(registry);
+  }
+
   var HTMLElementBridge =
     typeof global.HTMLElement === "function"
       ? global.HTMLElement
@@ -3155,4 +3581,5 @@
   }
   namespace.__dom.mountHeaderDom = mountHeaderDom;
   namespace.__dom.mountFooterDom = mountFooterDom;
+  registerCustomElements(namespace);
 })(typeof window !== "undefined" ? window : globalThis);

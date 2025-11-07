@@ -144,6 +144,45 @@ const controller = MPRUI.createAuthHeader(host, {
   --mpr-color-accent: #f97316;
 }</code></pre>
       </section>
+
+      <section aria-labelledby="ce-demo-title">
+        <h2 id="ce-demo-title">Custom Elements</h2>
+        <p>
+          Prefer declarative markup? Drop in the `<mpr-header>` and `<mpr-footer>`
+          tags and configure them with HTML attributes. Slots let you inject custom
+          actions without leaving template land.
+        </p>
+        <div class="custom-elements-preview">
+          <mpr-header
+            brand-label="Custom Research"
+            brand-href="/"
+            nav-links='[
+              { "label": "Docs", "href": "#docs" },
+              { "label": "Support", "href": "#support" }
+            ]'
+            site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+            theme-config='{"initialMode":"light"}'
+          >
+            <button slot="nav-right" class="demo-link">Request Access</button>
+          </mpr-header>
+          <mpr-footer
+            prefix-text="Built with"
+            privacy-link-label="Privacy &amp; Terms"
+            links='[{ "label": "Docs", "url": "#docs" }]'
+          >
+            <span slot="menu-prefix">Explore</span>
+            <a
+              slot="menu-links"
+              href="https://mprlab.com"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              Visit mprlab.com
+            </a>
+            <small slot="legal">© Marco Polo Research</small>
+          </mpr-footer>
+        </div>
+      </section>
     </main>
 
     <div

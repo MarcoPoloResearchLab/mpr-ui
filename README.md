@@ -75,6 +75,52 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 - **Legacy footer bundle** — see [`footer.js`](footer.js) if you need dropdown/theme toggle support absent from the current bundle.
 - **Theme Toggle** — reusable switch/button UI for cycling the global theme manager via `MPRUI.renderThemeToggle()` or the Alpine-friendly `MPRUI.mprThemeToggle()` factory.
 
+## Custom Elements
+
+Prefer zero-JS integration? Use the built-in `<mpr-header>` and `<mpr-footer>` tags — they wrap the existing helpers and accept HTML attributes for all of the header/footer options:
+
+```html
+<mpr-header
+  brand-label="Custom Research"
+  brand-href="/"
+  nav-links='[
+    { "label": "Docs", "href": "#docs" },
+    { "label": "Support", "href": "#support" }
+  ]'
+  site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+  theme-config='{"initialMode":"light"}'
+>
+  <button slot="nav-right" class="demo-link">Request Access</button>
+</mpr-header>
+
+<mpr-footer
+  prefix-text="Built with"
+  privacy-link-label="Privacy &amp; Terms"
+  links='[{ "label": "Docs", "url": "#docs" }]'
+>
+  <span slot="menu-prefix">Explore</span>
+  <a slot="menu-links" href="https://mprlab.com" target="_blank" rel="noopener noreferrer">
+    Visit mprlab.com
+  </a>
+  <small slot="legal">© Marco Polo Research</small>
+</mpr-footer>
+```
+
+Key attributes (camelCase dataset values under the hood):
+
+- `brand-label`, `brand-href`, `nav-links`, `settings-label`, `site-id`
+- `theme-config`, `theme-mode`
+- `sign-in-label`, `sign-out-label`, `profile-label`
+- `links`, `prefix-text`, `privacy-link-label`, `privacy-link-href`
+- `auth-config`, `login-path`, `logout-path`, `nonce-path` (header)
+
+Slots let you inject custom markup without leaving declarative mode:
+
+- Header slots: `brand`, `nav-left`, `nav-right`, `aux`
+- Footer slots: `menu-prefix`, `menu-links`, `legal`
+
+Custom elements re-dispatch the same events as the imperative helpers (`mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change`, `mpr-ui:footer:update`), so you can mix declarative and programmatic integrations on the same page.
+
 ## Demo
 
 - Open `demo/index.html` in a browser to explore the authentication header mock and both footer helpers.
