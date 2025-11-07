@@ -1749,6 +1749,18 @@
     };
   }
 
+  function mountHeaderDom(hostElement, options) {
+    if (!hostElement || typeof hostElement !== "object") {
+      throw new Error("mountHeaderDom requires a host element");
+    }
+    hostElement.innerHTML = buildHeaderMarkup(options);
+    var elements = resolveHeaderElements(hostElement);
+    if (!elements.root) {
+      throw new Error("mountHeaderDom failed to locate the header root");
+    }
+    return elements;
+  }
+
   function renderHeaderNav(navElement, navLinks) {
     if (!navElement) {
       return;
@@ -1864,11 +1876,7 @@
     var cleanupHandlers = [];
     ensureHeaderStyles(global.document || (global.window && global.window.document));
 
-    hostElement.innerHTML = buildHeaderMarkup(options);
-    var elements = resolveHeaderElements(hostElement);
-    if (!elements.root) {
-      throw new Error("renderSiteHeader failed to mount header root");
-    }
+    var elements = mountHeaderDom(hostElement, options);
 
     applyHeaderOptions(hostElement, elements, options);
     var authController = null;
@@ -2555,6 +2563,19 @@
     );
   }
 
+  function mountFooterDom(hostElement, config) {
+    if (!hostElement || typeof hostElement !== "object") {
+      throw new Error("mountFooterDom requires a host element");
+    }
+    hostElement.innerHTML = buildFooterMarkup(config);
+    var footerRoot = hostElement.querySelector('footer[role="contentinfo"]');
+    if (!footerRoot) {
+      throw new Error("mountFooterDom failed to locate the footer root");
+    }
+    footerRoot.setAttribute("data-mpr-footer-root", "true");
+    return footerRoot;
+  }
+
   function updateFooterPrivacy(containerElement, config) {
     var privacyAnchor = footerQuery(containerElement, '[data-mpr-footer="privacy-link"]');
     if (!privacyAnchor) {
@@ -2797,12 +2818,12 @@
         if (!this.$el) {
           return;
         }
-        this.$el.innerHTML = buildFooterMarkup(this.config);
-        var footerRoot = footerQuery(this.$el, 'footer[role="contentinfo"]');
-        if (!footerRoot) {
+        var footerRoot;
+        try {
+          footerRoot = mountFooterDom(this.$el, this.config);
+        } catch (_error) {
           return;
         }
-        footerRoot.setAttribute("data-mpr-footer-root", "true");
         if (this.config.elementId) {
           footerRoot.id = this.config.elementId;
         }
@@ -2978,6 +2999,135 @@
     };
   }
 
+  var HTMLElementBridge =
+    typeof global.HTMLElement === "function"
+      ? global.HTMLElement
+      : class HTMLElementShim {};
+
+  var MprElement = (function () {
+    function createElementClass() {
+      return /** @class */ (function (_super) {
+        function MprElementClass() {
+          var self = Reflect.construct(_super, [], new.target || MprElementClass);
+          self.__mprConnected = false;
+          return self;
+        }
+        MprElementClass.prototype = Object.create(_super.prototype);
+        MprElementClass.prototype.constructor = MprElementClass;
+        MprElementClass.prototype.connectedCallback = function connectedCallback() {
+          this.__mprConnected = true;
+          if (typeof this.render === "function") {
+            this.render();
+          }
+        };
+        MprElementClass.prototype.disconnectedCallback = function disconnectedCallback() {
+          this.__mprConnected = false;
+          if (typeof this.destroy === "function") {
+            this.destroy();
+          }
+        };
+        MprElementClass.prototype.attributeChangedCallback =
+          function attributeChangedCallback(name, oldValue, newValue) {
+            if (!this.__mprConnected) {
+              return;
+            }
+            if (typeof this.update === "function") {
+              this.update(name, oldValue, newValue);
+            }
+          };
+        return MprElementClass;
+      })(HTMLElementBridge);
+    }
+    try {
+      return createElementClass();
+    } catch (_error) {
+      return (function () {
+        function FallbackElement() {
+          HTMLElementBridge.call(this);
+          this.__mprConnected = false;
+        }
+        FallbackElement.prototype = Object.create(
+          (HTMLElementBridge && HTMLElementBridge.prototype) || Object.prototype,
+        );
+        FallbackElement.prototype.constructor = FallbackElement;
+        FallbackElement.prototype.connectedCallback = function connectedCallback() {
+          this.__mprConnected = true;
+          if (typeof this.render === "function") {
+            this.render();
+          }
+        };
+        FallbackElement.prototype.disconnectedCallback = function disconnectedCallback() {
+          this.__mprConnected = false;
+          if (typeof this.destroy === "function") {
+            this.destroy();
+          }
+        };
+        FallbackElement.prototype.attributeChangedCallback =
+          function attributeChangedCallback(name, oldValue, newValue) {
+            if (!this.__mprConnected) {
+              return;
+            }
+            if (typeof this.update === "function") {
+              this.update(name, oldValue, newValue);
+            }
+          };
+        return FallbackElement;
+      })();
+    }
+  })();
+
+  function createCustomElementRegistry(target) {
+    var rootObject = target || global;
+    var customElementsApi =
+      (rootObject && rootObject.customElements) ||
+      (rootObject && rootObject.window && rootObject.window.customElements) ||
+      null;
+    var cache = Object.create(null);
+    function supportsCustomElements() {
+      return (
+        customElementsApi &&
+        typeof customElementsApi.define === "function" &&
+        typeof customElementsApi.get === "function"
+      );
+    }
+    return {
+      define: function define(tagName, setupCallback) {
+        var normalizedName = String(tagName);
+        if (cache[normalizedName]) {
+          return cache[normalizedName];
+        }
+        if (!supportsCustomElements()) {
+          cache[normalizedName] = null;
+          return null;
+        }
+        if (typeof setupCallback !== "function") {
+          throw new Error(
+            "createCustomElementRegistry.define requires a setup callback",
+          );
+        }
+        var definition = setupCallback(MprElement);
+        if (!definition) {
+          throw new Error(
+            "createCustomElementRegistry.define requires the setup callback to return a class",
+          );
+        }
+        customElementsApi.define(normalizedName, definition);
+        cache[normalizedName] = definition;
+        return definition;
+      },
+      get: function get(tagName) {
+        if (cache[tagName]) {
+          return cache[tagName];
+        }
+        if (!supportsCustomElements()) {
+          return null;
+        }
+        return customElementsApi.get(tagName);
+      },
+      supports: supportsCustomElements,
+    };
+  }
+
   var namespace = ensureNamespace(global);
   namespace.createAuthHeader = createAuthHeader;
   namespace.renderAuthHeader = renderAuthHeader;
@@ -2998,4 +3148,11 @@
   };
   namespace.getThemeMode = themeManager.getMode;
   namespace.onThemeChange = themeManager.on;
+  namespace.createCustomElementRegistry = createCustomElementRegistry;
+  namespace.MprElement = MprElement;
+  if (!namespace.__dom) {
+    namespace.__dom = {};
+  }
+  namespace.__dom.mountHeaderDom = mountHeaderDom;
+  namespace.__dom.mountFooterDom = mountFooterDom;
 })(typeof window !== "undefined" ? window : globalThis);

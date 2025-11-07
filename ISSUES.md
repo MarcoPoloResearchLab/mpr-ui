@@ -92,8 +92,9 @@ Identify the plan of such refactoring. The deliverable is a detailed plan on how
 
 - Documented the custom-element migration plan, including taxonomy, lifecycle, testing, and documentation deliverables, in `docs/web-components-plan.md` on branch `feature/MU-103-web-components-plan`.
 
-- [ ] [MU-104] Refactor the code based on the plan delivered in MU-103
+- [x] [MU-104] Refactor the code based on the plan delivered in MU-103
   - Re-scoped to focus on the shared custom-element infrastructure (base class, registry, DOM builders) described in `docs/web-components-plan.md#mu-104-—-custom-element-infrastructure`.
+  - Implemented `createCustomElementRegistry`, exported the reusable `MprElement` base class, and exposed shared header/footer DOM helpers plus regression tests on branch `feature/MU-104-custom-element-infra` (`node --test tests/*.test.js`).
 - [ ] [MU-105] Implement `<mpr-header>` and `<mpr-footer>` custom elements with attribute reflection, slots, demo coverage, and regression tests per `docs/web-components-plan.md#mu-105-—-mpr-header--mpr-footer`.
 - [ ] [MU-106] Ship `<mpr-theme-toggle>` and `<mpr-login-button>` custom elements that wrap the existing helpers, support JSON attributes, and prevent duplicate GIS injections as outlined in `docs/web-components-plan.md#mu-106-—-mpr-theme-toggle--mpr-login-button`.
 - [ ] [MU-107] Deliver `<mpr-settings>` and `<mpr-sites>` auxiliary elements with catalog rendering, CTA events, and graceful fallbacks per `docs/web-components-plan.md#mu-107-—-mpr-settings--mpr-sites`.
