@@ -338,7 +338,7 @@ test('theme toggle updates the icon when the mode changes', () => {
   controller.destroy();
 });
 
-test('google sign-in host downgrades to a fallback CTA until auth is configured', () => {
+test('header marks the no-auth state when auth is not configured', () => {
   resetEnvironment();
   const harness = createHostHarness();
   const library = loadLibrary();
@@ -354,60 +354,25 @@ test('google sign-in host downgrades to a fallback CTA until auth is configured'
     0,
     'no auth listeners before enabling',
   );
-
-  harness.googleSigninHost.click();
-  assert.strictEqual(
-    harness.dispatchedEvents.filter(function (event) {
-      return event.type === 'mpr-ui:header:signin-click';
-    }).length,
-    1,
-    'fallback sign-in event dispatched before auth is enabled',
-  );
-
-  const renderCalls = [];
-  global.google = {
-    accounts: {
-      id: {
-        renderButton(host) {
-          renderCalls.push(host);
-        },
-        prompt: function () {},
-        initialize: function () {},
-      },
-    },
-  };
-
-  controller.update({ auth: {} });
-
-  assert.strictEqual(
-    harness.host.getListenerCount('mpr-ui:auth:authenticated'),
-    1,
-    'auth listener attached after enabling',
-  );
   assert.strictEqual(
     harness.host.getListenerCount('mpr-ui:auth:unauthenticated'),
-    1,
-    'unauth listener attached after enabling',
-  );
-  assert.strictEqual(
-    harness.root.classList.contains('mpr-header--no-auth'),
-    false,
-    'no-auth class removed after enabling auth',
-  );
-  assert.strictEqual(renderCalls.length, 1, 'google renderButton invoked after enabling auth');
-
-  const beforeEventCount = harness.dispatchedEvents.length;
-  harness.googleSigninHost.click();
-  assert.strictEqual(
-    harness.dispatchedEvents.length,
-    beforeEventCount,
-    'fallback sign-in event suppressed after auth is enabled',
-  );
-  assert.strictEqual(
-    harness.googleSigninHost.getListenerCount('click'),
     0,
-    'click handlers removed once the Google button renders',
+    'no unauth listeners before enabling',
   );
+  assert.strictEqual(
+    harness.dispatchedEvents.filter(function (event) {
+      return event.type === 'mpr-ui:header:error';
+    }).length,
+    0,
+    'no header errors emitted when auth missing',
+  );
+  assert.strictEqual(
+    harness.googleSigninHost.getAttribute('data-mpr-google-ready'),
+    null,
+    'google host remains hidden when auth is not configured',
+  );
+
+  controller.destroy();
 });
 
 test('renderSiteHeader renders the Google button inside the header when siteId is provided', () => {
@@ -441,9 +406,14 @@ test('renderSiteHeader renders the Google button inside the header when siteId i
     'demo-site-id',
     'host should record the provided site id',
   );
+  assert.strictEqual(
+    harness.googleSigninHost.getAttribute('data-mpr-google-ready'),
+    'true',
+    'google host is marked ready after renderButton succeeds',
+  );
 });
 
-test('google sign-in host dispatches fallback events when auth is configured but google is unavailable', () => {
+test('google sign-in host reports availability errors when auth is configured but google is unavailable', () => {
   resetEnvironment();
   const harness = createHostHarness();
   const library = loadLibrary();
@@ -451,14 +421,21 @@ test('google sign-in host dispatches fallback events when auth is configured but
     auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
   });
 
-  const beforeEventCount = harness.dispatchedEvents.length;
-  harness.googleSigninHost.click();
+  const errorEvents = harness.dispatchedEvents.filter(function (event) {
+    return event.type === 'mpr-ui:header:error';
+  });
 
-  const fallbackEvents = harness.dispatchedEvents.filter(function (event) {
-    return event.type === 'mpr-ui:header:signin-click';
-  }).length;
-  assert.strictEqual(beforeEventCount + 1, harness.dispatchedEvents.length, 'fallback click emits event');
-  assert.strictEqual(fallbackEvents >= 1, true, 'fallback sign-in event dispatched when google missing');
+  assert.strictEqual(errorEvents.length, 1, 'missing google library emits header error');
+  assert.deepStrictEqual(
+    errorEvents[0].detail,
+    { code: 'mpr-ui.header.google_unavailable' },
+    'error payload describes the missing GIS library',
+  );
+  assert.strictEqual(
+    harness.googleSigninHost.getListenerCount('click'),
+    0,
+    'no fallback click handlers attached when google is unavailable',
+  );
 });
 
 test('siteId falls back to the bundled default when omitted', () => {

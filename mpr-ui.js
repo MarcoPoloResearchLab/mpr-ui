@@ -1893,68 +1893,13 @@
       headerToggleCleanup = initializeThemeToggle(elements.themeToggle, toggleConfig);
     }
 
-    function renderFallbackGoogleButton(clickHandler, labelText) {
-      if (
-        !elements.googleSignin ||
-        typeof elements.googleSignin.addEventListener !== "function"
-      ) {
-        return;
-      }
-      var fallbackLabel = labelText && labelText.trim()
-        ? labelText.trim()
-        : "Sign in with Google";
-      elements.googleSignin.innerHTML = "";
-      elements.googleSignin.textContent = fallbackLabel;
-      elements.googleSignin.classList.add(
-        HEADER_ROOT_CLASS + "__button",
-        HEADER_ROOT_CLASS + "__button--primary",
-      );
-      elements.googleSignin.setAttribute("role", "button");
-      elements.googleSignin.setAttribute("tabindex", "0");
-      elements.googleSignin.setAttribute("aria-label", fallbackLabel);
-      var handleClick = function handleClick(event) {
-        if (event && typeof event.preventDefault === "function") {
-          event.preventDefault();
-        }
-        clickHandler();
-      };
-      var handleKeydown = function handleKeydown(event) {
-        if (!event || typeof event.key !== "string") {
-          return;
-        }
-        if (event.key === " " || event.key === "Enter") {
-          handleClick(event);
-        }
-      };
-      elements.googleSignin.addEventListener("click", handleClick);
-      elements.googleSignin.addEventListener("keydown", handleKeydown);
-      googleButtonCleanup = function cleanupFallbackGoogleButton() {
-        elements.googleSignin.removeEventListener("click", handleClick);
-        elements.googleSignin.removeEventListener("keydown", handleKeydown);
-        elements.googleSignin.classList.remove(
-          HEADER_ROOT_CLASS + "__button",
-          HEADER_ROOT_CLASS + "__button--primary",
-        );
-        elements.googleSignin.removeAttribute("role");
-        elements.googleSignin.removeAttribute("tabindex");
-        elements.googleSignin.removeAttribute("aria-label");
-        elements.googleSignin.textContent = "";
-      };
-    }
-
     function mountGoogleSignInButton() {
       destroyGoogleButton();
       if (!elements.googleSignin) {
         return;
       }
       elements.googleSignin.setAttribute("data-mpr-google-site-id", googleSiteId);
-      var fallbackLabel =
-        typeof options.signInLabel === "string" && options.signInLabel.trim()
-          ? options.signInLabel.trim()
-          : "Sign in with Google";
-      var hasAuth = Boolean(options.auth);
-      if (!hasAuth) {
-        renderFallbackGoogleButton(handleFallbackSignInClick, fallbackLabel);
+      if (!options.auth) {
         return;
       }
       if (
@@ -1963,7 +1908,9 @@
         !global.google.accounts.id ||
         typeof global.google.accounts.id.renderButton !== "function"
       ) {
-        renderFallbackGoogleButton(handleGoogleSignInClick, fallbackLabel);
+        dispatchHeaderEvent("mpr-ui:header:error", {
+          code: "mpr-ui.header.google_unavailable",
+        });
         return;
       }
       try {
@@ -1980,7 +1927,9 @@
       } catch (_error) {
         elements.googleSignin.innerHTML = "";
         elements.googleSignin.removeAttribute("data-mpr-google-ready");
-        renderFallbackGoogleButton(handleGoogleSignInClick, fallbackLabel);
+        dispatchHeaderEvent("mpr-ui:header:error", {
+          code: "mpr-ui.header.google_render_failed",
+        });
       }
     }
 
@@ -2006,30 +1955,6 @@
 
     function dispatchHeaderEvent(type, detail) {
       dispatchEvent(hostElement, type, detail || {});
-    }
-
-    function handleFallbackSignInClick() {
-      dispatchHeaderEvent("mpr-ui:header:signin-click", {});
-    }
-
-    function handleGoogleSignInClick() {
-      if (
-        global.google &&
-        global.google.accounts &&
-        global.google.accounts.id &&
-        typeof global.google.accounts.id.prompt === "function"
-      ) {
-        try {
-          global.google.accounts.id.prompt();
-          return;
-        } catch (_error) {
-          dispatchHeaderEvent("mpr-ui:header:error", {
-            code: "mpr-ui.header.google_prompt_failed",
-          });
-          return;
-        }
-      }
-      dispatchHeaderEvent("mpr-ui:header:signin-click", {});
     }
 
     function refreshAuthState() {
