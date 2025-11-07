@@ -78,7 +78,8 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 ## Demo
 
 - Open `demo/index.html` in a browser to explore the authentication header mock and both footer helpers.
-- The page includes an offline stub for Google Identity Services so you can trigger events without external dependencies.
+- Need to test local changes before publishing? Open `demo/demo-local.html` instead; it loads `mpr-ui.js` and `mpr-ui.css` from your working tree but still fetches Google Identity Services from the official CDN.
+- Both demo variants rely on the real Google Identity Services script (`https://accounts.google.com/gsi/client`), so ensure you have network access when testing sign-in flows.
 
 ## Theme Management
 
