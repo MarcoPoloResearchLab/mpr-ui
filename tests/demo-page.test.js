@@ -13,18 +13,18 @@ const demoHtml = readFileSync(demoHtmlPath, 'utf8');
 const demoScript = readFileSync(demoScriptPath, 'utf8');
 const sharedCss = readFileSync(sharedCssPath, 'utf8');
 
-test('demo loads mpr-ui from the v0.0.7 CDN bundle', () => {
+test('demo loads mpr-ui from the v0.0.8 CDN bundle', () => {
   assert.match(
     demoHtml,
-    /<script[^>]+id="mpr-ui-bundle"[^>]+src="https:\/\/cdn\.jsdelivr\.net\/gh\/MarcoPoloResearchLab\/mpr-ui@0\.0\.7\/mpr-ui\.js"/,
-    'Expected demo index.html to reference the v0.0.7 CDN bundle with id="mpr-ui-bundle"',
+    /<script[^>]+id="mpr-ui-bundle"[^>]+src="https:\/\/cdn\.jsdelivr\.net\/gh\/MarcoPoloResearchLab\/mpr-ui@0\.0\.8\/mpr-ui\.js"/,
+    'Expected demo index.html to reference the v0.0.8 CDN bundle with id="mpr-ui-bundle"',
   );
 });
 
 test('demo loads the shared stylesheet from the CDN', () => {
   assert.match(
     demoHtml,
-    /<link[^>]+href="https:\/\/cdn\.jsdelivr\.net\/gh\/MarcoPoloResearchLab\/mpr-ui@0\.0\.7\/mpr-ui\.css"/,
+    /<link[^>]+href="https:\/\/cdn\.jsdelivr\.net\/gh\/MarcoPoloResearchLab\/mpr-ui@0\.0\.8\/mpr-ui\.css"/,
     'Expected demo index.html to reference the packaged stylesheet on the CDN',
   );
 });

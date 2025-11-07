@@ -9,7 +9,7 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 - [x] [MU-100] Build a sticky site header component providing auth controls, settings entry, and theme toggle. It must expose Alpine and imperative APIs and render DOM on drop-in. — Implemented sticky header in `mpr-ui.js`, documented usage, and showcased it in the demo on branch `feature/MU-100-sticky-header`.
 - [x] [MU-101] Replace the legacy footer implementation by bundling a sticky site footer with menu, privacy link, and theme toggle directly in mpr-ui.js. — Integrated the rich footer into `mpr-ui.js`, added sticky styling, documented the API, and showcased it in the demo on branch `feature/MU-101-unified-footer`.
 - [x] [MU-102] Allow declarative theme customization and cross-component theme events. Provide configurable targets, modes, and global theme helpers so other Alpine components can stay in sync. — Added global theme manager, declarative dataset support, and demo updates on branch `feature/MU-102-theme-extensibility`.
-- [ ] [MU-103] I want to use web components and identify their taxonomy and structure. I expect something like
+- [x] [MU-103] I want to use web components and identify their taxonomy and structure. I expect something like
 <mpr-header>
 <mpr-footer>
 <mpr-theme-toggle>
@@ -90,7 +90,18 @@ customElements.define("mpr-header", MprHeader);
 
 Identify the plan of such refactoring. The deliverable is a detailed plan on how can we prepare such change. Factor in very detailed documentation that must be delivered. The goal is designing a system that is really easy to use, and require minimal understanding to be integrated on a web page.
 
-- [ ] [MU-104] Refactor the code based on the plan delivered in MU-103
+- Documented the custom-element migration plan, including taxonomy, lifecycle, testing, and documentation deliverables, in `docs/web-components-plan.md` on branch `feature/MU-103-web-components-plan`.
+
+- [x] [MU-104] Refactor the code based on the plan delivered in MU-103
+  - Re-scoped to focus on the shared custom-element infrastructure (base class, registry, DOM builders) described in `docs/web-components-plan.md#mu-104-—-custom-element-infrastructure`.
+  - Implemented `createCustomElementRegistry`, exported the reusable `MprElement` base class, and exposed shared header/footer DOM helpers plus regression tests on branch `feature/MU-104-custom-element-infra` (`node --test tests/*.test.js`).
+- [x] [MU-105] Implement `<mpr-header>` and `<mpr-footer>` custom elements with attribute reflection, slots, demo coverage, and regression tests per `docs/web-components-plan.md#mu-105-—-mpr-header--mpr-footer`.
+  - Added declarative custom elements on branch `feature/MU-105-header-footer-elements`, covered attribute reflection/slot projection in `tests/custom-elements-header-footer.test.js`, documented usage in README, and extended the demo with live `<mpr-header>`/`<mpr-footer>` previews.
+- [x] [MU-106] Ship `<mpr-theme-toggle>` and `<mpr-login-button>` custom elements that wrap the existing helpers, support JSON attributes, and prevent duplicate GIS injections as outlined in `docs/web-components-plan.md#mu-106-—-mpr-theme-toggle--mpr-login-button`.
+  - Delivered the standalone elements (branch `feature/MU-106-theme-login-elements`), refactored the shared Google button helper, documented/demoed the declarative usage, and added regression tests covering attribute reflection, theme toggling, and GIS rendering.
+- [ ] [MU-107] Deliver `<mpr-settings>` and `<mpr-sites>` auxiliary elements with catalog rendering, CTA events, and graceful fallbacks per `docs/web-components-plan.md#mu-107-—-mpr-settings--mpr-sites`.
+- [ ] [MU-108] Refresh README, ARCHITECTURE.md, and add `docs/custom-elements.md` plus demo updates that document the new tags, following `docs/web-components-plan.md#mu-108-—-documentation--samples`.
+- [ ] [MU-109] Expand unit + Puppeteer tests, configure GitHub Actions, and prep release notes to close out the custom-element rollout per `docs/web-components-plan.md#mu-109-—-testing--release-readiness`.
 
 ## Improvements (200–299)
 
