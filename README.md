@@ -16,7 +16,7 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    ```html
    <link
      rel="stylesheet"
-     href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.5/mpr-ui.css"
+     href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.6/mpr-ui.css"
    />
    <script type="module">
      import Alpine from "https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js";
@@ -25,7 +25,7 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    </script>
    <script
      defer
-     src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.5/mpr-ui.js"
+     src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.6/mpr-ui.js"
    ></script>
    ```
 

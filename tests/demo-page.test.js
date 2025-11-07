@@ -13,18 +13,18 @@ const demoHtml = readFileSync(demoHtmlPath, 'utf8');
 const demoScript = readFileSync(demoScriptPath, 'utf8');
 const sharedCss = readFileSync(sharedCssPath, 'utf8');
 
-test('demo loads mpr-ui from the v0.0.5 CDN bundle', () => {
+test('demo loads mpr-ui from the v0.0.6 CDN bundle', () => {
   assert.match(
     demoHtml,
-    /<script[^>]+id="mpr-ui-bundle"[^>]+src="https:\/\/cdn\.jsdelivr\.net\/gh\/MarcoPoloResearchLab\/mpr-ui@0\.0\.5\/mpr-ui\.js"/,
-    'Expected demo index.html to reference the v0.0.5 CDN bundle with id="mpr-ui-bundle"',
+    /<script[^>]+id="mpr-ui-bundle"[^>]+src="https:\/\/cdn\.jsdelivr\.net\/gh\/MarcoPoloResearchLab\/mpr-ui@0\.0\.6\/mpr-ui\.js"/,
+    'Expected demo index.html to reference the v0.0.6 CDN bundle with id="mpr-ui-bundle"',
   );
 });
 
 test('demo loads the shared stylesheet from the CDN', () => {
   assert.match(
     demoHtml,
-    /<link[^>]+href="https:\/\/cdn\.jsdelivr\.net\/gh\/MarcoPoloResearchLab\/mpr-ui@0\.0\.5\/mpr-ui\.css"/,
+    /<link[^>]+href="https:\/\/cdn\.jsdelivr\.net\/gh\/MarcoPoloResearchLab\/mpr-ui@0\.0\.6\/mpr-ui\.css"/,
     'Expected demo index.html to reference the packaged stylesheet on the CDN',
   );
 });
@@ -52,5 +52,28 @@ test('packaged stylesheet pins the header and footer using sticky positioning', 
     sharedCss,
     /\.demo-footer-slot[^{]*\{[^}]*position:\s*sticky/gi,
     'Expected .demo-footer-slot inside mpr-ui.css to define sticky positioning',
+  );
+});
+
+test('palette-specific overrides respond to theme mode classes', () => {
+  assert.match(
+    sharedCss,
+    /body\[data-demo-palette='sunrise'\]\.theme-light[^{]*\{/,
+    'Sunrise palette should define a .theme-light selector so light mode overrides apply',
+  );
+  assert.match(
+    sharedCss,
+    /body\[data-demo-palette='sunrise'\]\.theme-dark[^{]*\{/,
+    'Sunrise palette should define a .theme-dark selector so dark mode overrides apply',
+  );
+  assert.match(
+    sharedCss,
+    /body\[data-demo-palette='forest'\]\.theme-light[^{]*\{/,
+    'Forest palette should define a .theme-light selector so light mode overrides apply',
+  );
+  assert.match(
+    sharedCss,
+    /body\[data-demo-palette='forest'\]\.theme-dark[^{]*\{/,
+    'Forest palette should define a .theme-dark selector so dark mode overrides apply',
   );
 });
