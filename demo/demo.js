@@ -62,9 +62,6 @@ const syncProfileDataset = (hostElement) => {
   }
 };
 
-let googleCallback =
-  /** @type {null | ((payload: { credential: string }) => void)} */ (null);
-
 const originalFetch = window.fetch;
 
 const sessionProfile = {
@@ -146,50 +143,6 @@ window.fetch = (input, init = {}) => {
     return originalFetch(input, init);
   }
   return Promise.resolve(createJsonResponse({}, 404));
-};
-
-window.google = {
-  accounts: {
-    id: {
-      initialize(config) {
-        googleCallback = config && typeof config.callback === "function"
-          ? config.callback
-          : null;
-        const clientIdDescription =
-          config && typeof config.client_id === "string" && config.client_id
-            ? ` with client ${config.client_id}`
-            : "";
-        appendLogEntry(`google.accounts.id.initialize called${clientIdDescription}`);
-      },
-      prompt() {
-        appendLogEntry("google.accounts.id.prompt invoked");
-      },
-      renderButton(targetElement, renderOptions) {
-        appendLogEntry("google.accounts.id.renderButton invoked");
-        if (!targetElement) {
-          appendLogEntry("renderButton invoked without a target element");
-          return;
-        }
-        const container = /** @type {HTMLElement} */ (targetElement);
-        container.innerHTML = "";
-        const button = document.createElement("button");
-        button.type = "button";
-        button.className = "google-button";
-        button.id = "demo-google-signin-button";
-        button.setAttribute("aria-label", "Sign in with Google");
-        const buttonText =
-          renderOptions && typeof renderOptions.text === "string"
-            ? renderOptions.text
-            : "Sign in with Google";
-        button.textContent = buttonText;
-        button.addEventListener("click", () => {
-          appendLogEntry("Demo Google Sign-In button clicked");
-          deliverDemoCredential();
-        });
-        container.appendChild(button);
-      },
-    },
-  },
 };
 
 window.initAuthClient = ({ onAuthenticated, onUnauthenticated }) => {
@@ -274,23 +227,6 @@ headerHost.addEventListener("mpr-ui:header:settings-click", () => {
 
 syncProfileDataset(headerHost);
 
-const deliverDemoCredential = () => {
-  if (googleCallback) {
-    appendLogEntry("Delivering credential via google callback");
-    googleCallback({ credential: "demo-id-token" });
-    return;
-  }
-  appendLogEntry("Invoking authController.handleCredential directly");
-  if (authController && typeof authController.handleCredential === "function") {
-    authController.handleCredential({ credential: "demo-id-token" });
-    return;
-  }
-  appendLogEntry("Auth controller unavailable; emitting fallback event");
-  headerHost.dispatchEvent(
-    new CustomEvent("mpr-ui:header:signin-click", { detail: {} }),
-  );
-};
-
 const promptButton = document.getElementById("trigger-prompt");
 const signOutButton = document.getElementById("sign-out");
 const restartButton = document.getElementById("restart-session");
@@ -300,7 +236,19 @@ if (!promptButton || !signOutButton || !restartButton) {
 }
 
 promptButton.addEventListener("click", () => {
-  window.google.accounts.id.prompt();
+  const gis =
+    window.google &&
+    window.google.accounts &&
+    window.google.accounts.id &&
+    typeof window.google.accounts.id.prompt === "function"
+      ? window.google.accounts.id
+      : null;
+  if (!gis) {
+    appendLogEntry("Google Identity Services not ready yet; cannot prompt");
+    return;
+  }
+  appendLogEntry("Invoking google.accounts.id.prompt via demo control");
+  gis.prompt();
 });
 
 signOutButton.addEventListener("click", () => {
@@ -403,5 +351,11 @@ themeModeButtons.forEach((button) => {
         currentMode === nextMode ? " (no change)" : ""
       }`,
     );
+    if (demoBody) {
+      if (demoBody.dataset.demoPalette !== "default") {
+        appendLogEntry("Resetting palette to default after manual theme switch");
+      }
+      demoBody.dataset.demoPalette = "default";
+    }
   });
 });

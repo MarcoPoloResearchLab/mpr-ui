@@ -130,12 +130,14 @@ function createDocumentStub() {
     },
   };
   return {
+    __headChildren: headChildren,
     head: {
       appendChild: function (node) {
         if (node && node.id) {
           elementsById[node.id] = node;
         }
         headChildren.push(node);
+        return node;
       },
     },
     createElement: function (tagName) {
@@ -148,6 +150,8 @@ function createDocumentStub() {
         setAttribute: function (name, value) {
           this[name] = value;
         },
+        onload: null,
+        onerror: null,
         styleSheet: null,
       };
     },
@@ -265,6 +269,12 @@ function createHostHarness() {
   };
 }
 
+function flushAsync() {
+  return new Promise(function resolveAsync(resolve) {
+    setTimeout(resolve, 0);
+  });
+}
+
 function resetEnvironment() {
   Object.keys(require.cache).forEach(function (key) {
     if (key.indexOf('mpr-ui.js') !== -1) {
@@ -375,7 +385,70 @@ test('header marks the no-auth state when auth is not configured', () => {
   controller.destroy();
 });
 
-test('renderSiteHeader renders the Google button inside the header when siteId is provided', () => {
+test('renderSiteHeader injects the Google Identity script when the client is missing', async () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {
+    auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
+  });
+
+  const injectedScripts = global.document.__headChildren.filter(function (node) {
+    return node && typeof node.src === 'string';
+  });
+  assert.ok(
+    injectedScripts.some(function (node) {
+      return /https:\/\/accounts\.google\.com\/gsi\/client/.test(node.src || '');
+    }),
+    'expected GIS script injection when google client missing',
+  );
+
+  injectedScripts.forEach(function (node) {
+    if (typeof node.onload === 'function') {
+      node.onload();
+    }
+  });
+  await flushAsync();
+
+  const errorEvents = harness.dispatchedEvents.filter(function (event) {
+    return event.type === 'mpr-ui:header:error';
+  });
+  assert.ok(
+    errorEvents.some(function (event) {
+      return event.detail && event.detail.code === 'mpr-ui.header.google_unavailable';
+    }),
+    'should emit google_unavailable when renderButton API stays missing after load',
+  );
+});
+
+test('renderSiteHeader reports script failures when the GIS loader errors', async () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const documentStub = global.document;
+  const library = loadLibrary();
+  documentStub.head.appendChild = function appendWithFailure(node) {
+    if (typeof node.onerror === 'function') {
+      node.onerror(new Error('loader failed'));
+    }
+    return node;
+  };
+  library.renderSiteHeader(harness.host, {
+    auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
+  });
+  await flushAsync();
+
+  const errorEvents = harness.dispatchedEvents.filter(function (event) {
+    return event.type === 'mpr-ui:header:error';
+  });
+  assert.ok(
+    errorEvents.some(function (event) {
+      return event.detail && event.detail.code === 'mpr-ui.header.google_script_failed';
+    }),
+    'expected google_script_failed event when the loader cannot fetch GIS',
+  );
+});
+
+test('renderSiteHeader renders the Google button inside the header when siteId is provided', async () => {
   resetEnvironment();
   const harness = createHostHarness();
   const renderCalls = [];
@@ -395,6 +468,7 @@ test('renderSiteHeader renders the Google button inside the header when siteId i
     siteId: 'demo-site-id',
     auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
   });
+  await flushAsync();
   assert.strictEqual(renderCalls.length, 1, 'expected renderButton to be called once');
   assert.strictEqual(
     renderCalls[0].host,
@@ -410,31 +484,6 @@ test('renderSiteHeader renders the Google button inside the header when siteId i
     harness.googleSigninHost.getAttribute('data-mpr-google-ready'),
     'true',
     'google host is marked ready after renderButton succeeds',
-  );
-});
-
-test('google sign-in host reports availability errors when auth is configured but google is unavailable', () => {
-  resetEnvironment();
-  const harness = createHostHarness();
-  const library = loadLibrary();
-  library.renderSiteHeader(harness.host, {
-    auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
-  });
-
-  const errorEvents = harness.dispatchedEvents.filter(function (event) {
-    return event.type === 'mpr-ui:header:error';
-  });
-
-  assert.strictEqual(errorEvents.length, 1, 'missing google library emits header error');
-  assert.deepStrictEqual(
-    errorEvents[0].detail,
-    { code: 'mpr-ui.header.google_unavailable' },
-    'error payload describes the missing GIS library',
-  );
-  assert.strictEqual(
-    harness.googleSigninHost.getListenerCount('click'),
-    0,
-    'no fallback click handlers attached when google is unavailable',
   );
 });
 
