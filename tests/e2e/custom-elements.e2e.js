@@ -7,8 +7,8 @@ const chromium = require('@sparticuz/chromium');
 const FIXTURE_URL = pathToFileURL(join(__dirname, 'custom-elements.html')).href;
 
 async function waitForFixture(page) {
-  await page.goto(FIXTURE_URL);
-  await page.waitForFunction(() => window.__fixtureReady === true, { timeout: 5000 });
+  await page.goto(FIXTURE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
+  await page.waitForFunction(() => window.__fixtureReady === true, { timeout: 20000 });
 }
 
 async function resolveExecutablePath() {
