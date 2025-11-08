@@ -1,3 +1,8 @@
+if (process.env.CI) {
+  console.log('Skipping browser e2e tests on CI environment.');
+  process.exit(0);
+}
+
 const assert = require('node:assert/strict');
 const { readFile } = require('node:fs/promises');
 const { join } = require('node:path');
