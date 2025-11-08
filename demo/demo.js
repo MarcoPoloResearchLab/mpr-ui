@@ -10,34 +10,11 @@ const headerHost = /** @type {HTMLElement | null} */ (
 const eventLog = /** @type {HTMLElement | null} */ (
   document.getElementById("event-log")
 );
-const profileId = /** @type {HTMLElement | null} */ (
-  document.getElementById("profile-id")
-);
-const profileEmail = /** @type {HTMLElement | null} */ (
-  document.getElementById("profile-email")
-);
-const profileDisplay = /** @type {HTMLElement | null} */ (
-  document.getElementById("profile-display")
-);
-const profileAvatar = /** @type {HTMLElement | null} */ (
-  document.getElementById("profile-avatar")
-);
-const demoSettingsElement =
-  /** @type {(HTMLElement & { toggle?: (force?: boolean) => void }) | null} */ (
-    document.getElementById("demo-settings")
-  );
-const demoSitesElement = /** @type {HTMLElement | null} */ (
-  document.getElementById("demo-sites")
-);
 
 const demoBody = /** @type {HTMLBodyElement | null} */ (document.body);
 
-const GOOGLE_FALLBACK_CLIENT_ID =
-  (window.MPRUI && window.MPRUI.DEFAULT_GOOGLE_SITE_ID) ||
-  "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com";
-
-if (!headerHost || !eventLog || !profileId || !profileEmail || !profileDisplay) {
-  throw new Error("demo: expected header host and dataset placeholders");
+if (!headerHost || !eventLog) {
+  throw new Error("demo: expected header host and event log");
 }
 
 /** @type {(message: string) => void} */
@@ -54,41 +31,6 @@ const appendLogEntry = (message) => {
     }
   }
 };
-
-/**
- * Writes profile dataset values to the UI.
- * @param {HTMLElement} hostElement
- */
-const syncProfileDataset = (hostElement) => {
-  const data = hostElement.dataset;
-  profileId.textContent = data.userId || "—";
-  profileEmail.textContent = data.userEmail || "—";
-  profileDisplay.textContent = data.userDisplay || "—";
-  if (profileAvatar) {
-    profileAvatar.textContent = data.userAvatarUrl || "—";
-  }
-};
-
-/**
- * Attempts to click a header control rendered inside <mpr-header>.
- * @param {string} selector
- */
-const clickHeaderControl = (selector) => {
-  if (!headerHost) {
-    return false;
-  }
-  const target = headerHost.querySelector(selector);
-  if (!target) {
-    return false;
-  }
-  target.dispatchEvent(
-    new MouseEvent("click", { bubbles: true, cancelable: true })
-  );
-  return true;
-};
-
-const triggerHeaderSignOut = () =>
-  clickHeaderControl('[data-mpr-header="sign-out-button"]');
 
 const originalFetch = window.fetch;
 
@@ -191,14 +133,7 @@ if (!window.MPRUI) {
   throw new Error("mpr-ui bundle did not load before demo.js");
 }
 
-customElements
-  .whenDefined("mpr-header")
-  .then(() => {
-    if (headerHost) {
-      syncProfileDataset(headerHost);
-    }
-  })
-  .catch(() => {});
+customElements.whenDefined("mpr-header").catch(() => {});
 
 const initialThemeMode =
   typeof window.MPRUI.getThemeMode === "function"
@@ -208,7 +143,6 @@ syncBodyThemeClass(initialThemeMode);
 
 headerHost.addEventListener("mpr-ui:auth:authenticated", (event) => {
   appendLogEntry("Event: mpr-ui:auth:authenticated");
-  syncProfileDataset(headerHost);
   if (event && event.detail && event.detail.profile) {
     appendLogEntry(`User: ${event.detail.profile.display}`);
   }
@@ -216,7 +150,6 @@ headerHost.addEventListener("mpr-ui:auth:authenticated", (event) => {
 
 headerHost.addEventListener("mpr-ui:auth:unauthenticated", () => {
   appendLogEntry("Event: mpr-ui:auth:unauthenticated");
-  syncProfileDataset(headerHost);
 });
 
 headerHost.addEventListener("mpr-ui:auth:error", (event) => {
@@ -241,173 +174,19 @@ headerHost.addEventListener("mpr-ui:header:theme-change", (event) => {
   );
 });
 
-const settingsElementApi =
-  demoSettingsElement &&
-  /** @type {{ toggle?: (force?: boolean) => void }} */ (demoSettingsElement);
-
 headerHost.addEventListener("mpr-ui:header:settings-click", () => {
   appendLogEntry("Settings button clicked");
-  if (settingsElementApi && typeof settingsElementApi.toggle === "function") {
-    settingsElementApi.toggle();
-  }
 });
 
-if (demoSettingsElement) {
-  demoSettingsElement.addEventListener("mpr-settings:toggle", (event) => {
-    const detail = event && event.detail ? event.detail : {};
-    appendLogEntry(
-      `mpr-settings → ${detail.open ? "open" : "closed"}${
-        detail.panelId ? ` (panel: ${detail.panelId})` : ""
-      }`,
-    );
-  });
-}
-
-if (demoSitesElement) {
-  demoSitesElement.addEventListener("mpr-sites:link-click", (event) => {
-    const detail = event && event.detail ? event.detail : {};
-    appendLogEntry(
-      `mpr-sites link → ${detail.label || "Unknown"} (${detail.url || "#"})`,
-    );
-  });
-}
-
-syncProfileDataset(headerHost);
-
-const promptButton = document.getElementById("trigger-prompt");
-const signOutButton = document.getElementById("sign-out");
-
-if (!promptButton || !signOutButton) {
-  throw new Error("demo: expected auth action buttons to exist");
-}
-
-promptButton.addEventListener("click", () => {
-  const gis =
-    window.google &&
-    window.google.accounts &&
-    window.google.accounts.id &&
-    typeof window.google.accounts.id.prompt === "function"
-      ? window.google.accounts.id
-      : null;
-  if (!gis) {
-    appendLogEntry("Google Identity Services not ready yet; cannot prompt");
-    return;
-  }
-  appendLogEntry("Invoking google.accounts.id.prompt via demo control");
-  gis.prompt();
-});
-
-signOutButton.addEventListener("click", () => {
-  if (!triggerHeaderSignOut()) {
-    appendLogEntry("Header sign-out control not ready yet");
-  }
-});
-
-const footerHost = /** @type {HTMLElement | null} */ (
-  document.getElementById("imperative-footer-host")
-);
-const rotateFooterButton = /** @type {HTMLElement | null} */ (
-  document.getElementById("rotate-footer")
-);
 const declarativeFooter = /** @type {HTMLElement | null} */ (
   document.getElementById("page-footer")
 );
-
-if (!footerHost || !rotateFooterButton) {
-  throw new Error("demo: expected imperative footer host and button");
-}
-
-const packagedFooterCatalog =
-  window.MPRUI && typeof window.MPRUI.getFooterSiteCatalog === "function"
-    ? window.MPRUI.getFooterSiteCatalog()
-    : [];
-
-const footerLinks = [
-  packagedFooterCatalog,
-  packagedFooterCatalog.slice().reverse(),
-];
-
-let footerIndex = 0;
-
-const footerController = window.MPRUI.renderFooter(footerHost, {
-  prefixText: "Built by",
-  toggleLabel: "MPRLab Sites",
-  privacyLinkHref: "#privacy",
-  privacyLinkLabel: "Privacy • Terms",
-  links: footerLinks[footerIndex],
-});
-
-rotateFooterButton.addEventListener("click", () => {
-  footerIndex = (footerIndex + 1) % footerLinks.length;
-  footerController.update({
-    prefixText: `Links set #${footerIndex + 1}`,
-    links: footerLinks[footerIndex],
-    toggleLabel: footerIndex === 0 ? "MPRLab Sites" : "MPRLab Sites (reverse order)",
-  });
-});
-
-footerHost.addEventListener("mpr-footer:theme-change", (event) => {
-  const detail = event && event.detail ? event.detail : {};
-  appendLogEntry(
-    `Footer theme toggled to ${detail.theme || "unknown"}${detail.source ? ` (source: ${detail.source})` : ""}`,
-  );
-});
 
 if (declarativeFooter) {
   declarativeFooter.addEventListener("mpr-footer:theme-change", (event) => {
     const detail = event && event.detail ? event.detail : {};
     appendLogEntry(
-      `Declarative footer theme → ${detail.theme || "unknown"}`,
+      `Footer theme → ${detail.theme || "unknown"}`,
     );
   });
 }
-
-const paletteButtons = document.querySelectorAll("[data-demo-palette-toggle]");
-paletteButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    if (!demoBody) {
-      appendLogEntry("Palette host body unavailable");
-      return;
-    }
-    const palette = button.getAttribute("data-demo-palette-toggle");
-    if (!palette) {
-      return;
-    }
-    if (demoBody.dataset.demoPalette === palette) {
-      appendLogEntry(`Palette tokens already set to ${palette}`);
-      return;
-    }
-    demoBody.dataset.demoPalette = palette;
-    appendLogEntry(`Palette tokens → ${palette}`);
-  });
-});
-
-const themeModeButtons = document.querySelectorAll("[data-demo-theme-mode]");
-themeModeButtons.forEach((button) => {
-  button.addEventListener("click", () => {
-    if (!window.MPRUI || typeof window.MPRUI.setThemeMode !== "function") {
-      appendLogEntry("Theme mode API unavailable");
-      return;
-    }
-    const targetMode = button.getAttribute("data-demo-theme-mode");
-    if (!targetMode) {
-      return;
-    }
-    const currentMode =
-      typeof window.MPRUI.getThemeMode === "function"
-        ? window.MPRUI.getThemeMode()
-        : null;
-    const nextMode = window.MPRUI.setThemeMode(targetMode, "demo-controls");
-    appendLogEntry(
-      `Theme mode → ${nextMode || targetMode}${
-        currentMode === nextMode ? " (no change)" : ""
-      }`,
-    );
-    if (demoBody) {
-      if (demoBody.dataset.demoPalette !== "default") {
-        appendLogEntry("Resetting palette to default after manual theme switch");
-      }
-      demoBody.dataset.demoPalette = "default";
-    }
-  });
-});

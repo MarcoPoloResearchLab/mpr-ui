@@ -10,7 +10,8 @@ body {
   flex-direction: column;
 }
 
-#site-header {
+#site-header,
+#demo-header {
   position: sticky;
   top: 0;
   width: 100%;
@@ -18,7 +19,8 @@ body {
   flex-shrink: 0;
 }
 
-.demo-footer-slot {
+.demo-footer-slot,
+#page-footer {
   position: sticky;
   bottom: 0;
   width: 100%;
