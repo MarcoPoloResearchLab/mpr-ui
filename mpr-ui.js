@@ -2942,6 +2942,7 @@
     '.mpr-footer{position:sticky;bottom:0;width:100%;padding:24px 0;background:var(--mpr-color-surface-primary,rgba(15,23,42,0.92));color:var(--mpr-color-text-primary,#e2e8f0);border-top:1px solid var(--mpr-color-border,rgba(148,163,184,0.25));backdrop-filter:blur(10px)}' +
     '.mpr-footer__inner{max-width:1080px;margin:0 auto;padding:0 1.5rem;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.5rem}' +
     '.mpr-footer__layout{display:flex;flex-wrap:wrap;align-items:center;gap:1.25rem}' +
+    '.mpr-footer__spacer{display:block;flex:1 1 auto;min-width:1px}' +
     '.mpr-footer__brand{display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem;font-size:0.95rem}' +
     '.mpr-footer__prefix{font-weight:600;color:var(--mpr-color-accent,#38bdf8)}' +
     '.mpr-footer__menu-wrapper{position:relative}' +
@@ -2959,7 +2960,7 @@
     '.mpr-footer__theme-checkbox:checked{background:var(--mpr-color-accent,#38bdf8)}' +
     '.mpr-footer__theme-checkbox:checked::after{transform:translateX(18px);background:var(--mpr-color-accent-contrast,#0f172a)}' +
     '.mpr-footer__theme-checkbox:focus-visible{outline:2px solid var(--mpr-color-accent,#38bdf8);outline-offset:3px}' +
-    '@media (max-width:768px){.mpr-footer__layout{flex-direction:column;align-items:flex-start}.mpr-footer__inner{gap:1.75rem}}';
+    '@media (max-width:768px){.mpr-footer__layout{flex-direction:column;align-items:flex-start}.mpr-footer__inner{gap:1.75rem}.mpr-footer__spacer{display:none}}';
 
   var FOOTER_LINK_CATALOG = Object.freeze([
     Object.freeze({ label: "Marco Polo Research Lab", url: "https://mprlab.com" }),
@@ -3187,6 +3188,7 @@
     wrapperClass: "mpr-footer__layout",
     brandWrapperClass: "mpr-footer__brand",
     menuWrapperClass: "mpr-footer__menu-wrapper",
+    spacerClass: "mpr-footer__spacer",
     prefixClass: "mpr-footer__prefix",
     prefixText: "Built by",
     toggleButtonId: "",
@@ -3471,6 +3473,13 @@
     var themeToggleMarkup = config.themeToggle && config.themeToggle.enabled
       ? '<div data-mpr-footer="theme-toggle"></div>'
       : "";
+    var spacerMarkup = themeToggleMarkup
+      ? '<span data-mpr-footer="spacer"' +
+        (config.spacerClass
+          ? ' class="' + escapeFooterHtml(config.spacerClass) + '"'
+          : "") +
+        ' aria-hidden="true"></span>'
+      : "";
 
     var dropdownMarkup =
       '<div data-mpr-footer="menu-wrapper">' +
@@ -3483,6 +3492,7 @@
       '<a data-mpr-footer="privacy-link" href="' +
       escapeFooterHtml(sanitizeFooterHref(config.privacyLinkHref)) +
       '"></a>' +
+      spacerMarkup +
       themeToggleMarkup +
       '<div data-mpr-footer="brand">' +
       '<span data-mpr-footer="prefix"></span>' +

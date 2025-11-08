@@ -164,6 +164,7 @@ function createFooterHostHarness() {
   const toggleButtonElement = createElementStub({ supportsEvents: true, supportsAttributes: true });
   const privacyLinkElement = createElementStub({ supportsAttributes: true });
   const themeToggleWrapper = createElementStub({ supportsAttributes: true });
+  const spacerElement = createElementStub({ supportsAttributes: true });
   const themeToggleControl = createElementStub({ supportsEvents: true, supportsAttributes: true });
   themeToggleWrapper.querySelector = function (selector) {
     if (selector === '[data-mpr-theme-toggle="control"]') {
@@ -188,6 +189,7 @@ function createFooterHostHarness() {
   selectors.set('[data-mpr-footer="brand"]', brandElement);
   selectors.set('[data-mpr-footer="prefix"]', prefixElement);
   selectors.set('[data-mpr-footer="menu-wrapper"]', menuWrapperElement);
+  selectors.set('[data-mpr-footer="spacer"]', spacerElement);
   selectors.set('[data-mpr-footer="menu"]', menuElement);
   selectors.set('[data-mpr-footer="toggle-button"]', toggleButtonElement);
   selectors.set('[data-mpr-footer="privacy-link"]', privacyLinkElement);
@@ -201,12 +203,13 @@ function createFooterHostHarness() {
     }
     return selectors.get(selector) || null;
   };
+  let capturedMarkup = '';
   Object.defineProperty(host, 'innerHTML', {
-    set: function () {
-      // noop: markup ignored; selectors already mapped.
+    set: function (value) {
+      capturedMarkup = String(value);
     },
     get: function () {
-      return '';
+      return capturedMarkup;
     },
   });
 
@@ -263,5 +266,28 @@ test('footer theme toggle switches the global theme mode to light', () => {
     library.getThemeMode(),
     'light',
     'expected theme mode to switch to light after toggling',
+  );
+});
+
+test('footer layout orders privacy spacer toggle and brand', () => {
+  resetEnvironment();
+  const harness = createFooterHostHarness();
+  const library = loadLibrary();
+
+  library.renderFooter(harness.host, { themeToggle: { enabled: true } });
+
+  const markup = String(harness.host.innerHTML);
+  const privacyIndex = markup.indexOf('data-mpr-footer="privacy-link"');
+  const spacerIndex = markup.indexOf('data-mpr-footer="spacer"');
+  const toggleIndex = markup.indexOf('data-mpr-footer="theme-toggle"');
+  const brandIndex = markup.indexOf('data-mpr-footer="brand"');
+
+  assert.ok(privacyIndex !== -1, 'privacy link should be present in the footer layout');
+  assert.ok(spacerIndex !== -1, 'spacer should be present when the theme toggle is enabled');
+  assert.ok(toggleIndex !== -1, 'theme toggle host should be present in the footer layout');
+  assert.ok(brandIndex !== -1, 'brand container should be present in the footer layout');
+  assert.ok(
+    privacyIndex < spacerIndex && spacerIndex < toggleIndex && toggleIndex < brandIndex,
+    'footer layout must position privacy link, spacer, theme toggle, then brand',
   );
 });

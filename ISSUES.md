@@ -201,7 +201,8 @@ I would prefer our component to fully wrap google sign in. If this is impossible
 - [x] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right. The them also doesnt change -- the footer and header are always dark.
 - Converted the header theme toggle to the switch variant, added container styling, and verified the switch updates theme mode attributes through new regression tests on branch `bugfix/MU-309-theme-toggle-motion` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
 
-- [ ] [MU-311] The footer shall have the following sequence left to right: Privacy terms (left) -- spacer -- Theme toggle -- Build by Marko Polo Research Lab. Build by Marko Polo Research Lab is a drop up.
+- [x] [MU-311] The footer shall have the following sequence left to right: Privacy terms (left) -- spacer -- Theme toggle -- Build by Marko Polo Research Lab. Build by Marko Polo Research Lab is a drop up.
+- Inserted a flex spacer between the privacy link and theme toggle, updated footer markup/CSS, and added regression coverage to lock the order on branch `bugfix/MU-311-footer-layout` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
 
 - [x] [MU-310] Both the footer and the header must be sticky and always visible, stuck to the top and the bottom of the page
 
