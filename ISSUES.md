@@ -149,20 +149,55 @@ Hardcode const GOOGLE_FALLBACK_CLIENT_ID =
 - [x] [MU-304] Removing the `open` attribute from `<mpr-settings>` should close the panel, but `__computeOpenState` returns the last internal state instead of the default. Treat missing attributes as `false` so attribute-driven frameworks (React/Vue/plain DOM) can close the panel declaratively. — Missing attributes now default to `false`, frameworks can close via attribute removal, and regression tests enforce the behavior on branch `bugfix/MU-304-settings-open-attr` (`node --test tests/*.test.js`).
 - [x] [MU-305] Restore the header `mpr-ui:header:signin-click` event so non-GIS flows keep working when auth is disabled or GIS fails to render. — Added a fallback CTA, reintroduced signin-click dispatches, and extended header tests on branch `bugfix/MU-305-signin-fallback` (`npm run test`).
 
-- [ ] [MU-306] The links don't work
-1. Marco Polo Research Lab in the header must point to https://mprlab.com
-2. Docs link in the header must point to github
-3. Support link must be called Architecture and point to archituctre
+- [ ] [MU-306] The navigation links must open a new window. Instead currently the bug is that they open in the same window. 
+There are three links here:
+```html
+<mpr-header
+      id="demo-header"
+      brand-label="Marco Polo Research Lab"
+      brand-href="https://mprlab.com/"
+      nav-links='[
+        { "label": "Docs", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/README.md" },
+        { "label": "Architecture", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/ARCHITECTURE.md" }
+      ]'
+```
+All links must open in a new window.
 
-- [ ] [MU-307] The google sign in button is a hard requirements. Write tests to ensure we fail hard even the google sign in button is not displayed. When logged in, there must be an element that displays the name of a logged in user.
+- [ ] [MU-307] The google sign in button is a hard requirements. Write tests to ensure we fail hard when the google sign in button is not displayed. When logged in, there must be an element that displays the name of a logged in user but not their email.
 
-- [ ] [MU-308] Remove
+- [ ] [MU-308] There are two site IDs in the code. remove the ugly duplication and leave only one
+```
+    <div
+      id="g_id_onload"
+      data-client_id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+      data-auto_prompt="false"
+      hidden
+    ></div>
+    <mpr-header
+      id="demo-header"
+      brand-label="Marco Polo Research Lab"
+      brand-href="https://mprlab.com/"
+      nav-links='[
+        { "label": "Docs", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/README.md" },
+        { "label": "Architecture", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/ARCHITECTURE.md" }
+      ]'
+      site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+      login-path="/auth/google"
+      logout-path="/auth/logout"
+      nonce-path="/auth/nonce"
+      settings-label="Settings"
+      theme-config='{"initialMode":"dark","targets":["body"],"attribute":"data-demo-theme"}'
+    >
+```
+I would prefer our component to fully wrap google sign in. If this impossible then our component shall not know the site ID as it has no business with google sign in, and just manipulates the visual working for which querying DOM shall be sufficient.
 
-Footer Helper section
-Shared theme tokens section
+- [ ] [MU-308] Leave header, footer and the event log. Remove all other elements from the page.
 
-Custom elements section
-Auxillary custom elements tokens
+- [ ] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right.
+
+- [ ] [MU-311] The footer shall have the following sequence left to right: Privacy terms (left) -- spacer -- Theme toggle -- Build by Marko Polo Research Lab. Build by Marko Polo Research Lab is a drop up.
+
+- [ ] [MU-310] Both the footer and the header must be sticky and always visible, stuck to the top and the bottom of the page
 
 
 ## Maintenance (400–499)
@@ -171,7 +206,7 @@ Auxillary custom elements tokens
 - [x] [MU-401] Ensure architrecture matches the reality of the code. Update @ARCHITECTURE.md when needed. Review the code and prepare a comprehensive ARCHITECTURE.md file with the overview of the app architecture, sufficient for understanding of a mid to senior software engineer. — Expanded ARCHITECTURE.md with accurate flow descriptions, interfaces, dependency notes, and security guidance reflecting current code. Resolved on branch `maintenace/MU-401-architecture-audit` after auditing exports, documenting auth events, and clarifying legacy footer behaviour.
 - [x] [MU-402] Review @POLICY.md and verify what code areas need improvements and refactoring. Prepare a detailed plan of refactoring. Check for bugs, missing tests, poor coding practices, uplication and slop. Ensure strong encapsulation and following the principles og @AGENTS.md and policies of @POLICY.md — Authored `docs/refactor-plan.md` documenting policy gaps, remediation tasks, and prioritised roadmap. Resolved on branch `maintenace/MU-402-refactor-plan` with actionable workstreams and testing strategy.
 - [x] [MU-403] Prepare a demo page that demonstrates the usage of the footer and header. Delivered `demo/index.html` + `demo/demo.js` with offline GIS stub and footer examples on branch `maintenace/MU-403-demo-page`.
-- [ ] [MU-404] Prepare a Github actions workflow that runs tests on every PR open against master. Here is an example for inspiration
+- [x] [MU-404] Prepare a Github actions workflow that runs tests on every PR open against master. Here is an example for inspiration
 ```yaml
 name: Go CI
 
