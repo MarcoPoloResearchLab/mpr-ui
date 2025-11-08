@@ -2276,11 +2276,8 @@
       elements.profileLabel.textContent = options.profileLabel;
     }
     if (elements.profileName) {
-      var preference =
-        state.profile.display || state.profile.user_email || state.profile.user_id;
-      elements.profileName.textContent = preference
-        ? String(preference)
-        : "";
+      var preference = state.profile.display || state.profile.user_id;
+      elements.profileName.textContent = preference ? String(preference) : "";
     }
   }
 
@@ -2494,8 +2491,6 @@
             message: detail && detail.message ? detail.message : undefined,
           });
           destroyGoogleButton();
-          mountFallbackSigninButton("google_error");
-          dispatchSigninFallback("google_error", { code: mappedCode });
         },
       );
     }
