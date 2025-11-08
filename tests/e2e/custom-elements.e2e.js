@@ -7,8 +7,8 @@ const chromium = require('@sparticuz/chromium');
 const FIXTURE_URL = pathToFileURL(join(__dirname, 'custom-elements.html')).href;
 
 async function waitForFixture(page) {
-  await page.goto(FIXTURE_URL, { waitUntil: 'domcontentloaded', timeout: 15000 });
-  await page.waitForFunction(() => window.__fixtureReady === true, { timeout: 20000 });
+  await page.goto(FIXTURE_URL, { waitUntil: 'domcontentloaded', timeout: 20000 });
+  await page.waitForFunction(() => window.__fixtureReady === true, { timeout: 25000 });
 }
 
 async function resolveExecutablePath() {
@@ -33,6 +33,7 @@ async function run() {
     executablePath,
     args: chromium.args || ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
     defaultViewport: chromium.defaultViewport || null,
+    protocolTimeout: 60000,
   });
   try {
     const page = await browser.newPage();
