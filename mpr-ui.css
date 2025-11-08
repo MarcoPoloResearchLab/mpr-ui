@@ -11,18 +11,15 @@ body {
 }
 
 #site-header,
-mpr-header,
 #demo-header {
   position: sticky;
   top: 0;
   width: 100%;
   z-index: 1200;
   flex-shrink: 0;
-  display: block;
 }
 
 .demo-footer-slot,
-mpr-footer,
 #page-footer {
   position: sticky;
   bottom: 0;
@@ -30,7 +27,6 @@ mpr-footer,
   z-index: 1200;
   flex-shrink: 0;
   margin-top: auto;
-  display: block;
 }
 
 body[data-demo-palette='default'] {
