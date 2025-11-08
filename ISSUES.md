@@ -191,7 +191,8 @@ All links must open in a new window.
 ```
 I would prefer our component to fully wrap google sign in. If this impossible then our component shall not know the site ID as it has no business with google sign in, and just manipulates the visual working for which querying DOM shall be sufficient.
 
-- [ ] [MU-308] Leave header, footer and the event log. Remove all other elements from the page.
+- [x] [MU-312] Leave header, footer and the event log. Remove all other elements from the page.
+— Simplified demo page (demo/index.html) to show only `<mpr-header>`, event log section, and `<mpr-footer>`. Removed all demo controls, profile display, palette toggles, custom element previews, and auxiliary sections (lines 50-246). Updated demo.js to remove references to deleted elements and simplified event listeners. Updated tests in tests/demo-page.test.js to match the new minimalist demo (tests: `npm run test:unit` — 41/41 passing) on branch `improvement/MU-312-clean-demo-page`.
 
 - [ ] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right.
 
