@@ -255,3 +255,46 @@ dt {
 footer {
   flex-shrink: 0;
 }
+
+/* Theme toggle switch styling */
+input[type="checkbox"][data-mpr-theme-toggle="control"] {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  position: relative;
+  width: 48px;
+  height: 24px;
+  background: var(--mpr-theme-toggle-bg, rgba(148, 163, 184, 0.3));
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  border: 1px solid var(--mpr-color-border, rgba(148, 163, 184, 0.35));
+}
+
+input[type="checkbox"][data-mpr-theme-toggle="control"]:focus-visible {
+  outline: 3px solid #f59e0b;
+  outline-offset: 2px;
+}
+
+input[type="checkbox"][data-mpr-theme-toggle="control"]::before {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  transition: transform 0.3s ease, background 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+input[type="checkbox"][data-mpr-theme-toggle="control"]:checked::before {
+  transform: translateX(24px);
+  background: var(--mpr-color-accent, #38bdf8);
+}
+
+input[type="checkbox"][data-mpr-theme-toggle="control"]:checked {
+  background: var(--mpr-color-accent, #38bdf8);
+  opacity: 0.7;
+}

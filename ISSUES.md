@@ -193,7 +193,8 @@ I would prefer our component to fully wrap google sign in. If this impossible th
 
 - [ ] [MU-308] Leave header, footer and the event log. Remove all other elements from the page.
 
-- [ ] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right.
+- [x] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right.
+— Added CSS styling for theme toggle switch (mpr-ui.css:259-300) with slider that moves left to right on toggle, smooth transitions, focus states, and proper visual feedback using `transform: translateX(24px)` when checked (tests: `npm run test:unit` — 41/41 passing) on branch `bugfix/MU-309-toggle-visual-feedback`.
 
 - [ ] [MU-311] The footer shall have the following sequence left to right: Privacy terms (left) -- spacer -- Theme toggle -- Build by Marko Polo Research Lab. Build by Marko Polo Research Lab is a drop up.
 
