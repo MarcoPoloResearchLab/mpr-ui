@@ -198,7 +198,8 @@ I would prefer our component to fully wrap google sign in. If this is impossible
 - [x] [MU-312] Leave header, footer and the event log. Remove all other elements from the page.
 — Simplified demo page (demo/index.html) to show only `<mpr-header>`, event log section, and `<mpr-footer>`. Removed all demo controls, profile display, palette toggles, custom element previews, and auxiliary sections (lines 50-246). Updated demo.js to remove references to deleted elements and simplified event listeners. Updated tests in tests/demo-page.test.js to match the new minimalist demo (tests: `npm run test:unit` — 41/41 passing) on branch `improvement/MU-312-clean-demo-page`.
 
-- [ ] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right. The them also doesnt change -- the footer and header are always dark.
+- [x] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right. The them also doesnt change -- the footer and header are always dark.
+- Converted the header theme toggle to the switch variant, added container styling, and verified the switch updates theme mode attributes through new regression tests on branch `bugfix/MU-309-theme-toggle-motion` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
 
 - [ ] [MU-311] The footer shall have the following sequence left to right: Privacy terms (left) -- spacer -- Theme toggle -- Build by Marko Polo Research Lab. Build by Marko Polo Research Lab is a drop up.
 

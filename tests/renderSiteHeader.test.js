@@ -257,6 +257,7 @@ function createHostHarness() {
     root: root,
     nav: nav,
     brand: brand,
+    themeToggleHost: themeToggleContainer,
     themeToggleControl: themeToggleControl,
     themeToggleIcon: themeToggleIcon,
     googleSigninHost: googleSigninHost,
@@ -355,24 +356,58 @@ test('renderSiteHeader initial markup forces navigation links to open in new win
   );
 });
 
-test('theme toggle updates the icon when the mode changes', () => {
+test('header theme toggle renders switch control and toggles document theme', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {});
+  assert.ok(
+    /<input[^>]+data-mpr-theme-toggle="control"/i.test(
+      String(harness.themeToggleHost.innerHTML || ''),
+    ),
+    'theme toggle should render as a switch input',
+  );
+  assert.strictEqual(
+    global.document.documentElement.getAttribute('data-mpr-theme'),
+    'dark',
+    'document theme defaults to dark mode before toggling',
+  );
+  harness.themeToggleControl.click();
+  assert.strictEqual(
+    global.document.documentElement.getAttribute('data-mpr-theme'),
+    'light',
+    'document theme should switch to light mode after toggle activation',
+  );
+});
+
+test('theme toggle synchronizes switch state with theme mode', () => {
   resetEnvironment();
   const harness = createHostHarness();
   const library = loadLibrary();
   const controller = library.renderSiteHeader(harness.host, {});
 
-  assert.equal(
-    harness.themeToggleIcon.textContent,
-    '🌙',
-    'expected initial icon to represent the dark mode',
+  assert.strictEqual(
+    harness.themeToggleHost.getAttribute('data-mpr-theme-mode'),
+    'dark',
+    'expected header toggle host to start in dark mode',
+  );
+  assert.strictEqual(
+    Boolean(harness.themeToggleControl.checked),
+    false,
+    'switch should be unchecked while dark mode is active',
   );
 
   harness.themeToggleControl.click();
 
-  assert.equal(
-    harness.themeToggleIcon.textContent,
-    '☀️',
-    'expected icon to switch to the light mode glyph after toggle',
+  assert.strictEqual(
+    harness.themeToggleHost.getAttribute('data-mpr-theme-mode'),
+    'light',
+    'toggle host should reflect light mode after activation',
+  );
+  assert.strictEqual(
+    Boolean(harness.themeToggleControl.checked),
+    true,
+    'switch should report checked when light mode is active',
   );
 
   controller.destroy();

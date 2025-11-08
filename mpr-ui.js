@@ -1867,6 +1867,15 @@
     "__icon-btn{display:inline-flex;align-items:center;gap:0.35rem}" +
     "." +
     HEADER_ROOT_CLASS +
+    '__theme-toggle{display:inline-flex;align-items:center;gap:0.6rem}' +
+    "." +
+    HEADER_ROOT_CLASS +
+    '__theme-toggle [data-mpr-theme-toggle="label"]{font-weight:600;font-size:0.85rem;color:var(--mpr-color-text-primary,#e2e8f0)}' +
+    "." +
+    HEADER_ROOT_CLASS +
+    '__theme-toggle input[type="checkbox"][data-mpr-theme-toggle="control"]{margin:0}' +
+    "." +
+    HEADER_ROOT_CLASS +
     "__divider{width:1px;height:24px;background:var(--mpr-color-divider,rgba(148,163,184,0.35))}" +
     "." +
     HEADER_ROOT_CLASS +
@@ -2099,7 +2108,9 @@
       '<div class="' +
       HEADER_ROOT_CLASS +
       '__actions">' +
-      '<div data-mpr-header="theme-toggle"></div>' +
+      '<div data-mpr-header="theme-toggle" class="' +
+      HEADER_ROOT_CLASS +
+      '__theme-toggle"></div>' +
       '<span class="' +
       HEADER_ROOT_CLASS +
       '__divider"></span>' +
@@ -2297,12 +2308,11 @@
     return normalizeThemeToggleDisplayOptions(
       {
         enabled: options.themeToggle.enabled,
-        variant: "button",
+        variant: "switch",
         label: options.themeToggle.label || "Theme",
         showLabel: true,
-        wrapperClass: "",
-        controlClass:
-          HEADER_ROOT_CLASS + "__button " + HEADER_ROOT_CLASS + "__icon-btn",
+        wrapperClass: HEADER_ROOT_CLASS + "__theme-toggle",
+        controlClass: "",
         iconClass: "",
         ariaLabel: options.themeToggle.ariaLabel,
         icons: {
