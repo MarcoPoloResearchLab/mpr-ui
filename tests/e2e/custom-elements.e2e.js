@@ -37,13 +37,21 @@ async function run() {
   try {
     const page = await browser.newPage();
     await waitForFixture(page);
+    page.setDefaultTimeout(15000);
+    page.setDefaultNavigationTimeout(15000);
 
     // Verify <mpr-sites> rendered entries and dispatches events.
+    await page.waitForSelector('#fixture-sites');
     const siteCount = await page.$eval('#fixture-sites', (element) =>
       element.getAttribute('data-mpr-sites-count'),
     );
     assert.equal(siteCount, '2', 'mpr-sites rendered both catalog entries');
+    await page.waitForSelector('#fixture-sites [data-mpr-sites-index="0"]');
     await page.click('#fixture-sites [data-mpr-sites-index="0"]');
+    await page.waitForFunction(
+      () => Array.isArray(window.__mprEvents.sites) && window.__mprEvents.sites.length > 0,
+      { timeout: 10000 },
+    );
     const siteEvents = await page.evaluate(() => window.__mprEvents.sites.slice());
     assert.equal(siteEvents.length, 1, 'mpr-sites emitted link-click event');
     assert.equal(siteEvents[0].label, 'Docs');
@@ -54,14 +62,20 @@ async function run() {
       return element.getAttribute('data-mpr-settings-open');
     });
     assert.equal(settingsState, 'false', 'mpr-settings closes when open attribute is removed');
+    await page.waitForFunction(
+      () => Array.isArray(window.__mprEvents.settings) && window.__mprEvents.settings.length > 0,
+      { timeout: 10000 },
+    );
     const settingsEvents = await page.evaluate(() => window.__mprEvents.settings.slice());
     assert.equal(settingsEvents.length > 0, true, 'mpr-settings emitted toggle event');
     assert.equal(settingsEvents[settingsEvents.length - 1].open, false);
 
     // Theme toggle should flip the global theme mode.
-    const initialMode = await page.evaluate(() =>
-      typeof window.MPRUI?.getThemeMode === 'function' ? window.MPRUI.getThemeMode() : null,
+    await page.waitForFunction(
+      () => typeof window.MPRUI?.getThemeMode === 'function',
+      { timeout: 10000 },
     );
+    const initialMode = await page.evaluate(() => window.MPRUI.getThemeMode());
     await page.click('#fixture-theme-toggle [data-mpr-theme-toggle="control"]');
     await page.waitForFunction(
       (mode) =>
@@ -72,6 +86,10 @@ async function run() {
     );
     const newMode = await page.evaluate(() => window.MPRUI.getThemeMode());
     assert.notEqual(newMode, initialMode, 'theme toggle updates global theme mode');
+    await page.waitForFunction(
+      () => Array.isArray(window.__mprEvents.theme) && window.__mprEvents.theme.length > 0,
+      { timeout: 10000 },
+    );
     const themeEvents = await page.evaluate(() => window.__mprEvents.theme.slice());
     assert.equal(themeEvents.length > 0, true, 'mpr-ui:theme-change dispatched');
   } finally {
