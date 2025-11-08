@@ -2358,6 +2358,7 @@
     var authListenersAttached = false;
     var headerToggleCleanup = null;
     var googleButtonCleanup = null;
+    var fallbackSigninTarget = null;
     var googleSiteId = options.siteId || GOOGLE_FALLBACK_SITE_ID;
     hostElement.setAttribute("data-mpr-google-site-id", googleSiteId);
     var headerToggleCleanup = null;
@@ -2397,13 +2398,65 @@
         googleButtonCleanup();
         googleButtonCleanup = null;
       }
+      if (
+        fallbackSigninTarget &&
+        typeof fallbackSigninTarget.removeEventListener === "function"
+      ) {
+        fallbackSigninTarget.removeEventListener("click", handleFallbackSigninClick);
+      }
+      if (fallbackSigninTarget) {
+        fallbackSigninTarget.textContent = "";
+        fallbackSigninTarget.removeAttribute("data-mpr-google-ready");
+        fallbackSigninTarget.removeAttribute("data-mpr-signin-fallback");
+        fallbackSigninTarget = null;
+      }
       if (elements.googleSignin) {
         elements.googleSignin.innerHTML = "";
         elements.googleSignin.removeAttribute("data-mpr-google-ready");
+        elements.googleSignin.removeAttribute("data-mpr-signin-fallback");
       }
     }
 
     cleanupHandlers.push(destroyGoogleButton);
+
+    function dispatchSigninFallback(reason, extraDetail) {
+      var detail = {
+        reason: reason || "manual",
+      };
+      if (extraDetail && typeof extraDetail === "object") {
+        Object.keys(extraDetail).forEach(function assignDetail(key) {
+          detail[key] = extraDetail[key];
+        });
+      }
+      dispatchHeaderEvent("mpr-ui:header:signin-click", detail);
+    }
+
+    function handleFallbackSigninClick(event) {
+      if (event && typeof event.preventDefault === "function") {
+        event.preventDefault();
+      }
+      dispatchSigninFallback("manual");
+    }
+
+    function mountFallbackSigninButton(reason) {
+      if (!elements.googleSignin) {
+        dispatchSigninFallback(reason || "disabled");
+        return;
+      }
+      fallbackSigninTarget = elements.googleSignin;
+      fallbackSigninTarget.innerHTML = "";
+      fallbackSigninTarget.textContent =
+        (options.signInLabel && options.signInLabel.trim()) || HEADER_DEFAULTS.signInLabel;
+      fallbackSigninTarget.setAttribute("data-mpr-google-ready", "fallback");
+      if (reason) {
+        fallbackSigninTarget.setAttribute("data-mpr-signin-fallback", reason);
+      } else {
+        fallbackSigninTarget.removeAttribute("data-mpr-signin-fallback");
+      }
+      if (typeof fallbackSigninTarget.addEventListener === "function") {
+        fallbackSigninTarget.addEventListener("click", handleFallbackSigninClick);
+      }
+    }
 
     function mountHeaderThemeToggle() {
       destroyHeaderToggle();
@@ -2420,8 +2473,7 @@
         return;
       }
       if (!options.auth) {
-        elements.googleSignin.removeAttribute("data-mpr-google-ready");
-        elements.googleSignin.innerHTML = "";
+        mountFallbackSigninButton("disabled");
         return;
       }
       elements.googleSignin.setAttribute("data-mpr-google-site-id", googleSiteId);
@@ -2441,6 +2493,9 @@
             code: mappedCode,
             message: detail && detail.message ? detail.message : undefined,
           });
+          destroyGoogleButton();
+          mountFallbackSigninButton("google_error");
+          dispatchSigninFallback("google_error", { code: mappedCode });
         },
       );
     }

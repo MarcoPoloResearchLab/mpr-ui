@@ -378,11 +378,37 @@ test('header marks the no-auth state when auth is not configured', () => {
   );
   assert.strictEqual(
     harness.googleSigninHost.getAttribute('data-mpr-google-ready'),
-    null,
-    'google host remains hidden when auth is not configured',
+    'fallback',
+    'fallback sign-in CTA rendered when auth is not configured',
   );
 
   controller.destroy();
+});
+
+test('header dispatches signin-click events when auth is disabled', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {});
+
+  assert.strictEqual(
+    harness.googleSigninHost.getAttribute('data-mpr-google-ready'),
+    'fallback',
+    'fallback sign-in CTA rendered when auth disabled',
+  );
+
+  harness.googleSigninHost.click();
+
+  assert.ok(
+    harness.dispatchedEvents.some(function (event) {
+      return (
+        event.type === 'mpr-ui:header:signin-click' &&
+        event.detail &&
+        event.detail.reason === 'manual'
+      );
+    }),
+    'clicking fallback CTA dispatches signin-click event',
+  );
 });
 
 test('renderSiteHeader injects the Google Identity script when the client is missing', async () => {
@@ -484,6 +510,42 @@ test('renderSiteHeader renders the Google button inside the header when siteId i
     harness.googleSigninHost.getAttribute('data-mpr-google-ready'),
     'true',
     'google host is marked ready after renderButton succeeds',
+  );
+});
+
+test('renderSiteHeader emits signin-click fallback when Google button fails to render', async () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {
+          throw new Error('boom');
+        },
+        initialize: function () {},
+        prompt: function () {},
+      },
+    },
+  };
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {
+    auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
+  });
+  await flushAsync();
+
+  const signinEvents = harness.dispatchedEvents.filter(function (event) {
+    return event.type === 'mpr-ui:header:signin-click';
+  });
+  assert.ok(
+    signinEvents.some(function (event) {
+      return event.detail && event.detail.reason === 'google_error';
+    }),
+    'expected signin-click event when Google button cannot render',
+  );
+  assert.strictEqual(
+    harness.googleSigninHost.getAttribute('data-mpr-google-ready'),
+    'fallback',
+    'fallback CTA rendered after Google button failure',
   );
 });
 

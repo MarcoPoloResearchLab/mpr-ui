@@ -52,6 +52,8 @@ The bundle auto-registers modern HTML custom elements when `window.customElement
 | `<mpr-footer>`    | `renderFooter`                                 | `prefix-text`, `links`, `toggle-label`, `privacy-link-*`, `theme-config`, dataset-based class overrides                               | `mpr-footer:theme-change`                                 |
 | `<mpr-theme-toggle>` | `renderThemeToggle`, `configureTheme`       | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`, `theme-mode`          | `mpr-ui:theme-change` (via the shared theme manager)      |
 | `<mpr-login-button>` | `createAuthHeader`, shared GIS helper       | `site-id`, `login-path`, `logout-path`, `nonce-path`, `base-url`, `button-text`, `button-size`, `button-theme`, `button-shape`        | `mpr-ui:auth:*`, `mpr-login:error`                        |
+| `<mpr-settings>` | Settings CTA + panel wrapper                    | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open`                                                                    | `mpr-settings:toggle`                                     |
+| `<mpr-sites>`    | `getFooterSiteCatalog` (plus inline renderer)   | `links` (JSON), `variant` (`list`, `grid`, `menu`), `columns`, `heading`                                                              | `mpr-sites:link-click`                                    |
 
 Slots:
 
@@ -59,7 +61,19 @@ Slots:
 - `<mpr-footer>`: `menu-prefix`, `menu-links`, `legal`
 - `<mpr-theme-toggle>` / `<mpr-login-button>` render controlled content and do not expose slots.
 
-When `customElements.define` is unavailable the helpers fall back gracefully: the registry caches null definitions and no DOM is mutated until the host polyfills the API.
+When `customElements.define` is unavailable the helpers fall back gracefully: the registry caches null definitions and no DOM is mutated until the host polyfills the API. The registry performs three key tasks:
+
+1. **Feature detection**: `supports()` verifies the host exposes `define`/`get`. If not, `registry.define()` returns `null` so the bundle can bail out silently.
+2. **Memoisation**: A per-tag cache prevents duplicate definitions when the bundle is loaded multiple times (e.g., via module federation or micro-frontends).
+3. **Base class injection**: The setup callback receives `MprElement`, which provides consistent lifecycle behaviour (`render` on connect, `update` on attribute changes, `destroy` on disconnect) and centralises dataset/slot helpers.
+
+Each element relies on shared helpers to keep declarative and imperative code paths identical:
+
+- **Dataset reflection**: Attributes listed in the maps (`HEADER_ATTRIBUTE_DATASET_MAP`, etc.) are mirrored into `dataset` so CSS hooks and controllers share one source of truth.
+- **Slot capture**: `captureSlotNodes` stores light DOM nodes before the helper clears/rebuilds the host, allowing `<mpr-header>`/`<mpr-footer>` to reinsert `slot` content even though they render light DOM instead of Shadow DOM.
+- **Event dispatching**: Element wrappers re-dispatch controller events from the host element, which keeps event contracts identical everywhere (`mpr-ui:auth:*`, `mpr-ui:theme-change`, `mpr-settings:toggle`, `mpr-sites:link-click`).
+
+See [`docs/custom-elements.md`](docs/custom-elements.md) for the full attribute/event matrix plus troubleshooting guidance (polyfills, CSP).
 
 ## Authentication Header Controller
 
