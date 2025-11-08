@@ -168,7 +168,7 @@ All links must open in a new window.
 — Removed fallback button logic when Google button fails to render (mpr-ui.js:2497), updated profile display to show only name or user_id, not email (mpr-ui.js:2279), added two regression tests for hard-fail requirement and email exclusion (tests/renderSiteHeader.test.js:738,771), and updated existing fallback test to match new behavior (tests: `npm run test:unit` — 43/43 passing) on branch `bugfix/MU-307-google-button-requirement`.
 - Extended failure handling to mark the GIS host with error state + code, added render and script failure regression tests, and revalidated auth display on branch `bugfix/MU-307-google-button-hard-fail` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
 
-- [ ] [MU-308] There are two site IDs in the code. remove the ugly duplication and leave only one
+- [x] [MU-308] There are two site IDs in the code. remove the ugly duplication and leave only one
 ```
     <div
       id="g_id_onload"
@@ -193,6 +193,7 @@ All links must open in a new window.
     >
 ```
 I would prefer our component to fully wrap google sign in. If this is impossible then our component shall not know the site ID as it has no business with google sign in, and just manipulates the visual working for which querying DOM shall be sufficient.
+- Removed the `g_id_onload` dependency, added regression coverage for missing bootstrap element, and cleaned demo markup so the header `site-id` stays the single source on branch `bugfix/MU-308-remove-site-id-duplication` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
 
 - [x] [MU-312] Leave header, footer and the event log. Remove all other elements from the page.
 — Simplified demo page (demo/index.html) to show only `<mpr-header>`, event log section, and `<mpr-footer>`. Removed all demo controls, profile display, palette toggles, custom element previews, and auxiliary sections (lines 50-246). Updated demo.js to remove references to deleted elements and simplified event listeners. Updated tests in tests/demo-page.test.js to match the new minimalist demo (tests: `npm run test:unit` — 41/41 passing) on branch `improvement/MU-312-clean-demo-page`.

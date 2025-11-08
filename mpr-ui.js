@@ -1569,19 +1569,10 @@
 
     function configureGoogleNonce(nonceToken) {
       pendingNonceToken = nonceToken;
-      var clientIdValue = options.googleClientId || "";
-      if (global.document) {
-        var onloadElement = global.document.getElementById("g_id_onload");
-        if (onloadElement && typeof onloadElement.setAttribute === "function") {
-          onloadElement.setAttribute("data-nonce", nonceToken);
-        }
-        if (!clientIdValue && typeof onloadElement.getAttribute === "function") {
-          var attributeClientId = onloadElement.getAttribute("data-client_id");
-          if (attributeClientId) {
-            clientIdValue = attributeClientId;
-          }
-        }
-      }
+      var clientIdValue =
+        options.googleClientId && options.googleClientId.trim()
+          ? options.googleClientId.trim()
+          : GOOGLE_FALLBACK_SITE_ID;
       if (
         global.google &&
         global.google.accounts &&
