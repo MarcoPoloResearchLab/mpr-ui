@@ -1451,6 +1451,7 @@
       if (containerElement) {
         containerElement.innerHTML = "";
         containerElement.removeAttribute("data-mpr-google-ready");
+        containerElement.removeAttribute("data-mpr-google-error");
       }
     }
     ensureGoogleIdentityClient(global.document)
@@ -2383,7 +2384,9 @@
 
     cleanupHandlers.push(destroyHeaderToggle);
 
-    function destroyGoogleButton() {
+    function destroyGoogleButton(state, detail) {
+      var reason = state || null;
+      var errorCode = detail && detail.code ? detail.code : null;
       if (googleButtonCleanup) {
         googleButtonCleanup();
         googleButtonCleanup = null;
@@ -2402,7 +2405,17 @@
       }
       if (elements.googleSignin) {
         elements.googleSignin.innerHTML = "";
-        elements.googleSignin.removeAttribute("data-mpr-google-ready");
+        if (reason === "error") {
+          elements.googleSignin.setAttribute("data-mpr-google-ready", "error");
+          if (errorCode) {
+            elements.googleSignin.setAttribute("data-mpr-google-error", errorCode);
+          } else {
+            elements.googleSignin.removeAttribute("data-mpr-google-error");
+          }
+        } else {
+          elements.googleSignin.removeAttribute("data-mpr-google-ready");
+          elements.googleSignin.removeAttribute("data-mpr-google-error");
+        }
         elements.googleSignin.removeAttribute("data-mpr-signin-fallback");
       }
     }
@@ -2438,6 +2451,7 @@
       fallbackSigninTarget.textContent =
         (options.signInLabel && options.signInLabel.trim()) || HEADER_DEFAULTS.signInLabel;
       fallbackSigninTarget.setAttribute("data-mpr-google-ready", "fallback");
+      fallbackSigninTarget.removeAttribute("data-mpr-google-error");
       if (reason) {
         fallbackSigninTarget.setAttribute("data-mpr-signin-fallback", reason);
       } else {
@@ -2467,6 +2481,7 @@
         return;
       }
       elements.googleSignin.setAttribute("data-mpr-google-site-id", googleSiteId);
+      elements.googleSignin.removeAttribute("data-mpr-google-error");
       googleButtonCleanup = renderGoogleButton(
         elements.googleSignin,
         googleSiteId,
@@ -2479,11 +2494,11 @@
             "mpr-ui.google_script_failed": "mpr-ui.header.google_script_failed",
           };
           var mappedCode = codeMap[incomingCode] || "mpr-ui.header.google_error";
+          destroyGoogleButton("error", { code: mappedCode });
           dispatchHeaderEvent("mpr-ui:header:error", {
             code: mappedCode,
             message: detail && detail.message ? detail.message : undefined,
           });
-          destroyGoogleButton();
         },
       );
     }

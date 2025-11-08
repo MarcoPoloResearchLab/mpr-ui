@@ -164,8 +164,9 @@ There are three links here:
 All links must open in a new window.
 - Forced header navigation links to render with `_blank`/`noopener noreferrer` immediately, added initial-markup regression test, and verified unit suite on branch `bugfix/MU-306-nav-links-target` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
 
-- [ ] [MU-307] The google sign in button is a hard requirements. Write tests to ensure we fail hard when the google sign in button is not displayed. When logged in, there must be an element that displays the name of a logged in user but not their email.
+- [x] [MU-307] The google sign in button is a hard requirements. Write tests to ensure we fail hard when the google sign in button is not displayed. When logged in, there must be an element that displays the name of a logged in user but not their email.
 — Removed fallback button logic when Google button fails to render (mpr-ui.js:2497), updated profile display to show only name or user_id, not email (mpr-ui.js:2279), added two regression tests for hard-fail requirement and email exclusion (tests/renderSiteHeader.test.js:738,771), and updated existing fallback test to match new behavior (tests: `npm run test:unit` — 43/43 passing) on branch `bugfix/MU-307-google-button-requirement`.
+- Extended failure handling to mark the GIS host with error state + code, added render and script failure regression tests, and revalidated auth display on branch `bugfix/MU-307-google-button-hard-fail` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
 
 - [ ] [MU-308] There are two site IDs in the code. remove the ugly duplication and leave only one
 ```
