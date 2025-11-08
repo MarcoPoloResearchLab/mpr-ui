@@ -6,7 +6,7 @@
     <title>mpr-ui Demo</title>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.8/mpr-ui.css"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
     />
     <script
       defer
@@ -16,7 +16,7 @@
     <script
       id="mpr-ui-bundle"
       defer
-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.8/mpr-ui.js"
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
     ></script>
     <script
       src="https://accounts.google.com/gsi/client"
@@ -31,11 +31,23 @@
       data-auto_prompt="false"
       hidden
     ></div>
-    <div
-      id="site-header"
-      data-theme-toggle='{"attribute":"data-demo-theme","targets":["body"],"modes":[{"value":"light","classList":["theme-light"],"dataset":{"demo-theme":"light"}},{"value":"dark","classList":["theme-dark"],"dataset":{"demo-theme":"dark"}}]}'
-      data-theme-mode="dark"
-    ></div>
+    <mpr-header
+      id="demo-header"
+      brand-label="Marco Polo Research Lab"
+      brand-href="/"
+      nav-links='[
+        { "label": "Docs", "href": "#docs" },
+        { "label": "Support", "href": "#support" }
+      ]'
+      site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+      login-path="/auth/google"
+      logout-path="/auth/logout"
+      nonce-path="/auth/nonce"
+      settings-label="Settings"
+      theme-config='{"initialMode":"dark","targets":["body"],"attribute":"data-demo-theme"}'
+    >
+      <button slot="nav-right" class="demo-link">Request Access</button>
+    </mpr-header>
     <main>
       <h1>mpr-ui Demo</h1>
       <p>
@@ -47,9 +59,10 @@
       <section aria-labelledby="auth-demo-title">
         <h2 id="auth-demo-title">Authentication Header</h2>
         <p>
-          The mock gateway below simulates Google Identity Services and backend
-          endpoints. Use the buttons to trigger credential exchanges and observe
-          emitted events.
+          The sticky header at the top of the page is the real
+          <code>&lt;mpr-header&gt;</code> custom element. The controls below talk to it
+          via DOM events so you can observe how declarative integrations behave with
+          the mocked Google Identity Services (GIS) flow.
         </p>
 
         <div class="auth-card">
@@ -59,11 +72,8 @@
           </p>
 
           <div class="auth-actions">
-            <button id="trigger-prompt">Prompt Sign-In</button>
-            <button class="secondary" id="sign-out">Sign Out</button>
-            <button class="secondary" id="restart-session">
-              Restart Session Watcher
-            </button>
+            <button id="trigger-prompt">Prompt Sign-In (GIS)</button>
+            <button class="secondary" id="sign-out">Sign Out via Header</button>
           </div>
 
           <div>
@@ -86,22 +96,23 @@
           </div>
         </div>
 
-        <pre><code>// demo/auth configuration (see demo.js)
-const controller = MPRUI.createAuthHeader(host, {
-  loginPath: "/auth/google",
-  logoutPath: "/auth/logout",
-  noncePath: "/auth/nonce",
-});
+        <pre><code>&lt;mpr-header
+  brand-label="Marco Polo Research Lab"
+  site-id="&lt;YOUR_GIS_CLIENT_ID&gt;"
+  login-path="/auth/google"
+  logout-path="/auth/logout"
+  nonce-path="/auth/nonce"
+  nav-links='[{ "label": "Docs", "href": "#docs" }]'
+&gt;&lt;/mpr-header&gt;
 </code></pre>
       </section>
 
       <section aria-labelledby="footer-demo-title">
         <h2 id="footer-demo-title">Footer Helpers</h2>
         <p>
-          The first example uses Alpine's <code>x-data</code> factory; the sticky
-          footer at the bottom of the page is mounted imperatively so you can
-          rotate its links in real time. Try toggling the theme switch or opening
-          the menu to see emitted events.
+          Scroll to the bottom of the page to see the real
+          <code>&lt;mpr-footer&gt;</code> in action. This section also keeps an
+          imperative example so you can contrast the API surfaces.
         </p>
 
         <div
@@ -122,6 +133,11 @@ const controller = MPRUI.createAuthHeader(host, {
         <div class="auth-actions" style="margin-top: 1rem">
           <button id="rotate-footer">Rotate Footer Links</button>
         </div>
+        <div
+          id="imperative-footer-host"
+          class="demo-footer-slot"
+          aria-label="Imperative footer host"
+        ></div>
       </section>
 
       <section aria-labelledby="theme-demo-title">
@@ -230,12 +246,24 @@ const controller = MPRUI.createAuthHeader(host, {
       </section>
     </main>
 
-    <div
-      id="imperative-footer-host"
-      class="demo-footer-slot"
-      aria-label="Sticky footer host"
-    ></div>
-
     <script type="module" src="./demo.js"></script>
+    <mpr-footer
+      id="page-footer"
+      prefix-text="Built by"
+      privacy-link-label="Privacy &amp; Terms"
+      privacy-link-href="#privacy"
+      theme-config='{"targets":["body"],"attribute":"data-demo-theme"}'
+    >
+      <span slot="menu-prefix">Explore</span>
+      <a
+        slot="menu-links"
+        href="https://mprlab.com"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Visit mprlab.com
+      </a>
+      <small slot="legal">© Marco Polo Research</small>
+    </mpr-footer>
   </body>
 </html>

@@ -5,7 +5,7 @@
  */
 
 const headerHost = /** @type {HTMLElement | null} */ (
-  document.getElementById("site-header")
+  document.getElementById("demo-header")
 );
 const eventLog = /** @type {HTMLElement | null} */ (
   document.getElementById("event-log")
@@ -68,6 +68,27 @@ const syncProfileDataset = (hostElement) => {
     profileAvatar.textContent = data.userAvatarUrl || "—";
   }
 };
+
+/**
+ * Attempts to click a header control rendered inside <mpr-header>.
+ * @param {string} selector
+ */
+const clickHeaderControl = (selector) => {
+  if (!headerHost) {
+    return false;
+  }
+  const target = headerHost.querySelector(selector);
+  if (!target) {
+    return false;
+  }
+  target.dispatchEvent(
+    new MouseEvent("click", { bubbles: true, cancelable: true })
+  );
+  return true;
+};
+
+const triggerHeaderSignOut = () =>
+  clickHeaderControl('[data-mpr-header="sign-out-button"]');
 
 const originalFetch = window.fetch;
 
@@ -170,28 +191,20 @@ if (!window.MPRUI) {
   throw new Error("mpr-ui bundle did not load before demo.js");
 }
 
-const headerController = window.MPRUI.renderSiteHeader(headerHost, {
-  brand: { label: "Marco Polo Research Lab", href: "/" },
-  navLinks: [
-    { label: "Docs", href: "#docs" },
-    { label: "Support", href: "#support" },
-  ],
-  settings: { enabled: true, label: "Settings" },
-  siteId: GOOGLE_FALLBACK_CLIENT_ID,
-  auth: {
-    loginPath: "/auth/google",
-    logoutPath: "/auth/logout",
-    noncePath: "/auth/nonce",
-  },
-});
+customElements
+  .whenDefined("mpr-header")
+  .then(() => {
+    if (headerHost) {
+      syncProfileDataset(headerHost);
+    }
+  })
+  .catch(() => {});
 
 const initialThemeMode =
   typeof window.MPRUI.getThemeMode === "function"
     ? window.MPRUI.getThemeMode()
     : headerHost.getAttribute("data-mpr-theme-mode");
 syncBodyThemeClass(initialThemeMode);
-
-const authController = headerController.getAuthController();
 
 headerHost.addEventListener("mpr-ui:auth:authenticated", (event) => {
   appendLogEntry("Event: mpr-ui:auth:authenticated");
@@ -263,9 +276,8 @@ syncProfileDataset(headerHost);
 
 const promptButton = document.getElementById("trigger-prompt");
 const signOutButton = document.getElementById("sign-out");
-const restartButton = document.getElementById("restart-session");
 
-if (!promptButton || !signOutButton || !restartButton) {
+if (!promptButton || !signOutButton) {
   throw new Error("demo: expected auth action buttons to exist");
 }
 
@@ -286,14 +298,8 @@ promptButton.addEventListener("click", () => {
 });
 
 signOutButton.addEventListener("click", () => {
-  if (authController && typeof authController.signOut === "function") {
-    authController.signOut();
-  }
-});
-
-restartButton.addEventListener("click", () => {
-  if (authController && typeof authController.restartSessionWatcher === "function") {
-    authController.restartSessionWatcher();
+  if (!triggerHeaderSignOut()) {
+    appendLogEntry("Header sign-out control not ready yet");
   }
 });
 
@@ -302,6 +308,9 @@ const footerHost = /** @type {HTMLElement | null} */ (
 );
 const rotateFooterButton = /** @type {HTMLElement | null} */ (
   document.getElementById("rotate-footer")
+);
+const declarativeFooter = /** @type {HTMLElement | null} */ (
+  document.getElementById("page-footer")
 );
 
 if (!footerHost || !rotateFooterButton) {
@@ -343,6 +352,15 @@ footerHost.addEventListener("mpr-footer:theme-change", (event) => {
     `Footer theme toggled to ${detail.theme || "unknown"}${detail.source ? ` (source: ${detail.source})` : ""}`,
   );
 });
+
+if (declarativeFooter) {
+  declarativeFooter.addEventListener("mpr-footer:theme-change", (event) => {
+    const detail = event && event.detail ? event.detail : {};
+    appendLogEntry(
+      `Declarative footer theme → ${detail.theme || "unknown"}`,
+    );
+  });
+}
 
 const paletteButtons = document.querySelectorAll("[data-demo-palette-toggle]");
 paletteButtons.forEach((button) => {
