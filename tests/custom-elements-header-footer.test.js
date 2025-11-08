@@ -911,6 +911,7 @@ test('mpr-header navigation links always open in new window', () => {
   const harness = createHeaderElementHarness();
   const headerElement = harness.element;
   headerElement.setAttribute('brand-label', 'Test Brand');
+  headerElement.setAttribute('brand-href', 'https://example.com');
   headerElement.setAttribute('nav-links', JSON.stringify(navLinks));
   headerElement.connectedCallback();
   assert.ok(
@@ -920,6 +921,16 @@ test('mpr-header navigation links always open in new window', () => {
   assert.ok(
     harness.nav.innerHTML.indexOf('rel="noopener noreferrer"') !== -1,
     'navigation links have rel="noopener noreferrer"',
+  );
+  assert.equal(
+    harness.brandLink.getAttribute('target'),
+    '_blank',
+    'brand link has target="_blank"',
+  );
+  assert.equal(
+    harness.brandLink.getAttribute('rel'),
+    'noopener noreferrer',
+    'brand link has rel="noopener noreferrer"',
   );
   navLinks.forEach((link) => {
     assert.ok(

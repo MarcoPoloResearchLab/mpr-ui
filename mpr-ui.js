@@ -2105,7 +2105,7 @@
       HEADER_ROOT_CLASS +
       '__brand-link" href="' +
       brandHref +
-      '">' +
+      '" target="_blank" rel="noopener noreferrer">' +
       brandLabel +
       "</a>" +
       "</div>" +
@@ -2289,6 +2289,8 @@
     if (elements.brand) {
       elements.brand.textContent = options.brand.label;
       elements.brand.setAttribute("href", sanitizeHref(options.brand.href));
+      elements.brand.setAttribute("target", "_blank");
+      elements.brand.setAttribute("rel", "noopener noreferrer");
     }
     renderHeaderNav(elements.nav, options.navLinks);
 
