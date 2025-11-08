@@ -162,7 +162,6 @@ There are three links here:
       ]'
 ```
 All links must open in a new window.
-— Modified `renderHeaderNav` in mpr-ui.js:2239 to add `target="_blank"` and `rel="noopener noreferrer"` to all navigation links. Added regression test in tests/custom-elements-header-footer.test.js:904 (tests: `npm run test:unit` — 42/42 passing) on branch `bugfix/MU-306-nav-links-new-window`.
 
 - [ ] [MU-307] The google sign in button is a hard requirements. Write tests to ensure we fail hard when the google sign in button is not displayed. When logged in, there must be an element that displays the name of a logged in user but not their email.
 — Removed fallback button logic when Google button fails to render (mpr-ui.js:2497), updated profile display to show only name or user_id, not email (mpr-ui.js:2279), added two regression tests for hard-fail requirement and email exclusion (tests/renderSiteHeader.test.js:738,771), and updated existing fallback test to match new behavior (tests: `npm run test:unit` — 43/43 passing) on branch `bugfix/MU-307-google-button-requirement`.
@@ -196,7 +195,7 @@ I would prefer our component to fully wrap google sign in. If this impossible th
 - [x] [MU-312] Leave header, footer and the event log. Remove all other elements from the page.
 — Simplified demo page (demo/index.html) to show only `<mpr-header>`, event log section, and `<mpr-footer>`. Removed all demo controls, profile display, palette toggles, custom element previews, and auxiliary sections (lines 50-246). Updated demo.js to remove references to deleted elements and simplified event listeners. Updated tests in tests/demo-page.test.js to match the new minimalist demo (tests: `npm run test:unit` — 41/41 passing) on branch `improvement/MU-312-clean-demo-page`.
 
-- [x] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right.
+- [ ] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right.
 
 - [ ] [MU-311] The footer shall have the following sequence left to right: Privacy terms (left) -- spacer -- Theme toggle -- Build by Marko Polo Research Lab. Build by Marko Polo Research Lab is a drop up.
 — Reordered footer layout in `buildFooterMarkup` (mpr-ui.js:3477-3487) to display privacy link first (left), theme toggle in center, and "Built by Marco Polo Research Lab" dropdown last (right). The spacer is handled by flexbox layout (tests: `npm run test:unit` — 41/41 passing) on branch `improvement/MU-311-footer-layout-sequence`.
