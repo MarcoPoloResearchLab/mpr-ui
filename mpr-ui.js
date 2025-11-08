@@ -2244,11 +2244,12 @@
       .map(function (link) {
         var hrefValue = escapeHtml(sanitizeHref(link.href));
         var labelValue = escapeHtml(link.label);
-        var targetAttribute = link.target
-          ? ' target="' + escapeHtml(link.target) + '"'
-          : "";
         return (
-          '<a href="' + hrefValue + '"' + targetAttribute + ">" + labelValue + "</a>"
+          '<a href="' +
+          hrefValue +
+          '" target="_blank" rel="noopener noreferrer">' +
+          labelValue +
+          "</a>"
         );
       })
       .join("");
