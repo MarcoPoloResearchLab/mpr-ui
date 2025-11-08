@@ -1,13 +1,45 @@
 const assert = require('node:assert/strict');
-const { join } = require('node:path');
-const { pathToFileURL } = require('node:url');
+const http = require('node:http');
+const fs = require('node:fs/promises');
+const { join, extname } = require('node:path');
 const puppeteer = require('puppeteer-core');
 const chromium = require('@sparticuz/chromium');
 
-const FIXTURE_URL = pathToFileURL(join(__dirname, 'custom-elements.html')).href;
+const REPO_ROOT = join(__dirname, '..', '..');
+const MIME_TYPES = {
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.css': 'text/css; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+};
 
-async function waitForFixture(page) {
-  await page.goto(FIXTURE_URL, { waitUntil: 'domcontentloaded', timeout: 20000 });
+async function startFixtureServer() {
+  const server = http.createServer(async (req, res) => {
+    try {
+      const pathname = (req.url || '').split('?')[0] || '/';
+      let targetPath;
+      if (pathname === '/' || pathname === '/fixture') {
+        targetPath = join(__dirname, 'custom-elements.html');
+      } else {
+        targetPath = join(REPO_ROOT, pathname);
+      }
+      const data = await fs.readFile(targetPath);
+      const type = MIME_TYPES[extname(targetPath)] || 'application/octet-stream';
+      res.writeHead(200, { 'Content-Type': type });
+      res.end(data);
+    } catch (_error) {
+      res.writeHead(404, { 'Content-Type': 'text/plain' });
+      res.end('Not found');
+    }
+  });
+  await new Promise((resolve) => server.listen(0, resolve));
+  const { port } = server.address();
+  const url = `http://127.0.0.1:${port}/fixture`;
+  return { server, url };
+}
+
+async function waitForFixture(page, url) {
+  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
   await page.waitForFunction(() => window.__fixtureReady === true, { timeout: 25000 });
 }
 
@@ -27,6 +59,7 @@ async function resolveExecutablePath() {
 }
 
 async function run() {
+  const { server, url: fixtureUrl } = await startFixtureServer();
   const executablePath = await resolveExecutablePath();
   const browser = await puppeteer.launch({
     headless: chromium.headless !== undefined ? chromium.headless : true,
@@ -37,7 +70,7 @@ async function run() {
   });
   try {
     const page = await browser.newPage();
-    await waitForFixture(page);
+    await waitForFixture(page, fixtureUrl);
     page.setDefaultTimeout(15000);
     page.setDefaultNavigationTimeout(15000);
 
@@ -95,6 +128,7 @@ async function run() {
     assert.equal(themeEvents.length > 0, true, 'mpr-ui:theme-change dispatched');
   } finally {
     await browser.close();
+    await new Promise((resolve) => server.close(resolve));
   }
 }
 
