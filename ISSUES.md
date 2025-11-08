@@ -149,6 +149,22 @@ Hardcode const GOOGLE_FALLBACK_CLIENT_ID =
 - [x] [MU-304] Removing the `open` attribute from `<mpr-settings>` should close the panel, but `__computeOpenState` returns the last internal state instead of the default. Treat missing attributes as `false` so attribute-driven frameworks (React/Vue/plain DOM) can close the panel declaratively. — Missing attributes now default to `false`, frameworks can close via attribute removal, and regression tests enforce the behavior on branch `bugfix/MU-304-settings-open-attr` (`node --test tests/*.test.js`).
 - [x] [MU-305] Restore the header `mpr-ui:header:signin-click` event so non-GIS flows keep working when auth is disabled or GIS fails to render. — Added a fallback CTA, reintroduced signin-click dispatches, and extended header tests on branch `bugfix/MU-305-signin-fallback` (`npm run test`).
 
+- [ ] [MU-306] The links don't work
+1. Marco Polo Research Lab in the header must point to https://mprlab.com
+2. Docs link in the header must point to github
+3. Support link must be called Architecture and point to archituctre
+
+- [ ] [MU-307] The google sign in button is a hard requirements. Write tests to ensure we fail hard even the google sign in button is not displayed. When logged in, there must be an element that displays the name of a logged in user.
+
+- [ ] [MU-308] Remove
+
+Footer Helper section
+Shared theme tokens section
+
+Custom elements section
+Auxillary custom elements tokens
+
+
 ## Maintenance (400–499)
 
 - [x] [MU-400] Update the documentation @README.md and focus on the usefullness to the user. Move the technical details to ARCHITECTURE.md. — Delivered user-centric README and migrated deep technical content into the new ARCHITECTURE.md reference. Resolved on branch `maintenace/MU-400-user-focused-readme` with README rewrite and new ARCHITECTURE.md reference.
