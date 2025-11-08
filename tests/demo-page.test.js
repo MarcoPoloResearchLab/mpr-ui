@@ -37,16 +37,16 @@ test('demo loads the shared stylesheet from the CDN', () => {
   );
 });
 
-test('demo script obtains footer links from the packaged catalog helper', () => {
+test('demo script sets up event logging without extra UI controls', () => {
   assert.match(
     demoScript,
-    /getFooterSiteCatalog/,
-    'Expected demo/demo.js to call getFooterSiteCatalog instead of duplicating the site list',
+    /appendLogEntry/,
+    'Expected demo/demo.js to include event logging function',
   );
   assert.doesNotMatch(
     demoScript,
-    /const\s+mprLabSites\s*=/,
-    'Demo script should not declare its own mprLabSites constant',
+    /promptButton|signOutButton|rotateFooter/,
+    'Simplified demo should not include extra UI control buttons',
   );
 });
 
@@ -86,10 +86,15 @@ test('palette-specific overrides respond to theme mode classes', () => {
   );
 });
 
-test('theme mode buttons reset the palette selection to default', () => {
+test('demo script listens for theme change events', () => {
   assert.match(
     demoScript,
-    /demoBody\.dataset\.demoPalette\s*=\s*["']default["']/,
-    'Manual theme mode switches should force the demo palette back to default so the buttons always have visible impact',
+    /mpr-ui:theme-change/,
+    'Demo script should listen for global theme change events for logging',
+  );
+  assert.match(
+    demoScript,
+    /syncBodyThemeClass/,
+    'Demo script should sync body theme class with theme mode',
   );
 });

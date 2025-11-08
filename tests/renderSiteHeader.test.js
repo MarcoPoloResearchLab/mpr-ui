@@ -513,7 +513,7 @@ test('renderSiteHeader renders the Google button inside the header when siteId i
   );
 });
 
-test('renderSiteHeader emits signin-click fallback when Google button fails to render', async () => {
+test('renderSiteHeader dispatches error event when Google button fails to render', async () => {
   resetEnvironment();
   const harness = createHostHarness();
   global.google = {
@@ -533,19 +533,17 @@ test('renderSiteHeader emits signin-click fallback when Google button fails to r
   });
   await flushAsync();
 
-  const signinEvents = harness.dispatchedEvents.filter(function (event) {
-    return event.type === 'mpr-ui:header:signin-click';
+  const errorEvents = harness.dispatchedEvents.filter(function (event) {
+    return event.type === 'mpr-ui:header:error';
   });
   assert.ok(
-    signinEvents.some(function (event) {
-      return event.detail && event.detail.reason === 'google_error';
-    }),
-    'expected signin-click event when Google button cannot render',
+    errorEvents.length > 0,
+    'expected error event when Google button cannot render',
   );
-  assert.strictEqual(
+  assert.notEqual(
     harness.googleSigninHost.getAttribute('data-mpr-google-ready'),
     'fallback',
-    'fallback CTA rendered after Google button failure',
+    'no fallback button rendered after Google button failure',
   );
 });
 
@@ -732,5 +730,110 @@ test('credential flow with initAuthClient dispatches auth events', async () => {
       return state === 'unauthenticated';
     }).length >= 1,
     'bootstrap invoked unauthenticated branch during flow',
+  );
+});
+
+test('Google button is required when auth is configured and must not show fallback on error', async () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {
+          throw new Error('renderButton failed');
+        },
+        initialize: function () {},
+        prompt: function () {},
+      },
+    },
+  };
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {
+    siteId: 'demo-site-id',
+    auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
+  });
+  await flushAsync();
+
+  const errorEvents = harness.dispatchedEvents.filter(function (event) {
+    return event.type === 'mpr-ui:header:error';
+  });
+  assert.ok(
+    errorEvents.length > 0,
+    'error event must be dispatched when Google button fails to render',
+  );
+  assert.notEqual(
+    harness.googleSigninHost.getAttribute('data-mpr-google-ready'),
+    'fallback',
+    'fallback button must NOT be rendered when Google button fails (fail hard)',
+  );
+});
+
+test('profile displays user name only, not email', async () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+
+  global.google = {
+    accounts: {
+      id: { initialize: function () {}, prompt: function () {} },
+    },
+  };
+
+  const profileWithEmail = {
+    user_id: 'user-123',
+    user_email: 'user@example.com',
+    display: 'Jane Doe',
+  };
+
+  global.initAuthClient = function bootstrap(config) {
+    return Promise.resolve().then(function () {
+      if (typeof config.onAuthenticated === 'function') {
+        config.onAuthenticated(profileWithEmail);
+      }
+    });
+  };
+
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {
+    auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
+  });
+  await flushAsync();
+
+  assert.strictEqual(
+    harness.profileName.textContent,
+    'Jane Doe',
+    'profile name displays the display name when available',
+  );
+  assert.ok(
+    harness.profileName.textContent.indexOf('user@example.com') === -1,
+    'profile must not display email address',
+  );
+
+  const harnessWithoutDisplay = createHostHarness();
+  const profileWithoutDisplay = {
+    user_id: 'user-456',
+    user_email: 'another@example.com',
+  };
+
+  global.initAuthClient = function bootstrap(config) {
+    return Promise.resolve().then(function () {
+      if (typeof config.onAuthenticated === 'function') {
+        config.onAuthenticated(profileWithoutDisplay);
+      }
+    });
+  };
+
+  library.renderSiteHeader(harnessWithoutDisplay.host, {
+    auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
+  });
+  await flushAsync();
+
+  assert.ok(
+    harnessWithoutDisplay.profileName.textContent.indexOf('another@example.com') === -1,
+    'profile must not fall back to email when display name is missing',
+  );
+  assert.strictEqual(
+    harnessWithoutDisplay.profileName.textContent,
+    'user-456',
+    'profile falls back to user_id when display name is not available',
   );
 });
