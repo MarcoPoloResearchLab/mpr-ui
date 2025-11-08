@@ -190,17 +190,16 @@ All links must open in a new window.
       theme-config='{"initialMode":"dark","targets":["body"],"attribute":"data-demo-theme"}'
     >
 ```
-I would prefer our component to fully wrap google sign in. If this impossible then our component shall not know the site ID as it has no business with google sign in, and just manipulates the visual working for which querying DOM shall be sufficient.
+I would prefer our component to fully wrap google sign in. If this is impossible then our component shall not know the site ID as it has no business with google sign in, and just manipulates the visual working for which querying DOM shall be sufficient.
 
 - [x] [MU-312] Leave header, footer and the event log. Remove all other elements from the page.
 — Simplified demo page (demo/index.html) to show only `<mpr-header>`, event log section, and `<mpr-footer>`. Removed all demo controls, profile display, palette toggles, custom element previews, and auxiliary sections (lines 50-246). Updated demo.js to remove references to deleted elements and simplified event listeners. Updated tests in tests/demo-page.test.js to match the new minimalist demo (tests: `npm run test:unit` — 41/41 passing) on branch `improvement/MU-312-clean-demo-page`.
 
-- [ ] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right.
+- [ ] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right. The them also doesnt change -- the footer and header are always dark.
 
 - [ ] [MU-311] The footer shall have the following sequence left to right: Privacy terms (left) -- spacer -- Theme toggle -- Build by Marko Polo Research Lab. Build by Marko Polo Research Lab is a drop up.
-— Reordered footer layout in `buildFooterMarkup` (mpr-ui.js:3477-3487) to display privacy link first (left), theme toggle in center, and "Built by Marco Polo Research Lab" dropdown last (right). The spacer is handled by flexbox layout (tests: `npm run test:unit` — 41/41 passing) on branch `improvement/MU-311-footer-layout-sequence`.
 
-- [ ] [MU-310] Both the footer and the header must be sticky and always visible, stuck to the top and the bottom of the page
+- [x] [MU-310] Both the footer and the header must be sticky and always visible, stuck to the top and the bottom of the page
 
 
 ## Maintenance (400–499)
