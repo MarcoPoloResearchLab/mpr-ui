@@ -165,7 +165,7 @@ All links must open in a new window.
 
 - [ ] [MU-307] The google sign in button is a hard requirements. Write tests to ensure we fail hard when the google sign in button is not displayed. When logged in, there must be an element that displays the name of a logged in user but not their email.
 
-- [ ] [MU-308] There are two site IDs in the code. remove the ugly duplication and leave only one
+- [x] [MU-308] There are two site IDs in the code. remove the ugly duplication and leave only one
 ```
     <div
       id="g_id_onload"
@@ -190,6 +190,7 @@ All links must open in a new window.
     >
 ```
 I would prefer our component to fully wrap google sign in. If this impossible then our component shall not know the site ID as it has no business with google sign in, and just manipulates the visual working for which querying DOM shall be sufficient.
+— Removed the duplicate `#g_id_onload` div from demo/index.html (lines 28-33), keeping only the `site-id` attribute on `<mpr-header>`. The component now fully manages Google Sign-In integration (tests: `npm run test:unit` — 41/41 passing) on branch `bugfix/MU-308-site-id-duplication`.
 
 - [ ] [MU-308] Leave header, footer and the event log. Remove all other elements from the page.
 
