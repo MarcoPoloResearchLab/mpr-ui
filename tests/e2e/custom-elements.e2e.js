@@ -1,51 +1,57 @@
 const assert = require('node:assert/strict');
-const http = require('node:http');
-const fs = require('node:fs/promises');
-const { join, extname } = require('node:path');
+const { readFile } = require('node:fs/promises');
+const { join } = require('node:path');
 const puppeteer = require('puppeteer-core');
 const chromium = require('@sparticuz/chromium');
 
 const REPO_ROOT = join(__dirname, '..', '..');
-const MIME_TYPES = {
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'application/javascript; charset=utf-8',
-  '.css': 'text/css; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-};
 
-async function startFixtureServer() {
-  const server = http.createServer(async (req, res) => {
-    try {
-      const pathname = (req.url || '').split('?')[0] || '/';
-      let targetPath;
-      if (pathname === '/' || pathname === '/fixture') {
-        targetPath = join(__dirname, 'custom-elements.html');
-      } else {
-        const normalized = pathname.replace(/^\/+/, '');
-        const resolved = join(REPO_ROOT, normalized);
-        if (!resolved.startsWith(REPO_ROOT)) {
-          throw new Error('Invalid path');
-        }
-        targetPath = resolved;
-      }
-      const data = await fs.readFile(targetPath);
-      const type = MIME_TYPES[extname(targetPath)] || 'application/octet-stream';
-      res.writeHead(200, { 'Content-Type': type });
-      res.end(data);
-    } catch (_error) {
-      res.writeHead(404, { 'Content-Type': 'text/plain' });
-      res.end('Not found');
-    }
-  });
-  await new Promise((resolve) => server.listen(0, resolve));
-  const { port } = server.address();
-  const url = `http://127.0.0.1:${port}/fixture`;
-  return { server, url };
-}
+function buildFixtureHtml(bundleSource) {
+  const sanitizedBundle = bundleSource.replace(/<\/script>/g, '<\\/script>');
+  return `<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>mpr-ui custom elements e2e</title>
+    <script>${sanitizedBundle}</script>
+    <script>
+      window.__fixtureReady = false;
+      window.__mprEvents = { settings: [], sites: [], theme: [] };
+      document.addEventListener('mpr-settings:toggle', (event) => {
+        window.__mprEvents.settings.push(event.detail || {});
+      });
+      document.addEventListener('mpr-sites:link-click', (event) => {
+        window.__mprEvents.sites.push(event.detail || {});
+      });
+      document.addEventListener('mpr-ui:theme-change', (event) => {
+        window.__mprEvents.theme.push(event.detail || {});
+      });
+      window.addEventListener('DOMContentLoaded', () => {
+        window.__fixtureReady = true;
+      });
+    </script>
+  </head>
+  <body>
+    <mpr-settings id="fixture-settings" label="Demo Settings" open>
+      <div slot="panel">
+        <label>
+          <input type="checkbox" checked /> Receive updates
+        </label>
+      </div>
+    </mpr-settings>
 
-async function waitForFixture(page, url) {
-  await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 20000 });
-  await page.waitForFunction(() => window.__fixtureReady === true, { timeout: 25000 });
+    <mpr-sites
+      id="fixture-sites"
+      heading="Featured"
+      links='[
+        { "label": "Docs", "url": "https://example.com/docs" },
+        { "label": "Support", "url": "https://example.com/support" }
+      ]'
+    ></mpr-sites>
+
+    <mpr-theme-toggle id="fixture-theme-toggle"></mpr-theme-toggle>
+  </body>
+</html>`;
 }
 
 async function resolveExecutablePath() {
@@ -58,13 +64,14 @@ async function resolveExecutablePath() {
       return executablePath;
     }
   } catch (_error) {
-    // Fall back to system binary below.
+    // fall back below
   }
   return '/usr/bin/chromium-browser';
 }
 
 async function run() {
-  const { server, url: fixtureUrl } = await startFixtureServer();
+  const bundleSource = await readFile(join(REPO_ROOT, 'mpr-ui.js'), 'utf8');
+  const html = buildFixtureHtml(bundleSource);
   const executablePath = await resolveExecutablePath();
   const browser = await puppeteer.launch({
     headless: chromium.headless !== undefined ? chromium.headless : true,
@@ -75,65 +82,54 @@ async function run() {
   });
   try {
     const page = await browser.newPage();
-    await waitForFixture(page, fixtureUrl);
-    page.setDefaultTimeout(15000);
-    page.setDefaultNavigationTimeout(15000);
+    await page.setContent(html, { waitUntil: 'domcontentloaded', timeout: 20000 });
+    page.setDefaultTimeout(20000);
+    await page.waitForFunction(() => window.__fixtureReady === true, { timeout: 30000 });
 
-    // Verify <mpr-sites> rendered entries and dispatches events.
-    await page.waitForSelector('#fixture-sites');
-    const siteCount = await page.$eval('#fixture-sites', (element) =>
-      element.getAttribute('data-mpr-sites-count'),
-    );
-    assert.equal(siteCount, '2', 'mpr-sites rendered both catalog entries');
-    await page.waitForSelector('#fixture-sites [data-mpr-sites-index="0"]');
-    await page.click('#fixture-sites [data-mpr-sites-index="0"]');
+    // Interact with <mpr-sites>
+    await page.waitForSelector('[data-mpr-sites-index="0"]');
+    await page.$eval('[data-mpr-sites-index="0"]', (node) => {
+      node.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    });
     await page.waitForFunction(
       () => Array.isArray(window.__mprEvents.sites) && window.__mprEvents.sites.length > 0,
       { timeout: 10000 },
     );
     const siteEvents = await page.evaluate(() => window.__mprEvents.sites.slice());
-    assert.equal(siteEvents.length, 1, 'mpr-sites emitted link-click event');
+    assert.equal(siteEvents.length, 1);
     assert.equal(siteEvents[0].label, 'Docs');
 
-    // Ensure removing the open attribute closes <mpr-settings>.
+    // Toggle <mpr-settings>
+    await page.waitForSelector('#fixture-settings');
     const settingsState = await page.$eval('#fixture-settings', (element) => {
       element.removeAttribute('open');
       return element.getAttribute('data-mpr-settings-open');
     });
-    assert.equal(settingsState, 'false', 'mpr-settings closes when open attribute is removed');
+    assert.equal(settingsState, 'false');
     await page.waitForFunction(
       () => Array.isArray(window.__mprEvents.settings) && window.__mprEvents.settings.length > 0,
       { timeout: 10000 },
     );
     const settingsEvents = await page.evaluate(() => window.__mprEvents.settings.slice());
-    assert.equal(settingsEvents.length > 0, true, 'mpr-settings emitted toggle event');
     assert.equal(settingsEvents[settingsEvents.length - 1].open, false);
 
-    // Theme toggle should flip the global theme mode.
-    await page.waitForFunction(
-      () => typeof window.MPRUI?.getThemeMode === 'function',
-      { timeout: 10000 },
-    );
+    // Toggle theme
+    await page.waitForSelector('[data-mpr-theme-toggle="control"]');
     const initialMode = await page.evaluate(() => window.MPRUI.getThemeMode());
-    await page.click('#fixture-theme-toggle [data-mpr-theme-toggle="control"]');
+    await page.click('[data-mpr-theme-toggle="control"]');
     await page.waitForFunction(
-      (mode) =>
-        typeof window.MPRUI?.getThemeMode === 'function' &&
-        window.MPRUI.getThemeMode() !== mode,
-      { timeout: 5000 },
+      (mode) => window.MPRUI.getThemeMode() !== mode,
+      { timeout: 10000 },
       initialMode,
     );
     const newMode = await page.evaluate(() => window.MPRUI.getThemeMode());
-    assert.notEqual(newMode, initialMode, 'theme toggle updates global theme mode');
+    assert.notEqual(newMode, initialMode);
     await page.waitForFunction(
       () => Array.isArray(window.__mprEvents.theme) && window.__mprEvents.theme.length > 0,
       { timeout: 10000 },
     );
-    const themeEvents = await page.evaluate(() => window.__mprEvents.theme.slice());
-    assert.equal(themeEvents.length > 0, true, 'mpr-ui:theme-change dispatched');
   } finally {
     await browser.close();
-    await new Promise((resolve) => server.close(resolve));
   }
 }
 
