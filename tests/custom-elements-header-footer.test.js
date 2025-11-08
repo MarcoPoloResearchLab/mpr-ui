@@ -900,3 +900,42 @@ test('mpr-sites dispatches link click events with normalized details', () => {
     'link click detail exposes normalized catalog entry',
   );
 });
+
+test('mpr-header navigation links always open in new window', () => {
+  resetEnvironment();
+  loadLibrary();
+  const navLinks = [
+    { label: 'Docs', href: 'https://github.com/example/docs' },
+    { label: 'Support', href: 'https://github.com/example/support' },
+  ];
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+  headerElement.setAttribute('brand-label', 'Test Brand');
+  headerElement.setAttribute('brand-href', 'https://example.com');
+  headerElement.setAttribute('nav-links', JSON.stringify(navLinks));
+  headerElement.connectedCallback();
+  assert.ok(
+    harness.nav.innerHTML.indexOf('target="_blank"') !== -1,
+    'navigation links have target="_blank"',
+  );
+  assert.ok(
+    harness.nav.innerHTML.indexOf('rel="noopener noreferrer"') !== -1,
+    'navigation links have rel="noopener noreferrer"',
+  );
+  assert.equal(
+    harness.brandLink.getAttribute('target'),
+    '_blank',
+    'brand link has target="_blank"',
+  );
+  assert.equal(
+    harness.brandLink.getAttribute('rel'),
+    'noopener noreferrer',
+    'brand link has rel="noopener noreferrer"',
+  );
+  navLinks.forEach((link) => {
+    assert.ok(
+      harness.nav.innerHTML.indexOf(link.label) !== -1,
+      `navigation link label ${link.label} is rendered`,
+    );
+  });
+});

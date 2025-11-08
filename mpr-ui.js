@@ -2105,7 +2105,7 @@
       HEADER_ROOT_CLASS +
       '__brand-link" href="' +
       brandHref +
-      '">' +
+      '" target="_blank" rel="noopener noreferrer">' +
       brandLabel +
       "</a>" +
       "</div>" +
@@ -2244,11 +2244,12 @@
       .map(function (link) {
         var hrefValue = escapeHtml(sanitizeHref(link.href));
         var labelValue = escapeHtml(link.label);
-        var targetAttribute = link.target
-          ? ' target="' + escapeHtml(link.target) + '"'
-          : "";
         return (
-          '<a href="' + hrefValue + '"' + targetAttribute + ">" + labelValue + "</a>"
+          '<a href="' +
+          hrefValue +
+          '" target="_blank" rel="noopener noreferrer">' +
+          labelValue +
+          "</a>"
         );
       })
       .join("");
@@ -2276,11 +2277,8 @@
       elements.profileLabel.textContent = options.profileLabel;
     }
     if (elements.profileName) {
-      var preference =
-        state.profile.display || state.profile.user_email || state.profile.user_id;
-      elements.profileName.textContent = preference
-        ? String(preference)
-        : "";
+      var preference = state.profile.display || state.profile.user_id;
+      elements.profileName.textContent = preference ? String(preference) : "";
     }
   }
 
@@ -2291,6 +2289,8 @@
     if (elements.brand) {
       elements.brand.textContent = options.brand.label;
       elements.brand.setAttribute("href", sanitizeHref(options.brand.href));
+      elements.brand.setAttribute("target", "_blank");
+      elements.brand.setAttribute("rel", "noopener noreferrer");
     }
     renderHeaderNav(elements.nav, options.navLinks);
 
@@ -2494,8 +2494,6 @@
             message: detail && detail.message ? detail.message : undefined,
           });
           destroyGoogleButton();
-          mountFallbackSigninButton("google_error");
-          dispatchSigninFallback("google_error", { code: mappedCode });
         },
       );
     }
@@ -3476,14 +3474,14 @@
 
     var layoutMarkup =
       '<div data-mpr-footer="layout">' +
-      '<div data-mpr-footer="brand">' +
-      '<span data-mpr-footer="prefix"></span>' +
-      dropdownMarkup +
-      "</div>" +
       '<a data-mpr-footer="privacy-link" href="' +
       escapeFooterHtml(sanitizeFooterHref(config.privacyLinkHref)) +
       '"></a>' +
       themeToggleMarkup +
+      '<div data-mpr-footer="brand">' +
+      '<span data-mpr-footer="prefix"></span>' +
+      dropdownMarkup +
+      "</div>" +
       "</div>";
 
     return (
