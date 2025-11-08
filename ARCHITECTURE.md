@@ -85,7 +85,7 @@ See [`docs/custom-elements.md`](docs/custom-elements.md) for the full attribute/
    - `mpr-ui:auth:unauthenticated` with `{ profile: null }`
    - `mpr-ui:auth:error` with `{ code, message?, status? }`
 3. **Nonce Handling** – `requestNonceToken` POSTs to `options.noncePath` and caches the result to avoid concurrent requests.
-4. **GIS Wiring** – `configureGoogleNonce` injects the nonce into the GIS script (`#g_id_onload[data-nonce]`) and calls `google.accounts.id.initialize`.
+4. **GIS Wiring** – `configureGoogleNonce` records the nonce and calls `google.accounts.id.initialize`, sourcing the client ID from the header/auth options (no DOM bootstrap element required).
 5. **Session Bootstrap** – If a global `initAuthClient` function exists, it is invoked to recover the current session. Otherwise, the controller awaits GIS events.
 6. **Credential Exchange** – `handleCredential` exchanges the GIS credential for a first-party session via `options.loginPath`. Success updates state and emits `authenticated`; failure emits `mpr-ui.auth.exchange_failed` and re-prompts GIS.
 7. **Logout** – `signOut` POSTs to `options.logoutPath`, clears local state, and triggers a new bootstrap.
@@ -98,7 +98,7 @@ See [`docs/custom-elements.md`](docs/custom-elements.md) for the full attribute/
 | `loginPath`         | Relative path that receives `POST { google_id_token, nonce_token }`.                   |
 | `logoutPath`        | Relative path for session termination (`POST`).                                        |
 | `noncePath`         | Endpoint that issues a nonce (`POST` -> `{ nonce: string }`).                          |
-| `googleClientId`    | Overrides the client ID discovered from `#g_id_onload[data-client_id]`.                |
+| `googleClientId`    | Google Identity Services client ID supplied via header/auth options (falls back to the bundled demo ID). |
 | `siteName` / `siteLink` | Metadata forwarded to custom renderers via consumer code (not used internally).   |
 
 ### Public API
