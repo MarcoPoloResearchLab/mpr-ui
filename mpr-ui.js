@@ -3471,14 +3471,14 @@
 
     var layoutMarkup =
       '<div data-mpr-footer="layout">' +
-      '<div data-mpr-footer="brand">' +
-      '<span data-mpr-footer="prefix"></span>' +
-      dropdownMarkup +
-      "</div>" +
       '<a data-mpr-footer="privacy-link" href="' +
       escapeFooterHtml(sanitizeFooterHref(config.privacyLinkHref)) +
       '"></a>' +
       themeToggleMarkup +
+      '<div data-mpr-footer="brand">' +
+      '<span data-mpr-footer="prefix"></span>' +
+      dropdownMarkup +
+      "</div>" +
       "</div>";
 
     return (

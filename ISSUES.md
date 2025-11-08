@@ -166,7 +166,7 @@ All links must open in a new window.
 - [x] [MU-307] The google sign in button is a hard requirements. Write tests to ensure we fail hard when the google sign in button is not displayed. When logged in, there must be an element that displays the name of a logged in user but not their email.
 — Removed fallback button logic when Google button fails to render (mpr-ui.js:2497), updated profile display to show only name or user_id, not email (mpr-ui.js:2279), added two regression tests for hard-fail requirement and email exclusion (tests/renderSiteHeader.test.js:738,771), and updated existing fallback test to match new behavior (tests: `npm run test:unit` — 43/43 passing) on branch `bugfix/MU-307-google-button-requirement`.
 
-- [ ] [MU-308] There are two site IDs in the code. remove the ugly duplication and leave only one
+- [x] [MU-308] There are two site IDs in the code. remove the ugly duplication and leave only one
 ```
     <div
       id="g_id_onload"
@@ -191,12 +191,16 @@ All links must open in a new window.
     >
 ```
 I would prefer our component to fully wrap google sign in. If this impossible then our component shall not know the site ID as it has no business with google sign in, and just manipulates the visual working for which querying DOM shall be sufficient.
+— Removed the duplicate `#g_id_onload` div from demo/index.html (lines 28-33), keeping only the `site-id` attribute on `<mpr-header>`. The component now fully manages Google Sign-In integration (tests: `npm run test:unit` — 41/41 passing) on branch `bugfix/MU-308-site-id-duplication`.
 
-- [ ] [MU-308] Leave header, footer and the event log. Remove all other elements from the page.
+- [x] [MU-312] Leave header, footer and the event log. Remove all other elements from the page.
+— Simplified demo page (demo/index.html) to show only `<mpr-header>`, event log section, and `<mpr-footer>`. Removed all demo controls, profile display, palette toggles, custom element previews, and auxiliary sections (lines 50-246). Updated demo.js to remove references to deleted elements and simplified event listeners. Updated tests in tests/demo-page.test.js to match the new minimalist demo (tests: `npm run test:unit` — 41/41 passing) on branch `improvement/MU-312-clean-demo-page`.
 
-- [ ] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right.
+- [x] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right.
+— Added CSS styling for theme toggle switch (mpr-ui.css:259-300) with slider that moves left to right on toggle, smooth transitions, focus states, and proper visual feedback using `transform: translateX(24px)` when checked (tests: `npm run test:unit` — 41/41 passing) on branch `bugfix/MU-309-toggle-visual-feedback`.
 
-- [ ] [MU-311] The footer shall have the following sequence left to right: Privacy terms (left) -- spacer -- Theme toggle -- Build by Marko Polo Research Lab. Build by Marko Polo Research Lab is a drop up.
+- [x] [MU-311] The footer shall have the following sequence left to right: Privacy terms (left) -- spacer -- Theme toggle -- Build by Marko Polo Research Lab. Build by Marko Polo Research Lab is a drop up.
+— Reordered footer layout in `buildFooterMarkup` (mpr-ui.js:3477-3487) to display privacy link first (left), theme toggle in center, and "Built by Marco Polo Research Lab" dropdown last (right). The spacer is handled by flexbox layout (tests: `npm run test:unit` — 41/41 passing) on branch `improvement/MU-311-footer-layout-sequence`.
 
 - [ ] [MU-310] Both the footer and the header must be sticky and always visible, stuck to the top and the bottom of the page
 
