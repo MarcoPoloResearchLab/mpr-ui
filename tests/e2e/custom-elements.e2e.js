@@ -21,7 +21,12 @@ async function startFixtureServer() {
       if (pathname === '/' || pathname === '/fixture') {
         targetPath = join(__dirname, 'custom-elements.html');
       } else {
-        targetPath = join(REPO_ROOT, pathname);
+        const normalized = pathname.replace(/^\/+/, '');
+        const resolved = join(REPO_ROOT, normalized);
+        if (!resolved.startsWith(REPO_ROOT)) {
+          throw new Error('Invalid path');
+        }
+        targetPath = resolved;
       }
       const data = await fs.readFile(targetPath);
       const type = MIME_TYPES[extname(targetPath)] || 'application/octet-stream';
