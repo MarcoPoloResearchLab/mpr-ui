@@ -325,6 +325,36 @@ test('rendering the header injects shared theme tokens into the document head', 
   assert.ok(themeStyle, 'expected theme token stylesheet to be attached');
 });
 
+test('renderSiteHeader initial markup forces navigation links to open in new window', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  let capturedMarkup = '';
+  Object.defineProperty(harness.host, 'innerHTML', {
+    configurable: true,
+    get: function getInnerHTML() {
+      return this.__innerHTML || '';
+    },
+    set: function setInnerHTML(value) {
+      this.__innerHTML = String(value);
+      capturedMarkup = this.__innerHTML;
+    },
+  });
+  const library = loadLibrary();
+  const navLinks = [
+    { label: 'Docs', href: 'https://example.com/docs' },
+    { label: 'Support', href: 'https://example.com/support' },
+  ];
+  library.renderSiteHeader(harness.host, { navLinks: navLinks });
+  assert.ok(
+    capturedMarkup.indexOf('target="_blank"') !== -1,
+    'initial markup includes target="_blank" on navigation links',
+  );
+  assert.ok(
+    capturedMarkup.indexOf('rel="noopener noreferrer"') !== -1,
+    'initial markup includes rel="noopener noreferrer" on navigation links',
+  );
+});
+
 test('theme toggle updates the icon when the mode changes', () => {
   resetEnvironment();
   const harness = createHostHarness();

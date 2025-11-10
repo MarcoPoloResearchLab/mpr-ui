@@ -149,7 +149,7 @@ Hardcode const GOOGLE_FALLBACK_CLIENT_ID =
 - [x] [MU-304] Removing the `open` attribute from `<mpr-settings>` should close the panel, but `__computeOpenState` returns the last internal state instead of the default. Treat missing attributes as `false` so attribute-driven frameworks (React/Vue/plain DOM) can close the panel declaratively. — Missing attributes now default to `false`, frameworks can close via attribute removal, and regression tests enforce the behavior on branch `bugfix/MU-304-settings-open-attr` (`node --test tests/*.test.js`).
 - [x] [MU-305] Restore the header `mpr-ui:header:signin-click` event so non-GIS flows keep working when auth is disabled or GIS fails to render. — Added a fallback CTA, reintroduced signin-click dispatches, and extended header tests on branch `bugfix/MU-305-signin-fallback` (`npm run test`).
 
-- [ ] [MU-306] The navigation links must open a new window. Instead currently the bug is that they open in the same window.
+- [x] [MU-306] The navigation links must open a new window. Instead currently the bug is that they open in the same window.
 There are three links here:
 ```html
 <mpr-header
@@ -162,6 +162,7 @@ There are three links here:
       ]'
 ```
 All links must open in a new window.
+- Forced header navigation links to render with `_blank`/`noopener noreferrer` immediately, added initial-markup regression test, and verified unit suite on branch `bugfix/MU-306-nav-links-target` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
 
 - [ ] [MU-307] The google sign in button is a hard requirements. Write tests to ensure we fail hard when the google sign in button is not displayed. When logged in, there must be an element that displays the name of a logged in user but not their email.
 — Removed fallback button logic when Google button fails to render (mpr-ui.js:2497), updated profile display to show only name or user_id, not email (mpr-ui.js:2279), added two regression tests for hard-fail requirement and email exclusion (tests/renderSiteHeader.test.js:738,771), and updated existing fallback test to match new behavior (tests: `npm run test:unit` — 43/43 passing) on branch `bugfix/MU-307-google-button-requirement`.

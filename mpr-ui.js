@@ -1971,14 +1971,9 @@
         if (!label || !hrefValue) {
           return null;
         }
-        var targetValue =
-          typeof link.target === "string" && link.target.trim()
-            ? link.target.trim()
-            : null;
         return {
           label: label,
           href: hrefValue,
-          target: targetValue,
         };
       })
       .filter(Boolean);
@@ -2076,15 +2071,10 @@
       .map(function (link) {
         var linkHref = escapeHtml(sanitizeHref(link.href));
         var linkLabel = escapeHtml(link.label);
-        var targetAttribute = link.target
-          ? ' target="' + escapeHtml(link.target) + '"'
-          : "";
         return (
           '<a href="' +
           linkHref +
-          '"' +
-          targetAttribute +
-          ">" +
+          '" target="_blank" rel="noopener noreferrer">' +
           linkLabel +
           "</a>"
         );
