@@ -312,19 +312,28 @@ test('MU-309: light/dark mode updates header, main, event log, and footer', asyn
   });
 });
 
-test('MU-311: footer prefix follows required copy', async (t) => {
+test('MU-311: footer drop-up button follows required copy', async (t) => {
   const { browser, page } = await openDemoPage();
   t.after(async () => {
     await closeAll(browser);
   });
-  await page.waitForSelector('[data-mpr-footer="prefix"]', { timeout: 15000 });
+  await page.waitForSelector('[data-mpr-footer="toggle-button"]', { timeout: 15000 });
+  const dropupLabel = await page.$eval(
+    '[data-mpr-footer="toggle-button"]',
+    (element) => element.textContent.trim(),
+  );
+  assert.equal(
+    dropupLabel,
+    'Build by Marco Polo Research Lab',
+    'footer drop-up button copy does not match instructions',
+  );
   const prefixText = await page.$eval(
     '[data-mpr-footer="prefix"]',
     (element) => element.textContent.trim(),
   );
   assert.equal(
     prefixText,
-    'Build by Marco Polo Research Lab',
-    'footer prefix copy does not match instructions',
+    '',
+    'footer prefix should be empty when drop-up button carries the copy',
   );
 });
