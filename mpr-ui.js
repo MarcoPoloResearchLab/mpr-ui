@@ -2353,16 +2353,16 @@
   }
 
   function buildHeaderThemeToggleConfig(options, themeConfig) {
-    return normalizeThemeToggleDisplayOptions(
+    var toggleConfig = normalizeThemeToggleDisplayOptions(
       {
         enabled: options.themeToggle.enabled,
         variant: "switch",
-        label: options.themeToggle.label || "Theme",
-        showLabel: true,
+        label: options.themeToggle.label || "",
+        showLabel: false,
         wrapperClass: HEADER_ROOT_CLASS + "__theme-toggle",
-        controlClass: "",
+        controlClass: HEADER_ROOT_CLASS + "__theme-switch",
         iconClass: "",
-        ariaLabel: options.themeToggle.ariaLabel,
+        ariaLabel: options.themeToggle.ariaLabel || "Toggle theme",
         icons: {
           light: THEME_TOGGLE_DEFAULT_ICONS.light,
           dark: THEME_TOGGLE_DEFAULT_ICONS.dark,
@@ -2372,6 +2372,7 @@
         source: "header",
       },
     );
+    return toggleConfig;
   }
 
   function renderSiteHeader(target, rawOptions) {
