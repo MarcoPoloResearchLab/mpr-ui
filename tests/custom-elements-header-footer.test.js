@@ -767,13 +767,6 @@ test('mpr-login-button renders the Google button with provided site ID', async (
     },
   };
   global.google = googleStub;
-  const onloadElement = { setAttribute() {} };
-  global.document.getElementById = function getElement(id) {
-    if (id === 'g_id_onload') {
-      return onloadElement;
-    }
-    return null;
-  };
   loadLibrary();
   const { element, buttonHost, renderCalls } = createLoginButtonHarness(googleStub);
   element.setAttribute('site-id', 'custom-site');

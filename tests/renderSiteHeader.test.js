@@ -477,6 +477,52 @@ test('renderSiteHeader injects the Google Identity script when the client is mis
   );
 });
 
+test('renderSiteHeader does not require a pre-existing g_id_onload element', async () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const documentStub = global.document;
+  const originalGetElementById = documentStub.getElementById;
+  documentStub.getElementById = function (id) {
+    if (id === 'g_id_onload') {
+      throw new Error('g_id_onload lookup should not be required');
+    }
+    return originalGetElementById(id);
+  };
+  const renderCalls = [];
+  global.google = {
+    accounts: {
+      id: {
+        renderButton(target, options) {
+          renderCalls.push({ target, options });
+        },
+        prompt() {},
+        initialize() {},
+      },
+    },
+  };
+  const library = loadLibrary();
+  const siteId = 'site-from-header';
+  try {
+    library.renderSiteHeader(harness.host, {
+      siteId: siteId,
+      auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
+    });
+    await flushAsync();
+  } finally {
+    documentStub.getElementById = originalGetElementById;
+  }
+  assert.strictEqual(
+    renderCalls.length,
+    1,
+    'google.accounts.id.renderButton invoked once without g_id_onload element',
+  );
+  assert.strictEqual(
+    harness.googleSigninHost.getAttribute('data-mpr-google-site-id'),
+    siteId,
+    'site ID reflected onto the Google host even without g_id_onload element',
+  );
+});
+
 test('renderSiteHeader reports script failures when the GIS loader errors', async () => {
   resetEnvironment();
   const harness = createHostHarness();
