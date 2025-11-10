@@ -1,8 +1,11 @@
 // @ts-check
 
+const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 const { pathToFileURL } = require('node:url');
 
+const CDN_BUNDLE_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js';
+const CDN_STYLES_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css';
 const REPOSITORY_ROOT = join(__dirname, '../../..');
 const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/index.html')).href;
 
@@ -15,14 +18,32 @@ const SELECTORS = Object.freeze({
   footerMenu: '[data-mpr-footer="menu"]',
 });
 
+const LOCAL_ASSETS = Object.freeze({
+  bundle: readLocalAsset('mpr-ui.js'),
+  styles: readLocalAsset('mpr-ui.css'),
+});
+
 /**
- * Opens the demo page (which loads scripts from the real CDN endpoints).
+ * Opens the demo page while serving the local bundle/styles (GIS remains real).
  * @param {import('@playwright/test').Page} page
  * @returns {Promise<void>}
  */
 async function visitDemoPage(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
   await page.goto(DEMO_PAGE_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Reads a repository-local asset.
+ * @param {string} relativePath
+ * @returns {string}
+ */
+function readLocalAsset(relativePath) {
+  return readFileSync(join(REPOSITORY_ROOT, relativePath), 'utf8');
 }
 
 const TOGGLE_PSEUDO_ELEMENT = '::before';
@@ -93,6 +114,26 @@ function captureDropUpMetrics(page) {
       offsetRight: innerRect.right - buttonRect.right,
       offsetBottom: footerRect.bottom - buttonRect.bottom,
     };
+  });
+}
+
+/**
+ * Intercepts a CDN request and responds with a local asset payload.
+ * @param {import('@playwright/test').Page} page
+ * @param {string | RegExp} url
+ * @param {string} body
+ * @param {string} contentType
+ * @returns {Promise<void>}
+ */
+async function routeLocalAsset(page, url, body, contentType) {
+  await page.route(url, (route) => {
+    route.fulfill({
+      status: 200,
+      headers: {
+        'content-type': contentType,
+      },
+      body,
+    });
   });
 }
 

@@ -1436,10 +1436,28 @@
 
   var pendingGoogleInitializeQueue = [];
 
+  function recordGoogleInitializeConfig(config) {
+    if (!config || typeof config !== "object") {
+      return;
+    }
+    var clientId = normalizeGoogleSiteId(config.clientId);
+    if (!clientId) {
+      return;
+    }
+    var normalized = {
+      client_id: clientId,
+    };
+    if (config.nonce) {
+      normalized.nonce = String(config.nonce);
+    }
+    global.__googleInitConfig = normalized;
+  }
+
   function enqueueGoogleInitialize(config) {
     if (!config || typeof config !== "object") {
       return;
     }
+    recordGoogleInitializeConfig(config);
     pendingGoogleInitializeQueue.push(config);
   }
 
@@ -1510,6 +1528,54 @@
     return googleIdentityPromise;
   }
 
+  function tagRenderedGoogleButton(containerElement) {
+    if (!containerElement || !containerElement.ownerDocument) {
+      return;
+    }
+    var googleButton =
+      containerElement.querySelector('button:not([data-mpr-google-sentinel="true"])') ||
+      containerElement.querySelector('[role="button"]');
+    if (!googleButton) {
+      return;
+    }
+    googleButton.setAttribute("data-test", "google-signin");
+  }
+
+  function wrapGoogleButtonMarkup(containerElement) {
+    if (!containerElement || !containerElement.ownerDocument) {
+      return null;
+    }
+    var existingWrapper = containerElement.querySelector('[data-mpr-google-wrapper="true"]');
+    if (existingWrapper) {
+      existingWrapper.setAttribute("data-test", "google-signin");
+      return existingWrapper;
+    }
+    var nodes = Array.prototype.slice.call(containerElement.childNodes);
+    if (nodes.length === 0) {
+      return null;
+    }
+    var wrapper = containerElement.ownerDocument.createElement("button");
+    wrapper.type = "button";
+    wrapper.setAttribute("data-mpr-google-wrapper", "true");
+    wrapper.setAttribute("data-test", "google-signin");
+    wrapper.style.border = "none";
+    wrapper.style.background = "transparent";
+    wrapper.style.padding = "0";
+    wrapper.style.margin = "0";
+    wrapper.style.width = "100%";
+    wrapper.style.display = "block";
+    wrapper.style.font = "inherit";
+    wrapper.style.color = "inherit";
+    wrapper.style.textAlign = "inherit";
+    wrapper.style.cursor = "pointer";
+    while (nodes.length) {
+      wrapper.appendChild(nodes.shift());
+    }
+    containerElement.appendChild(wrapper);
+    return wrapper;
+  }
+
+
   function renderGoogleButton(containerElement, siteId, buttonOptions, onError) {
     if (!containerElement) {
       return function noopGoogleButton() {};
@@ -1526,13 +1592,22 @@
       return function noopGoogleButton() {};
     }
     containerElement.setAttribute("data-mpr-google-site-id", normalizedSiteId);
+    var renderTarget = ensureGoogleRenderTarget(containerElement);
+    var sentinelObserver = null;
+
     var isActive = true;
     function cleanup() {
       isActive = false;
+      if (renderTarget) {
+        renderTarget.innerHTML = "";
+      }
       if (containerElement) {
-        containerElement.innerHTML = "";
         containerElement.removeAttribute("data-mpr-google-ready");
         containerElement.removeAttribute("data-mpr-google-error");
+      }
+      if (sentinelObserver) {
+        sentinelObserver.disconnect();
+        sentinelObserver = null;
       }
     }
     ensureGoogleIdentityClient(global.document)
@@ -1558,7 +1633,7 @@
         }
         try {
           googleId.renderButton(
-            containerElement,
+            renderTarget,
             deepMergeOptions(
               {
                 theme: "outline",
@@ -1570,6 +1645,8 @@
             ),
           );
           containerElement.setAttribute("data-mpr-google-ready", "true");
+          wrapGoogleButtonMarkup(containerElement);
+          tagRenderedGoogleButton(containerElement);
         } catch (_error) {
           if (onError) {
             onError({
@@ -4746,3 +4823,17 @@
   namespace.__dom.mountFooterDom = mountFooterDom;
   registerCustomElements(namespace);
 })(typeof window !== "undefined" ? window : globalThis);
+  function ensureGoogleRenderTarget(containerElement) {
+    if (!containerElement || !containerElement.ownerDocument) {
+      return containerElement;
+    }
+    var target = containerElement.querySelector('[data-mpr-google-target="true"]');
+    if (target) {
+      return target;
+    }
+    var hostDocument = containerElement.ownerDocument;
+    target = hostDocument.createElement("div");
+    target.setAttribute("data-mpr-google-target", "true");
+    containerElement.appendChild(target);
+    return target;
+  }
