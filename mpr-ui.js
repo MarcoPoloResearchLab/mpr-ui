@@ -1400,6 +1400,39 @@
     }
   }
 
+  var pendingGoogleInitializeQueue = [];
+
+  function enqueueGoogleInitialize(config) {
+    if (!config || typeof config !== "object") {
+      return;
+    }
+    pendingGoogleInitializeQueue.push(config);
+  }
+
+  function runGoogleInitializeQueue(googleClient) {
+    if (
+      !googleClient ||
+      !googleClient.accounts ||
+      !googleClient.accounts.id ||
+      typeof googleClient.accounts.id.initialize !== "function"
+    ) {
+      return;
+    }
+    while (pendingGoogleInitializeQueue.length) {
+      var config = pendingGoogleInitializeQueue.shift();
+      if (!config) {
+        continue;
+      }
+      try {
+        googleClient.accounts.id.initialize({
+          client_id: config.clientId || undefined,
+          callback: config.callback,
+          nonce: config.nonce,
+        });
+      } catch (_error) {}
+    }
+  }
+
   function ensureGoogleIdentityClient(documentObject) {
     if (
       global.google &&
@@ -1407,6 +1440,7 @@
       global.google.accounts.id &&
       typeof global.google.accounts.id.renderButton === "function"
     ) {
+      runGoogleInitializeQueue(global.google);
       return Promise.resolve(global.google);
     }
     if (googleIdentityPromise) {
@@ -1427,6 +1461,9 @@
       scriptElement.defer = true;
       scriptElement.onload = function handleGoogleIdentityLoad() {
         resolved = true;
+        if (global.google) {
+          runGoogleInitializeQueue(global.google);
+        }
         resolve(global.google || null);
       };
       scriptElement.onerror = function handleGoogleIdentityError() {
@@ -1459,6 +1496,7 @@
         if (!isActive) {
           return;
         }
+        runGoogleInitializeQueue(googleClient);
         var googleId =
           googleClient &&
           googleClient.accounts &&
@@ -1567,29 +1605,25 @@
       return nonceRequestPromise;
     }
 
-    function configureGoogleNonce(nonceToken) {
-      pendingNonceToken = nonceToken;
-      var clientIdValue =
-        options.googleClientId && options.googleClientId.trim()
-          ? options.googleClientId.trim()
-          : GOOGLE_FALLBACK_SITE_ID;
-      if (
-        global.google &&
-        global.google.accounts &&
-        global.google.accounts.id &&
-        typeof global.google.accounts.id.initialize === "function"
-      ) {
-        try {
-          global.google.accounts.id.initialize({
-            client_id: clientIdValue || undefined,
-            callback: function (payload) {
-              handleCredential(payload);
-            },
-            nonce: nonceToken,
-          });
-        } catch (_error) {}
-      }
-    }
+  function configureGoogleNonce(nonceToken) {
+    pendingNonceToken = nonceToken;
+    var clientIdValue =
+      options.googleClientId && options.googleClientId.trim()
+        ? options.googleClientId.trim()
+        : GOOGLE_FALLBACK_SITE_ID;
+    enqueueGoogleInitialize({
+      clientId: clientIdValue || undefined,
+      nonce: nonceToken,
+      callback: function (payload) {
+        handleCredential(payload);
+      },
+    });
+    ensureGoogleIdentityClient(global.document)
+      .then(function initializeGoogleClient(googleClient) {
+        runGoogleInitializeQueue(googleClient);
+      })
+      .catch(function () {});
+  }
 
     function prepareGooglePromptNonce() {
       var sourcePromise;
@@ -1867,6 +1901,15 @@
     "__icon-btn{display:inline-flex;align-items:center;gap:0.35rem}" +
     "." +
     HEADER_ROOT_CLASS +
+    '__theme-toggle{display:inline-flex;align-items:center;gap:0.6rem}' +
+    "." +
+    HEADER_ROOT_CLASS +
+    '__theme-toggle [data-mpr-theme-toggle="label"]{font-weight:600;font-size:0.85rem;color:var(--mpr-color-text-primary,#e2e8f0)}' +
+    "." +
+    HEADER_ROOT_CLASS +
+    '__theme-toggle input[type="checkbox"][data-mpr-theme-toggle="control"]{margin:0}' +
+    "." +
+    HEADER_ROOT_CLASS +
     "__divider{width:1px;height:24px;background:var(--mpr-color-divider,rgba(148,163,184,0.35))}" +
     "." +
     HEADER_ROOT_CLASS +
@@ -2099,7 +2142,9 @@
       '<div class="' +
       HEADER_ROOT_CLASS +
       '__actions">' +
-      '<div data-mpr-header="theme-toggle"></div>' +
+      '<div data-mpr-header="theme-toggle" class="' +
+      HEADER_ROOT_CLASS +
+      '__theme-toggle"></div>' +
       '<span class="' +
       HEADER_ROOT_CLASS +
       '__divider"></span>' +
@@ -2297,12 +2342,11 @@
     return normalizeThemeToggleDisplayOptions(
       {
         enabled: options.themeToggle.enabled,
-        variant: "button",
+        variant: "switch",
         label: options.themeToggle.label || "Theme",
         showLabel: true,
-        wrapperClass: "",
-        controlClass:
-          HEADER_ROOT_CLASS + "__button " + HEADER_ROOT_CLASS + "__icon-btn",
+        wrapperClass: HEADER_ROOT_CLASS + "__theme-toggle",
+        controlClass: "",
         iconClass: "",
         ariaLabel: options.themeToggle.ariaLabel,
         icons: {
@@ -2932,6 +2976,7 @@
     '.mpr-footer{position:sticky;bottom:0;width:100%;padding:24px 0;background:var(--mpr-color-surface-primary,rgba(15,23,42,0.92));color:var(--mpr-color-text-primary,#e2e8f0);border-top:1px solid var(--mpr-color-border,rgba(148,163,184,0.25));backdrop-filter:blur(10px)}' +
     '.mpr-footer__inner{max-width:1080px;margin:0 auto;padding:0 1.5rem;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.5rem}' +
     '.mpr-footer__layout{display:flex;flex-wrap:wrap;align-items:center;gap:1.25rem}' +
+    '.mpr-footer__spacer{display:block;flex:1 1 auto;min-width:1px}' +
     '.mpr-footer__brand{display:flex;flex-wrap:wrap;align-items:center;gap:0.75rem;font-size:0.95rem}' +
     '.mpr-footer__prefix{font-weight:600;color:var(--mpr-color-accent,#38bdf8)}' +
     '.mpr-footer__menu-wrapper{position:relative}' +
@@ -2949,7 +2994,7 @@
     '.mpr-footer__theme-checkbox:checked{background:var(--mpr-color-accent,#38bdf8)}' +
     '.mpr-footer__theme-checkbox:checked::after{transform:translateX(18px);background:var(--mpr-color-accent-contrast,#0f172a)}' +
     '.mpr-footer__theme-checkbox:focus-visible{outline:2px solid var(--mpr-color-accent,#38bdf8);outline-offset:3px}' +
-    '@media (max-width:768px){.mpr-footer__layout{flex-direction:column;align-items:flex-start}.mpr-footer__inner{gap:1.75rem}}';
+    '@media (max-width:768px){.mpr-footer__layout{flex-direction:column;align-items:flex-start}.mpr-footer__inner{gap:1.75rem}.mpr-footer__spacer{display:none}}';
 
   var FOOTER_LINK_CATALOG = Object.freeze([
     Object.freeze({ label: "Marco Polo Research Lab", url: "https://mprlab.com" }),
@@ -3177,6 +3222,7 @@
     wrapperClass: "mpr-footer__layout",
     brandWrapperClass: "mpr-footer__brand",
     menuWrapperClass: "mpr-footer__menu-wrapper",
+    spacerClass: "mpr-footer__spacer",
     prefixClass: "mpr-footer__prefix",
     prefixText: "Built by",
     toggleButtonId: "",
@@ -3461,6 +3507,13 @@
     var themeToggleMarkup = config.themeToggle && config.themeToggle.enabled
       ? '<div data-mpr-footer="theme-toggle"></div>'
       : "";
+    var spacerMarkup = themeToggleMarkup
+      ? '<span data-mpr-footer="spacer"' +
+        (config.spacerClass
+          ? ' class="' + escapeFooterHtml(config.spacerClass) + '"'
+          : "") +
+        ' aria-hidden="true"></span>'
+      : "";
 
     var dropdownMarkup =
       '<div data-mpr-footer="menu-wrapper">' +
@@ -3473,6 +3526,7 @@
       '<a data-mpr-footer="privacy-link" href="' +
       escapeFooterHtml(sanitizeFooterHref(config.privacyLinkHref)) +
       '"></a>' +
+      spacerMarkup +
       themeToggleMarkup +
       '<div data-mpr-footer="brand">' +
       '<span data-mpr-footer="prefix"></span>' +

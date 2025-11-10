@@ -257,6 +257,7 @@ function createHostHarness() {
     root: root,
     nav: nav,
     brand: brand,
+    themeToggleHost: themeToggleContainer,
     themeToggleControl: themeToggleControl,
     themeToggleIcon: themeToggleIcon,
     googleSigninHost: googleSigninHost,
@@ -355,24 +356,58 @@ test('renderSiteHeader initial markup forces navigation links to open in new win
   );
 });
 
-test('theme toggle updates the icon when the mode changes', () => {
+test('header theme toggle renders switch control and toggles document theme', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {});
+  assert.ok(
+    /<input[^>]+data-mpr-theme-toggle="control"/i.test(
+      String(harness.themeToggleHost.innerHTML || ''),
+    ),
+    'theme toggle should render as a switch input',
+  );
+  assert.strictEqual(
+    global.document.documentElement.getAttribute('data-mpr-theme'),
+    'dark',
+    'document theme defaults to dark mode before toggling',
+  );
+  harness.themeToggleControl.click();
+  assert.strictEqual(
+    global.document.documentElement.getAttribute('data-mpr-theme'),
+    'light',
+    'document theme should switch to light mode after toggle activation',
+  );
+});
+
+test('theme toggle synchronizes switch state with theme mode', () => {
   resetEnvironment();
   const harness = createHostHarness();
   const library = loadLibrary();
   const controller = library.renderSiteHeader(harness.host, {});
 
-  assert.equal(
-    harness.themeToggleIcon.textContent,
-    '🌙',
-    'expected initial icon to represent the dark mode',
+  assert.strictEqual(
+    harness.themeToggleHost.getAttribute('data-mpr-theme-mode'),
+    'dark',
+    'expected header toggle host to start in dark mode',
+  );
+  assert.strictEqual(
+    Boolean(harness.themeToggleControl.checked),
+    false,
+    'switch should be unchecked while dark mode is active',
   );
 
   harness.themeToggleControl.click();
 
-  assert.equal(
-    harness.themeToggleIcon.textContent,
-    '☀️',
-    'expected icon to switch to the light mode glyph after toggle',
+  assert.strictEqual(
+    harness.themeToggleHost.getAttribute('data-mpr-theme-mode'),
+    'light',
+    'toggle host should reflect light mode after activation',
+  );
+  assert.strictEqual(
+    Boolean(harness.themeToggleControl.checked),
+    true,
+    'switch should report checked when light mode is active',
   );
 
   controller.destroy();
@@ -520,6 +555,87 @@ test('renderSiteHeader does not require a pre-existing g_id_onload element', asy
     harness.googleSigninHost.getAttribute('data-mpr-google-site-id'),
     siteId,
     'site ID reflected onto the Google host even without g_id_onload element',
+  );
+});
+
+test('Google client initializes once the script finishes loading', async () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const initializeCalls = [];
+  const renderCalls = [];
+  let initialized = false;
+  global.fetch = function (url) {
+    const requestUrl = String(url || '');
+    if (requestUrl.indexOf('/auth/nonce') !== -1) {
+      return Promise.resolve({
+        ok: true,
+        json: function () {
+          return Promise.resolve({ nonce: 'nonce-123' });
+        },
+      });
+    }
+    return Promise.resolve({
+      ok: true,
+      json: function () {
+        return Promise.resolve({});
+      },
+    });
+  };
+  const originalAppendChild = global.document.head.appendChild;
+  global.document.head.appendChild = function appendWithDeferredLoad(node) {
+    if (node && node.tagName === 'SCRIPT') {
+      setTimeout(function handleDeferredScriptLoad() {
+        global.google = {
+          accounts: {
+            id: {
+              initialize: function (config) {
+                initialized = true;
+                initializeCalls.push(config);
+              },
+              renderButton: function () {
+                if (!initialized) {
+                  throw new Error('render-before-init');
+                }
+                renderCalls.push(true);
+              },
+              prompt: function () {},
+            },
+          },
+        };
+        if (typeof node.onload === 'function') {
+          node.onload();
+        }
+      }, 0);
+    }
+    return originalAppendChild(node);
+  };
+  try {
+    const library = loadLibrary();
+    const controller = library.renderSiteHeader(harness.host, {
+      auth: {
+        loginPath: '/auth/google',
+        logoutPath: '/auth/logout',
+        noncePath: '/auth/nonce',
+      },
+    });
+    const authController = controller.getAuthController();
+    await authController.signOut();
+    await flushAsync();
+    await flushAsync();
+  } finally {
+    global.document.head.appendChild = originalAppendChild;
+  }
+
+  assert.ok(initialized, 'google.accounts.id.initialize should run after script load');
+  assert.strictEqual(renderCalls.length, 1, 'renderButton should execute once without throwing');
+  const errorEvents = harness.dispatchedEvents.filter(function (event) {
+    return event.type === 'mpr-ui:header:error';
+  });
+  assert.strictEqual(errorEvents.length, 0, 'no header error emitted after GIS initialization');
+  assert.strictEqual(
+    harness.googleSigninHost.getAttribute('data-mpr-google-ready'),
+    'true',
+    'Google host marked ready after successful render',
   );
 });
 
