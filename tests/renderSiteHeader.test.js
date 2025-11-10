@@ -798,6 +798,87 @@ test('Google button is required when auth is configured and must not show fallba
   );
 });
 
+test('Google button render failure marks error state on the container', async () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {
+          throw new Error('renderButton failed');
+        },
+        initialize: function () {},
+        prompt: function () {},
+      },
+    },
+  };
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {
+    siteId: 'demo-site-id',
+    auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
+  });
+  await flushAsync();
+
+  assert.strictEqual(
+    harness.googleSigninHost.getAttribute('data-mpr-google-ready'),
+    'error',
+    'error state must be flagged when renderButton throws',
+  );
+  assert.strictEqual(
+    harness.googleSigninHost.getAttribute('data-mpr-google-error'),
+    'mpr-ui.header.google_render_failed',
+    'error code stored on container when render fails',
+  );
+  assert.strictEqual(
+    harness.googleSigninHost.getAttribute('data-mpr-signin-fallback'),
+    null,
+    'no fallback flag present after render failure',
+  );
+});
+
+test('Google script load failure marks error state and emits error event', async () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const originalAppendChild = global.document.head.appendChild;
+  global.document.head.appendChild = function appendWithFailure(node) {
+    if (node && typeof node.onerror === 'function') {
+      node.onerror(new Error('load failed'));
+    }
+    return originalAppendChild.call(this, node);
+  };
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {
+    siteId: 'demo-site-id',
+    auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
+  });
+  await flushAsync();
+
+  const errorEvents = harness.dispatchedEvents.filter(function (event) {
+    return event.type === 'mpr-ui:header:error';
+  });
+  assert.ok(
+    errorEvents.some(function (event) {
+      return event.detail && event.detail.code === 'mpr-ui.header.google_script_failed';
+    }),
+    'script failure dispatches header error event with script failure code',
+  );
+  assert.strictEqual(
+    harness.googleSigninHost.getAttribute('data-mpr-google-ready'),
+    'error',
+    'script failure marks error state on container',
+  );
+  assert.strictEqual(
+    harness.googleSigninHost.getAttribute('data-mpr-google-error'),
+    'mpr-ui.header.google_script_failed',
+    'script failure code stored on container attribute',
+  );
+  assert.strictEqual(
+    harness.googleSigninHost.getAttribute('data-mpr-signin-fallback'),
+    null,
+    'no fallback flag present after script failure',
+  );
+});
+
 test('profile displays user name only, not email', async () => {
   resetEnvironment();
   const harness = createHostHarness();
