@@ -1,8 +1,8 @@
 # AGENTS.md
 
-## TAuth
+## Product Scanner
 
-Single-origin authentication service for Goole Identy Service designed for stand-alone front-end apps. See README.md for details
+A Go-based web app that automates Amazon Pages retrieveal and their analysis. See README.md for details
 
 ## Document Roles
 
@@ -76,25 +76,18 @@ All rules for validation, error handling, invariants, and “confident programmi
   index.html
   ```
 
-- the MDE editor is used [text](MDE.v2.19.0.md). Follow the documentation to ensure proper API usage and avoid reimplementing the functionality available through MDE API
-- marked.js documentation is available at [text](marked.js.md). Follow the documentation to ensure proper API usage and avoid reimplementing the functionality available through marked.js API
-
 ### Dependencies & Versions
 
 - Alpine.js: `3.13.5` via `https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js`
-- EasyMDE: `2.19.0`
-- marked.js: `12.0.2`
-- DOMPurify: `3.1.7`
 - Google Identity Services: `https://accounts.google.com/gsi/client`
 - Loopaware widget: `https://loopaware.mprlab.com/widget.js` (allowed per Security policy below)
 
 ### 7. Testing
 
-- Puppeteer permitted; Playwright forbidden.
+- Perform semantic testing of components visibility and payout correctness using Playwright.
 - Node test harness (`npm test`) runs browser automation.
 - Use table-driven test cases.
-- Black-box tests only: public APIs and DOM.
-- `tests/assert.js` provides `assertEqual`, `assertDeepEqual`, `assertThrows`.
+- Black-box tests only: no DOM testing but the tests of behaviour and visibility.
 
 ### 8. Documentation
 
@@ -239,7 +232,7 @@ All rules for validation, error handling, invariants, and “confident programmi
 
 - Use Gin for routing.
 - Middleware for CORS, auth, logging.
-- No vanilla CSS; use either Bootstrap with Materia or Tailwind.
+- Vanilla CSS; no Bootstrap.
 - Header fixed top; footer fixed bottom using CSS utilities.
 
 ---

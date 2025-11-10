@@ -11,6 +11,7 @@ on:
 jobs:
   test:
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -20,18 +21,14 @@ jobs:
         with:
           node-version: "20"
 
-      - name: Install Chromium
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y chromium-browser
-
       - name: Install dependencies
         run: npm install
+
+      - name: Install Playwright browsers and system deps
+        run: npx playwright install --with-deps
 
       - name: Run unit tests
         run: npm run test:unit
 
       - name: Run e2e tests
         run: npm run test:e2e
-        env:
-          PUPPETEER_EXECUTABLE_PATH: /usr/bin/chromium-browser

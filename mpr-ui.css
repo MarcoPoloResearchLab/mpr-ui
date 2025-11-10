@@ -300,3 +300,20 @@ input[type="checkbox"][data-mpr-theme-toggle="control"]:checked {
   background: var(--mpr-color-accent, #38bdf8);
   opacity: 0.7;
 }
+
+footer.mpr-footer [data-mpr-footer="layout"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1.25rem;
+  width: 100%;
+}
+
+footer.mpr-footer [data-mpr-footer="brand"] {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  font-size: 0.95rem;
+  margin-left: auto;
+}
