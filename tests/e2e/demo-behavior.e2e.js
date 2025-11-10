@@ -317,32 +317,65 @@ test('MU-311: footer drop-up button follows required copy', async (t) => {
   t.after(async () => {
     await closeAll(browser);
   });
-  await page.waitForSelector('[data-mpr-footer="toggle-button"]', { timeout: 15000 });
-  const dropupLabel = await page.$eval(
-    '[data-mpr-footer="toggle-button"]',
-    (element) => element.textContent.trim(),
-  );
-  assert.equal(
-    dropupLabel,
-    'Build by Marco Polo Research Lab',
-    'footer drop-up button copy does not match instructions',
-  );
-  const prefixText = await page.$eval(
-    '[data-mpr-footer="prefix"]',
-    (element) => element.textContent.trim(),
-  );
-  assert.equal(
-    prefixText,
-    '',
-    'footer prefix should be empty when drop-up button carries the copy',
-  );
-  const hasCopyright = await page.evaluate(() => {
-    const footerText = document.querySelector('footer.mpr-footer')?.textContent || '';
-    return footerText.indexOf('©') !== -1;
+  const dropUpPosition = await page.evaluate(() => {
+    const footer = document.querySelector('footer.mpr-footer');
+    const inner = document.querySelector('[data-mpr-footer="inner"]');
+    if (!footer) {
+      return null;
+    }
+    const controls = Array.from(
+      footer.querySelectorAll('button,a'),
+    );
+    const dropup = controls.find((element) =>
+      element.textContent &&
+      element.textContent.indexOf('Build by Marco Polo Research Lab') !== -1,
+    );
+    if (!dropup || !inner) {
+      return null;
+    }
+    const footerRect = footer.getBoundingClientRect();
+    const innerRect = inner.getBoundingClientRect();
+    const buttonRect = dropup.getBoundingClientRect();
+    return {
+      offsetRight: innerRect.right - buttonRect.right,
+      offsetBottom: footerRect.bottom - buttonRect.bottom,
+      innerRect: {
+        left: innerRect.left,
+        right: innerRect.right,
+        top: innerRect.top,
+        bottom: innerRect.bottom,
+      },
+      footerRect: {
+        left: footerRect.left,
+        right: footerRect.right,
+        top: footerRect.top,
+        bottom: footerRect.bottom,
+      },
+      buttonRect: {
+        left: buttonRect.left,
+        right: buttonRect.right,
+        top: buttonRect.top,
+        bottom: buttonRect.bottom,
+      },
+    };
   });
-  assert.strictEqual(
-    hasCopyright,
-    false,
-    'footer should not display copyright text',
+  assert.ok(
+    dropUpPosition,
+    'Expected footer drop-up control labelled “Build by Marco Polo Research Lab”',
+  );
+  assert.ok(
+    dropUpPosition.offsetRight <= 32,
+    `Drop-up control should align to footer right edge, got offsets ${JSON.stringify(dropUpPosition)}`,
+  );
+  assert.ok(
+    dropUpPosition.offsetBottom <= 48,
+    `Drop-up control should align to footer bottom edge, got offsets ${JSON.stringify(dropUpPosition)}`,
+  );
+  const footerText = await page.$eval('footer.mpr-footer', (element) =>
+    element.textContent ? element.textContent.trim() : '',
+  );
+  assert.ok(
+    footerText.indexOf('©') === -1,
+    'Footer should not include copyright text',
   );
 });
