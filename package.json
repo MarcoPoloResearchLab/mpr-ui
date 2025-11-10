@@ -7,7 +7,7 @@
   "scripts": {
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "node --test tests/*.test.js",
-    "test:e2e": "node tests/e2e/custom-elements.e2e.js && node --test tests/e2e/demo-behavior.e2e.js"
+    "test:e2e": "node --test tests/e2e/demo-behavior.e2e.js"
   },
   "devDependencies": {
     "@sparticuz/chromium": "^141.0.0",

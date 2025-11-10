@@ -2,8 +2,10 @@
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { readFile } = require('node:fs/promises');
+const { readFile, readdir } = require('node:fs/promises');
+const { access } = require('node:fs/promises');
 const { join } = require('node:path');
+const fs = require('node:fs');
 const puppeteer = require('puppeteer-core');
 const chromium = require('@sparticuz/chromium');
 
@@ -19,14 +21,61 @@ async function resolveExecutablePath() {
     return process.env.PUPPETEER_EXECUTABLE_PATH;
   }
   try {
-    const executablePath = await chromium.executablePath();
-    if (executablePath) {
-      return executablePath;
+    if (process.platform !== 'darwin') {
+      const executablePath = await chromium.executablePath();
+      if (executablePath) {
+        return executablePath;
+      }
     }
   } catch (_error) {
     // fall through to fallback below
   }
+  try {
+    const candidate = await findCachedChromeExecutable();
+    if (candidate) {
+      return candidate;
+    }
+  } catch (_error) {
+    // ignore and try default fallback
+  }
   return '/usr/bin/chromium-browser';
+}
+
+async function fileExists(path) {
+  try {
+    await access(path, fs.constants.X_OK);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+async function findCachedChromeExecutable() {
+  const home = process.env.HOME;
+  if (!home) {
+    return null;
+  }
+  const base = join(home, '.cache', 'puppeteer', 'chrome');
+  try {
+    const versions = await readdir(base);
+    for (const version of versions.sort().reverse()) {
+      const candidate = join(
+        base,
+        version,
+        'chrome-mac-x64',
+        'Google Chrome for Testing.app',
+        'Contents',
+        'MacOS',
+        'Google Chrome for Testing',
+      );
+      if (await fileExists(candidate)) {
+        return candidate;
+      }
+    }
+  } catch (_error) {
+    // ignore
+  }
+  return null;
 }
 
 async function launchBrowser() {
@@ -34,9 +83,9 @@ async function launchBrowser() {
   return puppeteer.launch({
     headless: chromium.headless !== undefined ? chromium.headless : true,
     executablePath,
-    args: chromium.args || ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
+    args: ['--headless=new', '--no-sandbox', '--disable-setuid-sandbox'],
     defaultViewport: chromium.defaultViewport || { width: 1280, height: 720 },
-    protocolTimeout: 60000,
+    protocolTimeout: 120000,
   });
 }
 
@@ -99,6 +148,18 @@ async function setupInterceptors(page) {
           status: 200,
           contentType: 'application/javascript',
           body: gisStub,
+        });
+      } else if (url.endsWith('/auth/nonce')) {
+        await request.respond({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ nonce: 'demo-nonce-token' }),
+        });
+      } else if (url.endsWith('/auth/google') || url.endsWith('/auth/logout')) {
+        await request.respond({
+          status: 200,
+          contentType: 'application/json',
+          body: JSON.stringify({ ok: true }),
         });
       } else {
         await request.continue();

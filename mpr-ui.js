@@ -838,15 +838,25 @@
         global.document && global.document.documentElement
           ? global.document.documentElement
           : null;
-      if (documentElement && currentConfig.attribute) {
-        documentElement.setAttribute(
-          currentConfig.attribute,
-          activeMode.attributeValue,
-        );
+      var primaryAttribute = currentConfig.attribute || DEFAULT_THEME_ATTRIBUTE;
+      if (documentElement) {
+        documentElement.setAttribute(primaryAttribute, activeMode.attributeValue);
+        if (primaryAttribute !== DEFAULT_THEME_ATTRIBUTE) {
+          documentElement.setAttribute(
+            DEFAULT_THEME_ATTRIBUTE,
+            activeMode.attributeValue,
+          );
+        }
       }
       targets.forEach(function applyToElement(element) {
-        if (currentConfig.attribute) {
-          element.setAttribute(currentConfig.attribute, activeMode.attributeValue);
+        if (primaryAttribute) {
+          element.setAttribute(primaryAttribute, activeMode.attributeValue);
+          if (primaryAttribute !== DEFAULT_THEME_ATTRIBUTE) {
+            element.setAttribute(
+              DEFAULT_THEME_ATTRIBUTE,
+              activeMode.attributeValue,
+            );
+          }
         }
         if (element.classList) {
           allModeClasses.forEach(function removeClass(className) {
@@ -1237,10 +1247,14 @@
     }
 
     function handleActivation(eventObject) {
-      if (eventObject && typeof eventObject.preventDefault === "function") {
+      if (
+        config.variant === "button" &&
+        eventObject &&
+        typeof eventObject.preventDefault === "function"
+      ) {
         eventObject.preventDefault();
       }
-      var nextMode = resolveNextThemeToggleMode(
+     var nextMode = resolveNextThemeToggleMode(
         currentModes,
         themeManager.getMode(),
       );
@@ -2517,6 +2531,14 @@
       }
       elements.googleSignin.setAttribute("data-mpr-google-site-id", googleSiteId);
       elements.googleSignin.removeAttribute("data-mpr-google-error");
+      enqueueGoogleInitialize({
+        clientId: googleSiteId,
+        callback: function handleGoogleCredential(payload) {
+          if (authController && typeof authController.handleCredential === "function") {
+            authController.handleCredential(payload);
+          }
+        },
+      });
       googleButtonCleanup = renderGoogleButton(
         elements.googleSignin,
         googleSiteId,
