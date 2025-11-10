@@ -149,7 +149,7 @@ Hardcode const GOOGLE_FALLBACK_CLIENT_ID =
 - [x] [MU-304] Removing the `open` attribute from `<mpr-settings>` should close the panel, but `__computeOpenState` returns the last internal state instead of the default. Treat missing attributes as `false` so attribute-driven frameworks (React/Vue/plain DOM) can close the panel declaratively. — Missing attributes now default to `false`, frameworks can close via attribute removal, and regression tests enforce the behavior on branch `bugfix/MU-304-settings-open-attr` (`node --test tests/*.test.js`).
 - [x] [MU-305] Restore the header `mpr-ui:header:signin-click` event so non-GIS flows keep working when auth is disabled or GIS fails to render. — Added a fallback CTA, reintroduced signin-click dispatches, and extended header tests on branch `bugfix/MU-305-signin-fallback` (`npm run test`).
 
-- [x] [MU-306] The navigation links must open a new window. Instead currently the bug is that they open in the same window.
+- [ ] [MU-306] The navigation links must open a new window. Instead currently the bug is that they open in the same window.
 There are three links here:
 ```html
 <mpr-header
@@ -164,7 +164,7 @@ There are three links here:
 All links must open in a new window.
 - Forced header navigation links to render with `_blank`/`noopener noreferrer` immediately, added initial-markup regression test, and verified unit suite on branch `bugfix/MU-306-nav-links-target` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
 
-- [x] [MU-307] The google sign in button is a hard requirements. Write tests to ensure we fail hard when the google sign in button is not displayed. When logged in, there must be an element that displays the name of a logged in user but not their email.
+- [ ] [MU-307] The google sign in button is a hard requirements. Write tests to ensure we fail hard when the google sign in button is not displayed. When logged in, there must be an element that displays the name of a logged in user but not their email.
 — Removed fallback button logic when Google button fails to render (mpr-ui.js:2497), updated profile display to show only name or user_id, not email (mpr-ui.js:2279), added two regression tests for hard-fail requirement and email exclusion (tests/renderSiteHeader.test.js:738,771), and updated existing fallback test to match new behavior (tests: `npm run test:unit` — 43/43 passing) on branch `bugfix/MU-307-google-button-requirement`.
 - Extended failure handling to mark the GIS host with error state + code, added render and script failure regression tests, and revalidated auth display on branch `bugfix/MU-307-google-button-hard-fail` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
 
@@ -199,10 +199,10 @@ I would prefer our component to fully wrap google sign in. If this is impossible
 - [x] [MU-312] Leave header, footer and the event log. Remove all other elements from the page.
 — Simplified demo page (demo/index.html) to show only `<mpr-header>`, event log section, and `<mpr-footer>`. Removed all demo controls, profile display, palette toggles, custom element previews, and auxiliary sections (lines 50-246). Updated demo.js to remove references to deleted elements and simplified event listeners. Updated tests in tests/demo-page.test.js to match the new minimalist demo (tests: `npm run test:unit` — 41/41 passing) on branch `improvement/MU-312-clean-demo-page`.
 
-- [x] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right. The them also doesnt change -- the footer and header are always dark.
+- [ ] [MU-309] The toggle button doesn toggle. it doesnt move when clicked. I expect the toggle to move left and right. The them also doesnt change -- the footer and header are always dark.
 - Converted the header theme toggle to the switch variant, added container styling, and verified the switch updates theme mode attributes through new regression tests on branch `bugfix/MU-309-theme-toggle-motion` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
 
-- [x] [MU-311] The footer shall have the following sequence left to right: Privacy terms (left) -- spacer -- Theme toggle -- Build by Marko Polo Research Lab. Build by Marko Polo Research Lab is a drop up.
+- [ ] [MU-311] The footer shall have the following sequence left to right: Privacy terms (left) -- spacer -- Theme toggle -- Build by Marko Polo Research Lab. Build by Marko Polo Research Lab is a drop up.
 - Inserted a flex spacer between the privacy link and theme toggle, updated footer markup/CSS, and added regression coverage to lock the order on branch `bugfix/MU-311-footer-layout` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
 
 - [x] [MU-310] Both the footer and the header must be sticky and always visible, stuck to the top and the bottom of the page

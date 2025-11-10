@@ -838,15 +838,25 @@
         global.document && global.document.documentElement
           ? global.document.documentElement
           : null;
-      if (documentElement && currentConfig.attribute) {
-        documentElement.setAttribute(
-          currentConfig.attribute,
-          activeMode.attributeValue,
-        );
+      var primaryAttribute = currentConfig.attribute || DEFAULT_THEME_ATTRIBUTE;
+      if (documentElement) {
+        documentElement.setAttribute(primaryAttribute, activeMode.attributeValue);
+        if (primaryAttribute !== DEFAULT_THEME_ATTRIBUTE) {
+          documentElement.setAttribute(
+            DEFAULT_THEME_ATTRIBUTE,
+            activeMode.attributeValue,
+          );
+        }
       }
       targets.forEach(function applyToElement(element) {
-        if (currentConfig.attribute) {
-          element.setAttribute(currentConfig.attribute, activeMode.attributeValue);
+        if (primaryAttribute) {
+          element.setAttribute(primaryAttribute, activeMode.attributeValue);
+          if (primaryAttribute !== DEFAULT_THEME_ATTRIBUTE) {
+            element.setAttribute(
+              DEFAULT_THEME_ATTRIBUTE,
+              activeMode.attributeValue,
+            );
+          }
         }
         if (element.classList) {
           allModeClasses.forEach(function removeClass(className) {
@@ -1237,10 +1247,14 @@
     }
 
     function handleActivation(eventObject) {
-      if (eventObject && typeof eventObject.preventDefault === "function") {
+      if (
+        config.variant === "button" &&
+        eventObject &&
+        typeof eventObject.preventDefault === "function"
+      ) {
         eventObject.preventDefault();
       }
-      var nextMode = resolveNextThemeToggleMode(
+     var nextMode = resolveNextThemeToggleMode(
         currentModes,
         themeManager.getMode(),
       );
@@ -2339,16 +2353,16 @@
   }
 
   function buildHeaderThemeToggleConfig(options, themeConfig) {
-    return normalizeThemeToggleDisplayOptions(
+    var toggleConfig = normalizeThemeToggleDisplayOptions(
       {
         enabled: options.themeToggle.enabled,
         variant: "switch",
-        label: options.themeToggle.label || "Theme",
-        showLabel: true,
+        label: options.themeToggle.label || "",
+        showLabel: false,
         wrapperClass: HEADER_ROOT_CLASS + "__theme-toggle",
-        controlClass: "",
+        controlClass: HEADER_ROOT_CLASS + "__theme-switch",
         iconClass: "",
-        ariaLabel: options.themeToggle.ariaLabel,
+        ariaLabel: options.themeToggle.ariaLabel || "Toggle theme",
         icons: {
           light: THEME_TOGGLE_DEFAULT_ICONS.light,
           dark: THEME_TOGGLE_DEFAULT_ICONS.dark,
@@ -2358,6 +2372,7 @@
         source: "header",
       },
     );
+    return toggleConfig;
   }
 
   function renderSiteHeader(target, rawOptions) {
@@ -2517,6 +2532,14 @@
       }
       elements.googleSignin.setAttribute("data-mpr-google-site-id", googleSiteId);
       elements.googleSignin.removeAttribute("data-mpr-google-error");
+      enqueueGoogleInitialize({
+        clientId: googleSiteId,
+        callback: function handleGoogleCredential(payload) {
+          if (authController && typeof authController.handleCredential === "function") {
+            authController.handleCredential(payload);
+          }
+        },
+      });
       googleButtonCleanup = renderGoogleButton(
         elements.googleSignin,
         googleSiteId,
@@ -3224,10 +3247,10 @@
     menuWrapperClass: "mpr-footer__menu-wrapper",
     spacerClass: "mpr-footer__spacer",
     prefixClass: "mpr-footer__prefix",
-    prefixText: "Build by Marco Polo Research Lab",
+    prefixText: "",
     toggleButtonId: "",
     toggleButtonClass: "mpr-footer__menu-button",
-    toggleLabel: "MPRLab Sites",
+    toggleLabel: "Build by Marco Polo Research Lab",
     menuClass: "mpr-footer__menu",
     menuItemClass: "mpr-footer__menu-item",
     privacyLinkClass: "mpr-footer__privacy",
@@ -3235,7 +3258,7 @@
     privacyLinkLabel: "Privacy • Terms",
     themeToggle: Object.freeze({
       enabled: true,
-      label: "Theme",
+      label: "Build by Marco Polo Research Lab",
       wrapperClass: "mpr-footer__theme-toggle",
       inputClass: "mpr-footer__theme-checkbox",
       dataTheme: "light",

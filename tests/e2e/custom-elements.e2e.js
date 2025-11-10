@@ -64,14 +64,55 @@ async function resolveExecutablePath() {
     return process.env.PUPPETEER_EXECUTABLE_PATH;
   }
   try {
-    const executablePath = await chromium.executablePath();
-    if (executablePath) {
-      return executablePath;
+    if (process.platform !== 'darwin') {
+      const executablePath = await chromium.executablePath();
+      if (executablePath) {
+        return executablePath;
+      }
     }
   } catch (_error) {
     // fall back below
   }
+  try {
+    const candidate = await findCachedChromeExecutable();
+    if (candidate) {
+      return candidate;
+    }
+  } catch (_error) {
+    // ignore
+  }
   return '/usr/bin/chromium-browser';
+}
+
+async function findCachedChromeExecutable() {
+  const home = process.env.HOME;
+  if (!home) {
+    return null;
+  }
+  const base = join(home, '.cache', 'puppeteer', 'chrome');
+  try {
+    const versions = await require('node:fs/promises').readdir(base);
+    for (const version of versions.sort().reverse()) {
+      const candidate = join(
+        base,
+        version,
+        'chrome-mac-x64',
+        'Google Chrome for Testing.app',
+        'Contents',
+        'MacOS',
+        'Google Chrome for Testing',
+      );
+      try {
+        await require('node:fs/promises').access(candidate, require('node:fs').constants.X_OK);
+        return candidate;
+      } catch (_error) {
+        // continue searching
+      }
+    }
+  } catch (_error) {
+    // ignore
+  }
+  return null;
 }
 
 async function run() {
@@ -81,9 +122,9 @@ async function run() {
   const browser = await puppeteer.launch({
     headless: chromium.headless !== undefined ? chromium.headless : true,
     executablePath,
-    args: chromium.args || ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'],
+    args: ['--headless=new', '--no-sandbox', '--disable-setuid-sandbox'],
     defaultViewport: chromium.defaultViewport || null,
-    protocolTimeout: 60000,
+    protocolTimeout: 240000,
   });
   try {
     const page = await browser.newPage();

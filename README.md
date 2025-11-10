@@ -124,7 +124,6 @@ Prefer zero-JS integration? Use the built-in custom elements — they wrap the e
   <a slot="menu-links" href="https://mprlab.com" target="_blank" rel="noopener noreferrer">
     Visit mprlab.com
   </a>
-  <small slot="legal">© Marco Polo Research</small>
 </mpr-footer>
 
 <mpr-theme-toggle theme-config='{"initialMode":"light"}'></mpr-theme-toggle>
