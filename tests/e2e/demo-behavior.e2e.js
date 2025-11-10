@@ -336,4 +336,13 @@ test('MU-311: footer drop-up button follows required copy', async (t) => {
     '',
     'footer prefix should be empty when drop-up button carries the copy',
   );
+  const hasCopyright = await page.evaluate(() => {
+    const footerText = document.querySelector('footer.mpr-footer')?.textContent || '';
+    return footerText.indexOf('©') !== -1;
+  });
+  assert.strictEqual(
+    hasCopyright,
+    false,
+    'footer should not display copyright text',
+  );
 });
