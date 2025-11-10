@@ -8,6 +8,8 @@
 - MU-203: Bundled the entire Marco Polo Research Lab site catalog into the footer defaults, refreshed the demo and documentation, and added regression coverage for the expanded menu.
 - MU-204: Replaced the manual demo sign-in control with a Google Identity button, wired a fallback client ID, and extended the offline GIS stub to render and deliver credentials.
 - MU-205: Exposed `getFooterSiteCatalog()` so consumers can reuse the packaged footer links, updated the demo to source the catalog from the library, and added regression coverage to guard the helper.
+- MU-211: Migrated the demo e2e suite from Puppeteer to Cypress, added offline-friendly interceptors for CDN assets, and updated the npm scripts to run Cypress in CI with the new coverage.
+- MU-212: Replaced the Cypress harness with Playwright, preserving the CDN interceptors, porting the demo scenarios, and updating the npm scripts plus documentation to match the AGENTS.md testing policy.
 - MU-300: Corrected shared theme switching by honouring initial modes, reapplying tokens across targets, and updating the demo palette styling to rely on the shared CSS variables.
 - MU-301: Updated the demo palettes to scope their overrides per theme mode, bumped CDN references to v0.0.6, added regression tests, and now force manual theme mode switches to reset the palette to `default` so Light/Dark buttons always change the UI.
 - MU-302: Automatically load the Google Identity Services script, render only the official GIS button (no CTA fallback), and extend the header tests to cover script injection, asynchronous rendering, and error handling.

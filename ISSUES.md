@@ -10,7 +10,9 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 
 - [ ] [MU-210] There is no need for the theme button in the header. Remove it
 
-- [ ] [MU-211] Replace the current Puppeteer-based demo tests with Cypress. Remove the Puppeteer harness and introduce Cypress tests that exercise the demo page purely via user-visible behaviour (e.g., verifying the Build by Marco Polo Research Lab drop-up is visible and clickable). Ensure the new suite runs reliably in GitHub Actions and covers the same scenarios as the existing Puppeteer checks.
+- [x] [MU-211] Replace the current Puppeteer-based demo tests with Cypress. Remove the Puppeteer harness and introduce Cypress tests that exercise the demo page purely via user-visible behaviour (e.g., verifying the Build by Marco Polo Research Lab drop-up is visible and clickable). Ensure the new suite runs reliably in GitHub Actions and covers the same scenarios as the existing Puppeteer checks. ✅ Migrated the demo coverage to `cypress/e2e/demo.cy.js`, added offline-friendly interceptors, and updated the npm scripts to run Cypress headlessly.
+
+- [x] [MU-212] Replace the Cypress-based demo regression suite with Playwright per the AGENTS.md testing requirements. ✅ Added a Playwright harness that stubs CDN assets, ported the demo scenarios, refreshed npm scripts, and removed the Cypress dependencies.
 
 ## BugFixes (300–399)
 

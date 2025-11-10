@@ -170,6 +170,12 @@ Custom elements re-dispatch the same events as the imperative helpers, so you ca
 - Need to test local changes before publishing? Open `demo/demo-local.html` instead; it loads `mpr-ui.js` and `mpr-ui.css` from your working tree but still fetches Google Identity Services from the official CDN.
 - Both demo variants rely on the real Google Identity Services script (`https://accounts.google.com/gsi/client`), so ensure you have network access when testing sign-in flows.
 
+## Testing
+
+- `npm run test:unit` executes the Node-based regression suite (`node --test`) that guards the DOM helpers, custom elements, and shared utilities.
+- `npm run test:e2e` runs Playwright headlessly against `demo/index.html`. The Playwright harness intercepts CDN requests so the suite exercises the local `mpr-ui.js`/`mpr-ui.css` bundle plus an inline GIS stub, which keeps the tests hermetic and CI-friendly.
+- Run `npx playwright install --with-deps` (or `npx playwright install chromium`) once per machine if the browsers are missing; the command is a no-op when the binaries already exist.
+
 ## Theme Management
 
 - Configure theme behaviour declaratively with `data-theme-toggle` and `data-theme-mode` on the header or footer host.
