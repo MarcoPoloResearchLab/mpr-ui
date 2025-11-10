@@ -1,43 +1,7 @@
 // @ts-check
 
-const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 const { pathToFileURL } = require('node:url');
-
-const CDN_BUNDLE_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js';
-const CDN_STYLES_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css';
-const CDN_ALPINE_URL = 'https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js';
-const GOOGLE_IDENTITY_CLIENT_URL = 'https://accounts.google.com/gsi/client';
-
-const ALPINE_STUB = `
-  const Alpine = {
-    start() {},
-  };
-  export default Alpine;
-`;
-
-const GOOGLE_IDENTITY_STUB = `
-  (function () {
-    window.google = {
-      accounts: {
-        id: {
-          initialize(config) {
-            window.__googleInitConfig = config;
-            this.__config = config;
-          },
-          renderButton(container) {
-            const button = document.createElement('button');
-            button.type = 'button';
-            button.textContent = 'Sign in with Google';
-            button.setAttribute('data-test', 'google-signin');
-            container.appendChild(button);
-          },
-          prompt() {},
-        },
-      },
-    };
-  })();
-`;
 
 const REPOSITORY_ROOT = join(__dirname, '../../..');
 const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/index.html')).href;
@@ -51,33 +15,14 @@ const SELECTORS = Object.freeze({
   footerMenu: '[data-mpr-footer="menu"]',
 });
 
-const LOCAL_ASSETS = Object.freeze({
-  bundle: readLocalFile('mpr-ui.js'),
-  styles: readLocalFile('mpr-ui.css'),
-});
-
 /**
- * Reads a repository-relative file.
- * @param {string} relativePath
- * @returns {string}
- */
-function readLocalFile(relativePath) {
-  return readFileSync(join(REPOSITORY_ROOT, relativePath), 'utf8');
-}
-
-/**
- * Registers offline-friendly interceptors and opens the demo page.
+ * Opens the demo page (which loads scripts from the real CDN endpoints).
  * @param {import('@playwright/test').Page} page
  * @returns {Promise<void>}
  */
 async function visitDemoPage(page) {
-  await Promise.all([
-    routeAsset(page, CDN_BUNDLE_URL, 'application/javascript', LOCAL_ASSETS.bundle),
-    routeAsset(page, CDN_STYLES_URL, 'text/css', LOCAL_ASSETS.styles),
-    routeAsset(page, CDN_ALPINE_URL, 'application/javascript', ALPINE_STUB),
-    routeAsset(page, GOOGLE_IDENTITY_CLIENT_URL, 'application/javascript', GOOGLE_IDENTITY_STUB),
-  ]);
-  await page.goto(DEMO_PAGE_URL);
+  await page.goto(DEMO_PAGE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
 }
 
 const TOGGLE_PSEUDO_ELEMENT = '::before';
@@ -148,26 +93,6 @@ function captureDropUpMetrics(page) {
       offsetRight: innerRect.right - buttonRect.right,
       offsetBottom: footerRect.bottom - buttonRect.bottom,
     };
-  });
-}
-
-/**
- * Registers an intercept that returns the provided body/content-type.
- * @param {import('@playwright/test').Page} page
- * @param {string | RegExp} url
- * @param {string} contentType
- * @param {string} body
- * @returns {Promise<void>}
- */
-async function routeAsset(page, url, contentType, body) {
-  await page.route(url, (route) => {
-    route.fulfill({
-      status: 200,
-      body,
-      headers: {
-        'content-type': contentType,
-      },
-    });
   });
 }
 

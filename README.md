@@ -173,8 +173,9 @@ Custom elements re-dispatch the same events as the imperative helpers, so you ca
 ## Testing
 
 - `npm run test:unit` executes the Node-based regression suite (`node --test`) that guards the DOM helpers, custom elements, and shared utilities.
-- `npm run test:e2e` runs Playwright headlessly against `demo/index.html`. The Playwright harness intercepts CDN requests so the suite exercises the local `mpr-ui.js`/`mpr-ui.css` bundle plus an inline GIS stub, which keeps the tests hermetic and CI-friendly.
-- Run `npx playwright install --with-deps` (or `npx playwright install chromium`) once per machine if the browsers are missing; the command is a no-op when the binaries already exist.
+- `npm run test:e2e` runs Playwright headlessly against `demo/index.html`. The suite now exercises the real CDN bundle, stylesheet, Alpine.js module, and Google Identity Services script, so it validates the exact production wiring.
+- Run `npx playwright install --with-deps` (or `npx playwright install chromium`) once per machine if the browsers are missing; the command is a no-op when the binaries already exist. Because the tests no longer stub network calls, ensure the environment has outbound access to the CDN and GIS endpoints.
+- `make test` runs the full suite with the repository-standard timeouts; `make test-unit` and `make test-e2e` target the individual phases if you need to isolate failures.
 
 ## Theme Management
 
