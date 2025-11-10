@@ -10,6 +10,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 
 - [ ] [MU-210] There is no need for the theme button in the header. Remove it
 
+- [ ] [MU-211] Replace the current Puppeteer-based demo tests with Cypress. Remove the Puppeteer harness and introduce Cypress tests that exercise the demo page purely via user-visible behaviour (e.g., verifying the Build by Marco Polo Research Lab drop-up is visible and clickable). Ensure the new suite runs reliably in GitHub Actions and covers the same scenarios as the existing Puppeteer checks.
+
 ## BugFixes (300–399)
 
 - [ ] [MU-306] The navigation links must open a new window. Instead currently the bug is that they open in the same window.
@@ -27,8 +29,6 @@ There are three links here:
 All links must open in a new window.
 
 - [ ] [MU-307] The google sign in button is a hard requirements. Write tests to ensure we fail hard when the google sign in button is not displayed. When logged in, there must be an element that displays the name of a logged in user but not their email.
-
-- [ ] [MU-313] Replace the current Puppeteer-based demo tests with Cypress. Remove the Puppeteer harness and introduce Cypress tests that exercise the demo page purely via user-visible behaviour (e.g., verifying the Build by Marco Polo Research Lab drop-up is visible and clickable). Ensure the new suite runs reliably in GitHub Actions and covers the same scenarios as the existing Puppeteer checks.
 
 - [ ] [MU-309] The toggle button in the footer doesn toggle -- it doesnt move the toogle from left to right or right to left on the click. it doesnt move when clicked. I expect the toggle to move left and right AND change the theme accordingly. The theme also doesnt change -- the footer and header are always dark.
 
