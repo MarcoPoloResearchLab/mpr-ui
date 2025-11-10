@@ -3224,7 +3224,7 @@
     menuWrapperClass: "mpr-footer__menu-wrapper",
     spacerClass: "mpr-footer__spacer",
     prefixClass: "mpr-footer__prefix",
-    prefixText: "Built by",
+    prefixText: "Build by Marco Polo Research Lab",
     toggleButtonId: "",
     toggleButtonClass: "mpr-footer__menu-button",
     toggleLabel: "MPRLab Sites",
