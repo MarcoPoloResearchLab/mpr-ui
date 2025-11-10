@@ -80,6 +80,8 @@ async function visitDemoPage(page) {
   await page.goto(DEMO_PAGE_URL);
 }
 
+const TOGGLE_PSEUDO_ELEMENT = '::before';
+
 /**
  * Captures the pseudo-element transform, background colour, and checkbox state.
  * @param {import('@playwright/test').Page} page
@@ -88,12 +90,12 @@ async function visitDemoPage(page) {
  */
 async function captureToggleSnapshot(page, selector) {
   const handle = page.locator(selector).first();
-  return handle.evaluate((element) => {
+  return handle.evaluate((element, pseudoElement) => {
     const ownerWindow = element.ownerDocument?.defaultView;
     if (!ownerWindow) {
       throw new Error('Missing owner window for toggle snapshot');
     }
-    const pseudo = ownerWindow.getComputedStyle(element, '::after');
+    const pseudo = ownerWindow.getComputedStyle(element, pseudoElement);
     return {
       transform: pseudo.getPropertyValue('transform'),
       background: pseudo.getPropertyValue('background-color'),
@@ -101,7 +103,7 @@ async function captureToggleSnapshot(page, selector) {
         /** @type {HTMLInputElement | undefined} */ (element).checked
       ),
     };
-  });
+  }, TOGGLE_PSEUDO_ELEMENT);
 }
 
 /**
