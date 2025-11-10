@@ -558,6 +558,87 @@ test('renderSiteHeader does not require a pre-existing g_id_onload element', asy
   );
 });
 
+test('Google client initializes once the script finishes loading', async () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const initializeCalls = [];
+  const renderCalls = [];
+  let initialized = false;
+  global.fetch = function (url) {
+    const requestUrl = String(url || '');
+    if (requestUrl.indexOf('/auth/nonce') !== -1) {
+      return Promise.resolve({
+        ok: true,
+        json: function () {
+          return Promise.resolve({ nonce: 'nonce-123' });
+        },
+      });
+    }
+    return Promise.resolve({
+      ok: true,
+      json: function () {
+        return Promise.resolve({});
+      },
+    });
+  };
+  const originalAppendChild = global.document.head.appendChild;
+  global.document.head.appendChild = function appendWithDeferredLoad(node) {
+    if (node && node.tagName === 'SCRIPT') {
+      setTimeout(function handleDeferredScriptLoad() {
+        global.google = {
+          accounts: {
+            id: {
+              initialize: function (config) {
+                initialized = true;
+                initializeCalls.push(config);
+              },
+              renderButton: function () {
+                if (!initialized) {
+                  throw new Error('render-before-init');
+                }
+                renderCalls.push(true);
+              },
+              prompt: function () {},
+            },
+          },
+        };
+        if (typeof node.onload === 'function') {
+          node.onload();
+        }
+      }, 0);
+    }
+    return originalAppendChild(node);
+  };
+  try {
+    const library = loadLibrary();
+    const controller = library.renderSiteHeader(harness.host, {
+      auth: {
+        loginPath: '/auth/google',
+        logoutPath: '/auth/logout',
+        noncePath: '/auth/nonce',
+      },
+    });
+    const authController = controller.getAuthController();
+    await authController.signOut();
+    await flushAsync();
+    await flushAsync();
+  } finally {
+    global.document.head.appendChild = originalAppendChild;
+  }
+
+  assert.ok(initialized, 'google.accounts.id.initialize should run after script load');
+  assert.strictEqual(renderCalls.length, 1, 'renderButton should execute once without throwing');
+  const errorEvents = harness.dispatchedEvents.filter(function (event) {
+    return event.type === 'mpr-ui:header:error';
+  });
+  assert.strictEqual(errorEvents.length, 0, 'no header error emitted after GIS initialization');
+  assert.strictEqual(
+    harness.googleSigninHost.getAttribute('data-mpr-google-ready'),
+    'true',
+    'Google host marked ready after successful render',
+  );
+});
+
 test('renderSiteHeader reports script failures when the GIS loader errors', async () => {
   resetEnvironment();
   const harness = createHostHarness();

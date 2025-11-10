@@ -1400,6 +1400,39 @@
     }
   }
 
+  var pendingGoogleInitializeQueue = [];
+
+  function enqueueGoogleInitialize(config) {
+    if (!config || typeof config !== "object") {
+      return;
+    }
+    pendingGoogleInitializeQueue.push(config);
+  }
+
+  function runGoogleInitializeQueue(googleClient) {
+    if (
+      !googleClient ||
+      !googleClient.accounts ||
+      !googleClient.accounts.id ||
+      typeof googleClient.accounts.id.initialize !== "function"
+    ) {
+      return;
+    }
+    while (pendingGoogleInitializeQueue.length) {
+      var config = pendingGoogleInitializeQueue.shift();
+      if (!config) {
+        continue;
+      }
+      try {
+        googleClient.accounts.id.initialize({
+          client_id: config.clientId || undefined,
+          callback: config.callback,
+          nonce: config.nonce,
+        });
+      } catch (_error) {}
+    }
+  }
+
   function ensureGoogleIdentityClient(documentObject) {
     if (
       global.google &&
@@ -1407,6 +1440,7 @@
       global.google.accounts.id &&
       typeof global.google.accounts.id.renderButton === "function"
     ) {
+      runGoogleInitializeQueue(global.google);
       return Promise.resolve(global.google);
     }
     if (googleIdentityPromise) {
@@ -1427,6 +1461,9 @@
       scriptElement.defer = true;
       scriptElement.onload = function handleGoogleIdentityLoad() {
         resolved = true;
+        if (global.google) {
+          runGoogleInitializeQueue(global.google);
+        }
         resolve(global.google || null);
       };
       scriptElement.onerror = function handleGoogleIdentityError() {
@@ -1459,6 +1496,7 @@
         if (!isActive) {
           return;
         }
+        runGoogleInitializeQueue(googleClient);
         var googleId =
           googleClient &&
           googleClient.accounts &&
@@ -1567,29 +1605,25 @@
       return nonceRequestPromise;
     }
 
-    function configureGoogleNonce(nonceToken) {
-      pendingNonceToken = nonceToken;
-      var clientIdValue =
-        options.googleClientId && options.googleClientId.trim()
-          ? options.googleClientId.trim()
-          : GOOGLE_FALLBACK_SITE_ID;
-      if (
-        global.google &&
-        global.google.accounts &&
-        global.google.accounts.id &&
-        typeof global.google.accounts.id.initialize === "function"
-      ) {
-        try {
-          global.google.accounts.id.initialize({
-            client_id: clientIdValue || undefined,
-            callback: function (payload) {
-              handleCredential(payload);
-            },
-            nonce: nonceToken,
-          });
-        } catch (_error) {}
-      }
-    }
+  function configureGoogleNonce(nonceToken) {
+    pendingNonceToken = nonceToken;
+    var clientIdValue =
+      options.googleClientId && options.googleClientId.trim()
+        ? options.googleClientId.trim()
+        : GOOGLE_FALLBACK_SITE_ID;
+    enqueueGoogleInitialize({
+      clientId: clientIdValue || undefined,
+      nonce: nonceToken,
+      callback: function (payload) {
+        handleCredential(payload);
+      },
+    });
+    ensureGoogleIdentityClient(global.document)
+      .then(function initializeGoogleClient(googleClient) {
+        runGoogleInitializeQueue(googleClient);
+      })
+      .catch(function () {});
+  }
 
     function prepareGooglePromptNonce() {
       var sourcePromise;
