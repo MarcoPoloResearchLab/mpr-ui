@@ -7,10 +7,8 @@ const { join } = require('node:path');
 
 const demoDir = join(__dirname, '..', 'demo');
 const demoHtmlPath = join(demoDir, 'index.html');
-const demoScriptPath = join(demoDir, 'demo.js');
 const sharedCssPath = join(__dirname, '..', 'mpr-ui.css');
 const demoHtml = readFileSync(demoHtmlPath, 'utf8');
-const demoScript = readFileSync(demoScriptPath, 'utf8');
 const sharedCss = readFileSync(sharedCssPath, 'utf8');
 
 const CDN_VERSION_PATTERN = '(?:latest|0\\.1\\.0|0\\.0\\.8)';
@@ -37,16 +35,11 @@ test('demo loads the shared stylesheet from the CDN', () => {
   );
 });
 
-test('demo script sets up event logging without extra UI controls', () => {
-  assert.match(
-    demoScript,
-    /appendLogEntry/,
-    'Expected demo/demo.js to include event logging function',
-  );
+test('demo does not load additional local JavaScript modules', () => {
   assert.doesNotMatch(
-    demoScript,
-    /promptButton|signOutButton|rotateFooter/,
-    'Simplified demo should not include extra UI control buttons',
+    demoHtml,
+    /<script[^>]+src="\.\//,
+    'Demo page should not include local script modules; CDN bundle is sufficient',
   );
 });
 
@@ -83,18 +76,5 @@ test('palette-specific overrides respond to theme mode classes', () => {
     sharedCss,
     /body\[data-demo-palette='forest'\]\.theme-dark[^{]*\{/,
     'Forest palette should define a .theme-dark selector so dark mode overrides apply',
-  );
-});
-
-test('demo script listens for theme change events', () => {
-  assert.match(
-    demoScript,
-    /mpr-ui:theme-change/,
-    'Demo script should listen for global theme change events for logging',
-  );
-  assert.match(
-    demoScript,
-    /syncBodyThemeClass/,
-    'Demo script should sync body theme class with theme mode',
   );
 });
