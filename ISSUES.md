@@ -194,7 +194,7 @@ All links must open in a new window.
 ```
 I would prefer our component to fully wrap google sign in. If this is impossible then our component shall not know the site ID as it has no business with google sign in, and just manipulates the visual working for which querying DOM shall be sufficient.
 - Removed the `g_id_onload` dependency, added regression coverage for missing bootstrap element, and cleaned demo markup so the header `site-id` stays the single source on branch `bugfix/MU-308-remove-site-id-duplication` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
-- Restored deferred GIS initialization by queueing nonce configuration until the script resolves and added a regression test covering the async load path on branch `bugfix/MU-308-gis-init` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
+- Restored deferred GIS initialization by queueing nonce configuration until the script resolves and added a regression test covering the async load path on branch `bugfix/MU-308-gis-init-queue` (tests: `npm run test:unit`; `npm run test:e2e` fails locally with `spawn ENOEXEC`).
 
 - [x] [MU-312] Leave header, footer and the event log. Remove all other elements from the page.
 — Simplified demo page (demo/index.html) to show only `<mpr-header>`, event log section, and `<mpr-footer>`. Removed all demo controls, profile display, palette toggles, custom element previews, and auxiliary sections (lines 50-246). Updated demo.js to remove references to deleted elements and simplified event listeners. Updated tests in tests/demo-page.test.js to match the new minimalist demo (tests: `npm run test:unit` — 41/41 passing) on branch `improvement/MU-312-clean-demo-page`.
