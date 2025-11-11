@@ -4311,6 +4311,20 @@
           var authOptions = buildLoginAuthOptionsFromAttributes(this);
           var siteId = normalizeGoogleSiteId(authOptions.googleClientId);
           if (!siteId) {
+            if (
+              this.__authController &&
+              typeof this.__authController.signOut === "function"
+            ) {
+              this.__authController.signOut();
+            }
+            this.__authController = null;
+            if (this.__googleCleanup) {
+              this.__googleCleanup();
+              this.__googleCleanup = null;
+            }
+            this.__googleHost = null;
+            this.removeAttribute("data-mpr-google-site-id");
+            this.removeAttribute("data-mpr-google-ready");
             this.setAttribute("data-mpr-google-error", "missing-site-id");
             var missingSiteIdError = createGoogleSiteIdError();
             dispatchEvent(this, "mpr-login:error", {
