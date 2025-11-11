@@ -26,7 +26,7 @@ When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 | `MPRUI.createAuthHeader(host, options)` | Creates the auth header controller bound to a DOM element.                                           |
 | `MPRUI.renderAuthHeader(host, options)` | Convenience wrapper that resolves CSS selectors before calling `createAuthHeader`.                   |
 | `MPRUI.mprHeader(options)`              | Legacy factory that only wires the auth controller without rendering UI (kept for compatibility).    |
-| `MPRUI.renderSiteHeader(host, options)` | Renders the sticky site header, wiring auth, settings, and theme controls; returns `{ update, destroy }`. |
+| `MPRUI.renderSiteHeader(host, options)` | Renders the sticky site header, wiring auth, settings, and shared theme configuration; returns `{ update, destroy }`. |
 | `MPRUI.mprSiteHeader(options)`          | Alpine/framework factory for the site header; `init` renders, `update` proxies, `destroy` unmounts.  |
 | `MPRUI.renderFooter(host, options)`     | Renders the marketing footer into a DOM node and returns `{ update, destroy }`.                      |
 | `MPRUI.mprFooter(options)`              | Framework-friendly facade; `init` wires `renderFooter`, `update` proxies, `destroy` unmounts.        |
@@ -120,7 +120,7 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 
 ## Site Header Component
 
-`renderSiteHeader` produces a sticky banner that combines navigation, auth controls, and theme switching. When `auth` options are supplied it internally initialises `createAuthHeader`, so the host element still receives the `mpr-ui:auth:*` events and dataset updates documented earlier.
+`renderSiteHeader` produces a sticky banner that combines navigation, auth controls, and shared theme configuration (it no longer renders a theme toggle; pair it with the footer or `<mpr-theme-toggle>` for user interaction). When `auth` options are supplied it internally initialises `createAuthHeader`, so the host element still receives the `mpr-ui:auth:*` events and dataset updates documented earlier.
 
 ### Markup & Styling
 
@@ -140,10 +140,8 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 | `navLinks`                 | `{label, href, target?}[]`             | Optional navigation anchors rendered next to the brand.                      |
 | `settings.enabled`         | `boolean`                              | Shows or hides the settings button (default `true`).                         |
 | `settings.label`           | `string`                               | Settings button label (default "Settings").                                 |
-| `themeToggle.enabled`      | `boolean`                              | Shows or hides the theme toggle button (default `true`).                     |
-| `themeToggle.ariaLabel`    | `string`                               | Accessible label applied to the theme toggle.                                |
 | `themeToggle.attribute`    | `string`                               | Attribute written to theme targets (default `data-mpr-theme`).               |
-| `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive theme state.         |
+| `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive shared theme state.   |
 | `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Ordered list of theme modes (default light/dark).            |
 | `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
 | `signInLabel`              | `string`                               | Copy for the sign-in button (default "Sign in").                            |
@@ -151,11 +149,11 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 | `profileLabel`             | `string`                               | Text shown above the authenticated user name (default "Signed in as").      |
 | `auth`                     | `object \| null`                        | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |
 
-Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the header host element; values are merged with programmatic options.
+Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the header host element; values are merged with programmatic options and configure the shared theme manager (the header itself no longer renders a toggle).
 
 ### Events
 
-- `mpr-ui:header:theme-change` — detail `{ theme }`, emitted on every toggle.
+- `mpr-ui:header:theme-change` — detail `{ theme }`, emitted whenever the shared theme manager changes (e.g., footer or standalone toggle activity).
 - `mpr-ui:header:settings-click` — fired when the settings button is pressed.
 - `mpr-ui:header:signin-click` — emitted if a sign-in attempt occurs without GIS availability.
 - `mpr-ui:header:signout-click` — emitted when sign-out is requested but no controller is attached.

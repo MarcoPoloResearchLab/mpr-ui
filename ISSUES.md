@@ -26,7 +26,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 
 ## Improvements (210–299)
 
-- [ ] [MU-213] There is no need for the theme button in the header. Remove it
+- [x] [MU-213] There is no need for the theme button in the header. Remove it
+  - Removed the header toggle entirely, kept the shared theme configuration hooks, and updated docs/tests to point consumers to the footer or `<mpr-theme-toggle>` for user control.
 - [ ] [MU-214] The footer shall be taking a JS object with the links to other web sites, and, if missing, render built by Marco Polo Research Lab without links drop-up.
 ```html
 <mpr-footer

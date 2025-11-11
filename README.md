@@ -91,7 +91,7 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
 
 ## Components
 
-- **Site Header** — sticky banner with auth controls, settings trigger, and theme toggle.
+- **Site Header** — sticky banner with auth controls and a settings trigger (theme toggles now live in the footer).
 - **Footer** — sticky footer with prefix dropdown menu, privacy link, and theme toggle.
 - **Auth Header (experimental)** — helper that orchestrates Google Identity Services login flows for standalone front-ends.
 - **Legacy footer bundle** — see [`footer.js`](footer.js) if you need dropdown/theme toggle support absent from the current bundle.
@@ -179,7 +179,7 @@ Custom elements re-dispatch the same events as the imperative helpers, so you ca
 
 ## Theme Management
 
-- Configure theme behaviour declaratively with `data-theme-toggle` and `data-theme-mode` on the header or footer host.
+- Configure theme behaviour declaratively with `data-theme-toggle` and `data-theme-mode` on the header or footer host; the header uses these attributes to configure the shared theme manager, while the footer (or standalone `<mpr-theme-toggle>`) renders the interactive control.
 
   ```html
   <div

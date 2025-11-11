@@ -404,24 +404,6 @@ function createHeaderElementHarness() {
   const brandContainer = createStubNode();
   const nav = createStubNode({});
   const actions = createStubNode({});
-  const themeToggleHost = createStubNode({ attributes: true, classList: true });
-  const themeToggleControl = createStubNode({ attributes: true });
-  themeToggleControl.addEventListener = function () {};
-  themeToggleControl.removeEventListener = function () {};
-  themeToggleControl.setAttribute = function (name, value) {
-    this.attributes = this.attributes || {};
-    this.attributes[name] = String(value);
-  };
-  const themeToggleIcon = createStubNode({});
-  themeToggleHost.querySelector = function query(selector) {
-    if (selector === '[data-mpr-theme-toggle="control"]') {
-      return themeToggleControl;
-    }
-    if (selector === '[data-mpr-theme-toggle="icon"]') {
-      return themeToggleIcon;
-    }
-    return null;
-  };
   const googleHost = createStubNode({ attributes: true, classList: true, supportsEvents: true });
   const settingsButton = createStubNode({ attributes: true, supportsEvents: true });
   const profileContainer = createStubNode({});
@@ -434,7 +416,6 @@ function createHeaderElementHarness() {
     ['[data-mpr-header="brand"]', brandLink],
     ['.mpr-header__brand', brandContainer],
     ['[data-mpr-header="nav"]', nav],
-    ['[data-mpr-header="theme-toggle"]', themeToggleHost],
     ['[data-mpr-header="google-signin"]', googleHost],
     ['[data-mpr-header="settings-button"]', settingsButton],
     ['[data-mpr-header="profile"]', profileContainer],

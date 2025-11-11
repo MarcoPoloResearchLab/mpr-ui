@@ -2023,25 +2023,10 @@
     "__icon-btn{display:inline-flex;align-items:center;gap:0.35rem}" +
     "." +
     HEADER_ROOT_CLASS +
-    '__theme-toggle{display:inline-flex;align-items:center;gap:0.6rem}' +
-    "." +
-    HEADER_ROOT_CLASS +
-    '__theme-toggle [data-mpr-theme-toggle="label"]{font-weight:600;font-size:0.85rem;color:var(--mpr-color-text-primary,#e2e8f0)}' +
-    "." +
-    HEADER_ROOT_CLASS +
-    '__theme-toggle input[type="checkbox"][data-mpr-theme-toggle="control"]{margin:0}' +
-    "." +
-    HEADER_ROOT_CLASS +
-    "__divider{width:1px;height:24px;background:var(--mpr-color-divider,rgba(148,163,184,0.35))}" +
-    "." +
-    HEADER_ROOT_CLASS +
     "--authenticated [data-mpr-header=\"profile\"]{display:flex}" +
     "." +
     HEADER_ROOT_CLASS +
     "--no-settings [data-mpr-header=\"settings-button\"]{display:none}" +
-    "." +
-    HEADER_ROOT_CLASS +
-    "--no-theme [data-mpr-header=\"theme-toggle\"]{display:none}" +
     "." +
     HEADER_ROOT_CLASS +
     "--no-auth [data-mpr-header=\"google-signin\"]{display:none}" +
@@ -2060,8 +2045,10 @@
       label: "Settings",
     }),
     themeToggle: Object.freeze({
-      enabled: true,
-      ariaLabel: "Toggle theme",
+      attribute: DEFAULT_THEME_ATTRIBUTE,
+      targets: DEFAULT_THEME_TARGETS.slice(),
+      modes: DEFAULT_THEME_MODES,
+      initialMode: null,
     }),
     signInLabel: "Sign in",
     signOutLabel: "Sign out",
@@ -2103,9 +2090,11 @@
       HEADER_DEFAULTS.settings,
       options.settings || {},
     );
-    var themeSource = options.themeToggle && typeof options.themeToggle === "object"
-      ? options.themeToggle
-      : {};
+    var themeSource = deepMergeOptions(
+      {},
+      HEADER_DEFAULTS.themeToggle,
+      options.themeToggle || {},
+    );
 
     var navLinksSource = Array.isArray(options.navLinks)
       ? options.navLinks
@@ -2153,14 +2142,10 @@
     }
 
     var themeDefaults = {
-      enabled: HEADER_DEFAULTS.themeToggle.enabled,
-      ariaLabel: HEADER_DEFAULTS.themeToggle.ariaLabel,
+      enabled: true,
+      ariaLabel: "Toggle theme",
     };
     var themeNormalized = normalizeThemeToggleCore(themeSource, themeDefaults);
-    var themeLabel =
-      typeof themeSource.label === "string" && themeSource.label.trim()
-        ? themeSource.label.trim()
-        : "Theme";
     if (
       typeof options.initialTheme === "string" &&
       !themeNormalized.initialMode
@@ -2188,9 +2173,6 @@
             : HEADER_DEFAULTS.settings.label,
       },
       themeToggle: {
-        enabled: themeNormalized.enabled,
-        label: themeLabel,
-        ariaLabel: themeNormalized.ariaLabel,
         attribute: themeNormalized.attribute,
         targets: themeNormalized.targets,
         modes: themeNormalized.modes,
@@ -2256,12 +2238,6 @@
       '<div class="' +
       HEADER_ROOT_CLASS +
       '__actions">' +
-      '<div data-mpr-header="theme-toggle" class="' +
-      HEADER_ROOT_CLASS +
-      '__theme-toggle"></div>' +
-      '<span class="' +
-      HEADER_ROOT_CLASS +
-      '__divider"></span>' +
       '<button type="button" class="' +
       HEADER_ROOT_CLASS +
       '__button" data-mpr-header="settings-button">Settings</button>' +
@@ -2291,9 +2267,6 @@
       nav: hostElement.querySelector('[data-mpr-header="nav"]'),
       brand: hostElement.querySelector('[data-mpr-header="brand"]'),
       brandContainer: hostElement.querySelector("." + HEADER_ROOT_CLASS + "__brand"),
-      themeToggle: hostElement.querySelector(
-        '[data-mpr-header="theme-toggle"]',
-      ),
       googleSignin: hostElement.querySelector(
         '[data-mpr-header="google-signin"]',
       ),
@@ -2439,10 +2412,6 @@
       HEADER_ROOT_CLASS + "--no-settings",
       !options.settings.enabled,
     );
-    elements.root.classList.toggle(
-      HEADER_ROOT_CLASS + "--no-theme",
-      !options.themeToggle.enabled,
-    );
 
     if (elements.settingsButton) {
       elements.settingsButton.textContent = options.settings.label;
@@ -2450,29 +2419,6 @@
     if (elements.signOutButton) {
       elements.signOutButton.textContent = options.signOutLabel;
     }
-  }
-
-  function buildHeaderThemeToggleConfig(options, themeConfig) {
-    var toggleConfig = normalizeThemeToggleDisplayOptions(
-      {
-        enabled: options.themeToggle.enabled,
-        variant: "switch",
-        label: options.themeToggle.label || "",
-        showLabel: false,
-        wrapperClass: HEADER_ROOT_CLASS + "__theme-toggle",
-        controlClass: HEADER_ROOT_CLASS + "__theme-switch",
-        iconClass: "",
-        ariaLabel: options.themeToggle.ariaLabel || "Toggle theme",
-        icons: {
-          light: THEME_TOGGLE_DEFAULT_ICONS.light,
-          dark: THEME_TOGGLE_DEFAULT_ICONS.dark,
-          unknown: THEME_TOGGLE_DEFAULT_ICONS.unknown,
-        },
-        modes: themeConfig.modes,
-        source: "header",
-      },
-    );
-    return toggleConfig;
   }
 
   function renderSiteHeader(target, rawOptions) {
@@ -2497,7 +2443,6 @@
     applyHeaderOptions(hostElement, elements, options);
     var authController = null;
     var authListenersAttached = false;
-    var headerToggleCleanup = null;
     var googleButtonCleanup = null;
     var fallbackSigninTarget = null;
     var googleSiteId = normalizeGoogleSiteId(options.siteId);
@@ -2506,16 +2451,6 @@
     } else {
       hostElement.removeAttribute("data-mpr-google-site-id");
     }
-    var headerToggleCleanup = null;
-
-    function destroyHeaderToggle() {
-      if (headerToggleCleanup) {
-        headerToggleCleanup();
-        headerToggleCleanup = null;
-      }
-    }
-
-    cleanupHandlers.push(destroyHeaderToggle);
 
     var headerThemeConfig = options.themeToggle;
 
@@ -2528,15 +2463,6 @@
     function updateThemeHost(modeValue) {
       hostElement.setAttribute("data-mpr-theme-mode", modeValue);
     }
-
-    function destroyHeaderToggle() {
-      if (headerToggleCleanup) {
-        headerToggleCleanup();
-        headerToggleCleanup = null;
-      }
-    }
-
-    cleanupHandlers.push(destroyHeaderToggle);
 
     function destroyGoogleButton(state, detail) {
       var reason = state || null;
@@ -2616,15 +2542,6 @@
       }
     }
 
-    function mountHeaderThemeToggle() {
-      destroyHeaderToggle();
-      if (!elements.themeToggle) {
-        return;
-      }
-      var toggleConfig = buildHeaderThemeToggleConfig(options, headerThemeConfig);
-      headerToggleCleanup = initializeThemeToggle(elements.themeToggle, toggleConfig);
-    }
-
     function mountGoogleSignInButton() {
       destroyGoogleButton();
       if (!elements.googleSignin) {
@@ -2680,7 +2597,6 @@
       themeManager.setMode(headerThemeConfig.initialMode, "header:init");
     }
 
-    mountHeaderThemeToggle();
     mountGoogleSignInButton();
     updateThemeHost(themeManager.getMode());
 
@@ -2791,7 +2707,6 @@
         ) {
           themeManager.setMode(headerThemeConfig.initialMode, "header:update");
         }
-        mountHeaderThemeToggle();
         mountGoogleSignInButton();
         updateThemeHost(themeManager.getMode());
         if (options.auth && elements.root) {

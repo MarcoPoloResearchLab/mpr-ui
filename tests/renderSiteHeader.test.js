@@ -214,18 +214,6 @@ function createHostHarness() {
   const root = createElementStub({ classList: true });
   const nav = { innerHTML: '' };
   const brand = createElementStub({ supportsAttributes: true });
-  const themeToggleContainer = createElementStub({ supportsEvents: true, supportsAttributes: true });
-  const themeToggleControl = createElementStub({ supportsEvents: true, supportsAttributes: true });
-  const themeToggleIcon = createElementStub();
-  themeToggleContainer.querySelector = function (selector) {
-    if (selector === '[data-mpr-theme-toggle="control"]') {
-      return themeToggleControl;
-    }
-    if (selector === '[data-mpr-theme-toggle="icon"]') {
-      return themeToggleIcon;
-    }
-    return null;
-  };
   const settingsButton = createElementStub({ supportsEvents: true });
   const googleSigninHost = createElementStub({
     supportsAttributes: true,
@@ -241,7 +229,6 @@ function createHostHarness() {
     ['header.mpr-header', root],
     ['[data-mpr-header="nav"]', nav],
     ['[data-mpr-header="brand"]', brand],
-    ['[data-mpr-header="theme-toggle"]', themeToggleContainer],
     ['[data-mpr-header="google-signin"]', googleSigninHost],
     ['[data-mpr-header="settings-button"]', settingsButton],
     ['[data-mpr-header="profile"]', profileContainer],
@@ -259,9 +246,6 @@ function createHostHarness() {
     root: root,
     nav: nav,
     brand: brand,
-    themeToggleHost: themeToggleContainer,
-    themeToggleControl: themeToggleControl,
-    themeToggleIcon: themeToggleIcon,
     googleSigninHost: googleSigninHost,
     settingsButton: settingsButton,
     profileContainer: profileContainer,
@@ -358,61 +342,47 @@ test('renderSiteHeader initial markup forces navigation links to open in new win
   );
 });
 
-test('header theme toggle renders switch control and toggles document theme', () => {
-  resetEnvironment();
-  const harness = createHostHarness();
-  const library = loadLibrary();
-  library.renderSiteHeader(harness.host, {});
-  assert.ok(
-    /<input[^>]+data-mpr-theme-toggle="control"/i.test(
-      String(harness.themeToggleHost.innerHTML || ''),
-    ),
-    'theme toggle should render as a switch input',
-  );
-  assert.strictEqual(
-    global.document.documentElement.getAttribute('data-mpr-theme'),
-    'dark',
-    'document theme defaults to dark mode before toggling',
-  );
-  harness.themeToggleControl.click();
-  assert.strictEqual(
-    global.document.documentElement.getAttribute('data-mpr-theme'),
-    'light',
-    'document theme should switch to light mode after toggle activation',
-  );
-});
-
-test('theme toggle synchronizes switch state with theme mode', () => {
+test('header syncs host data attribute with global theme mode', () => {
   resetEnvironment();
   const harness = createHostHarness();
   const library = loadLibrary();
   const controller = library.renderSiteHeader(harness.host, {});
 
   assert.strictEqual(
-    harness.themeToggleHost.getAttribute('data-mpr-theme-mode'),
+    harness.host.getAttribute('data-mpr-theme-mode'),
     'dark',
-    'expected header toggle host to start in dark mode',
-  );
-  assert.strictEqual(
-    Boolean(harness.themeToggleControl.checked),
-    false,
-    'switch should be unchecked while dark mode is active',
+    'host element should reflect the initial theme mode',
   );
 
-  harness.themeToggleControl.click();
+  global.MPRUI.setThemeMode('light');
 
   assert.strictEqual(
-    harness.themeToggleHost.getAttribute('data-mpr-theme-mode'),
+    harness.host.getAttribute('data-mpr-theme-mode'),
     'light',
-    'toggle host should reflect light mode after activation',
-  );
-  assert.strictEqual(
-    Boolean(harness.themeToggleControl.checked),
-    true,
-    'switch should report checked when light mode is active',
+    'host element should update when the global theme mode changes',
   );
 
   controller.destroy();
+});
+
+test('header honours data-theme-mode dataset overrides at init', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  harness.host.dataset = harness.host.dataset || {};
+  harness.host.dataset.themeMode = 'light';
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {});
+
+  assert.strictEqual(
+    harness.host.getAttribute('data-mpr-theme-mode'),
+    'light',
+    'host element should apply the dataset-provided initial theme mode',
+  );
+  assert.strictEqual(
+    global.document.documentElement.getAttribute('data-mpr-theme'),
+    'light',
+    'document theme attribute should match the dataset override',
+  );
 });
 
 test('header marks the no-auth state when auth is not configured', () => {

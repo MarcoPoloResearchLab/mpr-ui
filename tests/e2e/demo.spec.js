@@ -9,14 +9,8 @@ const {
   selectors,
 } = require('./support/demoPage');
 
-const {
-  googleButton,
-  headerNavLinks,
-  headerThemeControl,
-  footerThemeControl,
-  footerDropupButton,
-  footerMenu,
-} = selectors;
+const { googleButton, headerNavLinks, footerThemeControl, footerDropupButton, footerMenu } =
+  selectors;
 
 const PALETTE_TARGETS = ['header.mpr-header', 'main', '#event-log', 'footer.mpr-footer'];
 
@@ -73,9 +67,9 @@ test.describe('Demo behaviours', () => {
     expect(afterSnapshot.translateX).toBeCloseTo(afterSnapshot.travelDistance, 0);
   });
 
-  test('MU-309: light/dark toggle updates multiple palettes', async ({ page }) => {
+  test('MU-309: footer toggle updates multiple palettes', async ({ page }) => {
     const beforeColors = await captureColorSnapshots(page, PALETTE_TARGETS);
-    await page.locator(headerThemeControl).click();
+    await page.locator(footerThemeControl).click();
     await page.waitForTimeout(300);
     const afterColors = await captureColorSnapshots(page, PALETTE_TARGETS);
     PALETTE_TARGETS.forEach((_selector, index) => {
