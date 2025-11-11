@@ -129,7 +129,7 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 - Applies modifier classes to the root:
   - `mpr-header--authenticated` shows the profile chip / hides sign-in.
   - `mpr-header--no-auth` hides auth UI when no controller is attached.
-  - `mpr-header--no-settings` and `mpr-header--no-theme` hide optional buttons.
+  - `mpr-header--no-settings` hides the settings button.
 
 ### Options
 
