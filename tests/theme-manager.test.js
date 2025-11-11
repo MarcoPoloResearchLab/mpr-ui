@@ -211,6 +211,38 @@ test('configureTheme preserves the document target when extending target list', 
   });
 });
 
+test('MU-310: default theme targets include the body element', () => {
+  withFreshThemeManager(function runTest(namespace) {
+    global.document = createThemeDocument();
+    namespace.configureTheme({
+      attribute: 'data-demo-theme',
+      modes: [
+        { value: 'light', attributeValue: 'light', classList: ['theme-light'] },
+        { value: 'dark', attributeValue: 'dark', classList: ['theme-dark'] },
+      ],
+      initialMode: 'light',
+    });
+
+    namespace.setThemeMode('dark');
+
+    assert.strictEqual(
+      global.document.body.getAttribute('data-demo-theme'),
+      'dark',
+      'Body should receive the configured theme attribute when no explicit targets are provided',
+    );
+    assert.strictEqual(
+      global.document.body.classList.contains('theme-dark'),
+      true,
+      'Body should receive the matching theme class for default targets',
+    );
+    assert.strictEqual(
+      global.document.documentElement.getAttribute('data-demo-theme'),
+      'dark',
+      'Document element should continue receiving the configured attribute',
+    );
+  });
+});
+
 test('invalid mode after reconfigure notifies with current mode', () => {
   withFreshThemeManager(function runTest(namespace) {
     namespace.configureTheme({

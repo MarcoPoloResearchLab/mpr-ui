@@ -49,8 +49,10 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 
 ## BugFixes (310–399)
 
-- [ ] [MU-310] The theme toggle button in the footer shall change the scheme for all of the elements on the page. The main page body background stays dark currently.
-- [ ] [MU-310] The theme toogle does not move the toogle all the way to the right side of the slot on switching
+- [x] [MU-310] The theme toggle button in the footer shall change the scheme for all of the elements on the page. The main page body background stays dark currently.
+  - Resolved by targeting both `document.documentElement` and `document.body` in the default theme manager configuration plus a new unit test proving the body reflects mode changes.
+- [x] [MU-310] The theme toogle does not move the toogle all the way to the right side of the slot on switching
+  - Resolved by introducing CSS-driven travel constants for the switch knob, updating the demo styles, and adding a Playwright regression test that asserts the knob reaches the track edge.
 
 ## Maintenance (405–499)
 

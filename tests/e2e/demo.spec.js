@@ -59,6 +59,20 @@ test.describe('Demo behaviours', () => {
     expect(afterSnapshot.background).not.toBe(beforeSnapshot.background);
   });
 
+  test('MU-310: footer theme toggle knob reaches the track edge', async ({ page }) => {
+    const control = page.locator(footerThemeControl);
+    const beforeSnapshot = await captureToggleSnapshot(page, footerThemeControl);
+    expect(Math.abs(beforeSnapshot.translateX)).toBeLessThan(0.25);
+
+    await control.click();
+    await page.waitForTimeout(250);
+
+    const afterSnapshot = await captureToggleSnapshot(page, footerThemeControl);
+    expect(afterSnapshot.translateX).toBeGreaterThan(beforeSnapshot.translateX);
+    expect(afterSnapshot.travelDistance).toBeGreaterThan(0);
+    expect(afterSnapshot.translateX).toBeCloseTo(afterSnapshot.travelDistance, 0);
+  });
+
   test('MU-309: light/dark toggle updates multiple palettes', async ({ page }) => {
     const beforeColors = await captureColorSnapshots(page, PALETTE_TARGETS);
     await page.locator(headerThemeControl).click();

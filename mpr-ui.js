@@ -518,7 +518,7 @@
   }
 
   var DEFAULT_THEME_ATTRIBUTE = "data-mpr-theme";
-  var DEFAULT_THEME_TARGETS = Object.freeze(["document"]);
+  var DEFAULT_THEME_TARGETS = Object.freeze(["document", "body"]);
   var DEFAULT_THEME_MODES = Object.freeze([
     Object.freeze({
       value: "dark",
