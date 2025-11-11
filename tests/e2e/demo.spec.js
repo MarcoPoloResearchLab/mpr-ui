@@ -80,7 +80,7 @@ test.describe('Demo behaviours', () => {
   test('MU-311: footer drop-up aligns correctly and toggles interactivity', async ({ page }) => {
     const dropupButton = page.locator(footerDropupButton);
     await expect(dropupButton).toBeVisible();
-    await expect(dropupButton).toContainText('Build by Marco Polo Research Lab');
+    await expect(dropupButton).toContainText('Built by Marco Polo Research Lab');
     await expect(dropupButton).toHaveAttribute('aria-expanded', 'false');
 
     const metrics = await captureDropUpMetrics(page);

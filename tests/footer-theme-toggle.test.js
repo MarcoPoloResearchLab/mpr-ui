@@ -218,6 +218,7 @@ function createFooterHostHarness() {
   return {
     host,
     elements: {
+      prefixElement,
       themeToggleControl,
     },
   };
@@ -289,5 +290,37 @@ test('footer layout orders privacy spacer toggle and brand', () => {
   assert.ok(
     privacyIndex < spacerIndex && spacerIndex < toggleIndex && toggleIndex < brandIndex,
     'footer layout must position privacy link, spacer, theme toggle, then brand',
+  );
+});
+
+test('footer omits drop-up when links collection is empty', () => {
+  resetEnvironment();
+  const harness = createFooterHostHarness();
+  const library = loadLibrary();
+
+  const controller = library.renderFooter(harness.host, {
+    linksCollection: { style: 'drop-up', text: 'Built by', links: [] },
+  });
+  const config = controller.getConfig();
+
+  const markup = String(harness.host.innerHTML);
+  assert.strictEqual(
+    markup.indexOf('data-mpr-footer="menu-wrapper"'),
+    -1,
+    'menu wrapper should be absent when no links are provided',
+  );
+  assert.ok(
+    harness.elements.prefixElement.textContent === config.prefixText,
+    'prefix text span should reflect the configured text when the drop-up is hidden',
+  );
+  assert.strictEqual(
+    config.linksMenuEnabled,
+    false,
+    'config should mark the drop-up as disabled when no links are provided',
+  );
+  assert.deepStrictEqual(
+    config.links,
+    [],
+    'config should not expose any menu links when the collection is empty',
   );
 });

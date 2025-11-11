@@ -16,6 +16,7 @@
 - MU-103: Captured the detailed custom-elements migration plan in `docs/web-components-plan.md`, defining the taxonomy, lifecycle, testing, and documentation deliverables for the upcoming refactor.
 - MU-310: Footer theme toggles now update both `<html>` and `<body>` by default, the switch knob travels the full track, and new unit + Playwright tests guard the regressions.
 - MU-213: Removed the header theme toggle entirely, leaving the shared configuration hooks in place and updating docs/tests to point consumers to the footer or standalone toggle.
+- MU-214: Footer requires a `linksCollection` object for drop-up menus; when omitted it renders text-only, and new docs/tests cover the JSON API plus the fallback state.
 - MU-104: Added the shared custom-element infrastructure (`MprElement`, `createCustomElementRegistry`, and reusable header/footer DOM builders) plus regression tests to prepare for the upcoming `<mpr-*>` surfaces.
 - MU-105: Introduced `<mpr-header>`/`<mpr-footer>` custom elements with attribute reflection, slot support, README guidance, demo samples, and regression tests exercising both the DOM helpers and controller updates.
 - MU-106: Added `<mpr-theme-toggle>` and `<mpr-login-button>` custom elements, shared Google button rendering, new documentation/demo samples, and regression tests covering declarative theme switching and GIS login wiring.

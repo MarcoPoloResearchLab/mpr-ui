@@ -209,6 +209,7 @@
     "privacy-link-label": "privacyLinkLabel",
     "theme-config": "themeToggle",
     "theme-mode": "themeMode",
+    "links-collection": "linksCollection",
     links: "links",
   });
 
@@ -3296,7 +3297,8 @@
       inputId: "mpr-footer-theme-toggle",
       ariaLabel: "Toggle theme",
     }),
-    links: FOOTER_LINK_CATALOG,
+    links: [],
+    linksCollection: null,
   });
 
   function ensureFooterStyles(documentObject) {
@@ -3376,6 +3378,26 @@
       .filter(Boolean);
   }
 
+  function normalizeFooterLinksCollection(candidateCollection) {
+    if (!candidateCollection || typeof candidateCollection !== "object") {
+      return null;
+    }
+    var style =
+      typeof candidateCollection.style === "string" && candidateCollection.style.trim()
+        ? candidateCollection.style.trim().toLowerCase()
+        : "drop-up";
+    var text =
+      typeof candidateCollection.text === "string" && candidateCollection.text.trim()
+        ? candidateCollection.text.trim()
+        : "";
+    var links = normalizeFooterLinks(candidateCollection.links);
+    return {
+      style: style,
+      text: text,
+      links: links,
+    };
+  }
+
   function normalizeFooterThemeToggle(themeToggleInput) {
     var mergedToggle = mergeFooterObjects(
       {},
@@ -3416,6 +3438,9 @@
   function normalizeFooterConfig() {
     var providedConfigs = Array.prototype.slice.call(arguments);
     var mergedConfig = mergeFooterObjects({}, FOOTER_DEFAULTS);
+    var hasExplicitPrefix = providedConfigs.some(function hasPrefix(candidate) {
+      return candidate && typeof candidate.prefixText === "string";
+    });
     providedConfigs.forEach(function apply(config) {
       if (!config || typeof config !== "object") {
         return;
@@ -3430,14 +3455,49 @@
         return current;
       }, mergedConfig.themeToggle),
     );
-    mergedConfig.links = normalizeFooterLinks(
-      providedConfigs.reduce(function reduceLinks(current, candidate) {
-        if (candidate && typeof candidate === "object" && Array.isArray(candidate.links)) {
-          return candidate.links;
-        }
-        return current;
-      }, mergedConfig.links),
-    );
+
+    var resolvedLegacyLinks = providedConfigs.reduce(function reduceLinks(current, candidate) {
+      if (candidate && typeof candidate === "object" && Array.isArray(candidate.links)) {
+        return candidate.links;
+      }
+      return current;
+    }, mergedConfig.links);
+    var resolvedCollection = providedConfigs.reduce(function reduceCollection(current, candidate) {
+      if (candidate && typeof candidate === "object" && candidate.linksCollection) {
+        return candidate.linksCollection;
+      }
+      return current;
+    }, mergedConfig.linksCollection);
+
+    var normalizedCollection = normalizeFooterLinksCollection(resolvedCollection);
+    var legacyLinks = normalizeFooterLinks(resolvedLegacyLinks);
+    var collectionHasLinks =
+      normalizedCollection && Array.isArray(normalizedCollection.links)
+        ? normalizedCollection.links.length > 0
+        : false;
+    mergedConfig.links = collectionHasLinks ? normalizedCollection.links : legacyLinks;
+    mergedConfig.linksCollection = normalizedCollection;
+    mergedConfig.linksMenuEnabled = mergedConfig.links.length > 0;
+
+    if (normalizedCollection && normalizedCollection.text) {
+      if (!hasExplicitPrefix) {
+        mergedConfig.prefixText = normalizedCollection.text;
+      }
+      if (mergedConfig.linksMenuEnabled) {
+        mergedConfig.toggleLabel = normalizedCollection.text;
+      }
+    }
+    if (!mergedConfig.linksMenuEnabled) {
+      mergedConfig.links = [];
+      if (
+        !hasExplicitPrefix &&
+        (!mergedConfig.prefixText ||
+          (typeof mergedConfig.prefixText === "string" && !mergedConfig.prefixText.trim()))
+      ) {
+        mergedConfig.prefixText = FOOTER_DEFAULTS.toggleLabel;
+      }
+    }
+
     return mergedConfig;
   }
 
@@ -3569,11 +3629,12 @@
         ' aria-hidden="true"></span>'
       : "";
 
-    var dropdownMarkup =
-      '<div data-mpr-footer="menu-wrapper">' +
-      '<button type="button" data-mpr-footer="toggle-button" aria-haspopup="true" aria-expanded="false"></button>' +
-      '<ul data-mpr-footer="menu"></ul>' +
-      "</div>";
+    var dropdownMarkup = config.linksMenuEnabled
+      ? '<div data-mpr-footer="menu-wrapper">' +
+        '<button type="button" data-mpr-footer="toggle-button" aria-haspopup="true" aria-expanded="false"></button>' +
+        '<ul data-mpr-footer="menu"></ul>' +
+        "</div>"
+      : "";
 
     var layoutMarkup =
       '<div data-mpr-footer="layout">' +
@@ -3780,6 +3841,9 @@
     if (dataset.themeMode) {
       options.themeToggle = options.themeToggle || {};
       options.themeToggle.mode = dataset.themeMode;
+    }
+    if (dataset.linksCollection) {
+      options.linksCollection = parseJsonValue(dataset.linksCollection, {});
     }
     if (dataset.links) {
       options.links = parseJsonValue(dataset.links, []);
