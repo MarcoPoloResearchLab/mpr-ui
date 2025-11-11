@@ -6,35 +6,51 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 
 ## Features (110–199)
 
+- [ ] [MU-111] Add a modal almost full screen window when a user clicks Privacy in the footer. The opened modal shall contain the Privacy text that will be supplied on initialization of the component. The API shall be smth like
+```html
+<mpr-footer
+  id="page-footer"
+  privacy-link-label="Privacy &amp; Terms"
+  privacy-modal-content="
+  <h1>Privacy Policy — MPR UI</h1>
+  <p><strong>Effective Date:</strong> 2025-10-11</p>
+  <p>LoopAware uses Google Identity Services to authenticate users. We receive your Google profile
+     information (name, email, profile image) only to sign you in. We do not sell or share your data,
+     and we only store your notes so the service functions.</p>
+  <p>To request deletion of your data, contact
+     <a href="mailto:support@mprlab.com">support@mprlab.com</a>.</p>
+  "
+  theme-config='{"targets":["body"],"attribute":"data-demo-theme"}'
+>
+```
+
 ## Improvements (210–299)
 
-- [ ] [MU-210] There is no need for the theme button in the header. Remove it
-
-- [x] [MU-211] Replace the current Puppeteer-based demo tests with Cypress. Remove the Puppeteer harness and introduce Cypress tests that exercise the demo page purely via user-visible behaviour (e.g., verifying the Build by Marco Polo Research Lab drop-up is visible and clickable). Ensure the new suite runs reliably in GitHub Actions and covers the same scenarios as the existing Puppeteer checks. ✅ Migrated the demo coverage to `cypress/e2e/demo.cy.js`, added offline-friendly interceptors, and updated the npm scripts to run Cypress headlessly.
-
-- [x] [MU-212] Replace the Cypress-based demo regression suite with Playwright per the AGENTS.md testing requirements. ✅ Added a Playwright harness that stubs CDN assets, ported the demo scenarios, refreshed npm scripts, and removed the Cypress dependencies.
-
-## BugFixes (300–399)
-
-- [ ] [MU-306] The navigation links must open a new window. Instead currently the bug is that they open in the same window.
-There are three links here:
+- [ ] [MU-213] There is no need for the theme button in the header. Remove it
+- [ ] [MU-214] The footer shall be taking a JS object with the links to other web sites, and, if missing, render built by Marco Polo Research Lab without links drop-up.
 ```html
-<mpr-header
-      id="demo-header"
-      brand-label="Marco Polo Research Lab"
-      brand-href="https://mprlab.com/"
-      nav-links='[
-        { "label": "Docs", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/README.md" },
-        { "label": "Architecture", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/ARCHITECTURE.md" }
-      ]'
+<mpr-footer
+  id="page-footer"
+  links-collection='{"style": "drop-up", "text": "Built by marco Polo Research Lab", "links": [ 
+    { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
+    { label: "Gravity Notes", url: "https://gravity.mprlab.com" },
+    { label: "LoopAware", url: "https://loopaware.mprlab.com" },
+    { label: "Allergy Wheel", url: "https://allergy.mprlab.com" },
+    { label: "Social Threader", url: "https://threader.mprlab.com" },
+    { label: "RSVP", url: "https://rsvp.mprlab.com" },
+    { label: "Countdown Calendar", url: "https://countdown.mprlab.com" },
+    { label: "LLM Crossword", url: "https://llm-crossword.mprlab.com" },
+    { label: "Prompt Bubbles", url: "https://prompts.mprlab.com" },
+    { label: "Wallpapers", url: "https://wallpapers.mprlab.com" },
+  ]}'
+  theme-config='{"targets":["body"],"attribute":"data-demo-theme"}'
+>
 ```
-All links must open in a new window.
 
-- [ ] [MU-307] The google sign in button is a hard requirements. Write tests to ensure we fail hard when the google sign in button is not displayed. When logged in, there must be an element that displays the name of a logged in user but not their email.
+## BugFixes (310–399)
 
-- [ ] [MU-309] The toggle button in the footer doesn toggle -- it doesnt move the toogle from left to right or right to left on the click. it doesnt move when clicked. I expect the toggle to move left and right AND change the theme accordingly. The theme also doesnt change -- the footer and header are always dark.
-
-- [ ] [MU-311] The footer shall have the following sequence left to right: Privacy terms (left) -- spacer -- Theme toggle -- Build by Marko Polo Research Lab. Build by Marko Polo Research Lab is a drop up.
+- [ ] [MU-310] The theme toggle button in the footer shall change the scheme for all of the elements on the page. The main page body background stays dark currently.
+- [ ] [MU-310] The theme toogle does not move the toogle all the way to the right side of the slot on switching
 
 ## Maintenance (405–499)
 
