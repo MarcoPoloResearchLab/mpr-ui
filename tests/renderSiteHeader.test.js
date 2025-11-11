@@ -3,6 +3,8 @@
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
+const DEMO_SITE_ID = 'demo-site-id';
+
 function createClassList() {
   const values = new Set();
   return {
@@ -481,6 +483,7 @@ test('renderSiteHeader injects the Google Identity script when the client is mis
   const harness = createHostHarness();
   const library = loadLibrary();
   library.renderSiteHeader(harness.host, {
+    siteId: DEMO_SITE_ID,
     auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
   });
 
@@ -612,6 +615,7 @@ test('Google client initializes once the script finishes loading', async () => {
   try {
     const library = loadLibrary();
     const controller = library.renderSiteHeader(harness.host, {
+      siteId: DEMO_SITE_ID,
       auth: {
         loginPath: '/auth/google',
         logoutPath: '/auth/logout',
@@ -651,6 +655,7 @@ test('renderSiteHeader reports script failures when the GIS loader errors', asyn
     return node;
   };
   library.renderSiteHeader(harness.host, {
+    siteId: DEMO_SITE_ID,
     auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
   });
   await flushAsync();
@@ -721,6 +726,7 @@ test('renderSiteHeader dispatches error event when Google button fails to render
   };
   const library = loadLibrary();
   library.renderSiteHeader(harness.host, {
+    siteId: DEMO_SITE_ID,
     auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
   });
   await flushAsync();
@@ -739,17 +745,17 @@ test('renderSiteHeader dispatches error event when Google button fails to render
   );
 });
 
-test('siteId falls back to the bundled default when omitted', () => {
+test('renderSiteHeader throws when siteId is missing for auth configuration', () => {
   resetEnvironment();
   const harness = createHostHarness();
   const library = loadLibrary();
-  library.renderSiteHeader(harness.host, {
-    auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
-  });
-  assert.strictEqual(
-    harness.host.getAttribute('data-mpr-google-site-id'),
-    '991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com',
-    'expected fallback site id when value missing',
+  assert.throws(
+    () =>
+      library.renderSiteHeader(harness.host, {
+        auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
+      }),
+    /Google client ID is required/,
+    'auth-enabled header should throw when siteId is missing',
   );
 });
 
@@ -770,7 +776,10 @@ test('initial auth avoids duplicate listeners on update', () => {
 
   const harness = createHostHarness();
   const library = loadLibrary();
-  const controller = library.renderSiteHeader(harness.host, { auth: {} });
+  const controller = library.renderSiteHeader(harness.host, {
+    siteId: DEMO_SITE_ID,
+    auth: {},
+  });
 
   assert.strictEqual(
     harness.root.classList.contains('mpr-header--no-auth'),
@@ -872,6 +881,7 @@ test('credential flow with initAuthClient dispatches auth events', async () => {
   };
 
   const controller = library.renderSiteHeader(harness.host, {
+    siteId: DEMO_SITE_ID,
     auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
   });
 
@@ -1067,6 +1077,7 @@ test('profile displays user name only, not email', async () => {
 
   const library = loadLibrary();
   library.renderSiteHeader(harness.host, {
+    siteId: DEMO_SITE_ID,
     auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
   });
   await flushAsync();
@@ -1096,6 +1107,7 @@ test('profile displays user name only, not email', async () => {
   };
 
   library.renderSiteHeader(harnessWithoutDisplay.host, {
+    siteId: DEMO_SITE_ID,
     auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' },
   });
   await flushAsync();

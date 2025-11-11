@@ -14,9 +14,6 @@
     siteLink: "",
   };
 
-  var GOOGLE_FALLBACK_SITE_ID =
-    "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com";
-
   var ATTRIBUTE_MAP = {
     user_id: "data-user-id",
     user_email: "data-user-email",
@@ -25,7 +22,30 @@
   };
 
   var GOOGLE_IDENTITY_SCRIPT_URL = "https://accounts.google.com/gsi/client";
+  var GOOGLE_SITE_ID_ERROR_CODE = "mpr-ui.google_site_id_required";
   var googleIdentityPromise = null;
+
+  function normalizeGoogleSiteId(value) {
+    if (typeof value !== "string") {
+      return null;
+    }
+    var trimmed = value.trim();
+    return trimmed ? trimmed : null;
+  }
+
+  function createGoogleSiteIdError(message) {
+    var error = new Error(message || "Google client ID is required");
+    error.code = GOOGLE_SITE_ID_ERROR_CODE;
+    return error;
+  }
+
+  function requireGoogleSiteId(value) {
+    var normalized = normalizeGoogleSiteId(value);
+    if (!normalized) {
+      throw createGoogleSiteIdError();
+    }
+    return normalized;
+  }
 
   function ensureNamespace(target) {
     if (!target.MPRUI) {
@@ -1416,10 +1436,28 @@
 
   var pendingGoogleInitializeQueue = [];
 
+  function recordGoogleInitializeConfig(config) {
+    if (!config || typeof config !== "object") {
+      return;
+    }
+    var clientId = normalizeGoogleSiteId(config.clientId);
+    if (!clientId) {
+      return;
+    }
+    var normalized = {
+      client_id: clientId,
+    };
+    if (config.nonce) {
+      normalized.nonce = String(config.nonce);
+    }
+    global.__googleInitConfig = normalized;
+  }
+
   function enqueueGoogleInitialize(config) {
     if (!config || typeof config !== "object") {
       return;
     }
+    recordGoogleInitializeConfig(config);
     pendingGoogleInitializeQueue.push(config);
   }
 
@@ -1490,19 +1528,86 @@
     return googleIdentityPromise;
   }
 
+  function tagRenderedGoogleButton(containerElement) {
+    if (!containerElement || !containerElement.ownerDocument) {
+      return;
+    }
+    var googleButton =
+      containerElement.querySelector('button:not([data-mpr-google-sentinel="true"])') ||
+      containerElement.querySelector('[role="button"]');
+    if (!googleButton) {
+      return;
+    }
+    googleButton.setAttribute("data-test", "google-signin");
+  }
+
+  function wrapGoogleButtonMarkup(containerElement) {
+    if (!containerElement || !containerElement.ownerDocument) {
+      return null;
+    }
+    var existingWrapper = containerElement.querySelector('[data-mpr-google-wrapper="true"]');
+    if (existingWrapper) {
+      existingWrapper.setAttribute("data-test", "google-signin");
+      return existingWrapper;
+    }
+    var nodes = Array.prototype.slice.call(containerElement.childNodes);
+    if (nodes.length === 0) {
+      return null;
+    }
+    var wrapper = containerElement.ownerDocument.createElement("button");
+    wrapper.type = "button";
+    wrapper.setAttribute("data-mpr-google-wrapper", "true");
+    wrapper.setAttribute("data-test", "google-signin");
+    wrapper.style.border = "none";
+    wrapper.style.background = "transparent";
+    wrapper.style.padding = "0";
+    wrapper.style.margin = "0";
+    wrapper.style.width = "100%";
+    wrapper.style.display = "block";
+    wrapper.style.font = "inherit";
+    wrapper.style.color = "inherit";
+    wrapper.style.textAlign = "inherit";
+    wrapper.style.cursor = "pointer";
+    while (nodes.length) {
+      wrapper.appendChild(nodes.shift());
+    }
+    containerElement.appendChild(wrapper);
+    return wrapper;
+  }
+
+
   function renderGoogleButton(containerElement, siteId, buttonOptions, onError) {
     if (!containerElement) {
       return function noopGoogleButton() {};
     }
-    var normalizedSiteId = siteId || GOOGLE_FALLBACK_SITE_ID;
+    var normalizedSiteId = normalizeGoogleSiteId(siteId);
+    if (!normalizedSiteId) {
+      if (containerElement) {
+        containerElement.setAttribute("data-mpr-google-error", "missing-site-id");
+      }
+      var siteIdError = createGoogleSiteIdError();
+      if (typeof onError === "function") {
+        onError(siteIdError);
+      }
+      return function noopGoogleButton() {};
+    }
     containerElement.setAttribute("data-mpr-google-site-id", normalizedSiteId);
+    var renderTarget = ensureGoogleRenderTarget(containerElement);
+    var sentinelObserver = null;
+
     var isActive = true;
     function cleanup() {
       isActive = false;
+      if (renderTarget) {
+        renderTarget.innerHTML = "";
+      }
       if (containerElement) {
-        containerElement.innerHTML = "";
         containerElement.removeAttribute("data-mpr-google-ready");
         containerElement.removeAttribute("data-mpr-google-error");
+      }
+      if (sentinelObserver) {
+        sentinelObserver.disconnect();
+        sentinelObserver = null;
       }
     }
     ensureGoogleIdentityClient(global.document)
@@ -1528,7 +1633,7 @@
         }
         try {
           googleId.renderButton(
-            containerElement,
+            renderTarget,
             deepMergeOptions(
               {
                 theme: "outline",
@@ -1540,6 +1645,8 @@
             ),
           );
           containerElement.setAttribute("data-mpr-google-ready", "true");
+          wrapGoogleButtonMarkup(containerElement);
+          tagRenderedGoogleButton(containerElement);
         } catch (_error) {
           if (onError) {
             onError({
@@ -1571,6 +1678,7 @@
     }
 
     var options = Object.assign({}, DEFAULT_OPTIONS, rawOptions || {});
+    options.googleClientId = requireGoogleSiteId(options.googleClientId);
     var state = {
       status: "unauthenticated",
       profile: null,
@@ -1621,12 +1729,12 @@
 
   function configureGoogleNonce(nonceToken) {
     pendingNonceToken = nonceToken;
-    var clientIdValue =
-      options.googleClientId && options.googleClientId.trim()
-        ? options.googleClientId.trim()
-        : GOOGLE_FALLBACK_SITE_ID;
+    var clientIdValue = normalizeGoogleSiteId(options.googleClientId);
+    if (!clientIdValue) {
+      throw createGoogleSiteIdError();
+    }
     enqueueGoogleInitialize({
-      clientId: clientIdValue || undefined,
+      clientId: clientIdValue,
       nonce: nonceToken,
       callback: function (payload) {
         handleCredential(payload);
@@ -2029,27 +2137,19 @@
 
     var authOptions =
       options.auth && typeof options.auth === "object" ? options.auth : null;
-    var derivedSiteId =
-      typeof options.siteId === "string" && options.siteId.trim()
-        ? options.siteId.trim()
-        : null;
+    var derivedSiteId = normalizeGoogleSiteId(options.siteId);
     if (authOptions) {
-      var authSiteId =
-        typeof authOptions.googleClientId === "string" &&
-        authOptions.googleClientId.trim()
-          ? authOptions.googleClientId.trim()
-          : null;
+      var authSiteId = normalizeGoogleSiteId(authOptions.googleClientId);
+      if (!authSiteId && derivedSiteId) {
+        authOptions.googleClientId = derivedSiteId;
+        authSiteId = derivedSiteId;
+      }
       if (!authSiteId) {
-        authOptions.googleClientId =
-          derivedSiteId || GOOGLE_FALLBACK_SITE_ID;
-        authSiteId = authOptions.googleClientId;
+        throw createGoogleSiteIdError();
       }
       if (!derivedSiteId && authSiteId) {
         derivedSiteId = authSiteId;
       }
-    }
-    if (!derivedSiteId) {
-      derivedSiteId = GOOGLE_FALLBACK_SITE_ID;
     }
 
     var themeDefaults = {
@@ -2400,8 +2500,12 @@
     var headerToggleCleanup = null;
     var googleButtonCleanup = null;
     var fallbackSigninTarget = null;
-    var googleSiteId = options.siteId || GOOGLE_FALLBACK_SITE_ID;
-    hostElement.setAttribute("data-mpr-google-site-id", googleSiteId);
+    var googleSiteId = normalizeGoogleSiteId(options.siteId);
+    if (googleSiteId) {
+      hostElement.setAttribute("data-mpr-google-site-id", googleSiteId);
+    } else {
+      hostElement.removeAttribute("data-mpr-google-site-id");
+    }
     var headerToggleCleanup = null;
 
     function destroyHeaderToggle() {
@@ -2528,6 +2632,14 @@
       }
       if (!options.auth) {
         mountFallbackSigninButton("disabled");
+        return;
+      }
+      if (!googleSiteId) {
+        mountFallbackSigninButton("missing-site-id");
+        dispatchHeaderEvent("mpr-ui:header:error", {
+          code: "mpr-ui.header.google_site_id_missing",
+          message: "Google client ID is required",
+        });
         return;
       }
       elements.googleSignin.setAttribute("data-mpr-google-site-id", googleSiteId);
@@ -2661,8 +2773,12 @@
         );
         options = normalizeHeaderOptions(updatedCombined);
         headerThemeConfig = options.themeToggle;
-        googleSiteId = options.siteId || GOOGLE_FALLBACK_SITE_ID;
-        hostElement.setAttribute("data-mpr-google-site-id", googleSiteId);
+        googleSiteId = normalizeGoogleSiteId(options.siteId);
+        if (googleSiteId) {
+          hostElement.setAttribute("data-mpr-google-site-id", googleSiteId);
+        } else {
+          hostElement.removeAttribute("data-mpr-google-site-id");
+        }
         applyHeaderOptions(hostElement, elements, options);
         themeManager.configure({
           attribute: headerThemeConfig.attribute,
@@ -4193,7 +4309,32 @@
           }
           this.__googleHost = container;
           var authOptions = buildLoginAuthOptionsFromAttributes(this);
-          var siteId = authOptions.googleClientId || GOOGLE_FALLBACK_SITE_ID;
+          var siteId = normalizeGoogleSiteId(authOptions.googleClientId);
+          if (!siteId) {
+            if (
+              this.__authController &&
+              typeof this.__authController.signOut === "function"
+            ) {
+              this.__authController.signOut();
+            }
+            this.__authController = null;
+            if (this.__googleCleanup) {
+              this.__googleCleanup();
+              this.__googleCleanup = null;
+            }
+            this.__googleHost = null;
+            this.removeAttribute("data-mpr-google-site-id");
+            this.removeAttribute("data-mpr-google-ready");
+            this.setAttribute("data-mpr-google-error", "missing-site-id");
+            var missingSiteIdError = createGoogleSiteIdError();
+            dispatchEvent(this, "mpr-login:error", {
+              code: missingSiteIdError.code,
+              message: missingSiteIdError.message,
+            });
+            return;
+          }
+          this.removeAttribute("data-mpr-google-error");
+          authOptions.googleClientId = siteId;
           this.setAttribute("data-mpr-google-site-id", siteId);
           if (!this.__authController) {
             this.__authController = createAuthHeader(this, authOptions);
@@ -4679,7 +4820,6 @@
   namespace.getFooterSiteCatalog = getFooterSiteCatalog;
   namespace.renderThemeToggle = renderThemeToggle;
   namespace.mprThemeToggle = mprThemeToggle;
-  namespace.DEFAULT_GOOGLE_SITE_ID = GOOGLE_FALLBACK_SITE_ID;
   namespace.configureTheme = function configureTheme(config) {
     return themeManager.configure(config || {});
   };
@@ -4697,3 +4837,17 @@
   namespace.__dom.mountFooterDom = mountFooterDom;
   registerCustomElements(namespace);
 })(typeof window !== "undefined" ? window : globalThis);
+  function ensureGoogleRenderTarget(containerElement) {
+    if (!containerElement || !containerElement.ownerDocument) {
+      return containerElement;
+    }
+    var target = containerElement.querySelector('[data-mpr-google-target="true"]');
+    if (target) {
+      return target;
+    }
+    var hostDocument = containerElement.ownerDocument;
+    target = hostDocument.createElement("div");
+    target.setAttribute("data-mpr-google-target", "true");
+    containerElement.appendChild(target);
+    return target;
+  }

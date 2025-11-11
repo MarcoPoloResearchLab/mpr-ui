@@ -140,3 +140,6 @@ vite.config.ts.timestamp-*
 
 PLAN.md
 tools/
+test-results/
+
+*.png

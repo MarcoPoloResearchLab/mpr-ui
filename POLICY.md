@@ -24,6 +24,8 @@
    - **Prod boundary**: **wrap** with operation + subject + stable code.
 
 6. **No silent fallbacks** or “best-effort” paths unless a product requirement is cited in the commit.
+Never use defaults in the code. There may be a configuration object that holds defaults but there can not be a default value in the code that we fallback to.
+Fail louad, clear and early, no fallbacks or deviations from the code path.
 
 ---
 

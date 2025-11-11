@@ -26,7 +26,7 @@ test.describe('Demo behaviours', () => {
   });
 
   test('MU-307: renders the Google Sign-In button with a valid client id', async ({ page }) => {
-    await expect(page.locator(googleButton)).toBeVisible();
+    await expect(page.locator(googleButton)).toBeVisible({ timeout: 3000 });
     const googleConfig = await page.evaluate(() => window.__googleInitConfig ?? null);
     expect(googleConfig).not.toBeNull();
     expect(typeof googleConfig?.client_id).toBe('string');
