@@ -24,6 +24,12 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   theme-config='{"targets":["body"],"attribute":"data-demo-theme"}'
 >
 ```
+- [ ] Add a selective style of the theme switcher to be a square with quadrants. Implement it using @q.html example. Add a declarative attribute to the mpr-footer, theme-switcher, to accept toggle or square values or log an error if it's neither yet the  theme-switcher is specified. If the theme-switcher is not specified then the component renders no theme-switcher. Allow for either providing or selecting CSS palette for the themes. 
+<mpr-footer
+      id="page-footer"
+      theme-config='{"targets":["body"],"attribute":"data-demo-theme"}'
+      theme-switcher="toggle|sqaure"
+    >
 
 ## Improvements (210–299)
 
