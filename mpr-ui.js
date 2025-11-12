@@ -1087,6 +1087,126 @@
     Object.freeze({ index: 2, col: 1, row: 1 }),
     Object.freeze({ index: 3, col: 0, row: 1 }),
   ]);
+  var THEME_TOGGLE_SQUARE_DEFAULT_COLORS = Object.freeze([
+    "#ffffff",
+    "#fef08a",
+    "#0f172a",
+    "#a7f3d0",
+  ]);
+
+  function deriveBinaryModes(modes) {
+    if (!Array.isArray(modes) || !modes.length) {
+      return DEFAULT_THEME_MODES.slice(0, 2);
+    }
+    var lightMode = null;
+    var darkMode = null;
+    var lastDarkMode = null;
+    for (var index = 0; index < modes.length; index += 1) {
+      var candidate = modes[index];
+      if (!candidate) {
+        continue;
+      }
+      if (!lightMode && candidate.attributeValue !== "dark") {
+        lightMode = candidate;
+      }
+      if (!darkMode && candidate.attributeValue === "dark") {
+        darkMode = candidate;
+      }
+      if (candidate.attributeValue === "dark") {
+        lastDarkMode = candidate;
+      }
+    }
+    if (!lightMode) {
+      lightMode = modes[0];
+    }
+    if (!darkMode) {
+      darkMode = modes[modes.length - 1] || modes[0];
+    } else if (lastDarkMode) {
+      darkMode = lastDarkMode;
+    }
+    var pair = [];
+    if (lightMode) {
+      pair.push(lightMode);
+    }
+    if (darkMode && darkMode !== lightMode) {
+      pair.push(darkMode);
+    }
+    while (pair.length < 2) {
+      pair.push(pair[pair.length - 1] || modes[0]);
+    }
+    return pair.slice(0, 2);
+  }
+
+  function resolveSquareModeValues(modes) {
+    var lightModes = [];
+    var darkModes = [];
+    if (Array.isArray(modes)) {
+      modes.forEach(function collect(mode) {
+        if (!mode || !mode.value) {
+          return;
+        }
+        if (mode.attributeValue === "dark") {
+          darkModes.push(mode.value);
+        } else {
+          lightModes.push(mode.value);
+        }
+      });
+    }
+    if (!lightModes.length && !darkModes.length) {
+      lightModes = [DEFAULT_THEME_MODES[1].value];
+      darkModes = [DEFAULT_THEME_MODES[0].value];
+    }
+    if (!lightModes.length) {
+      lightModes = darkModes.slice(0, 1);
+    }
+    if (!darkModes.length) {
+      darkModes = lightModes.slice(-1);
+    }
+    return [
+      lightModes[0],
+      lightModes[1] || lightModes[0],
+      darkModes[0],
+      darkModes[1] || darkModes[0],
+    ];
+  }
+
+  function collectSquareModeColors(modes) {
+    var palette = Object.create(null);
+    if (!Array.isArray(modes)) {
+      return palette;
+    }
+    modes.forEach(function mapColor(mode) {
+      if (!mode || !mode.value || !mode.dataset) {
+        return;
+      }
+      var dataset = mode.dataset;
+      var color =
+        dataset.squareColor ||
+        dataset.squarecolor ||
+        dataset["data-square-color"] ||
+        null;
+      if (color) {
+        palette[mode.value] = color;
+      }
+    });
+    return palette;
+  }
+
+  function applySquarePalette(controlElement, squareValues, paletteMap) {
+    if (!controlElement || !controlElement.style) {
+      return;
+    }
+    for (var index = 0; index < THEME_TOGGLE_SQUARE_POSITIONS.length; index += 1) {
+      var modeValue = squareValues[index] || "";
+      var colorValue =
+        (modeValue && paletteMap && paletteMap[modeValue]) ||
+        THEME_TOGGLE_SQUARE_DEFAULT_COLORS[index];
+      controlElement.style.setProperty(
+        "--mpr-theme-square-quad-" + index,
+        colorValue,
+      );
+    }
+  }
 
   function getThemeToggleModeIndex(modes, modeValue) {
     if (!Array.isArray(modes)) {
@@ -1309,18 +1429,27 @@
     var currentModes = Array.isArray(config.modes) && config.modes.length
       ? config.modes
       : DEFAULT_THEME_MODES.slice();
+    if (variant === "switch") {
+      currentModes = deriveBinaryModes(currentModes);
+    }
     var squareModeValues = variant === "square"
-      ? currentModes
-          .slice(0, THEME_TOGGLE_SQUARE_POSITIONS.length)
-          .map(function extractModeValue(mode) {
-            return mode.value;
-          })
+      ? resolveSquareModeValues(currentModes)
       : [];
+    var squareModePalette = variant === "square"
+      ? collectSquareModeColors(currentModes)
+      : null;
     if (variant === "square") {
       for (var index = 0; index < squareQuads.length; index += 1) {
-        var hasMode = squareModeValues[index] !== undefined;
+        var quadValue = squareModeValues[index];
+        var hasMode = quadValue !== undefined && quadValue !== null;
         squareQuads[index].setAttribute("data-quad-enabled", hasMode ? "true" : "false");
+        if (hasMode) {
+          squareQuads[index].setAttribute("data-quad-mode", quadValue);
+        } else {
+          squareQuads[index].removeAttribute("data-quad-mode");
+        }
       }
+      applySquarePalette(controlElement, squareModeValues, squareModePalette);
     }
 
     var travelTimeout = null;
@@ -2618,7 +2747,28 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       "</div>" +
       "</div>" +
       "</div>" +
+      "</div>" +
       "</header>"
+    );
+  }
+
+  function buildHeaderSettingsModalMarkup(label) {
+    var heading = escapeHtml(label || HEADER_DEFAULTS.settings.label);
+    return (
+      '<div data-mpr-header="settings-modal" aria-hidden="true" data-mpr-modal-open="false">' +
+      '<div data-mpr-header="settings-modal-backdrop"></div>' +
+      '<div data-mpr-header="settings-modal-dialog" role="dialog" aria-modal="true" aria-label="' +
+      heading +
+      '" tabindex="-1">' +
+      '<header data-mpr-header="settings-modal-header">' +
+      '<h1 data-mpr-header="settings-modal-title">' +
+      heading +
+      "</h1>" +
+      '<button type="button" data-mpr-header="settings-modal-close" aria-label="Close settings">&times;</button>' +
+      "</header>" +
+      '<div data-mpr-header="settings-modal-body"></div>' +
+      "</div>" +
+      "</div>"
     );
   }
 
@@ -2757,6 +2907,152 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
   }
 
+  function createHeaderSettingsModalController(hostElement, initialLabel) {
+    if (!hostElement || !hostElement.ownerDocument) {
+      return null;
+    }
+    var documentObject = hostElement.ownerDocument;
+    var body = documentObject.body;
+    if (!body) {
+      return null;
+    }
+    var wrapper = documentObject.createElement("div");
+    wrapper.innerHTML = buildHeaderSettingsModalMarkup(initialLabel);
+    var modal = wrapper.firstElementChild;
+    if (!modal) {
+      return null;
+    }
+    body.appendChild(modal);
+    var dialog = modal.querySelector('[data-mpr-header="settings-modal-dialog"]');
+    if (!dialog) {
+      body.removeChild(modal);
+      return null;
+    }
+    var closeButton = modal.querySelector('[data-mpr-header="settings-modal-close"]');
+    var backdrop = modal.querySelector('[data-mpr-header="settings-modal-backdrop"]');
+    var titleElement = modal.querySelector('[data-mpr-header="settings-modal-title"]');
+    var isOpen = false;
+    var previousFocus = null;
+    var previousOverflow = null;
+
+    function lockScroll() {
+      if (previousOverflow === null) {
+        previousOverflow =
+          typeof body.style.overflow === "string" ? body.style.overflow : "";
+      }
+      body.style.overflow = "hidden";
+    }
+
+    function unlockScroll() {
+      if (previousOverflow === null) {
+        return;
+      }
+      body.style.overflow = previousOverflow;
+      previousOverflow = null;
+    }
+
+    function setOpenState(nextValue) {
+      isOpen = nextValue;
+      modal.setAttribute("data-mpr-modal-open", nextValue ? "true" : "false");
+      modal.setAttribute("aria-hidden", nextValue ? "false" : "true");
+      if (nextValue) {
+        lockScroll();
+      } else {
+        unlockScroll();
+      }
+    }
+
+    function restoreFocus() {
+      if (
+        previousFocus &&
+        typeof previousFocus.focus === "function" &&
+        previousFocus.ownerDocument
+      ) {
+        previousFocus.focus();
+      }
+      previousFocus = null;
+    }
+
+    function openModal() {
+      if (isOpen) {
+        return;
+      }
+      previousFocus = documentObject.activeElement || null;
+      setOpenState(true);
+      if (typeof dialog.focus === "function") {
+        dialog.focus();
+      }
+    }
+
+    function closeModal() {
+      if (!isOpen) {
+        return;
+      }
+      setOpenState(false);
+      restoreFocus();
+    }
+
+    function handleKeydown(event) {
+      if (!isOpen || !event || typeof event.key !== "string") {
+        return;
+      }
+      if (event.key === "Escape") {
+        event.preventDefault();
+        closeModal();
+      }
+    }
+
+    function handleBackdropClick(event) {
+      if (!isOpen || !event) {
+        return;
+      }
+      if (event.target === modal || event.target === backdrop) {
+        event.preventDefault();
+        closeModal();
+      }
+    }
+
+    if (closeButton && closeButton.addEventListener) {
+      closeButton.addEventListener("click", closeModal);
+    }
+    if (backdrop && backdrop.addEventListener) {
+      backdrop.addEventListener("click", handleBackdropClick);
+    }
+    modal.addEventListener("click", handleBackdropClick);
+    modal.addEventListener("keydown", handleKeydown);
+    dialog.addEventListener("keydown", handleKeydown);
+
+    return {
+      open: openModal,
+      close: closeModal,
+      updateLabel: function updateLabel(nextLabel) {
+        var labelText =
+          typeof nextLabel === "string" && nextLabel.trim()
+            ? nextLabel.trim()
+            : HEADER_DEFAULTS.settings.label;
+        if (titleElement) {
+          titleElement.textContent = labelText;
+        }
+        dialog.setAttribute("aria-label", labelText);
+      },
+      destroy: function destroy() {
+        unlockScroll();
+        if (closeButton && closeButton.removeEventListener) {
+          closeButton.removeEventListener("click", closeModal);
+        }
+        if (backdrop && backdrop.removeEventListener) {
+          backdrop.removeEventListener("click", handleBackdropClick);
+        }
+        modal.removeEventListener("click", handleBackdropClick);
+        modal.removeEventListener("keydown", handleKeydown);
+        dialog.removeEventListener("keydown", handleKeydown);
+        if (modal.parentNode) {
+          modal.parentNode.removeChild(modal);
+        }
+      },
+    };
+  }
+
   function applyHeaderOptions(hostElement, elements, options) {
     if (!elements.root) {
       return;
@@ -2797,6 +3093,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     );
     var options = normalizeHeaderOptions(combinedOptions);
     var cleanupHandlers = [];
+    var settingsModalController = null;
     ensureHeaderStyles(global.document || (global.window && global.window.document));
 
     var elements = mountHeaderDom(hostElement, options);
@@ -3026,6 +3323,27 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     if (elements.settingsButton) {
       elements.settingsButton.addEventListener("click", function () {
+        if (!options.settings.enabled) {
+          dispatchHeaderEvent("mpr-ui:header:settings-click", {});
+          return;
+        }
+        if (!settingsModalController) {
+          settingsModalController = createHeaderSettingsModalController(
+            hostElement,
+            options.settings.label,
+          );
+          if (settingsModalController) {
+            (function registerModalCleanup(controllerInstance) {
+              cleanupHandlers.push(function destroySettingsModal() {
+                controllerInstance.destroy();
+              });
+            })(settingsModalController);
+          }
+        }
+        if (settingsModalController) {
+          settingsModalController.updateLabel(options.settings.label);
+          settingsModalController.open();
+        }
         dispatchHeaderEvent("mpr-ui:header:settings-click", {});
       });
     }
@@ -3057,6 +3375,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           hostElement.removeAttribute("data-mpr-google-site-id");
         }
         applyHeaderOptions(hostElement, elements, options);
+        if (settingsModalController) {
+          settingsModalController.updateLabel(options.settings.label);
+        }
         themeManager.configure({
           attribute: headerThemeConfig.attribute,
           targets: headerThemeConfig.targets,
@@ -3857,6 +4178,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var hasExplicitPrefix = providedConfigs.some(function hasPrefix(candidate) {
       return candidate && typeof candidate.prefixText === "string";
     });
+    var prefixFromCollection = false;
     providedConfigs.forEach(function apply(config) {
       if (!config || typeof config !== "object") {
         return;
@@ -3903,6 +4225,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (normalizedCollection && normalizedCollection.text) {
       if (!hasExplicitPrefix) {
         mergedConfig.prefixText = normalizedCollection.text;
+        prefixFromCollection = true;
       }
       if (mergedConfig.linksMenuEnabled) {
         mergedConfig.toggleLabel = normalizedCollection.text;
@@ -3916,8 +4239,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           (typeof mergedConfig.prefixText === "string" && !mergedConfig.prefixText.trim()))
       ) {
         mergedConfig.prefixText = FOOTER_DEFAULTS.toggleLabel;
+        prefixFromCollection = false;
       }
     }
+    mergedConfig.prefixDerivedFromCollection =
+      prefixFromCollection && mergedConfig.linksMenuEnabled;
 
     return mergedConfig;
   }
@@ -4150,6 +4476,16 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (config.prefixClass) {
       prefixElement.className = config.prefixClass;
     }
+    var shouldHidePrefix = Boolean(
+      config.prefixDerivedFromCollection &&
+      config.linksMenuEnabled,
+    );
+    if (shouldHidePrefix) {
+      prefixElement.textContent = "";
+      prefixElement.setAttribute("aria-hidden", "true");
+      return;
+    }
+    prefixElement.removeAttribute("aria-hidden");
     prefixElement.textContent = config.prefixText || "";
   }
 
@@ -4374,6 +4710,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ) {
       return null;
     }
+    var portalHost =
+      modalElement.ownerDocument && modalElement.ownerDocument.body
+        ? modalElement.ownerDocument.body
+        : null;
+    if (portalHost && modalElement.parentNode !== portalHost) {
+      portalHost.appendChild(modalElement);
+    }
     if (!dialogElement.hasAttribute("tabindex")) {
       dialogElement.setAttribute("tabindex", "-1");
     }
@@ -4493,6 +4836,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       previousFocus = null;
       closeModal();
+      if (modalElement && modalElement.parentNode) {
+        modalElement.parentNode.removeChild(modalElement);
+      }
     };
   }
 

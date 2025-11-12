@@ -12,12 +12,18 @@ const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/index.html')).hr
 const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
   headerNavLinks: '[data-mpr-header="nav"] a',
+  headerSettingsButton: '[data-mpr-header="settings-button"]',
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerDropupButton: '[data-mpr-footer="toggle-button"]',
   footerMenu: '[data-mpr-footer="menu"]',
+  footerPrefix: '[data-mpr-footer="prefix"]',
   privacyLink: '[data-mpr-footer="privacy-link"]',
   privacyModal: '[data-mpr-footer="privacy-modal"]',
+  privacyModalDialog: '[data-mpr-footer="privacy-modal-dialog"]',
   privacyModalClose: '[data-mpr-footer="privacy-modal-close"]',
+  settingsModal: '[data-mpr-header="settings-modal"]',
+  settingsModalClose: '[data-mpr-header="settings-modal-close"]',
+  eventLogEntries: '#event-log [data-test="event-log-entry"]',
 });
 
 const LOCAL_ASSETS = Object.freeze({
