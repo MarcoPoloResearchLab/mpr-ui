@@ -12,10 +12,12 @@ const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/index.html')).hr
 const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
   headerNavLinks: '[data-mpr-header="nav"] a',
-  headerThemeControl: '[data-mpr-header="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerDropupButton: '[data-mpr-footer="toggle-button"]',
   footerMenu: '[data-mpr-footer="menu"]',
+  privacyLink: '[data-mpr-footer="privacy-link"]',
+  privacyModal: '[data-mpr-footer="privacy-modal"]',
+  privacyModalClose: '[data-mpr-footer="privacy-modal-close"]',
 });
 
 const LOCAL_ASSETS = Object.freeze({
@@ -62,12 +64,63 @@ async function captureToggleSnapshot(page, selector) {
       throw new Error('Missing owner window for toggle snapshot');
     }
     const pseudo = ownerWindow.getComputedStyle(element, pseudoElement);
+    const control = ownerWindow.getComputedStyle(element);
+
+    /**
+     * @param {string} transformValue
+     * @returns {number}
+     */
+    function parseTranslateX(transformValue) {
+      if (!transformValue || transformValue === 'none') {
+        return 0;
+      }
+      if (transformValue.startsWith('matrix3d(')) {
+        const values = transformValue
+          .slice(9, -1)
+          .split(',')
+          .map((entry) => parseFloat(entry.trim()));
+        return Number.isFinite(values[12]) ? values[12] : 0;
+      }
+      if (transformValue.startsWith('matrix(')) {
+        const values = transformValue
+          .slice(7, -1)
+          .split(',')
+          .map((entry) => parseFloat(entry.trim()));
+        return Number.isFinite(values[4]) ? values[4] : 0;
+      }
+      return 0;
+    }
+
+    /**
+     * @param {string} value
+     * @param {number} fallback
+     */
+    function toFloat(value, fallback) {
+      const parsed = parseFloat(value);
+      return Number.isFinite(parsed) ? parsed : fallback;
+    }
+
+    const transform = pseudo.getPropertyValue('transform');
+    const translateX = parseTranslateX(transform);
+    const knobWidth = toFloat(pseudo.getPropertyValue('width'), 0);
+    const offset = toFloat(control.getPropertyValue('--mpr-theme-toggle-offset'), 2);
+    const trackWidth =
+      toFloat(control.getPropertyValue('--mpr-theme-toggle-track-width'), Number.NaN) ||
+      element.getBoundingClientRect().width ||
+      0;
+    const travelVar = toFloat(control.getPropertyValue('--mpr-theme-toggle-travel'), Number.NaN);
+    const travelDistance = Number.isFinite(travelVar)
+      ? travelVar
+      : trackWidth - knobWidth - offset * 2;
+
     return {
-      transform: pseudo.getPropertyValue('transform'),
+      transform,
       background: pseudo.getPropertyValue('background-color'),
       checked: Boolean(
         /** @type {HTMLInputElement | undefined} */ (element).checked
       ),
+      translateX,
+      travelDistance,
     };
   }, TOGGLE_PSEUDO_ELEMENT);
 }

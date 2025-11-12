@@ -26,7 +26,7 @@ When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 | `MPRUI.createAuthHeader(host, options)` | Creates the auth header controller bound to a DOM element.                                           |
 | `MPRUI.renderAuthHeader(host, options)` | Convenience wrapper that resolves CSS selectors before calling `createAuthHeader`.                   |
 | `MPRUI.mprHeader(options)`              | Legacy factory that only wires the auth controller without rendering UI (kept for compatibility).    |
-| `MPRUI.renderSiteHeader(host, options)` | Renders the sticky site header, wiring auth, settings, and theme controls; returns `{ update, destroy }`. |
+| `MPRUI.renderSiteHeader(host, options)` | Renders the sticky site header, wiring auth, settings, and shared theme configuration; returns `{ update, destroy }`. |
 | `MPRUI.mprSiteHeader(options)`          | Alpine/framework factory for the site header; `init` renders, `update` proxies, `destroy` unmounts.  |
 | `MPRUI.renderFooter(host, options)`     | Renders the marketing footer into a DOM node and returns `{ update, destroy }`.                      |
 | `MPRUI.mprFooter(options)`              | Framework-friendly facade; `init` wires `renderFooter`, `update` proxies, `destroy` unmounts.        |
@@ -49,7 +49,7 @@ The bundle auto-registers modern HTML custom elements when `window.customElement
 | Tag               | Backing Helper(s)                              | Key Attributes                                                                                                                        | Emitted Events                                            |
 | ----------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
 | `<mpr-header>`    | `renderSiteHeader`, `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `site-id`, `theme-config`, `auth-config`, `login-path`, `logout-path`, `nonce-path`, etc.   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
-| `<mpr-footer>`    | `renderFooter`                                 | `prefix-text`, `links`, `toggle-label`, `privacy-link-*`, `theme-config`, dataset-based class overrides                               | `mpr-footer:theme-change`                                 |
+| `<mpr-footer>`    | `renderFooter`                                 | `prefix-text`, `links-collection`, legacy `links`, `toggle-label`, `privacy-link-*`, `theme-config`, dataset-based class overrides     | `mpr-footer:theme-change`                                 |
 | `<mpr-theme-toggle>` | `renderThemeToggle`, `configureTheme`       | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`, `theme-mode`          | `mpr-ui:theme-change` (via the shared theme manager)      |
 | `<mpr-login-button>` | `createAuthHeader`, shared GIS helper       | `site-id`, `login-path`, `logout-path`, `nonce-path`, `base-url`, `button-text`, `button-size`, `button-theme`, `button-shape`        | `mpr-ui:auth:*`, `mpr-login:error`                        |
 | `<mpr-settings>` | Settings CTA + panel wrapper                    | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open`                                                                    | `mpr-settings:toggle`                                     |
@@ -120,7 +120,7 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 
 ## Site Header Component
 
-`renderSiteHeader` produces a sticky banner that combines navigation, auth controls, and theme switching. When `auth` options are supplied it internally initialises `createAuthHeader`, so the host element still receives the `mpr-ui:auth:*` events and dataset updates documented earlier.
+`renderSiteHeader` produces a sticky banner that combines navigation, auth controls, and shared theme configuration (it no longer renders a theme toggle; pair it with the footer or `<mpr-theme-toggle>` for user interaction). When `auth` options are supplied it internally initialises `createAuthHeader`, so the host element still receives the `mpr-ui:auth:*` events and dataset updates documented earlier.
 
 ### Markup & Styling
 
@@ -129,7 +129,7 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 - Applies modifier classes to the root:
   - `mpr-header--authenticated` shows the profile chip / hides sign-in.
   - `mpr-header--no-auth` hides auth UI when no controller is attached.
-  - `mpr-header--no-settings` and `mpr-header--no-theme` hide optional buttons.
+  - `mpr-header--no-settings` hides the settings button.
 
 ### Options
 
@@ -140,10 +140,8 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 | `navLinks`                 | `{label, href, target?}[]`             | Optional navigation anchors rendered next to the brand.                      |
 | `settings.enabled`         | `boolean`                              | Shows or hides the settings button (default `true`).                         |
 | `settings.label`           | `string`                               | Settings button label (default "Settings").                                 |
-| `themeToggle.enabled`      | `boolean`                              | Shows or hides the theme toggle button (default `true`).                     |
-| `themeToggle.ariaLabel`    | `string`                               | Accessible label applied to the theme toggle.                                |
 | `themeToggle.attribute`    | `string`                               | Attribute written to theme targets (default `data-mpr-theme`).               |
-| `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive theme state.         |
+| `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive shared theme state.   |
 | `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Ordered list of theme modes (default light/dark).            |
 | `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
 | `signInLabel`              | `string`                               | Copy for the sign-in button (default "Sign in").                            |
@@ -151,11 +149,11 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 | `profileLabel`             | `string`                               | Text shown above the authenticated user name (default "Signed in as").      |
 | `auth`                     | `object \| null`                        | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |
 
-Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the header host element; values are merged with programmatic options.
+Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the header host element; values are merged with programmatic options and configure the shared theme manager (the header itself no longer renders a toggle).
 
 ### Events
 
-- `mpr-ui:header:theme-change` — detail `{ theme }`, emitted on every toggle.
+- `mpr-ui:header:theme-change` — detail `{ theme }`, emitted whenever the shared theme manager changes (e.g., footer or standalone toggle activity).
 - `mpr-ui:header:settings-click` — fired when the settings button is pressed.
 - `mpr-ui:header:signin-click` — emitted if a sign-in attempt occurs without GIS availability.
 - `mpr-ui:header:signout-click` — emitted when sign-out is requested but no controller is attached.
@@ -190,10 +188,12 @@ Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to
 | `toggleLabel`              | `string`                               | Text rendered on the dropdown trigger (defaults to "Marco Polo Research Lab"). |
 | `menuClass`                | `string`                               | Class for the `<ul>` menu container.                                          |
 | `menuItemClass`            | `string`                               | Class for each `<a>` inside the menu.                                         |
-| `links`                    | `{label, url, target?, rel?}[]`        | Menu entries; defaults to `_blank` target + `noopener noreferrer` rel.        |
+| `linksCollection`         | `{ style, text, links }` JSON          | Drives the drop-up menu; omit or leave `links` empty to show text-only footer.|
+| `links` (legacy)          | `{label, url, target?, rel?}[]`        | Backwards-compatible array for menu entries (still supported).                |
 | `privacyLinkClass`         | `string`                               | Class applied to the privacy link.                                            |
 | `privacyLinkHref`          | `string`                               | Destination for the privacy link (`#` default).                               |
 | `privacyLinkLabel`         | `string`                               | Copy for the privacy link (default "Privacy • Terms").                        |
+| `privacyModalContent`      | `string` (HTML)                        | Optional HTML injected into a modal shown when the privacy link is activated. |
 | `themeToggle.enabled`      | `boolean`                              | Controls whether the theme toggle renders (default `true`).                   |
 | `themeToggle.wrapperClass` | `string`                               | Class for the toggle wrapper pill.                                            |
 | `themeToggle.inputClass`   | `string`                               | Class for the `input[type=checkbox]`.                                         |
@@ -204,6 +204,10 @@ Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to
 | `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive theme state.         |
 | `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Theme options toggled by the footer switch.             |
 | `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
+
+If `linksCollection` is omitted (or its `links` array is empty), the footer renders the prefix text only—no drop-up menu is shown.
+
+If `privacyModalContent` is provided, the privacy link becomes a button that opens an almost full-screen modal with focus capture, ESC/backdrop/click-to-close, and body scroll locking.
 
 Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the footer host element; values merge with programmatic options.
 

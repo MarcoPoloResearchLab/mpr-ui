@@ -100,31 +100,22 @@ test('menu links keep allowed protocols', () => {
   );
 });
 
-test('default footer configuration exposes the full MPRLab catalog', () => {
+test('default footer configuration renders text-only when links are missing', () => {
   const hooks = loadFooterHooks();
   const config = hooks.normalizeFooterConfig();
-  const defaultEntries = [
-    ['Marco Polo Research Lab', 'https://mprlab.com'],
-    ['Gravity Notes', 'https://gravity.mprlab.com'],
-    ['LoopAware', 'https://loopaware.mprlab.com'],
-    ['Allergy Wheel', 'https://allergy.mprlab.com'],
-    ['Social Threader', 'https://threader.mprlab.com'],
-    ['RSVP', 'https://rsvp.mprlab.com'],
-    ['Countdown Calendar', 'https://countdown.mprlab.com'],
-    ['LLM Crossword', 'https://llm-crossword.mprlab.com'],
-    ['Prompt Bubbles', 'https://prompts.mprlab.com'],
-    ['Wallpapers', 'https://wallpapers.mprlab.com'],
-  ];
-  const expectedLinks = defaultEntries.map(([label, url]) => ({
-    label,
-    url,
-    rel: 'noopener noreferrer',
-    target: '_blank',
-  }));
   const normalizedLinks = cloneIntoCurrentRealm(config.links);
   assert.deepStrictEqual(
     normalizedLinks,
-    expectedLinks,
-    'Footer defaults should expose the entire Marco Polo Research Lab network',
+    [],
+    'Footer defaults should not render any links when linksCollection is missing',
+  );
+  assert.strictEqual(
+    config.linksMenuEnabled,
+    false,
+    'Drop-up menu should be disabled by default',
+  );
+  assert.ok(
+    config.prefixText && config.prefixText.length > 0,
+    'Prefix text should still render when no menu entries are available',
   );
 });

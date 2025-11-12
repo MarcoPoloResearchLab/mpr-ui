@@ -106,6 +106,11 @@ function createElementStub(options) {
       return Object.prototype.hasOwnProperty.call(attributes, name);
     };
   }
+  element.focus = function () {
+    if (global.document) {
+      global.document.activeElement = element;
+    }
+  };
 
   return element;
 }
@@ -115,7 +120,30 @@ function createDocumentStub() {
   const documentElement = createElementStub({ supportsAttributes: true });
   const bodyElement = createElementStub({ supportsAttributes: true });
   bodyElement.classList = createClassList();
-  return {
+  bodyElement.style = { overflow: '' };
+  const listeners = {};
+
+  function addDocumentListener(type, handler) {
+    const eventType = String(type);
+    if (!listeners[eventType]) listeners[eventType] = [];
+    listeners[eventType].push(handler);
+  }
+
+  function removeDocumentListener(type, handler) {
+    const eventType = String(type);
+    if (!listeners[eventType]) return;
+    listeners[eventType] = listeners[eventType].filter((entry) => entry !== handler);
+  }
+
+  function dispatchDocumentEvent(eventObject) {
+    const eventType = eventObject && eventObject.type ? String(eventObject.type) : '';
+    const handlers = listeners[eventType] ? listeners[eventType].slice() : [];
+    handlers.forEach((handler) => {
+      handler.call(documentObject, eventObject);
+    });
+  }
+
+  const documentObject = {
     head: {
       appendChild: function (node) {
         if (node && node.id) {
@@ -139,6 +167,10 @@ function createDocumentStub() {
     },
     documentElement: documentElement,
     body: bodyElement,
+    activeElement: bodyElement,
+    addEventListener: addDocumentListener,
+    removeEventListener: removeDocumentListener,
+    dispatchEvent: dispatchDocumentEvent,
     querySelector: function () {
       return null;
     },
@@ -146,6 +178,7 @@ function createDocumentStub() {
       return [];
     },
   };
+  return documentObject;
 }
 
 function createFooterHostHarness() {
@@ -162,10 +195,20 @@ function createFooterHostHarness() {
   const menuWrapperElement = createElementStub({ supportsEvents: true, supportsAttributes: true });
   const menuElement = createElementStub({ supportsAttributes: true });
   const toggleButtonElement = createElementStub({ supportsEvents: true, supportsAttributes: true });
-  const privacyLinkElement = createElementStub({ supportsAttributes: true });
+  const privacyLinkElement = createElementStub({ supportsEvents: true, supportsAttributes: true });
   const themeToggleWrapper = createElementStub({ supportsAttributes: true });
   const spacerElement = createElementStub({ supportsAttributes: true });
   const themeToggleControl = createElementStub({ supportsEvents: true, supportsAttributes: true });
+  const modalElement = createElementStub({ supportsAttributes: true });
+  const modalDialog = createElementStub({ supportsEvents: true, supportsAttributes: true });
+  const modalClose = createElementStub({ supportsEvents: true, supportsAttributes: true });
+  const modalBackdrop = createElementStub({ supportsEvents: true, supportsAttributes: true });
+  const modalContent = createElementStub({ supportsAttributes: true });
+  modalDialog.focus = function () {
+    if (global.document) {
+      global.document.activeElement = modalDialog;
+    }
+  };
   themeToggleWrapper.querySelector = function (selector) {
     if (selector === '[data-mpr-theme-toggle="control"]') {
       return themeToggleControl;
@@ -194,6 +237,11 @@ function createFooterHostHarness() {
   selectors.set('[data-mpr-footer="toggle-button"]', toggleButtonElement);
   selectors.set('[data-mpr-footer="privacy-link"]', privacyLinkElement);
   selectors.set('[data-mpr-footer="theme-toggle"]', themeToggleWrapper);
+  selectors.set('[data-mpr-footer="privacy-modal"]', modalElement);
+  selectors.set('[data-mpr-footer="privacy-modal-dialog"]', modalDialog);
+  selectors.set('[data-mpr-footer="privacy-modal-close"]', modalClose);
+  selectors.set('[data-mpr-footer="privacy-modal-backdrop"]', modalBackdrop);
+  selectors.set('[data-mpr-footer="privacy-modal-content"]', modalContent);
   selectors.set('footer[role="contentinfo"]', footerElement);
 
   const host = createElementStub({ supportsEvents: true, supportsAttributes: true });
@@ -218,6 +266,10 @@ function createFooterHostHarness() {
   return {
     host,
     elements: {
+      prefixElement,
+      privacyLink: privacyLinkElement,
+      privacyModal: modalElement,
+      privacyModalClose: modalClose,
       themeToggleControl,
     },
   };
@@ -290,4 +342,63 @@ test('footer layout orders privacy spacer toggle and brand', () => {
     privacyIndex < spacerIndex && spacerIndex < toggleIndex && toggleIndex < brandIndex,
     'footer layout must position privacy link, spacer, theme toggle, then brand',
   );
+});
+
+test('footer omits drop-up when links collection is empty', () => {
+  resetEnvironment();
+  const harness = createFooterHostHarness();
+  const library = loadLibrary();
+
+  const controller = library.renderFooter(harness.host, {
+    linksCollection: { style: 'drop-up', text: 'Built by', links: [] },
+  });
+  const config = controller.getConfig();
+
+  const markup = String(harness.host.innerHTML);
+  assert.strictEqual(
+    markup.indexOf('data-mpr-footer="menu-wrapper"'),
+    -1,
+    'menu wrapper should be absent when no links are provided',
+  );
+  assert.ok(
+    harness.elements.prefixElement.textContent === config.prefixText,
+    'prefix text span should reflect the configured text when the drop-up is hidden',
+  );
+  assert.strictEqual(
+    config.linksMenuEnabled,
+    false,
+    'config should mark the drop-up as disabled when no links are provided',
+  );
+  assert.deepStrictEqual(
+    config.links,
+    [],
+    'config should not expose any menu links when the collection is empty',
+  );
+});
+
+test('footer privacy modal opens and closes on interaction', () => {
+  resetEnvironment();
+  const harness = createFooterHostHarness();
+  const library = loadLibrary();
+
+  library.renderFooter(harness.host, {
+    privacyModalContent: '<p>Modal content</p>',
+  });
+
+  const modalElement = harness.elements.privacyModal;
+  const closeButton = harness.elements.privacyModalClose;
+  const privacyLink = harness.elements.privacyLink;
+
+  assert.strictEqual(
+    privacyLink.getAttribute('role'),
+    'button',
+    'privacy link should behave like a button when the modal is enabled',
+  );
+  assert.strictEqual(
+    privacyLink.getAttribute('tabindex'),
+    '0',
+    'privacy link should be tabbable when the modal replaces anchor navigation',
+  );
+  privacyLink.trigger('click');
+  closeButton.trigger('click');
 });
