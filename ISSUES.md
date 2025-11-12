@@ -31,6 +31,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   - Removed the header toggle entirely, kept the shared theme configuration hooks, and updated docs/tests to point consumers to the footer or `<mpr-theme-toggle>` for user control.
 - [x] [MU-214] The footer shall be taking a JS object with the links to other web sites, and, if missing, render built by Marco Polo Research Lab without links drop-up.
   - Added the `linksCollection` API plus dataset attribute, default the footer to a text-only variant, and refreshed docs/tests/demo coverage for the new drop-up contract.
+ - [x] [MU-215] Center the public API/docs around web components (custom elements first), treating Alpine.js plus imperative helpers as implementation details rather than the primary surface.
+   - Reworded the README + architecture intro so custom elements are the default integration path, added custom-element-first quick start, and relegated Alpine/imperative helpers to an optional section with doc cross-links.
 ```html
 <mpr-footer
   id="page-footer"

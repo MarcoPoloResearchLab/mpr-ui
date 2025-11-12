@@ -5,7 +5,7 @@
 - An authentication header controller that orchestrates Google Identity Services (GIS) sign-in flows.
 - A sticky footer renderer with dropdown navigation, privacy link, and theme toggle support.
 
-The library assumes a CDN delivery model and no build tooling. Everything runs in the browser with optional Alpine.js convenience factories.
+The library assumes a CDN delivery model and no build tooling. Everything runs in the browser with optional Alpine.js convenience factories. The bundle auto-registers `<mpr-*>` custom elements (header, footer, login button, theme toggle, settings, sites) on load; those declarative tags are the primary public API, while the namespace functions documented below exist for frameworks that need imperative mounting.
 
 ## Files and Responsibilities
 

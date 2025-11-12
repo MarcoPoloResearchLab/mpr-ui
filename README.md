@@ -1,17 +1,17 @@
 # Marco Polo Research Lab UI
 
-Reusable UI components for Marco Polo Research Lab projects, delivered as a single CDN-hosted script that works with or without Alpine.js.
+Web components for Marco Polo Research Lab projects, delivered as a single CDN-hosted script. Every feature ships as a `<mpr-*>` custom element; Alpine.js runs behind the scenes to hydrate state, but you stay in declarative HTML for day-to-day work.
 
 ## Why mpr-ui?
 
-- Ship consistent branding primitives across sites without a build pipeline.
-- Opt into Alpine.js factories or use imperative helpers — the API surface is identical either way.
+- Drop `<mpr-header>`, `<mpr-footer>`, `<mpr-theme-toggle>`, and friends directly into any HTML page — no build tools or frameworks required.
+- Alpine.js ships as an implementation detail so the bundle can manage state and events; you never have to author `x-data` unless you want to.
 - Security and accessibility defaults baked in: escaped strings, sanitised links, sensible roles.
-- Configure components with plain JavaScript objects; no bundler or build tooling required.
+- Imperative helpers remain available for power users, but the documented API mirrors the custom-element attributes and events.
 
 ## Quick Start
 
-1. **Load the library** — add the packaged stylesheet, Alpine (optional), plus the `mpr-ui` bundle.
+1. **Load the bundle + prerequisites** — add the packaged stylesheet, Alpine (used internally), and the `mpr-ui` bundle:
 
    ```html
    <link
@@ -29,52 +29,9 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    ></script>
    ```
 
-   The stylesheet (`mpr-ui.css`) hosts the shared layout and demo theming helpers used across the header/footer examples, so consumers can reproduce the sticky scaffolding without copying inline styles.
+   Alpine bootstraps the internal controllers; you don’t have to author `x-data` to benefit from it.
 
-2. **Render the header & footer** — use the Alpine factories or the global helpers.
-
-   ```html
-   <header x-data="mprSiteHeader({
-     brand: { label: 'Marco Polo Research Lab', href: '/' },
-     siteId: '991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com',
-     navLinks: [
-       { label: 'Docs', href: '#docs' },
-       { label: 'Support', href: '#support' }
-     ],
-     auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' }
-   })" x-init="init()"></header>
-
-   <footer
-     x-data="mprFooter({
-       linksCollection: { style: 'drop-up', text: 'Built by Marco Polo Research Lab', links: footerLinks }
-     })"
-     x-init="init()"
-   ></footer>
-   <script>
-    // mpr-ui ships with the full Marco Polo Research Lab catalog by default.
-    // Override the list when you need a custom ordering or subset.
-   const footerLinks = [
-      { label: "Marco Polo Research Lab", url: "https://mprlab.com" },
-      { label: "Gravity Notes", url: "https://gravity.mprlab.com" },
-      { label: "LoopAware", url: "https://loopaware.mprlab.com" },
-      { label: "Allergy Wheel", url: "https://allergy.mprlab.com" },
-      { label: "Social Threader", url: "https://threader.mprlab.com" },
-      { label: "RSVP", url: "https://rsvp.mprlab.com" },
-      { label: "Countdown Calendar", url: "https://countdown.mprlab.com" },
-      { label: "LLM Crossword", url: "https://llm-crossword.mprlab.com" },
-      { label: "Prompt Bubbles", url: "https://prompts.mprlab.com" },
-      { label: "Wallpapers", url: "https://wallpapers.mprlab.com" },
-   ];
-  </script>
-  ```
-  `linksCollection` controls whether the drop-up renders. Provide `{ style: "drop-up", text: "...", links: [...] }` for menus, or omit the option entirely to show the static text only (the default is now a text-only footer).
-  Use `privacy-modal-content="..."` to mount the provided HTML inside a full-screen modal when the privacy link is activated; omit the attribute to keep the privacy link as a regular anchor.
-
-   Provide your Google Identity Services client ID via `siteId`; the header auto-initializes the GIS button and falls back to our demo ID when the value is omitted.
-
-   Prefer an imperative call? Mount the same components with `MPRUI.renderSiteHeader(hostElement, options)` and `MPRUI.renderFooter(hostElement, options)`.
-
-3. **Go declarative** — drop the custom elements directly into your markup when you don’t need Alpine or imperative wiring.
+2. **Drop the custom elements** — compose pages declaratively with `<mpr-header>`, `<mpr-footer>`, `<mpr-theme-toggle>`, and friends:
 
    ```html
    <mpr-header
@@ -85,28 +42,50 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
      login-path="/auth/google"
      logout-path="/auth/logout"
      nonce-path="/auth/nonce"
+     theme-config='{"initialMode":"dark","targets":["body"],"attribute":"data-demo-theme"}'
    ></mpr-header>
 
-   <mpr-footer prefix-text="Built by"></mpr-footer>
+   <mpr-footer
+     prefix-text="Built by Marco Polo Research Lab"
+     privacy-link-label="Privacy &amp; Terms"
+     privacy-modal-content="<p>Privacy copy...</p>"
+     links-collection='{"style":"drop-up","text":"Explore","links":[{ "label": "Docs", "url": "#docs" }]}'
+   ></mpr-footer>
+
    <mpr-theme-toggle></mpr-theme-toggle>
    <mpr-login-button site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"></mpr-login-button>
    <mpr-settings label="Settings"></mpr-settings>
    <mpr-sites heading="Explore"></mpr-sites>
    ```
 
-   Custom elements wrap the same helpers under the hood, so events (`mpr-ui:auth:*`, `mpr-ui:theme-change`, etc.) and dataset attributes stay identical across all integration styles.
+   Each element reflects attributes to props, dispatches `mpr-ui:*` events, and accepts slots so you stay declarative even when you need custom markup.
 
-## Components
+3. **Opt into imperative/Alpine helpers when necessary** — the legacy factories still exist for teams that need lifecycle hooks or fine-grained control:
 
-- **Site Header** — sticky banner with auth controls and a settings trigger (theme toggles now live in the footer).
-- **Footer** — sticky footer with prefix dropdown menu, privacy link, and theme toggle.
-- **Auth Header (experimental)** — helper that orchestrates Google Identity Services login flows for standalone front-ends.
-- **Legacy footer bundle** — see [`footer.js`](footer.js) if you need dropdown/theme toggle support absent from the current bundle.
-- **Theme Toggle** — reusable switch/button UI for cycling the global theme manager via `MPRUI.renderThemeToggle()` or the Alpine-friendly `MPRUI.mprThemeToggle()` factory.
+   ```html
+   <header x-data="mprSiteHeader({ brand: { label: 'Marco Polo Research Lab', href: '/' } })" x-init="init()"></header>
+   <footer x-data="mprFooter({ linksCollection: { style: 'drop-up', text: 'Built by', links: footerLinks } })" x-init="init()"></footer>
+   <script>
+     const footerLinks = MPRUI.getFooterSiteCatalog();
+   </script>
+   ```
 
-## Custom Elements
+   Prefer custom elements for new work; use `MPRUI.renderSiteHeader(...)` / `mprSiteHeader(...)` only when a host framework requires programmatic mounting.
 
-Prefer zero-JS integration? Use the built-in custom elements — they wrap the existing helpers and accept HTML attributes for all the documented options:
+## Components (Custom Elements First)
+
+Every UI surface is primarily a custom element. The list below maps directly to the `<mpr-*>` tags you can use declaratively:
+
+- `<mpr-header>` — sticky banner with brand, nav, GIS auth, and settings trigger.
+- `<mpr-footer>` — marketing footer with prefix dropdown menu, privacy link, and theme toggle.
+- `<mpr-theme-toggle>` — shared switch/button that talks to the global theme manager.
+- `<mpr-login-button>` — GIS-only control for contexts that do not need the full header.
+- `<mpr-settings>` — emits toggle events so you can wire your own modal/drawer.
+- `<mpr-sites>` — renders the Marco Polo Research Lab network or any JSON catalog you provide.
+
+Legacy bundles (`footer.js`) and imperative helpers still ship for compatibility, but the documented API mirrors the tags above. See the example below for a slot-heavy declarative configuration.
+
+### Custom element example
 
 ```html
 <mpr-header
@@ -174,6 +153,10 @@ Slots let you inject custom markup without leaving declarative mode:
 - Login button inherits the global `mpr-ui:auth:*` events dispatched by `createAuthHeader` and emits `mpr-login:error` when GIS cannot load, so you can listen for authentication without writing any extra glue.
 
 Custom elements re-dispatch the same events as the imperative helpers, so you can mix declarative and programmatic integrations on the same page. See [`docs/custom-elements.md`](docs/custom-elements.md) for a deep-dive covering attribute shapes, events, and migration tips (Alpine → custom elements).
+
+### Optional helpers
+
+Need lifecycle hooks or a framework-driven mount? Call `MPRUI.renderSiteHeader(...)`, `MPRUI.renderFooter(...)`, or the Alpine factories (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, etc.). Those helpers accept the same option objects that the elements serialize via attributes, so switching between styles is mechanical. See [`docs/alpine.js.md`](docs/alpine.js.md) for patterns that justify imperative wiring.
 
 ## Demo
 
