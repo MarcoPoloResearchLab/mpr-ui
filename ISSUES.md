@@ -70,7 +70,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 - [x] [MU-313] Footer privacy modal crashes when `privacyModalContent` is provided because `setAttribute(" tabindex","0")` throws `InvalidCharacterError`, preventing modal wiring.
   - Centralized the privacy link interactivity toggle helper so it sets `role="button"` and `tabindex="0"` with trimmed attribute names, and added unit coverage to guard against regressions.
 - [ ] [MU-314] Remove the theme switcher from the header. There must be only one theme switcher.
-- [ ] [MU-315] Clicking on Privacy and Terms must open a modal window with the provided markup. It doesnt now.
+- [x] [MU-315] Clicking on Privacy and Terms must open a modal window with the provided markup. It doesnt now.
+  - Verified the existing footer modal wiring; Playwright and manual checks show `data-mpr-modal-open="true"` after activation and no code changes were necessary (no-op).
 - [ ] [MU-316] Switching between the themes does not change the color of the body of the page. It should.
 
 ## Maintenance (405–499)
