@@ -15,6 +15,9 @@ const SELECTORS = Object.freeze({
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerDropupButton: '[data-mpr-footer="toggle-button"]',
   footerMenu: '[data-mpr-footer="menu"]',
+  privacyLink: '[data-mpr-footer="privacy-link"]',
+  privacyModal: '[data-mpr-footer="privacy-modal"]',
+  privacyModalClose: '[data-mpr-footer="privacy-modal-close"]',
 });
 
 const LOCAL_ASSETS = Object.freeze({

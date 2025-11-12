@@ -300,7 +300,11 @@ test('shared DOM helpers mount header and footer markup', () => {
       ],
       initialMode: 'light',
     },
-    links: [{ label: 'Marco Polo Research Lab', url: 'https://mprlab.com' }],
+    linksCollection: {
+      style: 'drop-up',
+      text: 'Built by Marco Polo Research Lab',
+      links: [{ label: 'Marco Polo Research Lab', url: 'https://mprlab.com' }],
+    },
   };
   const footerRoot = mountFooterDom(footerHost, footerConfig);
   assert.ok(

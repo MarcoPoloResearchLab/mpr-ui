@@ -439,7 +439,8 @@ function createHeaderElementHarness() {
   };
 }
 
-function createFooterElementHarness() {
+function createFooterElementHarness(options) {
+  const settings = Object.assign({ includeMenu: true }, options);
   const FooterElement = global.customElements.get('mpr-footer');
   assert.ok(FooterElement, 'mpr-footer is defined');
 
@@ -448,8 +449,8 @@ function createFooterElementHarness() {
   const layout = createStubNode({});
   const brandContainer = createStubNode({});
   const prefix = createStubNode({});
-  const menuWrapper = createStubNode({});
-  const menu = createStubNode({});
+  const menuWrapper = settings.includeMenu ? createStubNode({}) : null;
+  const menu = settings.includeMenu ? createStubNode({}) : null;
   const toggleButton = createStubNode({ attributes: true, supportsEvents: true });
   const themeToggleHost = createStubNode({});
   const privacyLink = createStubNode({ attributes: true });
@@ -460,12 +461,14 @@ function createFooterElementHarness() {
     ['[data-mpr-footer="layout"]', layout],
     ['[data-mpr-footer="brand"]', brandContainer],
     ['[data-mpr-footer="prefix"]', prefix],
-    ['[data-mpr-footer="menu-wrapper"]', menuWrapper],
-    ['[data-mpr-footer="menu"]', menu],
     ['[data-mpr-footer="toggle-button"]', toggleButton],
     ['[data-mpr-footer="theme-toggle"]', themeToggleHost],
     ['[data-mpr-footer="privacy-link"]', privacyLink],
   ]);
+  if (settings.includeMenu) {
+    selectorMap.set('[data-mpr-footer="menu-wrapper"]', menuWrapper);
+    selectorMap.set('[data-mpr-footer="menu"]', menu);
+  }
 
   root.querySelector = function query(selector) {
     return selectorMap.has(selector) ? selectorMap.get(selector) : null;
@@ -480,8 +483,8 @@ function createFooterElementHarness() {
     layout,
     brandContainer,
     prefix,
-    menu,
-    menuWrapper,
+    menu: settings.includeMenu ? menu : null,
+    menuWrapper: settings.includeMenu ? menuWrapper : null,
     privacyLink,
     selectorMap,
   };
@@ -668,15 +671,24 @@ test('mpr-footer reflects attributes and slot content', () => {
   footerElement.setAttribute('privacy-link-label', 'Policy Center');
   footerElement.setAttribute('toggle-label', 'Sites');
   footerElement.setAttribute(
-    'links',
-    JSON.stringify([{ label: 'Docs', url: '#docs' }]),
+    'links-collection',
+    JSON.stringify({
+      style: 'drop-up',
+      text: 'Crafted by',
+      links: [{ label: 'Docs', url: '#docs' }],
+    }),
   );
+  footerElement.setAttribute('privacy-modal-content', '<p>Policy</p>');
 
   footerElement.connectedCallback();
 
   assert.equal(footerElement.attributes['prefix-text'], 'Crafted by');
   assert.equal(footerElement.getAttribute('prefix-text'), 'Crafted by');
   assert.equal(footerElement.dataset.prefixText, 'Crafted by');
+  assert.ok(
+    footerElement.dataset.linksCollection,
+    'links-collection attribute should reflect into dataset',
+  );
   const controllerConfig =
     footerElement.__footerController &&
     footerElement.__footerController.getConfig
@@ -692,6 +704,16 @@ test('mpr-footer reflects attributes and slot content', () => {
     controllerConfig && controllerConfig.links,
     [{ label: 'Docs', url: '#docs', target: '_blank', rel: 'noopener noreferrer' }],
     'links attribute parsed into controller config',
+  );
+  assert.equal(
+    controllerConfig && controllerConfig.privacyModalContent,
+    '<p>Policy</p>',
+    'privacy modal content reflected into controller config',
+  );
+  assert.strictEqual(
+    controllerConfig && controllerConfig.linksMenuEnabled,
+    true,
+    'linksCollection should enable the drop-up by default',
   );
   footerElement.setAttribute('prefix-text', 'Updated by');
   const updatedConfig =
@@ -715,6 +737,36 @@ test('mpr-footer reflects attributes and slot content', () => {
   assert.ok(
     harness.layout.children.indexOf(legalSlot) !== -1,
     'legal slot appended to layout container',
+  );
+});
+
+test('mpr-footer renders static text when links collection is missing', () => {
+  resetEnvironment();
+  loadLibrary();
+  const harness = createFooterElementHarness({ includeMenu: false });
+  const footerElement = harness.element;
+  footerElement.connectedCallback();
+
+  const controllerConfig =
+    footerElement.__footerController &&
+    footerElement.__footerController.getConfig
+      ? footerElement.__footerController.getConfig()
+      : null;
+
+  assert.ok(controllerConfig, 'controller config should be available');
+  assert.strictEqual(
+    controllerConfig.linksMenuEnabled,
+    false,
+    'links menu should be disabled when no collection is provided',
+  );
+  assert.deepEqual(
+    controllerConfig.links,
+    [],
+    'no links should be rendered when the collection is missing',
+  );
+  assert.ok(
+    controllerConfig.prefixText && controllerConfig.prefixText.length > 0,
+    'prefix text should still render when the menu is disabled',
   );
 });
 

@@ -44,7 +44,12 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
      auth: { loginPath: '/auth/google', logoutPath: '/auth/logout', noncePath: '/auth/nonce' }
    })" x-init="init()"></header>
 
-   <footer x-data="mprFooter({ prefixText: 'Built by', links: footerLinks })" x-init="init()"></footer>
+   <footer
+     x-data="mprFooter({
+       linksCollection: { style: 'drop-up', text: 'Built by Marco Polo Research Lab', links: footerLinks }
+     })"
+     x-init="init()"
+   ></footer>
    <script>
     // mpr-ui ships with the full Marco Polo Research Lab catalog by default.
     // Override the list when you need a custom ordering or subset.
@@ -62,6 +67,8 @@ Reusable UI components for Marco Polo Research Lab projects, delivered as a sing
    ];
   </script>
   ```
+  `linksCollection` controls whether the drop-up renders. Provide `{ style: "drop-up", text: "...", links: [...] }` for menus, or omit the option entirely to show the static text only (the default is now a text-only footer).
+  Use `privacy-modal-content="..."` to mount the provided HTML inside a full-screen modal when the privacy link is activated; omit the attribute to keep the privacy link as a regular anchor.
 
    Provide your Google Identity Services client ID via `siteId`; the header auto-initializes the GIS button and falls back to our demo ID when the value is omitted.
 
@@ -118,7 +125,11 @@ Prefer zero-JS integration? Use the built-in custom elements — they wrap the e
 <mpr-footer
   prefix-text="Built with"
   privacy-link-label="Privacy &amp; Terms"
-  links='[{ "label": "Docs", "url": "#docs" }]'
+  privacy-modal-content="
+    <h1>Privacy Policy — MPR UI</h1>
+    <p>LoopAware uses Google Identity Services to authenticate users...</p>
+  "
+  links-collection='{"style":"drop-up","text":"Built by Marco Polo Research Lab","links":[{ "label": "Docs", "url": "#docs" }]}'
 >
   <span slot="menu-prefix">Explore</span>
   <a slot="menu-links" href="https://mprlab.com" target="_blank" rel="noopener noreferrer">
@@ -150,7 +161,7 @@ Prefer zero-JS integration? Use the built-in custom elements — they wrap the e
 | Element | Primary attributes | Slots | Key events |
 | --- | --- | --- | --- |
 | `<mpr-header>` | `brand-label`, `nav-links`, `site-id`, `login-path`, `logout-path`, `nonce-path`, `theme-config`, `settings-label`, `settings-enabled`, `sign-in-label`, `sign-out-label` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
-| `<mpr-footer>` | `prefix-text`, `links`, `toggle-label`, `privacy-link-label`, `privacy-link-href`, `theme-config`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
+| `<mpr-footer>` | `prefix-text`, `links-collection` (JSON with `{ style, text, links }`), legacy `links`, `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-config`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
 | `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`, `theme-mode` | — | `mpr-ui:theme-change` |
 | `<mpr-login-button>` | `site-id`, `login-path`, `logout-path`, `nonce-path`, `base-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
 | `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |

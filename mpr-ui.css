@@ -264,6 +264,7 @@ input[type="checkbox"][data-mpr-theme-toggle="control"] {
   --mpr-theme-toggle-track-height: 24px;
   --mpr-theme-toggle-knob-size: 18px;
   --mpr-theme-toggle-offset: 2px;
+  --mpr-theme-toggle-border: 1px;
   --mpr-theme-toggle-travel: calc(
     var(--mpr-theme-toggle-track-width) - var(--mpr-theme-toggle-knob-size) -
     (var(--mpr-theme-toggle-offset) * 2)
@@ -278,7 +279,7 @@ input[type="checkbox"][data-mpr-theme-toggle="control"] {
   border-radius: calc(var(--mpr-theme-toggle-track-height) / 2);
   cursor: pointer;
   transition: background 0.3s ease;
-  border: 1px solid var(--mpr-color-border, rgba(148, 163, 184, 0.35));
+  border: var(--mpr-theme-toggle-border) solid var(--mpr-color-border, rgba(148, 163, 184, 0.35));
   box-sizing: border-box;
 }
 
@@ -296,7 +297,7 @@ input[type="checkbox"][data-mpr-theme-toggle="control"]::before {
   height: var(--mpr-theme-toggle-knob-size);
   background: white;
   border-radius: 50%;
-  transition: transform 0.3s ease, background 0.3s ease;
+  transition: transform 0.2s ease-out, background 0.3s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 
@@ -325,4 +326,60 @@ footer.mpr-footer [data-mpr-footer="brand"] {
   gap: 0.75rem;
   font-size: 0.95rem;
   margin-left: auto;
+}
+
+footer.mpr-footer [data-mpr-footer="privacy-modal"] {
+  position: fixed;
+  inset: 0;
+  z-index: 2000;
+  display: none;
+}
+
+footer.mpr-footer [data-mpr-footer="privacy-modal"][data-mpr-modal-open="true"] {
+  display: block;
+}
+
+footer.mpr-footer [data-mpr-footer="privacy-modal-backdrop"] {
+  position: absolute;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.85);
+  backdrop-filter: blur(6px);
+}
+
+footer.mpr-footer [data-mpr-footer="privacy-modal-dialog"] {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: min(720px, 90vw);
+  max-height: 85vh;
+  background: var(--mpr-color-surface-elevated, rgba(15, 23, 42, 0.98));
+  color: var(--mpr-color-text-primary, #e2e8f0);
+  border-radius: 1rem;
+  padding: 2rem;
+  overflow-y: auto;
+  box-shadow: var(--mpr-shadow-flyout, 0 16px 32px rgba(15, 23, 42, 0.18));
+}
+
+footer.mpr-footer [data-mpr-footer="privacy-modal-close"] {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  background: transparent;
+  border: none;
+  color: inherit;
+  font-size: 1.5rem;
+  cursor: pointer;
+}
+
+footer.mpr-footer [data-mpr-footer="privacy-modal-content"] {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (max-width: 640px) {
+  footer.mpr-footer [data-mpr-footer="privacy-modal-dialog"] {
+    padding: 1.25rem;
+  }
 }

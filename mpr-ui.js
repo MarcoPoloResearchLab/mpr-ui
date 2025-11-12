@@ -207,8 +207,10 @@
     "privacy-link-class": "privacyLinkClass",
     "privacy-link-href": "privacyLinkHref",
     "privacy-link-label": "privacyLinkLabel",
+    "privacy-modal-content": "privacyModalContent",
     "theme-config": "themeToggle",
     "theme-mode": "themeMode",
+    "links-collection": "linksCollection",
     links: "links",
   });
 
@@ -1236,6 +1238,94 @@
       ? config.modes
       : DEFAULT_THEME_MODES.slice();
 
+    function resolveToggleTravel() {
+      try {
+        if (
+          !controlElement ||
+          typeof controlElement.getBoundingClientRect !== "function"
+        ) {
+          return;
+        }
+        var rect = controlElement.getBoundingClientRect();
+        if (!rect || !rect.width) {
+          return;
+        }
+        var ownerDocument = controlElement.ownerDocument;
+        var ownerWindow =
+          ownerDocument && ownerDocument.defaultView
+            ? ownerDocument.defaultView
+            : null;
+        if (!ownerWindow || typeof ownerWindow.getComputedStyle !== "function") {
+          return;
+        }
+        var computed = ownerWindow.getComputedStyle(controlElement);
+        var offsetRaw = computed
+          ? computed.getPropertyValue("--mpr-theme-toggle-offset")
+          : null;
+        var borderRaw = computed
+          ? computed.getPropertyValue("border-left-width")
+          : null;
+        var offsetValue = parseFloat(offsetRaw);
+        if (!isFinite(offsetValue)) {
+          offsetValue = 0;
+        }
+        var pseudo = ownerWindow.getComputedStyle(
+          controlElement,
+          "::before",
+        );
+        var knobWidth = pseudo
+          ? parseFloat(pseudo.getPropertyValue("width"))
+          : NaN;
+        if (!isFinite(knobWidth)) {
+          knobWidth = 0;
+        }
+        var travel = rect.width - knobWidth - offsetValue * 2;
+        if (
+          controlElement.style &&
+          typeof controlElement.style.setProperty === "function"
+        ) {
+          if (travel > 0) {
+            controlElement.style.setProperty(
+              "--mpr-theme-toggle-travel",
+              travel + "px",
+            );
+          } else if (
+            typeof controlElement.style.removeProperty === "function"
+          ) {
+            controlElement.style.removeProperty(
+              "--mpr-theme-toggle-travel",
+            );
+          }
+        }
+      } catch (_error) {}
+    }
+
+    var rafId = null;
+    var travelTimeout = null;
+    function scheduleTravelMeasurement() {
+      if (ownerWindow && typeof ownerWindow.requestAnimationFrame === "function") {
+        rafId = ownerWindow.requestAnimationFrame(function measureOnFrame() {
+          resolveToggleTravel();
+        });
+      } else {
+        travelTimeout = setTimeout(resolveToggleTravel, 16);
+      }
+    }
+
+    resolveToggleTravel();
+
+    var ownerWindow =
+      controlElement.ownerDocument && controlElement.ownerDocument.defaultView
+        ? controlElement.ownerDocument.defaultView
+        : null;
+    scheduleTravelMeasurement();
+    var travelResizeHandler = function handleToggleResize() {
+      resolveToggleTravel();
+    };
+    if (ownerWindow && typeof ownerWindow.addEventListener === "function") {
+      ownerWindow.addEventListener("resize", travelResizeHandler);
+    }
+
     function syncToggleUi(modeValue) {
       var modeIndex = getThemeToggleModeIndex(currentModes, modeValue);
       var resolvedMode = modeValue;
@@ -1297,7 +1387,24 @@
       syncToggleUi(detail.mode);
     });
     return function cleanupThemeToggle() {
-      controlElement.removeEventListener("click", handleActivation);
+      if (rafId !== null && ownerWindow && typeof ownerWindow.cancelAnimationFrame === "function") {
+        ownerWindow.cancelAnimationFrame(rafId);
+      }
+      if (travelTimeout !== null) {
+        clearTimeout(travelTimeout);
+      }
+      if (controlElement) {
+        controlElement.removeEventListener("click", handleActivation);
+        if (
+          controlElement.style &&
+          typeof controlElement.style.removeProperty === "function"
+        ) {
+          controlElement.style.removeProperty("--mpr-theme-toggle-travel");
+        }
+      }
+      if (ownerWindow && typeof ownerWindow.removeEventListener === "function") {
+        ownerWindow.removeEventListener("resize", travelResizeHandler);
+      }
       unsubscribe();
     };
   }
@@ -3287,6 +3394,7 @@
     privacyLinkClass: "mpr-footer__privacy",
     privacyLinkHref: "#",
     privacyLinkLabel: "Privacy • Terms",
+    privacyModalContent: "",
     themeToggle: Object.freeze({
       enabled: true,
       label: "Build by Marco Polo Research Lab",
@@ -3296,7 +3404,8 @@
       inputId: "mpr-footer-theme-toggle",
       ariaLabel: "Toggle theme",
     }),
-    links: FOOTER_LINK_CATALOG,
+    links: [],
+    linksCollection: null,
   });
 
   function ensureFooterStyles(documentObject) {
@@ -3376,6 +3485,26 @@
       .filter(Boolean);
   }
 
+  function normalizeFooterLinksCollection(candidateCollection) {
+    if (!candidateCollection || typeof candidateCollection !== "object") {
+      return null;
+    }
+    var style =
+      typeof candidateCollection.style === "string" && candidateCollection.style.trim()
+        ? candidateCollection.style.trim().toLowerCase()
+        : "drop-up";
+    var text =
+      typeof candidateCollection.text === "string" && candidateCollection.text.trim()
+        ? candidateCollection.text.trim()
+        : "";
+    var links = normalizeFooterLinks(candidateCollection.links);
+    return {
+      style: style,
+      text: text,
+      links: links,
+    };
+  }
+
   function normalizeFooterThemeToggle(themeToggleInput) {
     var mergedToggle = mergeFooterObjects(
       {},
@@ -3416,6 +3545,9 @@
   function normalizeFooterConfig() {
     var providedConfigs = Array.prototype.slice.call(arguments);
     var mergedConfig = mergeFooterObjects({}, FOOTER_DEFAULTS);
+    var hasExplicitPrefix = providedConfigs.some(function hasPrefix(candidate) {
+      return candidate && typeof candidate.prefixText === "string";
+    });
     providedConfigs.forEach(function apply(config) {
       if (!config || typeof config !== "object") {
         return;
@@ -3430,14 +3562,54 @@
         return current;
       }, mergedConfig.themeToggle),
     );
-    mergedConfig.links = normalizeFooterLinks(
-      providedConfigs.reduce(function reduceLinks(current, candidate) {
-        if (candidate && typeof candidate === "object" && Array.isArray(candidate.links)) {
-          return candidate.links;
-        }
-        return current;
-      }, mergedConfig.links),
-    );
+
+    var resolvedLegacyLinks = providedConfigs.reduce(function reduceLinks(current, candidate) {
+      if (candidate && typeof candidate === "object" && Array.isArray(candidate.links)) {
+        return candidate.links;
+      }
+      return current;
+    }, mergedConfig.links);
+    var resolvedCollection = providedConfigs.reduce(function reduceCollection(current, candidate) {
+      if (candidate && typeof candidate === "object" && candidate.linksCollection) {
+        return candidate.linksCollection;
+      }
+      return current;
+    }, mergedConfig.linksCollection);
+
+    var normalizedCollection = normalizeFooterLinksCollection(resolvedCollection);
+    var legacyLinks = normalizeFooterLinks(resolvedLegacyLinks);
+    var collectionHasLinks =
+      normalizedCollection && Array.isArray(normalizedCollection.links)
+        ? normalizedCollection.links.length > 0
+        : false;
+    mergedConfig.links = collectionHasLinks ? normalizedCollection.links : legacyLinks;
+    mergedConfig.linksCollection = normalizedCollection;
+    mergedConfig.linksMenuEnabled = mergedConfig.links.length > 0;
+    mergedConfig.privacyModalContent =
+      typeof mergedConfig.privacyModalContent === "string" &&
+      mergedConfig.privacyModalContent.trim()
+        ? mergedConfig.privacyModalContent.trim()
+        : "";
+
+    if (normalizedCollection && normalizedCollection.text) {
+      if (!hasExplicitPrefix) {
+        mergedConfig.prefixText = normalizedCollection.text;
+      }
+      if (mergedConfig.linksMenuEnabled) {
+        mergedConfig.toggleLabel = normalizedCollection.text;
+      }
+    }
+    if (!mergedConfig.linksMenuEnabled) {
+      mergedConfig.links = [];
+      if (
+        !hasExplicitPrefix &&
+        (!mergedConfig.prefixText ||
+          (typeof mergedConfig.prefixText === "string" && !mergedConfig.prefixText.trim()))
+      ) {
+        mergedConfig.prefixText = FOOTER_DEFAULTS.toggleLabel;
+      }
+    }
+
     return mergedConfig;
   }
 
@@ -3569,11 +3741,24 @@
         ' aria-hidden="true"></span>'
       : "";
 
-    var dropdownMarkup =
-      '<div data-mpr-footer="menu-wrapper">' +
-      '<button type="button" data-mpr-footer="toggle-button" aria-haspopup="true" aria-expanded="false"></button>' +
-      '<ul data-mpr-footer="menu"></ul>' +
-      "</div>";
+    var dropdownMarkup = config.linksMenuEnabled
+      ? '<div data-mpr-footer="menu-wrapper">' +
+        '<button type="button" data-mpr-footer="toggle-button" aria-haspopup="true" aria-expanded="false"></button>' +
+        '<ul data-mpr-footer="menu"></ul>' +
+        "</div>"
+      : "";
+
+    var modalMarkup = config.privacyModalContent
+      ? '<div data-mpr-footer="privacy-modal" aria-hidden="true" data-mpr-modal-open="false">' +
+        '<div data-mpr-footer="privacy-modal-backdrop"></div>' +
+        '<div data-mpr-footer="privacy-modal-dialog" role="dialog" aria-modal="true" tabindex="-1">' +
+        '<button type="button" data-mpr-footer="privacy-modal-close" aria-label="Close">&times;</button>' +
+        '<div data-mpr-footer="privacy-modal-content">' +
+        config.privacyModalContent +
+        "</div>" +
+        "</div>" +
+        "</div>"
+      : "";
 
     var layoutMarkup =
       '<div data-mpr-footer="layout">' +
@@ -3592,6 +3777,7 @@
       '<footer role="contentinfo" data-mpr-footer="root">' +
       '<div data-mpr-footer="inner">' +
       layoutMarkup +
+      modalMarkup +
       "</div>" +
       "</footer>"
     );
@@ -3610,7 +3796,27 @@
     return footerRoot;
   }
 
-  function updateFooterPrivacy(containerElement, config) {
+  var FOOTER_PRIVACY_INTERACTIVE_ROLE = "button";
+  var FOOTER_PRIVACY_TABINDEX_ATTRIBUTE = "tabindex";
+  var FOOTER_PRIVACY_TAB_INDEX_VALUE = "0";
+
+  function toggleFooterPrivacyInteractivity(anchorElement, enabled) {
+    if (!anchorElement) {
+      return;
+    }
+    if (enabled) {
+      anchorElement.setAttribute("role", FOOTER_PRIVACY_INTERACTIVE_ROLE);
+      anchorElement.setAttribute(
+        FOOTER_PRIVACY_TABINDEX_ATTRIBUTE,
+        FOOTER_PRIVACY_TAB_INDEX_VALUE,
+      );
+      return;
+    }
+    anchorElement.removeAttribute("role");
+    anchorElement.removeAttribute(FOOTER_PRIVACY_TABINDEX_ATTRIBUTE);
+  }
+
+  function updateFooterPrivacy(containerElement, config, modalControls) {
     var privacyAnchor = footerQuery(containerElement, '[data-mpr-footer="privacy-link"]');
     if (!privacyAnchor) {
       return;
@@ -3624,6 +3830,7 @@
     if (config.privacyLinkLabel) {
       privacyAnchor.textContent = config.privacyLinkLabel;
     }
+    toggleFooterPrivacyInteractivity(privacyAnchor, Boolean(modalControls));
   }
 
   function updateFooterPrefix(containerElement, config) {
@@ -3774,12 +3981,18 @@
     if (dataset.privacyLinkLabel) {
       options.privacyLinkLabel = dataset.privacyLinkLabel;
     }
+    if (dataset.privacyModalContent) {
+      options.privacyModalContent = dataset.privacyModalContent;
+    }
     if (dataset.themeToggle) {
       options.themeToggle = parseJsonValue(dataset.themeToggle, {});
     }
     if (dataset.themeMode) {
       options.themeToggle = options.themeToggle || {};
       options.themeToggle.mode = dataset.themeMode;
+    }
+    if (dataset.linksCollection) {
+      options.linksCollection = parseJsonValue(dataset.linksCollection, {});
     }
     if (dataset.links) {
       options.links = parseJsonValue(dataset.links, []);
@@ -3813,6 +4026,149 @@
       toggleButton.removeEventListener("click", toggleHandler);
       menuElement.classList.remove(openClass);
       toggleButton.setAttribute("aria-expanded", "false");
+    };
+  }
+
+  function initializeFooterPrivacyModal(containerElement, config) {
+    if (
+      !config ||
+      !config.privacyModalContent ||
+      typeof config.privacyModalContent !== "string"
+    ) {
+      return null;
+    }
+    var modalElement = footerQuery(containerElement, '[data-mpr-footer="privacy-modal"]');
+    var dialogElement = footerQuery(modalElement, '[data-mpr-footer="privacy-modal-dialog"]');
+    var closeButton = footerQuery(modalElement, '[data-mpr-footer="privacy-modal-close"]');
+    var backdropElement = footerQuery(modalElement, '[data-mpr-footer="privacy-modal-backdrop"]');
+    var privacyLink = footerQuery(containerElement, '[data-mpr-footer="privacy-link"]');
+    if (
+      !modalElement ||
+      !dialogElement ||
+      !privacyLink ||
+      typeof privacyLink.addEventListener !== "function"
+    ) {
+      return null;
+    }
+    if (!dialogElement.hasAttribute("tabindex")) {
+      dialogElement.setAttribute("tabindex", "-1");
+    }
+    modalElement.setAttribute("aria-hidden", "true");
+    modalElement.setAttribute("data-mpr-modal-open", "false");
+    var previousFocus = null;
+    var previousOverflow = null;
+
+    function lockScroll() {
+      if (!global.document || !global.document.body) {
+        return;
+      }
+      if (previousOverflow === null) {
+        previousOverflow =
+          typeof global.document.body.style.overflow === "string"
+            ? global.document.body.style.overflow
+            : "";
+      }
+      global.document.body.style.overflow = "hidden";
+    }
+
+    function unlockScroll() {
+      if (!global.document || !global.document.body) {
+        return;
+      }
+      if (previousOverflow !== null) {
+        global.document.body.style.overflow = previousOverflow;
+        previousOverflow = null;
+      }
+    }
+
+    function closeModal(event) {
+      if (event && typeof event.preventDefault === "function") {
+        event.preventDefault();
+      }
+      modalElement.setAttribute("data-mpr-modal-open", "false");
+      modalElement.setAttribute("aria-hidden", "true");
+      unlockScroll();
+      if (previousFocus && typeof previousFocus.focus === "function") {
+        previousFocus.focus();
+      }
+    }
+
+    function openModal(event) {
+      if (event && typeof event.preventDefault === "function") {
+        event.preventDefault();
+      }
+      previousFocus =
+        global.document && global.document.activeElement
+          ? global.document.activeElement
+          : null;
+      modalElement.setAttribute("data-mpr-modal-open", "true");
+      modalElement.setAttribute("aria-hidden", "false");
+      lockScroll();
+      if (dialogElement && typeof dialogElement.focus === "function") {
+        dialogElement.focus();
+      }
+    }
+
+    function handleLinkKeydown(event) {
+      if (!event) {
+        return;
+      }
+      var key = event.key || event.keyCode;
+      if (
+        key === "Enter" ||
+        key === " " ||
+        key === "Spacebar" ||
+        key === 13 ||
+        key === 32
+      ) {
+        event.preventDefault();
+        openModal(event);
+      }
+    }
+
+    function handleEscape(event) {
+      if (
+        event &&
+        (event.key === "Escape" ||
+          event.key === "Esc" ||
+          event.keyCode === 27)
+      ) {
+        closeModal(event);
+      }
+    }
+
+    function handleBackdropClick(event) {
+      if (event && event.target === backdropElement) {
+        closeModal(event);
+      }
+    }
+
+    privacyLink.addEventListener("click", openModal);
+    privacyLink.addEventListener("keydown", handleLinkKeydown);
+    if (closeButton && typeof closeButton.addEventListener === "function") {
+      closeButton.addEventListener("click", closeModal);
+    }
+    if (backdropElement && typeof backdropElement.addEventListener === "function") {
+      backdropElement.addEventListener("click", handleBackdropClick);
+    }
+    if (global.document && typeof global.document.addEventListener === "function") {
+      global.document.addEventListener("keydown", handleEscape);
+    }
+
+    return function cleanupPrivacyModal() {
+      privacyLink.removeEventListener("click", openModal);
+      privacyLink.removeEventListener("keydown", handleLinkKeydown);
+      if (closeButton && typeof closeButton.removeEventListener === "function") {
+        closeButton.removeEventListener("click", closeModal);
+      }
+      if (backdropElement && typeof backdropElement.removeEventListener === "function") {
+        backdropElement.removeEventListener("click", handleBackdropClick);
+      }
+      if (global.document && typeof global.document.removeEventListener === "function") {
+        global.document.removeEventListener("keydown", handleEscape);
+      }
+      previousFocus = null;
+      closeModal();
     };
   }
 
@@ -3880,7 +4236,8 @@
         this.cleanupHandlers.push(footerThemeUnsubscribe);
 
         applyFooterStructure(footerRoot, this.config);
-        updateFooterPrivacy(footerRoot, this.config);
+        var hasPrivacyModal = Boolean(this.config.privacyModalContent);
+        updateFooterPrivacy(footerRoot, this.config, hasPrivacyModal);
         updateFooterPrefix(footerRoot, this.config);
         updateFooterToggleButton(footerRoot, this.config);
         updateFooterMenuLinks(footerRoot, this.config);
@@ -3888,6 +4245,11 @@
         var dropdownCleanup = initializeFooterDropdown(footerRoot);
         if (dropdownCleanup) {
           this.cleanupHandlers.push(dropdownCleanup);
+        }
+
+        var privacyModalCleanup = initializeFooterPrivacyModal(footerRoot, this.config);
+        if (privacyModalCleanup) {
+          this.cleanupHandlers.push(privacyModalCleanup);
         }
 
         var toggleHost = footerQuery(footerRoot, '[data-mpr-footer="theme-toggle"]');
