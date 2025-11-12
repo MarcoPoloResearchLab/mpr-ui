@@ -76,7 +76,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 Every UI surface is primarily a custom element. The list below maps directly to the `<mpr-*>` tags you can use declaratively:
 
-- `<mpr-header>` — sticky banner with brand, nav, GIS auth, and settings trigger.
+- `<mpr-header>` — sticky banner with brand, nav, GIS auth, settings trigger, and shared theme configuration hooks (no built-in toggle).
 - `<mpr-footer>` — marketing footer with prefix dropdown menu, privacy link, and theme toggle.
 - `<mpr-theme-toggle>` — shared switch/button that talks to the global theme manager.
 - `<mpr-login-button>` — GIS-only control for contexts that do not need the full header.
