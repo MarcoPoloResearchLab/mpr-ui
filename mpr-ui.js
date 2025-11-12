@@ -1238,6 +1238,94 @@
       ? config.modes
       : DEFAULT_THEME_MODES.slice();
 
+    function resolveToggleTravel() {
+      try {
+        if (
+          !controlElement ||
+          typeof controlElement.getBoundingClientRect !== "function"
+        ) {
+          return;
+        }
+        var rect = controlElement.getBoundingClientRect();
+        if (!rect || !rect.width) {
+          return;
+        }
+        var ownerDocument = controlElement.ownerDocument;
+        var ownerWindow =
+          ownerDocument && ownerDocument.defaultView
+            ? ownerDocument.defaultView
+            : null;
+        if (!ownerWindow || typeof ownerWindow.getComputedStyle !== "function") {
+          return;
+        }
+        var computed = ownerWindow.getComputedStyle(controlElement);
+        var offsetRaw = computed
+          ? computed.getPropertyValue("--mpr-theme-toggle-offset")
+          : null;
+        var borderRaw = computed
+          ? computed.getPropertyValue("border-left-width")
+          : null;
+        var offsetValue = parseFloat(offsetRaw);
+        if (!isFinite(offsetValue)) {
+          offsetValue = 0;
+        }
+        var pseudo = ownerWindow.getComputedStyle(
+          controlElement,
+          "::before",
+        );
+        var knobWidth = pseudo
+          ? parseFloat(pseudo.getPropertyValue("width"))
+          : NaN;
+        if (!isFinite(knobWidth)) {
+          knobWidth = 0;
+        }
+        var travel = rect.width - knobWidth - offsetValue * 2;
+        if (
+          controlElement.style &&
+          typeof controlElement.style.setProperty === "function"
+        ) {
+          if (travel > 0) {
+            controlElement.style.setProperty(
+              "--mpr-theme-toggle-travel",
+              travel + "px",
+            );
+          } else if (
+            typeof controlElement.style.removeProperty === "function"
+          ) {
+            controlElement.style.removeProperty(
+              "--mpr-theme-toggle-travel",
+            );
+          }
+        }
+      } catch (_error) {}
+    }
+
+    var rafId = null;
+    var travelTimeout = null;
+    function scheduleTravelMeasurement() {
+      if (ownerWindow && typeof ownerWindow.requestAnimationFrame === "function") {
+        rafId = ownerWindow.requestAnimationFrame(function measureOnFrame() {
+          resolveToggleTravel();
+        });
+      } else {
+        travelTimeout = setTimeout(resolveToggleTravel, 16);
+      }
+    }
+
+    resolveToggleTravel();
+
+    var ownerWindow =
+      controlElement.ownerDocument && controlElement.ownerDocument.defaultView
+        ? controlElement.ownerDocument.defaultView
+        : null;
+    scheduleTravelMeasurement();
+    var travelResizeHandler = function handleToggleResize() {
+      resolveToggleTravel();
+    };
+    if (ownerWindow && typeof ownerWindow.addEventListener === "function") {
+      ownerWindow.addEventListener("resize", travelResizeHandler);
+    }
+
     function syncToggleUi(modeValue) {
       var modeIndex = getThemeToggleModeIndex(currentModes, modeValue);
       var resolvedMode = modeValue;
@@ -1299,7 +1387,24 @@
       syncToggleUi(detail.mode);
     });
     return function cleanupThemeToggle() {
-      controlElement.removeEventListener("click", handleActivation);
+      if (rafId !== null && ownerWindow && typeof ownerWindow.cancelAnimationFrame === "function") {
+        ownerWindow.cancelAnimationFrame(rafId);
+      }
+      if (travelTimeout !== null) {
+        clearTimeout(travelTimeout);
+      }
+      if (controlElement) {
+        controlElement.removeEventListener("click", handleActivation);
+        if (
+          controlElement.style &&
+          typeof controlElement.style.removeProperty === "function"
+        ) {
+          controlElement.style.removeProperty("--mpr-theme-toggle-travel");
+        }
+      }
+      if (ownerWindow && typeof ownerWindow.removeEventListener === "function") {
+        ownerWindow.removeEventListener("resize", travelResizeHandler);
+      }
       unsubscribe();
     };
   }
@@ -3691,6 +3796,26 @@
     return footerRoot;
   }
 
+  var FOOTER_PRIVACY_INTERACTIVE_ROLE = "button";
+  var FOOTER_PRIVACY_TABINDEX_ATTRIBUTE = "tabindex";
+  var FOOTER_PRIVACY_TAB_INDEX_VALUE = "0";
+
+  function toggleFooterPrivacyInteractivity(anchorElement, enabled) {
+    if (!anchorElement) {
+      return;
+    }
+    if (enabled) {
+      anchorElement.setAttribute("role", FOOTER_PRIVACY_INTERACTIVE_ROLE);
+      anchorElement.setAttribute(
+        FOOTER_PRIVACY_TABINDEX_ATTRIBUTE,
+        FOOTER_PRIVACY_TAB_INDEX_VALUE,
+      );
+      return;
+    }
+    anchorElement.removeAttribute("role");
+    anchorElement.removeAttribute(FOOTER_PRIVACY_TABINDEX_ATTRIBUTE);
+  }
+
   function updateFooterPrivacy(containerElement, config, modalControls) {
     var privacyAnchor = footerQuery(containerElement, '[data-mpr-footer="privacy-link"]');
     if (!privacyAnchor) {
@@ -3705,20 +3830,7 @@
     if (config.privacyLinkLabel) {
       privacyAnchor.textContent = config.privacyLinkLabel;
     }
-    if (modalControls) {
-      privacyAnchor.setAttribute("role", "button");
-      privacyAnchor.setAttribute(" tabindex", "0");
-    } else {
-      privacyAnchor.removeAttribute("role");
-      privacyAnchor.removeAttribute("tabindex");
-    }
-    if (modalControls) {
-      privacyAnchor.setAttribute("role", "button");
-      privacyAnchor.setAttribute("tabindex", "0");
-    } else {
-      privacyAnchor.removeAttribute("role");
-      privacyAnchor.removeAttribute("tabindex");
-    }
+    toggleFooterPrivacyInteractivity(privacyAnchor, Boolean(modalControls));
   }
 
   function updateFooterPrefix(containerElement, config) {
