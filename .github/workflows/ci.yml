@@ -22,10 +22,10 @@ jobs:
           node-version: "20"
 
       - name: Install dependencies
-        run: npm install
+        run: npm ci
 
-      - name: Install Playwright browsers and system deps
-        run: npx playwright install --with-deps
+      - name: Install Playwright Chromium with system deps
+        run: npx playwright install --with-deps chromium
 
       - name: Run unit tests
         run: npm run test:unit

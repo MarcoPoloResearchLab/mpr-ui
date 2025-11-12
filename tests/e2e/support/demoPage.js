@@ -12,10 +12,12 @@ const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/index.html')).hr
 const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
   headerNavLinks: '[data-mpr-header="nav"] a',
-  headerThemeControl: '[data-mpr-header="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerDropupButton: '[data-mpr-footer="toggle-button"]',
   footerMenu: '[data-mpr-footer="menu"]',
+  privacyLink: '[data-mpr-footer="privacy-link"]',
+  privacyModal: '[data-mpr-footer="privacy-modal"]',
+  privacyModalClose: '[data-mpr-footer="privacy-modal-close"]',
 });
 
 const LOCAL_ASSETS = Object.freeze({

@@ -233,7 +233,6 @@ test('shared DOM helpers mount header and footer markup', () => {
     'header.mpr-header',
     '[data-mpr-header="nav"]',
     '[data-mpr-header="brand"]',
-    '[data-mpr-header="theme-toggle"]',
     '[data-mpr-header="google-signin"]',
     '[data-mpr-header="settings-button"]',
     '[data-mpr-header="profile"]',
@@ -248,18 +247,6 @@ test('shared DOM helpers mount header and footer markup', () => {
     brand: { label: 'Demo', href: '/' },
     navLinks: [],
     settings: { enabled: true, label: 'Settings' },
-    themeToggle: {
-      enabled: true,
-      label: 'Theme',
-      ariaLabel: 'Toggle theme',
-      attribute: 'data-mpr-theme',
-      targets: ['document'],
-      modes: [
-        { value: 'light', attributeValue: 'light', classList: [], dataset: {} },
-        { value: 'dark', attributeValue: 'dark', classList: [], dataset: {} },
-      ],
-      initialMode: 'light',
-    },
     signInLabel: 'Sign in',
     signOutLabel: 'Sign out',
     profileLabel: 'Signed in as',
@@ -313,7 +300,11 @@ test('shared DOM helpers mount header and footer markup', () => {
       ],
       initialMode: 'light',
     },
-    links: [{ label: 'Marco Polo Research Lab', url: 'https://mprlab.com' }],
+    linksCollection: {
+      style: 'drop-up',
+      text: 'Built by Marco Polo Research Lab',
+      links: [{ label: 'Marco Polo Research Lab', url: 'https://mprlab.com' }],
+    },
   };
   const footerRoot = mountFooterDom(footerHost, footerConfig);
   assert.ok(
