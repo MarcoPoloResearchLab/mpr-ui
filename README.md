@@ -103,6 +103,7 @@ Legacy bundles (`footer.js`) and imperative helpers still ship for compatibility
 
 <mpr-footer
   prefix-text="Built with"
+  theme-switcher="toggle"
   privacy-link-label="Privacy &amp; Terms"
   privacy-modal-content="
     <h1>Privacy Policy — MPR UI</h1>
@@ -140,7 +141,7 @@ Legacy bundles (`footer.js`) and imperative helpers still ship for compatibility
 | Element | Primary attributes | Slots | Key events |
 | --- | --- | --- | --- |
 | `<mpr-header>` | `brand-label`, `nav-links`, `site-id`, `login-path`, `logout-path`, `nonce-path`, `theme-config`, `settings-label`, `settings-enabled`, `sign-in-label`, `sign-out-label` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
-| `<mpr-footer>` | `prefix-text`, `links-collection` (JSON with `{ style, text, links }`), legacy `links`, `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-config`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
+| `<mpr-footer>` | `prefix-text`, `links-collection` (JSON with `{ style, text, links }`), legacy `links`, `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-switcher`, `theme-config`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
 | `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`, `theme-mode` | — | `mpr-ui:theme-change` |
 | `<mpr-login-button>` | `site-id`, `login-path`, `logout-path`, `nonce-path`, `base-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
 | `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |
@@ -193,6 +194,30 @@ Need lifecycle hooks or a framework-driven mount? Call `MPRUI.renderSiteHeader(.
   - `MPRUI.setThemeMode("dark")`
   - `MPRUI.getThemeMode()`
   - `MPRUI.onThemeChange(listener)` (returns an unsubscribe function)
+
+### Footer Theme Switcher Styles
+
+- `<mpr-footer>` renders no toggle unless you specify `theme-switcher`. Use `theme-switcher="toggle"` for the classic pill switch or `theme-switcher="square"` for the quadrant palette picker inspired by `q.html`.
+- Square mode expects up to four `theme-config.modes` entries so each quadrant maps to a combined palette + light/dark state. Populate `dataset` to stamp palette attributes/classes onto the body (the theme manager copies every `data-*` entry to each target).
+
+```html
+<mpr-footer
+  theme-switcher="square"
+  theme-config='{
+    "attribute":"data-demo-theme",
+    "targets":["body"],
+    "initialMode":"default-light",
+    "modes":[
+      { "value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"} },
+      { "value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"} },
+      { "value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"} },
+      { "value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"} }
+    ]
+  }'
+></mpr-footer>
+```
+
+Override the CSS custom properties `--mpr-theme-square-quad-{0..3}` or the dot colours to align the quadrant preview with your palettes.
 
 ## Configure and Extend
 
