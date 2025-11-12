@@ -64,7 +64,7 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 ## Maintenance (405–499)
 
 - [x] [MU-314] CI runners fail Playwright e2e tests because the workflow only runs `npx playwright install --with-deps`; replace with the supported `microsoft/playwright-github-action@v1` so browsers + system deps install reliably.
-  - Run `npm ci` followed by `npx playwright install --with-deps chromium firefox webkit` per the latest Playwright docs, removing the deprecated action so GitHub runners provision browsers consistently.
+  - Run `npm ci` followed by `npx playwright install --with-deps chromium` per the latest Playwright docs so GitHub runners provision the only browser our tests require.
 
 ## Planning
 *Do not work on these, not ready*
