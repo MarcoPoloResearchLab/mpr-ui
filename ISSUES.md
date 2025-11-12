@@ -72,7 +72,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   - Centralized the privacy link interactivity toggle helper so it sets `role="button"` and `tabindex="0"` with trimmed attribute names, and added unit coverage to guard against regressions.
 - [x] [MU-314] Remove the theme switcher from the header. There must be only one theme switcher.
   - Documented that `<mpr-header>` only configures shared theme state (no toggle), updated the component reference tables, and added a regression test ensuring the rendered header markup never includes `data-mpr-theme-toggle`.
-- [ ] [MU-315] Clicking on Privacy and Terms must open a modal window with the provided markup. It doesnt now.
+- [x] [MU-315] Clicking on Privacy and Terms must open a modal window with the provided markup. It doesnt now.
+  - Verified the existing footer modal wiring; Playwright and manual checks show `data-mpr-modal-open="true"` after activation and no code changes were necessary (no-op).
 - [ ] [MU-316] Switching between the themes does not change the color of the body of the page. It should.
 
 ## Maintenance (405–499)
