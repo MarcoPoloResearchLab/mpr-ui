@@ -51,33 +51,32 @@ test.describe('Demo behaviours', () => {
     }
   });
 
-  test('MU-309: footer theme toggle knob moves and flips checked state', async ({ page }) => {
+  test('MU-309: square footer switcher selects quadrants and updates modes', async ({ page }) => {
     const beforeSnapshot = await captureToggleSnapshot(page, footerThemeControl);
-    await page.locator(footerThemeControl).click();
-    await page.waitForTimeout(250);
+    expect(beforeSnapshot.variant).toBe('square');
+    expect(beforeSnapshot.index).toBe(0);
+
+    await clickQuadrant(page, footerThemeControl, 'bottomRight');
+    await page.waitForTimeout(200);
+
     const afterSnapshot = await captureToggleSnapshot(page, footerThemeControl);
-    expect(afterSnapshot.checked).not.toBe(beforeSnapshot.checked);
-    expect(afterSnapshot.transform).not.toBe(beforeSnapshot.transform);
-    expect(afterSnapshot.background).not.toBe(beforeSnapshot.background);
+    expect(afterSnapshot.variant).toBe('square');
+    expect(afterSnapshot.index).toBe(2);
+    expect(afterSnapshot.mode).toBe('default-dark');
   });
 
-  test('MU-310: footer theme toggle knob reaches the track edge', async ({ page }) => {
-    const control = page.locator(footerThemeControl);
-    const beforeSnapshot = await captureToggleSnapshot(page, footerThemeControl);
-    expect(Math.abs(beforeSnapshot.translateX)).toBeLessThan(0.25);
-
-    await control.click();
-    await page.waitForTimeout(250);
-
-    const afterSnapshot = await captureToggleSnapshot(page, footerThemeControl);
-    expect(afterSnapshot.translateX).toBeGreaterThan(beforeSnapshot.translateX);
-    expect(afterSnapshot.travelDistance).toBeGreaterThan(0);
-    expect(afterSnapshot.translateX).toBeCloseTo(afterSnapshot.travelDistance, 0);
+  test('MU-310: footer quadrant selection updates the palette attribute', async ({ page }) => {
+    const paletteBefore = await page.evaluate(() => document.body.getAttribute('data-demo-palette'));
+    await clickQuadrant(page, footerThemeControl, 'bottomLeft');
+    await page.waitForTimeout(200);
+    const paletteAfter = await page.evaluate(() => document.body.getAttribute('data-demo-palette'));
+    expect(paletteAfter).toBe('forest');
+    expect(paletteAfter).not.toBe(paletteBefore);
   });
 
   test('MU-309: footer toggle updates multiple palettes', async ({ page }) => {
     const beforeColors = await captureColorSnapshots(page, PALETTE_TARGETS);
-    await page.locator(footerThemeControl).click();
+    await clickQuadrant(page, footerThemeControl, 'bottomRight');
     await page.waitForTimeout(300);
     const afterColors = await captureColorSnapshots(page, PALETTE_TARGETS);
     PALETTE_TARGETS.forEach((_selector, index) => {
@@ -107,7 +106,7 @@ test.describe('Demo behaviours', () => {
     expect(metrics).not.toBeNull();
     if (metrics) {
       expect(metrics.offsetRight).toBeLessThanOrEqual(32);
-      expect(metrics.offsetBottom).toBeLessThanOrEqual(48);
+      expect(metrics.offsetBottom).toBeLessThanOrEqual(60);
     }
 
     const footerText = await page.locator('footer.mpr-footer').innerText();
@@ -118,3 +117,23 @@ test.describe('Demo behaviours', () => {
     await expect(page.locator(footerMenu)).toHaveClass(/mpr-footer__menu--open/);
   });
 });
+
+/**
+ * Clicks a specific quadrant within the square theme toggle.
+ * @param {import('@playwright/test').Page} page
+ * @param {string} selector
+ * @param {'topLeft' | 'topRight' | 'bottomRight' | 'bottomLeft'} quadrant
+ */
+async function clickQuadrant(page, selector, quadrant) {
+  const control = page.locator(selector).first();
+  const box = await control.boundingBox();
+  if (!box) {
+    throw new Error('Square toggle bounding box is missing');
+  }
+  const margin = 6;
+  const isRight = quadrant === 'topRight' || quadrant === 'bottomRight';
+  const isBottom = quadrant === 'bottomRight' || quadrant === 'bottomLeft';
+  const targetX = isRight ? box.x + box.width - margin : box.x + margin;
+  const targetY = isBottom ? box.y + box.height - margin : box.y + margin;
+  await page.mouse.click(targetX, targetY);
+}

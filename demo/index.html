@@ -24,7 +24,7 @@
       defer
     ></script>
   </head>
-  <body data-demo-palette="default">
+  <body class="theme-light" data-demo-palette="default">
     <mpr-header
       id="demo-header"
       brand-label="Marco Polo Research Lab"
@@ -83,7 +83,8 @@
           { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
         ]
       }'
-      theme-config='{"targets":["body"],"attribute":"data-demo-theme"}'
+      theme-switcher="square"
+      theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-light","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
     >
     </mpr-footer>
   </body>

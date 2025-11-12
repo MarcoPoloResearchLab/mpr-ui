@@ -63,13 +63,28 @@ async function captureToggleSnapshot(page, selector) {
     if (!ownerWindow) {
       throw new Error('Missing owner window for toggle snapshot');
     }
+    const variant = element.getAttribute('data-variant') || 'switch';
+    if (variant === 'square') {
+      const grid = element.querySelector('[data-mpr-theme-toggle="grid"]');
+      const dot = element.querySelector('[data-mpr-theme-toggle="dot"]');
+      const gridRect = grid?.getBoundingClientRect();
+      const dotRect = dot?.getBoundingClientRect();
+      return {
+        variant,
+        mode: element.getAttribute('data-square-mode') || '',
+        index: Number(element.getAttribute('data-square-index') || '0'),
+        dot: gridRect && dotRect
+          ? {
+              x: dotRect.left - gridRect.left,
+              y: dotRect.top - gridRect.top,
+            }
+          : null,
+      };
+    }
+
     const pseudo = ownerWindow.getComputedStyle(element, pseudoElement);
     const control = ownerWindow.getComputedStyle(element);
 
-    /**
-     * @param {string} transformValue
-     * @returns {number}
-     */
     function parseTranslateX(transformValue) {
       if (!transformValue || transformValue === 'none') {
         return 0;
@@ -91,10 +106,6 @@ async function captureToggleSnapshot(page, selector) {
       return 0;
     }
 
-    /**
-     * @param {string} value
-     * @param {number} fallback
-     */
     function toFloat(value, fallback) {
       const parsed = parseFloat(value);
       return Number.isFinite(parsed) ? parsed : fallback;
@@ -114,6 +125,7 @@ async function captureToggleSnapshot(page, selector) {
       : trackWidth - knobWidth - offset * 2;
 
     return {
+      variant,
       transform,
       background: pseudo.getPropertyValue('background-color'),
       checked: Boolean(

@@ -109,6 +109,25 @@
     } catch (_error) {}
   }
 
+  var LOGGER_PREFIX = "[mpr-ui]";
+
+  function logError(code, message) {
+    if (
+      !global.console ||
+      typeof global.console.error !== "function"
+    ) {
+      return;
+    }
+    var parts = [LOGGER_PREFIX];
+    if (code) {
+      parts.push(code);
+    }
+    if (message) {
+      parts.push(message);
+    }
+    global.console.error(parts.join(" "));
+  }
+
   function resolveHost(target) {
     if (!target) {
       throw new Error("resolveHost requires a selector or element reference");
@@ -210,6 +229,7 @@
     "privacy-modal-content": "privacyModalContent",
     "theme-config": "themeToggle",
     "theme-mode": "themeMode",
+    "theme-switcher": "themeSwitcher",
     "links-collection": "linksCollection",
     links: "links",
   });
@@ -1061,6 +1081,13 @@
     unknown: "🌗",
   });
 
+  var THEME_TOGGLE_SQUARE_POSITIONS = Object.freeze([
+    Object.freeze({ index: 0, col: 0, row: 0 }),
+    Object.freeze({ index: 1, col: 1, row: 0 }),
+    Object.freeze({ index: 2, col: 1, row: 1 }),
+    Object.freeze({ index: 3, col: 0, row: 1 }),
+  ]);
+
   function getThemeToggleModeIndex(modes, modeValue) {
     if (!Array.isArray(modes)) {
       return -1;
@@ -1108,7 +1135,12 @@
       baseline.icons && typeof baseline.icons === "object" ? baseline.icons : {};
     return {
       enabled: baseline.enabled !== false,
-      variant: baseline.variant === "button" ? "button" : "switch",
+      variant:
+        baseline.variant === "button"
+          ? "button"
+          : baseline.variant === "square"
+          ? "square"
+          : "switch",
       label:
         typeof baseline.label === "string" && baseline.label.trim()
           ? baseline.label.trim()
@@ -1188,6 +1220,30 @@
         "</button>"
       );
     }
+    if (config.variant === "square") {
+      var squareClass = config.controlClass
+        ? ' class="' + escapeHtml(config.controlClass) + '"'
+        : "";
+      var squareLabel = config.showLabel === false
+        ? ""
+        : '<span data-mpr-theme-toggle="label">' + labelText + "</span>";
+      return (
+        '<button type="button" data-mpr-theme-toggle="control"' +
+        squareClass +
+        ' data-variant="square" aria-live="polite" aria-label="' +
+        escapeHtml(config.ariaLabel || config.label || "Toggle theme") +
+        '">' +
+        '<span data-mpr-theme-toggle="grid" aria-hidden="true">' +
+        '<span data-mpr-theme-toggle="quad" data-quad-index="0" data-quad-enabled="false"></span>' +
+        '<span data-mpr-theme-toggle="quad" data-quad-index="1" data-quad-enabled="false"></span>' +
+        '<span data-mpr-theme-toggle="quad" data-quad-index="2" data-quad-enabled="false"></span>' +
+        '<span data-mpr-theme-toggle="quad" data-quad-index="3" data-quad-enabled="false"></span>' +
+        '<span data-mpr-theme-toggle="dot" data-contrast="dark"></span>' +
+        "</span>" +
+        squareLabel +
+        "</button>"
+      );
+    }
     var inputClass = config.controlClass
       ? ' class="' + escapeHtml(config.controlClass) + '"'
       : "";
@@ -1231,14 +1287,54 @@
     var iconElement = hostElement.querySelector(
       '[data-mpr-theme-toggle="icon"]',
     );
+    var variant = config.variant || "switch";
+    var squareGrid = variant === "square"
+      ? hostElement.querySelector('[data-mpr-theme-toggle="grid"]')
+      : null;
+    var squareDot = variant === "square"
+      ? hostElement.querySelector('[data-mpr-theme-toggle="dot"]')
+      : null;
+    var squareQuads = [];
+    if (variant === "square" && hostElement.querySelectorAll) {
+      var quadNodeList = hostElement.querySelectorAll('[data-mpr-theme-toggle="quad"]');
+      if (quadNodeList && typeof quadNodeList.length === "number") {
+        for (var quadIndex = 0; quadIndex < quadNodeList.length; quadIndex += 1) {
+          squareQuads.push(quadNodeList[quadIndex]);
+        }
+      }
+    }
     if (!controlElement) {
       return function noopMissingControl() {};
     }
     var currentModes = Array.isArray(config.modes) && config.modes.length
       ? config.modes
       : DEFAULT_THEME_MODES.slice();
+    var squareModeValues = variant === "square"
+      ? currentModes
+          .slice(0, THEME_TOGGLE_SQUARE_POSITIONS.length)
+          .map(function extractModeValue(mode) {
+            return mode.value;
+          })
+      : [];
+    if (variant === "square") {
+      for (var index = 0; index < squareQuads.length; index += 1) {
+        var hasMode = squareModeValues[index] !== undefined;
+        squareQuads[index].setAttribute("data-quad-enabled", hasMode ? "true" : "false");
+      }
+    }
+
+    var travelTimeout = null;
+    var rafId = null;
+    var ownerWindow =
+      controlElement.ownerDocument && controlElement.ownerDocument.defaultView
+        ? controlElement.ownerDocument.defaultView
+        : null;
+    var travelResizeHandler = null;
 
     function resolveToggleTravel() {
+      if (variant !== "switch") {
+        return;
+      }
       try {
         if (
           !controlElement ||
@@ -1251,60 +1347,54 @@
           return;
         }
         var ownerDocument = controlElement.ownerDocument;
-        var ownerWindow =
+        var computeWindow =
           ownerDocument && ownerDocument.defaultView
             ? ownerDocument.defaultView
             : null;
-        if (!ownerWindow || typeof ownerWindow.getComputedStyle !== "function") {
+        if (!computeWindow || typeof computeWindow.getComputedStyle !== "function") {
           return;
         }
-        var computed = ownerWindow.getComputedStyle(controlElement);
+        var computed = computeWindow.getComputedStyle(controlElement);
         var offsetRaw = computed
           ? computed.getPropertyValue("--mpr-theme-toggle-offset")
           : null;
         var borderRaw = computed
           ? computed.getPropertyValue("border-left-width")
           : null;
-        var offsetValue = parseFloat(offsetRaw);
-        if (!isFinite(offsetValue)) {
-          offsetValue = 0;
-        }
-        var pseudo = ownerWindow.getComputedStyle(
-          controlElement,
-          "::before",
+        var offset = Math.max(
+          0,
+          isFinite(Number(offsetRaw)) ? Number(offsetRaw) : 2,
         );
-        var knobWidth = pseudo
-          ? parseFloat(pseudo.getPropertyValue("width"))
-          : NaN;
-        if (!isFinite(knobWidth)) {
-          knobWidth = 0;
-        }
-        var travel = rect.width - knobWidth - offsetValue * 2;
-        if (
-          controlElement.style &&
-          typeof controlElement.style.setProperty === "function"
-        ) {
-          if (travel > 0) {
-            controlElement.style.setProperty(
-              "--mpr-theme-toggle-travel",
-              travel + "px",
-            );
-          } else if (
-            typeof controlElement.style.removeProperty === "function"
-          ) {
-            controlElement.style.removeProperty(
-              "--mpr-theme-toggle-travel",
-            );
-          }
+        var borderWidth = Math.max(
+          0,
+          isFinite(Number(borderRaw)) ? Number(borderRaw) : 0,
+        );
+        var knobRaw = computed
+          ? computed.getPropertyValue("--mpr-theme-toggle-knob-size")
+          : null;
+        var knobSize = Math.max(
+          0,
+          isFinite(Number(knobRaw)) ? Number(knobRaw) : parseFloat(knobRaw) || 0,
+        );
+        var travel = rect.width - knobSize - (offset + borderWidth) * 2;
+        if (travel > 0 && controlElement.style) {
+          controlElement.style.setProperty("--mpr-theme-toggle-travel", travel + "px");
         }
       } catch (_error) {}
     }
 
-    var rafId = null;
-    var travelTimeout = null;
     function scheduleTravelMeasurement() {
-      if (ownerWindow && typeof ownerWindow.requestAnimationFrame === "function") {
-        rafId = ownerWindow.requestAnimationFrame(function measureOnFrame() {
+      if (variant !== "switch") {
+        return;
+      }
+      if (
+        ownerWindow &&
+        typeof ownerWindow.requestAnimationFrame === "function"
+      ) {
+        if (rafId !== null && typeof ownerWindow.cancelAnimationFrame === "function") {
+          ownerWindow.cancelAnimationFrame(rafId);
+        }
+        rafId = ownerWindow.requestAnimationFrame(function measureFrame() {
           resolveToggleTravel();
         });
       } else {
@@ -1312,30 +1402,68 @@
       }
     }
 
-    resolveToggleTravel();
-
-    var ownerWindow =
-      controlElement.ownerDocument && controlElement.ownerDocument.defaultView
-        ? controlElement.ownerDocument.defaultView
-        : null;
-    scheduleTravelMeasurement();
-    var travelResizeHandler = function handleToggleResize() {
+    if (variant === "switch") {
       resolveToggleTravel();
-    };
-    if (ownerWindow && typeof ownerWindow.addEventListener === "function") {
-      ownerWindow.addEventListener("resize", travelResizeHandler);
+      scheduleTravelMeasurement();
+      travelResizeHandler = function handleToggleResize() {
+        resolveToggleTravel();
+      };
+      if (ownerWindow && typeof ownerWindow.addEventListener === "function") {
+        ownerWindow.addEventListener("resize", travelResizeHandler);
+      }
+    }
+
+    function syncSquareUi(resolvedModeValue) {
+      if (variant !== "square" || !squareModeValues.length) {
+        return;
+      }
+      var squareIndex = squareModeValues.indexOf(resolvedModeValue);
+      if (squareIndex === -1) {
+        squareIndex = 0;
+        resolvedModeValue = squareModeValues[0];
+      }
+      var position =
+        THEME_TOGGLE_SQUARE_POSITIONS[squareIndex] ||
+        THEME_TOGGLE_SQUARE_POSITIONS[0];
+      if (squareDot && squareDot.style) {
+        squareDot.style.setProperty("--mpr-theme-square-col", String(position.col));
+        squareDot.style.setProperty("--mpr-theme-square-row", String(position.row));
+      }
+      controlElement.setAttribute("data-square-index", String(squareIndex));
+      controlElement.setAttribute("data-square-mode", resolvedModeValue);
+      if (squareGrid && typeof squareGrid.setAttribute === "function") {
+        squareGrid.setAttribute("data-square-active", String(squareIndex));
+      }
+      if (squareQuads.length) {
+        for (var idx = 0; idx < squareQuads.length; idx += 1) {
+          if (squareQuads[idx] && squareQuads[idx].classList) {
+            squareQuads[idx].classList.toggle("is-active", idx === squareIndex);
+          } else if (squareQuads[idx] && typeof squareQuads[idx].setAttribute === "function") {
+            squareQuads[idx].setAttribute("data-square-active", idx === squareIndex ? "true" : "false");
+          }
+        }
+      }
+      var activeModeIndex = getThemeToggleModeIndex(currentModes, resolvedModeValue);
+      var activeMode = activeModeIndex === -1 ? null : currentModes[activeModeIndex];
+      var contrast = activeMode && activeMode.attributeValue === "dark" ? "light" : "dark";
+      if (squareDot && typeof squareDot.setAttribute === "function") {
+        squareDot.setAttribute("data-contrast", contrast);
+      }
+      controlElement.setAttribute(
+        "aria-label",
+        (config.ariaLabel || config.label || "Toggle theme") + " — " + resolvedModeValue,
+      );
     }
 
     function syncToggleUi(modeValue) {
       var modeIndex = getThemeToggleModeIndex(currentModes, modeValue);
-      var resolvedMode = modeValue;
+      var resolvedMode = modeIndex === -1 && currentModes.length ? currentModes[0].value : modeValue;
       if (modeIndex === -1 && currentModes.length) {
-        resolvedMode = currentModes[0].value;
         modeIndex = 0;
       }
       hostElement.setAttribute("data-mpr-theme-mode", resolvedMode);
       controlElement.setAttribute("data-mpr-theme-mode", resolvedMode);
-      if (config.variant === "button") {
+      if (variant === "button") {
         controlElement.setAttribute(
           "aria-pressed",
           modeIndex === 1 ? "true" : "false",
@@ -1349,39 +1477,159 @@
           }
           iconElement.textContent = iconSymbol;
         }
-      } else {
-        var checked = modeIndex > 0;
-        controlElement.checked = checked;
-        controlElement.setAttribute("aria-checked", checked ? "true" : "false");
+        return;
       }
+      if (variant === "square") {
+        syncSquareUi(resolvedMode);
+        return;
+      }
+      var checked = modeIndex > 0;
+      controlElement.checked = checked;
+      controlElement.setAttribute("aria-checked", checked ? "true" : "false");
     }
 
     function handleActivation(eventObject) {
       if (
-        config.variant === "button" &&
+        variant === "button" &&
         eventObject &&
         typeof eventObject.preventDefault === "function"
       ) {
         eventObject.preventDefault();
       }
-     var nextMode = resolveNextThemeToggleMode(
+      var nextMode = resolveNextThemeToggleMode(
         currentModes,
         themeManager.getMode(),
       );
       themeManager.setMode(nextMode, config.source || "theme-toggle");
     }
 
-    controlElement.addEventListener("click", handleActivation);
-    if (config.variant === "switch") {
-      controlElement.addEventListener("keydown", function handleToggleKey(event) {
-        if (!event || typeof event.key !== "string") {
-          return;
-        }
-        if (event.key === " " || event.key === "Enter") {
-          handleActivation(event);
-        }
-      });
+    function selectSquareMode(index, sourceSuffix) {
+      if (variant !== "square" || !squareModeValues.length) {
+        return;
+      }
+      var clampedIndex = index;
+      if (clampedIndex < 0) {
+        clampedIndex = 0;
+      }
+      if (clampedIndex >= squareModeValues.length) {
+        clampedIndex = squareModeValues.length - 1;
+      }
+      var targetModeValue = squareModeValues[clampedIndex];
+      if (!targetModeValue) {
+        return;
+      }
+      var sourceLabel = config.source || "theme-toggle";
+      if (sourceSuffix) {
+        sourceLabel += sourceSuffix;
+      }
+      themeManager.setMode(targetModeValue, sourceLabel);
     }
+
+    function resolveQuadrantIndex(eventObject) {
+      if (
+        !squareGrid ||
+        typeof squareGrid.getBoundingClientRect !== "function" ||
+        !squareModeValues.length
+      ) {
+        return null;
+      }
+      var rect = squareGrid.getBoundingClientRect();
+      if (!rect || !rect.width || !rect.height) {
+        return null;
+      }
+      var clientX = typeof eventObject.clientX === "number"
+        ? eventObject.clientX
+        : rect.left + rect.width / 2;
+      var clientY = typeof eventObject.clientY === "number"
+        ? eventObject.clientY
+        : rect.top + rect.height / 2;
+      var isRight = clientX - rect.left >= rect.width / 2;
+      var isBottom = clientY - rect.top >= rect.height / 2;
+      var candidateIndex = 0;
+      if (!isBottom && !isRight) {
+        candidateIndex = 0;
+      } else if (!isBottom && isRight) {
+        candidateIndex = 1;
+      } else if (isBottom && isRight) {
+        candidateIndex = 2;
+      } else {
+        candidateIndex = 3;
+      }
+      if (candidateIndex >= squareModeValues.length) {
+        candidateIndex = squareModeValues.length - 1;
+      }
+      if (candidateIndex < 0) {
+        return null;
+      }
+      return candidateIndex;
+    }
+
+    function handleSquarePointer(eventObject) {
+      if (!squareModeValues.length) {
+        return;
+      }
+      if (eventObject && typeof eventObject.preventDefault === "function") {
+        eventObject.preventDefault();
+      }
+      var targetIndex = resolveQuadrantIndex(eventObject);
+      if (targetIndex === null) {
+        var currentIndex = squareModeValues.indexOf(themeManager.getMode());
+        var fallbackIndex = (currentIndex + 1) % squareModeValues.length;
+        selectSquareMode(fallbackIndex, ":pointer");
+        return;
+      }
+      selectSquareMode(targetIndex, ":pointer");
+    }
+
+    function handleSquareKey(eventObject) {
+      if (
+        !squareModeValues.length ||
+        !eventObject ||
+        typeof eventObject.key !== "string"
+      ) {
+        return;
+      }
+      var currentIndex = squareModeValues.indexOf(themeManager.getMode());
+      if (currentIndex === -1) {
+        currentIndex = 0;
+      }
+      if (eventObject.key === "ArrowRight" || eventObject.key === "ArrowDown") {
+        eventObject.preventDefault();
+        selectSquareMode((currentIndex + 1) % squareModeValues.length, ":key");
+        return;
+      }
+      if (eventObject.key === "ArrowLeft" || eventObject.key === "ArrowUp") {
+        eventObject.preventDefault();
+        var previousIndex = currentIndex - 1;
+        if (previousIndex < 0) {
+          previousIndex = squareModeValues.length - 1;
+        }
+        selectSquareMode(previousIndex, ":key");
+        return;
+      }
+      if (eventObject.key === " " || eventObject.key === "Enter") {
+        eventObject.preventDefault();
+        selectSquareMode((currentIndex + 1) % squareModeValues.length, ":key");
+      }
+    }
+
+    if (variant === "square") {
+      controlElement.addEventListener("click", handleSquarePointer);
+      controlElement.addEventListener("keydown", handleSquareKey);
+    } else {
+      controlElement.addEventListener("click", handleActivation);
+      if (variant === "switch") {
+        controlElement.addEventListener("keydown", function handleToggleKey(event) {
+          if (!event || typeof event.key !== "string") {
+            return;
+          }
+          if (event.key === " " || event.key === "Enter") {
+            handleActivation(event);
+          }
+        });
+      }
+    }
+
     syncToggleUi(themeManager.getMode());
     var unsubscribe = themeManager.on(function handleTheme(detail) {
       syncToggleUi(detail.mode);
@@ -1393,23 +1641,25 @@
       if (travelTimeout !== null) {
         clearTimeout(travelTimeout);
       }
-      if (controlElement) {
-        controlElement.removeEventListener("click", handleActivation);
-        if (
-          controlElement.style &&
-          typeof controlElement.style.removeProperty === "function"
-        ) {
-          controlElement.style.removeProperty("--mpr-theme-toggle-travel");
-        }
+      if (variant === "switch" && controlElement && controlElement.style &&
+        typeof controlElement.style.removeProperty === "function") {
+        controlElement.style.removeProperty("--mpr-theme-toggle-travel");
       }
-      if (ownerWindow && typeof ownerWindow.removeEventListener === "function") {
+      if (variant === "switch" && ownerWindow && typeof ownerWindow.removeEventListener === "function" && travelResizeHandler) {
         ownerWindow.removeEventListener("resize", travelResizeHandler);
+      }
+      if (controlElement) {
+        if (variant === "square") {
+          controlElement.removeEventListener("click", handleSquarePointer);
+          controlElement.removeEventListener("keydown", handleSquareKey);
+        } else {
+          controlElement.removeEventListener("click", handleActivation);
+        }
       }
       unsubscribe();
     };
   }
-
-  function normalizeStandaloneThemeToggleOptions(rawOptions) {
+function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var base =
       rawOptions && typeof rawOptions === "object" ? rawOptions : {};
     var themeInput =
@@ -1510,6 +1760,10 @@
     }
     if (dataset.themeToggle) {
       options.themeToggle = parseJsonValue(dataset.themeToggle, {});
+    }
+    if (dataset.themeSwitcher) {
+      options.themeToggle = options.themeToggle || {};
+      options.themeToggle.variant = dataset.themeSwitcher;
     }
     if (dataset.themeMode) {
       options.themeToggle = options.themeToggle || {};
@@ -3375,6 +3629,8 @@
     );
   }
 
+  var FOOTER_THEME_SWITCHER_ERROR_CODE = "mpr-ui.footer.theme-switcher";
+
   var FOOTER_DEFAULTS = Object.freeze({
     elementId: "",
     baseClass: "mpr-footer",
@@ -3396,7 +3652,8 @@
     privacyLinkLabel: "Privacy • Terms",
     privacyModalContent: "",
     themeToggle: Object.freeze({
-      enabled: true,
+      enabled: false,
+      variant: "",
       label: "Build by Marco Polo Research Lab",
       wrapperClass: "mpr-footer__theme-toggle",
       inputClass: "mpr-footer__theme-checkbox",
@@ -3506,11 +3763,62 @@
   }
 
   function normalizeFooterThemeToggle(themeToggleInput) {
+    var hasExplicitEnabled =
+      themeToggleInput &&
+      typeof themeToggleInput === "object" &&
+      Object.prototype.hasOwnProperty.call(themeToggleInput, "enabled");
     var mergedToggle = mergeFooterObjects(
       {},
       FOOTER_DEFAULTS.themeToggle,
       themeToggleInput || {},
     );
+    var variantSource = "";
+    if (
+      typeof mergedToggle.themeSwitcher === "string" &&
+      mergedToggle.themeSwitcher.trim()
+    ) {
+      variantSource = mergedToggle.themeSwitcher.trim();
+    } else if (
+      typeof mergedToggle.variant === "string" &&
+      mergedToggle.variant.trim()
+    ) {
+      variantSource = mergedToggle.variant.trim();
+    }
+    var normalizedVariant = "";
+    var invalidVariant = false;
+    if (variantSource) {
+      var variantValue = variantSource.toLowerCase();
+      if (variantValue === "toggle" || variantValue === "switch") {
+        normalizedVariant = "switch";
+      } else if (variantValue === "button") {
+        normalizedVariant = "button";
+      } else if (variantValue === "square") {
+        normalizedVariant = "square";
+      } else {
+        logError(
+          FOOTER_THEME_SWITCHER_ERROR_CODE,
+          'Unsupported theme-switcher value "' + variantSource + '"',
+        );
+        invalidVariant = true;
+      }
+    }
+    var enabledValue = hasExplicitEnabled
+      ? Boolean(mergedToggle.enabled)
+      : Boolean(normalizedVariant);
+    if (invalidVariant) {
+      normalizedVariant = "";
+      enabledValue = false;
+    } else if (!normalizedVariant && enabledValue) {
+      normalizedVariant = "switch";
+    }
+    if (invalidVariant) {
+      enabledValue = false;
+    }
+    if (variantSource && !normalizedVariant) {
+      enabledValue = false;
+    }
+    mergedToggle.enabled = enabledValue;
+    mergedToggle.variant = normalizedVariant;
     var core = normalizeThemeToggleCore(mergedToggle, {
       enabled: FOOTER_DEFAULTS.themeToggle.enabled,
       ariaLabel: FOOTER_DEFAULTS.themeToggle.ariaLabel,
@@ -3535,6 +3843,7 @@
           ? mergedToggle.inputId
           : FOOTER_DEFAULTS.themeToggle.inputId,
       ariaLabel: core.ariaLabel,
+      variant: normalizedVariant,
       attribute: core.attribute,
       targets: core.targets,
       modes: core.modes,
@@ -3617,7 +3926,7 @@
     return normalizeThemeToggleDisplayOptions(
       {
         enabled: config.themeToggle.enabled,
-        variant: "switch",
+        variant: config.themeToggle.variant || "switch",
         label: config.themeToggle.label || "Theme",
         showLabel: false,
         wrapperClass: config.themeToggle.wrapperClass,
@@ -3986,6 +4295,21 @@
     }
     if (dataset.themeToggle) {
       options.themeToggle = parseJsonValue(dataset.themeToggle, {});
+    }
+    var themeSwitcherValue = dataset.themeSwitcher;
+    if (
+      !themeSwitcherValue &&
+      rootElement &&
+      typeof rootElement.getAttribute === "function"
+    ) {
+      var attributeValue = rootElement.getAttribute("theme-switcher");
+      if (attributeValue) {
+        themeSwitcherValue = attributeValue;
+      }
+    }
+    if (themeSwitcherValue) {
+      options.themeToggle = options.themeToggle || {};
+      options.themeToggle.variant = themeSwitcherValue;
     }
     if (dataset.themeMode) {
       options.themeToggle = options.themeToggle || {};
