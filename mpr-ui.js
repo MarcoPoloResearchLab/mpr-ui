@@ -1369,7 +1369,14 @@
           0,
           isFinite(Number(borderRaw)) ? Number(borderRaw) : 0,
         );
-        var travel = rect.width - (offset + borderWidth) * 2;
+        var knobRaw = computed
+          ? computed.getPropertyValue("--mpr-theme-toggle-knob-size")
+          : null;
+        var knobSize = Math.max(
+          0,
+          isFinite(Number(knobRaw)) ? Number(knobRaw) : parseFloat(knobRaw) || 0,
+        );
+        var travel = rect.width - knobSize - (offset + borderWidth) * 2;
         if (travel > 0 && controlElement.style) {
           controlElement.style.setProperty("--mpr-theme-toggle-travel", travel + "px");
         }
