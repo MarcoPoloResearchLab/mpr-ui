@@ -9,8 +9,16 @@ const {
   selectors,
 } = require('./support/demoPage');
 
-const { googleButton, headerNavLinks, footerThemeControl, footerDropupButton, footerMenu } =
-  selectors;
+const {
+  googleButton,
+  headerNavLinks,
+  footerThemeControl,
+  footerDropupButton,
+  footerMenu,
+  privacyLink,
+  privacyModal,
+  privacyModalClose,
+} = selectors;
 
 const PALETTE_TARGETS = ['header.mpr-header', 'main', '#event-log', 'footer.mpr-footer'];
 
@@ -75,6 +83,18 @@ test.describe('Demo behaviours', () => {
     PALETTE_TARGETS.forEach((_selector, index) => {
       expect(afterColors[index]).not.toEqual(beforeColors[index]);
     });
+  });
+
+  test('MU-111: footer privacy modal opens and closes with provided content', async ({ page }) => {
+    const modal = page.locator(privacyModal);
+    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'false');
+
+    await page.locator(privacyLink).click();
+    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'true');
+    await expect(modal.locator('h1')).toContainText('Privacy Policy');
+
+    await page.locator(privacyModalClose).click();
+    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'false');
   });
 
   test('MU-311: footer drop-up aligns correctly and toggles interactivity', async ({ page }) => {

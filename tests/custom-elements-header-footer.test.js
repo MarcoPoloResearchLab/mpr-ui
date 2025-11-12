@@ -678,6 +678,7 @@ test('mpr-footer reflects attributes and slot content', () => {
       links: [{ label: 'Docs', url: '#docs' }],
     }),
   );
+  footerElement.setAttribute('privacy-modal-content', '<p>Policy</p>');
 
   footerElement.connectedCallback();
 
@@ -703,6 +704,11 @@ test('mpr-footer reflects attributes and slot content', () => {
     controllerConfig && controllerConfig.links,
     [{ label: 'Docs', url: '#docs', target: '_blank', rel: 'noopener noreferrer' }],
     'links attribute parsed into controller config',
+  );
+  assert.equal(
+    controllerConfig && controllerConfig.privacyModalContent,
+    '<p>Policy</p>',
+    'privacy modal content reflected into controller config',
   );
   assert.strictEqual(
     controllerConfig && controllerConfig.linksMenuEnabled,

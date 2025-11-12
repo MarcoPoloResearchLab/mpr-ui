@@ -6,7 +6,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 
 ## Features (110–199)
 
-- [ ] [MU-111] Add a modal almost full screen window when a user clicks Privacy in the footer. The opened modal shall contain the Privacy text that will be supplied on initialization of the component. The API shall be smth like
+- [x] [MU-111] Add a modal almost full screen window when a user clicks Privacy in the footer. The opened modal shall contain the Privacy text that will be supplied on initialization of the component. The API shall be smth like
+  - Implemented `privacy-modal-content` for `<mpr-footer>`, wired event-driven modal logic (focus, ESC/backdrop, scroll lock), and documented/tests cover the new API.
 ```html
 <mpr-footer
   id="page-footer"
@@ -55,8 +56,15 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   - Resolved by targeting both `document.documentElement` and `document.body` in the default theme manager configuration plus a new unit test proving the body reflects mode changes.
 - [x] [MU-310] The theme toogle does not move the toogle all the way to the right side of the slot on switching
   - Resolved by introducing CSS-driven travel constants for the switch knob, updating the demo styles, and adding a Playwright regression test that asserts the knob reaches the track edge.
+- [x] [MU-312] MU-310 e2e regression: the footer theme toggle keeps animating for 300ms, so the test snapshot at 250ms observes an incomplete knob translation and fails the edge-travel assertion.
+  - Shortened the knob transform transition to 200ms ease-out so the control finishes traveling before the Playwright snapshot and the MU-310 test stays green.
+- [x] [MU-313] Footer privacy modal crashes when `privacyModalContent` is provided because `setAttribute(" tabindex","0")` throws `InvalidCharacterError`, preventing modal wiring.
+  - Centralized the privacy link interactivity toggle helper so it sets `role="button"` and `tabindex="0"` with trimmed attribute names, and added unit coverage to guard against regressions.
 
 ## Maintenance (405–499)
+
+- [x] [MU-314] CI runners fail Playwright e2e tests because the workflow only runs `npx playwright install --with-deps`; replace with the supported `microsoft/playwright-github-action@v1` so browsers + system deps install reliably.
+  - Run `npm ci` followed by `npx playwright install --with-deps chromium` per the latest Playwright docs so GitHub runners provision the only browser our tests require.
 
 ## Planning
 *Do not work on these, not ready*
