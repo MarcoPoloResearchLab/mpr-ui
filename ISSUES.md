@@ -56,6 +56,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   - Resolved by targeting both `document.documentElement` and `document.body` in the default theme manager configuration plus a new unit test proving the body reflects mode changes.
 - [x] [MU-310] The theme toogle does not move the toogle all the way to the right side of the slot on switching
   - Resolved by introducing CSS-driven travel constants for the switch knob, updating the demo styles, and adding a Playwright regression test that asserts the knob reaches the track edge.
+- [x] [MU-312] MU-310 e2e regression: the footer theme toggle keeps animating for 300ms, so the test snapshot at 250ms observes an incomplete knob translation and fails the edge-travel assertion.
+  - Shortened the knob transform transition to 200ms ease-out so the control finishes traveling before the Playwright snapshot and the MU-310 test stays green.
 
 ## Maintenance (405–499)
 
