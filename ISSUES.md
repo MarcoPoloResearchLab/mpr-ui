@@ -51,6 +51,7 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 ```
 - [x] [MU-215] Center the public API/docs around web components (custom elements first), treating Alpine.js plus imperative helpers as implementation details rather than the primary surface.
   - Reworded the README + architecture intro so custom elements are the default integration path, added custom-element-first quick start, and relegated Alpine/imperative helpers to an optional section with doc cross-links.
+- [ ] [MU-316] Clicking on Settings shall open a modal window, with Settings in the top pane and empty content.
 
 ## BugFixes (310–399)
 
@@ -62,6 +63,9 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   - Shortened the knob transform transition to 200ms ease-out so the control finishes traveling before the Playwright snapshot and the MU-310 test stays green.
 - [x] [MU-313] Footer privacy modal crashes when `privacyModalContent` is provided because `setAttribute(" tabindex","0")` throws `InvalidCharacterError`, preventing modal wiring.
   - Centralized the privacy link interactivity toggle helper so it sets `role="button"` and `tabindex="0"` with trimmed attribute names, and added unit coverage to guard against regressions.
+- [ ] [MU-314] Remove the theme switcher from the header. There must be only one theme switcher.
+- [ ] [MU-315] Clicking on Privacy and Terms must open a modal window with the provided markup. It doesnt now.
+- [ ] [MU-316] Switching between the themes does not change the color of the body of the page. It should.
 
 ## Maintenance (405–499)
 
