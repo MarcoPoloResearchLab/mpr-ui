@@ -49,6 +49,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   theme-config='{"targets":["body"],"attribute":"data-demo-theme"}'
 >
 ```
+- [x] [MU-215] Center the public API/docs around web components (custom elements first), treating Alpine.js plus imperative helpers as implementation details rather than the primary surface.
+  - Reworded the README + architecture intro so custom elements are the default integration path, added custom-element-first quick start, and relegated Alpine/imperative helpers to an optional section with doc cross-links.
 
 ## BugFixes (310–399)
 
