@@ -264,6 +264,7 @@ input[type="checkbox"][data-mpr-theme-toggle="control"] {
   --mpr-theme-toggle-track-height: 24px;
   --mpr-theme-toggle-knob-size: 18px;
   --mpr-theme-toggle-offset: 2px;
+  --mpr-theme-toggle-border: 1px;
   --mpr-theme-toggle-travel: calc(
     var(--mpr-theme-toggle-track-width) - var(--mpr-theme-toggle-knob-size) -
     (var(--mpr-theme-toggle-offset) * 2)
@@ -278,7 +279,7 @@ input[type="checkbox"][data-mpr-theme-toggle="control"] {
   border-radius: calc(var(--mpr-theme-toggle-track-height) / 2);
   cursor: pointer;
   transition: background 0.3s ease;
-  border: 1px solid var(--mpr-color-border, rgba(148, 163, 184, 0.35));
+  border: var(--mpr-theme-toggle-border) solid var(--mpr-color-border, rgba(148, 163, 184, 0.35));
   box-sizing: border-box;
 }
 
@@ -296,7 +297,7 @@ input[type="checkbox"][data-mpr-theme-toggle="control"]::before {
   height: var(--mpr-theme-toggle-knob-size);
   background: white;
   border-radius: 50%;
-  transition: transform 0.3s ease, background 0.3s ease;
+  transition: transform 0.2s ease-out, background 0.3s ease;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 

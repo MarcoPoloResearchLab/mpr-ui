@@ -394,6 +394,11 @@ test('footer privacy modal opens and closes on interaction', () => {
     'button',
     'privacy link should behave like a button when the modal is enabled',
   );
+  assert.strictEqual(
+    privacyLink.getAttribute('tabindex'),
+    '0',
+    'privacy link should be tabbable when the modal replaces anchor navigation',
+  );
   privacyLink.trigger('click');
   closeButton.trigger('click');
 });
