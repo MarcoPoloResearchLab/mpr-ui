@@ -193,6 +193,7 @@ Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to
 | `privacyLinkClass`         | `string`                               | Class applied to the privacy link.                                            |
 | `privacyLinkHref`          | `string`                               | Destination for the privacy link (`#` default).                               |
 | `privacyLinkLabel`         | `string`                               | Copy for the privacy link (default "Privacy • Terms").                        |
+| `privacyModalContent`      | `string` (HTML)                        | Optional HTML injected into a modal shown when the privacy link is activated. |
 | `themeToggle.enabled`      | `boolean`                              | Controls whether the theme toggle renders (default `true`).                   |
 | `themeToggle.wrapperClass` | `string`                               | Class for the toggle wrapper pill.                                            |
 | `themeToggle.inputClass`   | `string`                               | Class for the `input[type=checkbox]`.                                         |
@@ -205,6 +206,8 @@ Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to
 | `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
 
 If `linksCollection` is omitted (or its `links` array is empty), the footer renders the prefix text only—no drop-up menu is shown.
+
+If `privacyModalContent` is provided, the privacy link becomes a button that opens an almost full-screen modal with focus capture, ESC/backdrop/click-to-close, and body scroll locking.
 
 Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the footer host element; values merge with programmatic options.
 

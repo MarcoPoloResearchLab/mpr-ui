@@ -6,7 +6,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 
 ## Features (110–199)
 
-- [ ] [MU-111] Add a modal almost full screen window when a user clicks Privacy in the footer. The opened modal shall contain the Privacy text that will be supplied on initialization of the component. The API shall be smth like
+- [x] [MU-111] Add a modal almost full screen window when a user clicks Privacy in the footer. The opened modal shall contain the Privacy text that will be supplied on initialization of the component. The API shall be smth like
+  - Implemented `privacy-modal-content` for `<mpr-footer>`, wired event-driven modal logic (focus, ESC/backdrop, scroll lock), and documented/tests cover the new API.
 ```html
 <mpr-footer
   id="page-footer"

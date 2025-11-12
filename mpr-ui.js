@@ -207,6 +207,7 @@
     "privacy-link-class": "privacyLinkClass",
     "privacy-link-href": "privacyLinkHref",
     "privacy-link-label": "privacyLinkLabel",
+    "privacy-modal-content": "privacyModalContent",
     "theme-config": "themeToggle",
     "theme-mode": "themeMode",
     "links-collection": "linksCollection",
@@ -3288,6 +3289,7 @@
     privacyLinkClass: "mpr-footer__privacy",
     privacyLinkHref: "#",
     privacyLinkLabel: "Privacy • Terms",
+    privacyModalContent: "",
     themeToggle: Object.freeze({
       enabled: true,
       label: "Build by Marco Polo Research Lab",
@@ -3478,6 +3480,11 @@
     mergedConfig.links = collectionHasLinks ? normalizedCollection.links : legacyLinks;
     mergedConfig.linksCollection = normalizedCollection;
     mergedConfig.linksMenuEnabled = mergedConfig.links.length > 0;
+    mergedConfig.privacyModalContent =
+      typeof mergedConfig.privacyModalContent === "string" &&
+      mergedConfig.privacyModalContent.trim()
+        ? mergedConfig.privacyModalContent.trim()
+        : "";
 
     if (normalizedCollection && normalizedCollection.text) {
       if (!hasExplicitPrefix) {
@@ -3636,6 +3643,18 @@
         "</div>"
       : "";
 
+    var modalMarkup = config.privacyModalContent
+      ? '<div data-mpr-footer="privacy-modal" aria-hidden="true" data-mpr-modal-open="false">' +
+        '<div data-mpr-footer="privacy-modal-backdrop"></div>' +
+        '<div data-mpr-footer="privacy-modal-dialog" role="dialog" aria-modal="true" tabindex="-1">' +
+        '<button type="button" data-mpr-footer="privacy-modal-close" aria-label="Close">&times;</button>' +
+        '<div data-mpr-footer="privacy-modal-content">' +
+        config.privacyModalContent +
+        "</div>" +
+        "</div>" +
+        "</div>"
+      : "";
+
     var layoutMarkup =
       '<div data-mpr-footer="layout">' +
       '<a data-mpr-footer="privacy-link" href="' +
@@ -3653,6 +3672,7 @@
       '<footer role="contentinfo" data-mpr-footer="root">' +
       '<div data-mpr-footer="inner">' +
       layoutMarkup +
+      modalMarkup +
       "</div>" +
       "</footer>"
     );
@@ -3671,7 +3691,7 @@
     return footerRoot;
   }
 
-  function updateFooterPrivacy(containerElement, config) {
+  function updateFooterPrivacy(containerElement, config, modalControls) {
     var privacyAnchor = footerQuery(containerElement, '[data-mpr-footer="privacy-link"]');
     if (!privacyAnchor) {
       return;
@@ -3684,6 +3704,20 @@
     }
     if (config.privacyLinkLabel) {
       privacyAnchor.textContent = config.privacyLinkLabel;
+    }
+    if (modalControls) {
+      privacyAnchor.setAttribute("role", "button");
+      privacyAnchor.setAttribute(" tabindex", "0");
+    } else {
+      privacyAnchor.removeAttribute("role");
+      privacyAnchor.removeAttribute("tabindex");
+    }
+    if (modalControls) {
+      privacyAnchor.setAttribute("role", "button");
+      privacyAnchor.setAttribute("tabindex", "0");
+    } else {
+      privacyAnchor.removeAttribute("role");
+      privacyAnchor.removeAttribute("tabindex");
     }
   }
 
@@ -3835,6 +3869,9 @@
     if (dataset.privacyLinkLabel) {
       options.privacyLinkLabel = dataset.privacyLinkLabel;
     }
+    if (dataset.privacyModalContent) {
+      options.privacyModalContent = dataset.privacyModalContent;
+    }
     if (dataset.themeToggle) {
       options.themeToggle = parseJsonValue(dataset.themeToggle, {});
     }
@@ -3877,6 +3914,149 @@
       toggleButton.removeEventListener("click", toggleHandler);
       menuElement.classList.remove(openClass);
       toggleButton.setAttribute("aria-expanded", "false");
+    };
+  }
+
+  function initializeFooterPrivacyModal(containerElement, config) {
+    if (
+      !config ||
+      !config.privacyModalContent ||
+      typeof config.privacyModalContent !== "string"
+    ) {
+      return null;
+    }
+    var modalElement = footerQuery(containerElement, '[data-mpr-footer="privacy-modal"]');
+    var dialogElement = footerQuery(modalElement, '[data-mpr-footer="privacy-modal-dialog"]');
+    var closeButton = footerQuery(modalElement, '[data-mpr-footer="privacy-modal-close"]');
+    var backdropElement = footerQuery(modalElement, '[data-mpr-footer="privacy-modal-backdrop"]');
+    var privacyLink = footerQuery(containerElement, '[data-mpr-footer="privacy-link"]');
+    if (
+      !modalElement ||
+      !dialogElement ||
+      !privacyLink ||
+      typeof privacyLink.addEventListener !== "function"
+    ) {
+      return null;
+    }
+    if (!dialogElement.hasAttribute("tabindex")) {
+      dialogElement.setAttribute("tabindex", "-1");
+    }
+    modalElement.setAttribute("aria-hidden", "true");
+    modalElement.setAttribute("data-mpr-modal-open", "false");
+    var previousFocus = null;
+    var previousOverflow = null;
+
+    function lockScroll() {
+      if (!global.document || !global.document.body) {
+        return;
+      }
+      if (previousOverflow === null) {
+        previousOverflow =
+          typeof global.document.body.style.overflow === "string"
+            ? global.document.body.style.overflow
+            : "";
+      }
+      global.document.body.style.overflow = "hidden";
+    }
+
+    function unlockScroll() {
+      if (!global.document || !global.document.body) {
+        return;
+      }
+      if (previousOverflow !== null) {
+        global.document.body.style.overflow = previousOverflow;
+        previousOverflow = null;
+      }
+    }
+
+    function closeModal(event) {
+      if (event && typeof event.preventDefault === "function") {
+        event.preventDefault();
+      }
+      modalElement.setAttribute("data-mpr-modal-open", "false");
+      modalElement.setAttribute("aria-hidden", "true");
+      unlockScroll();
+      if (previousFocus && typeof previousFocus.focus === "function") {
+        previousFocus.focus();
+      }
+    }
+
+    function openModal(event) {
+      if (event && typeof event.preventDefault === "function") {
+        event.preventDefault();
+      }
+      previousFocus =
+        global.document && global.document.activeElement
+          ? global.document.activeElement
+          : null;
+      modalElement.setAttribute("data-mpr-modal-open", "true");
+      modalElement.setAttribute("aria-hidden", "false");
+      lockScroll();
+      if (dialogElement && typeof dialogElement.focus === "function") {
+        dialogElement.focus();
+      }
+    }
+
+    function handleLinkKeydown(event) {
+      if (!event) {
+        return;
+      }
+      var key = event.key || event.keyCode;
+      if (
+        key === "Enter" ||
+        key === " " ||
+        key === "Spacebar" ||
+        key === 13 ||
+        key === 32
+      ) {
+        event.preventDefault();
+        openModal(event);
+      }
+    }
+
+    function handleEscape(event) {
+      if (
+        event &&
+        (event.key === "Escape" ||
+          event.key === "Esc" ||
+          event.keyCode === 27)
+      ) {
+        closeModal(event);
+      }
+    }
+
+    function handleBackdropClick(event) {
+      if (event && event.target === backdropElement) {
+        closeModal(event);
+      }
+    }
+
+    privacyLink.addEventListener("click", openModal);
+    privacyLink.addEventListener("keydown", handleLinkKeydown);
+    if (closeButton && typeof closeButton.addEventListener === "function") {
+      closeButton.addEventListener("click", closeModal);
+    }
+    if (backdropElement && typeof backdropElement.addEventListener === "function") {
+      backdropElement.addEventListener("click", handleBackdropClick);
+    }
+    if (global.document && typeof global.document.addEventListener === "function") {
+      global.document.addEventListener("keydown", handleEscape);
+    }
+
+    return function cleanupPrivacyModal() {
+      privacyLink.removeEventListener("click", openModal);
+      privacyLink.removeEventListener("keydown", handleLinkKeydown);
+      if (closeButton && typeof closeButton.removeEventListener === "function") {
+        closeButton.removeEventListener("click", closeModal);
+      }
+      if (backdropElement && typeof backdropElement.removeEventListener === "function") {
+        backdropElement.removeEventListener("click", handleBackdropClick);
+      }
+      if (global.document && typeof global.document.removeEventListener === "function") {
+        global.document.removeEventListener("keydown", handleEscape);
+      }
+      previousFocus = null;
+      closeModal();
     };
   }
 
@@ -3944,7 +4124,8 @@
         this.cleanupHandlers.push(footerThemeUnsubscribe);
 
         applyFooterStructure(footerRoot, this.config);
-        updateFooterPrivacy(footerRoot, this.config);
+        var hasPrivacyModal = Boolean(this.config.privacyModalContent);
+        updateFooterPrivacy(footerRoot, this.config, hasPrivacyModal);
         updateFooterPrefix(footerRoot, this.config);
         updateFooterToggleButton(footerRoot, this.config);
         updateFooterMenuLinks(footerRoot, this.config);
@@ -3952,6 +4133,11 @@
         var dropdownCleanup = initializeFooterDropdown(footerRoot);
         if (dropdownCleanup) {
           this.cleanupHandlers.push(dropdownCleanup);
+        }
+
+        var privacyModalCleanup = initializeFooterPrivacyModal(footerRoot, this.config);
+        if (privacyModalCleanup) {
+          this.cleanupHandlers.push(privacyModalCleanup);
         }
 
         var toggleHost = footerQuery(footerRoot, '[data-mpr-footer="theme-toggle"]');
