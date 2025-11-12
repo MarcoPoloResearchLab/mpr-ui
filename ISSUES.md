@@ -24,7 +24,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   theme-config='{"targets":["body"],"attribute":"data-demo-theme"}'
 >
 ```
-- [ ] [MU-112]  Add a selective style of the theme switcher to be a square with quadrants. Implement it using @q.html example. Add a declarative attribute to the mpr-footer, theme-switcher, to accept toggle or square values or log an error if it's neither yet the  theme-switcher is specified. If the theme-switcher is not specified then the component renders no theme-switcher. Allow for either providing or selecting CSS palette for the themes. 
+- [x] [MU-112]  Add a selective style of the theme switcher to be a square with quadrants. Implement it using @q.html example. Add a declarative attribute to the mpr-footer, theme-switcher, to accept toggle or square values or log an error if it's neither yet the  theme-switcher is specified. If the theme-switcher is not specified then the component renders no theme-switcher. Allow for either providing or selecting CSS palette for the themes.
+  - Added the `theme-switcher` attribute plumbing plus dataset fallback, defaulted the footer toggle to opt-in, introduced the square quadrant UI with palette-aware modes, refreshed the demo/docs/tests, and tightened Playwright coverage so palettes + layout stay verified.
 <mpr-footer
   id="page-footer"
   theme-config='{"targets":["body"],"attribute":"data-demo-theme"}'
@@ -69,7 +70,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   - Shortened the knob transform transition to 200ms ease-out so the control finishes traveling before the Playwright snapshot and the MU-310 test stays green.
 - [x] [MU-313] Footer privacy modal crashes when `privacyModalContent` is provided because `setAttribute(" tabindex","0")` throws `InvalidCharacterError`, preventing modal wiring.
   - Centralized the privacy link interactivity toggle helper so it sets `role="button"` and `tabindex="0"` with trimmed attribute names, and added unit coverage to guard against regressions.
-- [ ] [MU-314] Remove the theme switcher from the header. There must be only one theme switcher.
+- [x] [MU-314] Remove the theme switcher from the header. There must be only one theme switcher.
+  - Documented that `<mpr-header>` only configures shared theme state (no toggle), updated the component reference tables, and added a regression test ensuring the rendered header markup never includes `data-mpr-theme-toggle`.
 - [x] [MU-315] Clicking on Privacy and Terms must open a modal window with the provided markup. It doesnt now.
   - Verified the existing footer modal wiring; Playwright and manual checks show `data-mpr-modal-open="true"` after activation and no code changes were necessary (no-op).
 - [ ] [MU-316] Switching between the themes does not change the color of the body of the page. It should.

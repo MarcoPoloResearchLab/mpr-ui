@@ -49,7 +49,7 @@ The bundle auto-registers modern HTML custom elements when `window.customElement
 | Tag               | Backing Helper(s)                              | Key Attributes                                                                                                                        | Emitted Events                                            |
 | ----------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
 | `<mpr-header>`    | `renderSiteHeader`, `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `site-id`, `theme-config`, `auth-config`, `login-path`, `logout-path`, `nonce-path`, etc.   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
-| `<mpr-footer>`    | `renderFooter`                                 | `prefix-text`, `links-collection`, legacy `links`, `toggle-label`, `privacy-link-*`, `theme-config`, dataset-based class overrides     | `mpr-footer:theme-change`                                 |
+| `<mpr-footer>`    | `renderFooter`                                 | `prefix-text`, `links-collection`, legacy `links`, `toggle-label`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides     | `mpr-footer:theme-change`                                 |
 | `<mpr-theme-toggle>` | `renderThemeToggle`, `configureTheme`       | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`, `theme-mode`          | `mpr-ui:theme-change` (via the shared theme manager)      |
 | `<mpr-login-button>` | `createAuthHeader`, shared GIS helper       | `site-id`, `login-path`, `logout-path`, `nonce-path`, `base-url`, `button-text`, `button-size`, `button-theme`, `button-shape`        | `mpr-ui:auth:*`, `mpr-login:error`                        |
 | `<mpr-settings>` | Settings CTA + panel wrapper                    | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open`                                                                    | `mpr-settings:toggle`                                     |
@@ -194,7 +194,8 @@ Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to
 | `privacyLinkHref`          | `string`                               | Destination for the privacy link (`#` default).                               |
 | `privacyLinkLabel`         | `string`                               | Copy for the privacy link (default "Privacy • Terms").                        |
 | `privacyModalContent`      | `string` (HTML)                        | Optional HTML injected into a modal shown when the privacy link is activated. |
-| `themeToggle.enabled`      | `boolean`                              | Controls whether the theme toggle renders (default `true`).                   |
+| `themeToggle.enabled`      | `boolean`                              | Controls whether the theme toggle renders (default `false`; set to `true` or provide `theme-switcher`).                   |
+| `themeToggle.variant`      | `"switch" \| "button" \| "square"`     | Choose the control style (`theme-switcher="toggle"` aliases `switch`; `square` renders the quadrant picker). |
 | `themeToggle.wrapperClass` | `string`                               | Class for the toggle wrapper pill.                                            |
 | `themeToggle.inputClass`   | `string`                               | Class for the `input[type=checkbox]`.                                         |
 | `themeToggle.dataTheme`    | `string`                               | Optional Bootstrap theme hint stored on the wrapper.                          |
@@ -210,6 +211,8 @@ If `linksCollection` is omitted (or its `links` array is empty), the footer rend
 If `privacyModalContent` is provided, the privacy link becomes a button that opens an almost full-screen modal with focus capture, ESC/backdrop/click-to-close, and body scroll locking.
 
 Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the footer host element; values merge with programmatic options.
+
+Declarative attribute `theme-switcher` controls `themeToggle.variant` and implicitly enables the control. Supported values: `toggle` (`switch`), `square`, and `button`. Square mode assumes up to four entries in `themeToggle.modes`, letting you encode palette + light/dark combinations by populating `dataset` entries such as `{"data-demo-palette":"sunrise"}` that the theme manager stamps onto every configured target.
 
 ### Behaviour
 

@@ -344,6 +344,80 @@ test('footer layout orders privacy spacer toggle and brand', () => {
   );
 });
 
+test('footer does not render the theme toggle unless explicitly enabled', () => {
+  resetEnvironment();
+  const harness = createFooterHostHarness();
+  const library = loadLibrary();
+
+  library.renderFooter(harness.host, {});
+
+  const markup = String(harness.host.innerHTML);
+  assert.strictEqual(
+    markup.indexOf('data-mpr-footer="theme-toggle"'),
+    -1,
+    'toggle host should be absent when theme-switcher is not provided',
+  );
+});
+
+test('theme toggle config selects the square variant', () => {
+  resetEnvironment();
+  const harness = createFooterHostHarness();
+  const library = loadLibrary();
+
+  const controller = library.renderFooter(harness.host, {
+    themeToggle: {
+      enabled: true,
+      variant: 'square',
+      modes: [
+        { value: 'default-light', attributeValue: 'light' },
+        { value: 'sunrise-light', attributeValue: 'light' },
+        { value: 'default-dark', attributeValue: 'dark' },
+        { value: 'forest-dark', attributeValue: 'dark' },
+      ],
+    },
+  });
+  const config = controller.getConfig();
+
+  assert.equal(config.themeToggle.variant, 'square', 'expected square variant from theme toggle configuration');
+  assert.notStrictEqual(
+    String(harness.host.innerHTML).indexOf('data-mpr-footer="theme-toggle"'),
+    -1,
+    'square variant should still allocate the toggle host in the layout',
+  );
+});
+
+test('invalid theme-switcher values log an error and disable the toggle', () => {
+  resetEnvironment();
+  const harness = createFooterHostHarness();
+  const errors = [];
+  const originalConsole = global.console;
+  const baseConsole = originalConsole ? Object.assign({}, originalConsole) : {};
+  global.console = Object.assign({}, baseConsole, {
+    error: function () {
+      errors.push(Array.from(arguments).join(' '));
+    },
+  });
+  const library = loadLibrary();
+
+  try {
+    library.renderFooter(harness.host, {
+      themeToggle: {
+        enabled: true,
+        variant: 'triangle',
+      },
+    });
+  } finally {
+    global.console = originalConsole;
+  }
+
+  assert.ok(errors.length >= 1, 'expected an error log when theme-switcher is invalid');
+  assert.strictEqual(
+    String(harness.host.innerHTML).indexOf('data-mpr-footer="theme-toggle"'),
+    -1,
+    'invalid theme-switcher should prevent rendering the toggle host',
+  );
+});
+
 test('footer omits drop-up when links collection is empty', () => {
   resetEnvironment();
   const harness = createFooterHostHarness();

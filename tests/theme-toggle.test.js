@@ -44,23 +44,42 @@ function createElementStub(options) {
       if (!listeners[eventType]) return;
       listeners[eventType] = listeners[eventType].filter((entry) => entry !== handler);
     };
-    element.trigger = function (eventType) {
+    element.trigger = function (eventType, payload) {
       const handlers = listeners[eventType] ? listeners[eventType].slice() : [];
       handlers.forEach((handler) => {
-        handler({
-          type: eventType,
-          preventDefault() {},
-        });
+        handler.call(element, Object.assign(
+          {
+            type: eventType,
+            preventDefault() {},
+          },
+          payload || {},
+        ));
       });
     };
   }
   return element;
 }
 
-function createThemeToggleHarness() {
+function createThemeToggleHarness(options) {
+  const config = Object.assign({ variant: 'switch' }, options || {});
   const host = createElementStub({ supportsAttributes: true });
   const control = createElementStub({ supportsEvents: true, supportsAttributes: true });
+  control.ownerDocument = { defaultView: null };
   const icon = createElementStub();
+  const grid = createElementStub({ supportsAttributes: true });
+  grid.style = { setProperty() {} };
+  grid.getBoundingClientRect = function () {
+    return config.gridRect || { left: 0, top: 0, width: 80, height: 80 };
+  };
+  const dot = createElementStub({ supportsAttributes: true });
+  dot.style = { setProperty() {} };
+  const squareQuads = Array.from({ length: 4 }).map(() => {
+    const quad = createElementStub({ supportsAttributes: true });
+    quad.classList = {
+      toggle: function () {},
+    };
+    return quad;
+  });
   host.querySelector = function (selector) {
     if (selector === '[data-mpr-theme-toggle="control"]') {
       return control;
@@ -68,9 +87,23 @@ function createThemeToggleHarness() {
     if (selector === '[data-mpr-theme-toggle="icon"]') {
       return icon;
     }
+    if (config.variant === 'square') {
+      if (selector === '[data-mpr-theme-toggle="grid"]') {
+        return grid;
+      }
+      if (selector === '[data-mpr-theme-toggle="dot"]') {
+        return dot;
+      }
+    }
     return null;
   };
-  return { host, control, icon };
+  host.querySelectorAll = function (selector) {
+    if (config.variant === 'square' && selector === '[data-mpr-theme-toggle="quad"]') {
+      return squareQuads.slice();
+    }
+    return [];
+  };
+  return { host, control, icon, grid, dot };
 }
 
 function resetEnvironment() {
@@ -143,4 +176,33 @@ test('mprThemeToggle attaches to host elements via Alpine-style factory', () => 
     'expected update to rewire handlers without duplicating listeners',
   );
   component.destroy();
+});
+
+test('renderThemeToggle supports the square variant and updates modes per quadrant', () => {
+  resetEnvironment();
+  const harness = createThemeToggleHarness({
+    variant: 'square',
+    gridRect: { left: 0, top: 0, width: 100, height: 100 },
+  });
+  require('../mpr-ui.js');
+  const controller = global.MPRUI.renderThemeToggle(harness.host, {
+    variant: 'square',
+    theme: {
+      initialMode: 'default-light',
+      modes: [
+        { value: 'default-light', attributeValue: 'light' },
+        { value: 'sunrise-light', attributeValue: 'light' },
+        { value: 'default-dark', attributeValue: 'dark' },
+        { value: 'forest-dark', attributeValue: 'dark' },
+      ],
+    },
+  });
+  assert.equal(global.MPRUI.getThemeMode(), 'default-light');
+  harness.control.trigger('click', { clientX: 90, clientY: 90 });
+  assert.equal(
+    global.MPRUI.getThemeMode(),
+    'default-dark',
+    'clicking the bottom-right quadrant should activate the third mode',
+  );
+  controller.destroy();
 });

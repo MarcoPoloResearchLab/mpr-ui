@@ -342,6 +342,38 @@ test('renderSiteHeader initial markup forces navigation links to open in new win
   );
 });
 
+test('renderSiteHeader never renders a theme toggle control', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  let capturedMarkup = '';
+  Object.defineProperty(harness.host, 'innerHTML', {
+    configurable: true,
+    get() {
+      return this.__innerHTML || '';
+    },
+    set(value) {
+      this.__innerHTML = String(value);
+      capturedMarkup = this.__innerHTML;
+    },
+  });
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, {
+    themeToggle: {
+      attribute: 'data-demo-theme',
+      targets: ['body'],
+      modes: [
+        { value: 'dawn', attributeValue: 'light' },
+        { value: 'dusk', attributeValue: 'dark' },
+      ],
+    },
+  });
+  assert.strictEqual(
+    capturedMarkup.indexOf('data-mpr-theme-toggle'),
+    -1,
+    'header markup must not include theme toggle nodes',
+  );
+});
+
 test('header syncs host data attribute with global theme mode', () => {
   resetEnvironment();
   const harness = createHostHarness();
