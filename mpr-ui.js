@@ -2395,6 +2395,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     HEADER_ROOT_CLASS +
     "__nav:empty{display:none}";
 
+  var HEADER_SETTINGS_PLACEHOLDER_MARKUP =
+    '<div data-mpr-header="settings-modal-placeholder">' +
+    '<p data-mpr-header="settings-modal-placeholder-title">Add your settings controls here.</p>' +
+    '<p data-mpr-header="settings-modal-placeholder-subtext">Listen for the "mpr-ui:header:settings-click" event or query [data-mpr-header="settings-modal-body"] to mount custom UI.</p>' +
+    "</div>";
+
   var HEADER_DEFAULTS = Object.freeze({
     brand: Object.freeze({
       label: "Marco Polo Research Lab",
@@ -2635,7 +2641,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       "</h1>" +
       '<button type="button" data-mpr-header="settings-modal-close" aria-label="Close settings">&times;</button>' +
       "</header>" +
-      '<div data-mpr-header="settings-modal-body"></div>' +
+      '<div data-mpr-header="settings-modal-body">' +
+      HEADER_SETTINGS_PLACEHOLDER_MARKUP +
+      "</div>" +
       "</div>" +
       "</div>"
     );

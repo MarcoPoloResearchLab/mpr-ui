@@ -80,8 +80,9 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 - [x] [MU-317] Event log stops recording user actions fired through the UI controls.
   - Restored the demo event log helper, wired it to header + footer events, and added Playwright coverage ensuring Settings clicks and theme toggles append human-readable entries again.
   - Reproduce by interacting with buttons that previously generated log entries; nothing is appended, so audit the logger wiring and restore event dispatch + persistence.
-- [ ] [MU-318] Clicking the Settings control renders no modal at all.
+- [x] [MU-318] Clicking the Settings control renders no modal at all.
   - Expected: users see a modal shell with the Settings header even if body content is empty; activate Settings now results in no overlay, so wire the modal trigger + default content.
+  - Added a default placeholder block plus guidance copy inside the header modal and extended Playwright coverage to prove the Settings trigger now opens a visible shell even before integrators inject their own panel content.
 - [ ] [MU-319] Footer renders two identical “Built by Marco Polo Research Lab” labels.
   - The drop-up plus plain-text variant both render simultaneously, producing duplicate branding; ensure only one label variant appears per configuration.
 - [ ] [MU-320] Privacy & Terms activation shows a stub element at the bottom instead of a nearly full-screen modal.

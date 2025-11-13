@@ -18,6 +18,7 @@ const {
   settingsModal,
   settingsModalDialog,
   settingsModalClose,
+  settingsModalBody,
   footerThemeControl,
   footerDropupButton,
   footerMenu,
@@ -154,6 +155,15 @@ test.describe('Demo behaviours', () => {
 
     await page.locator(settingsModalClose).click();
     await expect(modal).toHaveAttribute('data-mpr-modal-open', 'false');
+  });
+  test('MU-318: settings modal renders default placeholder content', async ({ page }) => {
+    const modal = page.locator(settingsModal);
+    await page.locator(headerSettingsButton).click();
+    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'true');
+    await expect(page.locator(settingsModalBody)).toContainText(
+      'Add your settings controls here.',
+      { timeout: 1000 },
+    );
   });
 
   test('MU-317: event log records header and theme interactions', async ({ page }) => {
