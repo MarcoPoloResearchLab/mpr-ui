@@ -464,6 +464,7 @@ footer.mpr-footer [data-mpr-footer="brand"] {
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  box-sizing: border-box;
   width: min(720px, 92vw);
   max-height: calc(
     100vh - var(--mpr-modal-top-offset, 72px) - var(--mpr-modal-bottom-offset, 72px)

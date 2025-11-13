@@ -24,6 +24,16 @@ const EVENT_LOGGERS = Object.freeze([
       return `Theme changed to ${theme} (via ${source})`;
     },
   },
+  {
+    type: 'mpr-footer:privacy-modal-open',
+    formatter: (event) => {
+      const origin =
+        event && event.detail && typeof event.detail.source === 'string'
+          ? event.detail.source
+          : 'unknown';
+      return `Privacy & Terms modal opened (${origin})`;
+    },
+  },
 ]);
 
 /**

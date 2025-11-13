@@ -7,7 +7,7 @@ const { pathToFileURL } = require('node:url');
 const CDN_BUNDLE_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js';
 const CDN_STYLES_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css';
 const REPOSITORY_ROOT = join(__dirname, '../../..');
-const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/index.html')).href;
+const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/local.html')).href;
 const THEME_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/theme-toggle.html'),
 ).href;
@@ -15,20 +15,9 @@ const THEME_FIXTURE_URL = pathToFileURL(
 const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
   headerNavLinks: '[data-mpr-header="nav"] a',
-  headerSettingsButton: '[data-mpr-header="settings-button"]',
-  settingsModal: '[data-mpr-header="settings-modal"]',
-  settingsModalDialog: '[data-mpr-header="settings-modal-dialog"]',
-  settingsModalClose: '[data-mpr-header="settings-modal-close"]',
-  settingsModalBody: '[data-mpr-header="settings-modal-body"]',
-  headerRoot: 'header.mpr-header',
-  footerRoot: 'footer.mpr-footer',
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerDropupButton: '[data-mpr-footer="toggle-button"]',
   footerMenu: '[data-mpr-footer="menu"]',
-  privacyLink: '[data-mpr-footer="privacy-link"]',
-  privacyModal: '[data-mpr-footer="privacy-modal"]',
-  privacyModalClose: '[data-mpr-footer="privacy-modal-close"]',
-  privacyModalBackdrop: '[data-mpr-footer="privacy-modal-backdrop"]',
   eventLogEntries: '#event-log [data-test="event-log-entry"]',
 });
 
