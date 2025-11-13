@@ -20,6 +20,7 @@
 - MU-214: Footer requires a `linksCollection` object for drop-up menus; when omitted it renders text-only, and new docs/tests cover the JSON API plus the fallback state.
 - MU-111: Footer privacy link now supports a `privacyModalContent` payload that opens a full-screen modal with ESC/backdrop close, focus management, and scroll locking.
 - MU-316: Body background colours now respond to theme toggles without custom classes by honouring the mirrored `data-mpr-theme` attribute, and new Playwright coverage guards the regression.
+- MU-317: Restored the demo event log helper plus tests so header/settings and theme interactions append timestamped entries to the showcase log.
 - MU-104: Added the shared custom-element infrastructure (`MprElement`, `createCustomElementRegistry`, and reusable header/footer DOM builders) plus regression tests to prepare for the upcoming `<mpr-*>` surfaces.
 - MU-105: Introduced `<mpr-header>`/`<mpr-footer>` custom elements with attribute reflection, slot support, README guidance, demo samples, and regression tests exercising both the DOM helpers and controller updates.
 - MU-106: Added `<mpr-theme-toggle>` and `<mpr-login-button>` custom elements, shared Google button rendering, new documentation/demo samples, and regression tests covering declarative theme switching and GIS login wiring.

@@ -77,7 +77,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   - Verified the existing footer modal wiring; Playwright and manual checks show `data-mpr-modal-open="true"` after activation and no code changes were necessary (no-op).
 - [x] [MU-316] Switching between the themes does not change the color of the body of the page. It should.
   - Updated the shared stylesheet to honour the mirrored `data-mpr-theme` attribute on `<body>` so light/dark colours flip even without custom classes, and added a Playwright fixture proving the default toggle now recolours the page.
-- [ ] [MU-317] Event log stops recording user actions fired through the UI controls.
+- [x] [MU-317] Event log stops recording user actions fired through the UI controls.
+  - Restored the demo event log helper, wired it to header + footer events, and added Playwright coverage ensuring Settings clicks and theme toggles append human-readable entries again.
   - Reproduce by interacting with buttons that previously generated log entries; nothing is appended, so audit the logger wiring and restore event dispatch + persistence.
 - [ ] [MU-318] Clicking the Settings control renders no modal at all.
   - Expected: users see a modal shell with the Settings header even if body content is empty; activate Settings now results in no overlay, so wire the modal trigger + default content.

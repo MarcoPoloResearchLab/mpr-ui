@@ -7,6 +7,7 @@ const {
   captureToggleSnapshot,
   captureColorSnapshots,
   captureDropUpMetrics,
+  readEventLogEntries,
   selectors,
 } = require('./support/demoPage');
 
@@ -23,6 +24,7 @@ const {
   privacyLink,
   privacyModal,
   privacyModalClose,
+  eventLogEntries,
 } = selectors;
 
 const PALETTE_TARGETS = ['header.mpr-header', 'main', '#event-log', 'footer.mpr-footer'];
@@ -152,6 +154,23 @@ test.describe('Demo behaviours', () => {
 
     await page.locator(settingsModalClose).click();
     await expect(modal).toHaveAttribute('data-mpr-modal-open', 'false');
+  });
+
+  test('MU-317: event log records header and theme interactions', async ({ page }) => {
+    const logLocator = page.locator(eventLogEntries);
+    await expect(logLocator).toHaveCount(0);
+
+    await page.locator(headerSettingsButton).click();
+    await expect(logLocator).toHaveCount(1, { timeout: 2000 });
+    await expect(logLocator.first()).toContainText(/settings/i);
+
+    await clickQuadrant(page, footerThemeControl, 'bottomRight');
+    await page.waitForTimeout(200);
+    await expect(logLocator).toHaveCount(2, { timeout: 2000 });
+    await expect(logLocator.nth(1)).toContainText(/theme changed/i);
+
+    const entries = await readEventLogEntries(page);
+    expect(entries.length).toBeGreaterThanOrEqual(2);
   });
 });
 

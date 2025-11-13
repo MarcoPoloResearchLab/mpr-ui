@@ -25,6 +25,7 @@ const SELECTORS = Object.freeze({
   privacyLink: '[data-mpr-footer="privacy-link"]',
   privacyModal: '[data-mpr-footer="privacy-modal"]',
   privacyModalClose: '[data-mpr-footer="privacy-modal-close"]',
+  eventLogEntries: '#event-log [data-test="event-log-entry"]',
 });
 
 const LOCAL_ASSETS = Object.freeze({
@@ -204,6 +205,19 @@ function captureDropUpMetrics(page) {
 }
 
 /**
+ * Reads the event log entry texts for assertions.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<string[]>}
+ */
+function readEventLogEntries(page) {
+  return page.evaluate((selector) => {
+    return Array.from(document.querySelectorAll(selector)).map((element) =>
+      element.textContent ? element.textContent.trim() : '',
+    );
+  }, SELECTORS.eventLogEntries);
+}
+
+/**
  * Intercepts a CDN request and responds with a local asset payload.
  * @param {import('@playwright/test').Page} page
  * @param {string | RegExp} url
@@ -229,5 +243,6 @@ module.exports = {
   captureToggleSnapshot,
   captureColorSnapshots,
   captureDropUpMetrics,
+  readEventLogEntries,
   selectors: SELECTORS,
 };
