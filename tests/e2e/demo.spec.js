@@ -3,6 +3,7 @@
 const { test, expect } = require('@playwright/test');
 const {
   visitDemoPage,
+  visitThemeFixturePage,
   captureToggleSnapshot,
   captureColorSnapshots,
   captureDropUpMetrics,
@@ -78,6 +79,19 @@ test.describe('Demo behaviours', () => {
     expect(paletteAfter).not.toBe(paletteBefore);
   });
 
+  test('Footer square toggle keeps the body background in sync', async ({ page }) => {
+    const initialBackground = await readBodyBackgroundColor(page);
+    await clickQuadrant(page, footerThemeControl, 'bottomRight');
+    await page.waitForTimeout(250);
+    const darkBackground = await readBodyBackgroundColor(page);
+    expect(darkBackground).not.toBe(initialBackground);
+
+    await clickQuadrant(page, footerThemeControl, 'topLeft');
+    await page.waitForTimeout(250);
+    const resetBackground = await readBodyBackgroundColor(page);
+    expect(resetBackground).toBe(initialBackground);
+  });
+
   test('MU-309: footer toggle updates multiple palettes', async ({ page }) => {
     const beforeColors = await captureColorSnapshots(page, PALETTE_TARGETS);
     await clickQuadrant(page, footerThemeControl, 'bottomRight');
@@ -141,6 +155,28 @@ test.describe('Demo behaviours', () => {
   });
 });
 
+test.describe('Default theme toggle behaviours', () => {
+  test.beforeEach(async ({ page }) => {
+    await visitThemeFixturePage(page);
+  });
+
+  test('MU-316: default toggle updates the body background without custom classes', async ({ page }) => {
+    const toggle = page.locator(footerThemeControl).first();
+    await expect(toggle).toBeVisible();
+
+    const initialBackground = await readBodyBackgroundColor(page);
+    await toggle.click();
+    await page.waitForTimeout(200);
+    const darkBackground = await readBodyBackgroundColor(page);
+    expect(darkBackground).not.toBe(initialBackground);
+
+    await toggle.click();
+    await page.waitForTimeout(200);
+    const resetBackground = await readBodyBackgroundColor(page);
+    expect(resetBackground).toBe(initialBackground);
+  });
+});
+
 /**
  * Clicks a specific quadrant within the square theme toggle.
  * @param {import('@playwright/test').Page} page
@@ -159,4 +195,13 @@ async function clickQuadrant(page, selector, quadrant) {
   const targetX = isRight ? box.x + box.width - margin : box.x + margin;
   const targetY = isBottom ? box.y + box.height - margin : box.y + margin;
   await page.mouse.click(targetX, targetY);
+}
+
+/**
+ * Reads the computed body background colour.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<string>}
+ */
+async function readBodyBackgroundColor(page) {
+  return page.evaluate(() => window.getComputedStyle(document.body).getPropertyValue('background-color'));
 }

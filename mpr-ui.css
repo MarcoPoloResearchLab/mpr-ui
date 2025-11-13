@@ -33,12 +33,14 @@ body[data-demo-palette='default'] {
   background: none;
 }
 
-body.theme-light {
+body.theme-light,
+body[data-mpr-theme='light'] {
   background-color: #f8fafc;
   color: var(--mpr-color-text-primary, #0f172a);
 }
 
-body.theme-dark {
+body.theme-dark,
+body[data-mpr-theme='dark'] {
   background-color: #0f172a;
   color: var(--mpr-color-text-primary, #e2e8f0);
 }
@@ -151,7 +153,8 @@ body[data-demo-palette='forest'] {
   transition: background 0.3s ease, color 0.3s ease;
 }
 
-body[data-demo-palette='sunrise'].theme-light {
+body[data-demo-palette='sunrise'].theme-light,
+body[data-demo-palette='sunrise'][data-mpr-theme='light'] {
   --mpr-color-surface-primary: rgba(252, 232, 222, 0.92);
   --mpr-color-surface-elevated: rgba(255, 247, 237, 0.98);
   --mpr-color-text-primary: #7c2d12;
@@ -171,7 +174,8 @@ body[data-demo-palette='sunrise'].theme-light {
   color: var(--mpr-color-text-primary, #7c2d12);
 }
 
-body[data-demo-palette='sunrise'].theme-dark {
+body[data-demo-palette='sunrise'].theme-dark,
+body[data-demo-palette='sunrise'][data-mpr-theme='dark'] {
   --mpr-color-surface-primary: rgba(76, 20, 12, 0.92);
   --mpr-color-surface-elevated: rgba(111, 38, 22, 0.96);
   --mpr-color-text-primary: #ffedd5;
@@ -191,7 +195,8 @@ body[data-demo-palette='sunrise'].theme-dark {
   color: var(--mpr-color-text-primary, #ffedd5);
 }
 
-body[data-demo-palette='forest'].theme-light {
+body[data-demo-palette='forest'].theme-light,
+body[data-demo-palette='forest'][data-mpr-theme='light'] {
   --mpr-color-surface-primary: rgba(220, 252, 231, 0.92);
   --mpr-color-surface-elevated: rgba(240, 253, 244, 0.98);
   --mpr-color-text-primary: #064e3b;
@@ -211,7 +216,8 @@ body[data-demo-palette='forest'].theme-light {
   color: var(--mpr-color-text-primary, #064e3b);
 }
 
-body[data-demo-palette='forest'].theme-dark {
+body[data-demo-palette='forest'].theme-dark,
+body[data-demo-palette='forest'][data-mpr-theme='dark'] {
   --mpr-color-surface-primary: rgba(17, 42, 36, 0.94);
   --mpr-color-surface-elevated: rgba(13, 35, 30, 0.98);
   --mpr-color-text-primary: #dcfce7;

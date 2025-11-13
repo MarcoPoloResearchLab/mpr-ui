@@ -75,7 +75,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   - Documented that `<mpr-header>` only configures shared theme state (no toggle), updated the component reference tables, and added a regression test ensuring the rendered header markup never includes `data-mpr-theme-toggle`.
 - [x] [MU-315] Clicking on Privacy and Terms must open a modal window with the provided markup. It doesnt now.
   - Verified the existing footer modal wiring; Playwright and manual checks show `data-mpr-modal-open="true"` after activation and no code changes were necessary (no-op).
-- [ ] [MU-316] Switching between the themes does not change the color of the body of the page. It should.
+- [x] [MU-316] Switching between the themes does not change the color of the body of the page. It should.
+  - Updated the shared stylesheet to honour the mirrored `data-mpr-theme` attribute on `<body>` so light/dark colours flip even without custom classes, and added a Playwright fixture proving the default toggle now recolours the page.
 - [ ] [MU-317] Event log stops recording user actions fired through the UI controls.
   - Reproduce by interacting with buttons that previously generated log entries; nothing is appended, so audit the logger wiring and restore event dispatch + persistence.
 - [ ] [MU-318] Clicking the Settings control renders no modal at all.
