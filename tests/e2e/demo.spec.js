@@ -8,6 +8,7 @@ const {
   captureColorSnapshots,
   captureDropUpMetrics,
   readEventLogEntries,
+  visitFooterTextFixturePage,
   selectors,
 } = require('./support/demoPage');
 
@@ -17,6 +18,7 @@ const {
   footerThemeControl,
   footerDropupButton,
   footerMenu,
+  footerPrefix,
   eventLogEntries,
 } = selectors;
 
@@ -130,6 +132,7 @@ test.describe('Demo behaviours', () => {
     await dropupButton.click();
     await expect(dropupButton).toHaveAttribute('aria-expanded', 'true');
     await expect(page.locator(footerMenu)).toHaveClass(/mpr-footer__menu--open/);
+    await expect(page.locator(footerPrefix)).toHaveCount(0);
   });
 
   test('MU-316: settings button opens an accessible modal shell', async ({ page }) => {
@@ -212,6 +215,19 @@ test.describe('Demo behaviours', () => {
 
     const entries = await readEventLogEntries(page);
     expect(entries.length).toBeGreaterThanOrEqual(3);
+  });
+});
+
+test.describe('Footer label variants', () => {
+  test.beforeEach(async ({ page }) => {
+    await visitFooterTextFixturePage(page);
+  });
+
+  test('MU-319: text-only footer renders a single prefix label', async ({ page }) => {
+    const prefix = page.locator(footerPrefix);
+    await expect(prefix).toHaveCount(1);
+    await expect(prefix).toHaveText(/Built by Marco Polo Research Lab/);
+    await expect(page.locator(footerDropupButton)).toHaveCount(0);
   });
 });
 

@@ -4449,6 +4449,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         "</div>"
       : "";
 
+    var prefixMarkup = !config.linksMenuEnabled
+      ? '<span data-mpr-footer="prefix"></span>'
+      : "";
+
     var layoutMarkup =
       '<div data-mpr-footer="layout">' +
       '<a data-mpr-footer="privacy-link" href="' +
@@ -4457,7 +4461,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       spacerMarkup +
       themeToggleMarkup +
       '<div data-mpr-footer="brand">' +
-      '<span data-mpr-footer="prefix"></span>' +
+      prefixMarkup +
       dropdownMarkup +
       "</div>" +
       "</div>";

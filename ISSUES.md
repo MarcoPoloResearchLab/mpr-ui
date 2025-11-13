@@ -83,8 +83,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 - [x] [MU-318] Clicking the Settings control renders no modal at all.
   - Expected: users see a modal shell with the Settings header even if body content is empty; activate Settings now results in no overlay, so wire the modal trigger + default content.
   - Added a default placeholder block plus guidance copy inside the header modal, clamped both the Settings and Privacy modals between the sticky header/footer with dynamic offsets + resize handling, and extended Playwright coverage to assert both overlays stay within the reserved viewport band.
-- [ ] [MU-319] Footer renders two identical “Built by Marco Polo Research Lab” labels.
-  - The drop-up plus plain-text variant both render simultaneously, producing duplicate branding; ensure only one label variant appears per configuration.
+- [x] [MU-319] Footer renders two identical “Built by Marco Polo Research Lab” labels.
+  - Suppressed the prefix element whenever a links collection renders, added a text-only footer fixture, and Playwright now asserts drop-up mode hides the duplicate label while text-only mode still shows a single prefix.
 - [x] [MU-320] Privacy & Terms activation shows a stub element at the bottom instead of a nearly full-screen modal.
   - Moved the footer modal into a body-level portal, shared the viewport controller (now reacting to scroll) with the Settings modal, made the dialog box-sizing border-box so height budgets include padding, and hardened the Playwright demo to verify both modals sit between the sticky header/footer without shifting the chrome or event log coverage (privacy open events now feed the demo logger).
 - [ ] [MU-321] Theme toggle visual has a pale halo and the knob misaligns with the track border.
