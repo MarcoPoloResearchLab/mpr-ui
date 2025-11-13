@@ -28,6 +28,7 @@ const SELECTORS = Object.freeze({
   privacyLink: '[data-mpr-footer="privacy-link"]',
   privacyModal: '[data-mpr-footer="privacy-modal"]',
   privacyModalClose: '[data-mpr-footer="privacy-modal-close"]',
+  privacyModalBackdrop: '[data-mpr-footer="privacy-modal-backdrop"]',
   eventLogEntries: '#event-log [data-test="event-log-entry"]',
 });
 

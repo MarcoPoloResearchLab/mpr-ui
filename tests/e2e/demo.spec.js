@@ -27,6 +27,7 @@ const {
   privacyLink,
   privacyModal,
   privacyModalClose,
+  privacyModalBackdrop,
   eventLogEntries,
 } = selectors;
 
@@ -197,6 +198,46 @@ test.describe('Demo behaviours', () => {
     }
     expect(geometry.modalTop).toBeGreaterThanOrEqual(geometry.headerBottom - 1);
     expect(geometry.modalBottom).toBeLessThanOrEqual(geometry.footerTop + 1);
+  });
+
+  test('MU-318: privacy modal respects header and footer bounds', async ({ page }) => {
+    await page.locator(privacyLink).click();
+    const modal = page.locator(privacyModal);
+    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'true');
+    const geometry = await page.evaluate(
+      (selectors) => {
+        const headerEl = document.querySelector(selectors.headerRoot);
+        const footerEl = document.querySelector(selectors.footerRoot);
+        const modalEl = document.querySelector(selectors.privacyModal);
+        if (!headerEl || !footerEl || !modalEl) {
+          return null;
+        }
+        const headerRect = headerEl.getBoundingClientRect();
+        const footerRect = footerEl.getBoundingClientRect();
+        const computed = window.getComputedStyle(modalEl);
+        var topValue = computed.top || "0px";
+        var bottomValue = computed.bottom || "0px";
+        var topNumber = parseFloat(topValue) || 0;
+        var bottomNumber = parseFloat(bottomValue) || 0;
+        var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
+        return {
+          headerBottom: headerRect.bottom,
+          footerTop: footerRect.top,
+          modalTopCss: topNumber,
+          modalBottomCss: bottomNumber,
+          viewportHeight: viewportHeight,
+        };
+      },
+      { headerRoot, footerRoot, privacyModal },
+    );
+    expect(geometry).not.toBeNull();
+    if (!geometry) {
+      return;
+    }
+    const modalBottomCoordinate = geometry.viewportHeight - geometry.modalBottomCss;
+    expect(geometry.modalTopCss).toBeGreaterThanOrEqual(geometry.headerBottom - 1);
+    expect(modalBottomCoordinate).toBeLessThanOrEqual(geometry.footerTop + 1);
+    await page.locator(privacyModalClose).click();
   });
 
   test('MU-317: event log records header and theme interactions', async ({ page }) => {

@@ -4650,30 +4650,133 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (!dialogElement.hasAttribute("tabindex")) {
       dialogElement.setAttribute("tabindex", "-1");
     }
+    var ownerDocument = modalElement.ownerDocument || (global.document || null);
+    var bodyElement = ownerDocument ? ownerDocument.body : null;
     modalElement.setAttribute("aria-hidden", "true");
     modalElement.setAttribute("data-mpr-modal-open", "false");
     var previousFocus = null;
     var previousOverflow = null;
+    var resizeHandler = null;
+    var pendingOffsetFrame = null;
+
+    function resolveHeaderHeight() {
+      if (!ownerDocument) {
+        return 0;
+      }
+      var headerElement =
+        ownerDocument.querySelector("header.mpr-header") ||
+        ownerDocument.querySelector('[data-mpr-header="root"]');
+      if (!headerElement) {
+        return 0;
+      }
+      if (typeof headerElement.getBoundingClientRect === "function") {
+        var rect = headerElement.getBoundingClientRect();
+        return Math.max(0, Math.round(rect.height));
+      }
+      if (typeof headerElement.offsetHeight === "number") {
+        return Math.max(0, headerElement.offsetHeight);
+      }
+      return 0;
+    }
+
+    function resolveFooterOffset() {
+      var footerRoot =
+        footerQuery(containerElement, '[data-mpr-footer="root"]') ||
+        containerElement;
+      if (!footerRoot) {
+        return 0;
+      }
+      var viewportHeight =
+        (global.window && typeof global.window.innerHeight === "number"
+          ? global.window.innerHeight
+          : null) ||
+        (ownerDocument && ownerDocument.documentElement
+          ? ownerDocument.documentElement.clientHeight
+          : 0);
+      if (typeof footerRoot.getBoundingClientRect === "function") {
+        var rect = footerRoot.getBoundingClientRect();
+        var footerTop = rect.top;
+        if (viewportHeight) {
+          return Math.max(0, Math.round(viewportHeight - footerTop));
+        }
+        return Math.max(0, Math.round(rect.height));
+      }
+      if (typeof footerRoot.offsetHeight === "number") {
+        return Math.max(0, footerRoot.offsetHeight);
+      }
+      return 0;
+    }
+
+    function computeModalOffsets() {
+      var headerOffset = resolveHeaderHeight();
+      var footerOffset = resolveFooterOffset();
+      modalElement.style.setProperty("--mpr-header-offset", headerOffset + "px");
+      modalElement.style.setProperty("--mpr-footer-offset", footerOffset + "px");
+    }
+
+    function applyModalOffsets() {
+      if (
+        !global.window ||
+        typeof global.window.requestAnimationFrame !== "function"
+      ) {
+        computeModalOffsets();
+        return;
+      }
+      if (pendingOffsetFrame) {
+        global.window.cancelAnimationFrame(pendingOffsetFrame);
+      }
+      pendingOffsetFrame = global.window.requestAnimationFrame(function () {
+        pendingOffsetFrame = null;
+        computeModalOffsets();
+      });
+    }
+
+    function subscribeToResize() {
+      if (
+        !global.window ||
+        typeof global.window.addEventListener !== "function" ||
+        resizeHandler
+      ) {
+        return;
+      }
+      resizeHandler = function handleFooterModalResize() {
+        if (modalElement.getAttribute("data-mpr-modal-open") === "true") {
+          applyModalOffsets();
+        }
+      };
+      global.window.addEventListener("resize", resizeHandler);
+    }
+
+    function unsubscribeFromResize() {
+      if (
+        resizeHandler &&
+        global.window &&
+        typeof global.window.removeEventListener === "function"
+      ) {
+        global.window.removeEventListener("resize", resizeHandler);
+      }
+      resizeHandler = null;
+    }
 
     function lockScroll() {
-      if (!global.document || !global.document.body) {
+      if (!bodyElement) {
         return;
       }
       if (previousOverflow === null) {
         previousOverflow =
-          typeof global.document.body.style.overflow === "string"
-            ? global.document.body.style.overflow
+          typeof bodyElement.style.overflow === "string"
+            ? bodyElement.style.overflow
             : "";
       }
-      global.document.body.style.overflow = "hidden";
+      bodyElement.style.overflow = "hidden";
     }
 
     function unlockScroll() {
-      if (!global.document || !global.document.body) {
+      if (!bodyElement) {
         return;
       }
       if (previousOverflow !== null) {
-        global.document.body.style.overflow = previousOverflow;
+        bodyElement.style.overflow = previousOverflow;
         previousOverflow = null;
       }
     }
@@ -4685,6 +4788,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       modalElement.setAttribute("data-mpr-modal-open", "false");
       modalElement.setAttribute("aria-hidden", "true");
       unlockScroll();
+      unsubscribeFromResize();
       if (previousFocus && typeof previousFocus.focus === "function") {
         previousFocus.focus();
       }
@@ -4701,6 +4805,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       modalElement.setAttribute("data-mpr-modal-open", "true");
       modalElement.setAttribute("aria-hidden", "false");
       lockScroll();
+      applyModalOffsets();
+      subscribeToResize();
       if (dialogElement && typeof dialogElement.focus === "function") {
         dialogElement.focus();
       }
@@ -4752,6 +4858,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       global.document.addEventListener("keydown", handleEscape);
     }
 
+    applyModalOffsets();
+
     return function cleanupPrivacyModal() {
       privacyLink.removeEventListener("click", openModal);
       privacyLink.removeEventListener("keydown", handleLinkKeydown);
@@ -4766,6 +4874,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       previousFocus = null;
       closeModal();
+      if (pendingOffsetFrame && global.window && typeof global.window.cancelAnimationFrame === "function") {
+        global.window.cancelAnimationFrame(pendingOffsetFrame);
+      }
+      pendingOffsetFrame = null;
     };
   }
 
