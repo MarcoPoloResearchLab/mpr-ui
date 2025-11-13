@@ -7,7 +7,7 @@ const { pathToFileURL } = require('node:url');
 const CDN_BUNDLE_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js';
 const CDN_STYLES_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css';
 const REPOSITORY_ROOT = join(__dirname, '../../..');
-const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/index.html')).href;
+const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/local.html')).href;
 const THEME_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/theme-toggle.html'),
 ).href;
@@ -15,16 +15,10 @@ const THEME_FIXTURE_URL = pathToFileURL(
 const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
   headerNavLinks: '[data-mpr-header="nav"] a',
-  headerSettingsButton: '[data-mpr-header="settings-button"]',
-  settingsModal: '[data-mpr-header="settings-modal"]',
-  settingsModalDialog: '[data-mpr-header="settings-modal-dialog"]',
-  settingsModalClose: '[data-mpr-header="settings-modal-close"]',
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerDropupButton: '[data-mpr-footer="toggle-button"]',
   footerMenu: '[data-mpr-footer="menu"]',
-  privacyLink: '[data-mpr-footer="privacy-link"]',
-  privacyModal: '[data-mpr-footer="privacy-modal"]',
-  privacyModalClose: '[data-mpr-footer="privacy-modal-close"]',
+  eventLogEntries: '#event-log [data-test="event-log-entry"]',
 });
 
 const LOCAL_ASSETS = Object.freeze({
@@ -204,6 +198,19 @@ function captureDropUpMetrics(page) {
 }
 
 /**
+ * Reads the event log entry texts for assertions.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<string[]>}
+ */
+function readEventLogEntries(page) {
+  return page.evaluate((selector) => {
+    return Array.from(document.querySelectorAll(selector)).map((element) =>
+      element.textContent ? element.textContent.trim() : '',
+    );
+  }, SELECTORS.eventLogEntries);
+}
+
+/**
  * Intercepts a CDN request and responds with a local asset payload.
  * @param {import('@playwright/test').Page} page
  * @param {string | RegExp} url
@@ -229,5 +236,6 @@ module.exports = {
   captureToggleSnapshot,
   captureColorSnapshots,
   captureDropUpMetrics,
+  readEventLogEntries,
   selectors: SELECTORS,
 };

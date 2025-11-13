@@ -77,14 +77,16 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   - Verified the existing footer modal wiring; Playwright and manual checks show `data-mpr-modal-open="true"` after activation and no code changes were necessary (no-op).
 - [x] [MU-316] Switching between the themes does not change the color of the body of the page. It should.
   - Updated the shared stylesheet to honour the mirrored `data-mpr-theme` attribute on `<body>` so light/dark colours flip even without custom classes, and added a Playwright fixture proving the default toggle now recolours the page.
-- [ ] [MU-317] Event log stops recording user actions fired through the UI controls.
+- [x] [MU-317] Event log stops recording user actions fired through the UI controls.
+  - Restored the demo event log helper, wired it to header + footer events, and added Playwright coverage ensuring Settings clicks and theme toggles append human-readable entries again.
   - Reproduce by interacting with buttons that previously generated log entries; nothing is appended, so audit the logger wiring and restore event dispatch + persistence.
-- [ ] [MU-318] Clicking the Settings control renders no modal at all.
+- [x] [MU-318] Clicking the Settings control renders no modal at all.
   - Expected: users see a modal shell with the Settings header even if body content is empty; activate Settings now results in no overlay, so wire the modal trigger + default content.
+  - Added a default placeholder block plus guidance copy inside the header modal, clamped both the Settings and Privacy modals between the sticky header/footer with dynamic offsets + resize handling, and extended Playwright coverage to assert both overlays stay within the reserved viewport band.
 - [ ] [MU-319] Footer renders two identical “Built by Marco Polo Research Lab” labels.
   - The drop-up plus plain-text variant both render simultaneously, producing duplicate branding; ensure only one label variant appears per configuration.
-- [ ] [MU-320] Privacy & Terms activation shows a stub element at the bottom instead of a nearly full-screen modal.
-  - The modal should occupy the viewport with scroll lock; instead, content sits at the bottom edge, so fix layout/styling so Privacy modal matches spec.
+- [x] [MU-320] Privacy & Terms activation shows a stub element at the bottom instead of a nearly full-screen modal.
+  - Moved the footer modal into a body-level portal, shared the viewport controller (now reacting to scroll) with the Settings modal, made the dialog box-sizing border-box so height budgets include padding, and hardened the Playwright demo to verify both modals sit between the sticky header/footer without shifting the chrome or event log coverage (privacy open events now feed the demo logger).
 - [ ] [MU-321] Theme toggle visual has a pale halo and the knob misaligns with the track border.
   - Refine the toggle CSS so the track/knob match the design spec without glow artifacts and the knob snaps flush to the edges.
 - [ ] [MU-322] Toggle cycles through multiple color schemes rather than simply flipping light/dark.

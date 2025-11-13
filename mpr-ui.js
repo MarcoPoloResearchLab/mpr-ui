@@ -2395,6 +2395,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     HEADER_ROOT_CLASS +
     "__nav:empty{display:none}";
 
+  var HEADER_SETTINGS_PLACEHOLDER_MARKUP =
+    '<div data-mpr-header="settings-modal-placeholder">' +
+    '<p data-mpr-header="settings-modal-placeholder-title">Add your settings controls here.</p>' +
+    '<p data-mpr-header="settings-modal-placeholder-subtext">Listen for the "mpr-ui:header:settings-click" event or query [data-mpr-header="settings-modal-body"] to mount custom UI.</p>' +
+    "</div>";
+
   var HEADER_DEFAULTS = Object.freeze({
     brand: Object.freeze({
       label: "Marco Polo Research Lab",
@@ -2626,16 +2632,18 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   function buildHeaderSettingsModalMarkup(label) {
     var heading = escapeHtml(label || HEADER_DEFAULTS.settings.label);
     return (
-      '<div data-mpr-header="settings-modal" aria-hidden="true" data-mpr-modal-open="false">' +
-      '<div data-mpr-header="settings-modal-backdrop"></div>' +
-      '<div data-mpr-header="settings-modal-dialog" role="dialog" aria-modal="true" tabindex="-1">' +
-      '<header data-mpr-header="settings-modal-header">' +
-      '<h1 data-mpr-header="settings-modal-title">' +
+      '<div data-mpr-header="settings-modal" data-mpr-modal="container" aria-hidden="true" data-mpr-modal-open="false">' +
+      '<div data-mpr-modal="backdrop" data-mpr-header="settings-modal-backdrop"></div>' +
+      '<div data-mpr-modal="dialog" data-mpr-header="settings-modal-dialog" role="dialog" aria-modal="true" tabindex="-1">' +
+      '<header data-mpr-modal="header" data-mpr-header="settings-modal-header">' +
+      '<h1 data-mpr-modal="title" data-mpr-header="settings-modal-title">' +
       heading +
       "</h1>" +
-      '<button type="button" data-mpr-header="settings-modal-close" aria-label="Close settings">&times;</button>' +
+      '<button type="button" data-mpr-modal="close" data-mpr-header="settings-modal-close" aria-label="Close settings">&times;</button>' +
       "</header>" +
-      '<div data-mpr-header="settings-modal-body"></div>' +
+      '<div data-mpr-modal="body" data-mpr-header="settings-modal-body">' +
+      HEADER_SETTINGS_PLACEHOLDER_MARKUP +
+      "</div>" +
       "</div>" +
       "</div>"
     );
@@ -2733,33 +2741,135 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
   }
 
-  function createHeaderSettingsModalController(elements, labelText) {
+  function createViewportModalController(config) {
     if (
-      !elements ||
-      !elements.settingsModal ||
-      !elements.settingsModalDialog
+      !config ||
+      !config.modalElement ||
+      !config.dialogElement
     ) {
       return null;
     }
-    var modal = elements.settingsModal;
-    var dialog = elements.settingsModalDialog;
-    var closeButton = elements.settingsModalClose;
-    var backdrop = elements.settingsModalBackdrop;
-    var titleElement = elements.settingsModalTitle;
-    var ownerDocument = modal.ownerDocument || (global.document || null);
+    var modal = config.modalElement;
+    var dialog = config.dialogElement;
+    var closeButton = config.closeButton;
+    var backdrop = config.backdropElement;
+    var labelElement = config.labelElement;
+    var ownerDocument =
+      config.ownerDocument ||
+      modal.ownerDocument ||
+      global.document ||
+      null;
     var bodyElement = ownerDocument ? ownerDocument.body : null;
     var previousFocus = null;
     var previousOverflow = null;
+    var resizeHandler = null;
+    var scrollHandler = null;
+    var pendingOffsetFrame = null;
+    var defaultLabel =
+      typeof config.defaultLabel === "string" && config.defaultLabel.trim()
+        ? config.defaultLabel.trim()
+        : "";
+
+    function safeCall(fn) {
+      if (typeof fn === "function") {
+        try {
+          return fn();
+        } catch (_error) {
+          return 0;
+        }
+      }
+      return 0;
+    }
 
     function updateLabel(nextLabel) {
       var labelValue =
         typeof nextLabel === "string" && nextLabel.trim()
           ? nextLabel.trim()
-          : HEADER_DEFAULTS.settings.label;
-      if (titleElement) {
-        titleElement.textContent = labelValue;
+          : defaultLabel;
+      if (labelElement) {
+        labelElement.textContent = labelValue;
       }
-      dialog.setAttribute("aria-label", labelValue);
+      dialog.setAttribute("aria-label", labelValue || defaultLabel || "");
+    }
+
+    function computeOffsets() {
+      var headerOffset = safeCall(config.getHeaderOffset) || 0;
+      var footerOffset = safeCall(config.getFooterOffset) || 0;
+      var topOffset = Math.max(0, Math.round(headerOffset));
+      var bottomOffset = Math.max(0, Math.round(footerOffset));
+      modal.style.setProperty("--mpr-modal-top-offset", topOffset + "px");
+      modal.style.setProperty("--mpr-modal-bottom-offset", bottomOffset + "px");
+    }
+
+    function applyModalOffsets() {
+      if (
+        global.window &&
+        typeof global.window.requestAnimationFrame === "function"
+      ) {
+        if (pendingOffsetFrame) {
+          global.window.cancelAnimationFrame(pendingOffsetFrame);
+        }
+        pendingOffsetFrame = global.window.requestAnimationFrame(function () {
+          pendingOffsetFrame = null;
+          computeOffsets();
+        });
+        return;
+      }
+      computeOffsets();
+    }
+
+    function subscribeToResize() {
+      if (
+        !global.window ||
+        typeof global.window.addEventListener !== "function" ||
+        resizeHandler
+      ) {
+        return;
+      }
+      resizeHandler = function handleViewportModalResize() {
+        if (modal.getAttribute("data-mpr-modal-open") === "true") {
+          applyModalOffsets();
+        }
+      };
+      global.window.addEventListener("resize", resizeHandler);
+    }
+
+    function subscribeToScroll() {
+      var view =
+        (ownerDocument && ownerDocument.defaultView) ||
+        global.window ||
+        null;
+      if (!view || typeof view.addEventListener !== "function" || scrollHandler) {
+        return;
+      }
+      scrollHandler = function handleViewportModalScroll() {
+        if (modal.getAttribute("data-mpr-modal-open") === "true") {
+          applyModalOffsets();
+        }
+      };
+      view.addEventListener("scroll", scrollHandler, { passive: true });
+    }
+
+    function unsubscribeFromScroll() {
+      var view =
+        (ownerDocument && ownerDocument.defaultView) ||
+        global.window ||
+        null;
+      if (scrollHandler && view && typeof view.removeEventListener === "function") {
+        view.removeEventListener("scroll", scrollHandler);
+      }
+      scrollHandler = null;
+    }
+
+    function unsubscribeFromResize() {
+      if (
+        resizeHandler &&
+        global.window &&
+        typeof global.window.removeEventListener === "function"
+      ) {
+        global.window.removeEventListener("resize", resizeHandler);
+      }
+      resizeHandler = null;
     }
 
     function lockScroll() {
@@ -2788,18 +2898,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       modal.setAttribute("aria-hidden", isOpen ? "false" : "true");
       if (isOpen) {
         lockScroll();
+        applyModalOffsets();
+        subscribeToResize();
+        subscribeToScroll();
       } else {
         unlockScroll();
-      }
-    }
-
-    function openModal() {
-      previousFocus = ownerDocument && ownerDocument.activeElement
-        ? ownerDocument.activeElement
-        : null;
-      setModalState(true);
-      if (typeof dialog.focus === "function") {
-        dialog.focus();
+        unsubscribeFromResize();
+        unsubscribeFromScroll();
       }
     }
 
@@ -2814,8 +2919,23 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       previousFocus = null;
     }
 
+    function openModal() {
+      previousFocus =
+        ownerDocument && ownerDocument.activeElement
+          ? ownerDocument.activeElement
+          : null;
+      setModalState(true);
+      if (typeof dialog.focus === "function") {
+        dialog.focus();
+      }
+    }
+
     function closeModal() {
-      setModalState(false);
+      if (modal.getAttribute("data-mpr-modal-open") === "true") {
+        setModalState(false);
+      } else {
+        unsubscribeFromResize();
+      }
       restoreFocus();
     }
 
@@ -2842,32 +2962,100 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
     }
 
-    if (closeButton && closeButton.addEventListener) {
+    if (closeButton && typeof closeButton.addEventListener === "function") {
       closeButton.addEventListener("click", closeModal);
     }
-    if (backdrop && backdrop.addEventListener) {
+    if (backdrop && typeof backdrop.addEventListener === "function") {
       backdrop.addEventListener("click", handleBackdrop);
     }
     modal.addEventListener("click", handleBackdrop);
     modal.addEventListener("keydown", handleKeydown);
-    updateLabel(labelText);
+    updateLabel(config.labelText);
+    applyModalOffsets();
 
     return {
       open: openModal,
       close: closeModal,
       updateLabel: updateLabel,
       destroy: function destroy() {
-        unlockScroll();
-        if (closeButton && closeButton.removeEventListener) {
+        if (modal) {
+          setModalState(false);
+        }
+        restoreFocus();
+        if (closeButton && typeof closeButton.removeEventListener === "function") {
           closeButton.removeEventListener("click", closeModal);
         }
-        if (backdrop && backdrop.removeEventListener) {
+        if (backdrop && typeof backdrop.removeEventListener === "function") {
           backdrop.removeEventListener("click", handleBackdrop);
         }
         modal.removeEventListener("click", handleBackdrop);
         modal.removeEventListener("keydown", handleKeydown);
+        unsubscribeFromResize();
+        unsubscribeFromScroll();
+        if (
+          pendingOffsetFrame &&
+          global.window &&
+          typeof global.window.cancelAnimationFrame === "function"
+        ) {
+          global.window.cancelAnimationFrame(pendingOffsetFrame);
+        }
+        pendingOffsetFrame = null;
       },
     };
+  }
+
+  function createHeaderSettingsModalController(elements, labelText) {
+    if (!elements) {
+      return null;
+    }
+    return createViewportModalController({
+      modalElement: elements.settingsModal,
+      dialogElement: elements.settingsModalDialog,
+      closeButton: elements.settingsModalClose,
+      backdropElement: elements.settingsModalBackdrop,
+      labelElement: elements.settingsModalTitle,
+      labelText: labelText || HEADER_DEFAULTS.settings.label,
+      ownerDocument:
+        (elements.settingsModal && elements.settingsModal.ownerDocument) ||
+        global.document ||
+        null,
+      getHeaderOffset: function getHeaderOffset() {
+        if (!elements.root) {
+          return 0;
+        }
+        if (typeof elements.root.getBoundingClientRect === "function") {
+          var rect = elements.root.getBoundingClientRect();
+          return Math.max(0, Math.round(rect.bottom));
+        }
+        if (typeof elements.root.offsetHeight === "number") {
+          return Math.max(0, elements.root.offsetHeight);
+        }
+        return 0;
+      },
+      getFooterOffset: function getFooterOffset() {
+        var doc =
+          (elements.settingsModal && elements.settingsModal.ownerDocument) ||
+          global.document ||
+          null;
+        if (!doc) {
+          return 0;
+        }
+        var footerElement =
+          doc.querySelector('[data-mpr-footer="root"]') ||
+          doc.querySelector("footer.mpr-footer");
+        if (!footerElement) {
+          return 0;
+        }
+        if (typeof footerElement.getBoundingClientRect === "function") {
+          var rect = footerElement.getBoundingClientRect();
+          return Math.max(0, Math.round(rect.height));
+        }
+        if (typeof footerElement.offsetHeight === "number") {
+          return Math.max(0, footerElement.offsetHeight);
+        }
+        return 0;
+      },
+    });
   }
 
   function mountHeaderDom(hostElement, options) {
@@ -4244,12 +4432,20 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         "</div>"
       : "";
 
+    var privacyHeading = escapeFooterHtml(
+      config.privacyModalTitle || config.privacyLinkLabel || "Privacy & Terms",
+    );
     var modalMarkup = config.privacyModalContent
-      ? '<div data-mpr-footer="privacy-modal" aria-hidden="true" data-mpr-modal-open="false">' +
-        '<div data-mpr-footer="privacy-modal-backdrop"></div>' +
-        '<div data-mpr-footer="privacy-modal-dialog" role="dialog" aria-modal="true" tabindex="-1">' +
-        '<button type="button" data-mpr-footer="privacy-modal-close" aria-label="Close">&times;</button>' +
-        '<div data-mpr-footer="privacy-modal-content">' +
+      ? '<div data-mpr-footer="privacy-modal" data-mpr-modal="container" aria-hidden="true" data-mpr-modal-open="false">' +
+        '<div data-mpr-modal="backdrop" data-mpr-footer="privacy-modal-backdrop"></div>' +
+        '<div data-mpr-modal="dialog" data-mpr-footer="privacy-modal-dialog" role="dialog" aria-modal="true" tabindex="-1">' +
+        '<header data-mpr-modal="header" data-mpr-footer="privacy-modal-header">' +
+        '<h1 data-mpr-modal="title" data-mpr-footer="privacy-modal-title">' +
+        privacyHeading +
+        "</h1>" +
+        '<button type="button" data-mpr-modal="close" data-mpr-footer="privacy-modal-close" aria-label="Close">&times;</button>' +
+        "</header>" +
+        '<div data-mpr-modal="body" data-mpr-footer="privacy-modal-content">' +
         config.privacyModalContent +
         "</div>" +
         "</div>" +
@@ -4323,10 +4519,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (config.privacyLinkHref) {
       privacyAnchor.setAttribute("href", sanitizeFooterHref(config.privacyLinkHref));
     }
+    var modalEnabled = Boolean(config.privacyModalContent);
     if (config.privacyLinkLabel) {
       privacyAnchor.textContent = config.privacyLinkLabel;
+      if (modalEnabled && modalControls && typeof modalControls.updateLabel === "function") {
+        modalControls.updateLabel(config.privacyLinkLabel);
+      }
     }
-    toggleFooterPrivacyInteractivity(privacyAnchor, Boolean(modalControls));
+    toggleFooterPrivacyInteractivity(privacyAnchor, modalEnabled);
   }
 
   function updateFooterPrefix(containerElement, config) {
@@ -4564,60 +4764,92 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (!dialogElement.hasAttribute("tabindex")) {
       dialogElement.setAttribute("tabindex", "-1");
     }
-    modalElement.setAttribute("aria-hidden", "true");
-    modalElement.setAttribute("data-mpr-modal-open", "false");
-    var previousFocus = null;
-    var previousOverflow = null;
+    var ownerDocument = modalElement.ownerDocument || (global.document || null);
+    if (
+      ownerDocument &&
+      ownerDocument.body &&
+      modalElement.parentNode &&
+      modalElement.parentNode !== ownerDocument.body &&
+      typeof ownerDocument.body.appendChild === "function"
+    ) {
+      ownerDocument.body.appendChild(modalElement);
+    }
+    var modalController = createViewportModalController({
+      modalElement: modalElement,
+      dialogElement: dialogElement,
+      closeButton: closeButton,
+      backdropElement: backdropElement,
+      labelElement: footerQuery(modalElement, '[data-mpr-footer="privacy-modal-title"]'),
+      labelText: config.privacyLinkLabel || "Privacy & Terms",
+      defaultLabel: "Privacy & Terms",
+      ownerDocument: ownerDocument,
+      getHeaderOffset: function getHeaderOffset() {
+        if (!ownerDocument) {
+          return 0;
+        }
+        var headerElement =
+          ownerDocument.querySelector('header.mpr-header') ||
+          ownerDocument.querySelector('[data-mpr-header="root"]');
+        if (!headerElement) {
+          return 0;
+        }
+        if (typeof headerElement.getBoundingClientRect === "function") {
+          var headerRect = headerElement.getBoundingClientRect();
+          return Math.max(0, Math.round(headerRect.bottom));
+        }
+        if (typeof headerElement.offsetHeight === "number") {
+          return Math.max(0, headerElement.offsetHeight);
+        }
+        return 0;
+      },
+      getFooterOffset: function getFooterOffset() {
+        var footerRoot =
+          footerQuery(containerElement, '[data-mpr-footer="root"]') ||
+          containerElement;
+        if (!footerRoot) {
+          return 0;
+        }
+        if (typeof footerRoot.getBoundingClientRect === "function") {
+          var footerRect = footerRoot.getBoundingClientRect();
+          var viewportHeight =
+            (ownerDocument && ownerDocument.documentElement
+              ? ownerDocument.documentElement.clientHeight
+              : 0) ||
+            (global.window && typeof global.window.innerHeight === "number"
+              ? global.window.innerHeight
+              : 0);
+          if (viewportHeight) {
+            return Math.max(0, Math.round(viewportHeight - footerRect.top));
+          }
+          return Math.max(0, Math.round(footerRect.height));
+        }
+        if (typeof footerRoot.offsetHeight === "number") {
+          return Math.max(0, footerRoot.offsetHeight);
+        }
+        return 0;
+      },
+    });
+    if (!modalController) {
+      return null;
+    }
 
-    function lockScroll() {
-      if (!global.document || !global.document.body) {
+    function notifyModalOpen(source) {
+      dispatchEvent(
+        containerElement || modalElement,
+        "mpr-footer:privacy-modal-open",
+        {
+          source: source || "privacy-link",
+          modal: "privacy",
+        },
+      );
+    }
+
+    function openPrivacyModal(source) {
+      if (!modalController || typeof modalController.open !== "function") {
         return;
       }
-      if (previousOverflow === null) {
-        previousOverflow =
-          typeof global.document.body.style.overflow === "string"
-            ? global.document.body.style.overflow
-            : "";
-      }
-      global.document.body.style.overflow = "hidden";
-    }
-
-    function unlockScroll() {
-      if (!global.document || !global.document.body) {
-        return;
-      }
-      if (previousOverflow !== null) {
-        global.document.body.style.overflow = previousOverflow;
-        previousOverflow = null;
-      }
-    }
-
-    function closeModal(event) {
-      if (event && typeof event.preventDefault === "function") {
-        event.preventDefault();
-      }
-      modalElement.setAttribute("data-mpr-modal-open", "false");
-      modalElement.setAttribute("aria-hidden", "true");
-      unlockScroll();
-      if (previousFocus && typeof previousFocus.focus === "function") {
-        previousFocus.focus();
-      }
-    }
-
-    function openModal(event) {
-      if (event && typeof event.preventDefault === "function") {
-        event.preventDefault();
-      }
-      previousFocus =
-        global.document && global.document.activeElement
-          ? global.document.activeElement
-          : null;
-      modalElement.setAttribute("data-mpr-modal-open", "true");
-      modalElement.setAttribute("aria-hidden", "false");
-      lockScroll();
-      if (dialogElement && typeof dialogElement.focus === "function") {
-        dialogElement.focus();
-      }
+      modalController.open();
+      notifyModalOpen(source || "privacy-link");
     }
 
     function handleLinkKeydown(event) {
@@ -4633,55 +4865,39 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         key === 32
       ) {
         event.preventDefault();
-        openModal(event);
+        openPrivacyModal("keyboard");
       }
     }
 
-    function handleEscape(event) {
-      if (
-        event &&
-        (event.key === "Escape" ||
-          event.key === "Esc" ||
-          event.keyCode === 27)
-      ) {
-        closeModal(event);
+    function handleLinkClick(event) {
+      if (event && typeof event.preventDefault === "function") {
+        event.preventDefault();
       }
+      openPrivacyModal("mouse");
     }
 
-    function handleBackdropClick(event) {
-      if (event && event.target === backdropElement) {
-        closeModal(event);
-      }
-    }
-
-    privacyLink.addEventListener("click", openModal);
+    privacyLink.addEventListener("click", handleLinkClick);
     privacyLink.addEventListener("keydown", handleLinkKeydown);
-    if (closeButton && typeof closeButton.addEventListener === "function") {
-      closeButton.addEventListener("click", closeModal);
-    }
-    if (backdropElement && typeof backdropElement.addEventListener === "function") {
-      backdropElement.addEventListener("click", handleBackdropClick);
-    }
-    if (global.document && typeof global.document.addEventListener === "function") {
-      global.document.addEventListener("keydown", handleEscape);
-    }
 
-    return function cleanupPrivacyModal() {
-      privacyLink.removeEventListener("click", openModal);
-      privacyLink.removeEventListener("keydown", handleLinkKeydown);
-      if (closeButton && typeof closeButton.removeEventListener === "function") {
-        closeButton.removeEventListener("click", closeModal);
-      }
-      if (backdropElement && typeof backdropElement.removeEventListener === "function") {
-        backdropElement.removeEventListener("click", handleBackdropClick);
-      }
-      if (global.document && typeof global.document.removeEventListener === "function") {
-        global.document.removeEventListener("keydown", handleEscape);
-      }
-      previousFocus = null;
-      closeModal();
+    return {
+      controller: modalController,
+      cleanup: function cleanupPrivacyModal() {
+        privacyLink.removeEventListener("click", handleLinkClick);
+        privacyLink.removeEventListener("keydown", handleLinkKeydown);
+        if (modalController && typeof modalController.destroy === "function") {
+          modalController.destroy();
+        }
+        if (
+          modalElement &&
+          modalElement.parentNode &&
+          typeof modalElement.parentNode.removeChild === "function"
+        ) {
+          modalElement.parentNode.removeChild(modalElement);
+        }
+      },
     };
   }
+
 
   function createFooterComponent(initialOptions) {
     var startingOptions = initialOptions && typeof initialOptions === "object" ? initialOptions : {};
@@ -4747,8 +4963,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         this.cleanupHandlers.push(footerThemeUnsubscribe);
 
         applyFooterStructure(footerRoot, this.config);
-        var hasPrivacyModal = Boolean(this.config.privacyModalContent);
-        updateFooterPrivacy(footerRoot, this.config, hasPrivacyModal);
+        var privacyModalLifecycle = this.config.privacyModalContent
+          ? initializeFooterPrivacyModal(footerRoot, this.config)
+          : null;
+        updateFooterPrivacy(
+          footerRoot,
+          this.config,
+          privacyModalLifecycle && privacyModalLifecycle.controller,
+        );
         updateFooterPrefix(footerRoot, this.config);
         updateFooterToggleButton(footerRoot, this.config);
         updateFooterMenuLinks(footerRoot, this.config);
@@ -4758,9 +4980,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.cleanupHandlers.push(dropdownCleanup);
         }
 
-        var privacyModalCleanup = initializeFooterPrivacyModal(footerRoot, this.config);
-        if (privacyModalCleanup) {
-          this.cleanupHandlers.push(privacyModalCleanup);
+        if (
+          privacyModalLifecycle &&
+          typeof privacyModalLifecycle.cleanup === "function"
+        ) {
+          this.cleanupHandlers.push(privacyModalLifecycle.cleanup);
         }
 
         var toggleHost = footerQuery(footerRoot, '[data-mpr-footer="theme-toggle"]');

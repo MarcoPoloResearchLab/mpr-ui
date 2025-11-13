@@ -35,11 +35,14 @@ test('demo loads the shared stylesheet from the CDN', () => {
   );
 });
 
-test('demo does not load additional local JavaScript modules', () => {
-  assert.doesNotMatch(
-    demoHtml,
-    /<script[^>]+src="\.\//,
-    'Demo page should not include local script modules; CDN bundle is sufficient',
+test('demo loads only the local event log helper script', () => {
+  const localScripts = Array.from(
+    demoHtml.matchAll(/<script[^>]+src="(\.\/[^"]+)"[^>]*><\/script>/gi),
+  ).map((match) => match[1]);
+  assert.deepStrictEqual(
+    localScripts,
+    ['./demo.js'],
+    'Demo page should only include the event log helper as a local script',
   );
 });
 
