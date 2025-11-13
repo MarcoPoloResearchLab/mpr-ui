@@ -58,7 +58,7 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 ```
 - [x] [MU-215] Center the public API/docs around web components (custom elements first), treating Alpine.js plus imperative helpers as implementation details rather than the primary surface.
   - Reworded the README + architecture intro so custom elements are the default integration path, added custom-element-first quick start, and relegated Alpine/imperative helpers to an optional section with doc cross-links.
-- [x] [MU-316] Clicking on Settings shall open a modal window, with Settings in the top pane and empty content.
+- [ ] [MU-316] Clicking on Settings shall open a modal window, with Settings in the top pane and empty content.
 
 ## BugFixes (310–399)
 
@@ -74,22 +74,22 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   - Documented that `<mpr-header>` only configures shared theme state (no toggle), updated the component reference tables, and added a regression test ensuring the rendered header markup never includes `data-mpr-theme-toggle`.
 - [x] [MU-315] Clicking on Privacy and Terms must open a modal window with the provided markup. It doesnt now.
   - Verified the existing footer modal wiring; Playwright and manual checks show `data-mpr-modal-open="true"` after activation and no code changes were necessary (no-op).
-- [x] [MU-316] Switching between the themes does not change the color of the body of the page. It should.
-- [x] [MU-317] Event log stops recording user actions fired through the UI controls.
+- [ ] [MU-316] Switching between the themes does not change the color of the body of the page. It should.
+- [ ] [MU-317] Event log stops recording user actions fired through the UI controls.
   - Reproduce by interacting with buttons that previously generated log entries; nothing is appended, so audit the logger wiring and restore event dispatch + persistence.
-- [x] [MU-318] Clicking the Settings control renders no modal at all.
+- [ ] [MU-318] Clicking the Settings control renders no modal at all.
   - Expected: users see a modal shell with the Settings header even if body content is empty; activate Settings now results in no overlay, so wire the modal trigger + default content.
-- [x] [MU-319] Footer renders two identical “Built by Marco Polo Research Lab” labels.
+- [ ] [MU-319] Footer renders two identical “Built by Marco Polo Research Lab” labels.
   - The drop-up plus plain-text variant both render simultaneously, producing duplicate branding; ensure only one label variant appears per configuration.
-- [x] [MU-320] Privacy & Terms activation shows a stub element at the bottom instead of a nearly full-screen modal.
+- [ ] [MU-320] Privacy & Terms activation shows a stub element at the bottom instead of a nearly full-screen modal.
   - The modal should occupy the viewport with scroll lock; instead, content sits at the bottom edge, so fix layout/styling so Privacy modal matches spec.
-- [x] [MU-321] Theme toggle visual has a pale halo and the knob misaligns with the track border.
+- [ ] [MU-321] Theme toggle visual has a pale halo and the knob misaligns with the track border.
   - Refine the toggle CSS so the track/knob match the design spec without glow artifacts and the knob snaps flush to the edges.
-- [x] [MU-322] Toggle cycles through multiple color schemes rather than simply flipping light/dark.
+- [ ] [MU-322] Toggle cycles through multiple color schemes rather than simply flipping light/dark.
   - Theme manager should switch between two modes; current logic iterates through several schemes, so constrain the toggler to binary mode for this control.
-- [x] [MU-323] Square theme toggle variant never appears even when `theme-switcher="square"` is configured.
+- [ ] [MU-323] Square theme toggle variant never appears even when `theme-switcher="square"` is configured.
   - Footer ignores the square option and still renders the pill toggle, so honor the attribute/dataset and mount the square component.
-- [x] [MU-324] Square toggle palette lacks four distinct colors from `theme-config`.
+- [ ] [MU-324] Square toggle palette lacks four distinct colors from `theme-config`.
   - The square variant should map `theme-config` to four quadrants, but configuration only exposes two colors; extend theme-config parsing to accept four color tokens for the square UI.
 
 ## Maintenance (405–499)
