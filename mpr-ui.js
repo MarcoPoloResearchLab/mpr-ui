@@ -2978,7 +2978,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       close: closeModal,
       updateLabel: updateLabel,
       destroy: function destroy() {
-        closeModal();
+        if (modal) {
+          setModalState(false);
+        }
+        restoreFocus();
         if (closeButton && typeof closeButton.removeEventListener === "function") {
           closeButton.removeEventListener("click", closeModal);
         }

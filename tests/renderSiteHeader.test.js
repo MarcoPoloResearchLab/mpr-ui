@@ -215,6 +215,50 @@ function createHostHarness() {
   const nav = { innerHTML: '' };
   const brand = createElementStub({ supportsAttributes: true });
   const settingsButton = createElementStub({ supportsEvents: true });
+  settingsButton.focus = function () {
+    this.__focused = true;
+  };
+  const ownerDocument = global.document || createDocumentStub();
+  if (!ownerDocument.body) {
+    const bodyAttributes = {};
+    ownerDocument.body = {
+      style: {},
+      setAttribute: function (name, value) {
+        bodyAttributes[name] = String(value);
+      },
+      getAttribute: function (name) {
+        return Object.prototype.hasOwnProperty.call(bodyAttributes, name)
+          ? bodyAttributes[name]
+          : null;
+      },
+      removeAttribute: function (name) {
+        delete bodyAttributes[name];
+      },
+    };
+  }
+  const settingsModal = createElementStub({
+    supportsAttributes: true,
+    supportsEvents: true,
+  });
+  settingsModal.ownerDocument = ownerDocument;
+  settingsModal.style = {
+    setProperty: function (name, value) {
+      this[name] = value;
+    },
+  };
+  settingsModal.setAttribute('data-mpr-modal-open', 'false');
+  settingsModal.setAttribute('aria-hidden', 'true');
+  const settingsModalDialog = createElementStub({
+    supportsAttributes: true,
+    supportsEvents: true,
+  });
+  settingsModalDialog.ownerDocument = ownerDocument;
+  settingsModalDialog.focus = function () {
+    this.__focused = true;
+  };
+  const settingsModalClose = createElementStub({ supportsEvents: true });
+  const settingsModalBackdrop = createElementStub({ supportsEvents: true });
+  const settingsModalTitle = createElementStub({ supportsAttributes: true });
   const googleSigninHost = createElementStub({
     supportsAttributes: true,
     supportsEvents: true,
@@ -231,6 +275,11 @@ function createHostHarness() {
     ['[data-mpr-header="brand"]', brand],
     ['[data-mpr-header="google-signin"]', googleSigninHost],
     ['[data-mpr-header="settings-button"]', settingsButton],
+    ['[data-mpr-header="settings-modal"]', settingsModal],
+    ['[data-mpr-header="settings-modal-dialog"]', settingsModalDialog],
+    ['[data-mpr-header="settings-modal-close"]', settingsModalClose],
+    ['[data-mpr-header="settings-modal-backdrop"]', settingsModalBackdrop],
+    ['[data-mpr-header="settings-modal-title"]', settingsModalTitle],
     ['[data-mpr-header="profile"]', profileContainer],
     ['[data-mpr-header="profile-label"]', profileLabel],
     ['[data-mpr-header="profile-name"]', profileName],
@@ -248,6 +297,11 @@ function createHostHarness() {
     brand: brand,
     googleSigninHost: googleSigninHost,
     settingsButton: settingsButton,
+    settingsModal: settingsModal,
+    settingsModalDialog: settingsModalDialog,
+    settingsModalClose: settingsModalClose,
+    settingsModalBackdrop: settingsModalBackdrop,
+    settingsModalTitle: settingsModalTitle,
     profileContainer: profileContainer,
     profileLabel: profileLabel,
     profileName: profileName,
@@ -477,6 +531,46 @@ test('header dispatches signin-click events when auth is disabled', () => {
       );
     }),
     'clicking fallback CTA dispatches signin-click event',
+  );
+});
+
+test('destroying the header hides an open settings modal', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+  const controller = library.renderSiteHeader(harness.host, {});
+
+  assert.strictEqual(
+    harness.settingsModal.getAttribute('data-mpr-modal-open'),
+    'false',
+    'settings modal defaults to closed',
+  );
+
+  global.document.activeElement = harness.settingsButton;
+  harness.settingsButton.click();
+
+  assert.strictEqual(
+    harness.settingsModal.getAttribute('data-mpr-modal-open'),
+    'true',
+    'clicking settings button opens the modal',
+  );
+  assert.strictEqual(
+    harness.settingsModal.getAttribute('aria-hidden'),
+    'false',
+    'opening the modal removes aria-hidden',
+  );
+
+  controller.destroy();
+
+  assert.strictEqual(
+    harness.settingsModal.getAttribute('data-mpr-modal-open'),
+    'false',
+    'destroying the header resets the open state attribute',
+  );
+  assert.strictEqual(
+    harness.settingsModal.getAttribute('aria-hidden'),
+    'true',
+    'destroying the header hides the modal for assistive tech',
   );
 });
 
