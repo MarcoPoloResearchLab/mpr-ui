@@ -2618,7 +2618,26 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       "</div>" +
       "</div>" +
       "</div>" +
-      "</header>"
+      "</header>" +
+      buildHeaderSettingsModalMarkup(options.settings.label)
+    );
+  }
+
+  function buildHeaderSettingsModalMarkup(label) {
+    var heading = escapeHtml(label || HEADER_DEFAULTS.settings.label);
+    return (
+      '<div data-mpr-header="settings-modal" aria-hidden="true" data-mpr-modal-open="false">' +
+      '<div data-mpr-header="settings-modal-backdrop"></div>' +
+      '<div data-mpr-header="settings-modal-dialog" role="dialog" aria-modal="true" tabindex="-1">' +
+      '<header data-mpr-header="settings-modal-header">' +
+      '<h1 data-mpr-header="settings-modal-title">' +
+      heading +
+      "</h1>" +
+      '<button type="button" data-mpr-header="settings-modal-close" aria-label="Close settings">&times;</button>' +
+      "</header>" +
+      '<div data-mpr-header="settings-modal-body"></div>' +
+      "</div>" +
+      "</div>"
     );
   }
 
@@ -2645,6 +2664,21 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       ),
       signOutButton: hostElement.querySelector(
         '[data-mpr-header="sign-out-button"]',
+      ),
+      settingsModal: hostElement.querySelector(
+        '[data-mpr-header="settings-modal"]',
+      ),
+      settingsModalDialog: hostElement.querySelector(
+        '[data-mpr-header="settings-modal-dialog"]',
+      ),
+      settingsModalClose: hostElement.querySelector(
+        '[data-mpr-header="settings-modal-close"]',
+      ),
+      settingsModalBackdrop: hostElement.querySelector(
+        '[data-mpr-header="settings-modal-backdrop"]',
+      ),
+      settingsModalTitle: hostElement.querySelector(
+        '[data-mpr-header="settings-modal-title"]',
       ),
       actions: hostElement.querySelector("." + HEADER_ROOT_CLASS + "__actions"),
     };
@@ -2697,6 +2731,143 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (slotMap.aux && elements.actions) {
       appendHeaderSlotNodes(elements.actions, slotMap.aux, "append");
     }
+  }
+
+  function createHeaderSettingsModalController(elements, labelText) {
+    if (
+      !elements ||
+      !elements.settingsModal ||
+      !elements.settingsModalDialog
+    ) {
+      return null;
+    }
+    var modal = elements.settingsModal;
+    var dialog = elements.settingsModalDialog;
+    var closeButton = elements.settingsModalClose;
+    var backdrop = elements.settingsModalBackdrop;
+    var titleElement = elements.settingsModalTitle;
+    var ownerDocument = modal.ownerDocument || (global.document || null);
+    var bodyElement = ownerDocument ? ownerDocument.body : null;
+    var previousFocus = null;
+    var previousOverflow = null;
+
+    function updateLabel(nextLabel) {
+      var labelValue =
+        typeof nextLabel === "string" && nextLabel.trim()
+          ? nextLabel.trim()
+          : HEADER_DEFAULTS.settings.label;
+      if (titleElement) {
+        titleElement.textContent = labelValue;
+      }
+      dialog.setAttribute("aria-label", labelValue);
+    }
+
+    function lockScroll() {
+      if (!bodyElement) {
+        return;
+      }
+      if (previousOverflow === null) {
+        previousOverflow =
+          typeof bodyElement.style.overflow === "string"
+            ? bodyElement.style.overflow
+            : "";
+      }
+      bodyElement.style.overflow = "hidden";
+    }
+
+    function unlockScroll() {
+      if (!bodyElement || previousOverflow === null) {
+        return;
+      }
+      bodyElement.style.overflow = previousOverflow;
+      previousOverflow = null;
+    }
+
+    function setModalState(isOpen) {
+      modal.setAttribute("data-mpr-modal-open", isOpen ? "true" : "false");
+      modal.setAttribute("aria-hidden", isOpen ? "false" : "true");
+      if (isOpen) {
+        lockScroll();
+      } else {
+        unlockScroll();
+      }
+    }
+
+    function openModal() {
+      previousFocus = ownerDocument && ownerDocument.activeElement
+        ? ownerDocument.activeElement
+        : null;
+      setModalState(true);
+      if (typeof dialog.focus === "function") {
+        dialog.focus();
+      }
+    }
+
+    function restoreFocus() {
+      if (
+        previousFocus &&
+        typeof previousFocus.focus === "function" &&
+        previousFocus.ownerDocument
+      ) {
+        previousFocus.focus();
+      }
+      previousFocus = null;
+    }
+
+    function closeModal() {
+      setModalState(false);
+      restoreFocus();
+    }
+
+    function handleBackdrop(eventObject) {
+      if (!eventObject) {
+        return;
+      }
+      if (
+        eventObject.target === modal ||
+        (backdrop && eventObject.target === backdrop)
+      ) {
+        eventObject.preventDefault();
+        closeModal();
+      }
+    }
+
+    function handleKeydown(eventObject) {
+      if (!eventObject || typeof eventObject.key !== "string") {
+        return;
+      }
+      if (eventObject.key === "Escape") {
+        eventObject.preventDefault();
+        closeModal();
+      }
+    }
+
+    if (closeButton && closeButton.addEventListener) {
+      closeButton.addEventListener("click", closeModal);
+    }
+    if (backdrop && backdrop.addEventListener) {
+      backdrop.addEventListener("click", handleBackdrop);
+    }
+    modal.addEventListener("click", handleBackdrop);
+    modal.addEventListener("keydown", handleKeydown);
+    updateLabel(labelText);
+
+    return {
+      open: openModal,
+      close: closeModal,
+      updateLabel: updateLabel,
+      destroy: function destroy() {
+        unlockScroll();
+        if (closeButton && closeButton.removeEventListener) {
+          closeButton.removeEventListener("click", closeModal);
+        }
+        if (backdrop && backdrop.removeEventListener) {
+          backdrop.removeEventListener("click", handleBackdrop);
+        }
+        modal.removeEventListener("click", handleBackdrop);
+        modal.removeEventListener("keydown", handleKeydown);
+      },
+    };
   }
 
   function mountHeaderDom(hostElement, options) {
@@ -2802,6 +2973,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var elements = mountHeaderDom(hostElement, options);
 
     applyHeaderOptions(hostElement, elements, options);
+    var settingsModalController = createHeaderSettingsModalController(
+      elements,
+      options.settings.label,
+    );
     var authController = null;
     var authListenersAttached = false;
     var googleButtonCleanup = null;
@@ -2862,6 +3037,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     cleanupHandlers.push(destroyGoogleButton);
+    cleanupHandlers.push(function destroySettingsModal() {
+      if (settingsModalController) {
+        settingsModalController.destroy();
+        settingsModalController = null;
+      }
+    });
 
     function dispatchSigninFallback(reason, extraDetail) {
       var detail = {
@@ -3026,6 +3207,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     if (elements.settingsButton) {
       elements.settingsButton.addEventListener("click", function () {
+        if (settingsModalController) {
+          settingsModalController.open();
+        }
         dispatchHeaderEvent("mpr-ui:header:settings-click", {});
       });
     }
@@ -3057,6 +3241,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           hostElement.removeAttribute("data-mpr-google-site-id");
         }
         applyHeaderOptions(hostElement, elements, options);
+        if (settingsModalController) {
+          settingsModalController.updateLabel(options.settings.label);
+        }
         themeManager.configure({
           attribute: headerThemeConfig.attribute,
           targets: headerThemeConfig.targets,

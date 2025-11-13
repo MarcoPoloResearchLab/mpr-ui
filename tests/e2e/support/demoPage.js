@@ -12,6 +12,10 @@ const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/index.html')).hr
 const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
   headerNavLinks: '[data-mpr-header="nav"] a',
+  headerSettingsButton: '[data-mpr-header="settings-button"]',
+  settingsModal: '[data-mpr-header="settings-modal"]',
+  settingsModalDialog: '[data-mpr-header="settings-modal-dialog"]',
+  settingsModalClose: '[data-mpr-header="settings-modal-close"]',
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerDropupButton: '[data-mpr-footer="toggle-button"]',
   footerMenu: '[data-mpr-footer="menu"]',

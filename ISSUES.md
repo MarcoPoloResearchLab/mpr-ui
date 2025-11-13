@@ -58,7 +58,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 ```
 - [x] [MU-215] Center the public API/docs around web components (custom elements first), treating Alpine.js plus imperative helpers as implementation details rather than the primary surface.
   - Reworded the README + architecture intro so custom elements are the default integration path, added custom-element-first quick start, and relegated Alpine/imperative helpers to an optional section with doc cross-links.
-- [ ] [MU-316] Clicking on Settings shall open a modal window, with Settings in the top pane and empty content.
+- [x] [MU-316] Clicking on Settings shall open a modal window, with Settings in the top pane and empty content.
+  - Added a header-scoped modal shell with focus/scroll management plus Playwright coverage proving the Settings control opens and closes the dialog.
 
 ## BugFixes (310–399)
 

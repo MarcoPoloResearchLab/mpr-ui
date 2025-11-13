@@ -12,6 +12,10 @@ const {
 const {
   googleButton,
   headerNavLinks,
+  headerSettingsButton,
+  settingsModal,
+  settingsModalDialog,
+  settingsModalClose,
   footerThemeControl,
   footerDropupButton,
   footerMenu,
@@ -115,6 +119,25 @@ test.describe('Demo behaviours', () => {
     await dropupButton.click();
     await expect(dropupButton).toHaveAttribute('aria-expanded', 'true');
     await expect(page.locator(footerMenu)).toHaveClass(/mpr-footer__menu--open/);
+  });
+
+  test('MU-316: settings button opens an accessible modal shell', async ({ page }) => {
+    const settingsButton = page.locator(headerSettingsButton);
+    await expect(settingsButton).toBeVisible();
+
+    const modal = page.locator(settingsModal);
+    await expect(modal).toHaveCount(1);
+    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'false');
+
+    await settingsButton.click();
+    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'true');
+
+    const dialog = page.locator(settingsModalDialog);
+    await expect(dialog).toHaveAttribute('role', 'dialog');
+    await expect(dialog).toHaveAttribute('aria-modal', 'true');
+
+    await page.locator(settingsModalClose).click();
+    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'false');
   });
 });
 
