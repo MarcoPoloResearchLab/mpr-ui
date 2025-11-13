@@ -496,9 +496,13 @@ footer.mpr-footer [data-mpr-footer="privacy-modal-content"] {
 
 [data-mpr-header="settings-modal"] {
   position: fixed;
-  inset: 0;
+  top: var(--mpr-header-offset, 72px);
+  right: 0;
+  bottom: var(--mpr-footer-offset, 72px);
+  left: 0;
   z-index: 2100;
   display: none;
+  min-height: 200px;
 }
 
 [data-mpr-header="settings-modal"][data-mpr-modal-open="true"] {

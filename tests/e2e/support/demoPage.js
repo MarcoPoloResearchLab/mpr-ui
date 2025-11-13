@@ -20,6 +20,8 @@ const SELECTORS = Object.freeze({
   settingsModalDialog: '[data-mpr-header="settings-modal-dialog"]',
   settingsModalClose: '[data-mpr-header="settings-modal-close"]',
   settingsModalBody: '[data-mpr-header="settings-modal-body"]',
+  headerRoot: 'header.mpr-header',
+  footerRoot: 'footer.mpr-footer',
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerDropupButton: '[data-mpr-footer="toggle-button"]',
   footerMenu: '[data-mpr-footer="menu"]',

@@ -19,6 +19,8 @@ const {
   settingsModalDialog,
   settingsModalClose,
   settingsModalBody,
+  headerRoot,
+  footerRoot,
   footerThemeControl,
   footerDropupButton,
   footerMenu,
@@ -164,6 +166,37 @@ test.describe('Demo behaviours', () => {
       'Add your settings controls here.',
       { timeout: 1000 },
     );
+  });
+
+  test('MU-318: settings modal respects header and footer bounds', async ({ page }) => {
+    await page.locator(headerSettingsButton).click();
+    await expect(page.locator(settingsModal)).toHaveAttribute('data-mpr-modal-open', 'true');
+    const geometry = await page.evaluate(
+      (selectors) => {
+        const headerEl = document.querySelector(selectors.headerRoot);
+        const footerEl = document.querySelector(selectors.footerRoot);
+        const modalEl = document.querySelector(selectors.settingsModal);
+        if (!headerEl || !footerEl || !modalEl) {
+          return null;
+        }
+        const headerRect = headerEl.getBoundingClientRect();
+        const footerRect = footerEl.getBoundingClientRect();
+        const modalRect = modalEl.getBoundingClientRect();
+        return {
+          headerBottom: headerRect.bottom,
+          footerTop: footerRect.top,
+          modalTop: modalRect.top,
+          modalBottom: modalRect.bottom,
+        };
+      },
+      { headerRoot, footerRoot, settingsModal },
+    );
+    expect(geometry).not.toBeNull();
+    if (!geometry) {
+      return;
+    }
+    expect(geometry.modalTop).toBeGreaterThanOrEqual(geometry.headerBottom - 1);
+    expect(geometry.modalBottom).toBeLessThanOrEqual(geometry.footerTop + 1);
   });
 
   test('MU-317: event log records header and theme interactions', async ({ page }) => {

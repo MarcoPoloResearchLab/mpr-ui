@@ -2758,6 +2758,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var bodyElement = ownerDocument ? ownerDocument.body : null;
     var previousFocus = null;
     var previousOverflow = null;
+    var resizeHandler = null;
 
     function updateLabel(nextLabel) {
       var labelValue =
@@ -2768,6 +2769,74 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         titleElement.textContent = labelValue;
       }
       dialog.setAttribute("aria-label", labelValue);
+    }
+
+    function resolveHeaderHeight() {
+      if (!elements || !elements.root) {
+        return 0;
+      }
+      if (typeof elements.root.getBoundingClientRect === "function") {
+        var rect = elements.root.getBoundingClientRect();
+        return Math.max(0, Math.round(rect.height));
+      }
+      if (typeof elements.root.offsetHeight === "number") {
+        return Math.max(0, elements.root.offsetHeight);
+      }
+      return 0;
+    }
+
+    function resolveFooterHeight() {
+      if (!ownerDocument) {
+        return 0;
+      }
+      var footerElement =
+        ownerDocument.querySelector('[data-mpr-footer="root"]') ||
+        ownerDocument.querySelector("footer.mpr-footer");
+      if (!footerElement) {
+        return 0;
+      }
+      if (typeof footerElement.getBoundingClientRect === "function") {
+        var rect = footerElement.getBoundingClientRect();
+        return Math.max(0, Math.round(rect.height));
+      }
+      if (typeof footerElement.offsetHeight === "number") {
+        return Math.max(0, footerElement.offsetHeight);
+      }
+      return 0;
+    }
+
+    function applyModalOffsets() {
+      var headerOffset = resolveHeaderHeight();
+      var footerOffset = resolveFooterHeight();
+      modal.style.setProperty("--mpr-header-offset", headerOffset + "px");
+      modal.style.setProperty("--mpr-footer-offset", footerOffset + "px");
+    }
+
+    function subscribeToResize() {
+      if (
+        !global.window ||
+        typeof global.window.addEventListener !== "function" ||
+        resizeHandler
+      ) {
+        return;
+      }
+      resizeHandler = function handleModalResize() {
+        if (modal.getAttribute("data-mpr-modal-open") === "true") {
+          applyModalOffsets();
+        }
+      };
+      global.window.addEventListener("resize", resizeHandler);
+    }
+
+    function unsubscribeFromResize() {
+      if (
+        resizeHandler &&
+        global.window &&
+        typeof global.window.removeEventListener === "function"
+      ) {
+        global.window.removeEventListener("resize", resizeHandler);
+      }
+      resizeHandler = null;
     }
 
     function lockScroll() {
@@ -2796,8 +2865,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       modal.setAttribute("aria-hidden", isOpen ? "false" : "true");
       if (isOpen) {
         lockScroll();
+        applyModalOffsets();
+        subscribeToResize();
       } else {
         unlockScroll();
+        unsubscribeFromResize();
       }
     }
 
@@ -2823,7 +2895,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function closeModal() {
-      setModalState(false);
+      if (modal.getAttribute("data-mpr-modal-open") === "true") {
+        setModalState(false);
+      } else {
+        unsubscribeFromResize();
+      }
       restoreFocus();
     }
 
@@ -2859,13 +2935,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     modal.addEventListener("click", handleBackdrop);
     modal.addEventListener("keydown", handleKeydown);
     updateLabel(labelText);
+    applyModalOffsets();
 
     return {
       open: openModal,
       close: closeModal,
       updateLabel: updateLabel,
       destroy: function destroy() {
-        unlockScroll();
+        closeModal();
         if (closeButton && closeButton.removeEventListener) {
           closeButton.removeEventListener("click", closeModal);
         }
@@ -2874,6 +2951,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         }
         modal.removeEventListener("click", handleBackdrop);
         modal.removeEventListener("keydown", handleKeydown);
+        unsubscribeFromResize();
       },
     };
   }
