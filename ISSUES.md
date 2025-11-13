@@ -85,8 +85,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   - Added a default placeholder block plus guidance copy inside the header modal, clamped both the Settings and Privacy modals between the sticky header/footer with dynamic offsets + resize handling, and extended Playwright coverage to assert both overlays stay within the reserved viewport band.
 - [ ] [MU-319] Footer renders two identical “Built by Marco Polo Research Lab” labels.
   - The drop-up plus plain-text variant both render simultaneously, producing duplicate branding; ensure only one label variant appears per configuration.
-- [ ] [MU-320] Privacy & Terms activation shows a stub element at the bottom instead of a nearly full-screen modal.
-  - The modal should occupy the viewport with scroll lock; instead, content sits at the bottom edge, so fix layout/styling so Privacy modal matches spec.
+- [x] [MU-320] Privacy & Terms activation shows a stub element at the bottom instead of a nearly full-screen modal.
+  - Moved the footer modal into a body-level portal, shared the viewport controller (now reacting to scroll) with the Settings modal, made the dialog box-sizing border-box so height budgets include padding, and hardened the Playwright demo to verify both modals sit between the sticky header/footer without shifting the chrome or event log coverage (privacy open events now feed the demo logger).
 - [ ] [MU-321] Theme toggle visual has a pale halo and the knob misaligns with the track border.
   - Refine the toggle CSS so the track/knob match the design spec without glow artifacts and the knob snaps flush to the edges.
 - [ ] [MU-322] Toggle cycles through multiple color schemes rather than simply flipping light/dark.

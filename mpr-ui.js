@@ -2763,6 +2763,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var previousFocus = null;
     var previousOverflow = null;
     var resizeHandler = null;
+    var scrollHandler = null;
     var pendingOffsetFrame = null;
     var defaultLabel =
       typeof config.defaultLabel === "string" && config.defaultLabel.trim()
@@ -2833,6 +2834,33 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       global.window.addEventListener("resize", resizeHandler);
     }
 
+    function subscribeToScroll() {
+      var view =
+        (ownerDocument && ownerDocument.defaultView) ||
+        global.window ||
+        null;
+      if (!view || typeof view.addEventListener !== "function" || scrollHandler) {
+        return;
+      }
+      scrollHandler = function handleViewportModalScroll() {
+        if (modal.getAttribute("data-mpr-modal-open") === "true") {
+          applyModalOffsets();
+        }
+      };
+      view.addEventListener("scroll", scrollHandler, { passive: true });
+    }
+
+    function unsubscribeFromScroll() {
+      var view =
+        (ownerDocument && ownerDocument.defaultView) ||
+        global.window ||
+        null;
+      if (scrollHandler && view && typeof view.removeEventListener === "function") {
+        view.removeEventListener("scroll", scrollHandler);
+      }
+      scrollHandler = null;
+    }
+
     function unsubscribeFromResize() {
       if (
         resizeHandler &&
@@ -2872,9 +2900,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         lockScroll();
         applyModalOffsets();
         subscribeToResize();
+        subscribeToScroll();
       } else {
         unlockScroll();
         unsubscribeFromResize();
+        unsubscribeFromScroll();
       }
     }
 
@@ -2958,6 +2988,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         modal.removeEventListener("click", handleBackdrop);
         modal.removeEventListener("keydown", handleKeydown);
         unsubscribeFromResize();
+        unsubscribeFromScroll();
         if (
           pendingOffsetFrame &&
           global.window &&
@@ -4731,6 +4762,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       dialogElement.setAttribute("tabindex", "-1");
     }
     var ownerDocument = modalElement.ownerDocument || (global.document || null);
+    if (
+      ownerDocument &&
+      ownerDocument.body &&
+      modalElement.parentNode &&
+      modalElement.parentNode !== ownerDocument.body &&
+      typeof ownerDocument.body.appendChild === "function"
+    ) {
+      ownerDocument.body.appendChild(modalElement);
+    }
     var modalController = createViewportModalController({
       modalElement: modalElement,
       dialogElement: dialogElement,
@@ -4790,6 +4830,25 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return null;
     }
 
+    function notifyModalOpen(source) {
+      dispatchEvent(
+        containerElement || modalElement,
+        "mpr-footer:privacy-modal-open",
+        {
+          source: source || "privacy-link",
+          modal: "privacy",
+        },
+      );
+    }
+
+    function openPrivacyModal(source) {
+      if (!modalController || typeof modalController.open !== "function") {
+        return;
+      }
+      modalController.open();
+      notifyModalOpen(source || "privacy-link");
+    }
+
     function handleLinkKeydown(event) {
       if (!event) {
         return;
@@ -4803,7 +4862,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         key === 32
       ) {
         event.preventDefault();
-        modalController.open();
+        openPrivacyModal("keyboard");
       }
     }
 
@@ -4811,7 +4870,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       if (event && typeof event.preventDefault === "function") {
         event.preventDefault();
       }
-      modalController.open();
+      openPrivacyModal("mouse");
     }
 
     privacyLink.addEventListener("click", handleLinkClick);
@@ -4824,6 +4883,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         privacyLink.removeEventListener("keydown", handleLinkKeydown);
         if (modalController && typeof modalController.destroy === "function") {
           modalController.destroy();
+        }
+        if (
+          modalElement &&
+          modalElement.parentNode &&
+          typeof modalElement.parentNode.removeChild === "function"
+        ) {
+          modalElement.parentNode.removeChild(modalElement);
         }
       },
     };

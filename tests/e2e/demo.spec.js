@@ -14,20 +14,9 @@ const {
 const {
   googleButton,
   headerNavLinks,
-  headerSettingsButton,
-  settingsModal,
-  settingsModalDialog,
-  settingsModalClose,
-  settingsModalBody,
-  headerRoot,
-  footerRoot,
   footerThemeControl,
   footerDropupButton,
   footerMenu,
-  privacyLink,
-  privacyModal,
-  privacyModalClose,
-  privacyModalBackdrop,
   eventLogEntries,
 } = selectors;
 
@@ -109,15 +98,17 @@ test.describe('Demo behaviours', () => {
   });
 
   test('MU-111: footer privacy modal opens and closes with provided content', async ({ page }) => {
-    const modal = page.locator(privacyModal);
-    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'false');
+    const dialog = page.getByRole('dialog', { name: /privacy & terms/i, includeHidden: true });
+    await expect(dialog).toBeHidden();
 
-    await page.locator(privacyLink).click();
-    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'true');
-    await expect(modal.locator('h1')).toContainText('Privacy Policy');
+    await page.getByRole('button', { name: /privacy & terms/i }).click();
+    await expect(dialog).toBeVisible();
+    await expect(dialog.locator('[data-mpr-footer="privacy-modal-content"] h1')).toContainText(
+      'Privacy Policy',
+    );
 
-    await page.locator(privacyModalClose).click();
-    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'false');
+    await dialog.getByRole('button', { name: /close/i }).click();
+    await expect(dialog).toBeHidden();
   });
 
   test('MU-311: footer drop-up aligns correctly and toggles interactivity', async ({ page }) => {
@@ -142,119 +133,85 @@ test.describe('Demo behaviours', () => {
   });
 
   test('MU-316: settings button opens an accessible modal shell', async ({ page }) => {
-    const settingsButton = page.locator(headerSettingsButton);
+    const settingsButton = page.getByRole('button', { name: /settings/i });
     await expect(settingsButton).toBeVisible();
 
-    const modal = page.locator(settingsModal);
-    await expect(modal).toHaveCount(1);
-    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'false');
+    const dialog = page.getByRole('dialog', { name: /settings/i, includeHidden: true });
+    await expect(dialog).toBeHidden();
 
     await settingsButton.click();
-    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'true');
-
-    const dialog = page.locator(settingsModalDialog);
-    await expect(dialog).toHaveAttribute('role', 'dialog');
+    await expect(dialog).toBeVisible();
     await expect(dialog).toHaveAttribute('aria-modal', 'true');
 
-    await page.locator(settingsModalClose).click();
-    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'false');
+    await dialog.getByRole('button', { name: /close/i }).click();
+    await expect(dialog).toBeHidden();
   });
   test('MU-318: settings modal renders default placeholder content', async ({ page }) => {
-    const modal = page.locator(settingsModal);
-    await page.locator(headerSettingsButton).click();
-    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'true');
-    await expect(page.locator(settingsModalBody)).toContainText(
+    await page.getByRole('button', { name: /settings/i }).click();
+    const dialog = page.getByRole('dialog', { name: /settings/i });
+    await expect(dialog).toBeVisible();
+    await expect(dialog).toContainText(
       'Add your settings controls here.',
       { timeout: 1000 },
     );
   });
 
   test('MU-318: settings modal respects header and footer bounds', async ({ page }) => {
-    await page.locator(headerSettingsButton).click();
-    await expect(page.locator(settingsModal)).toHaveAttribute('data-mpr-modal-open', 'true');
-    const geometry = await page.evaluate(
-      (selectors) => {
-        const headerEl = document.querySelector(selectors.headerRoot);
-        const footerEl = document.querySelector(selectors.footerRoot);
-        const modalEl = document.querySelector(selectors.settingsModal);
-        if (!headerEl || !footerEl || !modalEl) {
-          return null;
-        }
-        const headerRect = headerEl.getBoundingClientRect();
-        const footerRect = footerEl.getBoundingClientRect();
-        const modalRect = modalEl.getBoundingClientRect();
-        return {
-          headerBottom: headerRect.bottom,
-          footerTop: footerRect.top,
-          modalTop: modalRect.top,
-          modalBottom: modalRect.bottom,
-        };
-      },
-      { headerRoot, footerRoot, settingsModal },
+    const chromeBaseline = await captureChromeMetrics(page);
+    await page.getByRole('button', { name: /settings/i }).click();
+    const dialog = page.getByRole('dialog', { name: /settings/i });
+    await expect(dialog).toBeVisible();
+    const chrome = getChromeLocators(page);
+    await expectModalBetween(
+      page,
+      dialog,
+      chrome.header,
+      chrome.footer,
+      'settings modal',
     );
-    expect(geometry).not.toBeNull();
-    if (!geometry) {
-      return;
-    }
-    expect(geometry.modalTop).toBeGreaterThanOrEqual(geometry.headerBottom - 1);
-    expect(geometry.modalBottom).toBeLessThanOrEqual(geometry.footerTop + 1);
+    await expectChromeStable(page, chromeBaseline, 'settings modal');
   });
 
   test('MU-318: privacy modal respects header and footer bounds', async ({ page }) => {
-    await page.locator(privacyLink).click();
-    const modal = page.locator(privacyModal);
-    await expect(modal).toHaveAttribute('data-mpr-modal-open', 'true');
-    const geometry = await page.evaluate(
-      (selectors) => {
-        const headerEl = document.querySelector(selectors.headerRoot);
-        const footerEl = document.querySelector(selectors.footerRoot);
-        const modalEl = document.querySelector(selectors.privacyModal);
-        if (!headerEl || !footerEl || !modalEl) {
-          return null;
-        }
-        const headerRect = headerEl.getBoundingClientRect();
-        const footerRect = footerEl.getBoundingClientRect();
-        const computed = window.getComputedStyle(modalEl);
-        var topValue = computed.top || "0px";
-        var bottomValue = computed.bottom || "0px";
-        var topNumber = parseFloat(topValue) || 0;
-        var bottomNumber = parseFloat(bottomValue) || 0;
-        var viewportHeight = window.innerHeight || document.documentElement.clientHeight || 0;
-        return {
-          headerBottom: headerRect.bottom,
-          footerTop: footerRect.top,
-          modalTopCss: topNumber,
-          modalBottomCss: bottomNumber,
-          viewportHeight: viewportHeight,
-        };
-      },
-      { headerRoot, footerRoot, privacyModal },
+    const chromeBaseline = await captureChromeMetrics(page);
+    await page.getByRole('button', { name: /privacy & terms/i }).click();
+    const dialog = page.getByRole('dialog', { name: /privacy & terms/i });
+    await expect(dialog).toBeVisible();
+    const chrome = getChromeLocators(page);
+    await expectModalBetween(
+      page,
+      dialog,
+      chrome.header,
+      chrome.footer,
+      'privacy modal',
     );
-    expect(geometry).not.toBeNull();
-    if (!geometry) {
-      return;
-    }
-    const modalBottomCoordinate = geometry.viewportHeight - geometry.modalBottomCss;
-    expect(geometry.modalTopCss).toBeGreaterThanOrEqual(geometry.headerBottom - 1);
-    expect(modalBottomCoordinate).toBeLessThanOrEqual(geometry.footerTop + 1);
-    await page.locator(privacyModalClose).click();
+    await dialog.getByRole('button', { name: /close/i }).click();
+    await expectChromeStable(page, chromeBaseline, 'privacy modal');
   });
 
   test('MU-317: event log records header and theme interactions', async ({ page }) => {
     const logLocator = page.locator(eventLogEntries);
     await expect(logLocator).toHaveCount(0);
 
-    await page.locator(headerSettingsButton).click();
+    const settingsDialog = page.getByRole('dialog', { name: /settings/i, includeHidden: true });
+    await page.getByRole('button', { name: /settings/i }).click();
     await expect(logLocator).toHaveCount(1, { timeout: 2000 });
     await expect(logLocator.first()).toContainText(/settings/i);
+    await settingsDialog.getByRole('button', { name: /close/i }).click();
 
     await clickQuadrant(page, footerThemeControl, 'bottomRight');
     await page.waitForTimeout(200);
     await expect(logLocator).toHaveCount(2, { timeout: 2000 });
     await expect(logLocator.nth(1)).toContainText(/theme changed/i);
 
+    const privacyDialog = page.getByRole('dialog', { name: /privacy & terms/i, includeHidden: true });
+    await page.getByRole('button', { name: /privacy & terms/i }).click();
+    await expect(logLocator).toHaveCount(3, { timeout: 2000 });
+    await expect(logLocator.nth(2)).toContainText(/privacy/i);
+    await privacyDialog.getByRole('button', { name: /close/i }).click();
+
     const entries = await readEventLogEntries(page);
-    expect(entries.length).toBeGreaterThanOrEqual(2);
+    expect(entries.length).toBeGreaterThanOrEqual(3);
   });
 });
 
@@ -307,4 +264,89 @@ async function clickQuadrant(page, selector, quadrant) {
  */
 async function readBodyBackgroundColor(page) {
   return page.evaluate(() => window.getComputedStyle(document.body).getPropertyValue('background-color'));
+}
+
+/**
+ * Provides locators for the sticky header/footer used as modal boundaries.
+ * @param {import('@playwright/test').Page} page
+ * @returns {{ header: import('@playwright/test').Locator, footer: import('@playwright/test').Locator }}
+ */
+function getChromeLocators(page) {
+  return {
+    header: page.getByRole('banner').first(),
+    footer: page.getByRole('contentinfo').first(),
+  };
+}
+
+/**
+ * Ensures a modal dialog is visually constrained between the sticky header and footer.
+ * @param {import('@playwright/test').Page} page
+ * @param {import('@playwright/test').Locator} modalLocator
+ * @param {import('@playwright/test').Locator} headerLocator
+ * @param {import('@playwright/test').Locator} footerLocator
+ * @param {string} label
+ */
+async function expectModalBetween(page, modalLocator, headerLocator, footerLocator, label) {
+  await Promise.all([
+    modalLocator.waitFor({ state: 'visible' }),
+    headerLocator.waitFor({ state: 'visible' }),
+    footerLocator.waitFor({ state: 'visible' }),
+  ]);
+  const [modalRect, headerRect, footerRect] = await Promise.all([
+    modalLocator.boundingBox(),
+    headerLocator.boundingBox(),
+    footerLocator.boundingBox(),
+  ]);
+  expect(modalRect).not.toBeNull();
+  expect(headerRect).not.toBeNull();
+  expect(footerRect).not.toBeNull();
+  if (!modalRect || !headerRect || !footerRect) {
+    throw new Error(`Unable to measure ${label}`);
+  }
+  const tolerance = 0.5;
+  const minGap = 8;
+  const modalTop = modalRect.y;
+  const modalBottom = modalRect.y + modalRect.height;
+  const headerBottom = headerRect.y + headerRect.height;
+  const footerTop = footerRect.y;
+  expect(modalTop).toBeGreaterThanOrEqual(headerBottom + minGap - tolerance);
+  expect(modalBottom).toBeLessThanOrEqual(footerTop - minGap + tolerance);
+}
+
+/**
+ * Captures the sticky header/footer geometry for stability assertions.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<{ headerRect: import('@playwright/test').BoundingBox, footerRect: import('@playwright/test').BoundingBox }>}
+ */
+async function captureChromeMetrics(page) {
+  const chrome = getChromeLocators(page);
+  const [headerRect, footerRect] = await Promise.all([
+    chrome.header.boundingBox(),
+    chrome.footer.boundingBox(),
+  ]);
+  if (!headerRect || !footerRect) {
+    throw new Error('Unable to capture header/footer metrics');
+  }
+  return { headerRect, footerRect };
+}
+
+/**
+ * Verifies the header/footer positions remain unchanged after modal interactions.
+ * @param {import('@playwright/test').Page} page
+ * @param {{ headerRect: import('@playwright/test').BoundingBox, footerRect: import('@playwright/test').BoundingBox }} baseline
+ * @param {string} label
+ */
+async function expectChromeStable(page, baseline, label) {
+  const next = await captureChromeMetrics(page);
+  const tolerance = 1;
+
+  const assertWithinTolerance = (before, after, description) => {
+    const delta = Math.abs(after - before);
+    expect(delta).toBeLessThanOrEqual(tolerance);
+  };
+
+  assertWithinTolerance(baseline.headerRect.y, next.headerRect.y, `${label} header top`);
+  assertWithinTolerance(baseline.headerRect.height, next.headerRect.height, `${label} header height`);
+  assertWithinTolerance(baseline.footerRect.y, next.footerRect.y, `${label} footer top`);
+  assertWithinTolerance(baseline.footerRect.height, next.footerRect.height, `${label} footer height`);
 }
