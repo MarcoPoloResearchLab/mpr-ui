@@ -78,7 +78,7 @@ const LOCAL_ASSETS = Object.freeze({
 });
 
 /**
- * Opens the demo page while serving the local bundle/styles (GIS remains real).
+ * Opens the demo page while serving the local bundle/styles.
  * @param {import('@playwright/test').Page} page
  * @returns {Promise<void>}
  */
