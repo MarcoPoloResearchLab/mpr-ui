@@ -251,6 +251,21 @@ test.describe('Default theme toggle behaviours', () => {
     const resetBackground = await readBodyBackgroundColor(page);
     expect(resetBackground).toBe(initialBackground);
   });
+
+  test('MU-321: default toggle knob aligns without halos', async ({ page }) => {
+    const control = footerThemeControl;
+    const initialSnapshot = await captureToggleSnapshot(page, control);
+    expect(initialSnapshot.variant).toBe('switch');
+    expect(initialSnapshot.boxShadow).toBe('none');
+    expect(Math.abs(initialSnapshot.translateX)).toBeLessThanOrEqual(0.5);
+
+    await page.locator(control).first().click();
+    await page.waitForTimeout(300);
+
+    const toggledSnapshot = await captureToggleSnapshot(page, control);
+    expect(toggledSnapshot.boxShadow).toBe('none');
+    expect(Math.abs(toggledSnapshot.translateX - toggledSnapshot.travelDistance)).toBeLessThanOrEqual(0.5);
+  });
 });
 
 /**
