@@ -1,6 +1,7 @@
 services:
   frontend:
-    image: ghcr.io/temirov/ghttp:latest
+    image: ghcr.io/tyemirov/ghttp:latest
+    pull_policy: always
     depends_on:
       tauth:
         condition: service_started
@@ -9,10 +10,12 @@ services:
       - "8000:8000"
     volumes:
       - .:/srv/mpr-ui/demo/docker-tauth:ro
+      - ../../mpr-ui.js:/srv/mpr-ui/demo/docker-tauth/mpr-ui.local.js:ro
     restart: unless-stopped
 
   tauth:
-    image: ghcr.io/marcopoloresearchlab/tauth:latest
+    image: ghcr.io/tyemirov/tauth:latest
+    pull_policy: always
     env_file:
       - ./.env.tauth
     ports:
