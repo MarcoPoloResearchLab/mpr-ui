@@ -1,45 +1,96 @@
 // @ts-check
+'use strict';
 
 const MAX_EVENT_LOG_ENTRIES = 8;
+const EVENT_LOG_HOST_ID = 'event-log';
+const EVENT_LOG_ENTRY_TEST_ID = 'event-log-entry';
+
+const EVENT_LOGGERS = Object.freeze([
+  {
+    type: 'mpr-ui:header:settings-click',
+    formatter: () => 'Settings control activated',
+  },
+  {
+    type: 'mpr-footer:theme-change',
+    formatter: (event) => {
+      const theme =
+        event && event.detail && typeof event.detail.theme === 'string'
+          ? event.detail.theme
+          : 'unknown';
+      const source =
+        event && event.detail && typeof event.detail.source === 'string'
+          ? event.detail.source
+          : 'unknown';
+      return `Theme changed to ${theme} (via ${source})`;
+    },
+  },
+  {
+    type: 'mpr-footer:privacy-modal-open',
+    formatter: (event) => {
+      const origin =
+        event && event.detail && typeof event.detail.source === 'string'
+          ? event.detail.source
+          : 'unknown';
+      return `Privacy & Terms modal opened (${origin})`;
+    },
+  },
+]);
 
 /**
- * Formats a timestamp for the log.
+ * Formats the timestamp for a log entry.
  * @returns {string}
  */
 function formatTimestamp() {
-  return new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+  return new Date().toLocaleTimeString([], {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+  });
 }
 
 /**
- * Appends a human-readable message to the event log.
+ * Appends a message to the event log container.
  * @param {string} message
+ * @returns {void}
  */
 function appendEventLogEntry(message) {
-  const logHost = document.getElementById('event-log');
+  if (!message || typeof message !== 'string') {
+    return;
+  }
+  const logHost = document.getElementById(EVENT_LOG_HOST_ID);
   if (!logHost) {
     return;
   }
   const entry = document.createElement('div');
-  entry.dataset.test = 'event-log-entry';
+  entry.dataset.test = EVENT_LOG_ENTRY_TEST_ID;
   entry.className = 'event-log__entry';
-  entry.textContent = `${formatTimestamp()} — ${message}`;
+  entry.textContent = `${formatTimestamp()} — ${message.trim()}`;
   logHost.appendChild(entry);
   while (logHost.children.length > MAX_EVENT_LOG_ENTRIES) {
-    logHost.removeChild(logHost.firstElementChild);
+    const firstChild = logHost.firstElementChild;
+    if (!firstChild) {
+      break;
+    }
+    logHost.removeChild(firstChild);
   }
 }
 
+/**
+ * Subscribes to demo events and records them in the log.
+ * @returns {void}
+ */
 function initEventLog() {
-  document.addEventListener('mpr-ui:header:settings-click', () => {
-    appendEventLogEntry('Settings button activated');
-  });
-
-  document.addEventListener('mpr-footer:theme-change', (event) => {
-    const nextTheme =
-      event && event.detail && typeof event.detail.theme === 'string'
-        ? event.detail.theme
-        : 'unknown';
-    appendEventLogEntry(`Theme changed to ${nextTheme}`);
+  EVENT_LOGGERS.forEach((logger) => {
+    const handler = (event) => {
+      const message =
+        typeof logger.formatter === 'function'
+          ? logger.formatter(event)
+          : logger.message || '';
+      if (message) {
+        appendEventLogEntry(message);
+      }
+    };
+    document.addEventListener(logger.type, handler);
   });
 }
 

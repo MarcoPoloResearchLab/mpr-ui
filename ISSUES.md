@@ -59,6 +59,7 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 - [x] [MU-215] Center the public API/docs around web components (custom elements first), treating Alpine.js plus imperative helpers as implementation details rather than the primary surface.
   - Reworded the README + architecture intro so custom elements are the default integration path, added custom-element-first quick start, and relegated Alpine/imperative helpers to an optional section with doc cross-links.
 - [x] [MU-316] Clicking on Settings shall open a modal window, with Settings in the top pane and empty content.
+  - Added a header-scoped modal shell with focus/scroll management plus Playwright coverage proving the Settings control opens and closes the dialog.
 
 ## BugFixes (310–399)
 
@@ -75,21 +76,24 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 - [x] [MU-315] Clicking on Privacy and Terms must open a modal window with the provided markup. It doesnt now.
   - Verified the existing footer modal wiring; Playwright and manual checks show `data-mpr-modal-open="true"` after activation and no code changes were necessary (no-op).
 - [x] [MU-316] Switching between the themes does not change the color of the body of the page. It should.
+  - Updated the shared stylesheet to honour the mirrored `data-mpr-theme` attribute on `<body>` so light/dark colours flip even without custom classes, and added a Playwright fixture proving the default toggle now recolours the page.
 - [x] [MU-317] Event log stops recording user actions fired through the UI controls.
+  - Restored the demo event log helper, wired it to header + footer events, and added Playwright coverage ensuring Settings clicks and theme toggles append human-readable entries again.
   - Reproduce by interacting with buttons that previously generated log entries; nothing is appended, so audit the logger wiring and restore event dispatch + persistence.
 - [x] [MU-318] Clicking the Settings control renders no modal at all.
   - Expected: users see a modal shell with the Settings header even if body content is empty; activate Settings now results in no overlay, so wire the modal trigger + default content.
+  - Added a default placeholder block plus guidance copy inside the header modal, clamped both the Settings and Privacy modals between the sticky header/footer with dynamic offsets + resize handling, and extended Playwright coverage to assert both overlays stay within the reserved viewport band.
 - [x] [MU-319] Footer renders two identical “Built by Marco Polo Research Lab” labels.
-  - The drop-up plus plain-text variant both render simultaneously, producing duplicate branding; ensure only one label variant appears per configuration.
+  - Suppressed the prefix element whenever a links collection renders, added a text-only footer fixture, and Playwright now asserts drop-up mode hides the duplicate label while text-only mode still shows a single prefix.
 - [x] [MU-320] Privacy & Terms activation shows a stub element at the bottom instead of a nearly full-screen modal.
-  - The modal should occupy the viewport with scroll lock; instead, content sits at the bottom edge, so fix layout/styling so Privacy modal matches spec.
+  - Moved the footer modal into a body-level portal, shared the viewport controller (now reacting to scroll) with the Settings modal, made the dialog box-sizing border-box so height budgets include padding, and hardened the Playwright demo to verify both modals sit between the sticky header/footer without shifting the chrome or event log coverage (privacy open events now feed the demo logger).
 - [x] [MU-321] Theme toggle visual has a pale halo and the knob misaligns with the track border.
-  - Refine the toggle CSS so the track/knob match the design spec without glow artifacts and the knob snaps flush to the edges.
+  - Removed the knob glow, recalculated the travel offsets to keep the knob flush against the track, and added fixture-based Playwright coverage that inspects the computed transform/box-shadow to keep the control visually accurate.
 - [x] [MU-322] Toggle cycles through multiple color schemes rather than simply flipping light/dark.
-  - Theme manager should switch between two modes; current logic iterates through several schemes, so constrain the toggler to binary mode for this control.
-- [x] [MU-323] Square theme toggle variant never appears even when `theme-switcher="square"` is configured.
+  - Switch variant now clamps its mode list to two entries even if more modes are configured, and Playwright asserts the default footer toggle alternates strictly light/dark.
+- [ ] [MU-323] Square theme toggle variant never appears even when `theme-switcher="square"` is configured.
   - Footer ignores the square option and still renders the pill toggle, so honor the attribute/dataset and mount the square component.
-- [x] [MU-324] Square toggle palette lacks four distinct colors from `theme-config`.
+- [ ] [MU-324] Square toggle palette lacks four distinct colors from `theme-config`.
   - The square variant should map `theme-config` to four quadrants, but configuration only exposes two colors; extend theme-config parsing to accept four color tokens for the square UI.
 
 ## Maintenance (405–499)

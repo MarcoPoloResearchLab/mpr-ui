@@ -37,7 +37,7 @@ Sticky site header with navigation, Google Identity Services button, settings CT
 | `login-path`, `logout-path`, `nonce-path`, `base-url` | `string` | Auth endpoints wired into `createAuthHeader`. |
 | `auth-config` | `JSON` | Full object passed to `createAuthHeader` (takes precedence over individual path attributes). |
 | `theme-config`, `theme-mode` | `JSON` / `string` | Configures the shared theme manager (no toggle is rendered; use the footer or `<mpr-theme-toggle>` for user controls). |
-| `settings-label`, `settings-enabled` | `string` / `boolean` | Control the built-in settings button. |
+| `settings-label`, `settings` | `string` / `boolean` | Control the built-in settings button. |
 | `sign-in-label`, `sign-out-label`, `profile-label` | `string` | Override localized copy. |
 
 **Slots**

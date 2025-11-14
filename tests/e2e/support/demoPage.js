@@ -6,23 +6,73 @@ const { pathToFileURL } = require('node:url');
 
 const CDN_BUNDLE_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js';
 const CDN_STYLES_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css';
+const GOOGLE_IDENTITY_URL = 'https://accounts.google.com/gsi/client';
+const GOOGLE_IDENTITY_STUB = String.raw`
+(function createGoogleIdentityStub() {
+  const globalObject = window;
+  const googleNamespace = globalObject.google || (globalObject.google = {});
+  const accountsNamespace = googleNamespace.accounts || (googleNamespace.accounts = {});
+  const identityNamespace = accountsNamespace.id || (accountsNamespace.id = {});
+
+  identityNamespace.initialize = function initializeIdentity(config) {
+    if (!config || typeof config !== 'object') {
+      return;
+    }
+
+    const baseline = globalObject.__googleInitConfig || {};
+    const payload = {};
+
+    if (config.client_id) {
+      payload.client_id = String(config.client_id);
+    }
+    if (config.nonce) {
+      payload.nonce = String(config.nonce);
+    }
+
+    if (Object.keys(payload).length) {
+      globalObject.__googleInitConfig = Object.assign({}, baseline, payload);
+    }
+
+    if (typeof config.callback === 'function') {
+      identityNamespace.__callback = config.callback;
+    }
+  };
+
+  identityNamespace.renderButton = function renderIdentityButton(element, options) {
+    if (!element) {
+      return;
+    }
+    const hostDocument = element.ownerDocument || document;
+    element.innerHTML = '';
+    const buttonElement = hostDocument.createElement('div');
+    buttonElement.setAttribute('role', 'button');
+    buttonElement.setAttribute('data-mpr-google-sentinel', 'true');
+    const defaultLabel = options && options.text === 'signin_with'
+      ? 'Sign in with Google'
+      : 'Continue with Google';
+    buttonElement.textContent = defaultLabel;
+    element.appendChild(buttonElement);
+  };
+
+  identityNamespace.prompt = function promptIdentity() {};
+})();
+`;
 const REPOSITORY_ROOT = join(__dirname, '../../..');
-const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/index.html')).href;
+const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/local.html')).href;
+const THEME_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/theme-toggle.html'),
+).href;
+const FOOTER_TEXT_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-text-only.html'),
+).href;
 
 const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
   headerNavLinks: '[data-mpr-header="nav"] a',
-  headerSettingsButton: '[data-mpr-header="settings-button"]',
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerDropupButton: '[data-mpr-footer="toggle-button"]',
   footerMenu: '[data-mpr-footer="menu"]',
   footerPrefix: '[data-mpr-footer="prefix"]',
-  privacyLink: '[data-mpr-footer="privacy-link"]',
-  privacyModal: '[data-mpr-footer="privacy-modal"]',
-  privacyModalDialog: '[data-mpr-footer="privacy-modal-dialog"]',
-  privacyModalClose: '[data-mpr-footer="privacy-modal-close"]',
-  settingsModal: '[data-mpr-header="settings-modal"]',
-  settingsModalClose: '[data-mpr-header="settings-modal-close"]',
   eventLogEntries: '#event-log [data-test="event-log-entry"]',
 });
 
@@ -32,7 +82,7 @@ const LOCAL_ASSETS = Object.freeze({
 });
 
 /**
- * Opens the demo page while serving the local bundle/styles (GIS remains real).
+ * Opens the demo page while serving the local bundle/styles.
  * @param {import('@playwright/test').Page} page
  * @returns {Promise<void>}
  */
@@ -40,8 +90,37 @@ async function visitDemoPage(page) {
   await Promise.all([
     routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+    routeLocalAsset(page, GOOGLE_IDENTITY_URL, GOOGLE_IDENTITY_STUB, 'application/javascript'),
   ]);
   await page.goto(DEMO_PAGE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the theme toggle fixture with local assets.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitThemeFixturePage(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(THEME_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the text-only footer fixture with local assets.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitFooterTextFixturePage(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(FOOTER_TEXT_FIXTURE_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
 }
 
@@ -85,6 +164,7 @@ async function captureToggleSnapshot(page, selector) {
               y: dotRect.top - gridRect.top,
             }
           : null,
+        boxShadow: null,
       };
     }
 
@@ -139,6 +219,7 @@ async function captureToggleSnapshot(page, selector) {
       ),
       translateX,
       travelDistance,
+      boxShadow: (pseudo.getPropertyValue('box-shadow') || 'none').trim(),
     };
   }, TOGGLE_PSEUDO_ELEMENT);
 }
@@ -189,6 +270,19 @@ function captureDropUpMetrics(page) {
 }
 
 /**
+ * Reads the event log entry texts for assertions.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<string[]>}
+ */
+function readEventLogEntries(page) {
+  return page.evaluate((selector) => {
+    return Array.from(document.querySelectorAll(selector)).map((element) =>
+      element.textContent ? element.textContent.trim() : '',
+    );
+  }, SELECTORS.eventLogEntries);
+}
+
+/**
  * Intercepts a CDN request and responds with a local asset payload.
  * @param {import('@playwright/test').Page} page
  * @param {string | RegExp} url
@@ -210,8 +304,11 @@ async function routeLocalAsset(page, url, body, contentType) {
 
 module.exports = {
   visitDemoPage,
+  visitThemeFixturePage,
+  visitFooterTextFixturePage,
   captureToggleSnapshot,
   captureColorSnapshots,
   captureDropUpMetrics,
+  readEventLogEntries,
   selectors: SELECTORS,
 };

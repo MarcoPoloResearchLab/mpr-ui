@@ -35,14 +35,14 @@ test('demo loads the shared stylesheet from the CDN', () => {
   );
 });
 
-test('demo only loads the local event log script', () => {
-  const localScripts = [...demoHtml.matchAll(/<script[^>]+src="\.\/*([^"]+)"/g)].map(
-    (match) => match[1],
-  );
+test('demo loads only the local event log helper script', () => {
+  const localScripts = Array.from(
+    demoHtml.matchAll(/<script[^>]+src="(\.\/[^"]+)"[^>]*><\/script>/gi),
+  ).map((match) => match[1]);
   assert.deepStrictEqual(
     localScripts,
-    ['demo.js'],
-    'Demo page should only include demo.js as a local script for event logging',
+    ['./demo.js'],
+    'Demo page should only include the event log helper as a local script',
   );
 });
 

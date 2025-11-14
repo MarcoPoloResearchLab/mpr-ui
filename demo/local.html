@@ -3,21 +3,14 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>mpr-ui Demo</title>
-    <link
-      rel="stylesheet"
-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
-    />
+    <title>mpr-ui Demo (Local Bundle)</title>
+    <link rel="stylesheet" href="../mpr-ui.css" />
     <script
       defer
       src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
       type="module"
     ></script>
-    <script
-      id="mpr-ui-bundle"
-      defer
-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
-    ></script>
+    <script defer src="../mpr-ui.js"></script>
     <script
       src="https://accounts.google.com/gsi/client"
       async
@@ -42,11 +35,10 @@
     >
     </mpr-header>
     <main>
-      <h1>MPR UI Demo</h1>
+      <h1>MPR UI Demo (Local)</h1>
       <p>
-        This page demonstrates the
-        <strong>authentication header</strong> and <strong>footer</strong>
-        components provided by <code>mpr-ui.js</code>.
+        This page loads the local <code>mpr-ui.js</code> bundle so you can verify changes without
+        hitting the CDN.
       </p>
 
       <section aria-labelledby="event-log-title">
@@ -55,7 +47,7 @@
       </section>
     </main>
 
-<mpr-footer
+    <mpr-footer
       id="page-footer"
       privacy-link-label="Privacy &amp; Terms"
       privacy-link-href="#privacy"
