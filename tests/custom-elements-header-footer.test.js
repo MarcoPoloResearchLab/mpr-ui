@@ -578,7 +578,7 @@ test('mpr-header reflects attributes and updates values', () => {
     JSON.stringify([{ label: 'Docs', href: '#docs' }]),
   );
   headerElement.setAttribute('settings-label', 'Preferences');
-  headerElement.setAttribute('settings-enabled', 'false');
+  headerElement.setAttribute('settings', 'false');
   headerElement.setAttribute('site-id', 'example-site');
   headerElement.setAttribute(
     'theme-config',
@@ -616,6 +616,23 @@ test('mpr-header reflects attributes and updates values', () => {
 
   headerElement.setAttribute('brand-label', 'Next Brand');
   assert.equal(harness.brandLink.textContent, 'Next Brand');
+});
+
+test('mpr-header enables settings button when settings attribute true', () => {
+  resetEnvironment();
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+
+  headerElement.setAttribute('settings', 'true');
+
+  headerElement.connectedCallback();
+
+  assert.equal(
+    harness.root.classList.contains('mpr-header--no-settings'),
+    false,
+    'settings attribute enables header settings button',
+  );
 });
 
 test('mpr-header projects slot content into brand, nav, and actions', () => {

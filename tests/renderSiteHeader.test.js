@@ -538,7 +538,9 @@ test('destroying the header hides an open settings modal', () => {
   resetEnvironment();
   const harness = createHostHarness();
   const library = loadLibrary();
-  const controller = library.renderSiteHeader(harness.host, {});
+  const controller = library.renderSiteHeader(harness.host, {
+    settings: { enabled: true },
+  });
 
   assert.strictEqual(
     harness.settingsModal.getAttribute('data-mpr-modal-open'),
@@ -558,6 +560,13 @@ test('destroying the header hides an open settings modal', () => {
     harness.settingsModal.getAttribute('aria-hidden'),
     'false',
     'opening the modal removes aria-hidden',
+  );
+
+  assert.ok(
+    harness.dispatchedEvents.some(function (event) {
+      return event.type === 'mpr-ui:header:settings-click';
+    }),
+    'settings-click event dispatched when settings enabled',
   );
 
   controller.destroy();

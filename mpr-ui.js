@@ -191,6 +191,7 @@
     "nav-links": "navLinks",
     "settings-label": "settingsLabel",
     "settings-enabled": "settingsEnabled",
+    "settings": "settingsEnabled",
     "site-id": "siteId",
     "theme-config": "themeToggle",
     "theme-mode": "themeMode",
@@ -278,7 +279,7 @@
     if (value === null || value === undefined) {
       return null;
     }
-    if (attributeName === "settings-enabled") {
+    if (attributeName === "settings-enabled" || attributeName === "settings") {
       if (value === "") {
         return "true";
       }
@@ -1745,18 +1746,22 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (dataset.navLinks) {
       options.navLinks = parseJsonValue(dataset.navLinks, []);
     }
-    if (dataset.settingsLabel || dataset.settingsEnabled) {
+    var datasetSettingsFlag = undefined;
+    if (dataset.settingsEnabled !== undefined) {
+      datasetSettingsFlag = dataset.settingsEnabled;
+    } else if (dataset.settings !== undefined) {
+      datasetSettingsFlag = dataset.settings;
+    }
+    if (dataset.settingsLabel) {
       options.settings = options.settings || {};
-      if (dataset.settingsLabel) {
-        options.settings.label = dataset.settingsLabel;
-      }
-    if (dataset.settingsEnabled) {
-      options.settings.enabled =
-        dataset.settingsEnabled.toLowerCase() === "true";
+      options.settings.label = dataset.settingsLabel;
+    }
+    if (datasetSettingsFlag !== undefined) {
+      options.settings = options.settings || {};
+      options.settings.enabled = String(datasetSettingsFlag).toLowerCase() === "true";
     }
     if (dataset.siteId) {
       options.siteId = dataset.siteId;
-    }
     }
     if (dataset.themeToggle) {
       options.themeToggle = parseJsonValue(dataset.themeToggle, {});
@@ -2401,19 +2406,19 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     '<p data-mpr-header="settings-modal-placeholder-subtext">Listen for the "mpr-ui:header:settings-click" event or query [data-mpr-header="settings-modal-body"] to mount custom UI.</p>' +
     "</div>";
 
-  var HEADER_DEFAULTS = Object.freeze({
-    brand: Object.freeze({
-      label: "Marco Polo Research Lab",
-      href: "/",
-    }),
-    navLinks: Object.freeze([]),
-    settings: Object.freeze({
-      enabled: true,
-      label: "Settings",
-    }),
-    themeToggle: Object.freeze({
-      attribute: DEFAULT_THEME_ATTRIBUTE,
-      targets: DEFAULT_THEME_TARGETS.slice(),
+    var HEADER_DEFAULTS = Object.freeze({
+      brand: Object.freeze({
+        label: "Marco Polo Research Lab",
+        href: "/",
+      }),
+      navLinks: Object.freeze([]),
+      settings: Object.freeze({
+        enabled: false,
+        label: "Settings",
+      }),
+      themeToggle: Object.freeze({
+        attribute: DEFAULT_THEME_ATTRIBUTE,
+        targets: DEFAULT_THEME_TARGETS.slice(),
       modes: DEFAULT_THEME_MODES,
       initialMode: null,
     }),
