@@ -669,6 +669,49 @@ test('mpr-header projects slot content into brand, nav, and actions', () => {
   );
 });
 
+test('mpr-header base-url attribute configures auth endpoints', async () => {
+  resetEnvironment();
+  const googleStub = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.google = googleStub;
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+  headerElement.setAttribute('site-id', 'docker-demo-site');
+  headerElement.setAttribute('base-url', 'http://localhost:8080');
+  headerElement.setAttribute('login-path', '/auth/google');
+  headerElement.setAttribute('logout-path', '/auth/logout');
+  headerElement.setAttribute('nonce-path', '/auth/nonce');
+
+  headerElement.connectedCallback();
+  await flushAsync();
+
+  const controller = headerElement.__headerController;
+  assert.ok(controller, 'header controller initialized');
+  const authController =
+    controller && typeof controller.getAuthController === 'function'
+      ? controller.getAuthController()
+      : null;
+  assert.ok(authController, 'auth controller attached to header');
+  const authOptions = authController && authController.state && authController.state.options;
+  assert.ok(authOptions, 'auth options available on controller state');
+  assert.equal(
+    authOptions.baseUrl,
+    'http://localhost:8080',
+    'base-url attribute flows into auth options',
+  );
+  assert.equal(authOptions.loginPath, '/auth/google');
+  assert.equal(authOptions.logoutPath, '/auth/logout');
+  assert.equal(authOptions.noncePath, '/auth/nonce');
+});
+
 test('mpr-footer reflects attributes and slot content', () => {
   resetEnvironment();
   loadLibrary();

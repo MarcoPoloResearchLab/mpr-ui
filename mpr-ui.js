@@ -206,6 +206,7 @@
       "login-path",
       "logout-path",
       "nonce-path",
+      "base-url",
     ]),
   );
 
@@ -472,6 +473,13 @@
     if (noncePath) {
       authOptions = authOptions || {};
       authOptions.noncePath = noncePath;
+    }
+    var baseUrl = hostElement.getAttribute
+      ? hostElement.getAttribute("base-url")
+      : null;
+    if (baseUrl) {
+      authOptions = authOptions || {};
+      authOptions.baseUrl = baseUrl;
     }
     var externalOptions = {};
     if (authOptions) {

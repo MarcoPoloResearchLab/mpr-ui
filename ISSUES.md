@@ -48,6 +48,8 @@ volumes:
 
 - [ ] [MU-326] The toggle theme changers has a weird halo / eliptical contour around it. Remove it
 
+- [x] [MU-327] `<mpr-header>` ignored the `base-url` attribute so Docker Compose demo auth calls hit the frontend origin and returned 404s. Added attribute parsing plus regression tests to route nonce/login/logout requests to the configured TAuth base URL.
+
 ## Maintenance (405–499)
 
 - [ ] [MU-405] mpr-ui.js became a giant file. Consider using @mpr-ui.js as an orchestrator and breaking the rest in smaller files. When working on it, consider @POLICY.md and coding practices that would allow to minimize duplication and ensure following Alpine.js implementation for Web Components (@docs/alpine.js.md)
