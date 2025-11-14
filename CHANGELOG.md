@@ -24,6 +24,7 @@
 - MU-320: Footer Privacy & Terms modal now renders through the shared viewport controller, portals to `body`, recalculates offsets on scroll, and the dialog uses border-box sizing so it never overlaps the sticky header or footer—Plus it emits a `mpr-footer:privacy-modal-open` telemetry event and Playwright asserts the layout + chrome stability.
 - MU-319: Footer only renders the “Built by…” prefix in text-only mode, preventing duplicated labels when the links drop-up is enabled; new Playwright coverage exercises both variants via a text-only fixture.
 - MU-321: Standard theme toggle loses the pale halo and its knob now travels flush to the edges; CSS variables drive the new offsets and Playwright verifies the transform plus box-shadow contract.
+- MU-322: Switch-style theme toggles now clamp to two modes regardless of configuration, preventing unintended palette cycling; Playwright confirms the default footer control alternates strictly between light and dark.
 - MU-317: Restored the demo event log helper plus tests so header/settings and theme interactions append timestamped entries to the showcase log.
 - MU-104: Added the shared custom-element infrastructure (`MprElement`, `createCustomElementRegistry`, and reusable header/footer DOM builders) plus regression tests to prepare for the upcoming `<mpr-*>` surfaces.
 - MU-105: Introduced `<mpr-header>`/`<mpr-footer>` custom elements with attribute reflection, slot support, README guidance, demo samples, and regression tests exercising both the DOM helpers and controller updates.

@@ -1309,6 +1309,9 @@
     var currentModes = Array.isArray(config.modes) && config.modes.length
       ? config.modes
       : DEFAULT_THEME_MODES.slice();
+    if (variant !== "square" && currentModes.length > 2) {
+      currentModes = currentModes.slice(0, 2);
+    }
     var squareModeValues = variant === "square"
       ? currentModes
           .slice(0, THEME_TOGGLE_SQUARE_POSITIONS.length)

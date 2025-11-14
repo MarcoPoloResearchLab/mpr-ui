@@ -266,6 +266,25 @@ test.describe('Default theme toggle behaviours', () => {
     expect(toggledSnapshot.boxShadow).toBe('none');
     expect(Math.abs(toggledSnapshot.translateX - toggledSnapshot.travelDistance)).toBeLessThanOrEqual(0.5);
   });
+
+  test('MU-322: default toggle cycles only two modes', async ({ page }) => {
+    const toggle = page.locator(footerThemeControl).first();
+    await expect(toggle).toBeVisible();
+    const modes = [];
+    for (let index = 0; index < 4; index += 1) {
+      await toggle.click();
+      await page.waitForTimeout(200);
+      const mode = await page.evaluate(() => {
+        const control = document.querySelector('[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]');
+        return control ? control.getAttribute('data-mpr-theme-mode') : null;
+      });
+      modes.push(mode);
+    }
+    const uniqueModes = Array.from(new Set(modes));
+    expect(uniqueModes.length).toBe(2);
+    expect(modes[0]).toBe(modes[2]);
+    expect(modes[1]).toBe(modes[3]);
+  });
 });
 
 /**
