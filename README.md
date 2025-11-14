@@ -93,7 +93,7 @@ Need a working authentication backend without wiring your own server? `demo/dock
    docker compose up
    ```
 
-   gHTTP serves `demo/docker-tauth/index.html` on [http://localhost:8000](http://localhost:8000) while TAuth listens on [http://localhost:8080](http://localhost:8080). Thanks to the symlinked `mpr-ui.local.js`, every change you make to `mpr-ui.js` is immediately reflected in the Compose demo, so you can verify fixes (like the `base-url` attribute) before publishing a new CDN build.
+   gHTTP serves `demo/docker-tauth/index.html` on [http://localhost:8000](http://localhost:8000) while TAuth listens on [http://localhost:8080](http://localhost:8080). Thanks to the symlinked `mpr-ui.local.js`, every change you make to `mpr-ui.js` is immediately reflected in the Compose demo, so you can verify fixes (like the `base-url` attribute) before publishing a new CDN build. If you still see the CDN bundle after restarting the stack, open DevTools, enable “Disable cache,” and hard-reload the page or hit [http://localhost:8000/mpr-ui.local.js](http://localhost:8000/mpr-ui.local.js) directly to ensure the local script is being served.
 
 3. Sign in and inspect the session card.
 
