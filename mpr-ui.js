@@ -1101,6 +1101,66 @@
     return -1;
   }
 
+  function deriveBinaryThemeToggleModes(candidateModes) {
+    var modes = Array.isArray(candidateModes) && candidateModes.length
+      ? candidateModes.slice()
+      : DEFAULT_THEME_MODES.slice();
+    var binary = [];
+    var seen = Object.create(null);
+
+    function resolvePolarity(mode) {
+      if (!mode || typeof mode !== "object") {
+        return null;
+      }
+      var attribute =
+        typeof mode.attributeValue === "string" && mode.attributeValue.trim()
+          ? mode.attributeValue.trim().toLowerCase()
+          : "";
+      if (!attribute && typeof mode.value === "string" && mode.value.trim()) {
+        attribute = mode.value.trim().toLowerCase();
+      }
+      if (attribute.indexOf("dark") === 0) {
+        return "dark";
+      }
+      if (attribute.indexOf("light") === 0) {
+        return "light";
+      }
+      return null;
+    }
+
+    for (var index = 0; index < modes.length; index += 1) {
+      var mode = modes[index];
+      var polarity = resolvePolarity(mode);
+      if (!polarity || seen[polarity]) {
+        continue;
+      }
+      binary.push(mode);
+      seen[polarity] = true;
+      if (binary.length === 2) {
+        break;
+      }
+    }
+
+    if (binary.length === 2) {
+      return binary;
+    }
+
+    if (!binary.length && modes.length) {
+      binary.push(modes[0]);
+    }
+
+    for (var fillIndex = 0; fillIndex < modes.length; fillIndex += 1) {
+      if (binary.length === 2) {
+        break;
+      }
+      if (binary.indexOf(modes[fillIndex]) === -1) {
+        binary.push(modes[fillIndex]);
+      }
+    }
+
+    return binary;
+  }
+
   function resolveNextThemeToggleMode(modes, currentValue) {
     if (!Array.isArray(modes) || !modes.length) {
       return currentValue || null;
@@ -1307,12 +1367,12 @@
     if (!controlElement) {
       return function noopMissingControl() {};
     }
-    var currentModes = Array.isArray(config.modes) && config.modes.length
-      ? config.modes
+    var normalizedModes = Array.isArray(config.modes) && config.modes.length
+      ? config.modes.slice()
       : DEFAULT_THEME_MODES.slice();
-    if (variant !== "square" && currentModes.length > 2) {
-      currentModes = currentModes.slice(0, 2);
-    }
+    var currentModes = variant === "switch"
+      ? deriveBinaryThemeToggleModes(normalizedModes)
+      : normalizedModes;
     var squareModeValues = variant === "square"
       ? currentModes
           .slice(0, THEME_TOGGLE_SQUARE_POSITIONS.length)

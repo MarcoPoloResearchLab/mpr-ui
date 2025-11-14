@@ -6,6 +6,57 @@ const { pathToFileURL } = require('node:url');
 
 const CDN_BUNDLE_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js';
 const CDN_STYLES_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css';
+const GOOGLE_IDENTITY_URL = 'https://accounts.google.com/gsi/client';
+const GOOGLE_IDENTITY_STUB = String.raw`
+(function createGoogleIdentityStub() {
+  const globalObject = window;
+  const googleNamespace = globalObject.google || (globalObject.google = {});
+  const accountsNamespace = googleNamespace.accounts || (googleNamespace.accounts = {});
+  const identityNamespace = accountsNamespace.id || (accountsNamespace.id = {});
+
+  identityNamespace.initialize = function initializeIdentity(config) {
+    if (!config || typeof config !== 'object') {
+      return;
+    }
+
+    const baseline = globalObject.__googleInitConfig || {};
+    const payload = {};
+
+    if (config.client_id) {
+      payload.client_id = String(config.client_id);
+    }
+    if (config.nonce) {
+      payload.nonce = String(config.nonce);
+    }
+
+    if (Object.keys(payload).length) {
+      globalObject.__googleInitConfig = Object.assign({}, baseline, payload);
+    }
+
+    if (typeof config.callback === 'function') {
+      identityNamespace.__callback = config.callback;
+    }
+  };
+
+  identityNamespace.renderButton = function renderIdentityButton(element, options) {
+    if (!element) {
+      return;
+    }
+    const hostDocument = element.ownerDocument || document;
+    element.innerHTML = '';
+    const buttonElement = hostDocument.createElement('div');
+    buttonElement.setAttribute('role', 'button');
+    buttonElement.setAttribute('data-mpr-google-sentinel', 'true');
+    const defaultLabel = options && options.text === 'signin_with'
+      ? 'Sign in with Google'
+      : 'Continue with Google';
+    buttonElement.textContent = defaultLabel;
+    element.appendChild(buttonElement);
+  };
+
+  identityNamespace.prompt = function promptIdentity() {};
+})();
+`;
 const REPOSITORY_ROOT = join(__dirname, '../../..');
 const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/local.html')).href;
 const THEME_FIXTURE_URL = pathToFileURL(
@@ -31,7 +82,7 @@ const LOCAL_ASSETS = Object.freeze({
 });
 
 /**
- * Opens the demo page while serving the local bundle/styles (GIS remains real).
+ * Opens the demo page while serving the local bundle/styles.
  * @param {import('@playwright/test').Page} page
  * @returns {Promise<void>}
  */
@@ -39,6 +90,7 @@ async function visitDemoPage(page) {
   await Promise.all([
     routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+    routeLocalAsset(page, GOOGLE_IDENTITY_URL, GOOGLE_IDENTITY_STUB, 'application/javascript'),
   ]);
   await page.goto(DEMO_PAGE_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
