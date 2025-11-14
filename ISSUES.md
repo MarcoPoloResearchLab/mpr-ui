@@ -89,8 +89,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   - Moved the footer modal into a body-level portal, shared the viewport controller (now reacting to scroll) with the Settings modal, made the dialog box-sizing border-box so height budgets include padding, and hardened the Playwright demo to verify both modals sit between the sticky header/footer without shifting the chrome or event log coverage (privacy open events now feed the demo logger).
 - [x] [MU-321] Theme toggle visual has a pale halo and the knob misaligns with the track border.
   - Removed the knob glow, recalculated the travel offsets to keep the knob flush against the track, and added fixture-based Playwright coverage that inspects the computed transform/box-shadow to keep the control visually accurate.
-- [ ] [MU-322] Toggle cycles through multiple color schemes rather than simply flipping light/dark.
-  - Theme manager should switch between two modes; current logic iterates through several schemes, so constrain the toggler to binary mode for this control.
+- [x] [MU-322] Toggle cycles through multiple color schemes rather than simply flipping light/dark.
+  - Switch variant now clamps its mode list to two entries even if more modes are configured, and Playwright asserts the default footer toggle alternates strictly light/dark.
 - [ ] [MU-323] Square theme toggle variant never appears even when `theme-switcher="square"` is configured.
   - Footer ignores the square option and still renders the pill toggle, so honor the attribute/dataset and mount the square component.
 - [ ] [MU-324] Square toggle palette lacks four distinct colors from `theme-config`.
