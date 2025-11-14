@@ -72,6 +72,37 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
    Prefer custom elements for new work; use `MPRUI.renderSiteHeader(...)` / `mprSiteHeader(...)` only when a host framework requires programmatic mounting.
 
+## Docker Compose example (TAuth + gHTTP)
+
+Need a working authentication backend without wiring your own server? `demo/docker-tauth` ships a ready-to-run Compose stack that serves a new index page through [gHTTP](tools/ghttp) and proxies the authentication flows to the published `ghcr.io/marcopoloresearchlab/tauth:latest` service.
+
+1. Configure TAuth:
+
+   ```bash
+   cd demo/docker-tauth
+   cp .env.tauth.example .env.tauth
+   # Replace APP_GOOGLE_WEB_CLIENT_ID with your OAuth Web Client ID
+   # Replace APP_JWT_SIGNING_KEY (generate with: openssl rand -base64 48)
+   ```
+
+   The template already enables CORS (`APP_ENABLE_CORS=true`, `APP_CORS_ALLOWED_ORIGINS=http://localhost:8000`) and insecure HTTP for local development (`APP_DEV_INSECURE_HTTP=true`). The sample DSN (`sqlite://file:/data/tauth.db`) stores refresh tokens inside the `tauth_data` volume so restarting the container does not wipe sessions.
+
+2. Bring the stack up:
+
+   ```bash
+   docker compose up
+   ```
+
+   gHTTP serves `demo/docker-tauth/index.html` on [http://localhost:8000](http://localhost:8000) while TAuth listens on [http://localhost:8080](http://localhost:8080).
+
+3. Sign in and inspect the session card.
+
+   - The header points its `base-url` at `http://localhost:8080` and loads TAuth's `auth-client.js`, so Google credentials are exchanged via `/auth/nonce` and `/auth/google`.
+   - The bundled status panel listens for `mpr-ui:auth:*` events and prints the `/me` payload plus expiry information.
+   - Clicking **Sign out** calls `logout()` from the helper and clears cookies issued by TAuth.
+
+Stop the stack with `docker compose down -v` to reclaim the SQLite volume. Copy the template again any time you need to rotate secrets.
+
 ## Components (Custom Elements First)
 
 Every UI surface is primarily a custom element. The list below maps directly to the `<mpr-*>` tags you can use declaratively:

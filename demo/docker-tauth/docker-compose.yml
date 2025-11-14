@@ -1,0 +1,25 @@
+services:
+  frontend:
+    image: ghcr.io/temirov/ghttp:latest
+    depends_on:
+      tauth:
+        condition: service_started
+    command: ["--directory", "/srv/mpr-ui/demo/docker-tauth", "8000"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/srv/mpr-ui/demo/docker-tauth:ro
+    restart: unless-stopped
+
+  tauth:
+    image: ghcr.io/marcopoloresearchlab/tauth:latest
+    env_file:
+      - ./.env.tauth
+    ports:
+      - "8080:8080"
+    volumes:
+      - tauth_data:/data
+    restart: unless-stopped
+
+volumes:
+  tauth_data:
