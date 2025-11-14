@@ -1101,6 +1101,50 @@
     return -1;
   }
 
+  function resolveThemeModePolarity(mode) {
+    if (!mode) {
+      return null;
+    }
+    var candidate = "";
+    if (typeof mode === "string") {
+      candidate = mode;
+    } else if (typeof mode === "object") {
+      if (typeof mode.attributeValue === "string" && mode.attributeValue.trim()) {
+        candidate = mode.attributeValue;
+      } else if (typeof mode.value === "string" && mode.value.trim()) {
+        candidate = mode.value;
+      }
+    }
+    if (!candidate) {
+      return null;
+    }
+    var normalized = String(candidate).trim().toLowerCase();
+    if (!normalized) {
+      return null;
+    }
+    if (normalized.indexOf("dark") === 0 || normalized.lastIndexOf("dark") === normalized.length - 4) {
+      return "dark";
+    }
+    if (normalized.indexOf("light") === 0 || normalized.lastIndexOf("light") === normalized.length - 5) {
+      return "light";
+    }
+    if (
+      normalized.indexOf("-dark") !== -1 ||
+      normalized.indexOf("dark-") !== -1 ||
+      normalized.indexOf("_dark") !== -1
+    ) {
+      return "dark";
+    }
+    if (
+      normalized.indexOf("-light") !== -1 ||
+      normalized.indexOf("light-") !== -1 ||
+      normalized.indexOf("_light") !== -1
+    ) {
+      return "light";
+    }
+    return null;
+  }
+
   function deriveBinaryThemeToggleModes(candidateModes) {
     var modes = Array.isArray(candidateModes) && candidateModes.length
       ? candidateModes.slice()
@@ -1108,29 +1152,9 @@
     var binary = [];
     var seen = Object.create(null);
 
-    function resolvePolarity(mode) {
-      if (!mode || typeof mode !== "object") {
-        return null;
-      }
-      var attribute =
-        typeof mode.attributeValue === "string" && mode.attributeValue.trim()
-          ? mode.attributeValue.trim().toLowerCase()
-          : "";
-      if (!attribute && typeof mode.value === "string" && mode.value.trim()) {
-        attribute = mode.value.trim().toLowerCase();
-      }
-      if (attribute.indexOf("dark") === 0) {
-        return "dark";
-      }
-      if (attribute.indexOf("light") === 0) {
-        return "light";
-      }
-      return null;
-    }
-
     for (var index = 0; index < modes.length; index += 1) {
       var mode = modes[index];
-      var polarity = resolvePolarity(mode);
+      var polarity = resolveThemeModePolarity(mode);
       if (!polarity || seen[polarity]) {
         continue;
       }
@@ -1552,6 +1576,33 @@
       controlElement.setAttribute("aria-checked", checked ? "true" : "false");
     }
 
+    function resolveNextSwitchMode(currentValue) {
+      if (variant !== "switch") {
+        return resolveNextThemeToggleMode(currentModes, currentValue);
+      }
+      var currentIndex = getThemeToggleModeIndex(currentModes, currentValue);
+      if (currentIndex !== -1) {
+        return resolveNextThemeToggleMode(currentModes, currentValue);
+      }
+      var normalizedIndex = getThemeToggleModeIndex(normalizedModes, currentValue);
+      if (normalizedIndex === -1) {
+        return currentModes.length ? currentModes[0].value : currentValue;
+      }
+      var activeMode = normalizedModes[normalizedIndex];
+      var activePolarity = resolveThemeModePolarity(activeMode);
+      if (!activePolarity) {
+        return resolveNextThemeToggleMode(currentModes, currentValue);
+      }
+      var targetPolarity = activePolarity === "dark" ? "light" : "dark";
+      for (var modeIndex = 0; modeIndex < currentModes.length; modeIndex += 1) {
+        var candidatePolarity = resolveThemeModePolarity(currentModes[modeIndex]);
+        if (candidatePolarity === targetPolarity) {
+          return currentModes[modeIndex].value;
+        }
+      }
+      return resolveNextThemeToggleMode(currentModes, currentValue);
+    }
+
     function handleActivation(eventObject) {
       if (
         variant === "button" &&
@@ -1560,10 +1611,7 @@
       ) {
         eventObject.preventDefault();
       }
-      var nextMode = resolveNextThemeToggleMode(
-        currentModes,
-        themeManager.getMode(),
-      );
+      var nextMode = resolveNextSwitchMode(themeManager.getMode());
       themeManager.setMode(nextMode, config.source || "theme-toggle");
     }
 

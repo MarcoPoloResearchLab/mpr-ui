@@ -212,6 +212,35 @@ test('renderThemeToggle switch variant derives a binary mode pair', () => {
   controller.destroy();
 });
 
+test('renderThemeToggle switch toggles from alternate light mode to dark', () => {
+  resetEnvironment();
+  const harness = createThemeToggleHarness();
+  require('../mpr-ui.js');
+  const controller = global.MPRUI.renderThemeToggle(harness.host, {
+    variant: 'switch',
+    theme: {
+      initialMode: 'default-light',
+      modes: [
+        { value: 'default-light', attributeValue: 'light' },
+        { value: 'sunrise-light', attributeValue: 'light' },
+        { value: 'default-dark', attributeValue: 'dark' },
+        { value: 'forest-dark', attributeValue: 'dark' },
+      ],
+    },
+  });
+
+  assert.equal(global.MPRUI.getThemeMode(), 'default-light');
+  global.MPRUI.setThemeMode('sunrise-light');
+  assert.equal(global.MPRUI.getThemeMode(), 'sunrise-light');
+
+  harness.control.trigger('click');
+  assert.equal(global.MPRUI.getThemeMode(), 'default-dark');
+  assert.equal(harness.control.checked, true);
+  assert.equal(harness.control.getAttribute('aria-checked'), 'true');
+
+  controller.destroy();
+});
+
 test('renderThemeToggle supports the square variant and updates modes per quadrant', () => {
   resetEnvironment();
   const harness = createThemeToggleHarness({
