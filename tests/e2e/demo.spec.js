@@ -8,6 +8,7 @@ const {
   captureColorSnapshots,
   captureDropUpMetrics,
   readEventLogEntries,
+  visitFooterTextFixturePage,
   selectors,
 } = require('./support/demoPage');
 
@@ -17,6 +18,7 @@ const {
   footerThemeControl,
   footerDropupButton,
   footerMenu,
+  footerPrefix,
   eventLogEntries,
 } = selectors;
 
@@ -130,6 +132,7 @@ test.describe('Demo behaviours', () => {
     await dropupButton.click();
     await expect(dropupButton).toHaveAttribute('aria-expanded', 'true');
     await expect(page.locator(footerMenu)).toHaveClass(/mpr-footer__menu--open/);
+    await expect(page.locator(footerPrefix)).toHaveCount(0);
   });
 
   test('MU-316: settings button opens an accessible modal shell', async ({ page }) => {
@@ -215,6 +218,19 @@ test.describe('Demo behaviours', () => {
   });
 });
 
+test.describe('Footer label variants', () => {
+  test.beforeEach(async ({ page }) => {
+    await visitFooterTextFixturePage(page);
+  });
+
+  test('MU-319: text-only footer renders a single prefix label', async ({ page }) => {
+    const prefix = page.locator(footerPrefix);
+    await expect(prefix).toHaveCount(1);
+    await expect(prefix).toHaveText(/Built by Marco Polo Research Lab/);
+    await expect(page.locator(footerDropupButton)).toHaveCount(0);
+  });
+});
+
 test.describe('Default theme toggle behaviours', () => {
   test.beforeEach(async ({ page }) => {
     await visitThemeFixturePage(page);
@@ -234,6 +250,40 @@ test.describe('Default theme toggle behaviours', () => {
     await page.waitForTimeout(200);
     const resetBackground = await readBodyBackgroundColor(page);
     expect(resetBackground).toBe(initialBackground);
+  });
+
+  test('MU-321: default toggle knob aligns without halos', async ({ page }) => {
+    const control = footerThemeControl;
+    const initialSnapshot = await captureToggleSnapshot(page, control);
+    expect(initialSnapshot.variant).toBe('switch');
+    expect(initialSnapshot.boxShadow).toBe('none');
+    expect(Math.abs(initialSnapshot.translateX)).toBeLessThanOrEqual(0.5);
+
+    await page.locator(control).first().click();
+    await page.waitForTimeout(300);
+
+    const toggledSnapshot = await captureToggleSnapshot(page, control);
+    expect(toggledSnapshot.boxShadow).toBe('none');
+    expect(Math.abs(toggledSnapshot.translateX - toggledSnapshot.travelDistance)).toBeLessThanOrEqual(0.5);
+  });
+
+  test('MU-322: default toggle cycles only two modes', async ({ page }) => {
+    const toggle = page.locator(footerThemeControl).first();
+    await expect(toggle).toBeVisible();
+    const modes = [];
+    for (let index = 0; index < 4; index += 1) {
+      await toggle.click();
+      await page.waitForTimeout(200);
+      const mode = await page.evaluate(() => {
+        const control = document.querySelector('[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]');
+        return control ? control.getAttribute('data-mpr-theme-mode') : null;
+      });
+      modes.push(mode);
+    }
+    const uniqueModes = Array.from(new Set(modes));
+    expect(uniqueModes.length).toBe(2);
+    expect(modes[0]).toBe(modes[2]);
+    expect(modes[1]).toBe(modes[3]);
   });
 });
 

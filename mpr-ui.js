@@ -1310,6 +1310,9 @@
     var currentModes = Array.isArray(config.modes) && config.modes.length
       ? config.modes
       : DEFAULT_THEME_MODES.slice();
+    if (variant !== "square" && currentModes.length > 2) {
+      currentModes = currentModes.slice(0, 2);
+    }
     var squareModeValues = variant === "square"
       ? currentModes
           .slice(0, THEME_TOGGLE_SQUARE_POSITIONS.length)
@@ -4463,6 +4466,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         "</div>"
       : "";
 
+    var prefixMarkup = !config.linksMenuEnabled
+      ? '<span data-mpr-footer="prefix"></span>'
+      : "";
+
     var layoutMarkup =
       '<div data-mpr-footer="layout">' +
       '<a data-mpr-footer="privacy-link" href="' +
@@ -4471,7 +4478,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       spacerMarkup +
       themeToggleMarkup +
       '<div data-mpr-footer="brand">' +
-      '<span data-mpr-footer="prefix"></span>' +
+      prefixMarkup +
       dropdownMarkup +
       "</div>" +
       "</div>";

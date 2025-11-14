@@ -268,12 +268,13 @@ footer {
 input[type="checkbox"][data-mpr-theme-toggle="control"] {
   --mpr-theme-toggle-track-width: 48px;
   --mpr-theme-toggle-track-height: 24px;
-  --mpr-theme-toggle-knob-size: 18px;
-  --mpr-theme-toggle-offset: 2px;
   --mpr-theme-toggle-border: 1px;
+  --mpr-theme-toggle-offset: 3px;
+  --mpr-theme-toggle-knob-size: 18px;
   --mpr-theme-toggle-travel: calc(
-    var(--mpr-theme-toggle-track-width) - var(--mpr-theme-toggle-knob-size) -
-    (var(--mpr-theme-toggle-offset) * 2)
+    var(--mpr-theme-toggle-track-width) -
+      (var(--mpr-theme-toggle-offset) * 2) -
+      var(--mpr-theme-toggle-knob-size)
   );
   appearance: none;
   -webkit-appearance: none;
@@ -281,11 +282,12 @@ input[type="checkbox"][data-mpr-theme-toggle="control"] {
   position: relative;
   width: var(--mpr-theme-toggle-track-width);
   height: var(--mpr-theme-toggle-track-height);
-  background: var(--mpr-theme-toggle-bg, rgba(148, 163, 184, 0.3));
+  background: var(--mpr-theme-toggle-bg, rgba(148, 163, 184, 0.18));
   border-radius: calc(var(--mpr-theme-toggle-track-height) / 2);
   cursor: pointer;
-  transition: background 0.3s ease;
+  transition: background 0.2s ease, border-color 0.2s ease;
   border: var(--mpr-theme-toggle-border) solid var(--mpr-color-border, rgba(148, 163, 184, 0.35));
+  box-shadow: none;
   box-sizing: border-box;
 }
 
@@ -301,10 +303,10 @@ input[type="checkbox"][data-mpr-theme-toggle="control"]::before {
   left: var(--mpr-theme-toggle-offset);
   width: var(--mpr-theme-toggle-knob-size);
   height: var(--mpr-theme-toggle-knob-size);
-  background: white;
+  background: var(--mpr-color-text-primary, #0f172a);
   border-radius: 50%;
-  transition: transform 0.2s ease-out, background 0.3s ease;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease-out, background 0.2s ease;
+  box-shadow: none;
 }
 
 input[type="checkbox"][data-mpr-theme-toggle="control"]:checked::before {
@@ -314,7 +316,7 @@ input[type="checkbox"][data-mpr-theme-toggle="control"]:checked::before {
 
 input[type="checkbox"][data-mpr-theme-toggle="control"]:checked {
   background: var(--mpr-color-accent, #38bdf8);
-  opacity: 0.7;
+  border-color: var(--mpr-color-accent, #38bdf8);
 }
 
 [data-mpr-theme-toggle="control"][data-variant="square"] {
