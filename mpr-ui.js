@@ -3395,6 +3395,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     if (elements.settingsButton) {
       elements.settingsButton.addEventListener("click", function () {
+        if (!options.settings.enabled) {
+          return;
+        }
         if (settingsModalController) {
           settingsModalController.open();
         }
@@ -3429,6 +3432,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           hostElement.removeAttribute("data-mpr-google-site-id");
         }
         applyHeaderOptions(hostElement, elements, options);
+        if (!options.settings.enabled && settingsModalController) {
+          settingsModalController.close();
+        }
         if (settingsModalController) {
           settingsModalController.updateLabel(options.settings.label);
         }

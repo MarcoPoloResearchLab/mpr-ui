@@ -574,6 +574,38 @@ test('destroying the header hides an open settings modal', () => {
   );
 });
 
+test('settings button is inert when disabled via options', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, { settings: { enabled: false } });
+
+  assert.strictEqual(
+    harness.settingsModal.getAttribute('data-mpr-modal-open'),
+    'false',
+    'settings modal defaults to closed when disabled',
+  );
+
+  harness.settingsButton.click();
+
+  assert.strictEqual(
+    harness.settingsModal.getAttribute('data-mpr-modal-open'),
+    'false',
+    'clicking settings button does not open modal when disabled',
+  );
+  assert.strictEqual(
+    harness.settingsModal.getAttribute('aria-hidden'),
+    'true',
+    'modal remains hidden when settings are disabled',
+  );
+  assert.ok(
+    !harness.dispatchedEvents.some(function (event) {
+      return event.type === 'mpr-ui:header:settings-click';
+    }),
+    'no settings-click event dispatched when settings disabled',
+  );
+});
+
 test('renderSiteHeader injects the Google Identity script when the client is missing', async () => {
   resetEnvironment();
   const harness = createHostHarness();
