@@ -10,7 +10,6 @@ services:
       - "8000:8000"
     volumes:
       - .:/srv/mpr-ui/demo/docker-tauth:ro
-      - ../../mpr-ui.js:/srv/mpr-ui/demo/docker-tauth/mpr-ui.local.js:ro
     restart: unless-stopped
 
   tauth:

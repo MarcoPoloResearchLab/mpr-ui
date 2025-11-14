@@ -74,7 +74,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 ## Docker Compose example (TAuth + gHTTP)
 
-Need a working authentication backend without wiring your own server? `demo/docker-tauth` ships a ready-to-run Compose stack that serves a new index page through [gHTTP](tools/ghttp) and proxies the authentication flows to the published `ghcr.io/marcopoloresearchlab/tauth:latest` service. The Compose file bind-mounts the repository root and exposes `mpr-ui.js` inside the demo directory as `mpr-ui.local.js`, so the page always executes whatever code is on your current branch before it lands on the CDN.
+Need a working authentication backend without wiring your own server? `demo/docker-tauth` ships a ready-to-run Compose stack that serves a new index page through [gHTTP](tools/ghttp) and proxies the authentication flows to the published `ghcr.io/marcopoloresearchlab/tauth:latest` service. The demo folder contains a symlink (`mpr-ui.local.js`) pointing at the repo-root `mpr-ui.js`, so browsers load whatever bundle is on your current branch before it lands on the CDN.
 
 1. Configure TAuth:
 
@@ -93,7 +93,7 @@ Need a working authentication backend without wiring your own server? `demo/dock
    docker compose up
    ```
 
-   gHTTP serves `demo/docker-tauth/index.html` on [http://localhost:8000](http://localhost:8000) while TAuth listens on [http://localhost:8080](http://localhost:8080). Because the local bundle is mounted into the demo folder as `mpr-ui.local.js`, you can verify new header/footer behaviour (like the `base-url` attribute) before publishing a new CDN build.
+   gHTTP serves `demo/docker-tauth/index.html` on [http://localhost:8000](http://localhost:8000) while TAuth listens on [http://localhost:8080](http://localhost:8080). Thanks to the symlinked `mpr-ui.local.js`, every change you make to `mpr-ui.js` is immediately reflected in the Compose demo, so you can verify fixes (like the `base-url` attribute) before publishing a new CDN build.
 
 3. Sign in and inspect the session card.
 
