@@ -112,6 +112,7 @@ async function captureToggleSnapshot(page, selector) {
               y: dotRect.top - gridRect.top,
             }
           : null,
+        boxShadow: null,
       };
     }
 
@@ -166,6 +167,7 @@ async function captureToggleSnapshot(page, selector) {
       ),
       translateX,
       travelDistance,
+      boxShadow: (pseudo.getPropertyValue('box-shadow') || 'none').trim(),
     };
   }, TOGGLE_PSEUDO_ELEMENT);
 }
