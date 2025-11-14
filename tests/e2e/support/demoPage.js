@@ -62,6 +62,9 @@ const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/local.html')).hr
 const THEME_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/theme-toggle.html'),
 ).href;
+const FOOTER_TEXT_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-text-only.html'),
+).href;
 
 const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
@@ -69,6 +72,7 @@ const SELECTORS = Object.freeze({
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerDropupButton: '[data-mpr-footer="toggle-button"]',
   footerMenu: '[data-mpr-footer="menu"]',
+  footerPrefix: '[data-mpr-footer="prefix"]',
   eventLogEntries: '#event-log [data-test="event-log-entry"]',
 });
 
@@ -103,6 +107,20 @@ async function visitThemeFixturePage(page) {
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
   ]);
   await page.goto(THEME_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the text-only footer fixture with local assets.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitFooterTextFixturePage(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(FOOTER_TEXT_FIXTURE_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
 }
 
@@ -146,6 +164,7 @@ async function captureToggleSnapshot(page, selector) {
               y: dotRect.top - gridRect.top,
             }
           : null,
+        boxShadow: null,
       };
     }
 
@@ -200,6 +219,7 @@ async function captureToggleSnapshot(page, selector) {
       ),
       translateX,
       travelDistance,
+      boxShadow: (pseudo.getPropertyValue('box-shadow') || 'none').trim(),
     };
   }, TOGGLE_PSEUDO_ELEMENT);
 }
@@ -285,6 +305,7 @@ async function routeLocalAsset(page, url, body, contentType) {
 module.exports = {
   visitDemoPage,
   visitThemeFixturePage,
+  visitFooterTextFixturePage,
   captureToggleSnapshot,
   captureColorSnapshots,
   captureDropUpMetrics,

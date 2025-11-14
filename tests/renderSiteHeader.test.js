@@ -538,7 +538,9 @@ test('destroying the header hides an open settings modal', () => {
   resetEnvironment();
   const harness = createHostHarness();
   const library = loadLibrary();
-  const controller = library.renderSiteHeader(harness.host, {});
+  const controller = library.renderSiteHeader(harness.host, {
+    settings: { enabled: true },
+  });
 
   assert.strictEqual(
     harness.settingsModal.getAttribute('data-mpr-modal-open'),
@@ -560,6 +562,13 @@ test('destroying the header hides an open settings modal', () => {
     'opening the modal removes aria-hidden',
   );
 
+  assert.ok(
+    harness.dispatchedEvents.some(function (event) {
+      return event.type === 'mpr-ui:header:settings-click';
+    }),
+    'settings-click event dispatched when settings enabled',
+  );
+
   controller.destroy();
 
   assert.strictEqual(
@@ -571,6 +580,38 @@ test('destroying the header hides an open settings modal', () => {
     harness.settingsModal.getAttribute('aria-hidden'),
     'true',
     'destroying the header hides the modal for assistive tech',
+  );
+});
+
+test('settings button is inert when disabled via options', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+  library.renderSiteHeader(harness.host, { settings: { enabled: false } });
+
+  assert.strictEqual(
+    harness.settingsModal.getAttribute('data-mpr-modal-open'),
+    'false',
+    'settings modal defaults to closed when disabled',
+  );
+
+  harness.settingsButton.click();
+
+  assert.strictEqual(
+    harness.settingsModal.getAttribute('data-mpr-modal-open'),
+    'false',
+    'clicking settings button does not open modal when disabled',
+  );
+  assert.strictEqual(
+    harness.settingsModal.getAttribute('aria-hidden'),
+    'true',
+    'modal remains hidden when settings are disabled',
+  );
+  assert.ok(
+    !harness.dispatchedEvents.some(function (event) {
+      return event.type === 'mpr-ui:header:settings-click';
+    }),
+    'no settings-click event dispatched when settings disabled',
   );
 });
 
