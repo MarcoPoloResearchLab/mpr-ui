@@ -74,7 +74,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 ## Docker Compose example (TAuth + gHTTP)
 
-Need a working authentication backend without wiring your own server? `demo/docker-tauth` ships a ready-to-run Compose stack that serves a new index page through [gHTTP](tools/ghttp) and proxies the authentication flows to the published `ghcr.io/marcopoloresearchlab/tauth:latest` service. The demo folder contains a symlink (`mpr-ui.local.js`) pointing at the repo-root `mpr-ui.js`, so browsers load whatever bundle is on your current branch before it lands on the CDN.
+Need a working authentication backend without wiring your own server? `demo/docker-tauth` ships a ready-to-run Compose stack that serves a new index page through [gHTTP](tools/ghttp) and proxies the authentication flows to the published `ghcr.io/marcopoloresearchlab/tauth:latest` service. The Compose stack bind-mounts `mpr-ui.js` from the repo root as `mpr-ui.local.js` inside the demo folder, so browsers always execute the bundle from your current branch before it lands on the CDN.
 
 1. Configure TAuth:
 
@@ -93,7 +93,7 @@ Need a working authentication backend without wiring your own server? `demo/dock
    docker compose up
    ```
 
-   gHTTP serves `demo/docker-tauth/index.html` on [http://localhost:8000](http://localhost:8000) while TAuth listens on [http://localhost:8080](http://localhost:8080). Thanks to the symlinked `mpr-ui.local.js`, every change you make to `mpr-ui.js` is immediately reflected in the Compose demo, so you can verify fixes (like the `base-url` attribute) before publishing a new CDN build. If you still see the CDN bundle after restarting the stack, open DevTools, enable “Disable cache,” and hard-reload the page or hit [http://localhost:8000/mpr-ui.local.js](http://localhost:8000/mpr-ui.local.js) directly to ensure the local script is being served.
+   gHTTP serves `demo/docker-tauth/index.html` on [http://localhost:8000](http://localhost:8000) while TAuth listens on [http://localhost:8080](http://localhost:8080). Because Docker overlays `mpr-ui.local.js` with the repo-root bundle, every source change is reflected immediately in the Compose demo, so you can verify fixes (like the `base-url` attribute) before publishing a new CDN build. If you still see the CDN bundle after restarting the stack, open DevTools, enable “Disable cache,” and hard-reload the page or hit [http://localhost:8000/mpr-ui.local.js](http://localhost:8000/mpr-ui.local.js) directly to ensure the local script is being served.
 
 3. Sign in and inspect the session card.
 
