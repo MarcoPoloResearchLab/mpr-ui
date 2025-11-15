@@ -11,7 +11,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 ## Quick Start
 
-1. **Load the bundle + prerequisites** — add the packaged stylesheet, Alpine (used internally), and the `mpr-ui` bundle:
+1. **Load the bundle + prerequisites** — add the packaged stylesheet, Alpine (used internally), the TAuth helper (if applicable), the `mpr-ui` bundle, and Google Identity Services in this order:
 
    ```html
    <link
@@ -23,9 +23,20 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
      window.Alpine = Alpine;
      Alpine.start();
    </script>
+   <!-- Optional but required when integrating with TAuth -->
+   <script
+     defer
+     src="http://localhost:8080/static/auth-client.js"
+     crossorigin="anonymous"
+   ></script>
    <script
      defer
      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+   ></script>
+   <script
+     src="https://accounts.google.com/gsi/client"
+     async
+     defer
    ></script>
    ```
 
@@ -72,9 +83,19 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
    Prefer custom elements for new work; use `MPRUI.renderSiteHeader(...)` / `mprSiteHeader(...)` only when a host framework requires programmatic mounting.
 
+## Integration requirements
+
+1. Load `mpr-ui.css` first so layout tokens and theme variables exist before scripts run.
+2. Load Alpine **before** `mpr-ui.js` and call `Alpine.start()`; the bundle registers custom elements immediately on import.
+3. When authenticating via TAuth, include `http://localhost:8080/static/auth-client.js` (or your deployed origin) before `mpr-ui.js` so `initAuthClient`, `logout`, and `getCurrentUser` are defined.
+4. Always include Google Identity Services (`https://accounts.google.com/gsi/client`) so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
+5. Point `base-url`, `login-path`, `logout-path`, and `nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
+
+See [`docs/integration-guide.md`](docs/integration-guide.md) for the complete walkthrough plus troubleshooting guidance.
+
 ## Docker Compose example (TAuth + gHTTP)
 
-Looking for a step–by–step walkthrough? See [`docs/integration-guide.md`](docs/integration-guide.md), which covers requirements, attribute mapping, and debugging tips for wiring `mpr-header` to TAuth in any project. The summary below focuses on the bundled Compose demo.
+Looking for a step–by–step walkthrough? See [`docs/integration-guide.md`](docs/integration-guide.md), which covers prerequisites, exact script ordering, attribute mapping, and debugging tips for wiring `mpr-header` to TAuth in any project. The summary below focuses on the bundled Compose demo.
 
 Need a working authentication backend without wiring your own server? `demo/tauth-demo.html` pairs with `docker-compose.tauth.yml` to spin up [gHTTP](tools/ghttp) plus the published `ghcr.io/marcopoloresearchlab/tauth:latest` service. gHTTP serves the entire repository, so the page loads `mpr-ui.js` directly from your working tree—no extra copy step required.
 
