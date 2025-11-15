@@ -16,6 +16,7 @@ const {
   googleButton,
   headerNavLinks,
   footerThemeControl,
+  footerThemeWrapper,
   footerDropupButton,
   footerMenu,
   footerPrefix,
@@ -97,6 +98,28 @@ test.describe('Demo behaviours', () => {
     expect(resetBackground).toBe(initialBackground);
   });
 
+  test('MU-325: square toggle bottom row selects dark blue and pale green palettes', async ({ page }) => {
+    await clickQuadrant(page, footerThemeControl, 'bottomLeft');
+    await page.waitForTimeout(200);
+    const darkSnapshot = await captureToggleSnapshot(page, footerThemeControl);
+    const darkPalette = await page.evaluate(() =>
+      document.body.getAttribute('data-demo-palette'),
+    );
+    expect(darkSnapshot.mode).toBe('default-dark');
+    expect(darkSnapshot.index).toBe(2);
+    expect(darkPalette).toBe('default');
+
+    await clickQuadrant(page, footerThemeControl, 'bottomRight');
+    await page.waitForTimeout(200);
+    const paleSnapshot = await captureToggleSnapshot(page, footerThemeControl);
+    const palePalette = await page.evaluate(() =>
+      document.body.getAttribute('data-demo-palette'),
+    );
+    expect(paleSnapshot.mode).toBe('forest-dark');
+    expect(paleSnapshot.index).toBe(3);
+    expect(palePalette).toBe('forest');
+  });
+
   test('MU-309: footer toggle updates multiple palettes', async ({ page }) => {
     const beforeColors = await captureColorSnapshots(page, PALETTE_TARGETS);
     await clickQuadrant(page, footerThemeControl, 'bottomLeft');
@@ -105,6 +128,40 @@ test.describe('Demo behaviours', () => {
     PALETTE_TARGETS.forEach((_selector, index) => {
       expect(afterColors[index]).not.toEqual(beforeColors[index]);
     });
+  });
+
+  test('MU-325: square toggle wrapper removes the halo and static knob', async ({ page }) => {
+    const styleSnapshot = await page.evaluate(
+      ({ wrapperSelector, controlSelector }) => {
+        const wrapper = document.querySelector(wrapperSelector);
+        const control = document.querySelector(controlSelector);
+        if (!wrapper || !control) {
+          return null;
+        }
+        const ownerWindow = wrapper.ownerDocument?.defaultView;
+        if (!ownerWindow) {
+          return null;
+        }
+        const wrapperStyle = ownerWindow.getComputedStyle(wrapper);
+        const pseudo = ownerWindow.getComputedStyle(control, '::after');
+        return {
+          background: wrapperStyle.getPropertyValue('background-color'),
+          borderRadius: wrapperStyle.getPropertyValue('border-radius'),
+          padding: wrapperStyle.getPropertyValue('padding'),
+          pseudoContent: pseudo.getPropertyValue('content'),
+          pseudoWidth: pseudo.getPropertyValue('width'),
+        };
+      },
+      { wrapperSelector: footerThemeWrapper, controlSelector: footerThemeControl },
+    );
+    expect(styleSnapshot).not.toBeNull();
+    if (styleSnapshot) {
+      expect(styleSnapshot.background).toBe('rgba(0, 0, 0, 0)');
+      expect(styleSnapshot.borderRadius).toBe('0px');
+      expect(styleSnapshot.padding).toBe('0px');
+      expect(styleSnapshot.pseudoContent).toBe('none');
+      expect(styleSnapshot.pseudoWidth).toBe('0px');
+    }
   });
 
   test('MU-111: footer privacy modal opens and closes with provided content', async ({ page }) => {
@@ -266,6 +323,7 @@ test.describe('Default theme toggle behaviours', () => {
     expect(initialSnapshot.variant).toBe('switch');
     expect(initialSnapshot.boxShadow).toBe('none');
     expect(Math.abs(initialSnapshot.translateX)).toBeLessThanOrEqual(0.5);
+    expect(initialSnapshot.borderWidth).toBe(0);
 
     await page.locator(control).first().click();
     await page.waitForTimeout(300);
@@ -273,6 +331,16 @@ test.describe('Default theme toggle behaviours', () => {
     const toggledSnapshot = await captureToggleSnapshot(page, control);
     expect(toggledSnapshot.boxShadow).toBe('none');
     expect(Math.abs(toggledSnapshot.translateX - toggledSnapshot.travelDistance)).toBeLessThanOrEqual(0.5);
+    expect(toggledSnapshot.borderWidth).toBe(0);
+  });
+
+  test('MU-326: default toggle displays a knob-only focus ring', async ({ page }) => {
+    const control = page.locator(footerThemeControl).first();
+    await control.focus();
+    const snapshot = await captureToggleSnapshot(page, footerThemeControl);
+    expect(snapshot.variant).toBe('switch');
+    expect(snapshot.borderWidth).toBe(0);
+    expect(snapshot.boxShadow === 'none').toBeFalsy();
   });
 
   test('MU-322: default toggle cycles only two modes', async ({ page }) => {

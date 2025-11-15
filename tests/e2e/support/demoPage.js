@@ -70,6 +70,7 @@ const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
   headerNavLinks: '[data-mpr-header="nav"] a',
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
+  footerThemeWrapper: '[data-mpr-footer="theme-toggle"]',
   footerDropupButton: '[data-mpr-footer="toggle-button"]',
   footerMenu: '[data-mpr-footer="menu"]',
   footerPrefix: '[data-mpr-footer="prefix"]',
@@ -209,6 +210,7 @@ async function captureToggleSnapshot(page, selector) {
     const travelDistance = Number.isFinite(travelVar)
       ? travelVar
       : trackWidth - knobWidth - offset * 2;
+    const borderWidth = toFloat(control.getPropertyValue('border-top-width'), 0);
 
     return {
       variant,
@@ -220,6 +222,7 @@ async function captureToggleSnapshot(page, selector) {
       translateX,
       travelDistance,
       boxShadow: (pseudo.getPropertyValue('box-shadow') || 'none').trim(),
+      borderWidth,
     };
   }, TOGGLE_PSEUDO_ELEMENT);
 }

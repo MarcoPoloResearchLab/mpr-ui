@@ -45,9 +45,11 @@ volumes:
 1. There is a large circle in the top left cornmer that doesnt move while a smaller circle travels as expected
 2. The color palettes for pale green and dark blue are swapped. make dark blue to invoke dark blue scheme and pale green to invoke plae green scheme.
 3. The theme changers has a weird halo / eliptical contour around it. Remove it
-    - Resolved by realigning the square quadrant mapping (bottom-left = dark blue, bottom-right = pale green), cleaning up the container chrome to remove the halo, and adding regression tests that cover both quadrants and palette updates.
+    - Resolved by removing the fallback knob pseudo-element, stripping the pill wrapper chrome when the control runs in square mode, adding a variant data attribute so CSS can scope styling, and extending the Playwright suite to assert the bottom-left quadrant maps to the dark palette while bottom-right maps to the pale-green palette (plus a regression that checks the halo stays gone).
+See @image.png
 
-- [ ] [MU-326] The toggle theme changers has a weird halo / eliptical contour around it. Remove it
+- [x] [MU-326] The toggle theme changers has a weird halo / eliptical contour around it. Remove it
+    - Removed the static border from the pill toggle, moved the focus indicator onto the knob so the track stays clean, and added Playwright coverage to assert the border width stays zero while keyboard focus renders the circular ring only around the knob.
 
 - [x] [MU-327] `<mpr-header>` ignored the `base-url` attribute so Docker Compose demo auth calls hit the frontend origin and returned 404s. Added attribute parsing plus regression tests to route nonce/login/logout requests to the configured TAuth base URL.
 

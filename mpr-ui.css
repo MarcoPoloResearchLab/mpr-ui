@@ -268,7 +268,6 @@ footer {
 input[type="checkbox"][data-mpr-theme-toggle="control"] {
   --mpr-theme-toggle-track-width: 48px;
   --mpr-theme-toggle-track-height: 24px;
-  --mpr-theme-toggle-border: 1px;
   --mpr-theme-toggle-offset: 3px;
   --mpr-theme-toggle-knob-size: 18px;
   --mpr-theme-toggle-travel: calc(
@@ -285,15 +284,14 @@ input[type="checkbox"][data-mpr-theme-toggle="control"] {
   background: var(--mpr-theme-toggle-bg, rgba(148, 163, 184, 0.18));
   border-radius: calc(var(--mpr-theme-toggle-track-height) / 2);
   cursor: pointer;
-  transition: background 0.2s ease, border-color 0.2s ease;
-  border: var(--mpr-theme-toggle-border) solid var(--mpr-color-border, rgba(148, 163, 184, 0.35));
+  transition: background 0.2s ease;
+  border: none;
   box-shadow: none;
   box-sizing: border-box;
 }
 
 input[type="checkbox"][data-mpr-theme-toggle="control"]:focus-visible {
-  outline: 3px solid #f59e0b;
-  outline-offset: 2px;
+  outline: none;
 }
 
 input[type="checkbox"][data-mpr-theme-toggle="control"]::before {
@@ -305,8 +303,12 @@ input[type="checkbox"][data-mpr-theme-toggle="control"]::before {
   height: var(--mpr-theme-toggle-knob-size);
   background: var(--mpr-color-text-primary, #0f172a);
   border-radius: 50%;
-  transition: transform 0.2s ease-out, background 0.2s ease;
+  transition: transform 0.2s ease-out, background 0.2s ease, box-shadow 0.2s ease;
   box-shadow: none;
+}
+
+input[type="checkbox"][data-mpr-theme-toggle="control"]:focus-visible::before {
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.65);
 }
 
 input[type="checkbox"][data-mpr-theme-toggle="control"]:checked::before {
@@ -316,7 +318,6 @@ input[type="checkbox"][data-mpr-theme-toggle="control"]:checked::before {
 
 input[type="checkbox"][data-mpr-theme-toggle="control"]:checked {
   background: var(--mpr-color-accent, #38bdf8);
-  border-color: var(--mpr-color-accent, #38bdf8);
 }
 
 [data-mpr-theme-toggle="control"][data-variant="square"] {
@@ -336,6 +337,34 @@ input[type="checkbox"][data-mpr-theme-toggle="control"]:checked {
   background: transparent;
   cursor: pointer;
   transition: color 0.2s ease;
+}
+
+[data-mpr-theme-toggle="control"][data-variant="square"]::before,
+[data-mpr-theme-toggle="control"][data-variant="square"]::after {
+  content: none;
+  display: none;
+  inline-size: 0;
+  block-size: 0;
+}
+
+[data-mpr-footer="theme-toggle"][data-mpr-theme-toggle-variant="square"] {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.mpr-footer__theme-checkbox[data-variant="square"] {
+  inline-size: auto;
+  block-size: auto;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0;
+  box-shadow: none;
 }
 
 [data-mpr-theme-toggle="control"][data-variant="square"]:focus-visible {
