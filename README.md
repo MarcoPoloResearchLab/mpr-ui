@@ -74,6 +74,8 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 ## Docker Compose example (TAuth + gHTTP)
 
+Looking for a step–by–step walkthrough? See [`docs/integration-guide.md`](docs/integration-guide.md), which covers requirements, attribute mapping, and debugging tips for wiring `mpr-header` to TAuth in any project. The summary below focuses on the bundled Compose demo.
+
 Need a working authentication backend without wiring your own server? `demo/tauth-demo.html` pairs with `docker-compose.tauth.yml` to spin up [gHTTP](tools/ghttp) plus the published `ghcr.io/marcopoloresearchlab/tauth:latest` service. gHTTP serves the entire repository, so the page loads `mpr-ui.js` directly from your working tree—no extra copy step required.
 
 1. Configure TAuth:
@@ -113,7 +115,7 @@ Every UI surface is primarily a custom element. The list below maps directly to 
 - `<mpr-settings>` — emits toggle events so you can wire your own modal/drawer.
 - `<mpr-sites>` — renders the Marco Polo Research Lab network or any JSON catalog you provide.
 
-Legacy bundles (`footer.js`) and imperative helpers still ship for compatibility, but the documented API mirrors the tags above. See the example below for a slot-heavy declarative configuration.
+Imperative helpers still ship for compatibility, but the documented API mirrors the tags above. See the example below for a slot-heavy declarative configuration.
 
 ### Custom element example
 

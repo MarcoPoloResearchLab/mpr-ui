@@ -12,10 +12,7 @@ The library assumes a CDN delivery model and no build tooling. Everything runs i
 | File          | Role                                                                                         |
 | ------------- | -------------------------------------------------------------------------------------------- |
 | `mpr-ui.js`   | Production bundle exposed to consumers. Defines the namespace, auth header helpers, footer.  |
-| `footer.js`   | Legacy standalone footer bundle (includes richer dropdown/theme logic, not wired into `mpr-ui.js`). |
 | `alpine.js.md`| Notes on Alpine integration patterns.                                                        |
-
-> **Note:** `footer.js` predates the current bundle and is kept only for legacy consumers; the main bundle now exposes the richer footer implementation directly.
 
 ## Global Namespace
 
@@ -169,7 +166,7 @@ Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to
 
 ## Footer Renderer (Bundle)
 
-`renderFooter` now bundles the richer dropdown/theme implementation that previously lived in `footer.js`. It injects styles via `<style id="mpr-ui-footer-styles">`, pins the footer to the bottom of the viewport (`position: sticky`), and exposes both imperative and Alpine APIs.
+`renderFooter` bundles the dropdown/theme implementation, injects styles via `<style id="mpr-ui-footer-styles">`, pins the footer to the bottom of the viewport (`position: sticky`), and exposes both imperative and Alpine APIs.
 
 ### Options (`renderFooter` / `mprFooter`)
 
@@ -225,18 +222,6 @@ Declarative attribute `theme-switcher` controls `themeToggle.variant` and implic
 - Imperative API: `renderFooter` returns `{ update(nextOptions), destroy(), getConfig() }`.
 - Alpine API: `mprFooter` exposes `{ init, update, destroy }`, wiring `$dispatch` when available.
 
-## Legacy Footer Bundle (`footer.js`)
-
-`footer.js` contains an earlier, richer footer implementation with dropdown menus, theme toggle, and extensive `data-*` configuration. It exports the same globals (`MPRUI.renderFooter`, `MPRUI.mprFooter`) and will override the bundle’s simpler version if loaded afterwards.
-
-Key differences:
-
-- Supports Bootstrap dropdown integration and theme toggles via events (`mpr-footer:theme-change`).
-- Reads configuration from `data-*` attributes and merges with provided options.
-- Emits `$dispatch` events when used within Alpine components.
-
-This bundle is now redundant; `mpr-ui.js` includes equivalent behaviour. The standalone file remains for legacy consumers but should be retired once downstream projects migrate.
-
 ## Security and Accessibility Considerations
 
 - All user-facing strings are escaped before insertion.
@@ -262,5 +247,3 @@ Load the bundle directly from jsDelivr. Pin to tags or commit hashes for determi
 
 - `https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@1.0.0/mpr-ui.js`
 - `https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@<commit-hash>/mpr-ui.js`
-
-For applications that still rely on the legacy footer, reference `footer.js` explicitly and avoid loading the bundle in parallel.

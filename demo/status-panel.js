@@ -35,10 +35,13 @@ function renderSession(profile) {
   const avatar = profile.avatar_url
     ? `<img src="${profile.avatar_url}" alt="${profile.display || 'Avatar'}" class="session-card__avatar" />`
     : '';
+  const expiresAttribute = profile.expires || '';
   const readableExpires = profile.expires
     ? new Date(profile.expires).toLocaleString()
     : 'Unknown';
-  const expiresAttribute = profile.expires || '';
+  const sessionExpiryCopy = profile.expires
+    ? `Current session cookie expires at <time datetime="${expiresAttribute}">${readableExpires}</time>.`
+    : 'Session cookie expiry unavailable (auto-refresh will keep you signed in until you sign out).';
   host.innerHTML = `
     <div class="session-card__profile">
       ${avatar}
@@ -49,7 +52,10 @@ function renderSession(profile) {
       </ul>
     </div>
     <p class="session-card__expires">
-      Session expires at <time datetime="${expiresAttribute}">${readableExpires}</time>
+      ${sessionExpiryCopy}
+    </p>
+    <p class="session-card__expires">
+      The refresh token keeps renewing this session in the background until you click Sign out or stop the stack.
     </p>
   `;
 }

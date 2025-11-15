@@ -2325,7 +2325,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         global.initAuthClient({
           baseUrl: options.baseUrl,
           onAuthenticated: function (profile) {
-            var resolvedProfile = pendingProfile || profile || null;
+            var resolvedProfile = profile || pendingProfile || null;
+            if (profile && pendingProfile) {
+              resolvedProfile = Object.assign({}, pendingProfile, profile);
+            }
             pendingProfile = null;
             markAuthenticated(resolvedProfile);
           },
@@ -2378,6 +2381,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         });
     }
 
+    function primeGoogleNonce() {
+      prepareGooglePromptNonce().catch(function (error) {
+        emitError("mpr-ui.auth.nonce_failed", {
+          message: error && error.message ? error.message : String(error),
+          status: error && error.status ? error.status : null,
+        });
+      });
+    }
+
     function performLogout() {
       return global
         .fetch(joinUrl(options.baseUrl, options.logoutPath), {
@@ -2427,6 +2439,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     markUnauthenticated({ emit: false, prompt: false });
+    primeGoogleNonce();
     bootstrapSession();
 
     return {
@@ -2509,6 +2522,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "." +
     HEADER_ROOT_CLASS +
     "--authenticated [data-mpr-header=\"profile\"]{display:flex}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "--authenticated [data-mpr-header=\"google-signin\"]{display:none}" +
     "." +
     HEADER_ROOT_CLASS +
     "--no-settings [data-mpr-header=\"settings-button\"]{display:none}" +

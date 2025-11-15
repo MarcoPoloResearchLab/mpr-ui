@@ -16,7 +16,7 @@
 
 ### 2. Conflicting footer implementations
 
-- `mpr-ui.js` exports a simplified marketing footer, while `footer.js` exposes a richer dropdown/theme-toggle footer. Loading both files overwrites globals unpredictably.
+- The bundle has shipped both a simplified marketing footer and a richer dropdown/theme-toggle variant, so whichever loads last overwrites the namespace.
 - Documentation previously described the legacy feature set; consumers cannot rely on which API they receive.
 - There is duplicated sanitisation, merge logic, and Alpine integration spread across the two versions.
 
@@ -52,7 +52,7 @@
 
 ### B. Consolidate the footer component
 
-1. Decide on the canonical API (recommended: adopt the richer `footer.js` feature set).
+1. Decide on the canonical API (recommended: adopt the richer dropdown/theme feature set).
 2. Extract shared sanitisation/utilities into `/js/utils/dom.js`.
 3. Provide a single Alpine factory and imperative renderer backed by the same source.
 4. Add adapter functions to read `data-*` attributes when present, with validation at the edge.
@@ -101,5 +101,5 @@ Each workstream should close with updated documentation and CHANGELOG entries to
 ## Follow-up Documentation
 
 - Update `README.md` and `ARCHITECTURE.md` after each refactor phase.
-- Maintain a living migration guide for teams moving from the legacy footer bundle.
+- Maintain a living migration guide for teams moving from the legacy footer implementation.
 - Record decisions and risk assessments in `NOTES.md` while keeping the file append-only.

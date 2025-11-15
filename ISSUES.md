@@ -54,7 +54,9 @@ volumes:
 
 - [ ] [MU-405] mpr-ui.js became a giant file. Consider using @mpr-ui.js as an orchestrator and breaking the rest in smaller files. When working on it, consider @POLICY.md and coding practices that would allow to minimize duplication and ensure following Alpine.js implementation for Web Components (@docs/alpine.js.md)
 
-- [ ] [MU-406] Does @footer.js play any role? Remove it if not. Keep it if we use it.
+- [ ] [MU-406] Does the legacy standalone footer bundle play any role? Remove it if not. Keep it if we use it.
+
+- [x] [MU-406] Removed the legacy standalone footer bundle so `mpr-ui.js` owns the canonical footer implementation and documentation no longer references the older asset.
 
 ## Planning
 *Do not work on these, not ready*
