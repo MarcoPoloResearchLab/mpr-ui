@@ -25,39 +25,60 @@ function renderSession(profile) {
   }
   const roles = Array.isArray(profile?.roles) ? profile.roles : [];
   const roleLabel = roles.length ? roles.join(', ') : 'user';
+  host.replaceChildren();
   if (!profile) {
-    host.innerHTML = [
-      '<h3>Signed out</h3>',
-      '<p>Use the Google Sign-In button in the header to begin.</p>',
-    ].join('');
+    const title = document.createElement('h3');
+    title.textContent = 'Signed out';
+    const details = document.createElement('p');
+    details.textContent = 'Use the Google Sign-In button in the header to begin.';
+    host.append(title, details);
     return;
   }
-  const avatar = profile.avatar_url
-    ? `<img src="${profile.avatar_url}" alt="${profile.display || 'Avatar'}" class="session-card__avatar" />`
-    : '';
-  const expiresAttribute = profile.expires || '';
-  const readableExpires = profile.expires
-    ? new Date(profile.expires).toLocaleString()
-    : 'Unknown';
-  const sessionExpiryCopy = profile.expires
-    ? `Current session cookie expires at <time datetime="${expiresAttribute}">${readableExpires}</time>.`
-    : 'Session cookie expiry unavailable (auto-refresh will keep you signed in until you sign out).';
-  host.innerHTML = `
-    <div class="session-card__profile">
-      ${avatar}
-      <ul>
-        <li><strong>Name:</strong> ${profile.display || 'Unknown'}</li>
-        <li><strong>Email:</strong> ${profile.user_email || 'Hidden'}</li>
-        <li><strong>Roles:</strong> ${roleLabel}</li>
-      </ul>
-    </div>
-    <p class="session-card__expires">
-      ${sessionExpiryCopy}
-    </p>
-    <p class="session-card__expires">
-      The refresh token keeps renewing this session in the background until you click Sign out or stop the stack.
-    </p>
-  `;
+  const profileContainer = document.createElement('div');
+  profileContainer.classList.add('session-card__profile');
+  if (profile.avatar_url) {
+    const avatar = document.createElement('img');
+    avatar.classList.add('session-card__avatar');
+    avatar.src = profile.avatar_url;
+    avatar.alt = profile.display || 'Avatar';
+    profileContainer.append(avatar);
+  }
+  const list = document.createElement('ul');
+  const nameItem = document.createElement('li');
+  const nameLabel = document.createElement('strong');
+  nameLabel.textContent = 'Name:';
+  nameItem.append(nameLabel, document.createTextNode(` ${profile.display || 'Unknown'}`));
+  const emailItem = document.createElement('li');
+  const emailLabel = document.createElement('strong');
+  emailLabel.textContent = 'Email:';
+  emailItem.append(emailLabel, document.createTextNode(` ${profile.user_email || 'Hidden'}`));
+  const roleItem = document.createElement('li');
+  const roleLabelElement = document.createElement('strong');
+  roleLabelElement.textContent = 'Roles:';
+  roleItem.append(roleLabelElement, document.createTextNode(` ${roleLabel}`));
+  list.append(nameItem, emailItem, roleItem);
+  profileContainer.append(list);
+  const expiryParagraph = document.createElement('p');
+  expiryParagraph.classList.add('session-card__expires');
+  if (profile.expires) {
+    const readableExpires = new Date(profile.expires).toLocaleString();
+    const timeElement = document.createElement('time');
+    timeElement.dateTime = profile.expires;
+    timeElement.textContent = readableExpires;
+    expiryParagraph.append(
+      document.createTextNode('Current session cookie expires at '),
+      timeElement,
+      document.createTextNode('.')
+    );
+  } else {
+    expiryParagraph.textContent =
+      'Session cookie expiry unavailable (auto-refresh will keep you signed in until you sign out).';
+  }
+  const refreshParagraph = document.createElement('p');
+  refreshParagraph.classList.add('session-card__expires');
+  refreshParagraph.textContent =
+    'The refresh token keeps renewing this session in the background until you click Sign out or stop the stack.';
+  host.append(profileContainer, expiryParagraph, refreshParagraph);
 }
 
 function wireLogoutButton() {
