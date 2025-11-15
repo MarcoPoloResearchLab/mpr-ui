@@ -9,14 +9,14 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - .:/srv/mpr-ui/demo/docker-tauth:ro
+      - ./demo/docker-tauth:/srv/mpr-ui/demo/docker-tauth:ro
     restart: unless-stopped
 
   tauth:
     image: ghcr.io/tyemirov/tauth:latest
     pull_policy: always
     env_file:
-      - ./.env.tauth
+      - ./demo/docker-tauth/.env.tauth
     ports:
       - "8080:8080"
     volumes:

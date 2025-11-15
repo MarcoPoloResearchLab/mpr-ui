@@ -79,9 +79,8 @@ Need a working authentication backend without wiring your own server? `demo/dock
 1. Configure TAuth and copy the local bundle:
 
    ```bash
-   cd demo/docker-tauth
-   npm run --prefix .. demo:bundle   # copies ../mpr-ui.js into this directory
-   cp .env.tauth.example .env.tauth
+   npm run demo:bundle   # copies ./mpr-ui.js into demo/docker-tauth/mpr-ui.local.js
+   cp demo/docker-tauth/.env.tauth.example demo/docker-tauth/.env.tauth
    # Replace APP_GOOGLE_WEB_CLIENT_ID with your OAuth Web Client ID
    # Replace APP_JWT_SIGNING_KEY (generate with: openssl rand -base64 48)
    ```
@@ -91,7 +90,7 @@ Need a working authentication backend without wiring your own server? `demo/dock
 2. Bring the stack up:
 
    ```bash
-   docker compose up
+   docker compose -f docker-compose.tauth.yml up
    ```
 
    gHTTP serves `demo/docker-tauth/index.html` on [http://localhost:8000](http://localhost:8000) while TAuth listens on [http://localhost:8080](http://localhost:8080). Because the bundle is copied into the demo directory, re-run `npm run demo:bundle` whenever you change `mpr-ui.js` so the Compose example picks up the update. If you still see the CDN bundle after restarting the stack, open DevTools, enable “Disable cache,” and hard-reload the page or hit [http://localhost:8000/mpr-ui.local.js](http://localhost:8000/mpr-ui.local.js) directly to ensure the local script is being served.
