@@ -47,7 +47,8 @@ volumes:
 3. The theme changers has a weird halo / eliptical contour around it. Remove it
     - Resolved by realigning the square quadrant mapping (bottom-left = dark blue, bottom-right = pale green), cleaning up the container chrome to remove the halo, and adding regression tests that cover both quadrants and palette updates.
 
-- [ ] [MU-326] The toggle theme changers has a weird halo / eliptical contour around it. Remove it
+- [x] [MU-326] The toggle theme changers has a weird halo / eliptical contour around it. Remove it
+    - Removed the static border from the pill toggle, moved the focus indicator onto the knob so the track stays clean, and added Playwright coverage to assert the border width stays zero while keyboard focus renders the circular ring only around the knob.
 
 - [x] [MU-327] `<mpr-header>` ignored the `base-url` attribute so Docker Compose demo auth calls hit the frontend origin and returned 404s. Added attribute parsing plus regression tests to route nonce/login/logout requests to the configured TAuth base URL.
 

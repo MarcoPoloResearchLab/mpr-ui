@@ -266,6 +266,7 @@ test.describe('Default theme toggle behaviours', () => {
     expect(initialSnapshot.variant).toBe('switch');
     expect(initialSnapshot.boxShadow).toBe('none');
     expect(Math.abs(initialSnapshot.translateX)).toBeLessThanOrEqual(0.5);
+    expect(initialSnapshot.borderWidth).toBe(0);
 
     await page.locator(control).first().click();
     await page.waitForTimeout(300);
@@ -273,6 +274,16 @@ test.describe('Default theme toggle behaviours', () => {
     const toggledSnapshot = await captureToggleSnapshot(page, control);
     expect(toggledSnapshot.boxShadow).toBe('none');
     expect(Math.abs(toggledSnapshot.translateX - toggledSnapshot.travelDistance)).toBeLessThanOrEqual(0.5);
+    expect(toggledSnapshot.borderWidth).toBe(0);
+  });
+
+  test('MU-326: default toggle displays a knob-only focus ring', async ({ page }) => {
+    const control = page.locator(footerThemeControl).first();
+    await control.focus();
+    const snapshot = await captureToggleSnapshot(page, footerThemeControl);
+    expect(snapshot.variant).toBe('switch');
+    expect(snapshot.borderWidth).toBe(0);
+    expect(snapshot.boxShadow === 'none').toBeFalsy();
   });
 
   test('MU-322: default toggle cycles only two modes', async ({ page }) => {
