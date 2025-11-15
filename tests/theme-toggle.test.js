@@ -261,11 +261,17 @@ test('renderThemeToggle supports the square variant and updates modes per quadra
     },
   });
   assert.equal(global.MPRUI.getThemeMode(), 'default-light');
-  harness.control.trigger('click', { clientX: 90, clientY: 90 });
+  harness.control.trigger('click', { clientX: 10, clientY: 90 });
   assert.equal(
     global.MPRUI.getThemeMode(),
     'default-dark',
-    'clicking the bottom-right quadrant should activate the third mode',
+    'clicking the bottom-left quadrant should activate the third mode',
+  );
+  harness.control.trigger('click', { clientX: 90, clientY: 90 });
+  assert.equal(
+    global.MPRUI.getThemeMode(),
+    'forest-dark',
+    'clicking the bottom-right quadrant should activate the fourth mode',
   );
   controller.destroy();
 });

@@ -11,7 +11,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 ## Quick Start
 
-1. **Load the bundle + prerequisites** — add the packaged stylesheet, Alpine (used internally), and the `mpr-ui` bundle:
+1. **Load the bundle + prerequisites** — add the packaged stylesheet, Alpine (used internally), the TAuth helper (if applicable), the `mpr-ui` bundle, and Google Identity Services in this order:
 
    ```html
    <link
@@ -23,9 +23,20 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
      window.Alpine = Alpine;
      Alpine.start();
    </script>
+   <!-- Optional but required when integrating with TAuth -->
+   <script
+     defer
+     src="http://localhost:8080/static/auth-client.js"
+     crossorigin="anonymous"
+   ></script>
    <script
      defer
      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+   ></script>
+   <script
+     src="https://accounts.google.com/gsi/client"
+     async
+     defer
    ></script>
    ```
 
@@ -72,6 +83,48 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
    Prefer custom elements for new work; use `MPRUI.renderSiteHeader(...)` / `mprSiteHeader(...)` only when a host framework requires programmatic mounting.
 
+## Integration requirements
+
+1. Load `mpr-ui.css` first so layout tokens and theme variables exist before scripts run.
+2. Load Alpine **before** `mpr-ui.js` and call `Alpine.start()`; the bundle registers custom elements immediately on import.
+3. When authenticating via TAuth, include `http://localhost:8080/static/auth-client.js` (or your deployed origin) before `mpr-ui.js` so `initAuthClient`, `logout`, and `getCurrentUser` are defined.
+4. Always include Google Identity Services (`https://accounts.google.com/gsi/client`) so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
+5. Point `base-url`, `login-path`, `logout-path`, and `nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
+
+See [`docs/integration-guide.md`](docs/integration-guide.md) for the complete walkthrough plus troubleshooting guidance.
+
+## Docker Compose example (TAuth + gHTTP)
+
+Looking for a step–by–step walkthrough? See [`docs/integration-guide.md`](docs/integration-guide.md), which covers prerequisites, exact script ordering, attribute mapping, and debugging tips for wiring `mpr-header` to TAuth in any project. The summary below focuses on the bundled Compose demo.
+
+Need a working authentication backend without wiring your own server? `demo/tauth-demo.html` pairs with `docker-compose.tauth.yml` to spin up [gHTTP](tools/ghttp) plus the published `ghcr.io/marcopoloresearchlab/tauth:latest` service. gHTTP serves the entire repository, so the page loads `mpr-ui.js` directly from your working tree—no extra copy step required.
+
+1. Configure TAuth:
+
+   ```bash
+   cp .env.tauth.example .env.tauth
+   # Replace APP_GOOGLE_WEB_CLIENT_ID with your OAuth Web Client ID
+   # Replace APP_JWT_SIGNING_KEY (generate with: openssl rand -base64 48)
+   ```
+
+   The template already enables CORS (`APP_ENABLE_CORS=true`, `APP_CORS_ALLOWED_ORIGINS=http://localhost:8000`) and insecure HTTP for local development (`APP_DEV_INSECURE_HTTP=true`). The sample DSN (`sqlite://file:/data/tauth.db`) stores refresh tokens inside the `tauth_data` volume so restarting the container does not wipe sessions.
+
+2. Bring the stack up:
+
+   ```bash
+   docker compose -f docker-compose.tauth.yml up
+   ```
+
+   gHTTP serves the repo root on [http://localhost:8000](http://localhost:8000); open `/demo/tauth-demo.html` to view the page, while TAuth listens on [http://localhost:8080](http://localhost:8080). Because the bundle is loaded straight from `/mpr-ui.js`, any change you make to the library is immediately reflected in the demo. If you still see the CDN bundle after restarting the stack, open DevTools, enable “Disable cache,” and hard-reload the page to ensure the local script is being served.
+
+3. Sign in and inspect the session card.
+
+   - The header points its `base-url` at `http://localhost:8080` and loads TAuth's `auth-client.js`, so Google credentials are exchanged via `/auth/nonce` and `/auth/google`.
+   - The bundled status panel listens for `mpr-ui:auth:*` events and prints the `/me` payload plus expiry information.
+   - Clicking **Sign out** calls `logout()` from the helper and clears cookies issued by TAuth.
+
+Stop the stack with `docker compose down -v` to reclaim the SQLite volume. Copy the template again any time you need to rotate secrets.
+
 ## Components (Custom Elements First)
 
 Every UI surface is primarily a custom element. The list below maps directly to the `<mpr-*>` tags you can use declaratively:
@@ -83,7 +136,7 @@ Every UI surface is primarily a custom element. The list below maps directly to 
 - `<mpr-settings>` — emits toggle events so you can wire your own modal/drawer.
 - `<mpr-sites>` — renders the Marco Polo Research Lab network or any JSON catalog you provide.
 
-Legacy bundles (`footer.js`) and imperative helpers still ship for compatibility, but the documented API mirrors the tags above. See the example below for a slot-heavy declarative configuration.
+Imperative helpers still ship for compatibility, but the documented API mirrors the tags above. See the example below for a slot-heavy declarative configuration.
 
 ### Custom element example
 

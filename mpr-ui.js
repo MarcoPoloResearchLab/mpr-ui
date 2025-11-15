@@ -206,6 +206,7 @@
       "login-path",
       "logout-path",
       "nonce-path",
+      "base-url",
     ]),
   );
 
@@ -472,6 +473,13 @@
     if (noncePath) {
       authOptions = authOptions || {};
       authOptions.noncePath = noncePath;
+    }
+    var baseUrl = hostElement.getAttribute
+      ? hostElement.getAttribute("base-url")
+      : null;
+    if (baseUrl) {
+      authOptions = authOptions || {};
+      authOptions.baseUrl = baseUrl;
     }
     var externalOptions = {};
     if (authOptions) {
@@ -1085,8 +1093,8 @@
   var THEME_TOGGLE_SQUARE_POSITIONS = Object.freeze([
     Object.freeze({ index: 0, col: 0, row: 0 }),
     Object.freeze({ index: 1, col: 1, row: 0 }),
-    Object.freeze({ index: 2, col: 1, row: 1 }),
-    Object.freeze({ index: 3, col: 0, row: 1 }),
+    Object.freeze({ index: 2, col: 0, row: 1 }),
+    Object.freeze({ index: 3, col: 1, row: 1 }),
   ]);
 
   function getThemeToggleModeIndex(modes, modeValue) {
@@ -1354,6 +1362,7 @@
       if (hostElement) {
         hostElement.innerHTML = "";
         hostElement.removeAttribute("data-mpr-theme-mode");
+        hostElement.removeAttribute("data-mpr-theme-toggle-variant");
       }
       return function noopToggle() {};
     }
@@ -1373,6 +1382,9 @@
       '[data-mpr-theme-toggle="icon"]',
     );
     var variant = config.variant || "switch";
+    if (typeof hostElement.setAttribute === "function") {
+      hostElement.setAttribute("data-mpr-theme-toggle-variant", variant);
+    }
     var squareGrid = variant === "square"
       ? hostElement.querySelector('[data-mpr-theme-toggle="grid"]')
       : null;
@@ -1662,7 +1674,7 @@
         candidateIndex = 0;
       } else if (!isBottom && isRight) {
         candidateIndex = 1;
-      } else if (isBottom && isRight) {
+      } else if (isBottom && !isRight) {
         candidateIndex = 2;
       } else {
         candidateIndex = 3;
@@ -2317,7 +2329,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         global.initAuthClient({
           baseUrl: options.baseUrl,
           onAuthenticated: function (profile) {
-            var resolvedProfile = pendingProfile || profile || null;
+            var resolvedProfile = profile || pendingProfile || null;
+            if (profile && pendingProfile) {
+              resolvedProfile = Object.assign({}, pendingProfile, profile);
+            }
             pendingProfile = null;
             markAuthenticated(resolvedProfile);
           },
@@ -2370,6 +2385,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         });
     }
 
+    function primeGoogleNonce() {
+      prepareGooglePromptNonce().catch(function (error) {
+        emitError("mpr-ui.auth.nonce_failed", {
+          message: error && error.message ? error.message : String(error),
+          status: error && error.status ? error.status : null,
+        });
+      });
+    }
+
     function performLogout() {
       return global
         .fetch(joinUrl(options.baseUrl, options.logoutPath), {
@@ -2419,6 +2443,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     markUnauthenticated({ emit: false, prompt: false });
+    primeGoogleNonce();
     bootstrapSession();
 
     return {
@@ -2501,6 +2526,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "." +
     HEADER_ROOT_CLASS +
     "--authenticated [data-mpr-header=\"profile\"]{display:flex}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "--authenticated [data-mpr-header=\"google-signin\"]{display:none}" +
     "." +
     HEADER_ROOT_CLASS +
     "--no-settings [data-mpr-header=\"settings-button\"]{display:none}" +
@@ -3906,6 +3934,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     '.mpr-footer__theme-checkbox:checked{background:var(--mpr-color-accent,#38bdf8)}' +
     '.mpr-footer__theme-checkbox:checked::after{transform:translateX(18px);background:var(--mpr-color-accent-contrast,#0f172a)}' +
     '.mpr-footer__theme-checkbox:focus-visible{outline:2px solid var(--mpr-color-accent,#38bdf8);outline-offset:3px}' +
+    '.mpr-footer__theme-toggle[data-mpr-theme-toggle-variant="square"]{background:transparent;padding:0;border-radius:0;box-shadow:none}' +
+    '.mpr-footer__theme-checkbox[data-variant="square"]{width:auto;height:auto;display:inline-flex;align-items:center;gap:0.75rem;border-radius:0;background:transparent;border:none;padding:0;box-shadow:none}' +
+    '.mpr-footer__theme-checkbox[data-variant="square"]::after{content:none;width:0;height:0;background:transparent}' +
     '@media (max-width:768px){.mpr-footer__layout{flex-direction:column;align-items:flex-start}.mpr-footer__inner{gap:1.75rem}.mpr-footer__spacer{display:none}}';
 
   var FOOTER_LINK_CATALOG = Object.freeze([
@@ -5212,6 +5243,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         }
         if (host && typeof host.removeAttribute === "function") {
           host.removeAttribute("data-mpr-theme-mode");
+          host.removeAttribute("data-mpr-theme-toggle-variant");
         }
       },
     };
