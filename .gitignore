@@ -144,3 +144,4 @@ tools/
 test-results/
 
 *.png
+demo/docker-tauth/mpr-ui.local.js
