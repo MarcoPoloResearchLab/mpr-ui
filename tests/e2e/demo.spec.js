@@ -57,19 +57,27 @@ test.describe('Demo behaviours', () => {
     const beforeSnapshot = await captureToggleSnapshot(page, footerThemeControl);
     expect(beforeSnapshot.variant).toBe('square');
     expect(beforeSnapshot.index).toBe(0);
+    expect(beforeSnapshot.mode).toBe('default-light');
+
+    await clickQuadrant(page, footerThemeControl, 'bottomLeft');
+    await page.waitForTimeout(200);
+
+    const darkSnapshot = await captureToggleSnapshot(page, footerThemeControl);
+    expect(darkSnapshot.variant).toBe('square');
+    expect(darkSnapshot.index).toBe(2);
+    expect(darkSnapshot.mode).toBe('default-dark');
 
     await clickQuadrant(page, footerThemeControl, 'bottomRight');
     await page.waitForTimeout(200);
 
-    const afterSnapshot = await captureToggleSnapshot(page, footerThemeControl);
-    expect(afterSnapshot.variant).toBe('square');
-    expect(afterSnapshot.index).toBe(2);
-    expect(afterSnapshot.mode).toBe('default-dark');
+    const forestSnapshot = await captureToggleSnapshot(page, footerThemeControl);
+    expect(forestSnapshot.index).toBe(3);
+    expect(forestSnapshot.mode).toBe('forest-dark');
   });
 
   test('MU-310: footer quadrant selection updates the palette attribute', async ({ page }) => {
     const paletteBefore = await page.evaluate(() => document.body.getAttribute('data-demo-palette'));
-    await clickQuadrant(page, footerThemeControl, 'bottomLeft');
+    await clickQuadrant(page, footerThemeControl, 'bottomRight');
     await page.waitForTimeout(200);
     const paletteAfter = await page.evaluate(() => document.body.getAttribute('data-demo-palette'));
     expect(paletteAfter).toBe('forest');
@@ -78,7 +86,7 @@ test.describe('Demo behaviours', () => {
 
   test('Footer square toggle keeps the body background in sync', async ({ page }) => {
     const initialBackground = await readBodyBackgroundColor(page);
-    await clickQuadrant(page, footerThemeControl, 'bottomRight');
+    await clickQuadrant(page, footerThemeControl, 'bottomLeft');
     await page.waitForTimeout(250);
     const darkBackground = await readBodyBackgroundColor(page);
     expect(darkBackground).not.toBe(initialBackground);
@@ -91,7 +99,7 @@ test.describe('Demo behaviours', () => {
 
   test('MU-309: footer toggle updates multiple palettes', async ({ page }) => {
     const beforeColors = await captureColorSnapshots(page, PALETTE_TARGETS);
-    await clickQuadrant(page, footerThemeControl, 'bottomRight');
+    await clickQuadrant(page, footerThemeControl, 'bottomLeft');
     await page.waitForTimeout(300);
     const afterColors = await captureColorSnapshots(page, PALETTE_TARGETS);
     PALETTE_TARGETS.forEach((_selector, index) => {

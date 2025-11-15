@@ -1093,8 +1093,8 @@
   var THEME_TOGGLE_SQUARE_POSITIONS = Object.freeze([
     Object.freeze({ index: 0, col: 0, row: 0 }),
     Object.freeze({ index: 1, col: 1, row: 0 }),
-    Object.freeze({ index: 2, col: 1, row: 1 }),
-    Object.freeze({ index: 3, col: 0, row: 1 }),
+    Object.freeze({ index: 2, col: 0, row: 1 }),
+    Object.freeze({ index: 3, col: 1, row: 1 }),
   ]);
 
   function getThemeToggleModeIndex(modes, modeValue) {
@@ -1670,7 +1670,7 @@
         candidateIndex = 0;
       } else if (!isBottom && isRight) {
         candidateIndex = 1;
-      } else if (isBottom && isRight) {
+      } else if (isBottom && !isRight) {
         candidateIndex = 2;
       } else {
         candidateIndex = 3;
