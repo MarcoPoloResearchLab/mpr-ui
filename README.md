@@ -74,13 +74,12 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 ## Docker Compose example (TAuth + gHTTP)
 
-Need a working authentication backend without wiring your own server? `demo/docker-tauth` ships a ready-to-run Compose stack that serves a new index page through [gHTTP](tools/ghttp) and proxies the authentication flows to the published `ghcr.io/marcopoloresearchlab/tauth:latest` service. Before launching Docker, run `npm run demo:bundle` to copy the current `mpr-ui.js` into `demo/docker-tauth/mpr-ui.local.js`; the Compose stack serves that local file so you verify changes before they hit the CDN.
+Need a working authentication backend without wiring your own server? `demo/tauth-demo.html` pairs with `docker-compose.tauth.yml` to spin up [gHTTP](tools/ghttp) plus the published `ghcr.io/marcopoloresearchlab/tauth:latest` service. gHTTP serves the entire repository, so the page loads `mpr-ui.js` directly from your working tree—no extra copy step required.
 
-1. Configure TAuth and copy the local bundle:
+1. Configure TAuth:
 
    ```bash
-   npm run demo:bundle   # copies ./mpr-ui.js into demo/docker-tauth/mpr-ui.local.js
-   cp demo/docker-tauth/.env.tauth.example demo/docker-tauth/.env.tauth
+   cp .env.tauth.example .env.tauth
    # Replace APP_GOOGLE_WEB_CLIENT_ID with your OAuth Web Client ID
    # Replace APP_JWT_SIGNING_KEY (generate with: openssl rand -base64 48)
    ```
@@ -93,7 +92,7 @@ Need a working authentication backend without wiring your own server? `demo/dock
    docker compose -f docker-compose.tauth.yml up
    ```
 
-   gHTTP serves `demo/docker-tauth/index.html` on [http://localhost:8000](http://localhost:8000) while TAuth listens on [http://localhost:8080](http://localhost:8080). Because the bundle is copied into the demo directory, re-run `npm run demo:bundle` whenever you change `mpr-ui.js` so the Compose example picks up the update. If you still see the CDN bundle after restarting the stack, open DevTools, enable “Disable cache,” and hard-reload the page or hit [http://localhost:8000/mpr-ui.local.js](http://localhost:8000/mpr-ui.local.js) directly to ensure the local script is being served.
+   gHTTP serves the repo root on [http://localhost:8000](http://localhost:8000); open `/demo/tauth-demo.html` to view the page, while TAuth listens on [http://localhost:8080](http://localhost:8080). Because the bundle is loaded straight from `/mpr-ui.js`, any change you make to the library is immediately reflected in the demo. If you still see the CDN bundle after restarting the stack, open DevTools, enable “Disable cache,” and hard-reload the page to ensure the local script is being served.
 
 3. Sign in and inspect the session card.
 

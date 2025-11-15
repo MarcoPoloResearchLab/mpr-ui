@@ -5,18 +5,18 @@ services:
     depends_on:
       tauth:
         condition: service_started
-    command: ["--directory", "/srv/mpr-ui/demo/docker-tauth", "8000"]
+    command: ["--directory", "/app", "8000"]
     ports:
       - "8000:8000"
     volumes:
-      - ./demo/docker-tauth:/srv/mpr-ui/demo/docker-tauth:ro
+      - .:/app:ro
     restart: unless-stopped
 
   tauth:
     image: ghcr.io/tyemirov/tauth:latest
     pull_policy: always
     env_file:
-      - ./demo/docker-tauth/.env.tauth
+      - ./.env.tauth
     ports:
       - "8080:8080"
     volumes:

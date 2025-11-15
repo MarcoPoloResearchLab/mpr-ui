@@ -7,8 +7,7 @@
   "scripts": {
     "test": "npm run test:unit && npm run test:e2e",
     "test:unit": "node --test tests/*.test.js",
-    "test:e2e": "playwright test",
-    "demo:bundle": "cp mpr-ui.js demo/docker-tauth/mpr-ui.local.js"
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.1"
