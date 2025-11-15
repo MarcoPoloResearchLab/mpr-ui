@@ -339,6 +339,34 @@ input[type="checkbox"][data-mpr-theme-toggle="control"]:checked {
   transition: color 0.2s ease;
 }
 
+[data-mpr-theme-toggle="control"][data-variant="square"]::before,
+[data-mpr-theme-toggle="control"][data-variant="square"]::after {
+  content: none;
+  display: none;
+  inline-size: 0;
+  block-size: 0;
+}
+
+[data-mpr-footer="theme-toggle"][data-mpr-theme-toggle-variant="square"] {
+  background: transparent;
+  padding: 0;
+  border-radius: 0;
+  box-shadow: none;
+}
+
+.mpr-footer__theme-checkbox[data-variant="square"] {
+  inline-size: auto;
+  block-size: auto;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0;
+  box-shadow: none;
+}
+
 [data-mpr-theme-toggle="control"][data-variant="square"]:focus-visible {
   outline: none;
 }

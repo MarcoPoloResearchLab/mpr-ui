@@ -70,6 +70,7 @@ const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
   headerNavLinks: '[data-mpr-header="nav"] a',
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
+  footerThemeWrapper: '[data-mpr-footer="theme-toggle"]',
   footerDropupButton: '[data-mpr-footer="toggle-button"]',
   footerMenu: '[data-mpr-footer="menu"]',
   footerPrefix: '[data-mpr-footer="prefix"]',
