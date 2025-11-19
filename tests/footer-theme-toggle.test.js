@@ -266,6 +266,7 @@ function createFooterHostHarness() {
   return {
     host,
     elements: {
+      footerRoot: footerElement,
       prefixElement,
       privacyLink: privacyLinkElement,
       privacyModal: modalElement,
@@ -341,6 +342,39 @@ test('footer layout orders privacy spacer toggle and brand', () => {
   assert.ok(
     privacyIndex < spacerIndex && spacerIndex < toggleIndex && toggleIndex < brandIndex,
     'footer layout must position privacy link, spacer, theme toggle, then brand',
+  );
+});
+
+test('renderFooter sticky option controls footer root dataset', () => {
+  resetEnvironment();
+  const harness = createFooterHostHarness();
+  const library = loadLibrary();
+
+  const controller = library.renderFooter(harness.host, {});
+
+  assert.equal(
+    harness.elements.footerRoot.getAttribute &&
+      harness.elements.footerRoot.getAttribute('data-mpr-sticky'),
+    null,
+    'footer root should not carry a non-sticky override by default',
+  );
+
+  controller.update({ sticky: false });
+
+  assert.equal(
+    harness.elements.footerRoot.getAttribute &&
+      harness.elements.footerRoot.getAttribute('data-mpr-sticky'),
+    'false',
+    'sticky false marks the footer root as non-sticky',
+  );
+
+  controller.update({ sticky: true });
+
+  assert.equal(
+    harness.elements.footerRoot.getAttribute &&
+      harness.elements.footerRoot.getAttribute('data-mpr-sticky'),
+    null,
+    'sticky true clears the non-sticky override on the footer root',
   );
 });
 

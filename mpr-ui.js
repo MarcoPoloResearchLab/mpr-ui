@@ -198,6 +198,7 @@
     "sign-in-label": "signInLabel",
     "sign-out-label": "signOutLabel",
     "profile-label": "profileLabel",
+    sticky: "sticky",
   });
 
   var HEADER_ATTRIBUTE_OBSERVERS = Object.freeze(
@@ -234,6 +235,7 @@
     "theme-switcher": "themeSwitcher",
     "links-collection": "linksCollection",
     links: "links",
+    sticky: "sticky",
   });
 
   var FOOTER_ATTRIBUTE_OBSERVERS = Object.freeze(
@@ -1906,6 +1908,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (dataset.profileLabel) {
       options.profileLabel = dataset.profileLabel;
     }
+    if (dataset.sticky !== undefined) {
+      options.sticky = normalizeBooleanAttribute(dataset.sticky, true);
+    }
     return options;
   }
 
@@ -2474,6 +2479,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "{position:sticky;top:0;width:100%;z-index:1200;background:var(--mpr-color-surface-primary,rgba(15,23,42,0.9));backdrop-filter:blur(12px);color:var(--mpr-color-text-primary,#e2e8f0);border-bottom:1px solid var(--mpr-color-border,rgba(148,163,184,0.25));box-shadow:var(--mpr-shadow-elevated,0 4px 12px rgba(15,23,42,0.45))}" +
     "." +
     HEADER_ROOT_CLASS +
+    '[data-mpr-sticky="false"]{position:static;top:auto;box-shadow:none;backdrop-filter:none}' +
+    "." +
+    HEADER_ROOT_CLASS +
     "__inner{max-width:1080px;margin:0 auto;padding:0.75rem 1.5rem;display:flex;align-items:center;gap:1.5rem}" +
     "." +
     HEADER_ROOT_CLASS +
@@ -2545,19 +2553,19 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     '<p data-mpr-header="settings-modal-placeholder-subtext">Listen for the "mpr-ui:header:settings-click" event or query [data-mpr-header="settings-modal-body"] to mount custom UI.</p>' +
     "</div>";
 
-    var HEADER_DEFAULTS = Object.freeze({
-      brand: Object.freeze({
-        label: "Marco Polo Research Lab",
-        href: "/",
-      }),
-      navLinks: Object.freeze([]),
-      settings: Object.freeze({
-        enabled: false,
-        label: "Settings",
-      }),
-      themeToggle: Object.freeze({
-        attribute: DEFAULT_THEME_ATTRIBUTE,
-        targets: DEFAULT_THEME_TARGETS.slice(),
+  var HEADER_DEFAULTS = Object.freeze({
+    brand: Object.freeze({
+      label: "Marco Polo Research Lab",
+      href: "/",
+    }),
+    navLinks: Object.freeze([]),
+    settings: Object.freeze({
+      enabled: false,
+      label: "Settings",
+    }),
+    themeToggle: Object.freeze({
+      attribute: DEFAULT_THEME_ATTRIBUTE,
+      targets: DEFAULT_THEME_TARGETS.slice(),
       modes: DEFAULT_THEME_MODES,
       initialMode: null,
     }),
@@ -2566,6 +2574,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     profileLabel: "Signed in as",
     initialTheme: "light",
     auth: null,
+    sticky: true,
   });
 
   function ensureHeaderStyles(documentObject) {
@@ -2606,6 +2615,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       HEADER_DEFAULTS.themeToggle,
       options.themeToggle || {},
     );
+
+    var stickyValue = HEADER_DEFAULTS.sticky;
+    if (Object.prototype.hasOwnProperty.call(options, "sticky")) {
+      stickyValue = normalizeBooleanAttribute(
+        options.sticky,
+        HEADER_DEFAULTS.sticky,
+      );
+    }
 
     var navLinksSource = Array.isArray(options.navLinks)
       ? options.navLinks
@@ -2703,12 +2720,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           : HEADER_DEFAULTS.profileLabel,
       siteId: derivedSiteId,
       auth: authOptions,
+      sticky: stickyValue,
     };
   }
 
   function buildHeaderMarkup(options) {
     var brandHref = escapeHtml(options.brand.href);
     var brandLabel = escapeHtml(options.brand.label);
+    var stickyAttribute =
+      options && options.sticky === false
+        ? ' data-mpr-sticky="false"'
+        : "";
     var navMarkup = options.navLinks
       .map(function (link) {
         var linkHref = escapeHtml(sanitizeHref(link.href));
@@ -2726,7 +2748,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return (
       '<header class="' +
       HEADER_ROOT_CLASS +
-      '" role="banner">' +
+      '" role="banner"' +
+      stickyAttribute +
+      ">" +
       '<div class="' +
       HEADER_ROOT_CLASS +
       '__inner">' +
@@ -3211,6 +3235,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (!elements.root) {
       throw new Error("mountHeaderDom failed to locate the header root");
     }
+    applyHeaderStickyState(elements.root, options && options.sticky);
     return elements;
   }
 
@@ -3260,10 +3285,24 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
   }
 
+  function applyHeaderStickyState(headerRootElement, sticky) {
+    if (!headerRootElement) {
+      return;
+    }
+    if (sticky === false) {
+      if (typeof headerRootElement.setAttribute === "function") {
+        headerRootElement.setAttribute("data-mpr-sticky", "false");
+      }
+    } else if (typeof headerRootElement.removeAttribute === "function") {
+      headerRootElement.removeAttribute("data-mpr-sticky");
+    }
+  }
+
   function applyHeaderOptions(hostElement, elements, options) {
     if (!elements.root) {
       return;
     }
+    applyHeaderStickyState(elements.root, options.sticky);
     if (elements.brand) {
       elements.brand.textContent = options.brand.label;
       elements.brand.setAttribute("href", sanitizeHref(options.brand.href));
@@ -3914,6 +3953,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   var FOOTER_STYLE_ID = "mpr-ui-footer-styles";
   var FOOTER_STYLE_MARKUP =
     '.mpr-footer{position:sticky;bottom:0;width:100%;padding:24px 0;background:var(--mpr-color-surface-primary,rgba(15,23,42,0.92));color:var(--mpr-color-text-primary,#e2e8f0);border-top:1px solid var(--mpr-color-border,rgba(148,163,184,0.25));backdrop-filter:blur(10px)}' +
+    '.mpr-footer[data-mpr-sticky="false"]{position:static;bottom:auto}' +
     '.mpr-footer__inner{max-width:1080px;margin:0 auto;padding:0 1.5rem;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.5rem}' +
     '.mpr-footer__layout{display:flex;flex-wrap:wrap;align-items:center;gap:1.25rem;width:100%}' +
     '.mpr-footer__spacer{display:block;flex:1 1 auto;min-width:1px}' +
@@ -4191,6 +4231,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }),
     links: [],
     linksCollection: null,
+    sticky: true,
   });
 
   function ensureFooterStyles(documentObject) {
@@ -4446,6 +4487,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         mergedConfig.prefixText = FOOTER_DEFAULTS.toggleLabel;
       }
     }
+    mergedConfig.sticky = normalizeBooleanAttribute(
+      mergedConfig.sticky,
+      FOOTER_DEFAULTS.sticky,
+    );
 
     return mergedConfig;
   }
@@ -4642,7 +4687,21 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       throw new Error("mountFooterDom failed to locate the footer root");
     }
     footerRoot.setAttribute("data-mpr-footer-root", "true");
+    applyFooterStickyState(footerRoot, config && config.sticky);
     return footerRoot;
+  }
+
+  function applyFooterStickyState(footerRootElement, sticky) {
+    if (!footerRootElement) {
+      return;
+    }
+    if (sticky === false) {
+      if (typeof footerRootElement.setAttribute === "function") {
+        footerRootElement.setAttribute("data-mpr-sticky", "false");
+      }
+    } else if (typeof footerRootElement.removeAttribute === "function") {
+      footerRootElement.removeAttribute("data-mpr-sticky");
+    }
   }
 
   var FOOTER_PRIVACY_INTERACTIVE_ROLE = "button";
@@ -4864,6 +4923,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     if (dataset.links) {
       options.links = parseJsonValue(dataset.links, []);
+    }
+    if (dataset.sticky !== undefined) {
+      options.sticky = normalizeBooleanAttribute(dataset.sticky, true);
     }
     return options;
   }

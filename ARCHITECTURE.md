@@ -144,7 +144,8 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 | `signInLabel`              | `string`                               | Copy for the sign-in button (default "Sign in").                            |
 | `signOutLabel`             | `string`                               | Copy for the sign-out button (default "Sign out").                          |
 | `profileLabel`             | `string`                               | Text shown above the authenticated user name (default "Signed in as").      |
-| `auth`                     | `object \| null`                        | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |
+| `sticky`                   | `boolean`                              | Controls sticky positioning for the header; `true` (default) pins it, `false` renders it in-flow. |
+| `auth`                     | `object \| null`                       | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |
 
 Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the header host element; values are merged with programmatic options and configure the shared theme manager (the header itself no longer renders a toggle).
 
@@ -166,7 +167,7 @@ Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to
 
 ## Footer Renderer (Bundle)
 
-`renderFooter` bundles the dropdown/theme implementation, injects styles via `<style id="mpr-ui-footer-styles">`, pins the footer to the bottom of the viewport (`position: sticky`), and exposes both imperative and Alpine APIs.
+`renderFooter` bundles the dropdown/theme implementation, injects styles via `<style id="mpr-ui-footer-styles">`, pins the footer to the bottom of the viewport (`position: sticky` by default), and exposes both imperative and Alpine APIs. When `sticky` is set to `false` the footer root falls back to normal in-flow positioning.
 
 ### Options (`renderFooter` / `mprFooter`)
 
@@ -174,6 +175,7 @@ Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to
 | -------------------------- | -------------------------------------- | ----------------------------------------------------------------------------- |
 | `elementId`                | `string`                               | Optional `id` applied to the `<footer>` root.                                 |
 | `baseClass`                | `string`                               | Root class name (defaults to `mpr-footer`).                                   |
+| `sticky`                   | `boolean`                              | Controls sticky positioning for the footer; `true` (default) pins it, `false` renders it in-flow. |
 | `innerClass`               | `string`                               | Wrapper class for the inner flex container.                                   |
 | `wrapperClass`             | `string`                               | Class applied to the layout wrapper around brand/menu/privacy.                |
 | `brandWrapperClass`        | `string`                               | Class for the brand/prefix container.                                         |

@@ -211,7 +211,7 @@ function createHostHarness() {
     return hostListeners[eventType] ? hostListeners[eventType].length : 0;
   };
 
-  const root = createElementStub({ classList: true });
+  const root = createElementStub({ classList: true, supportsAttributes: true });
   const nav = { innerHTML: '' };
   const brand = createElementStub({ supportsAttributes: true });
   const settingsButton = createElementStub({ supportsEvents: true });
@@ -425,6 +425,35 @@ test('renderSiteHeader never renders a theme toggle control', () => {
     capturedMarkup.indexOf('data-mpr-theme-toggle'),
     -1,
     'header markup must not include theme toggle nodes',
+  );
+});
+
+test('renderSiteHeader sticky option controls header root dataset', () => {
+  resetEnvironment();
+  const harness = createHostHarness();
+  const library = loadLibrary();
+  const controller = library.renderSiteHeader(harness.host, {});
+
+  assert.strictEqual(
+    harness.root.getAttribute && harness.root.getAttribute('data-mpr-sticky'),
+    null,
+    'header root should not carry a non-sticky override by default',
+  );
+
+  controller.update({ sticky: false });
+
+  assert.strictEqual(
+    harness.root.getAttribute && harness.root.getAttribute('data-mpr-sticky'),
+    'false',
+    'sticky false marks the header root as non-sticky',
+  );
+
+  controller.update({ sticky: true });
+
+  assert.strictEqual(
+    harness.root.getAttribute && harness.root.getAttribute('data-mpr-sticky'),
+    null,
+    'sticky true clears the non-sticky override on the header root',
   );
 });
 
