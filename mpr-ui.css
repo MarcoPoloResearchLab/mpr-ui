@@ -19,6 +19,12 @@ body {
   flex-shrink: 0;
 }
 
+#site-header[sticky="false"],
+#demo-header[sticky="false"] {
+  position: static;
+  top: auto;
+}
+
 .demo-footer-slot,
 #page-footer {
   position: sticky;
@@ -27,6 +33,12 @@ body {
   z-index: 1200;
   flex-shrink: 0;
   margin-top: auto;
+}
+
+.demo-footer-slot[sticky="false"],
+#page-footer[sticky="false"] {
+  position: static;
+  bottom: auto;
 }
 
 body[data-demo-palette='default'] {
