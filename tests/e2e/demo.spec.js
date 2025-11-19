@@ -281,6 +281,57 @@ test.describe('Demo behaviours', () => {
     const entries = await readEventLogEntries(page);
     expect(entries.length).toBeGreaterThanOrEqual(3);
   });
+
+  test('MU-200: sticky header and footer stay pinned during scroll', async ({ page }) => {
+    await page.evaluate(() => {
+      const filler = document.createElement('div');
+      filler.style.height = '2000px';
+      filler.setAttribute('data-test', 'scroll-filler');
+      document.body.appendChild(filler);
+    });
+
+    const chrome = getChromeLocators(page);
+    await chrome.header.waitFor({ state: 'visible' });
+    await chrome.footer.waitFor({ state: 'visible' });
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+
+    await page.evaluate(() => window.scrollTo(0, 1200));
+    await page.waitForTimeout(250);
+
+    expect(await isLocatorInViewport(chrome.header)).toBe(true);
+  });
+
+  test('MU-200: non-sticky header and footer scroll with content', async ({ page }) => {
+    await page.evaluate(() => {
+      const filler = document.createElement('div');
+      filler.style.height = '2000px';
+      filler.setAttribute('data-test', 'scroll-filler');
+      document.body.appendChild(filler);
+    });
+
+    await page.evaluate(() => {
+      const header = document.querySelector('mpr-header#demo-header');
+      const footer = document.querySelector('mpr-footer#page-footer');
+      if (header) {
+        header.setAttribute('sticky', 'false');
+      }
+      if (footer) {
+        footer.setAttribute('sticky', 'false');
+      }
+    });
+
+    const chrome = getChromeLocators(page);
+    await chrome.header.waitFor({ state: 'visible' });
+    await chrome.footer.waitFor({ state: 'visible' });
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+
+    await page.evaluate(() => window.scrollTo(0, 1200));
+    await page.waitForTimeout(300);
+
+    expect(await isLocatorInViewport(chrome.header)).toBe(false);
+  });
 });
 
 test.describe('Footer label variants', () => {
@@ -475,4 +526,28 @@ async function expectChromeStable(page, baseline, label) {
   assertWithinTolerance(baseline.headerRect.height, next.headerRect.height, `${label} header height`);
   assertWithinTolerance(baseline.footerRect.y, next.footerRect.y, `${label} footer top`);
   assertWithinTolerance(baseline.footerRect.height, next.footerRect.height, `${label} footer height`);
+}
+
+/**
+ * Determines whether a locator's bounding rectangle intersects the current viewport.
+ * @param {import('@playwright/test').Locator} locator
+ * @returns {Promise<boolean>}
+ */
+async function isLocatorInViewport(locator) {
+  return locator.evaluate((element) => {
+    if (!element || typeof element.getBoundingClientRect !== 'function') {
+      return false;
+    }
+    const rect = element.getBoundingClientRect();
+    const viewportWidth =
+      window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth || 0;
+    const viewportHeight =
+      window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight || 0;
+    if (!viewportWidth || !viewportHeight) {
+      return false;
+    }
+    const horizontallyVisible = rect.right > 0 && rect.left < viewportWidth;
+    const verticallyVisible = rect.bottom > 0 && rect.top < viewportHeight;
+    return horizontallyVisible && verticallyVisible;
+  });
 }
