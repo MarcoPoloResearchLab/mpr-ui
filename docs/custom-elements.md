@@ -41,6 +41,7 @@ Sticky site header with navigation, Google Identity Services button, settings CT
 | `theme-config`, `theme-mode` | `JSON` / `string` | Configures the shared theme manager (no toggle is rendered; use the footer or `<mpr-theme-toggle>` for user controls). |
 | `settings-label`, `settings` | `string` / `boolean` | Control the built-in settings button. |
 | `sign-in-label`, `sign-out-label`, `profile-label` | `string` | Override localized copy. |
+| `sticky` | `boolean` attribute | Controls sticky positioning; default is sticky, set to `false` to render the header in document flow. |
 
 **Slots**
 
@@ -78,6 +79,7 @@ Marketing footer with dropdown catalog, privacy link, and shared theme toggle.
 | `privacy-link-label`, `privacy-link-href` | `string` | Controls the legal link. |
 | `theme-config`, `theme-mode` | `JSON` / `string` | Mirrors footer-specific theme toggle options. |
 | `element-id`, `base-class`, `wrapper-class`, etc. | `string` | Dataset-driven class overrides for advanced layouts. |
+| `sticky` | `boolean` attribute | Controls sticky positioning; default is sticky, set to `false` to render the footer in document flow. |
 
 **Slots:** `menu-prefix`, `menu-links`, `legal`.
 
