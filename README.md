@@ -91,7 +91,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 4. Always include Google Identity Services (`https://accounts.google.com/gsi/client`) so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
 5. Point `base-url`, `login-path`, `logout-path`, and `nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
 
-See [`docs/integration-guide.md`](docs/integration-guide.md) for the complete walkthrough plus troubleshooting guidance.
+See [`docs/integration-guide.md`](docs/integration-guide.md) for the complete walkthrough plus troubleshooting guidance. For a deep dive into how the demo page wires GIS, `mpr-ui`, and TAuth (including nonce handling), see [`docs/demo-index-auth.md`](docs/demo-index-auth.md).
 
 ## Docker Compose example (TAuth + gHTTP)
 

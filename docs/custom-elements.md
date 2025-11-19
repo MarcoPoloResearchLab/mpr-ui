@@ -7,13 +7,15 @@ The `mpr-ui` bundle auto-registers HTML custom elements when `window.customEleme
 ```html
 <link
   rel="stylesheet"
-  href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.8/mpr-ui.css"
+  href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
 />
 <script
   defer
-  src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@0.0.8/mpr-ui.js"
+  src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
 ></script>
 ```
+
+Replace `@latest` with a pinned tag or commit hash when you want strict versioning in production.
 
 Alpine is optional. When targeting legacy browsers that lack native custom-element support, load the official polyfill **before** `mpr-ui.js`:
 

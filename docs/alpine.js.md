@@ -1,5 +1,7 @@
 # Documentation for alpinejs/alpine (main)
 
+This file is a curated copy of the upstream Alpine.js documentation focused on advanced topics (async, CSP build, extension APIs). It is kept in-repo as a reference for how `mpr-ui` integrates Alpine in CSP-constrained environments and how to structure custom directives/magics; it is not a project-specific guide.
+
 ## src/en/advanced.md
 
 ---

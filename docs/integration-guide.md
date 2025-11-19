@@ -10,6 +10,18 @@ This guide walks through the requirements and steps needed to wire `mpr-ui` comp
 4. **CORS** – when serving the frontend from a different origin (e.g., `http://localhost:8000`), ensure `APP_ENABLE_CORS=true` and list every origin in `APP_CORS_ALLOWED_ORIGINS`.
 5. **auth-client helper** – TAuth exposes `/static/auth-client.js`. This script keeps sessions renewed and surfaces `initAuthClient`, `getCurrentUser`, and `logout` globals that `mpr-ui` expects.
 
+## Nonce behavior (GIS ↔ mpr-ui ↔ TAuth)
+
+`mpr-ui` implements the same nonce protocol described in the TAuth documentation:
+
+- Before Google prompts, `mpr-ui` POSTs `{base-url}{nonce-path}` (default `/auth/nonce`) with `credentials: "include"` and header `X-Requested-With: "XMLHttpRequest"`.
+- The backend must respond with JSON containing a `nonce` value; this nonce is passed to Google Identity Services when `google.accounts.id.initialize({ client_id, nonce, callback })` runs inside the bundle.
+- When GIS returns an ID token, `mpr-ui` POSTs `{base-url}{login-path}` (default `/auth/google`) with JSON body `{ "google_id_token": "<id_token>", "nonce_token": "<same nonce from /auth/nonce>" }`.
+- TAuth verifies the ID token and checks that the embedded `nonce` claim matches the issued nonce (raw or hashed). Mismatches are rejected (`auth.login.nonce_mismatch`) and surfaced via `mpr-ui:auth:error` with code `mpr-ui.auth.exchange_failed` or `mpr-ui.auth.nonce_failed`.
+- A nonce is single-use: clients must fetch a fresh nonce for every sign-in attempt, and servers must invalidate nonces as soon as they are consumed.
+
+See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-auth.md` for a more detailed breakdown plus a checklist suitable for automation.
+
 ## Step-by-step integration
 
 1. **Configure and start TAuth**
