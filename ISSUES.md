@@ -39,12 +39,13 @@ volumes:
 
 ## Improvements (220–299)
 
-- [ ] [MU-200] Add a sticky attribute to both footers and headers, e.g. 
+- [x] [MU-200] Add a sticky attribute to both footers and headers, e.g. 
 ```html
 <mpr-footer
       id="page-footer"
       sticky=false
 ```
+    - Added a `sticky` boolean option/attribute to both `<mpr-header>` and `<mpr-footer>`, mapped it to a `data-mpr-sticky` marker on the rendered header/footer roots, and extended unit + Playwright coverage plus README/ARCHITECTURE docs to cover default sticky behaviour and the opt-out configuration.
 
 ## BugFixes (325–399)
 
@@ -63,8 +64,6 @@ See @image.png
 ## Maintenance (405–499)
 
 - [ ] [MU-405] mpr-ui.js became a giant file. Consider using @mpr-ui.js as an orchestrator and breaking the rest in smaller files. When working on it, consider @POLICY.md and coding practices that would allow to minimize duplication and ensure following Alpine.js implementation for Web Components (@docs/alpine.js.md)
-
-- [ ] [MU-406] Does the legacy standalone footer bundle play any role? Remove it if not. Keep it if we use it.
 
 - [x] [MU-406] Removed the legacy standalone footer bundle so `mpr-ui.js` owns the canonical footer implementation and documentation no longer references the older asset.
 

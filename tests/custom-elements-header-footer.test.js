@@ -73,6 +73,9 @@ function createStubNode(options) {
     node.removeAttribute = function removeAttribute(name) {
       delete attributes[name];
     };
+    node.hasAttribute = function hasAttribute(name) {
+      return Object.prototype.hasOwnProperty.call(attributes, name);
+    };
   }
   node.appendChild = function appendChild(child) {
     this.children.push(child);
@@ -399,7 +402,7 @@ function createHeaderElementHarness() {
   const HeaderElement = global.customElements.get('mpr-header');
   assert.ok(HeaderElement, 'mpr-header is defined');
 
-  const root = createStubNode({ classList: true });
+  const root = createStubNode({ classList: true, attributes: true });
   const brandLink = createStubNode({ attributes: true });
   const brandContainer = createStubNode();
   const nav = createStubNode({});
@@ -444,15 +447,15 @@ function createFooterElementHarness(options) {
   const FooterElement = global.customElements.get('mpr-footer');
   assert.ok(FooterElement, 'mpr-footer is defined');
 
-  const root = createStubNode({ classList: true });
+  const root = createStubNode({ classList: true, attributes: true });
   const inner = createStubNode({});
   const layout = createStubNode({});
   const brandContainer = createStubNode({});
   const prefix = createStubNode({});
   const menuWrapper = settings.includeMenu ? createStubNode({}) : null;
-  const menu = settings.includeMenu ? createStubNode({}) : null;
+  const menu = settings.includeMenu ? createStubNode({ classList: true, attributes: true }) : null;
   const toggleButton = createStubNode({ attributes: true, supportsEvents: true });
-  const themeToggleHost = createStubNode({});
+  const themeToggleHost = createStubNode({ attributes: true });
   const privacyLink = createStubNode({ attributes: true });
 
   const selectorMap = new Map([
@@ -1024,4 +1027,59 @@ test('mpr-header navigation links always open in new window', () => {
       `navigation link label ${link.label} is rendered`,
     );
   });
+});
+
+test('mpr-header sticky attribute controls root sticky dataset', () => {
+  resetEnvironment();
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+
+  headerElement.setAttribute('sticky', 'false');
+  headerElement.connectedCallback();
+
+  assert.equal(
+    headerElement.dataset.sticky,
+    'false',
+    'sticky attribute reflected into dataset',
+  );
+  assert.equal(
+    harness.root.getAttribute && harness.root.getAttribute('data-mpr-sticky'),
+    'false',
+    'header root marked non-sticky when sticky="false"',
+  );
+
+  headerElement.setAttribute('sticky', 'true');
+
+  assert.equal(
+    headerElement.dataset.sticky,
+    'true',
+    'sticky dataset updated to true',
+  );
+  assert.equal(
+    harness.root.getAttribute && harness.root.getAttribute('data-mpr-sticky'),
+    null,
+    'header root clears non-sticky override when sticky is true',
+  );
+});
+
+test('mpr-footer sticky attribute controls root sticky dataset', () => {
+  resetEnvironment();
+  loadLibrary();
+  const harness = createFooterElementHarness();
+  const footerElement = harness.element;
+
+  footerElement.setAttribute('sticky', 'false');
+  footerElement.connectedCallback();
+
+  assert.equal(
+    footerElement.dataset.sticky,
+    'false',
+    'sticky attribute reflected into footer dataset',
+  );
+  assert.equal(
+    harness.root.getAttribute && harness.root.getAttribute('data-mpr-sticky'),
+    'false',
+    'footer root marked non-sticky when sticky="false"',
+  );
 });

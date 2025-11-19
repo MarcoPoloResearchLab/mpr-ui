@@ -6,7 +6,7 @@
 - MU-327: `<mpr-header>` now honours the `base-url` attribute, letting custom-element consumers (including the Docker Compose demo) route `/auth/*` calls to remote origins; added regression coverage ensuring the auth controller receives the configured base URL.
 - MU-325: Square theme switcher now maps quadrants to the correct palettes (bottom-left triggers dark blue, bottom-right triggers pale green), loses the stuck halo/outline, and adds unit + Playwright coverage for the updated mapping.
 - MU-326: The default pill toggle drops its border/halo, moves the focus indicator to the knob, and gains regression tests to prove the border width stays zero while the new focus ring appears only during keyboard focus.
-- MU-200: Demo now depends on the v0.0.5 CDN bundle, keeps the header and sticky footer pinned in the layout, and adds regression coverage for the demo page.
+- MU-200: Demo now depends on the v0.0.5 CDN bundle, keeps the header and sticky footer pinned in the layout by default, adds a `sticky` boolean option/attribute for both header and footer so integrators can opt out of sticky positioning, and extends regression coverage for the demo page and new configuration.
 - Fix CDN bundle regressions by shipping `resolveHost` inside the library so header/footer helpers can locate host elements without additional shims.
 - MU-201: Added shared CSS theme tokens to the CDN bundle, updated header/footer styling to consume them, and expanded the demo with palette toggles that showcase overriding the variables.
 - MU-112: Added the `theme-switcher` attribute plus the quadrant-style theme selector, enabled palette-aware modes via `theme-config`, and refreshed the demo/docs/tests to cover the new square variant.
