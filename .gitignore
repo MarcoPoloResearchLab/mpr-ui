@@ -144,3 +144,8 @@ tools/
 test-results/
 
 *.png
+# Managed by gix gitignore workflow
+.DS_Store
+qodana.yaml
+.idea/
+bin/
