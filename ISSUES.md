@@ -39,6 +39,13 @@ volumes:
 
 ## Improvements (220–299)
 
+- [ ] [MU-200] Add a sticky attribute to both footers and headers, e.g. 
+```html
+<mpr-footer
+      id="page-footer"
+      sticky=false
+```
+
 ## BugFixes (325–399)
 
 - [x] [MU-325] The square theme changers has 3 issues
