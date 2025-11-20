@@ -2289,6 +2289,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       state.profile = normalized;
       lastAuthenticatedSignature = signature;
       hasEmittedUnauthenticated = false;
+      pendingNonceToken = null;
       updateDatasetFromProfile(normalized);
       if (shouldEmit) {
         dispatchEvent(rootElement, "mpr-ui:auth:authenticated", {
@@ -2301,6 +2302,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       var parameters = config || {};
       var emit = parameters.emit !== false;
       var prompt = parameters.prompt !== false;
+      pendingNonceToken = null;
       var shouldEmit =
         emit &&
         (state.status !== "unauthenticated" ||
