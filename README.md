@@ -70,6 +70,8 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 - Removed the legacy `MPRUI.render*`/`mpr*` helper exports. The `<mpr-*>` Web Components DSL is now the only consumer API; consult [`docs/deprecation-roadmap.md`](docs/deprecation-roadmap.md) if you are migrating from an older release.
 
+Need a single source of truth for the shutdown plan? See [`docs/deprecation-roadmap.md`](docs/deprecation-roadmap.md).
+
 ## Integration requirements
 
 1. Load `mpr-ui.css` first so layout tokens and theme variables exist before scripts run.

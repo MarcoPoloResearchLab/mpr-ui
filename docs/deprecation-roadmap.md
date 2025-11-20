@@ -8,7 +8,7 @@ The legacy `MPRUI.render*` / `mpr*` helpers were the old escape hatches for Alpi
 - These helpers mirrored the Web Components DSL but required Alpine setup (`x-data`, `x-init`) and added confusion about the supported API surface.
 - MU-407 introduced runtime warnings, README guidance, and the first documentation updates so the helpers were flagged for removal.
 
-## v0.2.0 removal checklist
+## v2.0.0 removal checklist
 
 - [x] **MU-408 – Runtime:** remove every deprecated helper from `mpr-ui.js`, delete the warning wrapper, and keep the controllers internal to the custom elements. (`npm run test:unit`)
 - [x] **MU-409 – Docs & demos:** scrub README/ARCHITECTURE/custom-elements/integration guides (plus demos) so they only mention the `<mpr-*>` DSL and reference this roadmap for historical context.
