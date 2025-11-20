@@ -63,6 +63,8 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
    - `site-id`: Google OAuth Web Client ID.
    - `base-url`: TAuth origin. Needed so `/auth/*` requests hit the backend instead of the current page.
    - `login-path`, `logout-path`, `nonce-path`: keep the defaults unless your reverse proxy rewrites them.
+   - Demo-specific: keep `demo/tauth-config.js` `googleClientId` in sync with `APP_GOOGLE_WEB_CLIENT_ID` so the header and TAuth share the same credentials and GIS accepts the origin.
+   - For local HTTP runs (Docker Compose), ensure `APP_DEV_INSECURE_HTTP=true` so cookies drop the `Secure` flag; Safari rejects Secure cookies over HTTP.
 
 4. **(Optional) Show session status**
    Wire a panel to the auth events:
