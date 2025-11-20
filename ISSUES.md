@@ -81,5 +81,7 @@ See @image.png
 
 - [Blocked] [MU-405] mpr-ui.js split — Refactor requires a build/concat pipeline to keep the single-CDN bundle; current constraints disallow bundlers and the change would be a large restructuring that risks breaking the public API. Deferred until a tooling decision is made.
 
+- [ ] [MU-405] Direction update — Keep `mpr-ui.js` as a single monolithic bundle; module split approach abandoned and no concatenation build step will ship until a future decision explicitly requests a multi-file setup.
+
 ## Planning
 *Do not work on these, not ready*
