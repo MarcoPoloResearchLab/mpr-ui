@@ -128,54 +128,6 @@
     global.console.error(parts.join(" "));
   }
 
-  function logWarning(code, message) {
-    if (
-      !global.console ||
-      typeof global.console.warn !== "function"
-    ) {
-      return;
-    }
-    var parts = [LOGGER_PREFIX];
-    if (code) {
-      parts.push(code);
-    }
-    if (message) {
-      parts.push(message);
-    }
-    global.console.warn(parts.join(" "));
-  }
-
-  var DEPRECATION_REMOVAL_TARGET = "mpr-ui v2.0";
-  var issuedDeprecationWarnings = Object.create(null);
-
-  function emitDeprecationWarning(code, message) {
-    if (code && issuedDeprecationWarnings[code]) {
-      return;
-    }
-    if (code) {
-      issuedDeprecationWarnings[code] = true;
-    }
-    logWarning(code, message);
-  }
-
-  function formatDeprecationMessage(apiName, replacement) {
-    var message =
-      apiName + " is deprecated and will be removed in " + DEPRECATION_REMOVAL_TARGET + ".";
-    if (replacement) {
-      message += " Use " + replacement + " instead.";
-    }
-    return message;
-  }
-
-  function createDeprecatedExport(apiName, replacement, implementation) {
-    var code = "mpr-ui.deprecated." + apiName;
-    var message = formatDeprecationMessage("MPRUI." + apiName, replacement);
-    return function deprecatedExport() {
-      emitDeprecationWarning(code, message);
-      return implementation.apply(this, arguments);
-    };
-  }
-
   function resolveHost(target) {
     if (!target) {
       throw new Error("resolveHost requires a selector or element reference");
@@ -3717,62 +3669,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     };
   }
 
-  function mprHeader(options) {
-    var resolvedOptions = options || {};
-    return {
-      init: function () {
-        var element =
-          (this && this.$el) ||
-          (this && this.el) ||
-          (this && this.element) ||
-          (this && this.host) ||
-          null;
-        if (!element) {
-          throw new Error("mprHeader requires a root element");
-        }
-        this.__mprHeaderController = createAuthHeader(element, resolvedOptions);
-      },
-      destroy: function () {
-        this.__mprHeaderController = null;
-      },
-    };
-  }
-
-  function mprSiteHeader(options) {
-    var resolvedOptions = options || {};
-    return {
-      init: function init() {
-        var element =
-          (this && this.$el) ||
-          (this && this.el) ||
-          (this && this.element) ||
-          (this && this.host) ||
-          null;
-        if (!element) {
-          throw new Error("mprSiteHeader requires a root element");
-        }
-        this.__mprSiteHeaderController = renderSiteHeader(element, resolvedOptions);
-      },
-      update: function update(nextOptions) {
-        if (
-          this.__mprSiteHeaderController &&
-          typeof this.__mprSiteHeaderController.update === "function"
-        ) {
-          this.__mprSiteHeaderController.update(nextOptions);
-        }
-      },
-      destroy: function destroy() {
-        if (
-          this.__mprSiteHeaderController &&
-          typeof this.__mprSiteHeaderController.destroy === "function"
-        ) {
-          this.__mprSiteHeaderController.destroy();
-        }
-        this.__mprSiteHeaderController = null;
-      },
-    };
-  }
-
   function escapeHtml(value) {
     if (value === null || value === undefined) {
       return "";
@@ -5299,34 +5195,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     };
   }
 
-  function mprFooter(options) {
-    var resolvedOptions = options || {};
-    var component = createFooterComponent(resolvedOptions);
-    return {
-      init: function init() {
-        var element =
-          (this && this.$el) ||
-          (this && this.el) ||
-          (this && this.element) ||
-          (this && this.host) ||
-          null;
-        if (!element) {
-          throw new Error("mprFooter requires a root element");
-        }
-        component.$el = element;
-        component.$dispatch = this.$dispatch ? this.$dispatch.bind(this) : null;
-        component.init(resolvedOptions);
-      },
-      update: function update(nextOptions) {
-        resolvedOptions = Object.assign({}, resolvedOptions, nextOptions || {});
-        component.init(resolvedOptions);
-      },
-      destroy: function destroy() {
-        component.destroy();
-      },
-    };
-  }
-
   function renderThemeToggle(target, options) {
     var host = resolveHost(target);
     if (!host || typeof host !== "object") {
@@ -5355,45 +5223,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           host.removeAttribute("data-mpr-theme-mode");
           host.removeAttribute("data-mpr-theme-toggle-variant");
         }
-      },
-    };
-  }
-
-  function mprThemeToggle(options) {
-    var resolvedOptions = options || {};
-    var controller = null;
-    return {
-      init: function init() {
-        var element =
-          (this && this.$el) ||
-          (this && this.el) ||
-          (this && this.element) ||
-          (this && this.host) ||
-          null;
-        if (!element) {
-          throw new Error("mprThemeToggle requires a root element");
-        }
-        var normalized = normalizeStandaloneThemeToggleOptions(resolvedOptions);
-        controller = mountThemeToggleComponent(
-          element,
-          normalized,
-          true,
-          "theme-toggle:init",
-        );
-      },
-      update: function update(nextOptions) {
-        resolvedOptions = deepMergeOptions({}, resolvedOptions, nextOptions || {});
-        if (!controller) {
-          return;
-        }
-        var normalized = normalizeStandaloneThemeToggleOptions(resolvedOptions);
-        controller.update(normalized, "theme-toggle:update");
-      },
-      destroy: function destroy() {
-        if (controller) {
-          controller.destroy();
-        }
-        controller = null;
       },
     };
   }
@@ -6092,42 +5921,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   var namespace = ensureNamespace(global);
   namespace.createAuthHeader = createAuthHeader;
   namespace.renderAuthHeader = renderAuthHeader;
-  namespace.mprHeader = createDeprecatedExport(
-    "mprHeader",
-    "<mpr-header>",
-    mprHeader,
-  );
-  namespace.renderFooter = createDeprecatedExport(
-    "renderFooter",
-    "<mpr-footer>",
-    renderFooter,
-  );
-  namespace.mprFooter = createDeprecatedExport(
-    "mprFooter",
-    "<mpr-footer>",
-    mprFooter,
-  );
-  namespace.renderSiteHeader = createDeprecatedExport(
-    "renderSiteHeader",
-    "<mpr-header>",
-    renderSiteHeader,
-  );
-  namespace.mprSiteHeader = createDeprecatedExport(
-    "mprSiteHeader",
-    "<mpr-header>",
-    mprSiteHeader,
-  );
   namespace.getFooterSiteCatalog = getFooterSiteCatalog;
-  namespace.renderThemeToggle = createDeprecatedExport(
-    "renderThemeToggle",
-    "<mpr-theme-toggle>",
-    renderThemeToggle,
-  );
-  namespace.mprThemeToggle = createDeprecatedExport(
-    "mprThemeToggle",
-    "<mpr-theme-toggle>",
-    mprThemeToggle,
-  );
   namespace.configureTheme = function configureTheme(config) {
     return themeManager.configure(config || {});
   };
