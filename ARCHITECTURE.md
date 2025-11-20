@@ -22,13 +22,13 @@ When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 | --------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `MPRUI.createAuthHeader(host, options)` | Creates the auth header controller bound to a DOM element.                                           |
 | `MPRUI.renderAuthHeader(host, options)` | Convenience wrapper that resolves CSS selectors before calling `createAuthHeader`.                   |
-| `MPRUI.mprHeader(options)`              | Legacy factory that only wires the auth controller without rendering UI (kept for compatibility).    |
-| `MPRUI.renderSiteHeader(host, options)` | Renders the sticky site header, wiring auth, settings, and shared theme configuration; returns `{ update, destroy }`. |
-| `MPRUI.mprSiteHeader(options)`          | Alpine/framework factory for the site header; `init` renders, `update` proxies, `destroy` unmounts.  |
-| `MPRUI.renderFooter(host, options)`     | Renders the marketing footer into a DOM node and returns `{ update, destroy }`.                      |
-| `MPRUI.mprFooter(options)`              | Framework-friendly facade; `init` wires `renderFooter`, `update` proxies, `destroy` unmounts.        |
-| `MPRUI.renderThemeToggle(host, options)`| Mounts the shared theme toggle component onto a DOM node.                                            |
-| `MPRUI.mprThemeToggle(options)`         | Alpine-friendly wrapper for the shared theme toggle.                                                 |
+| `MPRUI.mprHeader(options)`              | **Deprecated** — legacy factory that only wires the auth controller; prefer `<mpr-header>`.    |
+| `MPRUI.renderSiteHeader(host, options)` | **Deprecated** — renders the sticky site header and returns `{ update, destroy }`; prefer `<mpr-header>`. |
+| `MPRUI.mprSiteHeader(options)`          | **Deprecated** — Alpine/framework factory for the site header; prefer `<mpr-header>`.  |
+| `MPRUI.renderFooter(host, options)`     | **Deprecated** — renders the marketing footer and returns `{ update, destroy }`; prefer `<mpr-footer>`. |
+| `MPRUI.mprFooter(options)`              | **Deprecated** — framework-friendly facade; prefer `<mpr-footer>`.        |
+| `MPRUI.renderThemeToggle(host, options)`| **Deprecated** — mounts the shared theme toggle into a DOM node; prefer `<mpr-theme-toggle>`.                                            |
+| `MPRUI.mprThemeToggle(options)`         | **Deprecated** — Alpine-friendly wrapper for the shared theme toggle; prefer `<mpr-theme-toggle>`.                                                 |
 | `MPRUI.configureTheme(config)`          | Merges global theme configuration (attribute, targets, modes) and reapplies the current mode.        |
 | `MPRUI.setThemeMode(value)`             | Sets the active theme mode and dispatches `mpr-ui:theme-change`.                                     |
 | `MPRUI.getThemeMode()`                  | Returns the active theme mode string.                                                                |
@@ -38,6 +38,8 @@ When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 | `MPRUI.MprElement`                      | Base class used by every custom element (handles `connectedCallback`, `attributeChangedCallback`, etc.). |
 
 All helpers are side-effect free apart from DOM writes and `fetch` requests.
+
+> **Deprecation notice:** The imperative helpers (`renderSiteHeader`, `renderFooter`, `renderThemeToggle`) and their Alpine factories (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, `mprHeader`) are deprecated. They emit console warnings on invocation and will be removed in `mpr-ui v2.0`. Use the `<mpr-*>` custom elements whenever possible and follow the README migration guidance when retiring legacy integrations.
 
 ### Custom Elements
 
@@ -167,7 +169,7 @@ Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to
 
 ## Footer Renderer (Bundle)
 
-`renderFooter` bundles the dropdown/theme implementation, injects styles via `<style id="mpr-ui-footer-styles">`, pins the footer to the bottom of the viewport (`position: sticky` by default), and exposes both imperative and Alpine APIs. When `sticky` is set to `false` the footer root falls back to normal in-flow positioning.
+`renderFooter` bundles the dropdown/theme implementation, injects styles via `<style id="mpr-ui-footer-styles">`, pins the footer to the bottom of the viewport (`position: sticky` by default), and exposes both imperative and (deprecated) Alpine APIs. When `sticky` is set to `false` the footer root falls back to normal in-flow positioning.
 
 ### Options (`renderFooter` / `mprFooter`)
 
@@ -222,7 +224,7 @@ Declarative attribute `theme-switcher` controls `themeToggle.variant` and implic
 ### Controller Object
 
 - Imperative API: `renderFooter` returns `{ update(nextOptions), destroy(), getConfig() }`.
-- Alpine API: `mprFooter` exposes `{ init, update, destroy }`, wiring `$dispatch` when available.
+- Deprecated Alpine API: `mprFooter` exposes `{ init, update, destroy }`, wiring `$dispatch` when available. Prefer `<mpr-footer>` instead.
 
 ## Security and Accessibility Considerations
 

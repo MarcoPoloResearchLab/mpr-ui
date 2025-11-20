@@ -2,6 +2,8 @@
 
 The `mpr-ui` bundle auto-registers HTML custom elements when `window.customElements` is available. Together, these `<mpr-*>` tags are the intended consumer API and form the declarative DSL for `mpr-ui`: attributes configure behaviour, slots provide custom markup, and events report state changes.
 
+> **Legacy helpers deprecated:** `MPRUI.renderSiteHeader`, `MPRUI.renderFooter`, `MPRUI.renderThemeToggle`, `MPRUI.mprSiteHeader`, `MPRUI.mprFooter`, `MPRUI.mprThemeToggle`, and `MPRUI.mprHeader` still ship for backwards compatibility but now log console warnings and will be removed in `mpr-ui v2.0`. Use the custom elements below whenever possible.
+
 ## Loading the Library
 
 ```html
@@ -17,7 +19,7 @@ The `mpr-ui` bundle auto-registers HTML custom elements when `window.customEleme
 
 Replace `@latest` with a pinned tag or commit hash when you want strict versioning in production.
 
-Alpine-powered helpers and factories are optional escape hatches. You can use all `<mpr-*>` elements without authoring any Alpine code; when targeting legacy browsers that lack native custom-element support, load the official polyfill **before** `mpr-ui.js`:
+Alpine-powered helpers and factories are optional escape hatches left over from earlier releases. They are deprecated, so plan to remove them during your next upgrade. You can use all `<mpr-*>` elements without authoring any Alpine code; when targeting legacy browsers that lack native custom-element support, load the official polyfill **before** `mpr-ui.js`:
 
 ```html
 <script src="https://unpkg.com/@webcomponents/custom-elements@1.6.0/custom-elements.min.js"></script>
@@ -139,9 +141,9 @@ Reusable catalog renderer for the Marco Polo Research Lab sites (or your own JSO
 
 **Events:** `mpr-sites:link-click` with `{ label, url, target, rel, index }`.
 
-## Migration Cheatsheet
+## Migration Cheatsheet (legacy helpers deprecated)
 
-| Previous integration | Declarative equivalent |
+| Previous integration (deprecated) | Declarative equivalent |
 | --- | --- |
 | `renderSiteHeader(host, options)` | `<mpr-header ...attributes>` |
 | `mprFooter()` Alpine factory | `<mpr-footer ...>` |
@@ -155,6 +157,7 @@ Tips:
 - Boolean attributes follow native HTML semantics: presence = `true`, absence = `false`. For `<mpr-settings>`, removing `open` closes the panel immediately.
 - All events bubble, so you can listen on `document` or the element itself (`document.addEventListener("mpr-settings:toggle", handler)`).
 
+All imperative helpers log warnings and will be removed in `mpr-ui v2.0`, so treat the table above as a migration guide rather than an alternative integration strategy.
 ## Troubleshooting & CSP Notes
 
 - **Custom-element support**: If `window.customElements` is missing, load the polyfill before `mpr-ui.js`. The helpers will auto-define once the API becomes available.

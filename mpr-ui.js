@@ -128,6 +128,54 @@
     global.console.error(parts.join(" "));
   }
 
+  function logWarning(code, message) {
+    if (
+      !global.console ||
+      typeof global.console.warn !== "function"
+    ) {
+      return;
+    }
+    var parts = [LOGGER_PREFIX];
+    if (code) {
+      parts.push(code);
+    }
+    if (message) {
+      parts.push(message);
+    }
+    global.console.warn(parts.join(" "));
+  }
+
+  var DEPRECATION_REMOVAL_TARGET = "mpr-ui v2.0";
+  var issuedDeprecationWarnings = Object.create(null);
+
+  function emitDeprecationWarning(code, message) {
+    if (code && issuedDeprecationWarnings[code]) {
+      return;
+    }
+    if (code) {
+      issuedDeprecationWarnings[code] = true;
+    }
+    logWarning(code, message);
+  }
+
+  function formatDeprecationMessage(apiName, replacement) {
+    var message =
+      apiName + " is deprecated and will be removed in " + DEPRECATION_REMOVAL_TARGET + ".";
+    if (replacement) {
+      message += " Use " + replacement + " instead.";
+    }
+    return message;
+  }
+
+  function createDeprecatedExport(apiName, replacement, implementation) {
+    var code = "mpr-ui.deprecated." + apiName;
+    var message = formatDeprecationMessage("MPRUI." + apiName, replacement);
+    return function deprecatedExport() {
+      emitDeprecationWarning(code, message);
+      return implementation.apply(this, arguments);
+    };
+  }
+
   function resolveHost(target) {
     if (!target) {
       throw new Error("resolveHost requires a selector or element reference");
@@ -6044,14 +6092,42 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   var namespace = ensureNamespace(global);
   namespace.createAuthHeader = createAuthHeader;
   namespace.renderAuthHeader = renderAuthHeader;
-  namespace.mprHeader = mprHeader;
-  namespace.renderFooter = renderFooter;
-  namespace.mprFooter = mprFooter;
-  namespace.renderSiteHeader = renderSiteHeader;
-  namespace.mprSiteHeader = mprSiteHeader;
+  namespace.mprHeader = createDeprecatedExport(
+    "mprHeader",
+    "<mpr-header>",
+    mprHeader,
+  );
+  namespace.renderFooter = createDeprecatedExport(
+    "renderFooter",
+    "<mpr-footer>",
+    renderFooter,
+  );
+  namespace.mprFooter = createDeprecatedExport(
+    "mprFooter",
+    "<mpr-footer>",
+    mprFooter,
+  );
+  namespace.renderSiteHeader = createDeprecatedExport(
+    "renderSiteHeader",
+    "<mpr-header>",
+    renderSiteHeader,
+  );
+  namespace.mprSiteHeader = createDeprecatedExport(
+    "mprSiteHeader",
+    "<mpr-header>",
+    mprSiteHeader,
+  );
   namespace.getFooterSiteCatalog = getFooterSiteCatalog;
-  namespace.renderThemeToggle = renderThemeToggle;
-  namespace.mprThemeToggle = mprThemeToggle;
+  namespace.renderThemeToggle = createDeprecatedExport(
+    "renderThemeToggle",
+    "<mpr-theme-toggle>",
+    renderThemeToggle,
+  );
+  namespace.mprThemeToggle = createDeprecatedExport(
+    "mprThemeToggle",
+    "<mpr-theme-toggle>",
+    mprThemeToggle,
+  );
   namespace.configureTheme = function configureTheme(config) {
     return themeManager.configure(config || {});
   };
