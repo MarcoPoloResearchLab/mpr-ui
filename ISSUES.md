@@ -81,5 +81,13 @@ See @image.png
 
 - [Blocked] [MU-405] mpr-ui.js split — Refactor requires a build/concat pipeline to keep the single-CDN bundle; current constraints disallow bundlers and the change would be a large restructuring that risks breaking the public API. Deferred until a tooling decision is made.
 
+- [ ] [MU-405] Direction update — Keep `mpr-ui.js` as a single monolithic bundle; module split approach abandoned and no concatenation build step will ship until a future decision explicitly requests a multi-file setup.
+
+- [ ] [MU-412] Theme manager re-queries the DOM on every mode change via `resolveThemeTargets` (mpr-ui.js:797-827), running `querySelectorAll` for static selectors on each toggle. Cache resolved nodes per configure-call to avoid repeated DOM walks and layout churn during frequent theme switches.
+
+- [ ] [MU-413] `deepMergeOptions` (mpr-ui.js:77-132) copies object keys without guarding against `__proto__`, `constructor`, etc., leaving the helpers open to prototype pollution when merging attacker-controlled JSON (e.g., dataset attributes). Harden the merge by skipping dangerous keys.
+
+- [ ] [MU-414] Link rendering logic is duplicated across header/footer/site components (e.g., mpr-ui.js:2705-2777 and 3228-3260) with slight variations in escaping/attribute handling. Extract a shared link builder to keep sanitization and rel/target rules consistent and reduce the 6k LOC bundle surface.
+
 ## Planning
 *Do not work on these, not ready*
