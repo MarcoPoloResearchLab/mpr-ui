@@ -69,7 +69,13 @@ See @image.png
 
 - [x] [MU-407] Deprecate Alpine-based factories and other advanced imperative helpers (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, etc.) in favour of the `<mpr-*>` Web Components DSL as the only consumer-facing API; mark these APIs as deprecated in README/ARCHITECTURE, adjust demos to avoid `x-data` usage, and plan removal in the next major release after communicating the migration path — added runtime console warnings for every legacy helper, updated README/ARCHITECTURE/custom-elements/integration docs with the migration plan and removal timeline, removed the `x-data` example from Quick Start, and ran `npm run test:unit`.
 
-- [ ] [MU-408] v0.2.0: Remove all Alpine-based factories and other “advanced” imperative helpers from the bundle so the `<mpr-*>` Web Components DSL becomes the sole consumer-facing API. Delete the deprecated namespace exports, strip the Alpine docs, migrate any remaining demos/tests off `MPRUI.*` helpers, and bump the version/documentation to reflect the breaking change.
+- [ ] [MU-408] v0.2.0 Step 1 (Runtime) — Remove every deprecated helper from `mpr-ui.js`: delete `renderSiteHeader`, `renderFooter`, `renderThemeToggle`, and the `mpr*` factories, strip the deprecation wrapper, and reroute any internal call sites to the `<mpr-*>` element controllers. Deliverable: bundle builds/tests without those exports and emits no deprecation warnings.
+
+- [ ] [MU-409] v0.2.0 Step 2 (Docs + Demos) — Purge mentions of Alpine factories from README, ARCHITECTURE, `docs/custom-elements.md`, `docs/integration-guide.md`, `docs/demo-index-auth.md`, and any demo HTML/JS. Deliverable: only the Web Components DSL is described, and `docs/deprecation-roadmap.md` is updated to mark Step 2 as complete.
+
+- [ ] [MU-410] v0.2.0 Step 3 (Changelog + Version) — Add a CHANGELOG entry announcing the removal, bump the package version to `0.2.0`, and document the breaking change plus migration reminders in README/roadmap. Deliverable: release notes ready for tagging plus version metadata updated.
+
+- [ ] [MU-411] v0.2.0 Step 4 (Verification) — Update or delete any remaining unit/e2e tests that referenced the helpers, ensure the Playwright fixtures rely solely on `<mpr-*>`, and run `npm run test:unit` + `npm run test:e2e` as the final gate. Deliverable: green CI with no legacy helper usage anywhere in the repo.
 
 ## Planning
 *Do not work on these, not ready*
