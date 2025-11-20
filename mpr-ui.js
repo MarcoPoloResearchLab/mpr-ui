@@ -202,7 +202,6 @@
     "theme-mode": "themeMode",
     "sign-in-label": "signInLabel",
     "sign-out-label": "signOutLabel",
-    "profile-label": "profileLabel",
     sticky: "sticky",
   });
 
@@ -2814,7 +2813,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       '<div class="' +
       HEADER_ROOT_CLASS +
       '__chip" data-mpr-header="profile">' +
-      '<span data-mpr-header="profile-label"></span>' +
       '<span class="' +
       HEADER_ROOT_CLASS +
       '__profile-name" data-mpr-header="profile-name"></span>' +
@@ -2864,9 +2862,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       profileContainer: hostElement.querySelector(
         '[data-mpr-header="profile"]',
       ),
-      profileLabel: hostElement.querySelector(
-        '[data-mpr-header="profile-label"]',
-      ),
+      profileLabel: null,
       profileName: hostElement.querySelector(
         '[data-mpr-header="profile-name"]',
       ),
@@ -3315,14 +3311,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         HEADER_ROOT_CLASS + "--authenticated",
         HEADER_ROOT_CLASS + "--no-auth",
       );
-      updateProfileLabelElement(elements, options.profileLabel);
       if (elements.profileName) {
         elements.profileName.textContent = "";
       }
       return;
     }
     elements.root.classList.add(HEADER_ROOT_CLASS + "--authenticated");
-    updateProfileLabelElement(elements, options.profileLabel);
     if (elements.profileName) {
       var preference = state.profile.display || state.profile.user_id;
       elements.profileName.textContent = preference ? String(preference) : "";
@@ -3339,17 +3333,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
     } else if (typeof headerRootElement.removeAttribute === "function") {
       headerRootElement.removeAttribute("data-mpr-sticky");
-    }
-  }
-
-  function updateProfileLabelElement(elements, profileLabel) {
-    if (!elements || !elements.profileLabel) {
-      return;
-    }
-    elements.profileLabel.textContent = "";
-    if (typeof elements.profileLabel.setAttribute === "function") {
-      elements.profileLabel.setAttribute("hidden", "true");
-      elements.profileLabel.setAttribute("aria-hidden", "true");
     }
   }
 
@@ -3374,7 +3357,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (elements.settingsButton) {
       elements.settingsButton.textContent = options.settings.label;
     }
-    updateProfileLabelElement(elements, options.profileLabel);
     if (elements.signOutButton) {
       elements.signOutButton.textContent = options.signOutLabel;
     }
