@@ -47,6 +47,8 @@ volumes:
 ```
     - Added a `sticky` boolean option/attribute to both `<mpr-header>` and `<mpr-footer>`, mapped it to a `data-mpr-sticky` marker on the rendered header/footer roots, and extended unit + Playwright coverage plus README/ARCHITECTURE docs to cover default sticky behaviour and the opt-out configuration.
 
+- [ ] [MU-201] reduce the size of theme-switcher="square" to the size of one of it's quadrants, so that the whole toggle with all four quadrants fitted into a single current qudrant
+
 ## BugFixes (325–399)
 
 - [x] [MU-325] The square theme changers has 3 issues
@@ -81,7 +83,7 @@ See @image.png
 
 - [Blocked] [MU-405] mpr-ui.js split — Refactor requires a build/concat pipeline to keep the single-CDN bundle; current constraints disallow bundlers and the change would be a large restructuring that risks breaking the public API. Deferred until a tooling decision is made.
 
-- [ ] [MU-405] Direction update — Keep `mpr-ui.js` as a single monolithic bundle; module split approach abandoned and no concatenation build step will ship until a future decision explicitly requests a multi-file setup.
+- [x] [MU-405] Direction update — Keep `mpr-ui.js` as a single monolithic bundle; module split approach abandoned and no concatenation build step will ship until a future decision explicitly requests a multi-file setup.
 
 - [x] [MU-412] Theme manager re-queries the DOM on every mode change via `resolveThemeTargets` (mpr-ui.js:797-827), running `querySelectorAll` for static selectors on each toggle. Cache resolved nodes per configure-call to avoid repeated DOM walks and layout churn during frequent theme switches. — Added cached target resolution reused across mode changes plus regression test that guards against repeated selector queries.
 
