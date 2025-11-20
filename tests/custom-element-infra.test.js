@@ -236,7 +236,6 @@ test('shared DOM helpers mount header and footer markup', () => {
     '[data-mpr-header="google-signin"]',
     '[data-mpr-header="settings-button"]',
     '[data-mpr-header="profile"]',
-    '[data-mpr-header="profile-label"]',
     '[data-mpr-header="profile-name"]',
     '[data-mpr-header="sign-out-button"]',
   ].forEach((selector) => {
@@ -249,7 +248,6 @@ test('shared DOM helpers mount header and footer markup', () => {
     settings: { enabled: true, label: 'Settings' },
     signInLabel: 'Sign in',
     signOutLabel: 'Sign out',
-    profileLabel: 'Signed in as',
   };
   const headerElements = mountHeaderDom(headerHost, headerOptions);
   assert.ok(

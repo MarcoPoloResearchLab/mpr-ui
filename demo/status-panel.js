@@ -2,7 +2,6 @@
 'use strict';
 
 const STATUS_HOST_SELECTOR = '[data-demo-auth-status]';
-const LOGOUT_BUTTON_SELECTOR = '[data-demo-logout]';
 
 /**
  * @typedef {object} AuthProfile
@@ -81,18 +80,6 @@ function renderSession(profile) {
   host.append(profileContainer, expiryParagraph, refreshParagraph);
 }
 
-function wireLogoutButton() {
-  const button = document.querySelector(LOGOUT_BUTTON_SELECTOR);
-  if (!button) {
-    return;
-  }
-  button.addEventListener('click', () => {
-    if (typeof window.logout === 'function') {
-      window.logout();
-    }
-  });
-}
-
 function initSessionPanel() {
   renderSession(typeof window.getCurrentUser === 'function' ? window.getCurrentUser() : null);
   document.addEventListener('mpr-ui:auth:authenticated', (event) => {
@@ -101,7 +88,6 @@ function initSessionPanel() {
   document.addEventListener('mpr-ui:auth:unauthenticated', () => {
     renderSession(null);
   });
-  wireLogoutButton();
 }
 
 if (document.readyState === 'loading') {

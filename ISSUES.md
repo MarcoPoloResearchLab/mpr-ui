@@ -68,6 +68,8 @@ See @image.png
 
 - [x] [MU-328] Wired `demo/tauth-demo.html` to read `googleClientId`/`baseUrl` from `demo/tauth-config.js`, removed the baked-in sample client ID, documented keeping the client ID in sync with `.env.tauth`, and dropped the Secure flag from dev cookies when `APP_DEV_INSECURE_HTTP=true` so Safari accepts sessions over HTTP.
 
+- [ ] [MU-329] Console errors in TAuth demo: 401s on `/me` and `/auth/refresh` before login, GIS origin rejection when the sample client ID is used, favicon 404, and COOP postMessage warnings. Investigate which are expected in signed-out or ad-blocked states versus misconfiguration (client ID/origin mismatch) and reduce noisy logging.
+
 ## Maintenance (405–499)
 
 - [ ] [MU-405] mpr-ui.js became a giant file. Consider using @mpr-ui.js as an orchestrator and breaking the rest in smaller files. When working on it, consider @POLICY.md and coding practices that would allow to minimize duplication and ensure following Alpine.js implementation for Web Components (@docs/alpine.js.md)

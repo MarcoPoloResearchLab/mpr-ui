@@ -132,7 +132,7 @@ When `auth-client.js` is present (as in `demo/tauth-demo.html`):
 
 - Reads the initial profile via `getCurrentUser()` (if defined).
 - Subscribes to `mpr-ui:auth:authenticated` and `mpr-ui:auth:unauthenticated`.
-- Calls `logout()` when the user clicks the “Sign out” button.
+- Renders the session card based on those events (the header handles sign-out).
 
 ## 7. Checklist for an automated integrator
 

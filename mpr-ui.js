@@ -202,7 +202,6 @@
     "theme-mode": "themeMode",
     "sign-in-label": "signInLabel",
     "sign-out-label": "signOutLabel",
-    "profile-label": "profileLabel",
     sticky: "sticky",
   });
 
@@ -2589,7 +2588,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }),
     signInLabel: "Sign in",
     signOutLabel: "Sign out",
-    profileLabel: "Signed in as",
+    profileLabel: "",
     initialTheme: "light",
     auth: null,
     sticky: true,
@@ -2816,7 +2815,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       '<div class="' +
       HEADER_ROOT_CLASS +
       '__chip" data-mpr-header="profile">' +
-      '<span data-mpr-header="profile-label">Signed in as</span>' +
       '<span class="' +
       HEADER_ROOT_CLASS +
       '__profile-name" data-mpr-header="profile-name"></span>' +
@@ -2866,9 +2864,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       profileContainer: hostElement.querySelector(
         '[data-mpr-header="profile"]',
       ),
-      profileLabel: hostElement.querySelector(
-        '[data-mpr-header="profile-label"]',
-      ),
+      profileLabel: null,
       profileName: hostElement.querySelector(
         '[data-mpr-header="profile-name"]',
       ),
@@ -3317,18 +3313,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         HEADER_ROOT_CLASS + "--authenticated",
         HEADER_ROOT_CLASS + "--no-auth",
       );
-      if (elements.profileLabel) {
-        elements.profileLabel.textContent = options.profileLabel;
-      }
       if (elements.profileName) {
         elements.profileName.textContent = "";
       }
       return;
     }
     elements.root.classList.add(HEADER_ROOT_CLASS + "--authenticated");
-    if (elements.profileLabel) {
-      elements.profileLabel.textContent = options.profileLabel;
-    }
     if (elements.profileName) {
       var preference = state.profile.display || state.profile.user_id;
       elements.profileName.textContent = preference ? String(preference) : "";

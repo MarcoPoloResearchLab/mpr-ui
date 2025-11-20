@@ -410,7 +410,6 @@ function createHeaderElementHarness() {
   const googleHost = createStubNode({ attributes: true, classList: true, supportsEvents: true });
   const settingsButton = createStubNode({ attributes: true, supportsEvents: true });
   const profileContainer = createStubNode({});
-  const profileLabel = createStubNode({});
   const profileName = createStubNode({});
   const signOutButton = createStubNode({ attributes: true, supportsEvents: true });
 
@@ -422,7 +421,6 @@ function createHeaderElementHarness() {
     ['[data-mpr-header="google-signin"]', googleHost],
     ['[data-mpr-header="settings-button"]', settingsButton],
     ['[data-mpr-header="profile"]', profileContainer],
-    ['[data-mpr-header="profile-label"]', profileLabel],
     ['[data-mpr-header="profile-name"]', profileName],
     ['[data-mpr-header="sign-out-button"]', signOutButton],
     ['.mpr-header__actions', actions],
