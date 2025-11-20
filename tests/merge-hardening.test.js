@@ -23,6 +23,18 @@ test('configureTheme ignores prototype-polluting keys', () => {
   assert.equal(Object.prototype.polluted, undefined, 'prototype must not be polluted');
 });
 
+test('configureTheme ignores prototype pollution from JSON-parsed configuration', () => {
+  resetEnvironment();
+  require(bundlePath);
+
+  const parsedConfig = JSON.parse('{"__proto__":{"polluted":"yes"},"attribute":"data-demo-theme"}');
+
+  global.MPRUI.configureTheme(parsedConfig);
+
+  assert.equal(Object.prototype.polluted, undefined, 'prototype must remain clean');
+  assert.equal(global.MPRUI.configureTheme({}).attribute, 'data-demo-theme');
+});
+
 test('configureTheme still applies valid options', () => {
   resetEnvironment();
   require(bundlePath);
