@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-- (none)
+- Square theme toggle now forces the 28px footprint via inline custom properties to avoid stale-style regressions.
 
 ## [2.0.1] - 2025-11-20
 
