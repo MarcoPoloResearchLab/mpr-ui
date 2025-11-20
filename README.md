@@ -7,7 +7,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 - Drop `<mpr-header>`, `<mpr-footer>`, `<mpr-theme-toggle>`, and friends directly into any HTML page — no build tools or frameworks required.
 - Alpine.js ships as an internal wiring detail so the bundle can manage state and events; you never have to author `x-data` or call Alpine helpers unless you deliberately opt into advanced integration patterns.
 - Security and accessibility defaults baked in: escaped strings, sanitised links, sensible roles.
-- Imperative helpers remain available for power users, but the documented API mirrors the custom-element attributes and events so the public surface stays a declarative Web Components DSL.
+- v0.2.0 removed the legacy imperative helpers; the declarative `<mpr-*>` custom elements are now the only supported surface.
 
 ## Quick Start
 
@@ -66,6 +66,10 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 > Upgrading from **≤0.1.x**? The legacy helper mapping and migration checklist now live in [`docs/deprecation-roadmap.md`](docs/deprecation-roadmap.md); that file captures the old API surface and the steps we took to remove it.
 
+## v0.2.0 breaking change
+
+- Removed the legacy `MPRUI.render*`/`mpr*` helper exports. The `<mpr-*>` Web Components DSL is now the only consumer API; consult [`docs/deprecation-roadmap.md`](docs/deprecation-roadmap.md) if you are migrating from an older release.
+
 ## Integration requirements
 
 1. Load `mpr-ui.css` first so layout tokens and theme variables exist before scripts run.
@@ -110,7 +114,7 @@ Stop the stack with `docker compose down -v` to reclaim the SQLite volume. Copy 
 
 ## Components (Custom Elements First)
 
-Every UI surface is primarily a custom element. The list below maps directly to the `<mpr-*>` tags you can use declaratively:
+Every UI surface is a custom element. The list below maps directly to the `<mpr-*>` tags you can use declaratively:
 
 - `<mpr-header>` — sticky banner with brand, nav, GIS auth, settings trigger, and shared theme configuration hooks (no built-in toggle).
 - `<mpr-footer>` — marketing footer with prefix dropdown menu, privacy link, and theme toggle.
@@ -119,7 +123,7 @@ Every UI surface is primarily a custom element. The list below maps directly to 
 - `<mpr-settings>` — emits toggle events so you can wire your own modal/drawer.
 - `<mpr-sites>` — renders the Marco Polo Research Lab network or any JSON catalog you provide.
 
-Imperative helpers still ship for compatibility, but the documented API mirrors the tags above. See the example below for a slot-heavy declarative configuration.
+The tags above replace the retired imperative helpers. See the example below for a slot-heavy declarative configuration.
 
 ### Custom element example
 
@@ -189,7 +193,7 @@ Slots let you inject custom markup without leaving declarative mode:
 - Footer slots: `menu-prefix`, `menu-links`, `legal`
 - Login button inherits the global `mpr-ui:auth:*` events dispatched by `createAuthHeader` and emits `mpr-login:error` when GIS cannot load, so you can listen for authentication without writing any extra glue.
 
-Custom elements re-dispatch the same events as the imperative helpers, so you can mix declarative and programmatic integrations on the same page. See [`docs/custom-elements.md`](docs/custom-elements.md) for a deep-dive covering attribute shapes, events, and migration tips (Alpine → custom elements).
+Custom elements dispatch the same `mpr-ui:*` events that the deprecated helpers emitted, so event listeners continue working after migrating. See [`docs/custom-elements.md`](docs/custom-elements.md) for a deep-dive covering attribute shapes, events, and migration tips (Alpine → custom elements).
 
 ### Optional helpers
 

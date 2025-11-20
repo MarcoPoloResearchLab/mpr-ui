@@ -69,7 +69,13 @@ See @image.png
 
 - [x] [MU-407] Deprecate Alpine-based factories and other advanced imperative helpers (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, etc.) in favour of the `<mpr-*>` Web Components DSL as the only consumer-facing API; mark these APIs as deprecated in README/ARCHITECTURE, adjust demos to avoid `x-data` usage, and plan removal in the next major release after communicating the migration path — added runtime console warnings for every legacy helper, updated README/ARCHITECTURE/custom-elements/integration docs with the migration plan and removal timeline, removed the `x-data` example from Quick Start, and ran `npm run test:unit`.
 
-- [ ] [MU-408] v0.2.0: Remove all Alpine-based factories and other “advanced” imperative helpers from the bundle so the `<mpr-*>` Web Components DSL becomes the sole consumer-facing API. Delete the deprecated namespace exports, strip the Alpine docs, migrate any remaining demos/tests off `MPRUI.*` helpers, and bump the version/documentation to reflect the breaking change.
+- [x] [MU-408] v0.2.0 Step 1 (Runtime) — Removed every deprecated helper from `mpr-ui.js`, deleted the warning wrapper, dropped the associated unit tests, and confirmed only the `<mpr-*>` elements drive the controllers. (`npm run test:unit`)
+
+- [x] [MU-409] v0.2.0 Step 2 (Docs + Demos) — Added `docs/deprecation-roadmap.md`, scrubbed README/ARCHITECTURE/custom-elements/integration docs of helper references, and pointed migration notes to the roadmap.
+
+- [x] [MU-410] v0.2.0 Step 3 (Changelog + Version) — Bumped the package to `0.2.0`, recorded the breaking change in `CHANGELOG.md`, and added a README callout describing the removal.
+
+- [x] [MU-411] v0.2.0 Step 4 (Verification) — Ran `npm run test:unit` and `npm run test:e2e` on the final Web Components-only baseline; updated the roadmap checklist with completion ticks.
 
 ## Planning
 *Do not work on these, not ready*
