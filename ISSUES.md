@@ -79,5 +79,7 @@ See @image.png
 
 - [x] [MU-409] Follow-up — Removed the remaining legacy render helper implementations from `mpr-ui.js`, renamed the internal controllers, and added a regression test that ensures the deprecated function names no longer appear in the bundle.
 
+- [Blocked] [MU-405] mpr-ui.js split — Refactor requires a build/concat pipeline to keep the single-CDN bundle; current constraints disallow bundlers and the change would be a large restructuring that risks breaking the public API. Deferred until a tooling decision is made.
+
 ## Planning
 *Do not work on these, not ready*
