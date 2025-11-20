@@ -9,7 +9,10 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - ./:/app
+      - ./demo/:/app/demo
+      - ./mpr-ui.js:/app/demo/mpr-ui.js:ro
+      - ./mpr-ui.css:/app/demo/mpr-ui.css:ro
+      - ./demo/tauth-demo.html:/app/demo/index.html:ro
     restart: unless-stopped
 
   tauth:
