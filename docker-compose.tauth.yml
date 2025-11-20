@@ -10,8 +10,6 @@ services:
       - "8000:8000"
     volumes:
       - ./demo/:/app/demo
-      - ./mpr-ui.js:/app/demo/mpr-ui.js:ro
-      - ./mpr-ui.css:/app/demo/mpr-ui.css:ro
       - ./demo/tauth-demo.html:/app/demo/index.html:ro
     restart: unless-stopped
 
@@ -20,8 +18,6 @@ services:
     pull_policy: always
     env_file:
       - ./.env.tauth
-    environment:
-      APP_DATABASE_URL: sqlite:///data/tauth.db
     ports:
       - "8080:8080"
     volumes:
