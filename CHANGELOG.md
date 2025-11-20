@@ -2,6 +2,10 @@
 
 ## [Unreleased]
 
+- (none)
+
+## [2.0.1] - 2025-11-20
+
 - MU-201: Shrunk the square theme toggle to a 28px footprint (single-quadrant size), scaled the dot/focus styling, and added Playwright coverage for the compact layout.
 - Cached theme target resolution to avoid repeated selector queries on mode changes and added regression coverage.
 - Hardened option merging to ignore prototype-polluting keys and added regression coverage for the theme configuration path.
