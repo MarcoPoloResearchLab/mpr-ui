@@ -70,10 +70,9 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
    Wire a panel to the auth events:
    ```html
    <div data-demo-auth-status>Awaiting connection…</div>
-   <button data-demo-logout type="button">Sign out</button>
    <script defer src="./status-panel.js"></script>
    ```
-   `status-panel.js` listens for `mpr-ui:auth:authenticated` / `mpr-ui:auth:unauthenticated` and calls `logout()` from the helper.
+   `status-panel.js` listens for `mpr-ui:auth:authenticated` / `mpr-ui:auth:unauthenticated` and mirrors the profile data.
 
 5. **Test the flow**
    1. Load the page from gHTTP (`http://localhost:8000/demo/tauth-demo.html`).

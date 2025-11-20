@@ -138,7 +138,7 @@ The header controller produces a sticky banner that combines navigation, auth co
 | `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
 | `signInLabel`              | `string`                               | Copy for the sign-in button (default "Sign in").                            |
 | `signOutLabel`             | `string`                               | Copy for the sign-out button (default "Sign out").                          |
-| `profileLabel`             | `string`                               | Text shown above the authenticated user name (default "Signed in as").      |
+| `profileLabel`             | `string`                               | Optional text shown above the authenticated user name (default empty).      |
 | `sticky`                   | `boolean`                              | Controls sticky positioning for the header; `true` (default) pins it, `false` renders it in-flow. |
 | `auth`                     | `object \| null`                       | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |
 
