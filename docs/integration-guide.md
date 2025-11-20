@@ -4,7 +4,7 @@ This guide walks through the requirements and steps needed to wire `mpr-ui` comp
 
 ## Requirements
 
-1. **mpr-ui assets** – load `mpr-ui.css` and `mpr-ui.js` from the CDN or from a local build. Alpine must be present before `mpr-ui.js` so the custom elements can register their controllers.
+1. **mpr-ui assets** – load `mpr-ui.css` and `mpr-ui.js` from the CDN or from a local build. The `<mpr-*>` Web Components DSL works without Alpine; you only need Alpine when you intentionally opt into the advanced factories (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, etc.).
 2. **Google Identity Services** – the header renders a GIS button. Include `https://accounts.google.com/gsi/client` and provide a valid OAuth Web Client ID (`site-id`).
 3. **TAuth backend** – the frontend must be able to reach a running TAuth instance, typically on `http://localhost:8080` during local development. Configure `.env.tauth` with your Google client ID, signing key, and allowed origins.
 4. **CORS** – when serving the frontend from a different origin (e.g., `http://localhost:8000`), ensure `APP_ENABLE_CORS=true` and list every origin in `APP_CORS_ALLOWED_ORIGINS`.
@@ -38,16 +38,11 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
      rel="stylesheet"
      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
    />
-   <script type="module">
-     import Alpine from "https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js";
-     window.Alpine = Alpine;
-     Alpine.start();
-   </script>
    <script defer src="http://localhost:8080/static/auth-client.js" crossorigin="anonymous"></script>
    <script defer src="/mpr-ui.js" id="mpr-ui-bundle"></script>
    <script src="https://accounts.google.com/gsi/client" async defer></script>
    ```
-   Replace `/mpr-ui.js` with the CDN URL when not serving from the repo.
+   Replace `/mpr-ui.js` with the CDN URL when not serving from the repo. This snippet wires only the TAuth helper and the `mpr-ui` bundle; the header and footer are then composed purely out of `<mpr-*>` tags and attributes.
 
 3. **Drop the header markup**
    ```html

@@ -1,6 +1,6 @@
 # Custom Elements Reference
 
-The `mpr-ui` bundle auto-registers HTML custom elements when `window.customElements` is available. This guide documents the declarative surface area, attribute→option mapping, emitted events, and troubleshooting tips for each tag.
+The `mpr-ui` bundle auto-registers HTML custom elements when `window.customElements` is available. Together, these `<mpr-*>` tags are the intended consumer API and form the declarative DSL for `mpr-ui`: attributes configure behaviour, slots provide custom markup, and events report state changes.
 
 ## Loading the Library
 
@@ -17,13 +17,13 @@ The `mpr-ui` bundle auto-registers HTML custom elements when `window.customEleme
 
 Replace `@latest` with a pinned tag or commit hash when you want strict versioning in production.
 
-Alpine is optional. When targeting legacy browsers that lack native custom-element support, load the official polyfill **before** `mpr-ui.js`:
+Alpine-powered helpers and factories are optional escape hatches. You can use all `<mpr-*>` elements without authoring any Alpine code; when targeting legacy browsers that lack native custom-element support, load the official polyfill **before** `mpr-ui.js`:
 
 ```html
 <script src="https://unpkg.com/@webcomponents/custom-elements@1.6.0/custom-elements.min.js"></script>
 ```
 
-The bundle shields double registrations via `MPRUI.createCustomElementRegistry()`, so loading it multiple times (micro-frontends, SSR) is safe.
+The bundle shields double registrations via `MPRUI.createCustomElementRegistry()`, so loading it multiple times (micro-frontends, SSR) is safe. For imperative helpers or Alpine integration details, see `ARCHITECTURE.md` and `docs/alpine.js.md`; they do not change the fact that Web Components are the primary DSL.
 
 ## Element Reference
 

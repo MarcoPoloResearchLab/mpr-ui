@@ -1,28 +1,23 @@
 # Marco Polo Research Lab UI
 
-Web components for Marco Polo Research Lab projects, delivered as a single CDN-hosted script. Every feature ships as a `<mpr-*>` custom element; Alpine.js runs behind the scenes to hydrate state, but you stay in declarative HTML for day-to-day work.
+Web components for Marco Polo Research Lab projects, delivered as a single CDN-hosted script. Every feature ships as a `<mpr-*>` custom element; taken together, these tags form a declarative DSL that you use from HTML, while Alpine.js runs behind the scenes to hydrate state.
 
 ## Why mpr-ui?
 
 - Drop `<mpr-header>`, `<mpr-footer>`, `<mpr-theme-toggle>`, and friends directly into any HTML page — no build tools or frameworks required.
-- Alpine.js ships as an implementation detail so the bundle can manage state and events; you never have to author `x-data` unless you want to.
+- Alpine.js ships as an internal wiring detail so the bundle can manage state and events; you never have to author `x-data` or call Alpine helpers unless you deliberately opt into advanced integration patterns.
 - Security and accessibility defaults baked in: escaped strings, sanitised links, sensible roles.
-- Imperative helpers remain available for power users, but the documented API mirrors the custom-element attributes and events.
+- Imperative helpers remain available for power users, but the documented API mirrors the custom-element attributes and events so the public surface stays a declarative Web Components DSL.
 
 ## Quick Start
 
-1. **Load the bundle + prerequisites** — add the packaged stylesheet, Alpine (used internally), the TAuth helper (if applicable), the `mpr-ui` bundle, and Google Identity Services in this order:
+1. **Load the bundle + prerequisites** — add the packaged stylesheet, the `mpr-ui` bundle, and Google Identity Services in this order. Include the TAuth helper only when integrating with TAuth:
 
    ```html
    <link
      rel="stylesheet"
      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
    />
-   <script type="module">
-     import Alpine from "https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js";
-     window.Alpine = Alpine;
-     Alpine.start();
-   </script>
    <!-- Optional but required when integrating with TAuth -->
    <script
      defer
@@ -39,8 +34,6 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
      defer
    ></script>
    ```
-
-   Alpine bootstraps the internal controllers; you don’t have to author `x-data` to benefit from it.
 
 2. **Drop the custom elements** — compose pages declaratively with `<mpr-header>`, `<mpr-footer>`, `<mpr-theme-toggle>`, and friends:
 
@@ -71,7 +64,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
    Each element reflects attributes to props, dispatches `mpr-ui:*` events, and accepts slots so you stay declarative even when you need custom markup.
 
-3. **Opt into imperative/Alpine helpers when necessary** — the legacy factories still exist for teams that need lifecycle hooks or fine-grained control:
+3. **(Advanced, optional) Opt into imperative/Alpine helpers when necessary** — the legacy factories still exist for teams that need lifecycle hooks or fine-grained control. When you use these factories from Alpine, you are deliberately stepping outside the Web Components DSL and must load and start Alpine yourself:
 
    ```html
    <header x-data="mprSiteHeader({ brand: { label: 'Marco Polo Research Lab', href: '/' } })" x-init="init()"></header>
@@ -81,12 +74,12 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
    </script>
    ```
 
-   Prefer custom elements for new work; use `MPRUI.renderSiteHeader(...)` / `mprSiteHeader(...)` only when a host framework requires programmatic mounting.
+   Prefer custom elements for new work; use `MPRUI.renderSiteHeader(...)` / `mprSiteHeader(...)` only when a host framework requires programmatic mounting and you are intentionally stepping outside the Web Components DSL.
 
 ## Integration requirements
 
 1. Load `mpr-ui.css` first so layout tokens and theme variables exist before scripts run.
-2. Load Alpine **before** `mpr-ui.js` and call `Alpine.start()`; the bundle registers custom elements immediately on import.
+2. Load `mpr-ui.js` after styles so the bundle can register custom elements immediately on import. Alpine is only required when you explicitly use the advanced `mprSiteHeader` / `mprFooter` / `mprThemeToggle` factories; the Web Components DSL works without Alpine.
 3. When authenticating via TAuth, include `http://localhost:8080/static/auth-client.js` (or your deployed origin) before `mpr-ui.js` so `initAuthClient`, `logout`, and `getCurrentUser` are defined.
 4. Always include Google Identity Services (`https://accounts.google.com/gsi/client`) so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
 5. Point `base-url`, `login-path`, `logout-path`, and `nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.

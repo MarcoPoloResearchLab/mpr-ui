@@ -4,8 +4,8 @@ This document explains how `demo/index.html` wires Google Identity Services (GIS
 
 ## 1. What `demo/index.html` demonstrates
 
-- Loads `mpr-ui` from the CDN alongside Alpine.js and GIS.
-- Renders `<mpr-header>` and `<mpr-footer>` using declarative HTML only.
+- Loads `mpr-ui` from the CDN alongside Google Identity Services (and, in some variants, the TAuth helper).
+- Renders `<mpr-header>` and `<mpr-footer>` using declarative HTML only, treating the custom elements as a Web Components DSL.
 - Shows how to configure the header with:
   - A Google OAuth Web Client ID (`site-id`).
   - Authentication endpoints (`login-path`, `logout-path`, `nonce-path`).
@@ -22,12 +22,11 @@ The Docker Compose demo (`demo/tauth-demo.html` via `docker-compose.tauth.yml`) 
 Every page that wants the same behavior as `demo/index.html` must include, in this order:
 
 1. `mpr-ui.css` – shared layout + theme tokens.
-2. Alpine.js (ES module) – started via `Alpine.start()`.
-3. (When using TAuth) `auth-client.js` – served by TAuth at `/static/auth-client.js`.
-4. `mpr-ui.js` – the web-components bundle.
-5. GIS SDK – `https://accounts.google.com/gsi/client`.
+2. (When using TAuth) `auth-client.js` – served by TAuth at `/static/auth-client.js`.
+3. `mpr-ui.js` – the web-components bundle.
+4. GIS SDK – `https://accounts.google.com/gsi/client`.
 
-The demo page uses CDN URLs for `mpr-ui.css`, Alpine, and `mpr-ui.js`. The Docker Compose setup mounts local copies of `mpr-ui.css` and `mpr-ui.js` into the container but keeps the same ordering.
+The demo page uses CDN URLs for `mpr-ui.css` and `mpr-ui.js`. The Docker Compose setup mounts local copies of `mpr-ui.css` and `mpr-ui.js` into the container but keeps the same ordering.
 
 ## 3. `<mpr-header>` attributes and backend endpoints
 
@@ -146,7 +145,7 @@ To reproduce the `demo/index.html` + TAuth integration in another project:
    - `/me` and `/auth/refresh` for `auth-client.js`.
 2. Configure CORS and cookies so the UI origin can call the backend and receive cookies (`SameSite=None; Secure` when cross-origin).
 3. On the UI page:
-   - Load `mpr-ui.css`, Alpine, (optional) `auth-client.js`, `mpr-ui.js`, and GIS in that order.
+   - Load `mpr-ui.css`, (optional) `auth-client.js`, `mpr-ui.js`, and GIS in that order.
    - Add `<mpr-header>` with `site-id`, `login-path`, `logout-path`, `nonce-path`, and (if needed) `base-url`.
    - Add any desired footer and session-panel elements (`demo/tauth-demo.html` shows a complete example).
 4. Verify the flow:
@@ -159,4 +158,3 @@ To reproduce the `demo/index.html` + TAuth integration in another project:
    - Inspect backend logs for `auth.login.nonce_mismatch` and validate origin, cookie domain, and CORS settings.
 
 For deeper background on TAuth’s expectations, see `tools/TAuth/README.md` (section “Google nonce handling”) and `docs/integration-guide.md` for the broader integration walkthrough.
-
