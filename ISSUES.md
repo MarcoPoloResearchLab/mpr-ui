@@ -67,7 +67,7 @@ See @image.png
 
 - [x] [MU-406] Removed the legacy standalone footer bundle so `mpr-ui.js` owns the canonical footer implementation and documentation no longer references the older asset.
 
-- [ ] [MU-407] Deprecate Alpine-based factories and other advanced imperative helpers (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, etc.) in favour of the `<mpr-*>` Web Components DSL as the only consumer-facing API; mark these APIs as deprecated in README/ARCHITECTURE, adjust demos to avoid `x-data` usage, and plan removal in the next major release after communicating the migration path.
+- [x] [MU-407] Deprecate Alpine-based factories and other advanced imperative helpers (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, etc.) in favour of the `<mpr-*>` Web Components DSL as the only consumer-facing API; mark these APIs as deprecated in README/ARCHITECTURE, adjust demos to avoid `x-data` usage, and plan removal in the next major release after communicating the migration path — added runtime console warnings for every legacy helper, updated README/ARCHITECTURE/custom-elements/integration docs with the migration plan and removal timeline, removed the `x-data` example from Quick Start, and ran `npm run test:unit`.
 
 ## Planning
 *Do not work on these, not ready*

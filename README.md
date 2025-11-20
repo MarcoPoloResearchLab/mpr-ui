@@ -64,22 +64,28 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
    Each element reflects attributes to props, dispatches `mpr-ui:*` events, and accepts slots so you stay declarative even when you need custom markup.
 
-3. **(Advanced, optional) Opt into imperative/Alpine helpers when necessary** — the legacy factories still exist for teams that need lifecycle hooks or fine-grained control. When you use these factories from Alpine, you are deliberately stepping outside the Web Components DSL and must load and start Alpine yourself:
+3. **Legacy helpers (deprecated)** — `MPRUI.renderSiteHeader`, `MPRUI.renderFooter`, `MPRUI.renderThemeToggle`, `MPRUI.mprSiteHeader`, `MPRUI.mprFooter`, `MPRUI.mprThemeToggle`, and `MPRUI.mprHeader` now emit console warnings and will be removed in the next major release. Avoid introducing new usages; if you still depend on them, see [Legacy helper migration](#legacy-helper-migration) for the path back to the `<mpr-*>` declarative DSL.
 
-   ```html
-   <header x-data="mprSiteHeader({ brand: { label: 'Marco Polo Research Lab', href: '/' } })" x-init="init()"></header>
-   <footer x-data="mprFooter({ linksCollection: { style: 'drop-up', text: 'Built by', links: footerLinks } })" x-init="init()"></footer>
-   <script>
-     const footerLinks = MPRUI.getFooterSiteCatalog();
-   </script>
-   ```
+## Legacy helper migration
 
-   Prefer custom elements for new work; use `MPRUI.renderSiteHeader(...)` / `mprSiteHeader(...)` only when a host framework requires programmatic mounting and you are intentionally stepping outside the Web Components DSL.
+The imperative namespace helpers remain in the bundle for backwards compatibility but are now deprecated:
+
+- `MPRUI.renderSiteHeader`, `MPRUI.renderFooter`, `MPRUI.renderThemeToggle`
+- `MPRUI.mprSiteHeader`, `MPRUI.mprFooter`, `MPRUI.mprThemeToggle`, `MPRUI.mprHeader`
+
+They log console warnings and will be removed in **`mpr-ui v2.0`**. To migrate:
+
+1. Replace each helper with its `<mpr-*>` counterpart (`<mpr-header>`, `<mpr-footer>`, `<mpr-theme-toggle>`).
+2. Serialize your existing option objects into attributes (JSON for complex values such as `nav-links`, `links-collection`, or `theme-config`).
+3. Use slots (`brand`, `nav-left`, `nav-right`, `aux`, `menu-prefix`, etc.) to inject custom markup instead of writing templates inside Alpine components.
+4. Remove the Alpine bootstrap script if it was only present for these helpers; the Web Components DSL runs without Alpine.
+
+See [`docs/custom-elements.md`](docs/custom-elements.md) for attribute references and event tables. During the migration window you can still load Alpine and call the helpers, but expect deprecation warnings until they are removed.
 
 ## Integration requirements
 
 1. Load `mpr-ui.css` first so layout tokens and theme variables exist before scripts run.
-2. Load `mpr-ui.js` after styles so the bundle can register custom elements immediately on import. Alpine is only required when you explicitly use the advanced `mprSiteHeader` / `mprFooter` / `mprThemeToggle` factories; the Web Components DSL works without Alpine.
+2. Load `mpr-ui.js` after styles so the bundle can register custom elements immediately on import. Alpine was previously required for the advanced `mprSiteHeader` / `mprFooter` / `mprThemeToggle` factories, but those helpers are deprecated—avoid them and rely on the declarative Web Components DSL instead.
 3. When authenticating via TAuth, include `http://localhost:8080/static/auth-client.js` (or your deployed origin) before `mpr-ui.js` so `initAuthClient`, `logout`, and `getCurrentUser` are defined.
 4. Always include Google Identity Services (`https://accounts.google.com/gsi/client`) so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
 5. Point `base-url`, `login-path`, `logout-path`, and `nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
@@ -203,7 +209,7 @@ Custom elements re-dispatch the same events as the imperative helpers, so you ca
 
 ### Optional helpers
 
-Need lifecycle hooks or a framework-driven mount? Call `MPRUI.renderSiteHeader(...)`, `MPRUI.renderFooter(...)`, or the Alpine factories (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, etc.). Those helpers accept the same option objects that the elements serialize via attributes, so switching between styles is mechanical. See [`docs/alpine.js.md`](docs/alpine.js.md) for patterns that justify imperative wiring.
+**Deprecated legacy helpers** — `MPRUI.renderSiteHeader(...)`, `MPRUI.renderFooter(...)`, `MPRUI.renderThemeToggle(...)`, and the Alpine factories (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, `mprHeader`) still exist for frameworks that have not yet migrated, but they now emit console warnings and will be removed in `mpr-ui v2.0`. Use the `<mpr-*>` elements wherever possible and follow the [legacy helper migration](#legacy-helper-migration) guidance when retiring the remaining imperative code paths.
 
 ## Demo
 
