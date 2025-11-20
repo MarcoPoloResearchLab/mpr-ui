@@ -149,3 +149,4 @@ test-results/
 qodana.yaml
 .idea/
 bin/
+docs/demo
