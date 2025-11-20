@@ -22,13 +22,6 @@ When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 | --------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `MPRUI.createAuthHeader(host, options)` | Creates the auth header controller bound to a DOM element.                                           |
 | `MPRUI.renderAuthHeader(host, options)` | Convenience wrapper that resolves CSS selectors before calling `createAuthHeader`.                   |
-| `MPRUI.mprHeader(options)`              | **Deprecated** — legacy factory that only wires the auth controller; prefer `<mpr-header>`.    |
-| `MPRUI.renderSiteHeader(host, options)` | **Deprecated** — renders the sticky site header and returns `{ update, destroy }`; prefer `<mpr-header>`. |
-| `MPRUI.mprSiteHeader(options)`          | **Deprecated** — Alpine/framework factory for the site header; prefer `<mpr-header>`.  |
-| `MPRUI.renderFooter(host, options)`     | **Deprecated** — renders the marketing footer and returns `{ update, destroy }`; prefer `<mpr-footer>`. |
-| `MPRUI.mprFooter(options)`              | **Deprecated** — framework-friendly facade; prefer `<mpr-footer>`.        |
-| `MPRUI.renderThemeToggle(host, options)`| **Deprecated** — mounts the shared theme toggle into a DOM node; prefer `<mpr-theme-toggle>`.                                            |
-| `MPRUI.mprThemeToggle(options)`         | **Deprecated** — Alpine-friendly wrapper for the shared theme toggle; prefer `<mpr-theme-toggle>`.                                                 |
 | `MPRUI.configureTheme(config)`          | Merges global theme configuration (attribute, targets, modes) and reapplies the current mode.        |
 | `MPRUI.setThemeMode(value)`             | Sets the active theme mode and dispatches `mpr-ui:theme-change`.                                     |
 | `MPRUI.getThemeMode()`                  | Returns the active theme mode string.                                                                |
@@ -39,7 +32,7 @@ When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 
 All helpers are side-effect free apart from DOM writes and `fetch` requests.
 
-> **Deprecation notice:** The imperative helpers (`renderSiteHeader`, `renderFooter`, `renderThemeToggle`) and their Alpine factories (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, `mprHeader`) are deprecated. They emit console warnings on invocation and will be removed in `mpr-ui v2.0`. Use the `<mpr-*>` custom elements whenever possible and follow the README migration guidance when retiring legacy integrations.
+> The Alpine-based helper exports (`renderSiteHeader`, `mprFooter`, etc.) were removed in v0.2.0 so the `<mpr-*>` Web Components DSL is the only supported API. See [`docs/deprecation-roadmap.md`](docs/deprecation-roadmap.md) for the historical mapping and removal timeline.
 
 ### Custom Elements
 
@@ -47,9 +40,9 @@ The bundle auto-registers modern HTML custom elements when `window.customElement
 
 | Tag               | Backing Helper(s)                              | Key Attributes                                                                                                                        | Emitted Events                                            |
 | ----------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `<mpr-header>`    | `renderSiteHeader`, `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `site-id`, `theme-config`, `auth-config`, `login-path`, `logout-path`, `nonce-path`, etc.   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
-| `<mpr-footer>`    | `renderFooter`                                 | `prefix-text`, `links-collection`, legacy `links`, `toggle-label`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides     | `mpr-footer:theme-change`                                 |
-| `<mpr-theme-toggle>` | `renderThemeToggle`, `configureTheme`       | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`, `theme-mode`          | `mpr-ui:theme-change` (via the shared theme manager)      |
+| `<mpr-header>`    | Header controller + `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `site-id`, `theme-config`, `auth-config`, `login-path`, `logout-path`, `nonce-path`, etc.   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
+| `<mpr-footer>`    | Footer controller (internal)                   | `prefix-text`, `links-collection`, legacy `links`, `toggle-label`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides     | `mpr-footer:theme-change`                                 |
+| `<mpr-theme-toggle>` | Theme manager (`configureTheme`)            | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`, `theme-mode`          | `mpr-ui:theme-change` (via the shared theme manager)      |
 | `<mpr-login-button>` | `createAuthHeader`, shared GIS helper       | `site-id`, `login-path`, `logout-path`, `nonce-path`, `base-url`, `button-text`, `button-size`, `button-theme`, `button-shape`        | `mpr-ui:auth:*`, `mpr-login:error`                        |
 | `<mpr-settings>` | Settings CTA + panel wrapper                    | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open`                                                                    | `mpr-settings:toggle`                                     |
 | `<mpr-sites>`    | `getFooterSiteCatalog` (plus inline renderer)   | `links` (JSON), `variant` (`list`, `grid`, `menu`), `columns`, `heading`                                                              | `mpr-sites:link-click`                                    |
@@ -119,7 +112,7 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 
 ## Site Header Component
 
-`renderSiteHeader` produces a sticky banner that combines navigation, auth controls, and shared theme configuration (it no longer renders a theme toggle; pair it with the footer or `<mpr-theme-toggle>` for user interaction). When `auth` options are supplied it internally initialises `createAuthHeader`, so the host element still receives the `mpr-ui:auth:*` events and dataset updates documented earlier.
+The header controller produces a sticky banner that combines navigation, auth controls, and shared theme configuration (it no longer renders a theme toggle; pair it with the footer or `<mpr-theme-toggle>` for user interaction). When `auth` options are supplied it internally initialises `createAuthHeader`, so the host element still receives the `mpr-ui:auth:*` events and dataset updates documented earlier.
 
 ### Markup & Styling
 
@@ -167,11 +160,11 @@ Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to
 - Declarative configuration is supported via `data-theme-toggle` (JSON) and `data-theme-mode` attributes on header/footer hosts. Imperative options and dataset values are merged.
 - Consumers can observe theme changes with `MPRUI.onThemeChange(listener)` or by listening for the bubbling `mpr-ui:theme-change` event (detail `{ mode, source }`).
 
-## Footer Renderer (Bundle)
+## Footer Controller (Internal)
 
-`renderFooter` bundles the dropdown/theme implementation, injects styles via `<style id="mpr-ui-footer-styles">`, pins the footer to the bottom of the viewport (`position: sticky` by default), and exposes both imperative and (deprecated) Alpine APIs. When `sticky` is set to `false` the footer root falls back to normal in-flow positioning.
+The footer controller bundles the dropdown/theme implementation, injects styles via `<style id="mpr-ui-footer-styles">`, and pins the footer to the bottom of the viewport (`position: sticky` by default). When `sticky` is set to `false` the footer root falls back to normal in-flow positioning.
 
-### Options (`renderFooter` / `mprFooter`)
+### Controller Options
 
 | Option                     | Type                                   | Description                                                                   |
 | -------------------------- | -------------------------------------- | ----------------------------------------------------------------------------- |
@@ -218,13 +211,8 @@ Declarative attribute `theme-switcher` controls `themeToggle.variant` and implic
 ### Behaviour
 
 - Dropdown menu prefers Bootstrap’s `Dropdown` if available; otherwise a light-weight native toggle keeps `aria-expanded` in sync.
-- Theme toggle emits `mpr-footer:theme-change` with `{ theme }` and also re-emits through Alpine’s `$dispatch` when present.
+- Theme toggle emits `mpr-footer:theme-change` with `{ theme }` and forwards the mode through the shared theme manager for `<mpr-theme-toggle>` / `<mpr-header>` to consume.
 - All strings are escaped; dangerous schemes for links fall back to `#`.
-
-### Controller Object
-
-- Imperative API: `renderFooter` returns `{ update(nextOptions), destroy(), getConfig() }`.
-- Deprecated Alpine API: `mprFooter` exposes `{ init, update, destroy }`, wiring `$dispatch` when available. Prefer `<mpr-footer>` instead.
 
 ## Security and Accessibility Considerations
 

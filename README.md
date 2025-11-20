@@ -64,28 +64,12 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
    Each element reflects attributes to props, dispatches `mpr-ui:*` events, and accepts slots so you stay declarative even when you need custom markup.
 
-3. **Legacy helpers (deprecated)** — `MPRUI.renderSiteHeader`, `MPRUI.renderFooter`, `MPRUI.renderThemeToggle`, `MPRUI.mprSiteHeader`, `MPRUI.mprFooter`, `MPRUI.mprThemeToggle`, and `MPRUI.mprHeader` now emit console warnings and will be removed in the next major release. Avoid introducing new usages; if you still depend on them, see [Legacy helper migration](#legacy-helper-migration) for the path back to the `<mpr-*>` declarative DSL.
-
-## Legacy helper migration
-
-The imperative namespace helpers remain in the bundle for backwards compatibility but are now deprecated:
-
-- `MPRUI.renderSiteHeader`, `MPRUI.renderFooter`, `MPRUI.renderThemeToggle`
-- `MPRUI.mprSiteHeader`, `MPRUI.mprFooter`, `MPRUI.mprThemeToggle`, `MPRUI.mprHeader`
-
-They log console warnings and will be removed in **`mpr-ui v2.0`**. To migrate:
-
-1. Replace each helper with its `<mpr-*>` counterpart (`<mpr-header>`, `<mpr-footer>`, `<mpr-theme-toggle>`).
-2. Serialize your existing option objects into attributes (JSON for complex values such as `nav-links`, `links-collection`, or `theme-config`).
-3. Use slots (`brand`, `nav-left`, `nav-right`, `aux`, `menu-prefix`, etc.) to inject custom markup instead of writing templates inside Alpine components.
-4. Remove the Alpine bootstrap script if it was only present for these helpers; the Web Components DSL runs without Alpine.
-
-See [`docs/custom-elements.md`](docs/custom-elements.md) for attribute references and event tables. During the migration window you can still load Alpine and call the helpers, but expect deprecation warnings until they are removed.
+> Upgrading from **≤0.1.x**? The legacy helper mapping and migration checklist now live in [`docs/deprecation-roadmap.md`](docs/deprecation-roadmap.md); that file captures the old API surface and the steps we took to remove it.
 
 ## Integration requirements
 
 1. Load `mpr-ui.css` first so layout tokens and theme variables exist before scripts run.
-2. Load `mpr-ui.js` after styles so the bundle can register custom elements immediately on import. Alpine was previously required for the advanced `mprSiteHeader` / `mprFooter` / `mprThemeToggle` factories, but those helpers are deprecated—avoid them and rely on the declarative Web Components DSL instead.
+2. Load `mpr-ui.js` after styles so the bundle can register custom elements immediately on import. No Alpine wiring is required; the Web Components DSL is the only public API.
 3. When authenticating via TAuth, include `http://localhost:8080/static/auth-client.js` (or your deployed origin) before `mpr-ui.js` so `initAuthClient`, `logout`, and `getCurrentUser` are defined.
 4. Always include Google Identity Services (`https://accounts.google.com/gsi/client`) so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
 5. Point `base-url`, `login-path`, `logout-path`, and `nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
@@ -208,8 +192,6 @@ Slots let you inject custom markup without leaving declarative mode:
 Custom elements re-dispatch the same events as the imperative helpers, so you can mix declarative and programmatic integrations on the same page. See [`docs/custom-elements.md`](docs/custom-elements.md) for a deep-dive covering attribute shapes, events, and migration tips (Alpine → custom elements).
 
 ### Optional helpers
-
-**Deprecated legacy helpers** — `MPRUI.renderSiteHeader(...)`, `MPRUI.renderFooter(...)`, `MPRUI.renderThemeToggle(...)`, and the Alpine factories (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, `mprHeader`) still exist for frameworks that have not yet migrated, but they now emit console warnings and will be removed in `mpr-ui v2.0`. Use the `<mpr-*>` elements wherever possible and follow the [legacy helper migration](#legacy-helper-migration) guidance when retiring the remaining imperative code paths.
 
 ## Demo
 
