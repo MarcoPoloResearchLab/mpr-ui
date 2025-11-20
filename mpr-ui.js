@@ -1403,6 +1403,10 @@
     var squareDot = variant === "square"
       ? hostElement.querySelector('[data-mpr-theme-toggle="dot"]')
       : null;
+    if (variant === "square" && controlElement && controlElement.style) {
+      controlElement.style.setProperty("--mpr-theme-square-size", "28px");
+      controlElement.style.setProperty("--mpr-theme-square-dot-size", "6px");
+    }
     var squareQuads = [];
     if (variant === "square" && hostElement.querySelectorAll) {
       var quadNodeList = hostElement.querySelectorAll('[data-mpr-theme-toggle="quad"]');
