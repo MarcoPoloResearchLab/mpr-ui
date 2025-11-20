@@ -66,6 +66,10 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 > Upgrading from **≤0.1.x**? The legacy helper mapping and migration checklist now live in [`docs/deprecation-roadmap.md`](docs/deprecation-roadmap.md); that file captures the old API surface and the steps we took to remove it.
 
+## v0.2.0 breaking change
+
+- Removed the legacy `MPRUI.render*`/`mpr*` helper exports. The `<mpr-*>` Web Components DSL is now the only consumer API; consult [`docs/deprecation-roadmap.md`](docs/deprecation-roadmap.md) if you are migrating from an older release.
+
 ## Integration requirements
 
 1. Load `mpr-ui.css` first so layout tokens and theme variables exist before scripts run.

@@ -1,6 +1,6 @@
 {
   "name": "mpr-ui",
-  "version": "1.0.0",
+  "version": "0.2.0",
   "private": true,
   "description": "Reusable UI components for Marco Polo Research Lab projects, delivered as a single CDN-hosted script.",
   "license": "MIT",
