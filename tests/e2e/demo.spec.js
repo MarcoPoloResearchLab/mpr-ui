@@ -76,6 +76,33 @@ test.describe('Demo behaviours', () => {
     expect(forestSnapshot.mode).toBe('forest-dark');
   });
 
+  test('MU-201: square footer switcher collapses into a single-quadrant footprint', async ({ page }) => {
+    const metrics = await page.$eval(footerThemeControl, (control) => {
+      const grid = control.querySelector('[data-mpr-theme-toggle="grid"]');
+      const dot = control.querySelector('[data-mpr-theme-toggle="dot"]');
+      const ownerWindow = control.ownerDocument?.defaultView;
+      if (!grid || !dot || !ownerWindow) {
+        return null;
+      }
+      const controlStyles = ownerWindow.getComputedStyle(control);
+      const dotStyles = ownerWindow.getComputedStyle(dot);
+      const gridRect = grid.getBoundingClientRect();
+      return {
+        size: controlStyles.getPropertyValue('--mpr-theme-square-size').trim(),
+        dotSize: dotStyles.getPropertyValue('inline-size').trim(),
+        width: gridRect.width,
+        height: gridRect.height,
+      };
+    });
+    expect(metrics).not.toBeNull();
+    if (metrics) {
+      expect(metrics.size).toBe('28px');
+      expect(metrics.dotSize).toBe('6px');
+      expect(metrics.width).toBeCloseTo(28, 0);
+      expect(metrics.height).toBeCloseTo(28, 0);
+    }
+  });
+
   test('MU-310: footer quadrant selection updates the palette attribute', async ({ page }) => {
     const paletteBefore = await page.evaluate(() => document.body.getAttribute('data-demo-palette'));
     await clickQuadrant(page, footerThemeControl, 'bottomRight');

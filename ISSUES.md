@@ -47,7 +47,8 @@ volumes:
 ```
     - Added a `sticky` boolean option/attribute to both `<mpr-header>` and `<mpr-footer>`, mapped it to a `data-mpr-sticky` marker on the rendered header/footer roots, and extended unit + Playwright coverage plus README/ARCHITECTURE docs to cover default sticky behaviour and the opt-out configuration.
 
-- [ ] [MU-201] reduce the size of theme-switcher="square" to the size of one of it's quadrants, so that the whole toggle with all four quadrants fitted into a single current qudrant
+- [x] [MU-201] reduce the size of theme-switcher="square" to the size of one of it's quadrants, so that the whole toggle with all four quadrants fitted into a single current qudrant
+    - Collapsed the square theme toggle footprint to a 28px grid (single-quadrant size), scaled the dot/focus/active treatments to match, and added Playwright coverage for the new sizing.
 
 ## BugFixes (325–399)
 
