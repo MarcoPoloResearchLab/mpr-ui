@@ -11,8 +11,8 @@ The legacy `MPRUI.render*` / `mpr*` helpers were the old escape hatches for Alpi
 ## v0.2.0 removal checklist
 
 - [x] **MU-408 – Runtime:** remove every deprecated helper from `mpr-ui.js`, delete the warning wrapper, and keep the controllers internal to the custom elements. (`npm run test:unit`)
-- [ ] **MU-409 – Docs & demos:** scrub README/ARCHITECTURE/custom-elements/integration guides (plus demos) so they only mention the `<mpr-*>` DSL and reference this roadmap for historical context.
-- [ ] **MU-410 – Changelog & version:** document the breaking change in `CHANGELOG.md`, bump the package version to `0.2.0`, and reiterate the migration tips in README.
-- [ ] **MU-411 – Verification:** clean up any lingering tests/fixtures that referenced the helpers, ensure Playwright uses only `<mpr-*>`, and run `npm run test:unit` + `npm run test:e2e` as the release gate.
+- [x] **MU-409 – Docs & demos:** scrub README/ARCHITECTURE/custom-elements/integration guides (plus demos) so they only mention the `<mpr-*>` DSL and reference this roadmap for historical context.
+- [x] **MU-410 – Changelog & version:** document the breaking change in `CHANGELOG.md`, bump the package version to `0.2.0`, and reiterate the migration tips in README.
+- [x] **MU-411 – Verification:** clean up any lingering tests/fixtures that referenced the helpers, ensure Playwright uses only `<mpr-*>`, and run `npm run test:unit` + `npm run test:e2e` as the release gate.
 
 When all tasks are checked, the repository will solely expose the Web Components DSL, and this file becomes the canonical upgrade note for teams jumping from ≤0.1.x straight to `v0.2.0`.
