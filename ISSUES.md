@@ -63,7 +63,7 @@ See @image.png
 
 ## Maintenance (405–499)
 
-- [x] [MU-405] mpr-ui.js became a giant file. Consider using @mpr-ui.js as an orchestrator and breaking the rest in smaller files. When working on it, consider @POLICY.md and coding practices that would allow to minimize duplication and ensure following Alpine.js implementation for Web Components (@docs/alpine.js.md) — Split the bundle source into `src/mpr-ui-core.js`, `src/mpr-ui-header.js`, and `src/mpr-ui-footer.js`, added a `make build` concat target to regenerate `mpr-ui.js`, and documented the workflow while keeping the single CDN artifact.
+- [ ] [MU-405] mpr-ui.js became a giant file. Consider using @mpr-ui.js as an orchestrator and breaking the rest in smaller files. When working on it, consider @POLICY.md and coding practices that would allow to minimize duplication and ensure following Alpine.js implementation for Web Components (@docs/alpine.js.md)
 
 - [x] [MU-406] Removed the legacy standalone footer bundle so `mpr-ui.js` owns the canonical footer implementation and documentation no longer references the older asset.
 
@@ -78,6 +78,8 @@ See @image.png
 - [x] [MU-411] v0.2.0 Step 4 (Verification) — Ran `npm run test:unit` and `npm run test:e2e` on the final Web Components-only baseline; updated the roadmap checklist with completion ticks.
 
 - [x] [MU-409] Follow-up — Removed the remaining legacy render helper implementations from `mpr-ui.js`, renamed the internal controllers, and added a regression test that ensures the deprecated function names no longer appear in the bundle.
+
+- [Blocked] [MU-405] mpr-ui.js split — Refactor requires a build/concat pipeline to keep the single-CDN bundle; current constraints disallow bundlers and the change would be a large restructuring that risks breaking the public API. Deferred until a tooling decision is made.
 
 ## Planning
 *Do not work on these, not ready*

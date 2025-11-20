@@ -2,7 +2,6 @@
 
 ## [Unreleased]
 
-- Split `mpr-ui.js` into source parts (`src/mpr-ui-core.js`, `src/mpr-ui-header.js`, `src/mpr-ui-footer.js`) with a `make build` concat target to regenerate the bundle while keeping a single CDN artifact.
 - Removed the remaining legacy render helper implementations from the bundle, renamed the internal controllers, and added regression coverage to ensure the deprecated function names no longer appear in `mpr-ui.js`.
 
 ## [0.2.0] - 2025-11-19
