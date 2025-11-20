@@ -77,5 +77,7 @@ See @image.png
 
 - [x] [MU-411] v0.2.0 Step 4 (Verification) — Ran `npm run test:unit` and `npm run test:e2e` on the final Web Components-only baseline; updated the roadmap checklist with completion ticks.
 
+- [x] [MU-409] Follow-up — Removed the remaining legacy render helper implementations from `mpr-ui.js`, renamed the internal controllers, and added a regression test that ensures the deprecated function names no longer appear in the bundle.
+
 ## Planning
 *Do not work on these, not ready*

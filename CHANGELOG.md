@@ -2,7 +2,7 @@
 
 ## [Unreleased]
 
-- Pending changes.
+- Removed the remaining legacy render helper implementations from the bundle, renamed the internal controllers, and added regression coverage to ensure the deprecated function names no longer appear in `mpr-ui.js`.
 
 ## [0.2.0] - 2025-11-19
 

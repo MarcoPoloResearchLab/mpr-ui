@@ -3324,10 +3324,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
   }
 
-  function renderSiteHeader(target, rawOptions) {
+  function createSiteHeaderController(target, rawOptions) {
     var hostElement = resolveHost(target);
     if (!hostElement || typeof hostElement !== "object") {
-      throw new Error("renderSiteHeader requires a host element");
+      throw new Error("createSiteHeaderController requires a host element");
     }
 
     var datasetOptions = readHeaderOptionsFromDataset(hostElement);
@@ -5174,10 +5174,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return component;
   }
 
-  function renderFooter(target, options) {
+  function createFooterController(target, options) {
     var host = resolveHost(target);
     if (!host || typeof host !== "object") {
-      throw new Error("renderFooter requires a host element");
+      throw new Error("createFooterController requires a host element");
     }
     var component = createFooterComponent(options);
     component.$el = host;
@@ -5195,10 +5195,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     };
   }
 
-  function renderThemeToggle(target, options) {
+  function createThemeToggleController(target, options) {
     var host = resolveHost(target);
     if (!host || typeof host !== "object") {
-      throw new Error("renderThemeToggle requires a root element");
+      throw new Error("createThemeToggleController requires a root element");
     }
     var latestOptions = deepMergeOptions({}, options || {});
     var normalized = normalizeStandaloneThemeToggleOptions(latestOptions);
@@ -5274,7 +5274,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           if (this.__headerController) {
             this.__headerController.update(options);
           } else {
-            this.__headerController = renderSiteHeader(this, options);
+            this.__headerController = createSiteHeaderController(this, options);
           }
           if (this.__headerSlots) {
             var elements = resolveHeaderElements(this);
@@ -5300,7 +5300,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         render() {
           this.__captureFooterSlots();
           syncDatasetFromAttributes(this, FOOTER_ATTRIBUTE_DATASET_MAP);
-          this.__renderFooter();
+          this.__applyFooter();
         }
         update(name, _oldValue, newValue) {
           reflectAttributeToDataset(
@@ -5309,7 +5309,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             normalizeAttributeReflectionValue(name, newValue),
             FOOTER_ATTRIBUTE_DATASET_MAP,
           );
-          this.__renderFooter();
+          this.__applyFooter();
         }
         destroy() {
           if (this.__footerController && typeof this.__footerController.destroy === "function") {
@@ -5324,7 +5324,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__footerSlots = captureSlotNodes(this, FOOTER_SLOT_NAMES);
           this.__footerSlotsCaptured = true;
         }
-        __renderFooter() {
+        __applyFooter() {
           if (!this.__mprConnected) {
             return;
           }
@@ -5332,7 +5332,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           if (this.__footerController) {
             this.__footerController.update(options);
           } else {
-            this.__footerController = renderFooter(this, options);
+            this.__footerController = createFooterController(this, options);
           }
           if (this.__footerSlots) {
             applyFooterSlotContent(this.__footerSlots, this);
@@ -5353,10 +5353,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           return THEME_TOGGLE_ATTRIBUTE_NAMES;
         }
         render() {
-          this.__renderThemeToggle();
+          this.__applyThemeToggle();
         }
         update() {
-          this.__renderThemeToggle();
+          this.__applyThemeToggle();
         }
         destroy() {
           if (
@@ -5367,7 +5367,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
           this.__themeToggleController = null;
         }
-        __renderThemeToggle() {
+        __applyThemeToggle() {
           if (!this.__mprConnected) {
             return;
           }
@@ -5375,7 +5375,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           if (this.__themeToggleController) {
             this.__themeToggleController.update(options);
           } else {
-            this.__themeToggleController = renderThemeToggle(this, options);
+            this.__themeToggleController =
+              createThemeToggleController(this, options);
           }
         }
       };
