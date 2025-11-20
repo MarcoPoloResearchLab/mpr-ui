@@ -765,7 +765,15 @@ test('mpr-footer reflects attributes and slot content', () => {
   );
   assert.deepEqual(
     controllerConfig && controllerConfig.links,
-    [{ label: 'Docs', url: '#docs', target: '_blank', rel: 'noopener noreferrer' }],
+    [
+      {
+        label: 'Docs',
+        href: '#docs',
+        url: '#docs',
+        target: '_blank',
+        rel: 'noopener noreferrer',
+      },
+    ],
     'links attribute parsed into controller config',
   );
   assert.equal(

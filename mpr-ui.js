@@ -149,6 +149,8 @@
     throw new Error("resolveHost expected a selector string or an element reference");
   }
 
+  var PROHIBITED_MERGE_KEYS = Object.freeze(["__proto__", "constructor", "prototype"]);
+
   function deepMergeOptions(target) {
     var baseObject = !target || typeof target !== "object" ? {} : target;
     for (var index = 1; index < arguments.length; index += 1) {
@@ -157,6 +159,9 @@
         continue;
       }
       Object.keys(sourceObject).forEach(function handleKey(key) {
+        if (PROHIBITED_MERGE_KEYS.indexOf(key) !== -1) {
+          return;
+        }
         var value = sourceObject[key];
         if (Array.isArray(value)) {
           baseObject[key] = value.slice();
@@ -862,6 +867,7 @@
     var allDatasetKeys = collectThemeDatasetKeys(currentConfig.modes);
     var listeners = [];
     var currentMode = currentConfig.modes[0].value;
+    var resolvedTargets = resolveThemeTargets(currentConfig.targets);
 
     function getModeIndex(modeValue) {
       for (var index = 0; index < currentConfig.modes.length; index += 1) {
@@ -886,7 +892,7 @@
         modeValue = currentConfig.modes[0].value;
       }
       var activeMode = currentConfig.modes[modeIndex];
-      var targets = resolveThemeTargets(currentConfig.targets);
+      var targets = resolvedTargets;
       var documentElement =
         global.document && global.document.documentElement
           ? global.document.documentElement
@@ -969,6 +975,10 @@
       if (Object.prototype.hasOwnProperty.call(partialConfig, "targets")) {
         var mergedTargets = DEFAULT_THEME_TARGETS.concat(normalized.targets);
         currentConfig.targets = dedupeTargets(mergedTargets);
+        resolvedTargets = resolveThemeTargets(currentConfig.targets);
+      }
+      if (!resolvedTargets || !resolvedTargets.length) {
+        resolvedTargets = resolveThemeTargets(currentConfig.targets);
       }
       if (Object.prototype.hasOwnProperty.call(partialConfig, "modes")) {
         currentConfig.modes = normalized.modes;
@@ -2552,6 +2562,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     '<p data-mpr-header="settings-modal-placeholder-title">Add your settings controls here.</p>' +
     '<p data-mpr-header="settings-modal-placeholder-subtext">Listen for the "mpr-ui:header:settings-click" event or query [data-mpr-header="settings-modal-body"] to mount custom UI.</p>' +
     "</div>";
+  var HEADER_LINK_DEFAULT_TARGET = "_blank";
+  var HEADER_LINK_DEFAULT_REL = "noopener noreferrer";
 
   var HEADER_DEFAULTS = Object.freeze({
     brand: Object.freeze({
@@ -2733,16 +2745,32 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         : "";
     var navMarkup = options.navLinks
       .map(function (link) {
-        var linkHref = escapeHtml(sanitizeHref(link.href));
-        var linkLabel = escapeHtml(link.label);
+        var normalizedLink = normalizeLinkForRendering(link, {
+          target: HEADER_LINK_DEFAULT_TARGET,
+          rel: HEADER_LINK_DEFAULT_REL,
+        });
+        if (!normalizedLink) {
+          return "";
+        }
+        var linkHref = escapeHtml(normalizedLink.href);
+        var linkLabel = escapeHtml(normalizedLink.label);
+        var linkTarget = escapeHtml(
+          normalizedLink.target || HEADER_LINK_DEFAULT_TARGET,
+        );
+        var linkRel = escapeHtml(normalizedLink.rel || HEADER_LINK_DEFAULT_REL);
         return (
           '<a href="' +
           linkHref +
-          '" target="_blank" rel="noopener noreferrer">' +
+          '" target="' +
+          linkTarget +
+          '" rel="' +
+          linkRel +
+          '">' +
           linkLabel +
           "</a>"
         );
       })
+      .filter(Boolean)
       .join("");
 
     return (
@@ -3245,16 +3273,32 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     navElement.innerHTML = navLinks
       .map(function (link) {
-        var hrefValue = escapeHtml(sanitizeHref(link.href));
-        var labelValue = escapeHtml(link.label);
+        var normalizedLink = normalizeLinkForRendering(link, {
+          target: HEADER_LINK_DEFAULT_TARGET,
+          rel: HEADER_LINK_DEFAULT_REL,
+        });
+        if (!normalizedLink) {
+          return "";
+        }
+        var hrefValue = escapeHtml(normalizedLink.href);
+        var labelValue = escapeHtml(normalizedLink.label);
+        var targetValue = escapeHtml(
+          normalizedLink.target || HEADER_LINK_DEFAULT_TARGET,
+        );
+        var relValue = escapeHtml(normalizedLink.rel || HEADER_LINK_DEFAULT_REL);
         return (
           '<a href="' +
           hrefValue +
-          '" target="_blank" rel="noopener noreferrer">' +
+          '" target="' +
+          targetValue +
+          '" rel="' +
+          relValue +
+          '">' +
           labelValue +
           "</a>"
         );
       })
+      .filter(Boolean)
       .join("");
   }
 
@@ -3892,6 +3936,30 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return trimmed;
   }
 
+  function normalizeLinkForRendering(link, defaults) {
+    if (!link || typeof link !== "object") {
+      return null;
+    }
+    var fallback = defaults && typeof defaults === "object" ? defaults : {};
+    var labelRaw =
+      link.label || link.Label || (typeof link.text === "string" ? link.text : "");
+    var normalizedLabel = typeof labelRaw === "string" ? labelRaw.trim() : "";
+    var hrefSource = link.href || link.url || link.URL || "";
+    var sanitizedHref = sanitizeHref(hrefSource);
+    if (!normalizedLabel || !sanitizedHref) {
+      return null;
+    }
+    var targetSource = link.target || link.Target || fallback.target || "";
+    var relSource = link.rel || link.Rel || fallback.rel || "";
+    return {
+      label: normalizedLabel,
+      href: sanitizedHref,
+      url: sanitizedHref,
+      target: targetSource ? String(targetSource) : "",
+      rel: relSource ? String(relSource) : "",
+    };
+  }
+
   var FOOTER_LINK_DEFAULT_TARGET = "_blank";
   var FOOTER_LINK_DEFAULT_REL = "noopener noreferrer";
   var FOOTER_STYLE_ID = "mpr-ui-footer-styles";
@@ -4054,34 +4122,18 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var baseList = source && source.length ? source : getFooterSiteCatalog();
     return baseList
       .map(function normalize(entry) {
-        if (!entry || typeof entry !== "object") {
-          return null;
-        }
-        var label =
-          typeof entry.label === "string" && entry.label.trim()
-            ? entry.label.trim()
-            : null;
-        var hrefValue =
-          typeof entry.url === "string" && entry.url.trim()
-            ? sanitizeHref(entry.url)
-            : null;
-        if (!label || !hrefValue) {
-          return null;
-        }
-        var target =
-          typeof entry.target === "string" && entry.target.trim()
-            ? entry.target.trim()
-            : FOOTER_LINK_DEFAULT_TARGET;
-        var rel =
-          typeof entry.rel === "string" && entry.rel.trim()
-            ? entry.rel.trim()
-            : FOOTER_LINK_DEFAULT_REL;
-        return {
-          label: label,
-          href: hrefValue,
-          target: target,
-          rel: rel,
-        };
+        return normalizeLinkForRendering(
+          {
+            label: entry && entry.label,
+            href: entry && entry.url,
+            target: entry && entry.target,
+            rel: entry && entry.rel,
+          },
+          {
+            target: FOOTER_LINK_DEFAULT_TARGET,
+            rel: FOOTER_LINK_DEFAULT_REL,
+          },
+        );
       })
       .filter(Boolean);
   }
@@ -4240,17 +4292,19 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         if (!singleLink || typeof singleLink !== "object") {
           return null;
         }
-        var label = singleLink.label || singleLink.Label;
-        var url = singleLink.url || singleLink.URL;
-        if (!label || !url) {
-          return null;
-        }
-        return {
-          label: String(label),
-          url: String(url),
-          rel: singleLink.rel || singleLink.Rel || FOOTER_LINK_DEFAULT_REL,
-          target: singleLink.target || singleLink.Target || FOOTER_LINK_DEFAULT_TARGET,
-        };
+        var normalizedLink = normalizeLinkForRendering(
+          {
+            label: singleLink.label || singleLink.Label,
+            href: singleLink.url || singleLink.URL,
+            target: singleLink.target || singleLink.Target,
+            rel: singleLink.rel || singleLink.Rel,
+          },
+          {
+            target: FOOTER_LINK_DEFAULT_TARGET,
+            rel: FOOTER_LINK_DEFAULT_REL,
+          },
+        );
+        return normalizedLink;
       })
       .filter(Boolean);
   }
@@ -4734,7 +4788,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var menuItemClass = config.menuItemClass || "";
     var markup = items
       .map(function renderSingle(link) {
-        var hrefValue = escapeFooterHtml(sanitizeFooterHref(link.url));
+        var hrefValue = escapeFooterHtml(sanitizeFooterHref(link.href || link.url));
         var labelValue = escapeFooterHtml(link.label);
         var targetValue = sanitizeFooterAttribute(link.target || FOOTER_LINK_DEFAULT_TARGET);
         var relValue = sanitizeFooterAttribute(link.rel || FOOTER_LINK_DEFAULT_REL);
@@ -5938,6 +5992,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   }
   namespace.__dom.mountHeaderDom = mountHeaderDom;
   namespace.__dom.mountFooterDom = mountFooterDom;
+  if (!namespace.__utils) {
+    namespace.__utils = {};
+  }
+  namespace.__utils.normalizeLinkForRendering = normalizeLinkForRendering;
   registerCustomElements(namespace);
 })(typeof window !== "undefined" ? window : globalThis);
   function ensureGoogleRenderTarget(containerElement) {
