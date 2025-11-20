@@ -210,6 +210,10 @@ Custom elements re-dispatch the same events as the imperative helpers, so you ca
 - Run `npx playwright install --with-deps` (or `npx playwright install chromium`) once per machine if the browsers are missing; the command is a no-op when the binaries already exist. Because the tests no longer stub network calls, ensure the environment has outbound access to the CDN and GIS endpoints.
 - `make test` runs the full suite with the repository-standard timeouts; `make test-unit` and `make test-e2e` target the individual phases if you need to isolate failures.
 
+## Development
+
+The bundle source is split into `src/mpr-ui-core.js`, `src/mpr-ui-header.js`, and `src/mpr-ui-footer.js`, while `mpr-ui.js` remains the single-browser artifact. Run `make build` after editing the source parts to regenerate `mpr-ui.js`, then execute the tests.
+
 ## Theme Management
 
 - Configure theme behaviour declaratively with `data-theme-toggle` and `data-theme-mode` on the header or footer host; the header uses these attributes to configure the shared theme manager, while the footer (or standalone `<mpr-theme-toggle>`) renders the interactive control.
