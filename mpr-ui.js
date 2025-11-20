@@ -3346,12 +3346,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (!elements || !elements.profileLabel) {
       return;
     }
-    var textValue = profileLabel ? String(profileLabel) : "";
-    elements.profileLabel.textContent = textValue;
-    if (textValue && typeof elements.profileLabel.removeAttribute === "function") {
-      elements.profileLabel.removeAttribute("hidden");
-    } else if (typeof elements.profileLabel.setAttribute === "function") {
+    elements.profileLabel.textContent = "";
+    if (typeof elements.profileLabel.setAttribute === "function") {
       elements.profileLabel.setAttribute("hidden", "true");
+      elements.profileLabel.setAttribute("aria-hidden", "true");
     }
   }
 
