@@ -149,6 +149,14 @@
     throw new Error("resolveHost expected a selector string or an element reference");
   }
 
+  var PROHIBITED_MERGE_KEYS = Object.freeze(
+    Object.create(null, {
+      "__proto__": { value: true },
+      constructor: { value: true },
+      prototype: { value: true },
+    }),
+  );
+
   function deepMergeOptions(target) {
     var baseObject = !target || typeof target !== "object" ? {} : target;
     for (var index = 1; index < arguments.length; index += 1) {
@@ -157,6 +165,9 @@
         continue;
       }
       Object.keys(sourceObject).forEach(function handleKey(key) {
+        if (PROHIBITED_MERGE_KEYS[key]) {
+          return;
+        }
         var value = sourceObject[key];
         if (Array.isArray(value)) {
           baseObject[key] = value.slice();
