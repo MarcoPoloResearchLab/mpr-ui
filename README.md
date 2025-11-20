@@ -82,6 +82,8 @@ They log console warnings and will be removed in **`mpr-ui v2.0`**. To migrate:
 
 See [`docs/custom-elements.md`](docs/custom-elements.md) for attribute references and event tables. During the migration window you can still load Alpine and call the helpers, but expect deprecation warnings until they are removed.
 
+Need a single source of truth for the shutdown plan? See [`docs/deprecation-roadmap.md`](docs/deprecation-roadmap.md).
+
 ## Integration requirements
 
 1. Load `mpr-ui.css` first so layout tokens and theme variables exist before scripts run.

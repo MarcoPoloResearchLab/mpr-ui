@@ -39,7 +39,7 @@ When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 
 All helpers are side-effect free apart from DOM writes and `fetch` requests.
 
-> **Deprecation notice:** The imperative helpers (`renderSiteHeader`, `renderFooter`, `renderThemeToggle`) and their Alpine factories (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, `mprHeader`) are deprecated. They emit console warnings on invocation and will be removed in `mpr-ui v2.0`. Use the `<mpr-*>` custom elements whenever possible and follow the README migration guidance when retiring legacy integrations.
+> **Deprecation notice:** The imperative helpers (`renderSiteHeader`, `renderFooter`, `renderThemeToggle`) and their Alpine factories (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, `mprHeader`) are deprecated. They emit console warnings on invocation and will be removed in `mpr-ui v2.0`. Use the `<mpr-*>` custom elements whenever possible, follow the README migration guidance, and refer to [`docs/deprecation-roadmap.md`](docs/deprecation-roadmap.md) for the consolidated plan.
 
 ### Custom Elements
 
