@@ -2,6 +2,12 @@
 
 ## [Unreleased]
 
+- Pending changes.
+
+## [0.2.0] - 2025-11-19
+
+- MU-408 / MU-409: Removed the legacy `MPRUI.render*` / `mpr*` helper exports, deleted the associated tests, refreshed README/ARCHITECTURE/custom-elements/integration docs to describe only the `<mpr-*>` Web Components DSL, and added `docs/deprecation-roadmap.md` as the canonical migration reference.
+
 - MU-110: Added `demo/docker-tauth` with a gHTTP + TAuth Docker Compose stack, a dedicated header demo that loads `auth-client.js`, a signed-in status panel, and documentation describing how to configure Google OAuth plus the backing `.env` template.
 - MU-327: `<mpr-header>` now honours the `base-url` attribute, letting custom-element consumers (including the Docker Compose demo) route `/auth/*` calls to remote origins; added regression coverage ensuring the auth controller receives the configured base URL.
 - MU-325: Square theme switcher now maps quadrants to the correct palettes (bottom-left triggers dark blue, bottom-right triggers pale green), loses the stuck halo/outline, and adds unit + Playwright coverage for the updated mapping.
