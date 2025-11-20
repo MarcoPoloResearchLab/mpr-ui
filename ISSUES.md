@@ -66,7 +66,7 @@ See @image.png
 
 - [ ] [MU-328] GIS rejects TAuth demo sign-in with “origin not allowed” even when origins are whitelisted because `demo/tauth-demo.html` hardcodes the sample Google client ID, causing TAuth and the header to use different IDs. Align the demo with the configured client ID to unblock Safari/Chrome auth.
 
-- [x] [MU-328] Wired `demo/tauth-demo.html` to read `googleClientId`/`baseUrl` from `demo/tauth-config.js`, removed the baked-in sample client ID, added a config helper script, and documented that the frontend must share the same client ID as `.env.tauth` to avoid GIS origin rejections.
+- [x] [MU-328] Wired `demo/tauth-demo.html` to read `googleClientId`/`baseUrl` from `demo/tauth-config.js`, removed the baked-in sample client ID, documented keeping the client ID in sync with `.env.tauth`, and dropped the Secure flag from dev cookies when `APP_DEV_INSECURE_HTTP=true` so Safari accepts sessions over HTTP.
 
 ## Maintenance (405–499)
 

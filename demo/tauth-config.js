@@ -9,6 +9,6 @@
  * The default `baseUrl` points at the TAuth container from `docker-compose.tauth.yml`.
  */
 window.TAUTH_DEMO_CONFIG = Object.freeze({
-  googleClientId: '',
+  googleClientId: '991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com',
   baseUrl: 'http://localhost:8080',
 });
