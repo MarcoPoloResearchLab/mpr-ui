@@ -157,7 +157,7 @@ Tips:
 - Boolean attributes follow native HTML semantics: presence = `true`, absence = `false`. For `<mpr-settings>`, removing `open` closes the panel immediately.
 - All events bubble, so you can listen on `document` or the element itself (`document.addEventListener("mpr-settings:toggle", handler)`).
 
-All imperative helpers log warnings and will be removed in `mpr-ui v2.0`, so treat the table above as a migration guide rather than an alternative integration strategy.
+All imperative helpers log warnings and will be removed in `mpr-ui v2.0`, so treat the table above as a migration guide rather than an alternative integration strategy. The full shutdown plan lives in [`docs/deprecation-roadmap.md`](deprecation-roadmap.md).
 ## Troubleshooting & CSP Notes
 
 - **Custom-element support**: If `window.customElements` is missing, load the polyfill before `mpr-ui.js`. The helpers will auto-define once the API becomes available.
