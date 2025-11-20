@@ -96,7 +96,7 @@ Need a working authentication backend without wiring your own server? `demo/taut
    # Replace APP_JWT_SIGNING_KEY (generate with: openssl rand -base64 48)
    ```
 
-   The template already enables CORS (`APP_ENABLE_CORS=true`, `APP_CORS_ALLOWED_ORIGINS=http://localhost:8000`) and insecure HTTP for local development (`APP_DEV_INSECURE_HTTP=true`). The sample DSN (`sqlite:///data/tauth.db`) stores refresh tokens inside the `tauth_data` volume so restarting the container does not wipe sessions.
+   The template already enables CORS (`APP_ENABLE_CORS=true`, `APP_CORS_ALLOWED_ORIGINS=http://localhost:8000`) and insecure HTTP for local development (`APP_DEV_INSECURE_HTTP=true`). The sample DSN (`sqlite:///data/tauth.db`) stores refresh tokens inside the `tauth_data` volume so restarting the container does not wipe sessions. The Compose file also sets this DSN explicitly to avoid host-path issues.
 
 2. Bring the stack up:
 
