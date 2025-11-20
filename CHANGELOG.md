@@ -2,6 +2,7 @@
 
 ## [Unreleased]
 
+- Cached theme target resolution to avoid repeated selector queries on mode changes and added regression coverage.
 - Hardened option merging to ignore prototype-polluting keys and added regression coverage for the theme configuration path.
 - Removed the remaining legacy render helper implementations from the bundle, renamed the internal controllers, and added regression coverage to ensure the deprecated function names no longer appear in `mpr-ui.js`.
 

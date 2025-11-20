@@ -873,6 +873,7 @@
     var allDatasetKeys = collectThemeDatasetKeys(currentConfig.modes);
     var listeners = [];
     var currentMode = currentConfig.modes[0].value;
+    var resolvedTargets = resolveThemeTargets(currentConfig.targets);
 
     function getModeIndex(modeValue) {
       for (var index = 0; index < currentConfig.modes.length; index += 1) {
@@ -897,7 +898,7 @@
         modeValue = currentConfig.modes[0].value;
       }
       var activeMode = currentConfig.modes[modeIndex];
-      var targets = resolveThemeTargets(currentConfig.targets);
+      var targets = resolvedTargets;
       var documentElement =
         global.document && global.document.documentElement
           ? global.document.documentElement
@@ -980,6 +981,10 @@
       if (Object.prototype.hasOwnProperty.call(partialConfig, "targets")) {
         var mergedTargets = DEFAULT_THEME_TARGETS.concat(normalized.targets);
         currentConfig.targets = dedupeTargets(mergedTargets);
+        resolvedTargets = resolveThemeTargets(currentConfig.targets);
+      }
+      if (!resolvedTargets || !resolvedTargets.length) {
+        resolvedTargets = resolveThemeTargets(currentConfig.targets);
       }
       if (Object.prototype.hasOwnProperty.call(partialConfig, "modes")) {
         currentConfig.modes = normalized.modes;
