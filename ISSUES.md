@@ -63,6 +63,7 @@ See @image.png
     - Removed the static border from the pill toggle, moved the focus indicator onto the knob so the track stays clean, and added Playwright coverage to assert the border width stays zero while keyboard focus renders the circular ring only around the knob.
 
 - [x] [MU-327] `<mpr-header>` ignored the `base-url` attribute so Docker Compose demo auth calls hit the frontend origin and returned 404s. Added attribute parsing plus regression tests to route nonce/login/logout requests to the configured TAuth base URL.
+- [ ] [MU-328] Footer drop-up conflicts with Bootstrap dropdown. When pages include Bootstrap JS, the toggle button’s `data-bs-toggle="dropdown"` makes Bootstrap bind to it; because the menu lives in shadow DOM, `_menu` is null and clicking triggers `Uncaught TypeError: can't access property "classList", this._menu is null` in `dropdown.js`. mpr-ui should sanitize or avoid emitting the Bootstrap toggle attribute so only its own handler runs, and add a regression proving the drop-up works without console errors alongside Bootstrap’s dropdown plugin.
 
 - [ ] [MU-328] GIS rejects TAuth demo sign-in with “origin not allowed” even when origins are whitelisted because `demo/tauth-demo.html` hardcodes the sample Google client ID, causing TAuth and the header to use different IDs. Align the demo with the configured client ID to unblock Safari/Chrome auth.
 
