@@ -359,6 +359,29 @@ test.describe('Demo behaviours', () => {
 
     expect(await isLocatorInViewport(chrome.header)).toBe(false);
   });
+
+  test('MU-202: band component filters the default catalog by category', async ({ page }) => {
+    const researchBand = page.locator('mpr-band[data-mpr-band-category="research"]');
+    await expect(researchBand).toHaveAttribute('data-mpr-band-empty', 'false');
+    const cards = researchBand.locator('[data-mpr-band-card]');
+    const cardCount = await cards.count();
+    expect(cardCount).toBeGreaterThan(0);
+    await expect(cards.first()).toBeVisible();
+    const description = await researchBand.locator('[data-mpr-band="heading"] p').textContent();
+    expect(description).toMatch(/research projects/i);
+  });
+
+  test('Band cards flip and load subscribe overlays', async ({ page }) => {
+    const productsBand = page.locator('mpr-band[data-mpr-band-category="products"]');
+    const subscribeCard = productsBand.locator('[data-mpr-band-card="gravity-notes"]');
+    await subscribeCard.scrollIntoViewIfNeeded();
+    await expect(subscribeCard).toBeVisible();
+    await subscribeCard.click();
+    await expect(subscribeCard).toHaveAttribute('aria-pressed', 'true');
+    const subscribeOverlay = productsBand.locator('[data-mpr-band-subscribe-loaded="true"]');
+    await expect(subscribeOverlay).toBeVisible();
+    await expect(page.locator(eventLogEntries)).toHaveCount(2, { timeout: 2000 });
+  });
 });
 
 test.describe('Footer label variants', () => {

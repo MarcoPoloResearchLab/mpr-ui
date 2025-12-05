@@ -34,6 +34,23 @@ const EVENT_LOGGERS = Object.freeze([
       return `Privacy & Terms modal opened (${origin})`;
     },
   },
+  {
+    type: 'mpr-band:card-toggle',
+    formatter: (event) => {
+      const detail = event && event.detail ? event.detail : {};
+      const cardId = detail.cardId || 'unknown';
+      const flipped = detail.flipped ? 'opened' : 'closed';
+      return `Band card ${cardId} ${flipped}`;
+    },
+  },
+  {
+    type: 'mpr-band:subscribe-ready',
+    formatter: (event) => {
+      const detail = event && event.detail ? event.detail : {};
+      const cardId = detail.cardId || 'unknown';
+      return `Band subscribe widget ready (${cardId})`;
+    },
+  },
 ]);
 
 /**
