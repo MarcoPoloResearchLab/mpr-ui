@@ -50,9 +50,9 @@ volumes:
 - [x] [MU-201] reduce the size of theme-switcher="square" to the size of one of it's quadrants, so that the whole toggle with all four quadrants fitted into a single current qudrant
     - Collapsed the square theme toggle footprint to a 28px grid (single-quadrant size), scaled the dot/focus/active treatments to match, and added Playwright coverage for the new sizing.
 
-- [ ] [MU-202] Add the notion of bands. We do have examples of bands in our website, Marco Polo Research Lab. Let's use them, extract them from the site, and make them fully-fledged web component primitives that can be customizable using declarative DSL. 
+- [ ] [MU-202] Add the notion of bands. We do have examples of bands in our website, Marco Polo Research Lab. Let's use them, extract them from the site, and make them fully-fledged web component primitives that can be customizable using declarative DSL. Check @tools/marcopolo.github.io for implementation
 
-- [ ] [MU-203] It looks like there is a conflict between Bootstrap and MPR UI integration. We are using the same either prefixes or keywords to identify the components. This results in a number of examples when they collide. We need to refactor our code base so it wouldn't be colliding or wouldn't be conflicting with Bootstrap. 
+- [ ] [MU-203] It looks like there is a conflict between Bootstrap and MPR UI integration. We are using the same either prefixes or keywords to identify the components. This results in a number of examples when they collide. We need to refactor our code base so it wouldn't be colliding or wouldn't be conflicting with Bootstrap. Check @tools/ProductScanner/web/templates/index.html for an example of how we are unable to drop up links in the footer due to conflicts 
 
 ## BugFixes (330–399)
 
