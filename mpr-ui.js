@@ -281,6 +281,13 @@
   ]);
   var SETTINGS_SLOT_NAMES = Object.freeze(["trigger", "panel"]);
   var SITES_ATTRIBUTE_NAMES = Object.freeze(["variant", "columns", "links", "heading"]);
+  var BAND_ATTRIBUTE_NAMES = Object.freeze([
+    "heading",
+    "description",
+    "category",
+    "cards",
+    "theme",
+  ]);
 
   function normalizeAttributeReflectionValue(attributeName, value) {
     if (value === null || value === undefined) {
@@ -4009,6 +4016,187 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
   }
 
+  var BAND_PROJECT_CATALOG = Object.freeze([
+    Object.freeze({
+      id: "issues-md",
+      name: "ISSUES.md",
+      description:
+        "Append-only lab worklog that tracks features, improvements, and maintenance activity across Marco Polo Research Lab projects.",
+      status: "WIP",
+      category: "research",
+      url: "https://github.com/MarcoPoloResearchLab/marcopolo.github.io/blob/main/ISSUES.md",
+      icon: "assets/projects/issues-md/icon.png",
+    }),
+    Object.freeze({
+      id: "photolab",
+      name: "Photolab",
+      description:
+        "Local photo library classifier and search UI that writes high-confidence labels into EXIF, indexes metadata into SQLite, and serves a minimal browser-based search grid.",
+      status: "WIP",
+      category: "research",
+      url: null,
+      icon: "assets/projects/photolab/icon.svg",
+    }),
+    Object.freeze({
+      id: "ctx",
+      name: "ctx",
+      description:
+        "Terminal-first project explorer for browsing trees, reading files with embedded docs, analysing call chains, and fetching upstream docs from GitHub via one CLI.",
+      status: "Production",
+      category: "tools",
+      url: "https://github.com/tyemirov/ctx",
+      icon: "assets/projects/ctx/icon.png",
+    }),
+    Object.freeze({
+      id: "gix",
+      name: "gix",
+      description:
+        "Git and GitHub maintenance CLI for keeping large fleets of repositories healthy by normalising folder names, aligning remotes, and automating audit/release workflows.",
+      status: "Production",
+      category: "tools",
+      url: "https://github.com/tyemirov/gix",
+      icon: "assets/projects/gix/icon.png",
+    }),
+    Object.freeze({
+      id: "ghttp",
+      name: "gHTTP",
+      description:
+        "Go-powered static file server that mirrors python -m http.server while adding Markdown rendering, structured logging, and easy HTTPS provisioning for local work or containers.",
+      status: "Production",
+      category: "tools",
+      url: "https://github.com/temirov/ghttp",
+      icon: "assets/projects/ghttp/icon.png",
+    }),
+    Object.freeze({
+      id: "loopaware",
+      name: "LoopAware",
+      description:
+        "Customer feedback platform with an embeddable widget, Google-authenticated dashboard, and APIs for collecting, triaging, and responding to product messages.",
+      status: "Production",
+      category: "platform",
+      url: "https://loopaware.mprlab.com",
+      icon: "assets/projects/loopaware/icon.svg",
+      subscribe: Object.freeze({
+        script:
+          "https://loopaware.mprlab.com/subscribe.js?site_id=a3222433-92ec-473a-9255-0797226c2273&mode=inline&accent=%23ffd369&cta=Subscribe&success=Thanks%20for%20subscribing&name_field=false",
+        title: "Get LoopAware release updates",
+        copy:
+          "Drop your email to hear when LoopAware ships fresh drops, integrations, and subscriber tooling.",
+      }),
+    }),
+    Object.freeze({
+      id: "pinguin",
+      name: "Pinguin",
+      description:
+        "Production-ready notification service that exposes a gRPC API for email and SMS, persists jobs in SQLite, and retries failures with an exponential-backoff scheduler.",
+      status: "Production",
+      category: "platform",
+      url: "https://github.com/temirov/pinguin",
+      icon: "assets/projects/pinguin/icon.png",
+    }),
+    Object.freeze({
+      id: "ets",
+      name: "Ephemeral Token Service (ETS)",
+      description:
+        "JWT + DPoP gateway that mints short-lived, browser-bound access tokens and reverse-proxies requests so front-end apps never handle provider secrets directly.",
+      status: "Beta",
+      category: "platform",
+      url: "https://ets.mprlab.com",
+      icon: "assets/projects/ets/icon.svg",
+    }),
+    Object.freeze({
+      id: "tauth",
+      name: "TAuth",
+      description:
+        "Google Sign-In and session service that verifies ID tokens, issues short-lived JWT cookies, and ships a tiny auth-client.js helper for same-origin apps.",
+      status: "Production",
+      category: "platform",
+      url: "https://tauth.mprlab.com",
+      icon: "assets/projects/tauth/icon.svg",
+    }),
+    Object.freeze({
+      id: "ledger",
+      name: "Ledger Service",
+      description:
+        "Standalone gRPC-based virtual credits ledger that tracks grants, reservations, captures, and releases in an append-only store backed by SQL with full auditability.",
+      status: "Beta",
+      category: "platform",
+      url: "https://github.com/tyemirov/ledger",
+      icon: "assets/projects/ledger/icon.png",
+    }),
+    Object.freeze({
+      id: "product-scanner",
+      name: "Poodle Scanner",
+      description:
+        "AI-assisted storefront auditor nicknamed “Poodle” that sniffs out PDP gaps, evaluates results against configurable rule packs, and reports issues through a CLI and authenticated dashboard.",
+      status: "Beta",
+      category: "products",
+      url: "https://ps.mprlab.com",
+      icon: "assets/projects/product-scanner/icon.png",
+    }),
+    Object.freeze({
+      id: "sheet2tube",
+      name: "Sheet2Tube",
+      description:
+        "CSV and web toolkit that round-trips YouTube channel metadata between spreadsheets and your account plus a GPT-powered helper for expanding scripted placeholders.",
+      status: "Beta",
+      category: "products",
+      url: "https://sheet2tube.mprlab.com",
+      icon: "assets/projects/sheet2tube/icon.svg",
+    }),
+    Object.freeze({
+      id: "gravity-notes",
+      name: "Gravity Notes",
+      description:
+        "Single-page Markdown notebook with an inline card grid, offline-first storage, and Google-backed sync so ideas flow without modal dialogs or context switches.",
+      status: "Production",
+      category: "products",
+      url: "https://gravity.mprlab.com",
+      icon: "assets/projects/gravity-notes/icon.png",
+      subscribe: Object.freeze({
+        script:
+          "https://loopaware.mprlab.com/subscribe.js?site_id=d8c3d1c8-7968-43d0-8026-ee827ada7666&mode=inline&accent=%23ffd369&cta=Subscribe&success=Thanks%20for%20subscribing&name_field=false",
+        title: "Get Gravity Notes release updates",
+        copy:
+          "Drop your email to hear when Gravity Notes ships fresh features, AI integrations, and new plugins.",
+        height: 320,
+      }),
+    }),
+    Object.freeze({
+      id: "rsvp",
+      name: "RSVP",
+      description:
+        "Event invitation platform that generates QR-code-powered invites, tracks responses, and supports both local and production TLS setups for secure guest flows.",
+      status: "Production",
+      category: "products",
+      url: "https://rsvp.mprlab.com",
+      icon: "assets/projects/rsvp/icon.png",
+    }),
+  ]);
+
+  function getBandProjectCatalog() {
+    return BAND_PROJECT_CATALOG.map(function cloneBandProject(entry) {
+      return {
+        id: entry.id,
+        name: entry.name,
+        title: entry.name,
+        description: entry.description,
+        status: entry.status,
+        category: entry.category,
+        url: entry.url,
+        icon: entry.icon,
+        subscribe: entry.subscribe
+          ? {
+              script: entry.subscribe.script,
+              title: entry.subscribe.title,
+              copy: entry.subscribe.copy,
+              height: entry.subscribe.height,
+            }
+          : null,
+      };
+    });
+  }
+
   var SITES_ROOT_CLASS = "mpr-sites";
   var SITES_STYLE_ID = "mpr-ui-sites-styles";
   var SITES_STYLE_MARKUP =
@@ -4187,6 +4375,837 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       "</ul>" +
       "</div>"
     );
+  }
+
+  var BAND_ROOT_CLASS = "mpr-band";
+  var BAND_STYLE_ID = "mpr-ui-band-styles";
+  var BAND_STYLE_MARKUP =
+    "mpr-band{display:block;position:relative;width:100%;margin:0;padding:0;background:var(--mpr-band-background,rgba(3,23,32,0.95));color:var(--mpr-band-text,#e2e8f0)}" +
+    ".mpr-band__inner{width:100%;margin:0;padding:clamp(40px,6vw,80px) 0}" +
+    ".mpr-band__heading{margin:0 auto clamp(32px,4vw,44px);padding:0;width:clamp(280px,80vw,1080px);display:flex;flex-direction:column;gap:0.75rem}" +
+    ".mpr-band__heading h2{margin:0;font-size:clamp(2rem,4vw,3rem);font-family:'Orbitron','Space Grotesk',sans-serif;letter-spacing:0.08em;text-transform:uppercase;color:var(--mpr-band-accent,#ffd369)}" +
+    ".mpr-band__heading p{margin:0;font-size:1.05rem;color:var(--mpr-band-muted,#cbd5f5)}" +
+    ".mpr-band__grid{position:relative;width:clamp(280px,90vw,1100px);margin:0 auto;display:flex;flex-direction:column;gap:28px}" +
+    ".mpr-band__row{display:flex;gap:28px;width:100%;padding:0 24px;box-sizing:border-box}" +
+    ".mpr-band__row--left{justify-content:flex-start}" +
+    ".mpr-band__row--right{justify-content:flex-end}" +
+    ".mpr-band__card{background:var(--mpr-band-panel-alt,rgba(3,27,32,0.92));border-radius:24px;border:1px solid var(--mpr-band-border,rgba(148,163,184,0.25));box-shadow:var(--mpr-band-shadow,0 25px 60px rgba(0,0,0,0.55));position:relative;overflow:hidden;min-height:260px;transition:transform 0.3s ease,border-color 0.3s ease;width:520px;max-width:100%;flex:0 0 520px}" +
+    ".mpr-band__card:hover:not(.mpr-band__card--flipped){border-color:rgba(255,221,172,0.55);transform:translateY(-6px)}" +
+    ".mpr-band__card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform 0.4s ease}" +
+    ".mpr-band__card-face{padding:24px;display:flex;flex-direction:column;gap:18px;height:100%;box-sizing:border-box}" +
+    ".mpr-band__card--flippable .mpr-band__card-face{position:absolute;inset:0;backface-visibility:hidden}" +
+    ".mpr-band__card-face--back{background:var(--mpr-band-panel-background,rgba(2,20,25,0.9));backdrop-filter:blur(10px);transform:rotateY(180deg)}" +
+    ".mpr-band__card--flipped .mpr-band__card-inner{transform:rotateY(180deg)}" +
+    ".mpr-band__card--flippable{cursor:pointer;perspective:2000px}" +
+    ".mpr-band__card-header{display:flex;align-items:center;justify-content:space-between;gap:12px}" +
+    ".mpr-band__card-title{display:flex;align-items:center;gap:14px}" +
+    ".mpr-band__card-title h3{margin:0;font-size:1.35rem;color:var(--mpr-band-text,#e2e8f0)}" +
+    ".mpr-band__card-visual{width:58px;height:58px;border-radius:16px;background:rgba(255,211,105,0.12);border:1px solid rgba(255,211,105,0.2);display:flex;align-items:center;justify-content:center;font-size:1.35rem;font-weight:600;color:var(--mpr-band-accent,#ffd369);overflow:hidden}" +
+    ".mpr-band__card-visual img{width:100%;height:100%;object-fit:contain;display:block}" +
+    ".mpr-band__status{font-size:0.85rem;text-transform:uppercase;letter-spacing:0.08em;border-radius:999px;padding:0.35rem 0.9rem;border:1px solid rgba(255,255,255,0.15);color:var(--mpr-band-text,#e2e8f0);background:rgba(255,255,255,0.08)}" +
+    ".mpr-band__status--production{color:#041c1c;background:linear-gradient(120deg,#e6ffb2,#8ed26e);border:none}" +
+    ".mpr-band__status--beta{color:#1b1103;background:linear-gradient(120deg,#ffd18d,#ffae5a);border:none}" +
+    ".mpr-band__status--wip{color:var(--mpr-band-accent,#ffd369);border-color:rgba(255,211,105,0.4)}" +
+    ".mpr-band__card-body{display:flex;flex-direction:column;gap:12px;flex-grow:1}" +
+    ".mpr-band__card-body p{margin:0;color:var(--mpr-band-text,#e2e8f0);line-height:1.45}" +
+    ".mpr-band__action{align-self:flex-start;border-radius:999px;padding:0.55rem 1.6rem;border:1px solid rgba(255,211,105,0.35);font-weight:600;letter-spacing:0.04em;text-transform:uppercase;color:var(--mpr-band-text,#e2e8f0);text-decoration:none;transition:background 0.3s ease,color 0.3s ease}" +
+    ".mpr-band__action:hover,.mpr-band__action:focus-visible{background:rgba(255,211,105,0.18);color:var(--mpr-band-accent,#ffd369)}" +
+    ".mpr-band__card-subscribe{position:absolute;inset:24px;display:flex;flex-direction:column;gap:0.75rem;opacity:0;pointer-events:none;transform:rotateY(180deg) translateY(12px);transition:opacity 0.3s ease,transform 0.3s ease;z-index:2;backface-visibility:hidden;border-radius:20px;border:1px solid var(--mpr-band-border,rgba(255,211,105,0.15));background:radial-gradient(circle at top,rgba(3,38,46,0.9),rgba(2,20,25,0.85));box-shadow:0 25px 60px rgba(0,0,0,0.6);padding:0}" +
+    ".mpr-band__card--flipped .mpr-band__card-subscribe{opacity:1;pointer-events:auto;transform:rotateY(180deg) translateY(0)}" +
+    ".mpr-band__subscribe-body{padding:1rem;border-radius:18px;border:1px solid var(--mpr-band-border,rgba(255,211,105,0.18));background:rgba(0,40,46,0.6);display:flex;flex-direction:column;gap:0.6rem;box-sizing:border-box;height:100%}" +
+    ".mpr-band__subscribe-title{margin:0;font-weight:600;color:var(--mpr-band-text,#e2e8f0)}" +
+    ".mpr-band__subscribe-copy{margin:0;color:var(--mpr-band-muted,#cbd5f5);font-size:0.95rem}" +
+    ".mpr-band__subscribe-frame{width:100%;border:0;border-radius:16px;background:transparent;min-height:240px;height:240px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08)}" +
+    ".mpr-band__empty{padding:1rem 1.5rem;border-radius:1rem;border:1px dashed var(--mpr-band-border,rgba(148,163,184,0.35));color:var(--mpr-band-muted,#cbd5f5);text-align:center}" +
+    ".mpr-band__card--flippable{outline:none}" +
+    ".mpr-band__card--flippable:focus-visible{box-shadow:0 0 0 3px var(--mpr-band-accent,#ffd369)}" +
+    ".mpr-band__card--flippable[aria-pressed=\"true\"]{border-color:rgba(255,221,172,0.65)}" +
+    ".mpr-band__subscribe-body[data-mpr-band-subscribe-loaded=\"false\"]::after{content:\"Loading…\";font-size:0.85rem;color:var(--mpr-band-muted,#cbd5f5)}" +
+    "@media (max-width:768px){.mpr-band__row{flex-direction:column;padding:0 12px}.mpr-band__card{width:100%;flex:1 1 auto}.mpr-band__grid{gap:18px}.mpr-band__inner{padding:40px 0 32px}}" +
+    "@media (max-width:520px){.mpr-band__heading{width:100%;padding:0 16px}.mpr-band__grid{width:100%}.mpr-band__row{padding:0 16px}}";
+  var BAND_THEME_PRESETS = Object.freeze({
+    research: Object.freeze({
+      background: "#052832",
+      panel: "rgba(4, 26, 33, 0.9)",
+      panelAlt: "rgba(4, 26, 33, 0.85)",
+      text: "#ffe4a9",
+      muted: "#eacb73",
+      accent: "#ffd369",
+      border: "rgba(248, 227, 154, 0.35)",
+      shadow: "0 40px 120px rgba(0, 0, 0, 0.45)",
+    }),
+    tools: Object.freeze({
+      background: "#05333d",
+      panel: "rgba(5, 46, 54, 0.92)",
+      panelAlt: "rgba(5, 46, 54, 0.85)",
+      text: "#ffe4a9",
+      muted: "#f3dca3",
+      accent: "#ffd369",
+      border: "rgba(255, 211, 105, 0.35)",
+      shadow: "0 35px 80px rgba(0, 0, 0, 0.55)",
+    }),
+    platform: Object.freeze({
+      background: "#04222a",
+      panel: "rgba(4, 34, 42, 0.92)",
+      panelAlt: "rgba(4, 34, 42, 0.85)",
+      text: "#fef7e0",
+      muted: "#f6e7b7",
+      accent: "#ffd369",
+      border: "rgba(255, 211, 105, 0.3)",
+      shadow: "0 40px 110px rgba(0, 0, 0, 0.5)",
+    }),
+    products: Object.freeze({
+      background: "#031a21",
+      panel: "rgba(3, 26, 33, 0.9)",
+      panelAlt: "rgba(3, 26, 33, 0.85)",
+      text: "#fbeed0",
+      muted: "#e8d196",
+      accent: "#ffd369",
+      border: "rgba(255, 211, 105, 0.28)",
+      shadow: "0 30px 90px rgba(0, 0, 0, 0.5)",
+    }),
+    custom: Object.freeze({
+      background: "linear-gradient(180deg, rgba(2,10,23,0.95), rgba(3,24,32,0.85))",
+      panel: "rgba(3, 27, 32, 0.9)",
+      panelAlt: "rgba(3, 27, 32, 0.92)",
+      text: "#e2e8f0",
+      muted: "#cbd5f5",
+      accent: "var(--mpr-color-accent,#38bdf8)",
+      border: "rgba(148,163,184,0.25)",
+      shadow: "0 25px 60px rgba(0, 0, 0, 0.55)",
+    }),
+  });
+  var BAND_STATUS_PRIORITY = Object.freeze({
+    production: 0,
+    beta: 1,
+    wip: 2,
+  });
+  var BAND_STATUS_METADATA = Object.freeze({
+    production: Object.freeze({
+      value: "production",
+      label: "Production",
+      badgeClass: BAND_ROOT_CLASS + "__status--production",
+      actionLabel: "Launch product",
+    }),
+    beta: Object.freeze({
+      value: "beta",
+      label: "Beta",
+      badgeClass: BAND_ROOT_CLASS + "__status--beta",
+      actionLabel: "Explore beta",
+    }),
+    wip: Object.freeze({
+      value: "wip",
+      label: "WIP",
+      badgeClass: BAND_ROOT_CLASS + "__status--wip",
+      actionLabel: "",
+    }),
+  });
+  var BAND_FLIPPABLE_STATUSES = Object.freeze(["beta", "wip"]);
+  var BAND_EMPTY_STATE_TEXT = "No projects available";
+  var BAND_MIN_SUBSCRIBE_HEIGHT = 240;
+  var BAND_MAX_SUBSCRIBE_HEIGHT = 420;
+  var BAND_DEFAULT_SUBSCRIBE_HEIGHT = 320;
+  var BAND_CARD_WIDTH_PX = 520;
+  var BAND_CARD_GAP_PX = 28;
+  var BAND_ROW_PADDING_PX = 24;
+  var BAND_MOBILE_BREAKPOINT = 600;
+
+  function ensureBandStyles(documentObject) {
+    if (
+      !documentObject ||
+      typeof documentObject.createElement !== "function" ||
+      !documentObject.head
+    ) {
+      return;
+    }
+    ensureThemeTokenStyles(documentObject);
+    if (documentObject.getElementById(BAND_STYLE_ID)) {
+      return;
+    }
+    var styleElement = documentObject.createElement("style");
+    styleElement.type = "text/css";
+    styleElement.id = BAND_STYLE_ID;
+    if (styleElement.styleSheet) {
+      styleElement.styleSheet.cssText = BAND_STYLE_MARKUP;
+    } else {
+      styleElement.appendChild(documentObject.createTextNode(BAND_STYLE_MARKUP));
+    }
+    documentObject.head.appendChild(styleElement);
+  }
+
+  function buildBandOptionsFromAttributes(hostElement) {
+    var options = {};
+    if (!hostElement || typeof hostElement.getAttribute !== "function") {
+      return options;
+    }
+    var headingAttr = hostElement.getAttribute("heading");
+    if (headingAttr) {
+      options.heading = headingAttr;
+    }
+    var descriptionAttr = hostElement.getAttribute("description");
+    if (descriptionAttr) {
+      options.description = descriptionAttr;
+    }
+    var categoryAttr = hostElement.getAttribute("category");
+    if (categoryAttr) {
+      options.category = categoryAttr;
+    }
+    var cardsAttr = hostElement.getAttribute("cards");
+    if (cardsAttr) {
+      options.cards = parseJsonValue(cardsAttr, []);
+    }
+    var themeAttr = hostElement.getAttribute("theme");
+    if (themeAttr) {
+      options.theme = parseJsonValue(themeAttr, {});
+    }
+    return options;
+  }
+
+  function normalizeBandOptions(rawOptions) {
+    var options = rawOptions && typeof rawOptions === "object" ? rawOptions : {};
+    var categorySource =
+      typeof options.category === "string" && options.category.trim()
+        ? options.category.trim().toLowerCase()
+        : "";
+    var category = categorySource || "";
+    var heading =
+      typeof options.heading === "string" && options.heading.trim()
+        ? options.heading.trim()
+        : category
+        ? category.charAt(0).toUpperCase() + category.slice(1)
+        : "Band";
+    var description =
+      typeof options.description === "string" && options.description.trim()
+        ? options.description.trim()
+        : "";
+    var normalizedCards = normalizeBandCards(options.cards, category);
+    var theme = normalizeBandTheme(category, options.theme);
+    return {
+      heading: heading,
+      description: description,
+      category: category || "custom",
+      cards: normalizedCards,
+      theme: theme,
+    };
+  }
+
+  function normalizeBandCards(rawCards, category) {
+    var source = Array.isArray(rawCards) ? rawCards.slice() : null;
+    if (!source || !source.length) {
+      var defaultCatalog = getBandProjectCatalog();
+      if (category) {
+        source = defaultCatalog.filter(function filterByCategory(entry) {
+          var entryCategory =
+            typeof entry.category === "string" ? entry.category.toLowerCase() : "";
+          return entryCategory === category.toLowerCase();
+        });
+      } else {
+        source = defaultCatalog;
+      }
+    }
+    return source
+      .map(function mapToCard(entry, index) {
+        return normalizeBandCard(entry, index);
+      })
+      .filter(Boolean)
+      .sort(function sortCards(a, b) {
+        var aPriority =
+          BAND_STATUS_PRIORITY[a.status.value] === undefined
+            ? Number.MAX_SAFE_INTEGER
+            : BAND_STATUS_PRIORITY[a.status.value];
+        var bPriority =
+          BAND_STATUS_PRIORITY[b.status.value] === undefined
+            ? Number.MAX_SAFE_INTEGER
+            : BAND_STATUS_PRIORITY[b.status.value];
+        if (aPriority !== bPriority) {
+          return aPriority - bPriority;
+        }
+        return a.title.localeCompare(b.title);
+      });
+  }
+
+  function normalizeBandCard(entry, fallbackIndex) {
+    if (!entry || typeof entry !== "object") {
+      return null;
+    }
+    var idSource =
+      typeof entry.id === "string" && entry.id.trim()
+        ? entry.id.trim()
+        : "mpr-band-card-" + fallbackIndex;
+    var titleSource =
+      typeof entry.title === "string" && entry.title.trim()
+        ? entry.title.trim()
+        : typeof entry.name === "string" && entry.name.trim()
+        ? entry.name.trim()
+        : idSource;
+    var descriptionSource =
+      typeof entry.description === "string" && entry.description.trim()
+        ? entry.description.trim()
+        : "";
+    var statusSource =
+      typeof entry.status === "string" && entry.status.trim()
+        ? entry.status.trim()
+        : "production";
+    var status = normalizeBandStatus(statusSource);
+    var url = sanitizeHref(entry.url || entry.href || "");
+    var icon =
+      typeof entry.icon === "string" && entry.icon.trim() ? entry.icon.trim() : "";
+    var subscribe = normalizeBandSubscribe(entry.subscribe, titleSource);
+    var flippable =
+      BAND_FLIPPABLE_STATUSES.indexOf(status.value) !== -1 || Boolean(subscribe);
+    return {
+      id: idSource,
+      title: titleSource,
+      description: descriptionSource,
+      status: status,
+      url: url && url !== "#" ? url : "",
+      icon: icon,
+      monogram: deriveBandMonogram(titleSource),
+      subscribe: subscribe,
+      flippable: flippable,
+    };
+  }
+
+  function normalizeBandStatus(rawValue) {
+    var normalized =
+      typeof rawValue === "string" && rawValue.trim()
+        ? rawValue.trim().toLowerCase()
+        : "production";
+    if (BAND_STATUS_METADATA[normalized]) {
+      return BAND_STATUS_METADATA[normalized];
+    }
+    return BAND_STATUS_METADATA.production;
+  }
+
+  function normalizeBandSubscribe(rawSubscribe, title) {
+    if (!rawSubscribe || typeof rawSubscribe !== "object") {
+      return null;
+    }
+    var scriptSource =
+      typeof rawSubscribe.script === "string" && rawSubscribe.script.trim()
+        ? rawSubscribe.script.trim()
+        : "";
+    var sanitizedScript = sanitizeHref(scriptSource);
+    if (!sanitizedScript || sanitizedScript === "#") {
+      return null;
+    }
+    var copy =
+      typeof rawSubscribe.copy === "string" && rawSubscribe.copy.trim()
+        ? rawSubscribe.copy.trim()
+        : "Drop your email to hear when this project ships new features and announcements.";
+    var titleCopy =
+      typeof rawSubscribe.title === "string" && rawSubscribe.title.trim()
+        ? rawSubscribe.title.trim()
+        : "Get " + title + " updates";
+    var heightValue = parseInt(rawSubscribe.height, 10);
+    var height = BAND_DEFAULT_SUBSCRIBE_HEIGHT;
+    if (!isNaN(heightValue)) {
+      height = Math.max(
+        BAND_MIN_SUBSCRIBE_HEIGHT,
+        Math.min(BAND_MAX_SUBSCRIBE_HEIGHT, heightValue),
+      );
+    }
+    return {
+      script: sanitizedScript,
+      title: titleCopy,
+      copy: copy,
+      height: height,
+    };
+  }
+
+  function normalizeBandTheme(category, rawTheme) {
+    var preset =
+      (category && BAND_THEME_PRESETS[category]) || BAND_THEME_PRESETS.custom;
+    var themeSource = rawTheme && typeof rawTheme === "object" ? rawTheme : {};
+    function pick(key) {
+      if (typeof themeSource[key] === "string" && themeSource[key].trim()) {
+        return themeSource[key].trim();
+      }
+      return preset[key];
+    }
+    return {
+      background: pick("background"),
+      panel: pick("panel"),
+      panelAlt: pick("panelAlt"),
+      text: pick("text"),
+      muted: pick("muted"),
+      accent: pick("accent"),
+      border: pick("border"),
+      shadow: pick("shadow"),
+    };
+  }
+
+  function deriveBandMonogram(name) {
+    if (!name || typeof name !== "string") {
+      return "MP";
+    }
+    var initials = name
+      .split(/\s+/)
+      .filter(Boolean)
+      .map(function mapPart(part) {
+        return part.charAt(0);
+      })
+      .slice(0, 2)
+      .join("");
+    if (initials) {
+      return initials.toUpperCase();
+    }
+    return name.slice(0, 2).toUpperCase();
+  }
+
+  function applyBandTheme(hostElement, theme) {
+    if (!hostElement || !hostElement.style || typeof hostElement.style.setProperty !== "function") {
+      return;
+    }
+    hostElement.style.setProperty("--mpr-band-background", theme.background);
+    hostElement.style.setProperty("--mpr-band-panel-background", theme.panel);
+    hostElement.style.setProperty("--mpr-band-panel-alt", theme.panelAlt);
+    hostElement.style.setProperty("--mpr-band-text", theme.text);
+    hostElement.style.setProperty("--mpr-band-muted", theme.muted);
+    hostElement.style.setProperty("--mpr-band-accent", theme.accent);
+    hostElement.style.setProperty("--mpr-band-border", theme.border);
+    hostElement.style.setProperty("--mpr-band-shadow", theme.shadow);
+  }
+
+  function clearBandTheme(hostElement) {
+    if (!hostElement || !hostElement.style || typeof hostElement.style.removeProperty !== "function") {
+      return;
+    }
+    hostElement.style.removeProperty("--mpr-band-background");
+    hostElement.style.removeProperty("--mpr-band-panel-background");
+    hostElement.style.removeProperty("--mpr-band-panel-alt");
+    hostElement.style.removeProperty("--mpr-band-text");
+    hostElement.style.removeProperty("--mpr-band-muted");
+    hostElement.style.removeProperty("--mpr-band-accent");
+    hostElement.style.removeProperty("--mpr-band-border");
+    hostElement.style.removeProperty("--mpr-band-shadow");
+  }
+
+  function buildBandSkeletonMarkup(config) {
+    var headingMarkup =
+      '<div class="' +
+      BAND_ROOT_CLASS +
+      '__heading" data-mpr-band="heading"><h2>' +
+      escapeHtml(config.heading) +
+      "</h2>";
+    if (config.description) {
+      headingMarkup +=
+        "<p>" + escapeHtml(config.description) + "</p>";
+    }
+    headingMarkup += "</div>";
+    return (
+      '<div class="' +
+      BAND_ROOT_CLASS +
+      '__inner">' +
+      headingMarkup +
+      '<div class="' +
+      BAND_ROOT_CLASS +
+      '__grid" data-mpr-band="grid"></div>' +
+      "</div>"
+    );
+  }
+
+  function createBandCardElement(documentObject, cardConfig, hostElement) {
+    var card = documentObject.createElement("article");
+    card.className = BAND_ROOT_CLASS + "__card";
+    card.setAttribute("data-mpr-band-card", cardConfig.id);
+    card.setAttribute("data-mpr-band-status", cardConfig.status.value);
+    if (cardConfig.flippable) {
+      card.classList.add(BAND_ROOT_CLASS + "__card--flippable");
+      card.setAttribute("role", "button");
+      card.setAttribute("aria-pressed", "false");
+      card.tabIndex = 0;
+    }
+    var inner = documentObject.createElement("div");
+    inner.className = BAND_ROOT_CLASS + "__card-inner";
+    var frontFace = documentObject.createElement("div");
+    frontFace.className =
+      BAND_ROOT_CLASS + "__card-face " + BAND_ROOT_CLASS + "__card-face--front";
+    var backFace = documentObject.createElement("div");
+    backFace.className =
+      BAND_ROOT_CLASS + "__card-face " + BAND_ROOT_CLASS + "__card-face--back";
+
+    function buildCardHeader(targetFace) {
+      var header = documentObject.createElement("div");
+      header.className = BAND_ROOT_CLASS + "__card-header";
+      var titleWrapper = documentObject.createElement("div");
+      titleWrapper.className = BAND_ROOT_CLASS + "__card-title";
+      var visual = documentObject.createElement("div");
+      visual.className = BAND_ROOT_CLASS + "__card-visual";
+      if (cardConfig.icon) {
+        var iconImage = documentObject.createElement("img");
+        iconImage.src = cardConfig.icon;
+        iconImage.alt = cardConfig.title + " icon";
+        iconImage.loading = "lazy";
+        visual.appendChild(iconImage);
+      } else {
+        visual.textContent = cardConfig.monogram;
+      }
+      var title = documentObject.createElement("h3");
+      title.textContent = cardConfig.title;
+      titleWrapper.appendChild(visual);
+      titleWrapper.appendChild(title);
+      var statusBadge = documentObject.createElement("span");
+      statusBadge.className =
+        BAND_ROOT_CLASS + "__status " + cardConfig.status.badgeClass;
+      statusBadge.textContent = cardConfig.status.label;
+      header.appendChild(titleWrapper);
+      header.appendChild(statusBadge);
+      targetFace.appendChild(header);
+    }
+
+    function buildCardBody(targetFace) {
+      var body = documentObject.createElement("div");
+      body.className = BAND_ROOT_CLASS + "__card-body";
+      if (cardConfig.description) {
+        var description = documentObject.createElement("p");
+        description.textContent = cardConfig.description;
+        body.appendChild(description);
+      }
+      if (cardConfig.url && cardConfig.status.value !== "wip") {
+        var action = documentObject.createElement("a");
+        action.className = BAND_ROOT_CLASS + "__action";
+        action.href = cardConfig.url;
+        action.target = "_blank";
+        action.rel = "noreferrer noopener";
+        action.textContent =
+          cardConfig.status.actionLabel || "Explore";
+        body.appendChild(action);
+      }
+      targetFace.appendChild(body);
+    }
+
+    buildCardHeader(frontFace);
+    buildCardBody(frontFace);
+    buildCardHeader(backFace);
+    buildCardBody(backFace);
+
+    var subscribeLoader = null;
+    if (cardConfig.subscribe) {
+      var overlay = documentObject.createElement("div");
+      overlay.className = BAND_ROOT_CLASS + "__card-subscribe";
+      var subscribeBody = documentObject.createElement("div");
+      subscribeBody.className = BAND_ROOT_CLASS + "__subscribe-body";
+      subscribeBody.setAttribute("data-mpr-band-subscribe-loaded", "false");
+      var subscribeTitle = documentObject.createElement("p");
+      subscribeTitle.className = BAND_ROOT_CLASS + "__subscribe-title";
+      subscribeTitle.textContent = cardConfig.subscribe.title;
+      var subscribeCopy = documentObject.createElement("p");
+      subscribeCopy.className = BAND_ROOT_CLASS + "__subscribe-copy";
+      subscribeCopy.textContent = cardConfig.subscribe.copy;
+      var subscribeFrame = documentObject.createElement("iframe");
+      subscribeFrame.className = BAND_ROOT_CLASS + "__subscribe-frame";
+      subscribeFrame.loading = "lazy";
+      subscribeFrame.title = cardConfig.subscribe.title;
+      subscribeFrame.setAttribute("aria-label", cardConfig.subscribe.title);
+      subscribeFrame.setAttribute("tabindex", "-1");
+      subscribeFrame.style.minHeight = cardConfig.subscribe.height + "px";
+      subscribeFrame.style.height = cardConfig.subscribe.height + "px";
+      subscribeBody.appendChild(subscribeTitle);
+      subscribeBody.appendChild(subscribeCopy);
+      subscribeBody.appendChild(subscribeFrame);
+      overlay.appendChild(subscribeBody);
+      backFace.appendChild(overlay);
+      subscribeLoader = function loadSubscribeFrame() {
+        if (subscribeBody.getAttribute("data-mpr-band-subscribe-loaded") === "true") {
+          return;
+        }
+        subscribeFrame.addEventListener(
+          "load",
+          function handleSubscribeLoad() {
+            subscribeBody.setAttribute("data-mpr-band-subscribe-loaded", "true");
+            dispatchEvent(hostElement, "mpr-band:subscribe-ready", {
+              cardId: cardConfig.id,
+            });
+          },
+          { once: true },
+        );
+        subscribeFrame.srcdoc = buildSubscribeFrameDocument(cardConfig.subscribe.script);
+      };
+    }
+
+    inner.appendChild(frontFace);
+    inner.appendChild(backFace);
+    card.appendChild(inner);
+
+    var isFlipped = false;
+
+    function setFlipped(nextValue, source) {
+      if (!cardConfig.flippable || isFlipped === nextValue) {
+        return;
+      }
+      isFlipped = nextValue;
+      if (isFlipped) {
+        card.classList.add(BAND_ROOT_CLASS + "__card--flipped");
+        card.setAttribute("aria-pressed", "true");
+        if (typeof subscribeLoader === "function") {
+          subscribeLoader();
+        }
+      } else {
+        card.classList.remove(BAND_ROOT_CLASS + "__card--flipped");
+        card.setAttribute("aria-pressed", "false");
+      }
+      dispatchEvent(hostElement, "mpr-band:card-toggle", {
+        cardId: cardConfig.id,
+        flipped: isFlipped,
+        source: source || "user",
+        status: cardConfig.status.value,
+      });
+    }
+
+    function handleClick(event) {
+      if (
+        event &&
+        event.target &&
+        typeof event.target.closest === "function" &&
+        event.target.closest("a")
+      ) {
+        return;
+      }
+      if (event && typeof event.preventDefault === "function") {
+        event.preventDefault();
+      }
+      setFlipped(!isFlipped, "click");
+    }
+
+    function handleKeydown(event) {
+      if (!event) {
+        return;
+      }
+      var key = event.key || "";
+      if (key === "Enter" || key === " " || key === "Spacebar") {
+        if (
+          event.target &&
+          typeof event.target.closest === "function" &&
+          event.target.closest("a")
+        ) {
+          return;
+        }
+        event.preventDefault();
+        setFlipped(!isFlipped, "keyboard");
+      }
+    }
+
+    if (cardConfig.flippable) {
+      card.addEventListener("click", handleClick);
+      card.addEventListener("keydown", handleKeydown);
+    }
+
+    return {
+      node: card,
+      destroy: function destroyCard() {
+        if (cardConfig.flippable) {
+          card.removeEventListener("click", handleClick);
+          card.removeEventListener("keydown", handleKeydown);
+        }
+      },
+    };
+  }
+
+  function layoutBandRows(gridElement, cardNodes) {
+    if (
+      !gridElement ||
+      typeof gridElement.ownerDocument === "undefined" ||
+      !cardNodes ||
+      !cardNodes.length
+    ) {
+      return;
+    }
+    var documentObject = gridElement.ownerDocument;
+    while (gridElement.firstChild) {
+      gridElement.removeChild(gridElement.firstChild);
+    }
+    var viewportWidth =
+      typeof global.innerWidth === "number" ? global.innerWidth : gridElement.clientWidth;
+    var containerWidth =
+      gridElement.getBoundingClientRect &&
+      gridElement.getBoundingClientRect().width
+        ? gridElement.getBoundingClientRect().width
+        : viewportWidth;
+    if (!containerWidth) {
+      cardNodes.forEach(function appendNode(node) {
+        gridElement.appendChild(node);
+      });
+      return;
+    }
+    if (containerWidth <= BAND_MOBILE_BREAKPOINT) {
+      cardNodes.forEach(function appendMobile(node) {
+        gridElement.appendChild(node);
+      });
+      return;
+    }
+    var usableWidth = Math.max(0, containerWidth - BAND_ROW_PADDING_PX * 2);
+    var step = BAND_CARD_WIDTH_PX + BAND_CARD_GAP_PX;
+    var computedPerRow = Math.floor((usableWidth + BAND_CARD_GAP_PX) / step);
+    var maxPerRow = Math.max(1, Math.min(2, computedPerRow));
+    var index = 0;
+    var rowIndex = 0;
+    var total = cardNodes.length;
+    while (index < total) {
+      var row = documentObject.createElement("div");
+      row.className = BAND_ROOT_CLASS + "__row";
+      var alignLeft = rowIndex % 2 === 0;
+      row.classList.add(
+        alignLeft ? BAND_ROOT_CLASS + "__row--left" : BAND_ROOT_CLASS + "__row--right",
+      );
+      var slice = cardNodes.slice(index, index + maxPerRow);
+      slice.forEach(function appendCard(node) {
+        row.appendChild(node);
+      });
+      gridElement.appendChild(row);
+      index += maxPerRow;
+      rowIndex += 1;
+    }
+  }
+
+  function buildSubscribeFrameDocument(scriptUrl) {
+    var safeUrl = String(scriptUrl).replace(/"/g, "&quot;");
+    return (
+      "<!DOCTYPE html>" +
+      '<html lang="en">' +
+      "<head>" +
+      '<meta charset="utf-8" />' +
+      "<style>:root{color-scheme:dark}body{margin:0;background:transparent;font-family:'Space Grotesk','Roboto',sans-serif;}</style>" +
+      "</head>" +
+      "<body>" +
+      '<script defer src="' +
+      safeUrl +
+      '"></script>' +
+      "</body>" +
+      "</html>"
+    );
+  }
+
+  function createBandController(target, options) {
+    var hostElement = resolveHost(target);
+    if (!hostElement || typeof hostElement !== "object") {
+      throw new Error("createBandController requires a host element");
+    }
+    var documentObject =
+      hostElement.ownerDocument ||
+      global.document ||
+      (global.window && global.window.document) ||
+      null;
+    if (!documentObject) {
+      throw new Error("createBandController requires a document context");
+    }
+    ensureBandStyles(documentObject);
+    var latestOptions = deepMergeOptions({}, options || {});
+    var cardStates = [];
+    var resizeObserver = null;
+    var resizeHandler = null;
+    var gridElement = null;
+
+    function teardownResizeObserver() {
+      if (resizeObserver && typeof resizeObserver.disconnect === "function") {
+        resizeObserver.disconnect();
+      }
+      resizeObserver = null;
+      if (resizeHandler && typeof global.removeEventListener === "function") {
+        global.removeEventListener("resize", resizeHandler);
+      }
+      resizeHandler = null;
+    }
+
+    function setupResizeObserver() {
+      teardownResizeObserver();
+      if (!gridElement) {
+        return;
+      }
+      if (typeof global.ResizeObserver === "function") {
+        resizeObserver = new global.ResizeObserver(function handleResize() {
+          layoutBandRows(
+            gridElement,
+            cardStates.map(function mapState(state) {
+              return state.node;
+            }),
+          );
+        });
+        resizeObserver.observe(gridElement);
+        return;
+      }
+      resizeHandler = function handleWindowResize() {
+        layoutBandRows(
+          gridElement,
+          cardStates.map(function mapState(state) {
+            return state.node;
+          }),
+        );
+      };
+      if (typeof global.addEventListener === "function") {
+        global.addEventListener("resize", resizeHandler);
+      }
+    }
+
+    function render(config) {
+      hostElement.classList.add(BAND_ROOT_CLASS);
+      hostElement.setAttribute("data-mpr-band-category", config.category);
+      hostElement.setAttribute("data-mpr-band-count", String(config.cards.length));
+      hostElement.setAttribute(
+        "data-mpr-band-empty",
+        config.cards.length ? "false" : "true",
+      );
+      applyBandTheme(hostElement, config.theme);
+      hostElement.innerHTML = buildBandSkeletonMarkup(config);
+      gridElement = hostElement.querySelector('[data-mpr-band="grid"]');
+      cardStates.forEach(function cleanup(state) {
+        if (state && typeof state.destroy === "function") {
+          state.destroy();
+        }
+      });
+      cardStates = [];
+      if (!gridElement) {
+        return;
+      }
+      if (!config.cards.length) {
+        var empty = documentObject.createElement("p");
+        empty.className = BAND_ROOT_CLASS + "__empty";
+        empty.textContent = BAND_EMPTY_STATE_TEXT;
+        gridElement.appendChild(empty);
+        teardownResizeObserver();
+        return;
+      }
+      var fragment = documentObject.createDocumentFragment();
+      config.cards.forEach(function buildCard(cardConfig) {
+        var cardState = createBandCardElement(documentObject, cardConfig, hostElement);
+        cardStates.push(cardState);
+        fragment.appendChild(cardState.node);
+      });
+      gridElement.appendChild(fragment);
+      layoutBandRows(
+        gridElement,
+        cardStates.map(function mapState(state) {
+          return state.node;
+        }),
+      );
+      setupResizeObserver();
+    }
+
+    render(normalizeBandOptions(latestOptions));
+
+    return {
+      update: function update(nextOptions) {
+        latestOptions = deepMergeOptions({}, latestOptions, nextOptions || {});
+        render(normalizeBandOptions(latestOptions));
+      },
+      destroy: function destroy() {
+        teardownResizeObserver();
+        cardStates.forEach(function cleanup(state) {
+          if (state && typeof state.destroy === "function") {
+            state.destroy();
+          }
+        });
+        cardStates = [];
+        clearBandTheme(hostElement);
+        hostElement.removeAttribute("data-mpr-band-category");
+        hostElement.removeAttribute("data-mpr-band-count");
+        hostElement.removeAttribute("data-mpr-band-empty");
+        clearNodeContents(hostElement);
+      },
+      getConfig: function getConfig() {
+        return normalizeBandOptions(latestOptions);
+      },
+    };
   }
 
   var FOOTER_THEME_SWITCHER_ERROR_CODE = "mpr-ui.footer.theme-switcher";
@@ -4766,8 +5785,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (config.toggleButtonId) {
       toggleButton.id = config.toggleButtonId;
     }
-    if (!toggleButton.hasAttribute("data-bs-toggle")) {
-      toggleButton.setAttribute("data-bs-toggle", "dropdown");
+    if (toggleButton.hasAttribute("data-bs-toggle")) {
+      toggleButton.removeAttribute("data-bs-toggle");
     }
     toggleButton.setAttribute("aria-expanded", "false");
   }
@@ -4930,26 +5949,88 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (!toggleButton || !menuElement) {
       return null;
     }
-    if (
-      global.bootstrap &&
-      global.bootstrap.Dropdown &&
-      typeof global.bootstrap.Dropdown.getOrCreateInstance === "function"
-    ) {
-      global.bootstrap.Dropdown.getOrCreateInstance(toggleButton, { autoClose: true });
-      return null;
-    }
+    var ownerDocument =
+      (toggleButton && toggleButton.ownerDocument) ||
+      (menuElement && menuElement.ownerDocument) ||
+      global.document ||
+      (global.window && global.window.document) ||
+      null;
     var openClass = "mpr-footer__menu--open";
-    var toggleHandler = function (eventObject) {
-      eventObject.preventDefault();
-      var isOpen = menuElement.classList.contains(openClass);
-      menuElement.classList.toggle(openClass, !isOpen);
-      toggleButton.setAttribute("aria-expanded", (!isOpen).toString());
-    };
-    toggleButton.addEventListener("click", toggleHandler);
-    return function cleanupDropdown() {
-      toggleButton.removeEventListener("click", toggleHandler);
+    var isOpen = false;
+
+    function elementContains(host, target) {
+      if (!host || !target) {
+        return false;
+      }
+      if (typeof host.contains === "function") {
+        return host.contains(target);
+      }
+      return host === target;
+    }
+
+    function closeMenu() {
+      if (!isOpen) {
+        return;
+      }
+      isOpen = false;
       menuElement.classList.remove(openClass);
       toggleButton.setAttribute("aria-expanded", "false");
+    }
+
+    function openMenu() {
+      if (isOpen) {
+        return;
+      }
+      isOpen = true;
+      menuElement.classList.add(openClass);
+      toggleButton.setAttribute("aria-expanded", "true");
+    }
+
+    function handleToggle(eventObject) {
+      if (eventObject && typeof eventObject.preventDefault === "function") {
+        eventObject.preventDefault();
+      }
+      if (isOpen) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    }
+
+    function handleDocumentClick(eventObject) {
+      if (!isOpen || !eventObject) {
+        return;
+      }
+      var target = eventObject.target || null;
+      if (elementContains(toggleButton, target) || elementContains(menuElement, target)) {
+        return;
+      }
+      closeMenu();
+    }
+
+    function handleDocumentKeydown(eventObject) {
+      if (!isOpen || !eventObject) {
+        return;
+      }
+      var key = eventObject.key || eventObject.keyCode || "";
+      if (key === "Escape" || key === "Esc" || key === 27) {
+        closeMenu();
+      }
+    }
+
+    toggleButton.addEventListener("click", handleToggle);
+    if (ownerDocument && typeof ownerDocument.addEventListener === "function") {
+      ownerDocument.addEventListener("click", handleDocumentClick);
+      ownerDocument.addEventListener("keydown", handleDocumentKeydown);
+    }
+
+    return function cleanupDropdown() {
+      toggleButton.removeEventListener("click", handleToggle);
+      if (ownerDocument && typeof ownerDocument.removeEventListener === "function") {
+        ownerDocument.removeEventListener("click", handleDocumentClick);
+        ownerDocument.removeEventListener("keydown", handleDocumentKeydown);
+      }
+      closeMenu();
     };
   }
 
@@ -5821,6 +6902,43 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
   }
 
+  function defineBandElement(registry) {
+    registry.define("mpr-band", function setupBandElement(Base) {
+      return class MprBandElement extends Base {
+        constructor() {
+          super();
+          this.__bandController = null;
+        }
+        static get observedAttributes() {
+          return BAND_ATTRIBUTE_NAMES;
+        }
+        render() {
+          this.__applyBand();
+        }
+        update() {
+          this.__applyBand();
+        }
+        destroy() {
+          if (this.__bandController && typeof this.__bandController.destroy === "function") {
+            this.__bandController.destroy();
+          }
+          this.__bandController = null;
+        }
+        __applyBand() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          var options = buildBandOptionsFromAttributes(this);
+          if (this.__bandController) {
+            this.__bandController.update(options);
+          } else {
+            this.__bandController = createBandController(this, options);
+          }
+        }
+      };
+    });
+  }
+
   function registerCustomElements(namespace) {
     if (
       !namespace ||
@@ -5838,6 +6956,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     defineLoginButtonElement(registry);
     defineSettingsElement(registry);
     defineSitesElement(registry);
+    defineBandElement(registry);
   }
 
   var HTMLElementBridge =
@@ -5973,6 +7092,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   namespace.createAuthHeader = createAuthHeader;
   namespace.renderAuthHeader = renderAuthHeader;
   namespace.getFooterSiteCatalog = getFooterSiteCatalog;
+  namespace.getBandProjectCatalog = getBandProjectCatalog;
   namespace.configureTheme = function configureTheme(config) {
     return themeManager.configure(config || {});
   };

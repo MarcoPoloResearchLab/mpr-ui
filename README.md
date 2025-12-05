@@ -121,11 +121,12 @@ Stop the stack with `docker compose down -v` to reclaim the SQLite volume. Copy 
 Every UI surface is a custom element. The list below maps directly to the `<mpr-*>` tags you can use declaratively:
 
 - `<mpr-header>` — sticky banner with brand, nav, GIS auth, settings trigger, and shared theme configuration hooks (no built-in toggle).
-- `<mpr-footer>` — marketing footer with prefix dropdown menu, privacy link, and theme toggle.
+- `<mpr-footer>` — marketing footer with prefix dropdown menu, privacy link, and theme toggle that now uses internal dropdown listeners so it no longer collides with Bootstrap classes or `data-bs-*` hooks.
 - `<mpr-theme-toggle>` — shared switch/button that talks to the global theme manager.
 - `<mpr-login-button>` — GIS-only control for contexts that do not need the full header.
 - `<mpr-settings>` — emits toggle events so you can wire your own modal/drawer.
 - `<mpr-sites>` — renders the Marco Polo Research Lab network or any JSON catalog you provide.
+- `<mpr-band>` — renders alternating card bands backed by the packaged Marco Polo Research Lab catalog or a custom JSON feed.
 
 The tags above replace the retired imperative helpers. See the example below for a slot-heavy declarative configuration.
 
@@ -190,6 +191,7 @@ The tags above replace the retired imperative helpers. See the example below for
 | `<mpr-login-button>` | `site-id`, `login-path`, `logout-path`, `nonce-path`, `base-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
 | `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |
 | `<mpr-sites>` | `links`, `variant` (`list`, `grid`, `menu`), `columns`, `heading` | — | `mpr-sites:link-click` |
+| `<mpr-band>` | `heading`, `description`, `category`, `cards` (JSON), `theme` (JSON) | — | `mpr-band:card-toggle`, `mpr-band:subscribe-ready` |
 
 Slots let you inject custom markup without leaving declarative mode:
 
@@ -198,6 +200,15 @@ Slots let you inject custom markup without leaving declarative mode:
 - Login button inherits the global `mpr-ui:auth:*` events dispatched by `createAuthHeader` and emits `mpr-login:error` when GIS cannot load, so you can listen for authentication without writing any extra glue.
 
 Custom elements dispatch the same `mpr-ui:*` events that the deprecated helpers emitted, so event listeners continue working after migrating. See [`docs/custom-elements.md`](docs/custom-elements.md) for a deep-dive covering attribute shapes, events, and migration tips (Alpine → custom elements).
+
+### Band component
+
+`<mpr-band>` renders alternating rows of project cards. Drop the element with a `category` (Research/Tools/Platform/Products) to automatically filter the bundled Marco Polo Research Lab catalog, or pass a `cards` JSON array when you need bespoke content. Each card accepts an optional `subscribe` configuration with a LoopAware embed—flip the card to reveal the overlay and lazy-load the iframe only once. The component emits:
+
+- `mpr-band:card-toggle` with `{ cardId, flipped, status }` whenever a card flips.
+- `mpr-band:subscribe-ready` with `{ cardId }` after the subscribe iframe loads.
+
+Use `MPRUI.getBandProjectCatalog()` to clone the packaged data if you need to re-use the default catalog outside of the declarative surface.
 
 ### Optional helpers
 

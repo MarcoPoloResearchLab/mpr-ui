@@ -26,7 +26,19 @@ const {
 const PALETTE_TARGETS = ['header.mpr-header', 'main', '#event-log', 'footer.mpr-footer'];
 
 test.describe('Demo behaviours', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    if (testInfo.title.includes('MU-203')) {
+      await page.addInitScript(() => {
+        window.__bootstrapDropdownCalled = 0;
+        window.bootstrap = {
+          Dropdown: {
+            getOrCreateInstance() {
+              window.__bootstrapDropdownCalled += 1;
+            },
+          },
+        };
+      });
+    }
     await visitDemoPage(page);
   });
 
@@ -227,6 +239,16 @@ test.describe('Demo behaviours', () => {
     await expect(page.locator(footerPrefix)).toHaveCount(0);
   });
 
+  test('MU-203: footer drop-up toggles even when Bootstrap namespace exists', async ({ page }) => {
+    const dropupButton = page.locator(footerDropupButton);
+    await dropupButton.click();
+    await expect(page.locator(footerMenu)).toHaveClass(/mpr-footer__menu--open/);
+    await dropupButton.click();
+    await expect(page.locator(footerMenu)).not.toHaveClass(/mpr-footer__menu--open/);
+    const bootstrapCalls = await page.evaluate(() => window.__bootstrapDropdownCalled);
+    expect(bootstrapCalls).toBe(0);
+  });
+
   test('MU-316: settings button opens an accessible modal shell', async ({ page }) => {
     const settingsButton = page.getByRole('button', { name: /settings/i });
     await expect(settingsButton).toBeVisible();
@@ -358,6 +380,29 @@ test.describe('Demo behaviours', () => {
     await page.waitForTimeout(300);
 
     expect(await isLocatorInViewport(chrome.header)).toBe(false);
+  });
+
+  test('MU-202: band component filters the default catalog by category', async ({ page }) => {
+    const researchBand = page.locator('mpr-band[data-mpr-band-category="research"]');
+    await expect(researchBand).toHaveAttribute('data-mpr-band-empty', 'false');
+    const cards = researchBand.locator('[data-mpr-band-card]');
+    const cardCount = await cards.count();
+    expect(cardCount).toBeGreaterThan(0);
+    await expect(cards.first()).toBeVisible();
+    const description = await researchBand.locator('[data-mpr-band="heading"] p').textContent();
+    expect(description).toMatch(/research projects/i);
+  });
+
+  test('Band cards flip and load subscribe overlays', async ({ page }) => {
+    const productsBand = page.locator('mpr-band[data-mpr-band-category="products"]');
+    const subscribeCard = productsBand.locator('[data-mpr-band-card="gravity-notes"]');
+    await subscribeCard.scrollIntoViewIfNeeded();
+    await expect(subscribeCard).toBeVisible();
+    await subscribeCard.click();
+    await expect(subscribeCard).toHaveAttribute('aria-pressed', 'true');
+    const subscribeOverlay = productsBand.locator('[data-mpr-band-subscribe-loaded="true"]');
+    await expect(subscribeOverlay).toBeVisible();
+    await expect(page.locator(eventLogEntries)).toHaveCount(2, { timeout: 2000 });
   });
 });
 

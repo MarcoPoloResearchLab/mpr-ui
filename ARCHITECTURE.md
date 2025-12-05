@@ -213,6 +213,32 @@ Declarative attribute `theme-switcher` controls `themeToggle.variant` and implic
 - Dropdown menu prefers Bootstrap’s `Dropdown` if available; otherwise a light-weight native toggle keeps `aria-expanded` in sync.
 - Theme toggle emits `mpr-footer:theme-change` with `{ theme }` and forwards the mode through the shared theme manager for `<mpr-theme-toggle>` / `<mpr-header>` to consume.
 - All strings are escaped; dangerous schemes for links fall back to `#`.
+- The drop-up toggle uses internal click/outside/Escape listeners and never applies `data-bs-*` attributes, so Bootstrap or other dropdown frameworks cannot hijack the control.
+
+## Band Component
+
+`<mpr-band>` renders alternating rows of cards with an optional flip surface. The controller injects scoped styles via `<style id="mpr-ui-band-styles">`, mirrors band metadata on the host (`data-mpr-band-category`, `data-mpr-band-count`, `data-mpr-band-empty`), and attaches a `ResizeObserver` (or `window.resize` fallback) so the rows realign when the viewport width changes.
+
+### Attributes & Options
+
+| Attribute / Option | Type | Description |
+| --- | --- | --- |
+| `heading` | `string` | Heading text rendered above the band. Defaults to the capitalised category. |
+| `description` | `string` | Optional supporting copy rendered under the heading. |
+| `category` | `string` | Lowercase token (`research`, `tools`, `platform`, `products`) that selects the matching preset palette and filters the bundled catalog when `cards` is omitted. |
+| `cards` | `Array<CardConfig>` JSON | Custom cards to render. When absent, the controller clones `MPRUI.getBandProjectCatalog()` and filters by `category`. |
+| `theme` | `object` | Optional `{ background, panel, text, accent, border, shadow }` overrides that patch the preset CSS variables. |
+
+`CardConfig` accepts `{ id, title/name, description, status, url, icon, subscribe }`. `status` maps to `Production`, `Beta`, or `WIP` and drives badge styling plus action labels; cards become “flippable” when the status is `Beta`/`WIP` or a `subscribe` block is present. The subscribe configuration matches the LoopAware embed contract: `{ script, title?, copy?, height? }` and lazy-loads an iframe via `srcdoc` when the card flips for the first time.
+
+### Events
+
+- `mpr-band:card-toggle` — detail `{ cardId, flipped, status, source }` when a flippable card opens or closes (click or keyboard).
+- `mpr-band:subscribe-ready` — detail `{ cardId }` when the subscribe iframe finishes loading.
+
+### Helpers
+
+The bundle ships the Marco Polo Research Lab catalog as part of `mpr-ui.js`. Call `MPRUI.getBandProjectCatalog()` to clone the packaged array when you need to pre-process or subset the dataset before passing it into `<mpr-band>`.
 
 ## Security and Accessibility Considerations
 

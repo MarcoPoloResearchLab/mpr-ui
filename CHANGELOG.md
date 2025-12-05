@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 - Square theme toggle now forces the 28px footprint via inline custom properties to avoid stale-style regressions.
+- MU-202: Added `<mpr-band>` with a bundled Marco Polo Research Lab catalog, alternating row layout, optional LoopAware subscribe overlays, `mpr-band:card-toggle` / `mpr-band:subscribe-ready` events, demo coverage, and docs for the new DSL plus `MPRUI.getBandProjectCatalog()`.
+- MU-203: Namespaced the footer drop-up so it no longer writes `data-bs-*`, removed the Bootstrap hand-off, added custom outside/Escape handling, and updated docs/tests to confirm compatibility with Bootstrap-powered hosts.
 
 ## [2.0.1] - 2025-11-20
 

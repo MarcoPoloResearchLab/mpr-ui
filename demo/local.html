@@ -45,6 +45,20 @@
         <h2 id="event-log-title">Event Log</h2>
         <div id="event-log" class="event-log" aria-live="polite"></div>
       </section>
+
+      <section aria-labelledby="band-demo-title">
+        <h2 id="band-demo-title">Band Showcase</h2>
+        <p>
+          Declarative <code>&lt;mpr-band&gt;</code> sections reuse the Marco Polo Research Lab
+          catalog. Bands filter the packaged data by <code>category</code> when no custom cards are provided.
+        </p>
+        <mpr-band
+          heading="Research"
+          description="In-flight research projects and lab experiments."
+          category="research"
+        ></mpr-band>
+        <mpr-band heading="Products" category="products"></mpr-band>
+      </section>
     </main>
 
     <mpr-footer
