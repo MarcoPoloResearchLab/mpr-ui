@@ -7,7 +7,7 @@ This guide walks through the requirements and steps needed to wire `mpr-ui` comp
 1. **mpr-ui assets** – load `mpr-ui.css` and `mpr-ui.js` from the CDN or from a local build. The `<mpr-*>` Web Components DSL works without Alpine; the retired factories (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, etc.) no longer ship in v0.2.0+. See [`docs/deprecation-roadmap.md`](deprecation-roadmap.md) if you are upgrading from ≤0.1.x.
 2. **Google Identity Services** – the header renders a GIS button. Include `https://accounts.google.com/gsi/client` and provide a valid OAuth Web Client ID (`site-id`).
 3. **TAuth backend** – the frontend must be able to reach a running TAuth instance, typically on `http://localhost:8080` during local development. Configure `.env.tauth` with your Google client ID, signing key, and allowed origins.
-4. **CORS** – when serving the frontend from a different origin (e.g., `http://localhost:8000`), ensure `APP_ENABLE_CORS=true` and list every origin in `APP_CORS_ALLOWED_ORIGINS`.
+4. **CORS** – when serving the frontend from a different origin (e.g., `http://localhost:8000`), ensure `APP_ENABLE_CORS=true` and list every origin in `APP_CORS_ALLOWED_ORIGINS`. Always include `https://accounts.google.com` in that list—the GIS iframe issues the `/auth/nonce` and `/auth/google` calls from that origin, so omitting it results in `auth.login.nonce_mismatch`.
 5. **auth-client helper** – TAuth exposes `/static/auth-client.js`. This script keeps sessions renewed and surfaces `initAuthClient`, `getCurrentUser`, and `logout` globals that `mpr-ui` expects.
 
 ## Nonce behavior (GIS ↔ mpr-ui ↔ TAuth)
