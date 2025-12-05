@@ -213,6 +213,7 @@ Declarative attribute `theme-switcher` controls `themeToggle.variant` and implic
 - Dropdown menu prefers Bootstrap’s `Dropdown` if available; otherwise a light-weight native toggle keeps `aria-expanded` in sync.
 - Theme toggle emits `mpr-footer:theme-change` with `{ theme }` and forwards the mode through the shared theme manager for `<mpr-theme-toggle>` / `<mpr-header>` to consume.
 - All strings are escaped; dangerous schemes for links fall back to `#`.
+- The drop-up toggle uses internal click/outside/Escape listeners and never applies `data-bs-*` attributes, so Bootstrap or other dropdown frameworks cannot hijack the control.
 
 ## Band Component
 

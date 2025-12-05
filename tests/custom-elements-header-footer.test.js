@@ -487,6 +487,7 @@ function createFooterElementHarness(options) {
     menu: settings.includeMenu ? menu : null,
     menuWrapper: settings.includeMenu ? menuWrapper : null,
     privacyLink,
+    toggleButton,
     selectorMap,
   };
 }
@@ -837,6 +838,52 @@ test('mpr-footer renders static text when links collection is missing', () => {
     controllerConfig.prefixText && controllerConfig.prefixText.length > 0,
     'prefix text should still render when the menu is disabled',
   );
+});
+
+test('mpr-footer drop-up toggles without Bootstrap dependencies', () => {
+  resetEnvironment();
+  loadLibrary();
+  let bootstrapCalls = 0;
+  global.bootstrap = {
+    Dropdown: {
+      getOrCreateInstance() {
+        bootstrapCalls += 1;
+      },
+    },
+  };
+  const harness = createFooterElementHarness();
+  const footerElement = harness.element;
+  footerElement.setAttribute(
+    'links-collection',
+    JSON.stringify({
+      style: 'drop-up',
+      text: 'Built by',
+      links: [{ label: 'Docs', url: '#docs' }],
+    }),
+  );
+  footerElement.connectedCallback();
+  assert.strictEqual(
+    harness.toggleButton.attributes && harness.toggleButton.attributes['data-bs-toggle'],
+    undefined,
+    'Bootstrap data attribute should not be set on the toggle button',
+  );
+  const clickEvent = { type: 'click', preventDefault() {} };
+  harness.toggleButton.dispatchEvent(clickEvent);
+  assert.equal(
+    harness.menu.classList.contains('mpr-footer__menu--open'),
+    true,
+    'menu opens on first click even when Bootstrap namespace exists',
+  );
+  assert.equal(harness.toggleButton.getAttribute('aria-expanded'), 'true');
+  harness.toggleButton.dispatchEvent(clickEvent);
+  assert.equal(
+    harness.menu.classList.contains('mpr-footer__menu--open'),
+    false,
+    'menu closes on second click',
+  );
+  assert.equal(harness.toggleButton.getAttribute('aria-expanded'), 'false');
+  assert.strictEqual(bootstrapCalls, 0, 'Bootstrap dropdown helper should not be invoked');
+  delete global.bootstrap;
 });
 
 test('mpr-theme-toggle custom element toggles theme mode', () => {

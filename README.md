@@ -121,7 +121,7 @@ Stop the stack with `docker compose down -v` to reclaim the SQLite volume. Copy 
 Every UI surface is a custom element. The list below maps directly to the `<mpr-*>` tags you can use declaratively:
 
 - `<mpr-header>` — sticky banner with brand, nav, GIS auth, settings trigger, and shared theme configuration hooks (no built-in toggle).
-- `<mpr-footer>` — marketing footer with prefix dropdown menu, privacy link, and theme toggle.
+- `<mpr-footer>` — marketing footer with prefix dropdown menu, privacy link, and theme toggle that now uses internal dropdown listeners so it no longer collides with Bootstrap classes or `data-bs-*` hooks.
 - `<mpr-theme-toggle>` — shared switch/button that talks to the global theme manager.
 - `<mpr-login-button>` — GIS-only control for contexts that do not need the full header.
 - `<mpr-settings>` — emits toggle events so you can wire your own modal/drawer.

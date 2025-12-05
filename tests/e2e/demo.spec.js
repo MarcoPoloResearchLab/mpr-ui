@@ -26,7 +26,19 @@ const {
 const PALETTE_TARGETS = ['header.mpr-header', 'main', '#event-log', 'footer.mpr-footer'];
 
 test.describe('Demo behaviours', () => {
-  test.beforeEach(async ({ page }) => {
+  test.beforeEach(async ({ page }, testInfo) => {
+    if (testInfo.title.includes('MU-203')) {
+      await page.addInitScript(() => {
+        window.__bootstrapDropdownCalled = 0;
+        window.bootstrap = {
+          Dropdown: {
+            getOrCreateInstance() {
+              window.__bootstrapDropdownCalled += 1;
+            },
+          },
+        };
+      });
+    }
     await visitDemoPage(page);
   });
 
@@ -225,6 +237,16 @@ test.describe('Demo behaviours', () => {
     await expect(dropupButton).toHaveAttribute('aria-expanded', 'true');
     await expect(page.locator(footerMenu)).toHaveClass(/mpr-footer__menu--open/);
     await expect(page.locator(footerPrefix)).toHaveCount(0);
+  });
+
+  test('MU-203: footer drop-up toggles even when Bootstrap namespace exists', async ({ page }) => {
+    const dropupButton = page.locator(footerDropupButton);
+    await dropupButton.click();
+    await expect(page.locator(footerMenu)).toHaveClass(/mpr-footer__menu--open/);
+    await dropupButton.click();
+    await expect(page.locator(footerMenu)).not.toHaveClass(/mpr-footer__menu--open/);
+    const bootstrapCalls = await page.evaluate(() => window.__bootstrapDropdownCalled);
+    expect(bootstrapCalls).toBe(0);
   });
 
   test('MU-316: settings button opens an accessible modal shell', async ({ page }) => {

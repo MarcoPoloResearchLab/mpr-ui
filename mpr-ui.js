@@ -5785,8 +5785,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (config.toggleButtonId) {
       toggleButton.id = config.toggleButtonId;
     }
-    if (!toggleButton.hasAttribute("data-bs-toggle")) {
-      toggleButton.setAttribute("data-bs-toggle", "dropdown");
+    if (toggleButton.hasAttribute("data-bs-toggle")) {
+      toggleButton.removeAttribute("data-bs-toggle");
     }
     toggleButton.setAttribute("aria-expanded", "false");
   }
@@ -5949,26 +5949,88 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (!toggleButton || !menuElement) {
       return null;
     }
-    if (
-      global.bootstrap &&
-      global.bootstrap.Dropdown &&
-      typeof global.bootstrap.Dropdown.getOrCreateInstance === "function"
-    ) {
-      global.bootstrap.Dropdown.getOrCreateInstance(toggleButton, { autoClose: true });
-      return null;
-    }
+    var ownerDocument =
+      (toggleButton && toggleButton.ownerDocument) ||
+      (menuElement && menuElement.ownerDocument) ||
+      global.document ||
+      (global.window && global.window.document) ||
+      null;
     var openClass = "mpr-footer__menu--open";
-    var toggleHandler = function (eventObject) {
-      eventObject.preventDefault();
-      var isOpen = menuElement.classList.contains(openClass);
-      menuElement.classList.toggle(openClass, !isOpen);
-      toggleButton.setAttribute("aria-expanded", (!isOpen).toString());
-    };
-    toggleButton.addEventListener("click", toggleHandler);
-    return function cleanupDropdown() {
-      toggleButton.removeEventListener("click", toggleHandler);
+    var isOpen = false;
+
+    function elementContains(host, target) {
+      if (!host || !target) {
+        return false;
+      }
+      if (typeof host.contains === "function") {
+        return host.contains(target);
+      }
+      return host === target;
+    }
+
+    function closeMenu() {
+      if (!isOpen) {
+        return;
+      }
+      isOpen = false;
       menuElement.classList.remove(openClass);
       toggleButton.setAttribute("aria-expanded", "false");
+    }
+
+    function openMenu() {
+      if (isOpen) {
+        return;
+      }
+      isOpen = true;
+      menuElement.classList.add(openClass);
+      toggleButton.setAttribute("aria-expanded", "true");
+    }
+
+    function handleToggle(eventObject) {
+      if (eventObject && typeof eventObject.preventDefault === "function") {
+        eventObject.preventDefault();
+      }
+      if (isOpen) {
+        closeMenu();
+      } else {
+        openMenu();
+      }
+    }
+
+    function handleDocumentClick(eventObject) {
+      if (!isOpen || !eventObject) {
+        return;
+      }
+      var target = eventObject.target || null;
+      if (elementContains(toggleButton, target) || elementContains(menuElement, target)) {
+        return;
+      }
+      closeMenu();
+    }
+
+    function handleDocumentKeydown(eventObject) {
+      if (!isOpen || !eventObject) {
+        return;
+      }
+      var key = eventObject.key || eventObject.keyCode || "";
+      if (key === "Escape" || key === "Esc" || key === 27) {
+        closeMenu();
+      }
+    }
+
+    toggleButton.addEventListener("click", handleToggle);
+    if (ownerDocument && typeof ownerDocument.addEventListener === "function") {
+      ownerDocument.addEventListener("click", handleDocumentClick);
+      ownerDocument.addEventListener("keydown", handleDocumentKeydown);
+    }
+
+    return function cleanupDropdown() {
+      toggleButton.removeEventListener("click", handleToggle);
+      if (ownerDocument && typeof ownerDocument.removeEventListener === "function") {
+        ownerDocument.removeEventListener("click", handleDocumentClick);
+        ownerDocument.removeEventListener("keydown", handleDocumentKeydown);
+      }
+      closeMenu();
     };
   }
 
