@@ -58,39 +58,48 @@
     >
     </mpr-header>
     <main>
-      <section class="container py-5" data-test="bootstrap-grid">
+      <section class="container py-5" data-test="bootstrap-grid" data-layout-section="hero">
         <div class="row g-4 align-items-center">
-          <div class="col-lg-7 d-flex flex-column gap-3">
-            <h1 class="display-5 fw-semibold mb-0">Bootstrap hero + mpr-ui bands</h1>
-            <p class="lead mb-0">
-              Sticky chrome from mpr-ui with a Bootstrap hero. Bands below stay theme-driven and avoid any Bootstrap dropdown clashes.
-            </p>
-            <ul class="mb-0">
-              <li>Bootstrap grid drives the hero content.</li>
-              <li>Two bands, one card each, honour the shared theme toggle.</li>
-              <li>Event log listens to header, footer, and band events.</li>
-            </ul>
+          <div class="col-lg-7">
+            <header class="d-flex flex-column gap-3">
+              <p class="text-uppercase fw-semibold text-muted mb-1">Bootstrap hero</p>
+              <h1 class="display-5 fw-semibold mb-0">mpr-ui bands inside a Bootstrap layout</h1>
+              <p class="lead mb-0">
+                Sticky chrome from mpr-ui with a Bootstrap hero. Bands below stay theme-driven and avoid any Bootstrap dropdown clashes.
+              </p>
+              <ul class="mb-0">
+                <li>Bootstrap grid powers every section.</li>
+                <li>Two bands, one card each, honour the shared theme toggle.</li>
+                <li>Event log listens to header, footer, and band events.</li>
+              </ul>
+            </header>
           </div>
-          <div class="col-lg-5 d-flex flex-column gap-3">
-            <h2 id="event-log-title" class="h4 mb-2">Event Log</h2>
-            <p class="mb-0">
-              Header actions, footer toggles, and band flips stream into this log without disrupting Bootstrap styles.
-            </p>
-            <div id="event-log" class="event-log" aria-live="polite"></div>
+          <div class="col-lg-5">
+            <div class="row g-3" data-test="hero-event-log">
+              <div class="col-12">
+                <h2 id="event-log-title" class="h4 mb-2">Event Log</h2>
+                <p class="mb-0">
+                  Header actions, footer toggles, and band flips stream into this log without disrupting Bootstrap styles.
+                </p>
+              </div>
+              <div class="col-12">
+                <div id="event-log" class="event-log" aria-live="polite"></div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
 
-      <section class="container py-4">
-        <div class="row justify-content-center">
-          <div class="col-12">
+      <section class="container py-4" data-layout-section="band-observability">
+        <div class="row g-4 justify-content-center">
+          <div class="col-12 col-xl-10">
             <div class="row g-4 align-items-stretch">
-              <div class="col-12">
+              <div class="col-12 col-lg-8">
                 <mpr-band
                   id="band-event-log"
                   category="research"
                   heading="Observability Band"
-                  description="Bootstrap-aligned observability cards driven by the shared theme toggle."
+                  description="Bootstrap-aligned observability card driven by the shared theme toggle."
                   cards='[
                     {
                       "id": "demo-event-log",
@@ -108,16 +117,16 @@
         </div>
       </section>
 
-      <section class="container py-4">
-        <div class="row justify-content-center">
-          <div class="col-12">
+      <section class="container py-4" data-layout-section="band-integration">
+        <div class="row g-4 justify-content-center">
+          <div class="col-12 col-xl-10">
             <div class="row g-4 align-items-stretch">
-              <div class="col-12">
+              <div class="col-12 col-lg-8">
                 <mpr-band
                   id="band-integration"
                   category="tools"
                   heading="Integration Band"
-                  description="Bootstrap-themed integration references with palette-aware cards."
+                  description="Bootstrap-themed integration card with palette-aware styling."
                   cards='[
                     {
                       "id": "demo-integration-reference",

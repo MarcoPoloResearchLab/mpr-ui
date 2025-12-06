@@ -287,6 +287,24 @@ test.describe('Demo behaviours', () => {
     await expect(page.locator(footerMenu)).not.toHaveClass(/mpr-footer__menu--open/);
   });
 
+  test('MU-204: main layout exposes hero and band sections', async ({ page }) => {
+    const sections = page.locator('main > section');
+    await expect(sections).toHaveCount(3);
+    await expect(page.locator('section[data-layout-section="hero"] h1')).toContainText(/mpr-ui bands/i);
+
+    const observabilityBand = page.locator('section[data-layout-section="band-observability"]');
+    await expect(observabilityBand).toBeVisible();
+    await expect(
+      observabilityBand.locator('mpr-band[data-mpr-band-category="research"] [data-mpr-band-card]'),
+    ).toHaveCount(1);
+
+    const integrationBand = page.locator('section[data-layout-section="band-integration"]');
+    await expect(integrationBand).toBeVisible();
+    await expect(
+      integrationBand.locator('mpr-band[data-mpr-band-category="tools"] [data-mpr-band-card]'),
+    ).toHaveCount(1);
+  });
+
   test('MU-316: settings button opens an accessible modal shell', async ({ page }) => {
     const settingsButton = page.getByRole('button', { name: /settings/i });
     await expect(settingsButton).toBeVisible();
