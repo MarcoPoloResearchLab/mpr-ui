@@ -420,15 +420,15 @@ test.describe('Demo behaviours', () => {
     expect(await isLocatorInViewport(chrome.header)).toBe(false);
   });
 
-  test('MU-202: band component filters the default catalog by category', async ({ page }) => {
-    const platformBand = page.locator('mpr-band[data-mpr-band-category="platform"]');
-    await expect(platformBand).toHaveAttribute('data-mpr-band-empty', 'false');
-    const cards = platformBand.locator('[data-mpr-band-card]');
+  test('MU-202: band component renders themed cards for configured category', async ({ page }) => {
+    const researchBand = page.locator('mpr-band[data-mpr-band-category="research"]');
+    await expect(researchBand).toHaveAttribute('data-mpr-band-empty', 'false');
+    const cards = researchBand.locator('[data-mpr-band-card]');
     const cardCount = await cards.count();
     expect(cardCount).toBeGreaterThan(0);
     await expect(cards.first()).toBeVisible();
-    const description = await platformBand.locator('[data-mpr-band="heading"] p').textContent();
-    expect(description).toMatch(/platform/i);
+    const description = await researchBand.locator('[data-mpr-band="heading"] p').textContent();
+    expect(description).toMatch(/observability/i);
   });
 
   test('Band cards flip and load subscribe overlays', async ({ page }) => {
@@ -451,7 +451,7 @@ test.describe('Demo behaviours', () => {
         .filter(Boolean),
     );
     const uniqueCategories = Array.from(new Set(categories)).sort();
-    expect(uniqueCategories).toEqual(['platform', 'products', 'research', 'tools']);
+    expect(uniqueCategories).toEqual(['research', 'tools']);
 
     const eventLogCard = page.locator(bandCardEventLog);
     const integrationCard = page.locator(bandCardIntegration);

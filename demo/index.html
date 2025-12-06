@@ -58,26 +58,26 @@
     >
     </mpr-header>
     <main>
-      <div class="container py-5" data-test="bootstrap-grid">
-        <div class="row g-4 align-items-stretch">
-          <div class="col-lg-6">
-            <div class="card demo-card h-100 shadow-sm">
+      <section class="container py-5" data-test="bootstrap-grid">
+        <div class="row g-4 align-items-center">
+          <div class="col-lg-7">
+            <div class="card h-100 shadow-sm demo-card">
               <div class="card-body d-flex flex-column gap-3">
-                <h1 class="card-title mb-1">MPR UI Demo</h1>
+                <h1 class="card-title mb-1">Bootstrap + mpr-ui</h1>
                 <p class="mb-0">
-                  This page demonstrates the authentication header, footer, and band components rendered alongside Bootstrap 5 grid utilities.
-                  The drop-up remains independent of Bootstrap dropdowns even when the namespace is present.
+                  A Bootstrap-powered hero pinned between the sticky header and footer. The drop-up stays independent
+                  of Bootstrap dropdowns while bands and toggles remain theme-aware.
                 </p>
                 <ul class="list-unstyled mb-0">
-                  <li>Sticky auth header and footer pinned above a Bootstrap grid.</li>
-                  <li>Event log wired to header, footer, and band events.</li>
-                  <li>Four themed bands covering research, tools, platform, and products.</li>
+                  <li>Bootstrap grid drives the hero content.</li>
+                  <li>Bands stay theme-driven under the shared toggle.</li>
+                  <li>Event log listens to header, footer, and band events.</li>
                 </ul>
               </div>
             </div>
           </div>
-          <div class="col-lg-6">
-            <div class="card demo-card h-100 shadow-sm">
+          <div class="col-lg-5">
+            <div class="card h-100 shadow-sm demo-card">
               <div class="card-body d-flex flex-column gap-3">
                 <div>
                   <h2 id="event-log-title" class="h4 mb-2">Event Log</h2>
@@ -90,16 +90,16 @@
             </div>
           </div>
         </div>
-      </div>
+      </section>
 
-      <div class="container py-4">
+      <section class="container py-4">
         <div class="row gy-5">
           <div class="col-12">
             <mpr-band
               id="band-event-log"
               category="research"
-              heading="Event Signals"
-              description="Capture header, footer, and band activity while a Bootstrap grid drives layout."
+              heading="Observability Band"
+              description="Bootstrap-aligned observability cards driven by the shared theme toggle."
               cards='[
                 {
                   "id": "demo-event-log",
@@ -108,6 +108,14 @@
                   "status": "production",
                   "icon": "📡",
                   "url": "#event-log"
+                },
+                {
+                  "id": "demo-header-auth",
+                  "title": "Auth Header",
+                  "description": "GIS-backed sign-in with nonce exchange and sticky positioning.",
+                  "status": "beta",
+                  "icon": "🔐",
+                  "url": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/docs/demo-index-auth.md#header-flow"
                 }
               ]'
             ></mpr-band>
@@ -116,8 +124,8 @@
             <mpr-band
               id="band-integration"
               category="tools"
-              heading="Integration Reference"
-              description="Bootstrap-friendly integration links for GIS, TAuth, and palette-aware themes."
+              heading="Integration Band"
+              description="Bootstrap-themed integration references with palette-aware cards."
               cards='[
                 {
                   "id": "demo-integration-reference",
@@ -126,28 +134,20 @@
                   "status": "production",
                   "icon": "🧭",
                   "url": "../docs/demo-index-auth.md"
+                },
+                {
+                  "id": "demo-bootstrap-grid",
+                  "title": "Bootstrap Layout",
+                  "description": "Grid scaffolding that keeps the footer drop-up independent of Bootstrap dropdowns.",
+                  "status": "production",
+                  "icon": "🧱",
+                  "url": "https://getbootstrap.com/docs/5.3/layout/grid/"
                 }
               ]'
             ></mpr-band>
           </div>
-          <div class="col-12">
-            <mpr-band
-              id="band-platform"
-              category="platform"
-              heading="Platform Catalog"
-              description="Highlights from the Marco Polo Research Lab platform stack."
-            ></mpr-band>
-          </div>
-          <div class="col-12">
-            <mpr-band
-              id="band-products"
-              category="products"
-              heading="Product Betas"
-              description="Flip cards to explore live products and subscribe for updates."
-            ></mpr-band>
-          </div>
         </div>
-      </div>
+      </section>
     </main>
 
     <mpr-footer
