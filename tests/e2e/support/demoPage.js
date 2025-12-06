@@ -75,6 +75,9 @@ const SELECTORS = Object.freeze({
   footerMenu: '[data-mpr-footer="menu"]',
   footerPrefix: '[data-mpr-footer="prefix"]',
   eventLogEntries: '#event-log [data-test="event-log-entry"]',
+  bootstrapGrid: '[data-test="bootstrap-grid"]',
+  bandCardEventLog: '[data-mpr-band-card="demo-event-log"]',
+  bandCardIntegration: '[data-mpr-band-card="demo-integration-reference"]',
 });
 
 const LOCAL_ASSETS = Object.freeze({

@@ -21,6 +21,9 @@ const {
   footerMenu,
   footerPrefix,
   eventLogEntries,
+  bootstrapGrid,
+  bandCardEventLog,
+  bandCardIntegration,
 } = selectors;
 
 const PALETTE_TARGETS = ['header.mpr-header', 'main', '#event-log', 'footer.mpr-footer'];
@@ -30,16 +33,31 @@ test.describe('Demo behaviours', () => {
     if (testInfo.title.includes('MU-203')) {
       await page.addInitScript(() => {
         window.__bootstrapDropdownCalled = 0;
-        window.bootstrap = {
-          Dropdown: {
-            getOrCreateInstance() {
-              window.__bootstrapDropdownCalled += 1;
-            },
-          },
-        };
+        function instrumentBootstrapDropdown() {
+          const namespace = window.bootstrap || (window.bootstrap = {});
+          const dropdownNamespace = namespace.Dropdown || (namespace.Dropdown = {});
+          const original = dropdownNamespace.getOrCreateInstance;
+          dropdownNamespace.getOrCreateInstance = function patchedDropdown(...args) {
+            window.__bootstrapDropdownCalled += 1;
+            if (typeof original === 'function') {
+              return original.apply(this, args);
+            }
+            return undefined;
+          };
+        }
+        window.__instrumentBootstrapDropdown = instrumentBootstrapDropdown;
+        instrumentBootstrapDropdown();
+        document.addEventListener('DOMContentLoaded', instrumentBootstrapDropdown, { once: true });
       });
     }
     await visitDemoPage(page);
+    if (testInfo.title.includes('MU-203')) {
+      await page.evaluate(() => {
+        if (typeof window.__instrumentBootstrapDropdown === 'function') {
+          window.__instrumentBootstrapDropdown();
+        }
+      });
+    }
   });
 
   test('MU-307: renders the Google Sign-In button with a valid client id', async ({ page }) => {
@@ -249,6 +267,26 @@ test.describe('Demo behaviours', () => {
     expect(bootstrapCalls).toBe(0);
   });
 
+  test('MU-204: Bootstrap grid coexists with the footer drop-up', async ({ page }) => {
+    const grid = page.locator(bootstrapGrid);
+    await expect(grid).toBeVisible();
+    const row = grid.locator('.row').first();
+    await expect(row).toBeVisible();
+    const display = await row.evaluate((element) => {
+      const ownerWindow = element.ownerDocument?.defaultView;
+      return ownerWindow ? ownerWindow.getComputedStyle(element).display : '';
+    });
+    expect(display).toBe('flex');
+    const bootstrapDetected = await page.evaluate(() => Boolean(window.bootstrap));
+    expect(bootstrapDetected).toBe(true);
+
+    const dropupButton = page.locator(footerDropupButton);
+    await dropupButton.click();
+    await expect(page.locator(footerMenu)).toHaveClass(/mpr-footer__menu--open/);
+    await dropupButton.click();
+    await expect(page.locator(footerMenu)).not.toHaveClass(/mpr-footer__menu--open/);
+  });
+
   test('MU-316: settings button opens an accessible modal shell', async ({ page }) => {
     const settingsButton = page.getByRole('button', { name: /settings/i });
     await expect(settingsButton).toBeVisible();
@@ -383,14 +421,14 @@ test.describe('Demo behaviours', () => {
   });
 
   test('MU-202: band component filters the default catalog by category', async ({ page }) => {
-    const researchBand = page.locator('mpr-band[data-mpr-band-category="research"]');
-    await expect(researchBand).toHaveAttribute('data-mpr-band-empty', 'false');
-    const cards = researchBand.locator('[data-mpr-band-card]');
+    const platformBand = page.locator('mpr-band[data-mpr-band-category="platform"]');
+    await expect(platformBand).toHaveAttribute('data-mpr-band-empty', 'false');
+    const cards = platformBand.locator('[data-mpr-band-card]');
     const cardCount = await cards.count();
     expect(cardCount).toBeGreaterThan(0);
     await expect(cards.first()).toBeVisible();
-    const description = await researchBand.locator('[data-mpr-band="heading"] p').textContent();
-    expect(description).toMatch(/research projects/i);
+    const description = await platformBand.locator('[data-mpr-band="heading"] p').textContent();
+    expect(description).toMatch(/platform/i);
   });
 
   test('Band cards flip and load subscribe overlays', async ({ page }) => {
@@ -403,6 +441,32 @@ test.describe('Demo behaviours', () => {
     const subscribeOverlay = productsBand.locator('[data-mpr-band-subscribe-loaded="true"]');
     await expect(subscribeOverlay).toBeVisible();
     await expect(page.locator(eventLogEntries)).toHaveCount(2, { timeout: 2000 });
+  });
+
+  test('MU-204: bands span all categories and separate observability cards', async ({ page }) => {
+    const bands = page.locator('mpr-band[data-mpr-band-category]');
+    const categories = await bands.evaluateAll((elements) =>
+      elements
+        .map((element) => element.getAttribute('data-mpr-band-category') || '')
+        .filter(Boolean),
+    );
+    const uniqueCategories = Array.from(new Set(categories)).sort();
+    expect(uniqueCategories).toEqual(['platform', 'products', 'research', 'tools']);
+
+    const eventLogCard = page.locator(bandCardEventLog);
+    const integrationCard = page.locator(bandCardIntegration);
+    await expect(eventLogCard).toBeVisible();
+    await expect(integrationCard).toBeVisible();
+
+    const eventCategory = await eventLogCard.evaluate(
+      (node) => node.closest('mpr-band')?.getAttribute('data-mpr-band-category') || '',
+    );
+    const integrationCategory = await integrationCard.evaluate(
+      (node) => node.closest('mpr-band')?.getAttribute('data-mpr-band-category') || '',
+    );
+    expect(eventCategory).not.toBe('');
+    expect(integrationCategory).not.toBe('');
+    expect(eventCategory).not.toBe(integrationCategory);
   });
 });
 

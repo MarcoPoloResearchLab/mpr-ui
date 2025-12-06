@@ -4,6 +4,10 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>mpr-ui Demo (Local Bundle)</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    />
     <link rel="stylesheet" href="../mpr-ui.css" />
     <script
       defer
@@ -35,30 +39,112 @@
     >
     </mpr-header>
     <main>
-      <h1>MPR UI Demo (Local)</h1>
-      <p>
-        This page loads the local <code>mpr-ui.js</code> bundle so you can verify changes without
-        hitting the CDN.
-      </p>
+      <div class="container py-5" data-test="bootstrap-grid">
+        <div class="row g-4 align-items-stretch">
+          <div class="col-lg-6">
+            <div class="card demo-card h-100 shadow-sm">
+              <div class="card-body d-flex flex-column gap-3">
+                <h1 class="card-title mb-1">MPR UI Demo (Local)</h1>
+                <p class="mb-0">
+                  This page loads the local <code>mpr-ui.js</code> bundle and Bootstrap 5 grid utilities so you can
+                  verify the sticky chrome and drop-up coexist with the Bootstrap namespace.
+                </p>
+                <ul class="list-unstyled mb-0">
+                  <li>Sticky auth header and footer pinned above a Bootstrap grid.</li>
+                  <li>Event log wired to header, footer, and band events.</li>
+                  <li>Four themed bands covering research, tools, platform, and products.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card demo-card h-100 shadow-sm">
+              <div class="card-body d-flex flex-column gap-3">
+                <div>
+                  <h2 id="event-log-title" class="h4 mb-2">Event Log</h2>
+                  <p class="mb-0">
+                    Watch header actions, footer toggles, and band flips stream into this log without disrupting Bootstrap styles.
+                  </p>
+                </div>
+                <div id="event-log" class="event-log" aria-live="polite"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
-      <section aria-labelledby="event-log-title">
-        <h2 id="event-log-title">Event Log</h2>
-        <div id="event-log" class="event-log" aria-live="polite"></div>
-      </section>
-
-      <section aria-labelledby="band-demo-title">
-        <h2 id="band-demo-title">Band Showcase</h2>
-        <p>
-          Declarative <code>&lt;mpr-band&gt;</code> sections reuse the Marco Polo Research Lab
-          catalog. Bands filter the packaged data by <code>category</code> when no custom cards are provided.
-        </p>
-        <mpr-band
-          heading="Research"
-          description="In-flight research projects and lab experiments."
-          category="research"
-        ></mpr-band>
-        <mpr-band heading="Products" category="products"></mpr-band>
-      </section>
+      <div class="container py-4">
+        <div class="row gy-5">
+          <div class="col-12">
+            <mpr-band
+              id="band-event-log"
+              category="research"
+              heading="Event Signals"
+              description="Capture header, footer, and band activity while a Bootstrap grid drives layout."
+              cards='[
+                {
+                  "id": "demo-event-log",
+                  "title": "Event Log",
+                  "description": "Live stream of auth, privacy, and theme events rendered on this page.",
+                  "status": "production",
+                  "icon": "📡",
+                  "url": "#event-log"
+                },
+                {
+                  "id": "demo-header-auth",
+                  "title": "Auth Header",
+                  "description": "GIS-backed sign-in with nonce exchange and sticky positioning.",
+                  "status": "beta",
+                  "icon": "🔐",
+                  "url": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/docs/demo-index-auth.md#header-flow"
+                }
+              ]'
+            ></mpr-band>
+          </div>
+          <div class="col-12">
+            <mpr-band
+              id="band-integration"
+              category="tools"
+              heading="Integration Reference"
+              description="Bootstrap-friendly integration links for GIS, TAuth, and palette-aware themes."
+              cards='[
+                {
+                  "id": "demo-integration-reference",
+                  "title": "Integration Reference",
+                  "description": "Step-by-step walkthrough for wiring GIS, TAuth, and the bundled demo helpers.",
+                  "status": "production",
+                  "icon": "🧭",
+                  "url": "../docs/demo-index-auth.md"
+                },
+                {
+                  "id": "demo-bootstrap-grid",
+                  "title": "Bootstrap Layout",
+                  "description": "Grid-driven scaffolding that keeps the footer drop-up independent of Bootstrap dropdowns.",
+                  "status": "production",
+                  "icon": "🧱",
+                  "url": "https://getbootstrap.com/docs/5.3/layout/grid/"
+                }
+              ]'
+            ></mpr-band>
+          </div>
+          <div class="col-12">
+            <mpr-band
+              id="band-platform"
+              category="platform"
+              heading="Platform Catalog"
+              description="Highlights from the Marco Polo Research Lab platform stack."
+            ></mpr-band>
+          </div>
+          <div class="col-12">
+            <mpr-band
+              id="band-products"
+              category="products"
+              heading="Product Betas"
+              description="Flip cards to explore live products and subscribe for updates."
+            ></mpr-band>
+          </div>
+        </div>
+      </div>
     </main>
 
     <mpr-footer
@@ -94,6 +180,10 @@
       theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-light","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
     >
     </mpr-footer>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    ></script>
     <script defer src="./demo.js"></script>
   </body>
 </html>

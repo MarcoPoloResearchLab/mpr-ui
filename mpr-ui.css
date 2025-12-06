@@ -59,9 +59,9 @@ body[data-mpr-theme='dark'] {
 
 main {
   flex: 1 0 auto;
-  padding: 6rem 1.5rem 6rem;
-  max-width: 960px;
-  margin: 0 auto;
+  padding: 4rem 0 5rem;
+  width: 100%;
+  max-width: none;
   color: var(--mpr-color-text-primary, #e2e8f0);
 }
 
@@ -95,6 +95,22 @@ section {
 .custom-elements-preview mpr-header,
 .custom-elements-preview mpr-footer {
   display: block;
+}
+
+.demo-card {
+  background: var(--mpr-color-surface-primary, rgba(15, 23, 42, 0.65));
+  border: 1px solid var(--mpr-color-border, rgba(148, 163, 184, 0.35));
+  color: var(--mpr-color-text-primary, #e2e8f0);
+  backdrop-filter: blur(6px);
+}
+
+.demo-card .card-title {
+  color: var(--mpr-color-accent, #38bdf8);
+}
+
+.demo-card p,
+.demo-card li {
+  color: var(--mpr-color-text-primary, #e2e8f0);
 }
 
 pre {

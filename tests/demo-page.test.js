@@ -46,6 +46,24 @@ test('demo loads only the local event log helper script', () => {
   );
 });
 
+test('demo pulls Bootstrap assets for the layout showcase', () => {
+  assert.match(
+    demoHtml,
+    /<link[^>]+href="https:\/\/cdn\.jsdelivr\.net\/npm\/bootstrap@[^/]+\/dist\/css\/bootstrap\.min\.css"/i,
+    'Expected the demo to load Bootstrap CSS for the grid layout',
+  );
+  assert.match(
+    demoHtml,
+    /<script[^>]+src="https:\/\/cdn\.jsdelivr\.net\/npm\/bootstrap@[^/]+\/dist\/js\/bootstrap\.bundle\.min\.js"/i,
+    'Expected the demo to load the Bootstrap bundle so the namespace exists',
+  );
+  assert.match(
+    demoHtml,
+    /data-test="bootstrap-grid"/i,
+    'Expected the demo HTML to expose a Bootstrap grid container for testing',
+  );
+});
+
 test('packaged stylesheet pins the header and footer using sticky positioning', () => {
   assert.match(
     sharedCss,
