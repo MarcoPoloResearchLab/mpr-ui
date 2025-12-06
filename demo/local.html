@@ -52,24 +52,20 @@
     <main>
       <section class="container py-5" data-test="bootstrap-grid">
         <div class="row g-4 align-items-center">
-          <div class="col-lg-7">
-            <div class="card h-100 shadow-sm demo-card">
-              <div class="card-body d-flex flex-column gap-3">
-                <h1 class="card-title mb-1">MPR UI Demo (Local)</h1>
-                <p class="mb-0">
-                  Local bundle paired with Bootstrap grid utilities; sticky chrome and drop-up coexist with the Bootstrap namespace.
-                </p>
-                <ul class="list-unstyled mb-0">
-                  <li>Bootstrap grid drives the hero content.</li>
-                  <li>Bands stay theme-driven under the shared toggle.</li>
-                  <li>Event log listens to header, footer, and band events.</li>
-                </ul>
-              </div>
-            </div>
+          <div class="col-lg-7 d-flex flex-column gap-3">
+            <h1 class="display-5 fw-semibold mb-0">MPR UI Demo (Local)</h1>
+            <p class="lead mb-0">
+              Local bundle paired with Bootstrap grid utilities; sticky chrome and drop-up coexist with the Bootstrap namespace.
+            </p>
+            <ul class="mb-0">
+              <li>Bootstrap grid drives the hero content.</li>
+              <li>Two bands, one card each, honour the shared theme toggle.</li>
+              <li>Event log listens to header, footer, and band events.</li>
+            </ul>
           </div>
           <div class="col-lg-5">
-            <div class="card h-100 shadow-sm demo-card">
-              <div class="card-body d-flex flex-column gap-3">
+            <div class="p-4 rounded-3 border border-1" style="border-color: var(--mpr-color-border, rgba(148, 163, 184, 0.35)); background: var(--mpr-color-surface-primary, rgba(15, 23, 42, 0.65));">
+              <div class="d-flex flex-column gap-3">
                 <div>
                   <h2 id="event-log-title" class="h4 mb-2">Event Log</h2>
                   <p class="mb-0">
