@@ -37,6 +37,8 @@ volumes:
   gravity_data:
 ```
 
+- [ ] [MU-110] Add mpr-card semantic element. Model it after the cards in tools/marcopolo.github.io. All controls of the cards including theme styling must be declarative using their DSL
+
 ## Improvements (220–299)
 
 - [x] [MU-200] Add a sticky attribute to both footers and headers, e.g. 
@@ -58,9 +60,20 @@ volumes:
 1. Non-conflicting usage of bootstrap and mpr-ui. Having an internal grid driven by bootstrap between the footer and header, while having drop up in the footer operational.
 2. Usage of bands: have Event log card and Integration reference card in two different bands. bands shall be styled to match all four color theemes. If they can not support different color themes through declarative DSL, file am issue to extend it. — Demo now loads Bootstrap 5 CSS/JS, showcases a Bootstrap grid between the header and footer, and stacks four themed bands (research/tools/platform/products) with dedicated Event Log and Integration Reference cards while keeping the footer drop-up operational.
 
+- [x] [MU-205] Restructure the demo so `<mpr-band>` hosts Bootstrap grids without the JSON cards DSL. Requirements: hero title “MPR-UI Demo” directly under `<mpr-header>`, two top-level bands (no surrounding `<main>`), each band containing one Bootstrap card laid out via the Bootstrap grid, no card-in-card presentation, no inline CSS/JS snippets inside the HTML, and the hero title/bands all honoring the theme switcher without clashing with Bootstrap. — Added manual layout support to `<mpr-band>`, rewrote both demo pages to use a Bootstrap hero plus two manual bands (event log + integration card), removed inline scripts, and updated tests plus fixtures to cover the new structure and manual/manual vs. catalog rendering.
+
 ## BugFixes (330–399)
 
+- [ ] [MU-331] Assumptions abound bands
+1. The bands shall have no DSL for header
+2. The bands are a container element, non-interacting with bootstrap and allowing to contain other semantic components
+3. All bands styling is happening using DSL for theemes
+4. The bands have no knowledge of boostrap
+5. Bands are horizontal containers that isolate the components inside them.
+
 ## Maintenance (415–499)
+
+- [ ] [MU-416] Audit mpr-ui library. Ensure we are not shipping demo-related code. Ensure that demo is shipped using the built-in capabilities. In case there are gaps. open new issues for them.
 
 ## Planning
 *Do not work on these, not ready*

@@ -10,6 +10,7 @@
 - MU-203: Refactored footer drop-up to avoid conflicts with Bootstrap by removing `data-bs-*` attributes, adding internal click/outside/Escape listeners, and updating documentation and tests for compatibility.
 - Consolidated theme toggle footprint to a 28px grid in square mode to avoid stale-style regressions.
 - Enhanced inline docs and demos to reflect new band component and updated footer drop-up behavior.
+- MU-205: Added a manual layout mode to `<mpr-band>` so Bootstrap grids or custom cards can live inside the band shell without the JSON DSL, rebuilt both demo pages with a Bootstrap hero and two manual bands (event log + integration card), removed inline script fallbacks, and refreshed Playwright fixtures/selectors for the new structure.
   
 ### Bug Fixes 🐛
 - MU-328: Fixed TAuth demo sign-in origin rejection by removing hardcoded Google client ID and reading configuration from `demo/tauth-config.js`.

@@ -74,7 +74,7 @@ function appendEventLogEntry(message) {
   if (!message || typeof message !== 'string') {
     return;
   }
-  const logHost = document.getElementById(EVENT_LOG_HOST_ID);
+  const logHost = ensureEventLogHost();
   if (!logHost) {
     return;
   }
@@ -90,6 +90,27 @@ function appendEventLogEntry(message) {
     }
     logHost.removeChild(firstChild);
   }
+}
+
+/**
+ * Ensures the event log container exists inside the hero band card.
+ * @returns {HTMLElement | null}
+ */
+function ensureEventLogHost() {
+  let host = document.getElementById(EVENT_LOG_HOST_ID);
+  if (host) {
+    return host;
+  }
+  const fallback = document.querySelector('[data-event-log-host]');
+  if (!fallback) {
+    return null;
+  }
+  host = document.createElement('div');
+  host.id = EVENT_LOG_HOST_ID;
+  host.className = 'event-log';
+  host.setAttribute('aria-live', 'polite');
+  fallback.appendChild(host);
+  return host;
 }
 
 /**

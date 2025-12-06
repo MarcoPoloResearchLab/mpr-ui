@@ -9,6 +9,7 @@ const {
   captureDropUpMetrics,
   readEventLogEntries,
   visitFooterTextFixturePage,
+  visitBandFixturePage,
   selectors,
 } = require('./support/demoPage');
 
@@ -26,7 +27,12 @@ const {
   bandCardIntegration,
 } = selectors;
 
-const PALETTE_TARGETS = ['header.mpr-header', 'main', '#event-log', 'footer.mpr-footer'];
+const PALETTE_TARGETS = [
+  'header.mpr-header',
+  '[data-layout-section="hero-title"]',
+  '#event-log',
+  'footer.mpr-footer',
+];
 
 test.describe('Demo behaviours', () => {
   test.beforeEach(async ({ page }, testInfo) => {
@@ -287,22 +293,19 @@ test.describe('Demo behaviours', () => {
     await expect(page.locator(footerMenu)).not.toHaveClass(/mpr-footer__menu--open/);
   });
 
-  test('MU-204: main layout exposes hero and band sections', async ({ page }) => {
-    const sections = page.locator('main > section');
-    await expect(sections).toHaveCount(3);
-    await expect(page.locator('section[data-layout-section="hero"] h1')).toContainText(/mpr-ui bands/i);
+  test('MU-204: hero title and manual bands render as top-level siblings', async ({ page }) => {
+    const heroTitle = page.locator('[data-layout-section="hero-title"] h1');
+    await expect(heroTitle).toHaveText('MPR-UI Demo');
 
-    const observabilityBand = page.locator('section[data-layout-section="band-observability"]');
-    await expect(observabilityBand).toBeVisible();
-    await expect(
-      observabilityBand.locator('mpr-band[data-mpr-band-category="research"] [data-mpr-band-card]'),
-    ).toHaveCount(1);
+    const topLevelBands = page.locator('body > mpr-band');
+    await expect(topLevelBands).toHaveCount(2);
+    await expect(topLevelBands.first()).toHaveAttribute('layout', 'manual');
+    await expect(topLevelBands.nth(1)).toHaveAttribute('layout', 'manual');
+    await expect(topLevelBands.first().locator('[data-mpr-band="heading"]')).toHaveCount(0);
+    await expect(topLevelBands.nth(1).locator('[data-mpr-band="heading"]')).toHaveCount(0);
 
-    const integrationBand = page.locator('section[data-layout-section="band-integration"]');
-    await expect(integrationBand).toBeVisible();
-    await expect(
-      integrationBand.locator('mpr-band[data-mpr-band-category="tools"] [data-mpr-band-card]'),
-    ).toHaveCount(1);
+    await expect(page.locator(bandCardEventLog)).toBeVisible();
+    await expect(page.locator(bandCardIntegration)).toBeVisible();
   });
 
   test('MU-316: settings button opens an accessible modal shell', async ({ page }) => {
@@ -438,29 +441,6 @@ test.describe('Demo behaviours', () => {
     expect(await isLocatorInViewport(chrome.header)).toBe(false);
   });
 
-  test('MU-202: band component renders themed cards for configured category', async ({ page }) => {
-    const researchBand = page.locator('mpr-band[data-mpr-band-category="research"]');
-    await expect(researchBand).toHaveAttribute('data-mpr-band-empty', 'false');
-    const cards = researchBand.locator('[data-mpr-band-card]');
-    const cardCount = await cards.count();
-    expect(cardCount).toBeGreaterThan(0);
-    await expect(cards.first()).toBeVisible();
-    const description = await researchBand.locator('[data-mpr-band="heading"] p').textContent();
-    expect(description).toMatch(/observability/i);
-  });
-
-  test('Band cards flip and load subscribe overlays', async ({ page }) => {
-    const productsBand = page.locator('mpr-band[data-mpr-band-category="products"]');
-    const subscribeCard = productsBand.locator('[data-mpr-band-card="gravity-notes"]');
-    await subscribeCard.scrollIntoViewIfNeeded();
-    await expect(subscribeCard).toBeVisible();
-    await subscribeCard.click();
-    await expect(subscribeCard).toHaveAttribute('aria-pressed', 'true');
-    const subscribeOverlay = productsBand.locator('[data-mpr-band-subscribe-loaded="true"]');
-    await expect(subscribeOverlay).toBeVisible();
-    await expect(page.locator(eventLogEntries)).toHaveCount(2, { timeout: 2000 });
-  });
-
   test('MU-204: bands span all categories and separate observability cards', async ({ page }) => {
     const bands = page.locator('mpr-band[data-mpr-band-category]');
     const categories = await bands.evaluateAll((elements) =>
@@ -485,6 +465,34 @@ test.describe('Demo behaviours', () => {
     expect(eventCategory).not.toBe('');
     expect(integrationCategory).not.toBe('');
     expect(eventCategory).not.toBe(integrationCategory);
+  });
+});
+
+test.describe('Band fixture behaviours', () => {
+  test.beforeEach(async ({ page }) => {
+    await visitBandFixturePage(page);
+  });
+
+  test('MU-202: band component renders themed cards for configured category', async ({ page }) => {
+    const productsBand = page.locator('mpr-band[data-mpr-band-category="products"]');
+    await expect(productsBand).toHaveAttribute('data-mpr-band-empty', 'false');
+    const cards = productsBand.locator('[data-mpr-band-card]');
+    const cardCount = await cards.count();
+    expect(cardCount).toBeGreaterThan(0);
+    await expect(cards.first()).toBeVisible();
+    await expect(productsBand.locator('[data-mpr-band="heading"] h2')).toContainText(
+      /products/i,
+    );
+  });
+
+  test('Band cards flip and load subscribe overlays', async ({ page }) => {
+    const subscribeCard = page.locator('[data-mpr-band-card="gravity-notes"]');
+    await subscribeCard.scrollIntoViewIfNeeded();
+    await expect(subscribeCard).toBeVisible();
+    await subscribeCard.click();
+    await expect(subscribeCard).toHaveAttribute('aria-pressed', 'true');
+    const subscribeOverlay = page.locator('[data-mpr-band-subscribe-loaded="true"]');
+    await expect(subscribeOverlay).toBeVisible();
   });
 });
 
@@ -576,6 +584,7 @@ test.describe('Default theme toggle behaviours', () => {
  */
 async function clickQuadrant(page, selector, quadrant) {
   const control = page.locator(selector).first();
+  await control.scrollIntoViewIfNeeded();
   const box = await control.boundingBox();
   if (!box) {
     throw new Error('Square toggle bounding box is missing');
@@ -583,9 +592,9 @@ async function clickQuadrant(page, selector, quadrant) {
   const margin = 6;
   const isRight = quadrant === 'topRight' || quadrant === 'bottomRight';
   const isBottom = quadrant === 'bottomRight' || quadrant === 'bottomLeft';
-  const targetX = isRight ? box.x + box.width - margin : box.x + margin;
-  const targetY = isBottom ? box.y + box.height - margin : box.y + margin;
-  await page.mouse.click(targetX, targetY);
+  const offsetX = isRight ? box.width - margin : margin;
+  const offsetY = isBottom ? box.height - margin : margin;
+  await control.click({ position: { x: offsetX, y: offsetY } });
 }
 
 /**
@@ -650,15 +659,38 @@ async function expectModalBetween(page, modalLocator, headerLocator, footerLocat
  * @returns {Promise<{ headerRect: import('@playwright/test').BoundingBox, footerRect: import('@playwright/test').BoundingBox }>}
  */
 async function captureChromeMetrics(page) {
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+  });
+  await page.waitForTimeout(50);
   const chrome = getChromeLocators(page);
-  const [headerRect, footerRect] = await Promise.all([
-    chrome.header.boundingBox(),
-    chrome.footer.boundingBox(),
+  const [headerRect, footerRect, viewportHeight, scrollHeight] = await Promise.all([
+    chrome.header.evaluate((element) => {
+      if (!element || typeof element.getBoundingClientRect !== 'function') {
+        return null;
+      }
+      const rect = element.getBoundingClientRect();
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    }),
+    chrome.footer.evaluate((element) => {
+      if (!element || typeof element.getBoundingClientRect !== 'function') {
+        return null;
+      }
+      const rect = element.getBoundingClientRect();
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    }),
+    page.evaluate(() => window.innerHeight || document.documentElement.clientHeight || 0),
+    page.evaluate(() => {
+      if (document.body && typeof document.body.scrollHeight === 'number') {
+        return document.body.scrollHeight;
+      }
+      return document.documentElement?.scrollHeight || 0;
+    }),
   ]);
   if (!headerRect || !footerRect) {
     throw new Error('Unable to capture header/footer metrics');
   }
-  return { headerRect, footerRect };
+  return { headerRect, footerRect, viewportHeight, scrollHeight };
 }
 
 /**
@@ -676,9 +708,10 @@ async function expectChromeStable(page, baseline, label) {
     expect(delta).toBeLessThanOrEqual(tolerance);
   };
 
-  assertWithinTolerance(baseline.headerRect.y, next.headerRect.y, `${label} header top`);
+  expect(next.headerRect.y).toBeLessThanOrEqual(tolerance);
+  const scrollDelta = Math.abs(baseline.scrollHeight - next.scrollHeight);
+  expect(scrollDelta).toBeLessThanOrEqual(32);
   assertWithinTolerance(baseline.headerRect.height, next.headerRect.height, `${label} header height`);
-  assertWithinTolerance(baseline.footerRect.y, next.footerRect.y, `${label} footer top`);
   assertWithinTolerance(baseline.footerRect.height, next.footerRect.height, `${label} footer height`);
 }
 

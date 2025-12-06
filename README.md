@@ -210,6 +210,8 @@ Custom elements dispatch the same `mpr-ui:*` events that the deprecated helpers 
 
 Use `MPRUI.getBandProjectCatalog()` to clone the packaged data if you need to re-use the default catalog outside of the declarative surface.
 
+Need to isolate Bootstrap or your own markup inside the band shell? Set `layout="manual"` on `<mpr-band>` and keep your desired markup inside the element. Manual bands skip the default heading/description block but continue to apply the preset spacing/theme tokens, injecting your markup into a `.mpr-band__manual` wrapper so Bootstrap utilities stay scoped inside the band without relying on the JSON cards DSL. Add any hero/title copy directly inside the element.
+
 ### Optional helpers
 
 ## Demo

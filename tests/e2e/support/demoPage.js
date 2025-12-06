@@ -65,6 +65,9 @@ const THEME_FIXTURE_URL = pathToFileURL(
 const FOOTER_TEXT_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-text-only.html'),
 ).href;
+const BAND_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/band-default.html'),
+).href;
 
 const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
@@ -76,8 +79,8 @@ const SELECTORS = Object.freeze({
   footerPrefix: '[data-mpr-footer="prefix"]',
   eventLogEntries: '#event-log [data-test="event-log-entry"]',
   bootstrapGrid: '[data-test="bootstrap-grid"]',
-  bandCardEventLog: '[data-mpr-band-card="demo-event-log"]',
-  bandCardIntegration: '[data-mpr-band-card="demo-integration-reference"]',
+  bandCardEventLog: '[data-test="band-event-log-card"]',
+  bandCardIntegration: '[data-test="band-integration-card"]',
 });
 
 const LOCAL_ASSETS = Object.freeze({
@@ -125,6 +128,20 @@ async function visitFooterTextFixturePage(page) {
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
   ]);
   await page.goto(FOOTER_TEXT_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the band fixture page with local assets to exercise the catalog-driven layout.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitBandFixturePage(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(BAND_FIXTURE_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
 }
 
@@ -312,6 +329,7 @@ module.exports = {
   visitDemoPage,
   visitThemeFixturePage,
   visitFooterTextFixturePage,
+  visitBandFixturePage,
   captureToggleSnapshot,
   captureColorSnapshots,
   captureDropUpMetrics,

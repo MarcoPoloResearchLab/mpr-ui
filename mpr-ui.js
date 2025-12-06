@@ -287,6 +287,7 @@
     "category",
     "cards",
     "theme",
+    "layout",
   ]);
 
   function normalizeAttributeReflectionValue(attributeName, value) {
@@ -3967,7 +3968,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   var FOOTER_LINK_DEFAULT_REL = "noopener noreferrer";
   var FOOTER_STYLE_ID = "mpr-ui-footer-styles";
   var FOOTER_STYLE_MARKUP =
-    '.mpr-footer{position:sticky;bottom:0;width:100%;padding:24px 0;background:var(--mpr-color-surface-primary,rgba(15,23,42,0.92));color:var(--mpr-color-text-primary,#e2e8f0);border-top:1px solid var(--mpr-color-border,rgba(148,163,184,0.25));backdrop-filter:blur(10px)}' +
+    '.mpr-footer{position:sticky;bottom:0;width:100%;z-index:1200;padding:24px 0;background:var(--mpr-color-surface-primary,rgba(15,23,42,0.92));color:var(--mpr-color-text-primary,#e2e8f0);border-top:1px solid var(--mpr-color-border,rgba(148,163,184,0.25));backdrop-filter:blur(10px)}' +
     '.mpr-footer[data-mpr-sticky="false"]{position:static;bottom:auto}' +
     '.mpr-footer__inner{max-width:1080px;margin:0 auto;padding:0 1.5rem;display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:1.5rem}' +
     '.mpr-footer__layout{display:flex;flex-wrap:wrap;align-items:center;gap:1.25rem;width:100%}' +
@@ -4386,6 +4387,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ".mpr-band__heading h2{margin:0;font-size:clamp(2rem,4vw,3rem);font-family:'Orbitron','Space Grotesk',sans-serif;letter-spacing:0.08em;text-transform:uppercase;color:var(--mpr-band-accent,#ffd369)}" +
     ".mpr-band__heading p{margin:0;font-size:1.05rem;color:var(--mpr-band-muted,#cbd5f5)}" +
     ".mpr-band__grid{position:relative;width:clamp(280px,90vw,1100px);margin:0 auto;display:flex;flex-direction:column;gap:28px}" +
+    '.mpr-band[data-mpr-band-layout="manual"]{padding:clamp(40px,6vw,80px) clamp(16px,5vw,32px);box-sizing:border-box}' +
     ".mpr-band__row{display:flex;gap:28px;width:100%;padding:0 24px;box-sizing:border-box}" +
     ".mpr-band__row--left{justify-content:flex-start}" +
     ".mpr-band__row--right{justify-content:flex-end}" +
@@ -4422,7 +4424,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ".mpr-band__card--flippable[aria-pressed=\"true\"]{border-color:rgba(255,221,172,0.65)}" +
     ".mpr-band__subscribe-body[data-mpr-band-subscribe-loaded=\"false\"]::after{content:\"Loading…\";font-size:0.85rem;color:var(--mpr-band-muted,#cbd5f5)}" +
     "@media (max-width:768px){.mpr-band__row{flex-direction:column;padding:0 12px}.mpr-band__card{width:100%;flex:1 1 auto}.mpr-band__grid{gap:18px}.mpr-band__inner{padding:40px 0 32px}}" +
-    "@media (max-width:520px){.mpr-band__heading{width:100%;padding:0 16px}.mpr-band__grid{width:100%}.mpr-band__row{padding:0 16px}}";
+    "@media (max-width:520px){.mpr-band__heading{width:100%;padding:0 16px}.mpr-band__grid{width:100%}.mpr-band__row{padding:0 16px}.mpr-band[data-mpr-band-layout=\"manual\"]{padding:32px 16px}}";
+  var BAND_LAYOUT_CARDS = "cards";
+  var BAND_LAYOUT_MANUAL = "manual";
   var BAND_THEME_PRESETS = Object.freeze({
     research: Object.freeze({
       background: "#052832",
@@ -4558,11 +4562,20 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (themeAttr) {
       options.theme = parseJsonValue(themeAttr, {});
     }
+    var layoutAttr = hostElement.getAttribute("layout");
+    if (layoutAttr) {
+      options.layout = layoutAttr;
+    }
     return options;
   }
 
   function normalizeBandOptions(rawOptions) {
     var options = rawOptions && typeof rawOptions === "object" ? rawOptions : {};
+    var layoutSource =
+      typeof options.layout === "string" && options.layout.trim()
+        ? options.layout.trim().toLowerCase()
+        : "";
+    var layout = layoutSource === BAND_LAYOUT_MANUAL ? BAND_LAYOUT_MANUAL : BAND_LAYOUT_CARDS;
     var categorySource =
       typeof options.category === "string" && options.category.trim()
         ? options.category.trim().toLowerCase()
@@ -4578,7 +4591,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       typeof options.description === "string" && options.description.trim()
         ? options.description.trim()
         : "";
-    var normalizedCards = normalizeBandCards(options.cards, category);
+    var normalizedCards =
+      layout === BAND_LAYOUT_MANUAL ? [] : normalizeBandCards(options.cards, category);
     var theme = normalizeBandTheme(category, options.theme);
     return {
       heading: heading,
@@ -4586,6 +4600,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       category: category || "custom",
       cards: normalizedCards,
       theme: theme,
+      layout: layout,
     };
   }
 
@@ -4782,25 +4797,34 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   }
 
   function buildBandSkeletonMarkup(config) {
-    var headingMarkup =
-      '<div class="' +
-      BAND_ROOT_CLASS +
-      '__heading" data-mpr-band="heading"><h2>' +
-      escapeHtml(config.heading) +
-      "</h2>";
-    if (config.description) {
-      headingMarkup +=
-        "<p>" + escapeHtml(config.description) + "</p>";
+    var includeHeading = config.layout !== BAND_LAYOUT_MANUAL;
+    var headingMarkup = "";
+    if (includeHeading) {
+      headingMarkup =
+        '<div class="' +
+        BAND_ROOT_CLASS +
+        '__heading" data-mpr-band="heading"><h2>' +
+        escapeHtml(config.heading) +
+        "</h2>";
+      if (config.description) {
+        headingMarkup += "<p>" + escapeHtml(config.description) + "</p>";
+      }
+      headingMarkup += "</div>";
     }
-    headingMarkup += "</div>";
+    var bodyMarkup =
+      config.layout === BAND_LAYOUT_MANUAL
+        ? '<div class="' +
+          BAND_ROOT_CLASS +
+          '__manual" data-mpr-band="manual"></div>'
+        : '<div class="' +
+          BAND_ROOT_CLASS +
+          '__grid" data-mpr-band="grid"></div>';
     return (
       '<div class="' +
       BAND_ROOT_CLASS +
       '__inner">' +
       headingMarkup +
-      '<div class="' +
-      BAND_ROOT_CLASS +
-      '__grid" data-mpr-band="grid"></div>' +
+      bodyMarkup +
       "</div>"
     );
   }
@@ -5139,13 +5163,29 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     function render(config) {
       hostElement.classList.add(BAND_ROOT_CLASS);
+      var isManualLayout = config.layout === BAND_LAYOUT_MANUAL;
+      hostElement.setAttribute("data-mpr-band-layout", config.layout);
       hostElement.setAttribute("data-mpr-band-category", config.category);
-      hostElement.setAttribute("data-mpr-band-count", String(config.cards.length));
+      hostElement.setAttribute(
+        "data-mpr-band-count",
+        String(isManualLayout ? 0 : config.cards.length),
+      );
       hostElement.setAttribute(
         "data-mpr-band-empty",
-        config.cards.length ? "false" : "true",
+        isManualLayout ? "false" : config.cards.length ? "false" : "true",
       );
       applyBandTheme(hostElement, config.theme);
+      if (isManualLayout) {
+        teardownResizeObserver();
+        cardStates.forEach(function cleanup(state) {
+          if (state && typeof state.destroy === "function") {
+            state.destroy();
+          }
+        });
+        cardStates = [];
+        gridElement = null;
+        return;
+      }
       hostElement.innerHTML = buildBandSkeletonMarkup(config);
       gridElement = hostElement.querySelector('[data-mpr-band="grid"]');
       cardStates.forEach(function cleanup(state) {
@@ -5200,6 +5240,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         hostElement.removeAttribute("data-mpr-band-category");
         hostElement.removeAttribute("data-mpr-band-count");
         hostElement.removeAttribute("data-mpr-band-empty");
+        hostElement.removeAttribute("data-mpr-band-layout");
         clearNodeContents(hostElement);
       },
       getConfig: function getConfig() {
