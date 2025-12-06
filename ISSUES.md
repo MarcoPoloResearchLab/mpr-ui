@@ -73,6 +73,10 @@ volumes:
 4. The bands have no knowledge of boostrap
 5. Bands are horizontal containers that isolate the components inside them. — `<mpr-band>` now operates purely as a themed container (no header/card DSL), demos/tests/docs prove manual markup survives updates, and card events moved to `<mpr-card>`.
 
+- [x] [MU-421] Demo/local cards lost contrast because `<mpr-card>` hosts render their own padded panels (with broken emoji icons), hiding the actual `.mpr-band__card` UI inside each band. — Flattened the shared card host styling to stay transparent (while keeping spacing), removed emoji `icon` attributes from demo cards, and added Playwright coverage so each band now shows a single visible card driven by the theme DSL.
+
+- [ ] [MU-422] Header and footer must alwasy be aligned with the page border. Header must be aligned with the top and footer with the bottom. when we say sticky=true it becomes aligned witht the viewport and always visible in the viewport. Audit against current behaviour and fix gaps, if any.
+
 ## Maintenance (415–499)
 
 - [x] [MU-416] Audit mpr-ui library. Ensure we are not shipping demo-related code. Ensure that demo is shipped using the built-in capabilities. In case there are gaps => open new issues for them. We shall have no demo css or css for the elements that we dont ship (main etc). — Demo-only selectors moved to `demo/demo.css`, all demo pages/fixtures load it, and unit tests now guard that the packaged stylesheet contains component rules only.
