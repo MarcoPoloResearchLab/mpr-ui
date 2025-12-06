@@ -35,20 +35,20 @@ const EVENT_LOGGERS = Object.freeze([
     },
   },
   {
-    type: 'mpr-band:card-toggle',
+    type: 'mpr-card:card-toggle',
     formatter: (event) => {
       const detail = event && event.detail ? event.detail : {};
       const cardId = detail.cardId || 'unknown';
       const flipped = detail.flipped ? 'opened' : 'closed';
-      return `Band card ${cardId} ${flipped}`;
+      return `Card ${cardId} ${flipped}`;
     },
   },
   {
-    type: 'mpr-band:subscribe-ready',
+    type: 'mpr-card:subscribe-ready',
     formatter: (event) => {
       const detail = event && event.detail ? event.detail : {};
       const cardId = detail.cardId || 'unknown';
-      return `Band subscribe widget ready (${cardId})`;
+      return `Card subscribe widget ready (${cardId})`;
     },
   },
 ]);

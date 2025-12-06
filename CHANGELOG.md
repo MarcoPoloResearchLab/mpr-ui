@@ -5,6 +5,7 @@
 ### Features ✨
 - MU-202: Added `<mpr-band>`, a new component rendering alternating card bands with a bundled Marco Polo Research Lab catalog, preset palettes, optional LoopAware subscribe overlays, and custom events for card toggling and subscribe readiness.
 - Exposed `MPRUI.getBandProjectCatalog()` helper to clone the bundled dataset for preprocessing or custom usage.
+- MU-110: Added `<mpr-card>` so standalone cards (front/back surfaces, LoopAware overlays, CTA links) can be rendered anywhere using the same declarative DSL and theme tokens as band cards.
   
 ### Improvements ⚙️
 - MU-203: Refactored footer drop-up to avoid conflicts with Bootstrap by removing `data-bs-*` attributes, adding internal click/outside/Escape listeners, and updating documentation and tests for compatibility.
@@ -17,6 +18,7 @@
 - MU-328: Dropped Secure flag from dev cookies when `APP_DEV_INSECURE_HTTP=true` for Safari compatibility during HTTP development.
 - Resolved Bootstrap dropdown conflicts in footer drop-up by renaming data hooks and preventing Bootstrap hijack.
 - Addressed theme toggle halo and sizing issues with improved CSS scoping and test coverage.
+- MU-331: Retired the `<mpr-band>` card/header DSL so the element now acts purely as a themed container; manual content survives attribute updates, demos/tests/docs showcase the container-only behavior, and card events now live exclusively on `<mpr-card>`.
   
 ### Testing 🧪
 - Added Playwright and regression tests for:

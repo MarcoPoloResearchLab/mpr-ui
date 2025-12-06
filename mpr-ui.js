@@ -281,14 +281,8 @@
   ]);
   var SETTINGS_SLOT_NAMES = Object.freeze(["trigger", "panel"]);
   var SITES_ATTRIBUTE_NAMES = Object.freeze(["variant", "columns", "links", "heading"]);
-  var BAND_ATTRIBUTE_NAMES = Object.freeze([
-    "heading",
-    "description",
-    "category",
-    "cards",
-    "theme",
-    "layout",
-  ]);
+  var BAND_ATTRIBUTE_NAMES = Object.freeze(["category", "theme", "layout"]);
+  var CARD_ATTRIBUTE_NAMES = Object.freeze(["card", "theme"]);
 
   function normalizeAttributeReflectionValue(attributeName, value) {
     if (value === null || value === undefined) {
@@ -4381,17 +4375,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   var BAND_ROOT_CLASS = "mpr-band";
   var BAND_STYLE_ID = "mpr-ui-band-styles";
   var BAND_STYLE_MARKUP =
-    "mpr-band{display:block;position:relative;width:100%;margin:0;padding:0;background:var(--mpr-band-background,rgba(3,23,32,0.95));color:var(--mpr-band-text,#e2e8f0)}" +
-    ".mpr-band__inner{width:100%;margin:0;padding:clamp(40px,6vw,80px) 0}" +
-    ".mpr-band__heading{margin:0 auto clamp(32px,4vw,44px);padding:0;width:clamp(280px,80vw,1080px);display:flex;flex-direction:column;gap:0.75rem}" +
-    ".mpr-band__heading h2{margin:0;font-size:clamp(2rem,4vw,3rem);font-family:'Orbitron','Space Grotesk',sans-serif;letter-spacing:0.08em;text-transform:uppercase;color:var(--mpr-band-accent,#ffd369)}" +
-    ".mpr-band__heading p{margin:0;font-size:1.05rem;color:var(--mpr-band-muted,#cbd5f5)}" +
-    ".mpr-band__grid{position:relative;width:clamp(280px,90vw,1100px);margin:0 auto;display:flex;flex-direction:column;gap:28px}" +
-    '.mpr-band[data-mpr-band-layout="manual"]{padding:clamp(40px,6vw,80px) clamp(16px,5vw,32px);box-sizing:border-box}' +
-    ".mpr-band__row{display:flex;gap:28px;width:100%;padding:0 24px;box-sizing:border-box}" +
-    ".mpr-band__row--left{justify-content:flex-start}" +
-    ".mpr-band__row--right{justify-content:flex-end}" +
-    ".mpr-band__card{background:var(--mpr-band-panel-alt,rgba(3,27,32,0.92));border-radius:24px;border:1px solid var(--mpr-band-border,rgba(148,163,184,0.25));box-shadow:var(--mpr-band-shadow,0 25px 60px rgba(0,0,0,0.55));position:relative;overflow:hidden;min-height:260px;transition:transform 0.3s ease,border-color 0.3s ease;width:520px;max-width:100%;flex:0 0 520px}" +
+    "mpr-band{display:block;position:relative;width:100%;margin:0;padding:clamp(40px,6vw,80px) clamp(16px,5vw,32px);box-sizing:border-box;background:var(--mpr-band-background,rgba(3,23,32,0.95));color:var(--mpr-band-text,#e2e8f0)}" +
+    ".mpr-card{display:block;margin:0;padding:clamp(24px,4vw,48px) clamp(16px,5vw,32px);box-sizing:border-box;background:var(--mpr-band-background,rgba(3,23,32,0.95));color:var(--mpr-band-text,#e2e8f0)}" +
+    ".mpr-card > .mpr-band__card{margin:0 auto}" +
+    ".mpr-band__card{background:var(--mpr-band-panel-alt,rgba(3,27,32,0.92));border-radius:24px;border:1px solid var(--mpr-band-border,rgba(148,163,184,0.25));box-shadow:var(--mpr-band-shadow,0 25px 60px rgba(0,0,0,0.55));position:relative;overflow:hidden;min-height:260px;transition:transform 0.3s ease,border-color 0.3s ease;width:520px;max-width:100%;flex:0 0 520px;margin:0 auto}" +
     ".mpr-band__card:hover:not(.mpr-band__card--flipped){border-color:rgba(255,221,172,0.55);transform:translateY(-6px)}" +
     ".mpr-band__card-inner{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform 0.4s ease}" +
     ".mpr-band__card-face{padding:24px;display:flex;flex-direction:column;gap:18px;height:100%;box-sizing:border-box}" +
@@ -4418,14 +4405,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ".mpr-band__subscribe-title{margin:0;font-weight:600;color:var(--mpr-band-text,#e2e8f0)}" +
     ".mpr-band__subscribe-copy{margin:0;color:var(--mpr-band-muted,#cbd5f5);font-size:0.95rem}" +
     ".mpr-band__subscribe-frame{width:100%;border:0;border-radius:16px;background:transparent;min-height:240px;height:240px;box-shadow:inset 0 0 0 1px rgba(255,255,255,0.08)}" +
-    ".mpr-band__empty{padding:1rem 1.5rem;border-radius:1rem;border:1px dashed var(--mpr-band-border,rgba(148,163,184,0.35));color:var(--mpr-band-muted,#cbd5f5);text-align:center}" +
     ".mpr-band__card--flippable{outline:none}" +
     ".mpr-band__card--flippable:focus-visible{box-shadow:0 0 0 3px var(--mpr-band-accent,#ffd369)}" +
     ".mpr-band__card--flippable[aria-pressed=\"true\"]{border-color:rgba(255,221,172,0.65)}" +
     ".mpr-band__subscribe-body[data-mpr-band-subscribe-loaded=\"false\"]::after{content:\"Loading…\";font-size:0.85rem;color:var(--mpr-band-muted,#cbd5f5)}" +
-    "@media (max-width:768px){.mpr-band__row{flex-direction:column;padding:0 12px}.mpr-band__card{width:100%;flex:1 1 auto}.mpr-band__grid{gap:18px}.mpr-band__inner{padding:40px 0 32px}}" +
-    "@media (max-width:520px){.mpr-band__heading{width:100%;padding:0 16px}.mpr-band__grid{width:100%}.mpr-band__row{padding:0 16px}.mpr-band[data-mpr-band-layout=\"manual\"]{padding:32px 16px}}";
-  var BAND_LAYOUT_CARDS = "cards";
+    "@media (max-width:520px){mpr-band{padding:32px 16px}}";
   var BAND_LAYOUT_MANUAL = "manual";
   var BAND_THEME_PRESETS = Object.freeze({
     research: Object.freeze({
@@ -4479,11 +4463,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       shadow: "0 25px 60px rgba(0, 0, 0, 0.55)",
     }),
   });
-  var BAND_STATUS_PRIORITY = Object.freeze({
-    production: 0,
-    beta: 1,
-    wip: 2,
-  });
   var BAND_STATUS_METADATA = Object.freeze({
     production: Object.freeze({
       value: "production",
@@ -4505,14 +4484,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }),
   });
   var BAND_FLIPPABLE_STATUSES = Object.freeze(["beta", "wip"]);
-  var BAND_EMPTY_STATE_TEXT = "No projects available";
   var BAND_MIN_SUBSCRIBE_HEIGHT = 240;
   var BAND_MAX_SUBSCRIBE_HEIGHT = 420;
   var BAND_DEFAULT_SUBSCRIBE_HEIGHT = 320;
-  var BAND_CARD_WIDTH_PX = 520;
-  var BAND_CARD_GAP_PX = 28;
-  var BAND_ROW_PADDING_PX = 24;
-  var BAND_MOBILE_BREAKPOINT = 600;
 
   function ensureBandStyles(documentObject) {
     if (
@@ -4542,21 +4516,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (!hostElement || typeof hostElement.getAttribute !== "function") {
       return options;
     }
-    var headingAttr = hostElement.getAttribute("heading");
-    if (headingAttr) {
-      options.heading = headingAttr;
-    }
-    var descriptionAttr = hostElement.getAttribute("description");
-    if (descriptionAttr) {
-      options.description = descriptionAttr;
-    }
     var categoryAttr = hostElement.getAttribute("category");
     if (categoryAttr) {
       options.category = categoryAttr;
-    }
-    var cardsAttr = hostElement.getAttribute("cards");
-    if (cardsAttr) {
-      options.cards = parseJsonValue(cardsAttr, []);
     }
     var themeAttr = hostElement.getAttribute("theme");
     if (themeAttr) {
@@ -4571,72 +4533,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
   function normalizeBandOptions(rawOptions) {
     var options = rawOptions && typeof rawOptions === "object" ? rawOptions : {};
-    var layoutSource =
-      typeof options.layout === "string" && options.layout.trim()
-        ? options.layout.trim().toLowerCase()
-        : "";
-    var layout = layoutSource === BAND_LAYOUT_MANUAL ? BAND_LAYOUT_MANUAL : BAND_LAYOUT_CARDS;
     var categorySource =
       typeof options.category === "string" && options.category.trim()
         ? options.category.trim().toLowerCase()
         : "";
-    var category = categorySource || "";
-    var heading =
-      typeof options.heading === "string" && options.heading.trim()
-        ? options.heading.trim()
-        : category
-        ? category.charAt(0).toUpperCase() + category.slice(1)
-        : "Band";
-    var description =
-      typeof options.description === "string" && options.description.trim()
-        ? options.description.trim()
-        : "";
-    var normalizedCards =
-      layout === BAND_LAYOUT_MANUAL ? [] : normalizeBandCards(options.cards, category);
+    var category = categorySource || "custom";
     var theme = normalizeBandTheme(category, options.theme);
     return {
-      heading: heading,
-      description: description,
-      category: category || "custom",
-      cards: normalizedCards,
+      category: category,
       theme: theme,
-      layout: layout,
+      layout: BAND_LAYOUT_MANUAL,
     };
-  }
-
-  function normalizeBandCards(rawCards, category) {
-    var source = Array.isArray(rawCards) ? rawCards.slice() : null;
-    if (!source || !source.length) {
-      var defaultCatalog = getBandProjectCatalog();
-      if (category) {
-        source = defaultCatalog.filter(function filterByCategory(entry) {
-          var entryCategory =
-            typeof entry.category === "string" ? entry.category.toLowerCase() : "";
-          return entryCategory === category.toLowerCase();
-        });
-      } else {
-        source = defaultCatalog;
-      }
-    }
-    return source
-      .map(function mapToCard(entry, index) {
-        return normalizeBandCard(entry, index);
-      })
-      .filter(Boolean)
-      .sort(function sortCards(a, b) {
-        var aPriority =
-          BAND_STATUS_PRIORITY[a.status.value] === undefined
-            ? Number.MAX_SAFE_INTEGER
-            : BAND_STATUS_PRIORITY[a.status.value];
-        var bPriority =
-          BAND_STATUS_PRIORITY[b.status.value] === undefined
-            ? Number.MAX_SAFE_INTEGER
-            : BAND_STATUS_PRIORITY[b.status.value];
-        if (aPriority !== bPriority) {
-          return aPriority - bPriority;
-        }
-        return a.title.localeCompare(b.title);
-      });
   }
 
   function normalizeBandCard(entry, fallbackIndex) {
@@ -4678,6 +4585,33 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       monogram: deriveBandMonogram(titleSource),
       subscribe: subscribe,
       flippable: flippable,
+    };
+  }
+
+  function buildCardOptionsFromAttributes(hostElement) {
+    if (!hostElement || typeof hostElement.getAttribute !== "function") {
+      return {};
+    }
+    var cardAttr = hostElement.getAttribute("card");
+    var themeAttr = hostElement.getAttribute("theme");
+    return {
+      card: cardAttr ? parseJsonValue(cardAttr, {}) : {},
+      theme: themeAttr ? parseJsonValue(themeAttr, {}) : {},
+    };
+  }
+
+  function normalizeStandaloneCardOptions(rawOptions) {
+    var options = rawOptions && typeof rawOptions === "object" ? rawOptions : {};
+    var sourceCard =
+      options.card && typeof options.card === "object" ? options.card : options;
+    var normalizedCard = normalizeBandCard(sourceCard, 0);
+    if (!normalizedCard) {
+      throw new Error("mpr-card requires a valid card configuration");
+    }
+    var theme = normalizeBandTheme("custom", options.theme);
+    return {
+      card: normalizedCard,
+      theme: theme,
     };
   }
 
@@ -4796,40 +4730,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     hostElement.style.removeProperty("--mpr-band-shadow");
   }
 
-  function buildBandSkeletonMarkup(config) {
-    var includeHeading = config.layout !== BAND_LAYOUT_MANUAL;
-    var headingMarkup = "";
-    if (includeHeading) {
-      headingMarkup =
-        '<div class="' +
-        BAND_ROOT_CLASS +
-        '__heading" data-mpr-band="heading"><h2>' +
-        escapeHtml(config.heading) +
-        "</h2>";
-      if (config.description) {
-        headingMarkup += "<p>" + escapeHtml(config.description) + "</p>";
-      }
-      headingMarkup += "</div>";
-    }
-    var bodyMarkup =
-      config.layout === BAND_LAYOUT_MANUAL
-        ? '<div class="' +
-          BAND_ROOT_CLASS +
-          '__manual" data-mpr-band="manual"></div>'
-        : '<div class="' +
-          BAND_ROOT_CLASS +
-          '__grid" data-mpr-band="grid"></div>';
-    return (
-      '<div class="' +
-      BAND_ROOT_CLASS +
-      '__inner">' +
-      headingMarkup +
-      bodyMarkup +
-      "</div>"
-    );
-  }
-
-  function createBandCardElement(documentObject, cardConfig, hostElement) {
+  function createBandCardElement(documentObject, cardConfig, hostElement, cardOptions) {
     var card = documentObject.createElement("article");
     card.className = BAND_ROOT_CLASS + "__card";
     card.setAttribute("data-mpr-band-card", cardConfig.id);
@@ -4904,6 +4805,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     buildCardHeader(backFace);
     buildCardBody(backFace);
 
+    var options =
+      cardOptions && typeof cardOptions === "object"
+        ? cardOptions
+        : null;
+    var eventNamespace =
+      options && typeof options.eventNamespace === "string" && options.eventNamespace.trim()
+        ? options.eventNamespace.trim()
+        : "mpr-band";
     var subscribeLoader = null;
     if (cardConfig.subscribe) {
       var overlay = documentObject.createElement("div");
@@ -4938,7 +4847,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           "load",
           function handleSubscribeLoad() {
             subscribeBody.setAttribute("data-mpr-band-subscribe-loaded", "true");
-            dispatchEvent(hostElement, "mpr-band:subscribe-ready", {
+            dispatchEvent(hostElement, eventNamespace + ":subscribe-ready", {
               cardId: cardConfig.id,
             });
           },
@@ -4969,7 +4878,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         card.classList.remove(BAND_ROOT_CLASS + "__card--flipped");
         card.setAttribute("aria-pressed", "false");
       }
-      dispatchEvent(hostElement, "mpr-band:card-toggle", {
+      dispatchEvent(hostElement, eventNamespace + ":card-toggle", {
         cardId: cardConfig.id,
         flipped: isFlipped,
         source: source || "user",
@@ -5026,62 +4935,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     };
   }
 
-  function layoutBandRows(gridElement, cardNodes) {
-    if (
-      !gridElement ||
-      typeof gridElement.ownerDocument === "undefined" ||
-      !cardNodes ||
-      !cardNodes.length
-    ) {
-      return;
-    }
-    var documentObject = gridElement.ownerDocument;
-    while (gridElement.firstChild) {
-      gridElement.removeChild(gridElement.firstChild);
-    }
-    var viewportWidth =
-      typeof global.innerWidth === "number" ? global.innerWidth : gridElement.clientWidth;
-    var containerWidth =
-      gridElement.getBoundingClientRect &&
-      gridElement.getBoundingClientRect().width
-        ? gridElement.getBoundingClientRect().width
-        : viewportWidth;
-    if (!containerWidth) {
-      cardNodes.forEach(function appendNode(node) {
-        gridElement.appendChild(node);
-      });
-      return;
-    }
-    if (containerWidth <= BAND_MOBILE_BREAKPOINT) {
-      cardNodes.forEach(function appendMobile(node) {
-        gridElement.appendChild(node);
-      });
-      return;
-    }
-    var usableWidth = Math.max(0, containerWidth - BAND_ROW_PADDING_PX * 2);
-    var step = BAND_CARD_WIDTH_PX + BAND_CARD_GAP_PX;
-    var computedPerRow = Math.floor((usableWidth + BAND_CARD_GAP_PX) / step);
-    var maxPerRow = Math.max(1, Math.min(2, computedPerRow));
-    var index = 0;
-    var rowIndex = 0;
-    var total = cardNodes.length;
-    while (index < total) {
-      var row = documentObject.createElement("div");
-      row.className = BAND_ROOT_CLASS + "__row";
-      var alignLeft = rowIndex % 2 === 0;
-      row.classList.add(
-        alignLeft ? BAND_ROOT_CLASS + "__row--left" : BAND_ROOT_CLASS + "__row--right",
-      );
-      var slice = cardNodes.slice(index, index + maxPerRow);
-      slice.forEach(function appendCard(node) {
-        row.appendChild(node);
-      });
-      gridElement.appendChild(row);
-      index += maxPerRow;
-      rowIndex += 1;
-    }
-  }
-
   function buildSubscribeFrameDocument(scriptUrl) {
     var safeUrl = String(scriptUrl).replace(/"/g, "&quot;");
     return (
@@ -5100,6 +4953,65 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     );
   }
 
+  function createCardController(target, options) {
+    var hostElement = resolveHost(target);
+    if (!hostElement || typeof hostElement !== "object") {
+      throw new Error("createCardController requires a host element");
+    }
+    var documentObject =
+      hostElement.ownerDocument ||
+      global.document ||
+      (global.window && global.window.document) ||
+      null;
+    if (!documentObject) {
+      throw new Error("createCardController requires a document context");
+    }
+    ensureBandStyles(documentObject);
+    var latestOptions = deepMergeOptions({}, options || {});
+    var cardState = null;
+
+    function teardownCard() {
+      if (cardState && typeof cardState.destroy === "function") {
+        cardState.destroy();
+      }
+      cardState = null;
+    }
+
+    function render(config) {
+      var normalized = normalizeStandaloneCardOptions(config);
+      hostElement.classList.add("mpr-card");
+      hostElement.setAttribute("data-mpr-card-id", normalized.card.id);
+      hostElement.setAttribute("data-mpr-card-status", normalized.card.status.value);
+      applyBandTheme(hostElement, normalized.theme);
+      teardownCard();
+      clearNodeContents(hostElement);
+      var card = createBandCardElement(documentObject, normalized.card, hostElement, {
+        eventNamespace: "mpr-card",
+      });
+      cardState = card;
+      hostElement.appendChild(card.node);
+    }
+
+    render(latestOptions);
+
+    return {
+      update: function update(nextOptions) {
+        latestOptions = deepMergeOptions({}, latestOptions, nextOptions || {});
+        render(latestOptions);
+      },
+      destroy: function destroy() {
+        teardownCard();
+        clearBandTheme(hostElement);
+        hostElement.removeAttribute("data-mpr-card-id");
+        hostElement.removeAttribute("data-mpr-card-status");
+        if (hostElement.classList && typeof hostElement.classList.remove === "function") {
+          hostElement.classList.remove("mpr-card");
+        }
+        clearNodeContents(hostElement);
+      },
+    };
+  }
+
   function createBandController(target, options) {
     var hostElement = resolveHost(target);
     if (!hostElement || typeof hostElement !== "object") {
@@ -5115,136 +5027,36 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     ensureBandStyles(documentObject);
     var latestOptions = deepMergeOptions({}, options || {});
-    var cardStates = [];
-    var resizeObserver = null;
-    var resizeHandler = null;
-    var gridElement = null;
-
-    function teardownResizeObserver() {
-      if (resizeObserver && typeof resizeObserver.disconnect === "function") {
-        resizeObserver.disconnect();
-      }
-      resizeObserver = null;
-      if (resizeHandler && typeof global.removeEventListener === "function") {
-        global.removeEventListener("resize", resizeHandler);
-      }
-      resizeHandler = null;
-    }
-
-    function setupResizeObserver() {
-      teardownResizeObserver();
-      if (!gridElement) {
-        return;
-      }
-      if (typeof global.ResizeObserver === "function") {
-        resizeObserver = new global.ResizeObserver(function handleResize() {
-          layoutBandRows(
-            gridElement,
-            cardStates.map(function mapState(state) {
-              return state.node;
-            }),
-          );
-        });
-        resizeObserver.observe(gridElement);
-        return;
-      }
-      resizeHandler = function handleWindowResize() {
-        layoutBandRows(
-          gridElement,
-          cardStates.map(function mapState(state) {
-            return state.node;
-          }),
-        );
-      };
-      if (typeof global.addEventListener === "function") {
-        global.addEventListener("resize", resizeHandler);
-      }
-    }
+    var currentConfig = normalizeBandOptions(latestOptions);
 
     function render(config) {
       hostElement.classList.add(BAND_ROOT_CLASS);
-      var isManualLayout = config.layout === BAND_LAYOUT_MANUAL;
-      hostElement.setAttribute("data-mpr-band-layout", config.layout);
+      hostElement.setAttribute("data-mpr-band-layout", BAND_LAYOUT_MANUAL);
       hostElement.setAttribute("data-mpr-band-category", config.category);
-      hostElement.setAttribute(
-        "data-mpr-band-count",
-        String(isManualLayout ? 0 : config.cards.length),
-      );
-      hostElement.setAttribute(
-        "data-mpr-band-empty",
-        isManualLayout ? "false" : config.cards.length ? "false" : "true",
-      );
+      hostElement.setAttribute("data-mpr-band-count", "0");
+      var hasContent = hostElement.children && hostElement.children.length > 0;
+      hostElement.setAttribute("data-mpr-band-empty", hasContent ? "false" : "true");
       applyBandTheme(hostElement, config.theme);
-      if (isManualLayout) {
-        teardownResizeObserver();
-        cardStates.forEach(function cleanup(state) {
-          if (state && typeof state.destroy === "function") {
-            state.destroy();
-          }
-        });
-        cardStates = [];
-        gridElement = null;
-        return;
-      }
-      hostElement.innerHTML = buildBandSkeletonMarkup(config);
-      gridElement = hostElement.querySelector('[data-mpr-band="grid"]');
-      cardStates.forEach(function cleanup(state) {
-        if (state && typeof state.destroy === "function") {
-          state.destroy();
-        }
-      });
-      cardStates = [];
-      if (!gridElement) {
-        return;
-      }
-      if (!config.cards.length) {
-        var empty = documentObject.createElement("p");
-        empty.className = BAND_ROOT_CLASS + "__empty";
-        empty.textContent = BAND_EMPTY_STATE_TEXT;
-        gridElement.appendChild(empty);
-        teardownResizeObserver();
-        return;
-      }
-      var fragment = documentObject.createDocumentFragment();
-      config.cards.forEach(function buildCard(cardConfig) {
-        var cardState = createBandCardElement(documentObject, cardConfig, hostElement);
-        cardStates.push(cardState);
-        fragment.appendChild(cardState.node);
-      });
-      gridElement.appendChild(fragment);
-      layoutBandRows(
-        gridElement,
-        cardStates.map(function mapState(state) {
-          return state.node;
-        }),
-      );
-      setupResizeObserver();
     }
 
-    render(normalizeBandOptions(latestOptions));
+    render(currentConfig);
 
     return {
       update: function update(nextOptions) {
         latestOptions = deepMergeOptions({}, latestOptions, nextOptions || {});
-        render(normalizeBandOptions(latestOptions));
+        currentConfig = normalizeBandOptions(latestOptions);
+        render(currentConfig);
       },
       destroy: function destroy() {
-        teardownResizeObserver();
-        cardStates.forEach(function cleanup(state) {
-          if (state && typeof state.destroy === "function") {
-            state.destroy();
-          }
-        });
-        cardStates = [];
         clearBandTheme(hostElement);
+        hostElement.classList.remove(BAND_ROOT_CLASS);
         hostElement.removeAttribute("data-mpr-band-category");
         hostElement.removeAttribute("data-mpr-band-count");
         hostElement.removeAttribute("data-mpr-band-empty");
         hostElement.removeAttribute("data-mpr-band-layout");
-        clearNodeContents(hostElement);
       },
       getConfig: function getConfig() {
-        return normalizeBandOptions(latestOptions);
+        return currentConfig;
       },
     };
   }
@@ -6980,6 +6792,43 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
   }
 
+  function defineCardElement(registry) {
+    registry.define("mpr-card", function setupCardElement(Base) {
+      return class MprCardElement extends Base {
+        constructor() {
+          super();
+          this.__cardController = null;
+        }
+        static get observedAttributes() {
+          return CARD_ATTRIBUTE_NAMES;
+        }
+        render() {
+          this.__applyCard();
+        }
+        update() {
+          this.__applyCard();
+        }
+        destroy() {
+          if (this.__cardController && typeof this.__cardController.destroy === "function") {
+            this.__cardController.destroy();
+          }
+          this.__cardController = null;
+        }
+        __applyCard() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          var options = buildCardOptionsFromAttributes(this);
+          if (this.__cardController) {
+            this.__cardController.update(options);
+          } else {
+            this.__cardController = createCardController(this, options);
+          }
+        }
+      };
+    });
+  }
+
   function registerCustomElements(namespace) {
     if (
       !namespace ||
@@ -6998,6 +6847,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     defineSettingsElement(registry);
     defineSitesElement(registry);
     defineBandElement(registry);
+    defineCardElement(registry);
   }
 
   var HTMLElementBridge =

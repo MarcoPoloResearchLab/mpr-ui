@@ -10,6 +10,7 @@ const {
   readEventLogEntries,
   visitFooterTextFixturePage,
   visitBandFixturePage,
+  visitCardFixturePage,
   selectors,
 } = require('./support/demoPage');
 
@@ -25,6 +26,8 @@ const {
   bootstrapGrid,
   bandCardEventLog,
   bandCardIntegration,
+  standaloneCard,
+  standaloneCardEventEntries,
 } = selectors;
 
 const PALETTE_TARGETS = [
@@ -299,8 +302,12 @@ test.describe('Demo behaviours', () => {
 
     const topLevelBands = page.locator('body > mpr-band');
     await expect(topLevelBands).toHaveCount(2);
-    await expect(topLevelBands.first()).toHaveAttribute('layout', 'manual');
-    await expect(topLevelBands.nth(1)).toHaveAttribute('layout', 'manual');
+    await expect(topLevelBands.first()).toHaveAttribute('data-mpr-band-layout', 'manual');
+    await expect(topLevelBands.nth(1)).toHaveAttribute('data-mpr-band-layout', 'manual');
+    const firstLayoutAttr = await topLevelBands.first().getAttribute('layout');
+    const secondLayoutAttr = await topLevelBands.nth(1).getAttribute('layout');
+    expect(firstLayoutAttr).toBeNull();
+    expect(secondLayoutAttr).toBeNull();
     await expect(topLevelBands.first().locator('[data-mpr-band="heading"]')).toHaveCount(0);
     await expect(topLevelBands.nth(1).locator('[data-mpr-band="heading"]')).toHaveCount(0);
 
@@ -473,24 +480,56 @@ test.describe('Band fixture behaviours', () => {
     await visitBandFixturePage(page);
   });
 
-  test('MU-202: band component renders themed cards for configured category', async ({ page }) => {
-    const productsBand = page.locator('mpr-band[data-mpr-band-category="products"]');
-    await expect(productsBand).toHaveAttribute('data-mpr-band-empty', 'false');
-    const cards = productsBand.locator('[data-mpr-band-card]');
-    const cardCount = await cards.count();
-    expect(cardCount).toBeGreaterThan(0);
-    await expect(cards.first()).toBeVisible();
-    await expect(productsBand.locator('[data-mpr-band="heading"] h2')).toContainText(
-      /products/i,
-    );
+  test('MU-331: bands preserve manual content without layout overrides', async ({ page }) => {
+    const band = page.locator('mpr-band#fixture-band');
+    await expect(band).toHaveAttribute('data-mpr-band-category', 'products');
+    await expect(band).toHaveAttribute('data-mpr-band-layout', 'manual');
+    await expect(band).toHaveAttribute('data-mpr-band-count', '0');
+    await expect(band).toHaveAttribute('data-mpr-band-empty', 'false');
+    await expect(band.locator('> [data-test="manual-band-content"]')).toHaveCount(1);
+    await expect(band.locator('[data-test="manual-band-card"]')).toHaveCount(1);
+    await expect(band.locator('[data-mpr-band="heading"]')).toHaveCount(0);
+    await expect(band.locator('[data-mpr-band-card]')).toHaveCount(0);
   });
 
-  test('Band cards flip and load subscribe overlays', async ({ page }) => {
-    const subscribeCard = page.locator('[data-mpr-band-card="gravity-notes"]');
-    await subscribeCard.scrollIntoViewIfNeeded();
-    await expect(subscribeCard).toBeVisible();
-    await subscribeCard.click();
-    await expect(subscribeCard).toHaveAttribute('aria-pressed', 'true');
+  test('MU-331: updating band attributes keeps the manual grid intact', async ({ page }) => {
+    const manualCard = page.locator('[data-test="manual-band-card"]');
+    await expect(manualCard).toBeVisible();
+    await page.evaluate(() => {
+      const band = document.querySelector('mpr-band#fixture-band');
+      if (band) {
+        band.setAttribute('category', 'tools');
+      }
+    });
+    await expect(manualCard).toBeVisible();
+    const category = await page
+      .locator('mpr-band#fixture-band')
+      .getAttribute('data-mpr-band-category');
+    expect(category).toBe('tools');
+  });
+});
+
+test.describe('Card fixture behaviours', () => {
+  test.beforeEach(async ({ page }) => {
+    await visitCardFixturePage(page);
+  });
+
+  test('mpr-card renders title and action link', async ({ page }) => {
+    const card = page.locator(standaloneCard);
+    await expect(card).toBeVisible();
+    await expect(card.locator('.mpr-band__card-face--front h3').first()).toContainText(
+      'Standalone Card',
+    );
+    await expect(
+      card.locator('.mpr-band__card-face--front .mpr-band__action').first(),
+    ).toHaveAttribute('href', /mprlab/);
+  });
+
+  test('mpr-card flips and emits toggle events', async ({ page }) => {
+    const card = page.locator(standaloneCard);
+    await card.click();
+    await expect(card).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator(standaloneCardEventEntries)).toHaveCount(1);
     const subscribeOverlay = page.locator('[data-mpr-band-subscribe-loaded="true"]');
     await expect(subscribeOverlay).toBeVisible();
   });

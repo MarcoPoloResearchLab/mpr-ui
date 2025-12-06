@@ -22,8 +22,24 @@
   <body>
     <main>
       <h1>Band Fixture</h1>
-      <p>Renders the catalog-driven mpr-band output for tests.</p>
+      <p>Renders manual content inside mpr-band to validate container behaviour.</p>
     </main>
-    <mpr-band id="fixture-band" category="products"></mpr-band>
+    <mpr-band id="fixture-band" category="products">
+      <section class="container py-5" data-test="manual-band-content">
+        <div class="row g-4 justify-content-center" data-test="manual-band-row">
+          <div class="col-lg-8">
+            <article class="card shadow" data-test="manual-band-card">
+              <div class="card-body">
+                <p class="text-uppercase text-muted fw-semibold mb-1">Manual Band Fixture</p>
+                <h2 class="h4 mb-2">Bootstrap grid lives inside mpr-band</h2>
+                <p class="mb-0">
+                  This markup must remain untouched even when layout="manual" is omitted.
+                </p>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+    </mpr-band>
   </body>
 </html>

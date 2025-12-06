@@ -46,6 +46,8 @@ The bundle auto-registers modern HTML custom elements when `window.customElement
 | `<mpr-login-button>` | `createAuthHeader`, shared GIS helper       | `site-id`, `login-path`, `logout-path`, `nonce-path`, `base-url`, `button-text`, `button-size`, `button-theme`, `button-shape`        | `mpr-ui:auth:*`, `mpr-login:error`                        |
 | `<mpr-settings>` | Settings CTA + panel wrapper                    | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open`                                                                    | `mpr-settings:toggle`                                     |
 | `<mpr-sites>`    | `getFooterSiteCatalog` (plus inline renderer)   | `links` (JSON), `variant` (`list`, `grid`, `menu`), `columns`, `heading`                                                              | `mpr-sites:link-click`                                    |
+| `<mpr-band>`     | Themed container with palette tokens            | `category`, `theme` (JSON)                                                                                                            | —                                                         |
+| `<mpr-card>`     | Standalone card controller                      | `card` (JSON), `theme` (JSON)                                                                                                         | `mpr-card:card-toggle`, `mpr-card:subscribe-ready`        |
 
 Slots:
 
@@ -217,28 +219,20 @@ Declarative attribute `theme-switcher` controls `themeToggle.variant` and implic
 
 ## Band Component
 
-`<mpr-band>` renders alternating rows of cards with an optional flip surface. The controller injects scoped styles via `<style id="mpr-ui-band-styles">`, mirrors band metadata on the host (`data-mpr-band-category`, `data-mpr-band-count`, `data-mpr-band-empty`), and attaches a `ResizeObserver` (or `window.resize` fallback) so the rows realign when the viewport width changes.
+`<mpr-band>` is a themed container rather than a card renderer. The controller injects the palette stylesheet (`<style id="mpr-ui-band-styles">`), stamps metadata (`data-mpr-band-category`, `data-mpr-band-count`, `data-mpr-band-empty`, `data-mpr-band-layout`), and applies CSS custom properties for background/panel/text/accent colours. It never mutates or wraps the inner DOM, so Bootstrap grids, hero copy, or `<mpr-card>` instances remain untouched.
 
 ### Attributes & Options
 
 | Attribute / Option | Type | Description |
 | --- | --- | --- |
-| `heading` | `string` | Heading text rendered above the band. Defaults to the capitalised category. |
-| `description` | `string` | Optional supporting copy rendered under the heading. |
-| `category` | `string` | Lowercase token (`research`, `tools`, `platform`, `products`) that selects the matching preset palette and filters the bundled catalog when `cards` is omitted. |
-| `cards` | `Array<CardConfig>` JSON | Custom cards to render. When absent, the controller clones `MPRUI.getBandProjectCatalog()` and filters by `category`. |
-| `theme` | `object` | Optional `{ background, panel, text, accent, border, shadow }` overrides that patch the preset CSS variables. |
+| `category` | `string` | Optional preset palette selector (`research`, `tools`, `platform`, `products`, `custom`). Defaults to `custom`. |
+| `theme` | `object` | Optional `{ background, panel, panelAlt, text, muted, accent, border, shadow }` overrides to patch the preset CSS variables. |
 
-`CardConfig` accepts `{ id, title/name, description, status, url, icon, subscribe }`. `status` maps to `Production`, `Beta`, or `WIP` and drives badge styling plus action labels; cards become “flippable” when the status is `Beta`/`WIP` or a `subscribe` block is present. The subscribe configuration matches the LoopAware embed contract: `{ script, title?, copy?, height? }` and lazy-loads an iframe via `srcdoc` when the card flips for the first time.
-
-### Events
-
-- `mpr-band:card-toggle` — detail `{ cardId, flipped, status, source }` when a flippable card opens or closes (click or keyboard).
-- `mpr-band:subscribe-ready` — detail `{ cardId }` when the subscribe iframe finishes loading.
+The historical `layout`, `heading`, `description`, and `cards` attributes are ignored; the band always behaves as a manual container. Drop markup or `<mpr-card>` instances inside the element to control layout explicitly.
 
 ### Helpers
 
-The bundle ships the Marco Polo Research Lab catalog as part of `mpr-ui.js`. Call `MPRUI.getBandProjectCatalog()` to clone the packaged array when you need to pre-process or subset the dataset before passing it into `<mpr-band>`.
+`MPRUI.getBandProjectCatalog()` still returns the packaged Marco Polo Research Lab cards so consumers can map that data into `<mpr-card>` elements placed inside a band (or anywhere else).
 
 ## Security and Accessibility Considerations
 

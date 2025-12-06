@@ -37,7 +37,7 @@ volumes:
   gravity_data:
 ```
 
-- [ ] [MU-110] Add mpr-card semantic element. Model it after the cards in tools/marcopolo.github.io. All controls of the cards including theme styling must be declarative using their DSL
+- [x] [MU-110] Add mpr-card semantic element. Model it after the cards in tools/marcopolo.github.io. All controls of the cards including theme styling must be declarative using their DSL — Introduced `<mpr-card>` with the band card DSL + theme JSON, shared the card controller with `<mpr-band>`, added docs/fixtures, and covered it with unit + Playwright tests.
 
 ## Improvements (220–299)
 
@@ -64,16 +64,16 @@ volumes:
 
 ## BugFixes (330–399)
 
-- [ ] [MU-331] Assumptions abound bands
+- [x] [MU-331] Assumptions abound bands
 1. The bands shall have no DSL for header
 2. The bands are a container element, non-interacting with bootstrap and allowing to contain other semantic components
 3. All bands styling is happening using DSL for theemes
 4. The bands have no knowledge of boostrap
-5. Bands are horizontal containers that isolate the components inside them.
+5. Bands are horizontal containers that isolate the components inside them. — `<mpr-band>` now operates purely as a themed container (no header/card DSL), demos/tests/docs prove manual markup survives updates, and card events moved to `<mpr-card>`.
 
 ## Maintenance (415–499)
 
-- [ ] [MU-416] Audit mpr-ui library. Ensure we are not shipping demo-related code. Ensure that demo is shipped using the built-in capabilities. In case there are gaps. open new issues for them.
+- [ ] [MU-416] Audit mpr-ui library. Ensure we are not shipping demo-related code. Ensure that demo is shipped using the built-in capabilities. In case there are gaps => open new issues for them. We shall have no demo css or css for the elements that we dont ship (main etc).
 
 ## Planning
 *Do not work on these, not ready*
