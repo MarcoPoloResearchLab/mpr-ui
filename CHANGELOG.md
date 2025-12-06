@@ -1,6 +1,37 @@
 # Changelog
 
-## [Unreleased]
+## [v2.1.0]
+
+### Features ✨
+- MU-202: Added `<mpr-band>`, a new component rendering alternating card bands with a bundled Marco Polo Research Lab catalog, preset palettes, optional LoopAware subscribe overlays, and custom events for card toggling and subscribe readiness.
+- Exposed `MPRUI.getBandProjectCatalog()` helper to clone the bundled dataset for preprocessing or custom usage.
+  
+### Improvements ⚙️
+- MU-203: Refactored footer drop-up to avoid conflicts with Bootstrap by removing `data-bs-*` attributes, adding internal click/outside/Escape listeners, and updating documentation and tests for compatibility.
+- Consolidated theme toggle footprint to a 28px grid in square mode to avoid stale-style regressions.
+- Enhanced inline docs and demos to reflect new band component and updated footer drop-up behavior.
+  
+### Bug Fixes 🐛
+- MU-328: Fixed TAuth demo sign-in origin rejection by removing hardcoded Google client ID and reading configuration from `demo/tauth-config.js`.
+- MU-328: Dropped Secure flag from dev cookies when `APP_DEV_INSECURE_HTTP=true` for Safari compatibility during HTTP development.
+- Resolved Bootstrap dropdown conflicts in footer drop-up by renaming data hooks and preventing Bootstrap hijack.
+- Addressed theme toggle halo and sizing issues with improved CSS scoping and test coverage.
+  
+### Testing 🧪
+- Added Playwright and regression tests for:
+  - Band component rendering and event emissions.
+  - Footer drop-up behavior with and without Bootstrap present.
+  - Theme toggle sizing, focus, and palette application.
+  - Verified legacy helper removals and Web Components-only operation.
+- Expanded demo page with band component usage and event logging.
+  
+### Docs 📚
+- Added extensive documentation for `<mpr-band>` in ARCHITECTURE.md, README.md, and demo pages including integration, events, attributes, and usage examples.
+- Updated integration-guide.md and README to reflect migration from legacy helpers to Web Components DSL and new API surface.
+- Documented conflict resolution with Bootstrap for footer drop-up and theme toggles.
+- Provided migration roadmaps and deprecation notices for legacy APIs.
+
+## [2.0.1]
 
 - Square theme toggle now forces the 28px footprint via inline custom properties to avoid stale-style regressions.
 - MU-202: Added `<mpr-band>` with a bundled Marco Polo Research Lab catalog, alternating row layout, optional LoopAware subscribe overlays, `mpr-band:card-toggle` / `mpr-band:subscribe-ready` events, demo coverage, and docs for the new DSL plus `MPRUI.getBandProjectCatalog()`.
