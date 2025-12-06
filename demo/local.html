@@ -84,58 +84,55 @@
       </section>
 
       <section class="container py-4">
-        <div class="row gy-5">
+        <div class="row justify-content-center">
           <div class="col-12">
-            <mpr-band
-              id="band-event-log"
-              category="research"
-              heading="Observability Band"
-              description="Bootstrap-aligned observability cards driven by the shared theme toggle."
-              cards='[
-                {
-                  "id": "demo-event-log",
-                  "title": "Event Log",
-                  "description": "Live stream of auth, privacy, and theme events rendered on this page.",
-                  "status": "production",
-                  "icon": "📡",
-                  "url": "#event-log"
-                },
-                {
-                  "id": "demo-header-auth",
-                  "title": "Auth Header",
-                  "description": "GIS-backed sign-in with nonce exchange and sticky positioning.",
-                  "status": "beta",
-                  "icon": "🔐",
-                  "url": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/docs/demo-index-auth.md#header-flow"
-                }
-              ]'
-            ></mpr-band>
+            <div class="row g-4 align-items-stretch">
+              <div class="col-12">
+                <mpr-band
+                  id="band-event-log"
+                  category="research"
+                  heading="Observability Band"
+                  description="Bootstrap-aligned observability cards driven by the shared theme toggle."
+                  cards='[
+                    {
+                      "id": "demo-event-log",
+                      "title": "Event Log",
+                      "description": "Live stream of auth, privacy, and theme events rendered on this page.",
+                      "status": "production",
+                      "icon": "📡",
+                      "url": "#event-log"
+                    }
+                  ]'
+                ></mpr-band>
+              </div>
+            </div>
           </div>
+        </div>
+      </section>
+
+      <section class="container py-4">
+        <div class="row justify-content-center">
           <div class="col-12">
-            <mpr-band
-              id="band-integration"
-              category="tools"
-              heading="Integration Band"
-              description="Bootstrap-themed integration references with palette-aware cards."
-              cards='[
-                {
-                  "id": "demo-integration-reference",
-                  "title": "Integration Reference",
-                  "description": "Step-by-step walkthrough for wiring GIS, TAuth, and the bundled demo helpers.",
-                  "status": "production",
-                  "icon": "🧭",
-                  "url": "../docs/demo-index-auth.md"
-                },
-                {
-                  "id": "demo-bootstrap-grid",
-                  "title": "Bootstrap Layout",
-                  "description": "Grid scaffolding that keeps the footer drop-up independent of Bootstrap dropdowns.",
-                  "status": "production",
-                  "icon": "🧱",
-                  "url": "https://getbootstrap.com/docs/5.3/layout/grid/"
-                }
-              ]'
-            ></mpr-band>
+            <div class="row g-4 align-items-stretch">
+              <div class="col-12">
+                <mpr-band
+                  id="band-integration"
+                  category="tools"
+                  heading="Integration Band"
+                  description="Bootstrap-themed integration references with palette-aware cards."
+                  cards='[
+                    {
+                      "id": "demo-integration-reference",
+                      "title": "Integration Reference",
+                      "description": "Step-by-step walkthrough for wiring GIS, TAuth, and the bundled demo helpers.",
+                      "status": "production",
+                      "icon": "🧭",
+                      "url": "../docs/demo-index-auth.md"
+                    }
+                  ]'
+                ></mpr-band>
+              </div>
+            </div>
           </div>
         </div>
       </section>
