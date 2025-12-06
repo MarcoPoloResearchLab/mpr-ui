@@ -71,18 +71,12 @@
               <li>Event log listens to header, footer, and band events.</li>
             </ul>
           </div>
-          <div class="col-lg-5">
-            <div class="p-4 rounded-3 border border-1" style="border-color: var(--mpr-color-border, rgba(148, 163, 184, 0.35)); background: var(--mpr-color-surface-primary, rgba(15, 23, 42, 0.65));">
-              <div class="d-flex flex-column gap-3">
-                <div>
-                  <h2 id="event-log-title" class="h4 mb-2">Event Log</h2>
-                  <p class="mb-0">
-                    Header actions, footer toggles, and band flips stream into this log without disrupting Bootstrap styles.
-                  </p>
-                </div>
-                <div id="event-log" class="event-log" aria-live="polite"></div>
-              </div>
-            </div>
+          <div class="col-lg-5 d-flex flex-column gap-3">
+            <h2 id="event-log-title" class="h4 mb-2">Event Log</h2>
+            <p class="mb-0">
+              Header actions, footer toggles, and band flips stream into this log without disrupting Bootstrap styles.
+            </p>
+            <div id="event-log" class="event-log" aria-live="polite"></div>
           </div>
         </div>
       </section>
