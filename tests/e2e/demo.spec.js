@@ -553,20 +553,24 @@ test.describe('Default theme toggle behaviours', () => {
     await visitThemeFixturePage(page);
   });
 
-  test('MU-316: default toggle updates the body background without custom classes', async ({ page }) => {
+  test('MU-316: default toggle flips the body data attribute for theme mode', async ({ page }) => {
     const toggle = page.locator(footerThemeControl).first();
     await expect(toggle).toBeVisible();
 
-    const initialBackground = await readBodyBackgroundColor(page);
+    const readThemeMode = () =>
+      page.evaluate(() => document.body.getAttribute('data-mpr-theme'));
+    const initialMode = await readThemeMode();
+    const baselineMode = initialMode || 'light';
     await toggle.click();
     await page.waitForTimeout(200);
-    const darkBackground = await readBodyBackgroundColor(page);
-    expect(darkBackground).not.toBe(initialBackground);
+    const toggledMode = await readThemeMode();
+    const expectedToggled = baselineMode === 'dark' ? 'light' : 'dark';
+    expect(toggledMode).toBe(expectedToggled);
 
     await toggle.click();
     await page.waitForTimeout(200);
-    const resetBackground = await readBodyBackgroundColor(page);
-    expect(resetBackground).toBe(initialBackground);
+    const resetMode = await readThemeMode();
+    expect(resetMode).toBe(baselineMode);
   });
 
   test('MU-321: default toggle knob aligns without halos', async ({ page }) => {
