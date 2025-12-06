@@ -99,21 +99,39 @@ function appendEventLogEntry(message) {
  * Ensures the event log container exists inside the hero band card.
  * @returns {HTMLElement | null}
  */
+function waitForCardBody(selector, callback, attempt = 0) {
+  const cardBody = document.querySelector(selector);
+  if (cardBody) {
+    callback(cardBody);
+    return;
+  }
+  if (attempt > 120) {
+    return;
+  }
+  const scheduler =
+    (typeof window !== 'undefined' && window.requestAnimationFrame) ||
+    function scheduleFallback(fn) {
+      setTimeout(fn, 16);
+    };
+  scheduler(() => waitForCardBody(selector, callback, attempt + 1));
+}
+
 function ensureEventLogHost() {
   const existingHost = document.getElementById(EVENT_LOG_HOST_ID);
   if (existingHost) {
     return existingHost;
   }
-  const cardBody = document.querySelector(EVENT_LOG_CARD_BODY_SELECTOR);
-  if (!cardBody) {
-    return null;
-  }
-  const host = document.createElement('div');
-  host.id = EVENT_LOG_HOST_ID;
-  host.className = 'event-log';
-  host.setAttribute('aria-live', 'polite');
-  cardBody.appendChild(host);
-  return host;
+  waitForCardBody(EVENT_LOG_CARD_BODY_SELECTOR, (cardBody) => {
+    if (cardBody.querySelector(`#${EVENT_LOG_HOST_ID}`)) {
+      return;
+    }
+    const host = document.createElement('div');
+    host.id = EVENT_LOG_HOST_ID;
+    host.className = 'event-log';
+    host.setAttribute('aria-live', 'polite');
+    cardBody.appendChild(host);
+  });
+  return null;
 }
 
 /**
@@ -136,20 +154,21 @@ function initEventLog() {
 }
 
 function ensureIntegrationLinks() {
-  const cardBody = document.querySelector(INTEGRATION_CARD_BODY_SELECTOR);
-  if (!cardBody || cardBody.querySelector('[data-test="integration-links"]')) {
-    return;
-  }
-  const linkGroup = document.createElement('div');
-  linkGroup.className = 'mpr-demo__integration-links';
-  linkGroup.dataset.test = 'integration-links';
-  linkGroup.appendChild(
-    createIntegrationLink('Read the doc', '../docs/demo-index-auth.md', 'btn-primary'),
-  );
-  linkGroup.appendChild(
-    createIntegrationLink('View source', 'https://github.com/MarcoPoloResearchLab/mpr-ui', 'btn-outline-secondary'),
-  );
-  cardBody.appendChild(linkGroup);
+  waitForCardBody(INTEGRATION_CARD_BODY_SELECTOR, (cardBody) => {
+    if (cardBody.querySelector('[data-test="integration-links"]')) {
+      return;
+    }
+    const linkGroup = document.createElement('div');
+    linkGroup.className = 'mpr-demo__integration-links';
+    linkGroup.dataset.test = 'integration-links';
+    linkGroup.appendChild(
+      createIntegrationLink('Read the doc', '../docs/demo-index-auth.md', 'btn-primary'),
+    );
+    linkGroup.appendChild(
+      createIntegrationLink('View source', 'https://github.com/MarcoPoloResearchLab/mpr-ui', 'btn-outline-secondary'),
+    );
+    cardBody.appendChild(linkGroup);
+  });
 }
 
 function createIntegrationLink(label, href, variantClass) {
@@ -162,19 +181,8 @@ function createIntegrationLink(label, href, variantClass) {
   return anchor;
 }
 
-function prepareEventLogHost() {
-  if (ensureEventLogHost()) {
-    return;
-  }
-  if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-    window.requestAnimationFrame(prepareEventLogHost);
-  } else {
-    setTimeout(prepareEventLogHost, 16);
-  }
-}
-
 function initDemoEnhancements() {
-  prepareEventLogHost();
+  ensureEventLogHost();
   ensureIntegrationLinks();
   initEventLog();
 }
