@@ -54,6 +54,10 @@ volumes:
 
 - [x] [MU-203] It looks like there is a conflict between Bootstrap and MPR UI integration. We are using the same either prefixes or keywords to identify the components. This results in a number of examples when they collide. We need to refactor our code base so it wouldn't be colliding or wouldn't be conflicting with Bootstrap. Check @tools/ProductScanner/web/templates/index.html for an example of how we are unable to drop up links in the footer due to conflicts — Removed the Bootstrap dropdown dependency, renamed the data hooks, added custom outside/Escape handling, and added regression coverage to prove the drop-up works even when `window.bootstrap` exists.
 
+- [ ] [MU-204] Adjust a demo to demonstarte
+1. Non-conflicting usage of bootstrap and mpr-ui. Having an internal grid driven by bootstrap between the footer and header, while having drop up in the footer operational.
+2. Usage of bands: have Event log card and Integration reference card in two different bands. bands shall be styled to match all four color theemes. If they can not support different color themes through declarative DSL, file am issue to extend it.
+
 ## BugFixes (330–399)
 
 ## Maintenance (415–499)
