@@ -41,6 +41,8 @@ volumes:
 
 ## Improvements (220–299)
 
+- [x] [MU-206] Update demo bands to use `<mpr-card>` instances instead of Bootstrap cards so the showcase exercises the declarative card DSL end-to-end without ad-hoc markup. — Both demo bands now render `<mpr-card>` elements (event log + integration reference) with custom enhancements wired through `demo.js`, and Playwright coverage mirrors the new structure.
+
 - [x] [MU-200] Add a sticky attribute to both footers and headers, e.g. 
 ```html
 <mpr-footer

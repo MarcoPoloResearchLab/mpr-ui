@@ -4,6 +4,9 @@
 const MAX_EVENT_LOG_ENTRIES = 8;
 const EVENT_LOG_HOST_ID = 'event-log';
 const EVENT_LOG_ENTRY_TEST_ID = 'event-log-entry';
+const EVENT_LOG_CARD_BODY_SELECTOR = '#event-log-card .mpr-band__card-body';
+const INTEGRATION_CARD_BODY_SELECTOR =
+  '#integration-reference-card .mpr-band__card-body';
 
 const EVENT_LOGGERS = Object.freeze([
   {
@@ -97,19 +100,19 @@ function appendEventLogEntry(message) {
  * @returns {HTMLElement | null}
  */
 function ensureEventLogHost() {
-  let host = document.getElementById(EVENT_LOG_HOST_ID);
-  if (host) {
-    return host;
+  const existingHost = document.getElementById(EVENT_LOG_HOST_ID);
+  if (existingHost) {
+    return existingHost;
   }
-  const fallback = document.querySelector('[data-event-log-host]');
-  if (!fallback) {
+  const cardBody = document.querySelector(EVENT_LOG_CARD_BODY_SELECTOR);
+  if (!cardBody) {
     return null;
   }
-  host = document.createElement('div');
+  const host = document.createElement('div');
   host.id = EVENT_LOG_HOST_ID;
   host.className = 'event-log';
   host.setAttribute('aria-live', 'polite');
-  fallback.appendChild(host);
+  cardBody.appendChild(host);
   return host;
 }
 
@@ -132,8 +135,52 @@ function initEventLog() {
   });
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initEventLog);
-} else {
+function ensureIntegrationLinks() {
+  const cardBody = document.querySelector(INTEGRATION_CARD_BODY_SELECTOR);
+  if (!cardBody || cardBody.querySelector('[data-test="integration-links"]')) {
+    return;
+  }
+  const linkGroup = document.createElement('div');
+  linkGroup.className = 'mpr-demo__integration-links';
+  linkGroup.dataset.test = 'integration-links';
+  linkGroup.appendChild(
+    createIntegrationLink('Read the doc', '../docs/demo-index-auth.md', 'btn-primary'),
+  );
+  linkGroup.appendChild(
+    createIntegrationLink('View source', 'https://github.com/MarcoPoloResearchLab/mpr-ui', 'btn-outline-secondary'),
+  );
+  cardBody.appendChild(linkGroup);
+}
+
+function createIntegrationLink(label, href, variantClass) {
+  const anchor = document.createElement('a');
+  anchor.textContent = label;
+  anchor.href = href;
+  anchor.target = '_blank';
+  anchor.rel = 'noreferrer noopener';
+  anchor.className = `btn rounded-pill ${variantClass}`;
+  return anchor;
+}
+
+function prepareEventLogHost() {
+  if (ensureEventLogHost()) {
+    return;
+  }
+  if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
+    window.requestAnimationFrame(prepareEventLogHost);
+  } else {
+    setTimeout(prepareEventLogHost, 16);
+  }
+}
+
+function initDemoEnhancements() {
+  prepareEventLogHost();
+  ensureIntegrationLinks();
   initEventLog();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initDemoEnhancements);
+} else {
+  initDemoEnhancements();
 }

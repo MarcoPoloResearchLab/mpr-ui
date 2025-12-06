@@ -289,3 +289,10 @@ dt {
 footer {
   flex-shrink: 0;
 }
+
+.mpr-demo__integration-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
