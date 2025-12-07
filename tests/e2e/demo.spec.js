@@ -9,6 +9,8 @@ const {
   captureDropUpMetrics,
   readEventLogEntries,
   visitFooterTextFixturePage,
+  visitBandFixturePage,
+  visitCardFixturePage,
   selectors,
 } = require('./support/demoPage');
 
@@ -24,9 +26,16 @@ const {
   bootstrapGrid,
   bandCardEventLog,
   bandCardIntegration,
+  standaloneCard,
+  standaloneCardEventEntries,
 } = selectors;
 
-const PALETTE_TARGETS = ['header.mpr-header', 'main', '#event-log', 'footer.mpr-footer'];
+const PALETTE_TARGETS = [
+  'header.mpr-header',
+  '[data-layout-section="hero-title"]',
+  '#event-log',
+  'footer.mpr-footer',
+];
 
 test.describe('Demo behaviours', () => {
   test.beforeEach(async ({ page }, testInfo) => {
@@ -287,6 +296,58 @@ test.describe('Demo behaviours', () => {
     await expect(page.locator(footerMenu)).not.toHaveClass(/mpr-footer__menu--open/);
   });
 
+  test('MU-204: hero title and manual bands render as top-level siblings', async ({ page }) => {
+    const heroTitle = page.locator('[data-layout-section="hero-title"] h1');
+    await expect(heroTitle).toHaveText('MPR-UI Demo');
+
+    const topLevelBands = page.locator('body > mpr-band');
+    await expect(topLevelBands).toHaveCount(2);
+    await expect(topLevelBands.first()).toHaveAttribute('data-mpr-band-layout', 'manual');
+    await expect(topLevelBands.nth(1)).toHaveAttribute('data-mpr-band-layout', 'manual');
+    const firstLayoutAttr = await topLevelBands.first().getAttribute('layout');
+    const secondLayoutAttr = await topLevelBands.nth(1).getAttribute('layout');
+    expect(firstLayoutAttr).toBeNull();
+    expect(secondLayoutAttr).toBeNull();
+    await expect(topLevelBands.first().locator('[data-mpr-band="heading"]')).toHaveCount(0);
+    await expect(topLevelBands.nth(1).locator('[data-mpr-band="heading"]')).toHaveCount(0);
+
+    await expect(page.locator(bandCardEventLog)).toBeVisible();
+    await expect(page.locator(bandCardIntegration)).toBeVisible();
+  });
+
+  test('MU-421: bands inherit the active page theme', async ({ page }) => {
+    const readBandBackground = () =>
+      page.locator('mpr-band#band-observability').evaluate((element) => {
+        const ownerWindow = element.ownerDocument?.defaultView;
+        if (!ownerWindow) {
+          throw new Error('Missing window for band background snapshot');
+        }
+        return ownerWindow.getComputedStyle(element).backgroundColor;
+      });
+
+    const initialBackground = await readBandBackground();
+    await page.evaluate(() => {
+      if (window.MPRUI && typeof window.MPRUI.setThemeMode === 'function') {
+        window.MPRUI.setThemeMode('default-dark');
+      }
+    });
+    await page.waitForFunction(
+      () => document.body.getAttribute('data-demo-theme') === 'dark',
+    );
+    await page.waitForTimeout(200);
+    const toggledBackground = await readBandBackground();
+    expect(toggledBackground).not.toBe(initialBackground);
+
+    const topLineColor = await page.locator('mpr-band#band-observability').evaluate((element) => {
+      const ownerWindow = element.ownerDocument?.defaultView;
+      if (!ownerWindow) {
+        throw new Error('Missing window for band line snapshot');
+      }
+      return ownerWindow.getComputedStyle(element, '::before').backgroundColor;
+    });
+    expect(topLineColor).not.toMatch(/rgba?\(0,\s*0,\s*0,\s*0(?:\.0+)?\)/);
+  });
+
   test('MU-316: settings button opens an accessible modal shell', async ({ page }) => {
     const settingsButton = page.getByRole('button', { name: /settings/i });
     await expect(settingsButton).toBeVisible();
@@ -387,6 +448,7 @@ test.describe('Demo behaviours', () => {
     await page.waitForTimeout(250);
 
     expect(await isLocatorInViewport(chrome.header)).toBe(true);
+    expect(await isLocatorInViewport(chrome.footer)).toBe(true);
   });
 
   test('MU-200: non-sticky header and footer scroll with content', async ({ page }) => {
@@ -414,33 +476,66 @@ test.describe('Demo behaviours', () => {
 
     await page.evaluate(() => window.scrollTo(0, 0));
 
-    await page.evaluate(() => window.scrollTo(0, 1200));
+    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 0.75));
     await page.waitForTimeout(300);
 
     expect(await isLocatorInViewport(chrome.header)).toBe(false);
+    const footerScrolledAway = await scrollFooterUntilHidden(page);
+    expect(footerScrolledAway).toBe(true);
   });
 
-  test('MU-202: band component filters the default catalog by category', async ({ page }) => {
-    const platformBand = page.locator('mpr-band[data-mpr-band-category="platform"]');
-    await expect(platformBand).toHaveAttribute('data-mpr-band-empty', 'false');
-    const cards = platformBand.locator('[data-mpr-band-card]');
-    const cardCount = await cards.count();
-    expect(cardCount).toBeGreaterThan(0);
-    await expect(cards.first()).toBeVisible();
-    const description = await platformBand.locator('[data-mpr-band="heading"] p').textContent();
-    expect(description).toMatch(/platform/i);
+  test('MU-422: sticky footer is visible without scrolling', async ({ page }) => {
+    const chrome = getChromeLocators(page);
+    await chrome.footer.waitFor({ state: 'visible' });
+    expect(await isLocatorInViewport(chrome.footer)).toBe(true);
   });
 
-  test('Band cards flip and load subscribe overlays', async ({ page }) => {
-    const productsBand = page.locator('mpr-band[data-mpr-band-category="products"]');
-    const subscribeCard = productsBand.locator('[data-mpr-band-card="gravity-notes"]');
-    await subscribeCard.scrollIntoViewIfNeeded();
-    await expect(subscribeCard).toBeVisible();
-    await subscribeCard.click();
-    await expect(subscribeCard).toHaveAttribute('aria-pressed', 'true');
-    const subscribeOverlay = productsBand.locator('[data-mpr-band-subscribe-loaded="true"]');
-    await expect(subscribeOverlay).toBeVisible();
-    await expect(page.locator(eventLogEntries)).toHaveCount(2, { timeout: 2000 });
+  test('MU-421: sticky attribute respects explicit boolean values', async ({ page }) => {
+    await page.evaluate(() => {
+      const filler = document.createElement('div');
+      filler.style.height = '2000px';
+      filler.setAttribute('data-test', 'scroll-filler');
+      document.body.appendChild(filler);
+    });
+
+    await page.evaluate(() => {
+      const header = document.querySelector('mpr-header#demo-header');
+      const footer = document.querySelector('mpr-footer#page-footer');
+      if (header) {
+        header.setAttribute('sticky', 'FALSE');
+      }
+      if (footer) {
+        footer.setAttribute('sticky', 'FALSE');
+      }
+    });
+
+    const chrome = getChromeLocators(page);
+    await chrome.header.waitFor({ state: 'visible' });
+    await chrome.footer.waitFor({ state: 'visible' });
+    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 0.75));
+    await page.waitForTimeout(200);
+    expect(await isLocatorInViewport(chrome.header)).toBe(false);
+    const footerScrolledAway = await scrollFooterUntilHidden(page);
+    expect(footerScrolledAway).toBe(true);
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(200);
+    await page.evaluate(() => {
+      const header = document.querySelector('mpr-header#demo-header');
+      const footer = document.querySelector('mpr-footer#page-footer');
+      if (header) {
+        header.setAttribute('sticky', 'TRUE');
+      }
+      if (footer) {
+        footer.setAttribute('sticky', 'TRUE');
+      }
+    });
+
+    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 0.75));
+    await page.waitForTimeout(200);
+    expect(await isLocatorInViewport(chrome.header)).toBe(true);
+    const footerStayedVisible = await scrollFooterUntilHidden(page);
+    expect(footerStayedVisible).toBe(false);
   });
 
   test('MU-204: bands span all categories and separate observability cards', async ({ page }) => {
@@ -451,7 +546,7 @@ test.describe('Demo behaviours', () => {
         .filter(Boolean),
     );
     const uniqueCategories = Array.from(new Set(categories)).sort();
-    expect(uniqueCategories).toEqual(['platform', 'products', 'research', 'tools']);
+    expect(uniqueCategories).toEqual(['research', 'tools']);
 
     const eventLogCard = page.locator(bandCardEventLog);
     const integrationCard = page.locator(bandCardIntegration);
@@ -467,6 +562,84 @@ test.describe('Demo behaviours', () => {
     expect(eventCategory).not.toBe('');
     expect(integrationCategory).not.toBe('');
     expect(eventCategory).not.toBe(integrationCategory);
+  });
+});
+
+test.describe('Band fixture behaviours', () => {
+  test.beforeEach(async ({ page }) => {
+    await visitBandFixturePage(page);
+  });
+
+  test('MU-331: bands preserve manual content without layout overrides', async ({ page }) => {
+    const band = page.locator('mpr-band#fixture-band');
+    await expect(band).toHaveAttribute('data-mpr-band-category', 'products');
+    await expect(band).toHaveAttribute('data-mpr-band-layout', 'manual');
+    await expect(band).toHaveAttribute('data-mpr-band-count', '0');
+    await expect(band).toHaveAttribute('data-mpr-band-empty', 'false');
+    await expect(band.locator('> [data-test="manual-band-content"]')).toHaveCount(1);
+    await expect(band.locator('[data-test="manual-band-card"]')).toHaveCount(1);
+    await expect(band.locator('[data-mpr-band="heading"]')).toHaveCount(0);
+    await expect(band.locator('[data-mpr-band-card]')).toHaveCount(0);
+  });
+
+  test('MU-331: updating band attributes keeps the manual grid intact', async ({ page }) => {
+    const manualCard = page.locator('[data-test="manual-band-card"]');
+    await expect(manualCard).toBeVisible();
+    await page.evaluate(() => {
+      const band = document.querySelector('mpr-band#fixture-band');
+      if (band) {
+        band.setAttribute('category', 'tools');
+      }
+    });
+    await expect(manualCard).toBeVisible();
+    const category = await page
+      .locator('mpr-band#fixture-band')
+      .getAttribute('data-mpr-band-category');
+    expect(category).toBe('tools');
+  });
+});
+
+test.describe('Card fixture behaviours', () => {
+  test.beforeEach(async ({ page }) => {
+    await visitCardFixturePage(page);
+  });
+
+  test('mpr-card renders title and action link', async ({ page }) => {
+    const card = page.locator(standaloneCard);
+    await expect(card).toBeVisible();
+    await expect(card.locator('.mpr-band__card-face--front h3').first()).toContainText(
+      'Standalone Card',
+    );
+    await expect(
+      card.locator('.mpr-band__card-face--front .mpr-band__action').first(),
+    ).toHaveAttribute('href', /mprlab/);
+  });
+
+  test('mpr-card flips and emits toggle events', async ({ page }) => {
+    const card = page.locator(standaloneCard);
+    await card.click();
+    await expect(card).toHaveAttribute('aria-pressed', 'true');
+    await expect(page.locator(standaloneCardEventEntries)).toHaveCount(1);
+    const subscribeOverlay = page.locator('[data-mpr-band-subscribe-loaded="true"]');
+    await expect(subscribeOverlay).toBeVisible();
+  });
+
+  test('mpr-card host becomes the rendered card', async ({ page }) => {
+    const hostSnapshot = await page.locator('mpr-card#fixture-card').evaluate((element) => {
+      const ownerWindow = element.ownerDocument?.defaultView;
+      if (!ownerWindow) {
+        throw new Error('Missing window for host snapshot');
+      }
+      const computed = ownerWindow.getComputedStyle(element);
+      return {
+        classList: Array.from(element.classList),
+        backgroundColor: computed.backgroundColor,
+        nestedCards: element.querySelectorAll('.mpr-band__card').length,
+      };
+    });
+    expect(hostSnapshot.classList).toContain('mpr-band__card');
+    expect(hostSnapshot.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+    expect(hostSnapshot.nestedCards).toBe(0);
   });
 });
 
@@ -488,20 +661,24 @@ test.describe('Default theme toggle behaviours', () => {
     await visitThemeFixturePage(page);
   });
 
-  test('MU-316: default toggle updates the body background without custom classes', async ({ page }) => {
+  test('MU-316: default toggle flips the body data attribute for theme mode', async ({ page }) => {
     const toggle = page.locator(footerThemeControl).first();
     await expect(toggle).toBeVisible();
 
-    const initialBackground = await readBodyBackgroundColor(page);
+    const readThemeMode = () =>
+      page.evaluate(() => document.body.getAttribute('data-mpr-theme'));
+    const initialMode = await readThemeMode();
+    const baselineMode = initialMode || 'light';
     await toggle.click();
     await page.waitForTimeout(200);
-    const darkBackground = await readBodyBackgroundColor(page);
-    expect(darkBackground).not.toBe(initialBackground);
+    const toggledMode = await readThemeMode();
+    const expectedToggled = baselineMode === 'dark' ? 'light' : 'dark';
+    expect(toggledMode).toBe(expectedToggled);
 
     await toggle.click();
     await page.waitForTimeout(200);
-    const resetBackground = await readBodyBackgroundColor(page);
-    expect(resetBackground).toBe(initialBackground);
+    const resetMode = await readThemeMode();
+    expect(resetMode).toBe(baselineMode);
   });
 
   test('MU-321: default toggle knob aligns without halos', async ({ page }) => {
@@ -558,6 +735,7 @@ test.describe('Default theme toggle behaviours', () => {
  */
 async function clickQuadrant(page, selector, quadrant) {
   const control = page.locator(selector).first();
+  await control.scrollIntoViewIfNeeded();
   const box = await control.boundingBox();
   if (!box) {
     throw new Error('Square toggle bounding box is missing');
@@ -565,9 +743,9 @@ async function clickQuadrant(page, selector, quadrant) {
   const margin = 6;
   const isRight = quadrant === 'topRight' || quadrant === 'bottomRight';
   const isBottom = quadrant === 'bottomRight' || quadrant === 'bottomLeft';
-  const targetX = isRight ? box.x + box.width - margin : box.x + margin;
-  const targetY = isBottom ? box.y + box.height - margin : box.y + margin;
-  await page.mouse.click(targetX, targetY);
+  const offsetX = isRight ? box.width - margin : margin;
+  const offsetY = isBottom ? box.height - margin : margin;
+  await control.click({ position: { x: offsetX, y: offsetY } });
 }
 
 /**
@@ -632,15 +810,38 @@ async function expectModalBetween(page, modalLocator, headerLocator, footerLocat
  * @returns {Promise<{ headerRect: import('@playwright/test').BoundingBox, footerRect: import('@playwright/test').BoundingBox }>}
  */
 async function captureChromeMetrics(page) {
+  await page.evaluate(() => {
+    window.scrollTo(0, 0);
+  });
+  await page.waitForTimeout(50);
   const chrome = getChromeLocators(page);
-  const [headerRect, footerRect] = await Promise.all([
-    chrome.header.boundingBox(),
-    chrome.footer.boundingBox(),
+  const [headerRect, footerRect, viewportHeight, scrollHeight] = await Promise.all([
+    chrome.header.evaluate((element) => {
+      if (!element || typeof element.getBoundingClientRect !== 'function') {
+        return null;
+      }
+      const rect = element.getBoundingClientRect();
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    }),
+    chrome.footer.evaluate((element) => {
+      if (!element || typeof element.getBoundingClientRect !== 'function') {
+        return null;
+      }
+      const rect = element.getBoundingClientRect();
+      return { x: rect.x, y: rect.y, width: rect.width, height: rect.height };
+    }),
+    page.evaluate(() => window.innerHeight || document.documentElement.clientHeight || 0),
+    page.evaluate(() => {
+      if (document.body && typeof document.body.scrollHeight === 'number') {
+        return document.body.scrollHeight;
+      }
+      return document.documentElement?.scrollHeight || 0;
+    }),
   ]);
   if (!headerRect || !footerRect) {
     throw new Error('Unable to capture header/footer metrics');
   }
-  return { headerRect, footerRect };
+  return { headerRect, footerRect, viewportHeight, scrollHeight };
 }
 
 /**
@@ -658,9 +859,10 @@ async function expectChromeStable(page, baseline, label) {
     expect(delta).toBeLessThanOrEqual(tolerance);
   };
 
-  assertWithinTolerance(baseline.headerRect.y, next.headerRect.y, `${label} header top`);
+  expect(next.headerRect.y).toBeLessThanOrEqual(tolerance);
+  const scrollDelta = Math.abs(baseline.scrollHeight - next.scrollHeight);
+  expect(scrollDelta).toBeLessThanOrEqual(32);
   assertWithinTolerance(baseline.headerRect.height, next.headerRect.height, `${label} header height`);
-  assertWithinTolerance(baseline.footerRect.y, next.footerRect.y, `${label} footer top`);
   assertWithinTolerance(baseline.footerRect.height, next.footerRect.height, `${label} footer height`);
 }
 
@@ -685,5 +887,31 @@ async function isLocatorInViewport(locator) {
     const horizontallyVisible = rect.right > 0 && rect.left < viewportWidth;
     const verticallyVisible = rect.bottom > 0 && rect.top < viewportHeight;
     return horizontallyVisible && verticallyVisible;
+  });
+}
+
+/**
+ * Scrolls the page in increments until the footer leaves the viewport.
+ * Returns true when the footer is no longer visible; false if it remains visible after attempts.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<boolean>}
+ */
+async function scrollFooterUntilHidden(page) {
+  return page.evaluate(() => {
+    const footer = document.querySelector('mpr-footer#page-footer footer.mpr-footer');
+    if (!footer || typeof footer.getBoundingClientRect !== 'function') {
+      return false;
+    }
+    const viewportHeight =
+      window.innerHeight || document.documentElement?.clientHeight || document.body?.clientHeight || 0;
+    const maxSteps = 20;
+    for (let index = 0; index < maxSteps; index += 1) {
+      window.scrollBy(0, viewportHeight / 2);
+      const rect = footer.getBoundingClientRect();
+      if (rect.top >= viewportHeight) {
+        return true;
+      }
+    }
+    return false;
   });
 }

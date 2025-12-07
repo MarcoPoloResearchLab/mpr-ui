@@ -37,7 +37,11 @@ volumes:
   gravity_data:
 ```
 
+- [x] [MU-110] Add mpr-card semantic element. Model it after the cards in tools/marcopolo.github.io. All controls of the cards including theme styling must be declarative using their DSL — Introduced `<mpr-card>` with the band card DSL + theme JSON, shared the card controller with `<mpr-band>`, added docs/fixtures, and covered it with unit + Playwright tests.
+
 ## Improvements (220–299)
+
+- [x] [MU-206] Update demo bands to use `<mpr-card>` instances instead of Bootstrap cards so the showcase exercises the declarative card DSL end-to-end without ad-hoc markup. — Both demo bands now render `<mpr-card>` elements (event log + integration reference) with custom enhancements wired through `demo.js`, and Playwright coverage mirrors the new structure.
 
 - [x] [MU-200] Add a sticky attribute to both footers and headers, e.g. 
 ```html
@@ -58,9 +62,24 @@ volumes:
 1. Non-conflicting usage of bootstrap and mpr-ui. Having an internal grid driven by bootstrap between the footer and header, while having drop up in the footer operational.
 2. Usage of bands: have Event log card and Integration reference card in two different bands. bands shall be styled to match all four color theemes. If they can not support different color themes through declarative DSL, file am issue to extend it. — Demo now loads Bootstrap 5 CSS/JS, showcases a Bootstrap grid between the header and footer, and stacks four themed bands (research/tools/platform/products) with dedicated Event Log and Integration Reference cards while keeping the footer drop-up operational.
 
+- [x] [MU-205] Restructure the demo so `<mpr-band>` hosts Bootstrap grids without the JSON cards DSL. Requirements: hero title “MPR-UI Demo” directly under `<mpr-header>`, two top-level bands (no surrounding `<main>`), each band containing one Bootstrap card laid out via the Bootstrap grid, no card-in-card presentation, no inline CSS/JS snippets inside the HTML, and the hero title/bands all honoring the theme switcher without clashing with Bootstrap. — Added manual layout support to `<mpr-band>`, rewrote both demo pages to use a Bootstrap hero plus two manual bands (event log + integration card), removed inline scripts, and updated tests plus fixtures to cover the new structure and manual/manual vs. catalog rendering.
+
 ## BugFixes (330–399)
 
+- [x] [MU-331] Assumptions abound bands
+1. The bands shall have no DSL for header
+2. The bands are a container element, non-interacting with bootstrap and allowing to contain other semantic components
+3. All bands styling is happening using DSL for theemes
+4. The bands have no knowledge of boostrap
+5. Bands are horizontal containers that isolate the components inside them. — `<mpr-band>` now operates purely as a themed container (no header/card DSL), demos/tests/docs prove manual markup survives updates, and card events moved to `<mpr-card>`.
+
+- [x] [MU-421] Demo/local cards are not visible. — Refactored `<mpr-card>` so the host renders the `.mpr-band__card` markup directly (no nested wrapper), removed emoji icons that broke in some browsers, aligned band theme JSON with global page tokens so switching the page theme recolours bands/cards automatically, added DSL-driven `lineTop`/`lineBottom` support for thin band lines that inherit the active theme, and extended Playwright coverage for both the visible card hosts and theme-bound palettes.
+
+- [x] [MU-422] Header and footer must alwasy be aligned with the page border. Header must be aligned with the top and footer with the bottom. when we say sticky=true it becomes aligned witht the viewport and always visible in the viewport. Audit against current behaviour and fix gaps, if any. — Removed the demo-only sticky overrides so `<mpr-header>` / `<mpr-footer>` control their own positioning, reworked `<mpr-footer>` so sticky mode renders a viewport-fixed footer with an automatic spacer/ResizeObserver, and expanded the Playwright coverage to assert both header and footer visibility (including uppercase attribute variants).
+
 ## Maintenance (415–499)
+
+- [x] [MU-416] Audit mpr-ui library. Ensure we are not shipping demo-related code. Ensure that demo is shipped using the built-in capabilities. In case there are gaps => open new issues for them. We shall have no demo css or css for the elements that we dont ship (main etc). — Demo-only selectors moved to `demo/demo.css`, all demo pages/fixtures load it, and unit tests now guard that the packaged stylesheet contains component rules only.
 
 ## Planning
 *Do not work on these, not ready*

@@ -446,6 +446,10 @@ function createFooterElementHarness(options) {
   assert.ok(FooterElement, 'mpr-footer is defined');
 
   const root = createStubNode({ classList: true, attributes: true });
+  root.getBoundingClientRect = function getBoundingClientRect() {
+    return { x: 0, y: 0, width: 1024, height: 80 };
+  };
+  root.offsetHeight = 80;
   const inner = createStubNode({});
   const layout = createStubNode({});
   const brandContainer = createStubNode({});
@@ -456,6 +460,9 @@ function createFooterElementHarness(options) {
   const themeToggleHost = createStubNode({ attributes: true });
   const privacyLink = createStubNode({ attributes: true });
 
+  const stickySpacer = createStubNode({});
+  stickySpacer.style = { height: '' };
+
   const selectorMap = new Map([
     ['footer[role="contentinfo"]', root],
     ['[data-mpr-footer="inner"]', inner],
@@ -465,6 +472,7 @@ function createFooterElementHarness(options) {
     ['[data-mpr-footer="toggle-button"]', toggleButton],
     ['[data-mpr-footer="theme-toggle"]', themeToggleHost],
     ['[data-mpr-footer="privacy-link"]', privacyLink],
+    ['[data-mpr-footer="sticky-spacer"]', stickySpacer],
   ]);
   if (settings.includeMenu) {
     selectorMap.set('[data-mpr-footer="menu-wrapper"]', menuWrapper);
@@ -1121,9 +1129,11 @@ test('mpr-footer sticky attribute controls root sticky dataset', () => {
   loadLibrary();
   const harness = createFooterElementHarness();
   const footerElement = harness.element;
-
   footerElement.setAttribute('sticky', 'false');
   footerElement.connectedCallback();
+
+  const spacer = footerElement.querySelector('[data-mpr-footer="sticky-spacer"]');
+  assert.ok(spacer, 'sticky spacer renders after initialization');
 
   assert.equal(
     footerElement.dataset.sticky,
@@ -1135,4 +1145,29 @@ test('mpr-footer sticky attribute controls root sticky dataset', () => {
     'false',
     'footer root marked non-sticky when sticky="false"',
   );
+  assert.equal(
+    footerElement.getAttribute('data-mpr-sticky'),
+    'false',
+    'footer host marked non-sticky when sticky="false"',
+  );
+  assert.equal(spacer.style.height, '0px', 'sticky spacer collapsed when sticky is false');
+
+  footerElement.setAttribute('sticky', 'true');
+
+  assert.equal(
+    harness.root.getAttribute && harness.root.getAttribute('data-mpr-sticky'),
+    null,
+    'footer root clears non-sticky flag when sticky is true',
+  );
+  assert.equal(
+    footerElement.getAttribute('data-mpr-sticky'),
+    null,
+    'footer host clears non-sticky flag when sticky is true',
+  );
+  assert.equal(
+    footerElement.dataset.sticky,
+    'true',
+    'footer dataset updated to reflect sticky attribute',
+  );
+  assert.notEqual(spacer.style.height, '0px', 'sticky spacer reserves footer height when sticky is true');
 });

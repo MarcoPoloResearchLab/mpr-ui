@@ -65,6 +65,12 @@ const THEME_FIXTURE_URL = pathToFileURL(
 const FOOTER_TEXT_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-text-only.html'),
 ).href;
+const BAND_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/band-default.html'),
+).href;
+const CARD_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/mpr-card.html'),
+).href;
 
 const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
@@ -76,8 +82,10 @@ const SELECTORS = Object.freeze({
   footerPrefix: '[data-mpr-footer="prefix"]',
   eventLogEntries: '#event-log [data-test="event-log-entry"]',
   bootstrapGrid: '[data-test="bootstrap-grid"]',
-  bandCardEventLog: '[data-mpr-band-card="demo-event-log"]',
-  bandCardIntegration: '[data-mpr-band-card="demo-integration-reference"]',
+  bandCardEventLog: '[data-test="band-event-log-card"].mpr-band__card',
+  bandCardIntegration: '[data-test="band-integration-card"].mpr-band__card',
+  standaloneCard: 'mpr-card#fixture-card',
+  standaloneCardEventEntries: '#card-event-log [data-test="card-event-entry"]',
 });
 
 const LOCAL_ASSETS = Object.freeze({
@@ -125,6 +133,34 @@ async function visitFooterTextFixturePage(page) {
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
   ]);
   await page.goto(FOOTER_TEXT_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the band fixture page with local assets to exercise container-only bands.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitBandFixturePage(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(BAND_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the standalone card fixture with local assets.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitCardFixturePage(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(CARD_FIXTURE_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
 }
 
@@ -312,6 +348,8 @@ module.exports = {
   visitDemoPage,
   visitThemeFixturePage,
   visitFooterTextFixturePage,
+  visitBandFixturePage,
+  visitCardFixturePage,
   captureToggleSnapshot,
   captureColorSnapshots,
   captureDropUpMetrics,

@@ -4,6 +4,9 @@
 const MAX_EVENT_LOG_ENTRIES = 8;
 const EVENT_LOG_HOST_ID = 'event-log';
 const EVENT_LOG_ENTRY_TEST_ID = 'event-log-entry';
+const EVENT_LOG_CARD_BODY_SELECTOR = '#event-log-card .mpr-band__card-body';
+const INTEGRATION_CARD_BODY_SELECTOR =
+  '#integration-reference-card .mpr-band__card-body';
 
 const EVENT_LOGGERS = Object.freeze([
   {
@@ -35,20 +38,20 @@ const EVENT_LOGGERS = Object.freeze([
     },
   },
   {
-    type: 'mpr-band:card-toggle',
+    type: 'mpr-card:card-toggle',
     formatter: (event) => {
       const detail = event && event.detail ? event.detail : {};
       const cardId = detail.cardId || 'unknown';
       const flipped = detail.flipped ? 'opened' : 'closed';
-      return `Band card ${cardId} ${flipped}`;
+      return `Card ${cardId} ${flipped}`;
     },
   },
   {
-    type: 'mpr-band:subscribe-ready',
+    type: 'mpr-card:subscribe-ready',
     formatter: (event) => {
       const detail = event && event.detail ? event.detail : {};
       const cardId = detail.cardId || 'unknown';
-      return `Band subscribe widget ready (${cardId})`;
+      return `Card subscribe widget ready (${cardId})`;
     },
   },
 ]);
@@ -74,7 +77,7 @@ function appendEventLogEntry(message) {
   if (!message || typeof message !== 'string') {
     return;
   }
-  const logHost = document.getElementById(EVENT_LOG_HOST_ID);
+  const logHost = ensureEventLogHost();
   if (!logHost) {
     return;
   }
@@ -90,6 +93,45 @@ function appendEventLogEntry(message) {
     }
     logHost.removeChild(firstChild);
   }
+}
+
+/**
+ * Ensures the event log container exists inside the hero band card.
+ * @returns {HTMLElement | null}
+ */
+function waitForCardBody(selector, callback, attempt = 0) {
+  const cardBody = document.querySelector(selector);
+  if (cardBody) {
+    callback(cardBody);
+    return;
+  }
+  if (attempt > 120) {
+    return;
+  }
+  const scheduler =
+    (typeof window !== 'undefined' && window.requestAnimationFrame) ||
+    function scheduleFallback(fn) {
+      setTimeout(fn, 16);
+    };
+  scheduler(() => waitForCardBody(selector, callback, attempt + 1));
+}
+
+function ensureEventLogHost() {
+  const existingHost = document.getElementById(EVENT_LOG_HOST_ID);
+  if (existingHost) {
+    return existingHost;
+  }
+  waitForCardBody(EVENT_LOG_CARD_BODY_SELECTOR, (cardBody) => {
+    if (cardBody.querySelector(`#${EVENT_LOG_HOST_ID}`)) {
+      return;
+    }
+    const host = document.createElement('div');
+    host.id = EVENT_LOG_HOST_ID;
+    host.className = 'event-log';
+    host.setAttribute('aria-live', 'polite');
+    cardBody.appendChild(host);
+  });
+  return null;
 }
 
 /**
@@ -111,8 +153,42 @@ function initEventLog() {
   });
 }
 
-if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initEventLog);
-} else {
+function ensureIntegrationLinks() {
+  waitForCardBody(INTEGRATION_CARD_BODY_SELECTOR, (cardBody) => {
+    if (cardBody.querySelector('[data-test="integration-links"]')) {
+      return;
+    }
+    const linkGroup = document.createElement('div');
+    linkGroup.className = 'mpr-demo__integration-links';
+    linkGroup.dataset.test = 'integration-links';
+    linkGroup.appendChild(
+      createIntegrationLink('Read the doc', '../docs/demo-index-auth.md', 'btn-primary'),
+    );
+    linkGroup.appendChild(
+      createIntegrationLink('View source', 'https://github.com/MarcoPoloResearchLab/mpr-ui', 'btn-outline-secondary'),
+    );
+    cardBody.appendChild(linkGroup);
+  });
+}
+
+function createIntegrationLink(label, href, variantClass) {
+  const anchor = document.createElement('a');
+  anchor.textContent = label;
+  anchor.href = href;
+  anchor.target = '_blank';
+  anchor.rel = 'noreferrer noopener';
+  anchor.className = `btn rounded-pill ${variantClass}`;
+  return anchor;
+}
+
+function initDemoEnhancements() {
+  ensureEventLogHost();
+  ensureIntegrationLinks();
   initEventLog();
+}
+
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', initDemoEnhancements);
+} else {
+  initDemoEnhancements();
 }

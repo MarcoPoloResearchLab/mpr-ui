@@ -92,3 +92,10 @@ test('mpr-band custom element registers and exposes the default catalog helper',
   const bandCtor = global.customElements.get('mpr-band');
   assert.equal(typeof bandCtor, 'function');
 });
+
+test('<mpr-card> custom element registers', () => {
+  resetEnvironment();
+  require(bundlePath);
+  const cardCtor = global.customElements.get('mpr-card');
+  assert.equal(typeof cardCtor, 'function');
+});

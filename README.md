@@ -126,7 +126,8 @@ Every UI surface is a custom element. The list below maps directly to the `<mpr-
 - `<mpr-login-button>` — GIS-only control for contexts that do not need the full header.
 - `<mpr-settings>` — emits toggle events so you can wire your own modal/drawer.
 - `<mpr-sites>` — renders the Marco Polo Research Lab network or any JSON catalog you provide.
-- `<mpr-band>` — renders alternating card bands backed by the packaged Marco Polo Research Lab catalog or a custom JSON feed.
+- `<mpr-band>` — themed horizontal container that applies preset palettes while letting you drop Bootstrap grids or `<mpr-card>` instances inside without extra DSL.
+- `<mpr-card>` — renders a single project card (front/back, subscribe overlay, CTA) anywhere on the page without needing a band.
 
 The tags above replace the retired imperative helpers. See the example below for a slot-heavy declarative configuration.
 
@@ -191,7 +192,8 @@ The tags above replace the retired imperative helpers. See the example below for
 | `<mpr-login-button>` | `site-id`, `login-path`, `logout-path`, `nonce-path`, `base-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
 | `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |
 | `<mpr-sites>` | `links`, `variant` (`list`, `grid`, `menu`), `columns`, `heading` | — | `mpr-sites:link-click` |
-| `<mpr-band>` | `heading`, `description`, `category`, `cards` (JSON), `theme` (JSON) | — | `mpr-band:card-toggle`, `mpr-band:subscribe-ready` |
+| `<mpr-band>` | `category`, `theme` (JSON) | — | — |
+| `<mpr-card>` | `card` (JSON with `{ id, title, description, status, url, icon, subscribe }`), `theme` (JSON) | — | `mpr-card:card-toggle`, `mpr-card:subscribe-ready` |
 
 Slots let you inject custom markup without leaving declarative mode:
 
@@ -201,14 +203,50 @@ Slots let you inject custom markup without leaving declarative mode:
 
 Custom elements dispatch the same `mpr-ui:*` events that the deprecated helpers emitted, so event listeners continue working after migrating. See [`docs/custom-elements.md`](docs/custom-elements.md) for a deep-dive covering attribute shapes, events, and migration tips (Alpine → custom elements).
 
+> Both `<mpr-header>` and `<mpr-footer>` are sticky by default. Add `sticky="false"` (or pass the equivalent option) if you want them to render in-flow; setting `sticky="true"` is redundant because `true` is the default. The attribute values are case-insensitive (`sticky="FALSE"` works), and the components manage stickiness internally so no host-level CSS overrides are required. In sticky mode the footer renders a spacer + viewport-fixed footer so it stays visible even when the page is scrolled to the top.
+
 ### Band component
 
-`<mpr-band>` renders alternating rows of project cards. Drop the element with a `category` (Research/Tools/Platform/Products) to automatically filter the bundled Marco Polo Research Lab catalog, or pass a `cards` JSON array when you need bespoke content. Each card accepts an optional `subscribe` configuration with a LoopAware embed—flip the card to reveal the overlay and lazy-load the iframe only once. The component emits:
+`<mpr-band>` is a passive container that applies the bundled palette tokens and spacing without imposing any markup. Pick a `category` (`research`, `tools`, `platform`, `products`, or `custom`) to reuse a preset palette or pass a `theme` JSON object to set the background/panel/text/accent colours directly. Drop Bootstrap grids, hero copy, or `<mpr-card>` elements inside the band and it will isolate them visually without injecting headings, grids, or cards of its own.
 
-- `mpr-band:card-toggle` with `{ cardId, flipped, status }` whenever a card flips.
-- `mpr-band:subscribe-ready` with `{ cardId }` after the subscribe iframe loads.
+Need sample card data? Call `MPRUI.getBandProjectCatalog()` and feed the results into `<mpr-card>` instances inside the band. Because the container no longer renders cards, it does not emit `mpr-band:*` events—the events now live on `<mpr-card>` where the flipping behaviour occurs. The old `layout` attribute is ignored; manual layout is always the default.
 
-Use `MPRUI.getBandProjectCatalog()` to clone the packaged data if you need to re-use the default catalog outside of the declarative surface.
+`theme` accepts `{ background, panel, panelAlt, text, muted, accent, border, shadow, lineTop, lineBottom }`. Every value is automatically wrapped in our shared CSS custom properties (`--mpr-color-*`, `--mpr-shadow-*`), so bands stay in sync with the active page theme. Use `lineTop` / `lineBottom` to draw thin separators that inherit the current palette—no additional CSS required:
+
+```html
+<mpr-band
+  theme='{
+    "background": "var(--mpr-color-surface-primary, rgba(248, 250, 252, 0.95))",
+    "panel": "var(--mpr-color-surface-elevated, rgba(255, 255, 255, 0.98))",
+    "text": "var(--mpr-color-text-primary, #0f172a)",
+    "border": "var(--mpr-color-border, rgba(148,163,184,0.35))",
+    "lineTop": "var(--mpr-color-border, rgba(148,163,184,0.35))",
+    "lineBottom": "var(--mpr-color-border, rgba(148,163,184,0.35))"
+  }'
+>
+  <!-- Bootstrap grid or <mpr-card> instances -->
+</mpr-band>
+```
+
+### Card component
+
+`<mpr-card>` renders a single project card (front/back surfaces, optional LoopAware subscribe overlay) anywhere on the page without needing a band wrapper. Pass a `card` JSON payload that matches the band DSL (`{ id, title, description, status, url, icon, subscribe }`) plus an optional `theme` JSON to recolour the background/panel variables. The component emits the same events as band cards (`mpr-card:card-toggle`, `mpr-card:subscribe-ready`) so you can react to flips or subscribe iframe readiness.
+
+```html
+<mpr-card
+  card='{
+    "id": "card-demo",
+    "title": "Standalone Card",
+    "description": "Use this anywhere without a band wrapper.",
+    "status": "production",
+    "icon": "⭐",
+    "url": "https://mprlab.com"
+  }'
+  theme='{"background":"rgba(3,23,32,0.95)","panel":"rgba(3,27,32,0.92)"}'
+></mpr-card>
+```
+
+Need a subscribe overlay? Add the `subscribe` JSON block (`{ "script": "https://loopaware...", "copy": "...", "title": "...", "height": 320 }`) to the card payload and `<mpr-card>` will lazy-load the iframe the first time the card flips.
 
 ### Optional helpers
 

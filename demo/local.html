@@ -8,6 +8,7 @@
       rel="stylesheet"
       href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
     />
+    <link rel="stylesheet" href="./demo.css" />
     <link rel="stylesheet" href="../mpr-ui.css" />
     <script
       defer
@@ -15,11 +16,7 @@
       type="module"
     ></script>
     <script defer src="../mpr-ui.js"></script>
-    <script
-      src="https://accounts.google.com/gsi/client"
-      async
-      defer
-    ></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body class="theme-light" data-demo-palette="default">
     <mpr-header
@@ -38,117 +35,90 @@
       settings-label="Settings"
     >
     </mpr-header>
-    <main>
-      <div class="container py-5" data-test="bootstrap-grid">
-        <div class="row g-4 align-items-stretch">
-          <div class="col-lg-6">
-            <div class="card demo-card h-100 shadow-sm">
-              <div class="card-body d-flex flex-column gap-3">
-                <h1 class="card-title mb-1">MPR UI Demo (Local)</h1>
-                <p class="mb-0">
-                  This page loads the local <code>mpr-ui.js</code> bundle and Bootstrap 5 grid utilities so you can
-                  verify the sticky chrome and drop-up coexist with the Bootstrap namespace.
-                </p>
-                <ul class="list-unstyled mb-0">
-                  <li>Sticky auth header and footer pinned above a Bootstrap grid.</li>
-                  <li>Event log wired to header, footer, and band events.</li>
-                  <li>Four themed bands covering research, tools, platform, and products.</li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          <div class="col-lg-6">
-            <div class="card demo-card h-100 shadow-sm">
-              <div class="card-body d-flex flex-column gap-3">
-                <div>
-                  <h2 id="event-log-title" class="h4 mb-2">Event Log</h2>
-                  <p class="mb-0">
-                    Watch header actions, footer toggles, and band flips stream into this log without disrupting Bootstrap styles.
-                  </p>
-                </div>
-                <div id="event-log" class="event-log" aria-live="polite"></div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
 
-      <div class="container py-4">
-        <div class="row gy-5">
-          <div class="col-12">
-            <mpr-band
-              id="band-event-log"
-              category="research"
-              heading="Event Signals"
-              description="Capture header, footer, and band activity while a Bootstrap grid drives layout."
-              cards='[
-                {
-                  "id": "demo-event-log",
-                  "title": "Event Log",
-                  "description": "Live stream of auth, privacy, and theme events rendered on this page.",
-                  "status": "production",
-                  "icon": "📡",
-                  "url": "#event-log"
-                },
-                {
-                  "id": "demo-header-auth",
-                  "title": "Auth Header",
-                  "description": "GIS-backed sign-in with nonce exchange and sticky positioning.",
-                  "status": "beta",
-                  "icon": "🔐",
-                  "url": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/docs/demo-index-auth.md#header-flow"
-                }
-              ]'
-            ></mpr-band>
-          </div>
-          <div class="col-12">
-            <mpr-band
-              id="band-integration"
-              category="tools"
-              heading="Integration Reference"
-              description="Bootstrap-friendly integration links for GIS, TAuth, and palette-aware themes."
-              cards='[
-                {
-                  "id": "demo-integration-reference",
-                  "title": "Integration Reference",
-                  "description": "Step-by-step walkthrough for wiring GIS, TAuth, and the bundled demo helpers.",
-                  "status": "production",
-                  "icon": "🧭",
-                  "url": "../docs/demo-index-auth.md"
-                },
-                {
-                  "id": "demo-bootstrap-grid",
-                  "title": "Bootstrap Layout",
-                  "description": "Grid-driven scaffolding that keeps the footer drop-up independent of Bootstrap dropdowns.",
-                  "status": "production",
-                  "icon": "🧱",
-                  "url": "https://getbootstrap.com/docs/5.3/layout/grid/"
-                }
-              ]'
-            ></mpr-band>
-          </div>
-          <div class="col-12">
-            <mpr-band
-              id="band-platform"
-              category="platform"
-              heading="Platform Catalog"
-              description="Highlights from the Marco Polo Research Lab platform stack."
-            ></mpr-band>
-          </div>
-          <div class="col-12">
-            <mpr-band
-              id="band-products"
-              category="products"
-              heading="Product Betas"
-              description="Flip cards to explore live products and subscribe for updates."
-            ></mpr-band>
+    <div class="container py-5" data-layout-section="hero-title">
+      <div class="row justify-content-center text-center">
+        <div class="col-lg-10 col-xl-8">
+          <p class="text-uppercase text-muted mb-2">Bootstrap hero</p>
+          <h1 class="display-4 fw-semibold mb-3">MPR-UI Demo</h1>
+          <p class="lead mb-0">
+            Local bundle preview sharing the same layout: hero outside the bands with Bootstrap isolated
+            inside each manual band.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <mpr-band
+      id="band-observability"
+      category="research"
+      theme='{
+        "background": "var(--mpr-color-surface-primary, rgba(248, 250, 252, 0.95))",
+        "panel": "var(--mpr-color-surface-elevated, rgba(255, 255, 255, 0.95))",
+        "panelAlt": "var(--mpr-color-surface-elevated, rgba(248, 250, 252, 0.95))",
+        "text": "var(--mpr-color-text-primary, #0f172a)",
+        "accent": "var(--mpr-color-accent, #0ea5e9)",
+        "border": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "shadow": "var(--mpr-shadow-elevated, 0 10px 24px rgba(15, 23, 42, 0.2))",
+        "lineTop": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "lineBottom": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))"
+      }'
+    >
+      <div class="container py-5" data-test="bootstrap-grid">
+        <div class="row g-4 justify-content-center">
+          <div class="col-lg-8 col-xl-7">
+            <mpr-card
+              id="event-log-card"
+              data-test="band-event-log-card"
+              card='{
+                "id": "event-log-card",
+                "title": "Event Log",
+                "description": "Header actions, footer toggles, and band events stream into this log so you can verify integrations.",
+                "status": "beta"
+              }'
+            ></mpr-card>
           </div>
         </div>
       </div>
-    </main>
+    </mpr-band>
+
+    <mpr-band
+      id="band-integration"
+      category="tools"
+      theme='{
+        "background": "var(--mpr-color-surface-primary, rgba(248, 250, 252, 0.95))",
+        "panel": "var(--mpr-color-surface-elevated, rgba(255, 255, 255, 0.95))",
+        "panelAlt": "var(--mpr-color-surface-elevated, rgba(245, 248, 250, 0.95))",
+        "text": "var(--mpr-color-text-primary, #0f172a)",
+        "accent": "var(--mpr-color-accent-alt, #22c55e)",
+        "border": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "shadow": "var(--mpr-shadow-elevated, 0 10px 24px rgba(15, 23, 42, 0.2))",
+        "lineTop": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "lineBottom": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))"
+      }'
+    >
+      <div class="container py-5" data-test="bootstrap-grid-secondary">
+        <div class="row g-4 justify-content-center">
+          <div class="col-lg-8 col-xl-7">
+            <mpr-card
+              id="integration-reference-card"
+              data-test="band-integration-card"
+              card='{
+                "id": "integration-reference",
+                "title": "Integration Reference",
+                "description": "Step-by-step walkthrough for wiring GIS, TAuth, and the bundled demo helpers without Bootstrap clashes.",
+                "status": "production",
+                "url": "../docs/demo-index-auth.md"
+              }'
+            ></mpr-card>
+          </div>
+        </div>
+      </div>
+    </mpr-band>
 
     <mpr-footer
       id="page-footer"
+      sticky="true"
       privacy-link-label="Privacy &amp; Terms"
       privacy-link-href="#privacy"
       privacy-modal-content="
