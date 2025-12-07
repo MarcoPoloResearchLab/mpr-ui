@@ -8,8 +8,10 @@ const { join } = require('node:path');
 const demoDir = join(__dirname, '..', 'demo');
 const demoHtmlPath = join(demoDir, 'index.html');
 const sharedCssPath = join(__dirname, '..', 'mpr-ui.css');
+const demoCssPath = join(demoDir, 'demo.css');
 const demoHtml = readFileSync(demoHtmlPath, 'utf8');
 const sharedCss = readFileSync(sharedCssPath, 'utf8');
+const demoCss = readFileSync(demoCssPath, 'utf8');
 
 const CDN_VERSION_PATTERN = '(?:latest|0\\.1\\.0|0\\.0\\.8)';
 
@@ -64,38 +66,42 @@ test('demo pulls Bootstrap assets for the layout showcase', () => {
   );
 });
 
-test('packaged stylesheet pins the header and footer using sticky positioning', () => {
-  assert.match(
-    sharedCss,
-    /#site-header[^{]*\{[^}]*position:\s*sticky/gi,
-    'Expected #site-header to define sticky positioning',
-  );
-  assert.match(
-    sharedCss,
-    /\.demo-footer-slot[^{]*\{[^}]*position:\s*sticky/gi,
-    'Expected .demo-footer-slot inside mpr-ui.css to define sticky positioning',
-  );
+test('sticky layout helpers live inside the components, not demo CSS', () => {
+  const disallowedSelectors = [
+    /#site-header[^{]*\{/gi,
+    /\.demo-footer-slot[^{]*\{/gi,
+  ];
+  disallowedSelectors.forEach((selector) => {
+    assert.doesNotMatch(
+      sharedCss,
+      selector,
+      'Packaged stylesheet should not declare host-level sticky overrides',
+    );
+    assert.doesNotMatch(
+      demoCss,
+      selector,
+      'Demo stylesheet should not override sticky behaviour on host elements',
+    );
+  });
 });
 
-test('palette-specific overrides respond to theme mode classes', () => {
-  assert.match(
-    sharedCss,
+test('palette-specific overrides live in the demo stylesheet only', () => {
+  const paletteSelectors = [
     /body\[data-demo-palette='sunrise'\]\.theme-light[^{]*\{/,
-    'Sunrise palette should define a .theme-light selector so light mode overrides apply',
-  );
-  assert.match(
-    sharedCss,
     /body\[data-demo-palette='sunrise'\]\.theme-dark[^{]*\{/,
-    'Sunrise palette should define a .theme-dark selector so dark mode overrides apply',
-  );
-  assert.match(
-    sharedCss,
     /body\[data-demo-palette='forest'\]\.theme-light[^{]*\{/,
-    'Forest palette should define a .theme-light selector so light mode overrides apply',
-  );
-  assert.match(
-    sharedCss,
     /body\[data-demo-palette='forest'\]\.theme-dark[^{]*\{/,
-    'Forest palette should define a .theme-dark selector so dark mode overrides apply',
-  );
+  ];
+  paletteSelectors.forEach((selector) => {
+    assert.doesNotMatch(
+      sharedCss,
+      selector,
+      'Packaged stylesheet should not include demo palette selectors',
+    );
+    assert.match(
+      demoCss,
+      selector,
+      'Demo stylesheet should include palette overrides for showcase themes',
+    );
+  });
 });

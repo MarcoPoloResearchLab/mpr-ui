@@ -203,11 +203,30 @@ Slots let you inject custom markup without leaving declarative mode:
 
 Custom elements dispatch the same `mpr-ui:*` events that the deprecated helpers emitted, so event listeners continue working after migrating. See [`docs/custom-elements.md`](docs/custom-elements.md) for a deep-dive covering attribute shapes, events, and migration tips (Alpine → custom elements).
 
+> Both `<mpr-header>` and `<mpr-footer>` are sticky by default. Add `sticky="false"` (or pass the equivalent option) if you want them to render in-flow; setting `sticky="true"` is redundant because `true` is the default. The attribute values are case-insensitive (`sticky="FALSE"` works), and the components manage stickiness internally so no host-level CSS overrides are required. In sticky mode the footer renders a spacer + viewport-fixed footer so it stays visible even when the page is scrolled to the top.
+
 ### Band component
 
 `<mpr-band>` is a passive container that applies the bundled palette tokens and spacing without imposing any markup. Pick a `category` (`research`, `tools`, `platform`, `products`, or `custom`) to reuse a preset palette or pass a `theme` JSON object to set the background/panel/text/accent colours directly. Drop Bootstrap grids, hero copy, or `<mpr-card>` elements inside the band and it will isolate them visually without injecting headings, grids, or cards of its own.
 
 Need sample card data? Call `MPRUI.getBandProjectCatalog()` and feed the results into `<mpr-card>` instances inside the band. Because the container no longer renders cards, it does not emit `mpr-band:*` events—the events now live on `<mpr-card>` where the flipping behaviour occurs. The old `layout` attribute is ignored; manual layout is always the default.
+
+`theme` accepts `{ background, panel, panelAlt, text, muted, accent, border, shadow, lineTop, lineBottom }`. Every value is automatically wrapped in our shared CSS custom properties (`--mpr-color-*`, `--mpr-shadow-*`), so bands stay in sync with the active page theme. Use `lineTop` / `lineBottom` to draw thin separators that inherit the current palette—no additional CSS required:
+
+```html
+<mpr-band
+  theme='{
+    "background": "var(--mpr-color-surface-primary, rgba(248, 250, 252, 0.95))",
+    "panel": "var(--mpr-color-surface-elevated, rgba(255, 255, 255, 0.98))",
+    "text": "var(--mpr-color-text-primary, #0f172a)",
+    "border": "var(--mpr-color-border, rgba(148,163,184,0.35))",
+    "lineTop": "var(--mpr-color-border, rgba(148,163,184,0.35))",
+    "lineBottom": "var(--mpr-color-border, rgba(148,163,184,0.35))"
+  }'
+>
+  <!-- Bootstrap grid or <mpr-card> instances -->
+</mpr-band>
+```
 
 ### Card component
 
