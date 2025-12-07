@@ -66,27 +66,23 @@ test('demo pulls Bootstrap assets for the layout showcase', () => {
   );
 });
 
-test('demo stylesheet owns sticky layout helpers instead of the packaged CSS', () => {
-  assert.doesNotMatch(
-    sharedCss,
+test('sticky layout helpers live inside the components, not demo CSS', () => {
+  const disallowedSelectors = [
     /#site-header[^{]*\{/gi,
-    'Packaged stylesheet should not declare #site-header rules',
-  );
-  assert.doesNotMatch(
-    sharedCss,
     /\.demo-footer-slot[^{]*\{/gi,
-    'Packaged stylesheet should not declare .demo-footer-slot rules',
-  );
-  assert.match(
-    demoCss,
-    /#site-header[^{]*\{[^}]*position:\s*sticky/gi,
-    'Demo stylesheet should pin #site-header in the layout',
-  );
-  assert.match(
-    demoCss,
-    /\.demo-footer-slot[^{]*\{[^}]*position:\s*sticky/gi,
-    'Demo stylesheet should pin .demo-footer-slot in the layout',
-  );
+  ];
+  disallowedSelectors.forEach((selector) => {
+    assert.doesNotMatch(
+      sharedCss,
+      selector,
+      'Packaged stylesheet should not declare host-level sticky overrides',
+    );
+    assert.doesNotMatch(
+      demoCss,
+      selector,
+      'Demo stylesheet should not override sticky behaviour on host elements',
+    );
+  });
 });
 
 test('palette-specific overrides live in the demo stylesheet only', () => {

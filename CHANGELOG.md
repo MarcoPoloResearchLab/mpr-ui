@@ -13,6 +13,7 @@
 - Enhanced inline docs and demos to reflect new band component and updated footer drop-up behavior.
 - MU-205: Added a manual layout mode to `<mpr-band>` so Bootstrap grids or custom cards can live inside the band shell without the JSON DSL, rebuilt both demo pages with a Bootstrap hero and two manual bands (event log + integration card), removed inline script fallbacks, and refreshed Playwright fixtures/selectors for the new structure.
 - MU-416: Moved demo-only layout/palette styles into `demo/demo.css`, ensuring the CDN stylesheet ships only component rules and updating the demo pages, fixtures, and unit tests to account for the new split.
+- MU-206: Updated the demo bands to showcase `<mpr-card>` instances (event log + integration reference), injected custom content via the demo helper, and refreshed selectors/tests so the cards exercise the declarative DSL end to end.
   
 ### Bug Fixes 🐛
 - MU-328: Fixed TAuth demo sign-in origin rejection by removing hardcoded Google client ID and reading configuration from `demo/tauth-config.js`.
@@ -20,6 +21,8 @@
 - Resolved Bootstrap dropdown conflicts in footer drop-up by renaming data hooks and preventing Bootstrap hijack.
 - Addressed theme toggle halo and sizing issues with improved CSS scoping and test coverage.
 - MU-331: Retired the `<mpr-band>` card/header DSL so the element now acts purely as a themed container; manual content survives attribute updates, demos/tests/docs showcase the container-only behavior, and card events now live exclusively on `<mpr-card>`.
+- MU-421: Refactored `<mpr-card>` so the custom element itself renders the `.mpr-band__card` structure (no nested wrapper), ensured the demo band themes derive from global page tokens so light/dark palettes stay in sync, added DSL-driven `lineTop`/`lineBottom` support for thin band lines, removed broken emoji icons from the Bootstrap bands, and added Playwright coverage to guard the new contract.
+- MU-422: Removed the demo-only `#demo-header` / `.demo-footer-slot` sticky overrides so `<mpr-header>` / `<mpr-footer>` control their own positioning, documented the case-insensitive `sticky` attribute, and reworked `<mpr-footer>` so sticky mode renders a viewport-fixed footer with an automatic spacer/ResizeObserver to keep the layout intact; Playwright now asserts both header and footer visibility for sticky/non-sticky states (including uppercase attribute variants).
   
 ### Testing 🧪
 - Added Playwright and regression tests for:

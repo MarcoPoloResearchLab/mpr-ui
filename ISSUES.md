@@ -41,6 +41,8 @@ volumes:
 
 ## Improvements (220–299)
 
+- [x] [MU-206] Update demo bands to use `<mpr-card>` instances instead of Bootstrap cards so the showcase exercises the declarative card DSL end-to-end without ad-hoc markup. — Both demo bands now render `<mpr-card>` elements (event log + integration reference) with custom enhancements wired through `demo.js`, and Playwright coverage mirrors the new structure.
+
 - [x] [MU-200] Add a sticky attribute to both footers and headers, e.g. 
 ```html
 <mpr-footer
@@ -70,6 +72,10 @@ volumes:
 3. All bands styling is happening using DSL for theemes
 4. The bands have no knowledge of boostrap
 5. Bands are horizontal containers that isolate the components inside them. — `<mpr-band>` now operates purely as a themed container (no header/card DSL), demos/tests/docs prove manual markup survives updates, and card events moved to `<mpr-card>`.
+
+- [x] [MU-421] Demo/local cards are not visible. — Refactored `<mpr-card>` so the host renders the `.mpr-band__card` markup directly (no nested wrapper), removed emoji icons that broke in some browsers, aligned band theme JSON with global page tokens so switching the page theme recolours bands/cards automatically, added DSL-driven `lineTop`/`lineBottom` support for thin band lines that inherit the active theme, and extended Playwright coverage for both the visible card hosts and theme-bound palettes.
+
+- [x] [MU-422] Header and footer must alwasy be aligned with the page border. Header must be aligned with the top and footer with the bottom. when we say sticky=true it becomes aligned witht the viewport and always visible in the viewport. Audit against current behaviour and fix gaps, if any. — Removed the demo-only sticky overrides so `<mpr-header>` / `<mpr-footer>` control their own positioning, reworked `<mpr-footer>` so sticky mode renders a viewport-fixed footer with an automatic spacer/ResizeObserver, and expanded the Playwright coverage to assert both header and footer visibility (including uppercase attribute variants).
 
 ## Maintenance (415–499)
 

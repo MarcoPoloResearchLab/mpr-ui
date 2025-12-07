@@ -40,8 +40,8 @@ The bundle auto-registers modern HTML custom elements when `window.customElement
 
 | Tag               | Backing Helper(s)                              | Key Attributes                                                                                                                        | Emitted Events                                            |
 | ----------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `<mpr-header>`    | Header controller + `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `site-id`, `theme-config`, `auth-config`, `login-path`, `logout-path`, `nonce-path`, etc.   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
-| `<mpr-footer>`    | Footer controller (internal)                   | `prefix-text`, `links-collection`, legacy `links`, `toggle-label`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides     | `mpr-footer:theme-change`                                 |
+| `<mpr-header>`    | Header controller + `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `site-id`, `theme-config`, `auth-config`, `login-path`, `logout-path`, `nonce-path`, `sticky` (default `true`)   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
+| `<mpr-footer>`    | Footer controller (internal)                   | `prefix-text`, `links-collection`, legacy `links`, `toggle-label`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides, `sticky` (default `true`)     | `mpr-footer:theme-change`                                 |
 | `<mpr-theme-toggle>` | Theme manager (`configureTheme`)            | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`, `theme-mode`          | `mpr-ui:theme-change` (via the shared theme manager)      |
 | `<mpr-login-button>` | `createAuthHeader`, shared GIS helper       | `site-id`, `login-path`, `logout-path`, `nonce-path`, `base-url`, `button-text`, `button-size`, `button-theme`, `button-shape`        | `mpr-ui:auth:*`, `mpr-login:error`                        |
 | `<mpr-settings>` | Settings CTA + panel wrapper                    | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open`                                                                    | `mpr-settings:toggle`                                     |
@@ -164,7 +164,7 @@ Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to
 
 ## Footer Controller (Internal)
 
-The footer controller bundles the dropdown/theme implementation, injects styles via `<style id="mpr-ui-footer-styles">`, and pins the footer to the bottom of the viewport (`position: sticky` by default). When `sticky` is set to `false` the footer root falls back to normal in-flow positioning.
+The footer controller bundles the dropdown/theme implementation, injects styles via `<style id="mpr-ui-footer-styles">`, and pins the footer to the bottom of the viewport (`position: sticky` by default). In sticky mode the component renders the footer as a viewport-fixed bar plus a spacer element to preserve the document flow, so the footer is always visible. When `sticky` is set to `false` the footer root falls back to normal in-flow positioning and the spacer collapses.
 
 ### Controller Options
 
@@ -226,13 +226,13 @@ Declarative attribute `theme-switcher` controls `themeToggle.variant` and implic
 | Attribute / Option | Type | Description |
 | --- | --- | --- |
 | `category` | `string` | Optional preset palette selector (`research`, `tools`, `platform`, `products`, `custom`). Defaults to `custom`. |
-| `theme` | `object` | Optional `{ background, panel, panelAlt, text, muted, accent, border, shadow }` overrides to patch the preset CSS variables. |
+| `theme` | `object` | Optional `{ background, panel, panelAlt, text, muted, accent, border, shadow, lineTop, lineBottom }` overrides to patch the preset CSS variables. |
 
 The historical `layout`, `heading`, `description`, and `cards` attributes are ignored; the band always behaves as a manual container. Drop markup or `<mpr-card>` instances inside the element to control layout explicitly.
 
 ### Helpers
 
-`MPRUI.getBandProjectCatalog()` still returns the packaged Marco Polo Research Lab cards so consumers can map that data into `<mpr-card>` elements placed inside a band (or anywhere else).
+`MPRUI.getBandProjectCatalog()` still returns the packaged Marco Polo Research Lab cards so consumers can map that data into `<mpr-card>` elements placed inside a band (or anywhere else). Every theme field is wrapped in shared CSS custom properties (`--mpr-color-*`, `--mpr-shadow-*`) so the header/footer theme switcher recolours bands and cards automatically, and the optional `lineTop` / `lineBottom` entries let you render thin separators that inherit the active palette without writing custom CSS.
 
 ## Security and Accessibility Considerations
 
@@ -259,3 +259,4 @@ Load the bundle directly from jsDelivr. Pin to tags or commit hashes for determi
 
 - `https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@1.0.0/mpr-ui.js`
 - `https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@<commit-hash>/mpr-ui.js`
+> Header and footer stick to the viewport edges unless you explicitly set `sticky="false"`. Passing `sticky="true"` is redundant because `true` is the default, and the attribute accepts any case-insensitive `"true"`/`"false"` string (`sticky="FALSE"` behaves the same as `sticky="false"`). Stickiness is enforced inside the components, so external CSS does not need to mirror the attribute value.
