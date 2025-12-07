@@ -5674,6 +5674,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       throw new Error("mountFooterDom failed to locate the footer root");
     }
     footerRoot.setAttribute("data-mpr-footer-root", "true");
+    applyFooterStickyState(footerRoot, config && config.sticky, hostElement);
+    var stickySpacer = null;
+    if (typeof hostElement.querySelector === "function") {
+      stickySpacer = hostElement.querySelector('[data-mpr-footer="sticky-spacer"]');
+    }
+    updateFooterStickySpacer(stickySpacer, footerRoot, config && config.sticky);
     return footerRoot;
   }
 
@@ -5696,28 +5702,35 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
   }
 
+  function updateFooterStickySpacer(spacerElement, footerRootElement, sticky) {
+    if (!spacerElement || !footerRootElement) {
+      return;
+    }
+    if (!spacerElement.style) {
+      spacerElement.style = {};
+    }
+    if (sticky === false) {
+      spacerElement.style.height = "0px";
+      return;
+    }
+    var height = 0;
+    if (typeof footerRootElement.getBoundingClientRect === "function") {
+      var rect = footerRootElement.getBoundingClientRect();
+      height = rect && rect.height ? rect.height : 0;
+    }
+    if (!height && typeof footerRootElement.offsetHeight === "number") {
+      height = footerRootElement.offsetHeight;
+    }
+    spacerElement.style.height = height > 0 ? height + "px" : "0px";
+  }
+
   function initializeFooterStickyState(hostElement, footerRootElement, spacerElement, sticky) {
     applyFooterStickyState(footerRootElement, sticky, hostElement);
     if (!spacerElement) {
       return null;
     }
     function updateSpacerHeight() {
-      if (!footerRootElement || !spacerElement) {
-        return;
-      }
-      if (sticky === false) {
-        spacerElement.style.height = "0px";
-        return;
-      }
-      var height = 0;
-      if (typeof footerRootElement.getBoundingClientRect === "function") {
-        var rect = footerRootElement.getBoundingClientRect();
-        height = rect && rect.height ? rect.height : 0;
-      }
-      if (!height && typeof footerRootElement.offsetHeight === "number") {
-        height = footerRootElement.offsetHeight;
-      }
-      spacerElement.style.height = height > 0 ? height + "px" : "0px";
+      updateFooterStickySpacer(spacerElement, footerRootElement, sticky);
     }
     if (sticky === false) {
       spacerElement.style.height = "0px";

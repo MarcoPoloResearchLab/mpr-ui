@@ -146,6 +146,53 @@ function createHostWithSelectors(selectors) {
   };
 }
 
+function buildFooterConfig(overrides = {}) {
+  return Object.assign(
+    {
+      elementId: '',
+      baseClass: 'mpr-footer',
+      innerElementId: '',
+      innerClass: 'mpr-footer__inner',
+      wrapperClass: 'mpr-footer__layout',
+      brandWrapperClass: 'mpr-footer__brand',
+      menuWrapperClass: 'mpr-footer__menu-wrapper',
+      prefixClass: 'mpr-footer__prefix',
+      prefixText: 'Built by',
+      toggleButtonId: 'mpr-footer-toggle',
+      toggleButtonClass: 'mpr-footer__menu-button',
+      toggleLabel: 'Sites',
+      menuClass: 'mpr-footer__menu',
+      menuItemClass: 'mpr-footer__menu-item',
+      privacyLinkClass: 'mpr-footer__privacy',
+      privacyLinkHref: '#',
+      privacyLinkLabel: 'Privacy',
+      themeToggle: {
+        enabled: true,
+        label: 'Theme',
+        wrapperClass: 'mpr-footer__theme-toggle',
+        inputClass: 'mpr-footer__theme-checkbox',
+        dataTheme: 'light',
+        inputId: 'mpr-footer-theme-toggle',
+        ariaLabel: 'Toggle theme',
+        attribute: 'data-mpr-theme',
+        targets: ['document'],
+        modes: [
+          { value: 'light', attributeValue: 'light', classList: [], dataset: {} },
+          { value: 'dark', attributeValue: 'dark', classList: [], dataset: {} },
+        ],
+        initialMode: 'light',
+      },
+      linksCollection: {
+        style: 'drop-up',
+        text: 'Built by Marco Polo Research Lab',
+        links: [{ label: 'Marco Polo Research Lab', url: 'https://mprlab.com' }],
+      },
+      sticky: true,
+    },
+    overrides,
+  );
+}
+
 test('createCustomElementRegistry defines elements once', () => {
   const registryState = resetEnvironment();
   require(bundlePath);
@@ -260,50 +307,14 @@ test('shared DOM helpers mount header and footer markup', () => {
     'header helper should return resolved elements',
   );
 
+  const stickySpacerStub = createElementStub();
+  stickySpacerStub.style = { height: '' };
   const footerSelectors = {
     'footer[role="contentinfo"]': createElementStub(),
+    '[data-mpr-footer="sticky-spacer"]': stickySpacerStub,
   };
   const footerHost = createHostWithSelectors(footerSelectors);
-  const footerConfig = {
-    elementId: '',
-    baseClass: 'mpr-footer',
-    innerElementId: '',
-    innerClass: 'mpr-footer__inner',
-    wrapperClass: 'mpr-footer__layout',
-    brandWrapperClass: 'mpr-footer__brand',
-    menuWrapperClass: 'mpr-footer__menu-wrapper',
-    prefixClass: 'mpr-footer__prefix',
-    prefixText: 'Built by',
-    toggleButtonId: 'mpr-footer-toggle',
-    toggleButtonClass: 'mpr-footer__menu-button',
-    toggleLabel: 'Sites',
-    menuClass: 'mpr-footer__menu',
-    menuItemClass: 'mpr-footer__menu-item',
-    privacyLinkClass: 'mpr-footer__privacy',
-    privacyLinkHref: '#',
-    privacyLinkLabel: 'Privacy',
-    themeToggle: {
-      enabled: true,
-      label: 'Theme',
-      wrapperClass: 'mpr-footer__theme-toggle',
-      inputClass: 'mpr-footer__theme-checkbox',
-      dataTheme: 'light',
-      inputId: 'mpr-footer-theme-toggle',
-      ariaLabel: 'Toggle theme',
-      attribute: 'data-mpr-theme',
-      targets: ['document'],
-      modes: [
-        { value: 'light', attributeValue: 'light', classList: [], dataset: {} },
-        { value: 'dark', attributeValue: 'dark', classList: [], dataset: {} },
-      ],
-      initialMode: 'light',
-    },
-    linksCollection: {
-      style: 'drop-up',
-      text: 'Built by Marco Polo Research Lab',
-      links: [{ label: 'Marco Polo Research Lab', url: 'https://mprlab.com' }],
-    },
-  };
+  const footerConfig = buildFooterConfig();
   const footerRoot = mountFooterDom(footerHost, footerConfig);
   assert.ok(
     footerHost.innerHTML.includes('contentinfo'),
@@ -318,5 +329,33 @@ test('shared DOM helpers mount header and footer markup', () => {
     footerRoot.getAttribute('data-mpr-footer-root'),
     'true',
     'footer helper should mark the root for downstream logic',
+  );
+});
+
+test('mountFooterDom honours sticky configuration', () => {
+  const { mountFooterDom } = global.MPRUI.__dom;
+  const stickySpacerStub = createElementStub();
+  stickySpacerStub.style = { height: '' };
+  const footerSelectors = {
+    'footer[role="contentinfo"]': createElementStub(),
+    '[data-mpr-footer="sticky-spacer"]': stickySpacerStub,
+  };
+  const footerHost = createHostWithSelectors(footerSelectors);
+  const footerConfig = buildFooterConfig({ sticky: false });
+  const footerRoot = mountFooterDom(footerHost, footerConfig);
+  assert.equal(
+    footerRoot.getAttribute('data-mpr-sticky'),
+    'false',
+    'footer root reflects sticky="false" configuration',
+  );
+  assert.equal(
+    footerHost.getAttribute('data-mpr-sticky'),
+    'false',
+    'footer host reflects sticky="false" configuration',
+  );
+  assert.equal(
+    stickySpacerStub.style.height,
+    '0px',
+    'sticky spacer collapses when sticky is false',
   );
 });
