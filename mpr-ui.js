@@ -203,6 +203,7 @@
     "sign-in-label": "signInLabel",
     "sign-out-label": "signOutLabel",
     sticky: "sticky",
+    size: "size",
   });
 
   var HEADER_ATTRIBUTE_OBSERVERS = Object.freeze(
@@ -240,6 +241,7 @@
     "links-collection": "linksCollection",
     links: "links",
     sticky: "sticky",
+    size: "size",
   });
 
   var FOOTER_ATTRIBUTE_OBSERVERS = Object.freeze(
@@ -1932,6 +1934,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (dataset.sticky !== undefined) {
       options.sticky = normalizeBooleanAttribute(dataset.sticky, true);
     }
+    if (dataset.size) {
+      options.size = dataset.size;
+    }
     return options;
   }
 
@@ -2570,7 +2575,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "--no-auth [data-mpr-header=\"google-signin\"]{display:none}" +
     "." +
     HEADER_ROOT_CLASS +
-    "__nav:empty{display:none}";
+    "__nav:empty{display:none}" +
+    ".mpr-header--small .mpr-header__inner{padding:0.5rem 1rem;gap:1rem}" +
+    ".mpr-header--small .mpr-header__brand{font-size:0.8rem}" +
+    ".mpr-header--small .mpr-header__nav{gap:0.75rem;font-size:0.9rem}" +
+    ".mpr-header--small .mpr-header__actions{gap:0.5rem}" +
+    ".mpr-header--small .mpr-header__button{padding:0.3rem 0.75rem;font-size:0.85rem}" +
+    ".mpr-header--small .mpr-header__chip{font-size:0.75rem;gap:0.15rem}" +
+    ".mpr-header--small .mpr-header__google .g_id_signin iframe{transform:scale(0.85);transform-origin:right center}";
 
   var HEADER_SETTINGS_PLACEHOLDER_MARKUP =
     '<div data-mpr-header="settings-modal-placeholder">' +
@@ -2649,6 +2661,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         options.sticky,
         HEADER_DEFAULTS.sticky,
       );
+    }
+
+    var sizeValue = "normal";
+    if (
+      typeof options.size === "string" &&
+      options.size.trim().toLowerCase() === "small"
+    ) {
+      sizeValue = "small";
     }
 
     var navLinksSource = Array.isArray(options.navLinks)
@@ -2748,6 +2768,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       siteId: derivedSiteId,
       auth: authOptions,
       sticky: stickyValue,
+      size: sizeValue,
     };
   }
 
@@ -2758,6 +2779,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       options && options.sticky === false
         ? ' data-mpr-sticky="false"'
         : "";
+    var rootClass = HEADER_ROOT_CLASS;
+    if (options.size === "small") {
+      rootClass += " " + HEADER_ROOT_CLASS + "--small";
+    }
     var navMarkup = options.navLinks
       .map(function (link) {
         var normalizedLink = normalizeLinkForRendering(link, {
@@ -2790,7 +2815,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     return (
       '<header class="' +
-      HEADER_ROOT_CLASS +
+      rootClass +
       '" role="banner"' +
       stickyAttribute +
       ">" +
@@ -3374,6 +3399,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     elements.root.classList.toggle(
       HEADER_ROOT_CLASS + "--no-settings",
       !options.settings.enabled,
+    );
+    elements.root.classList.toggle(
+      HEADER_ROOT_CLASS + "--small",
+      options.size === "small",
     );
 
     if (elements.settingsButton) {
@@ -4008,7 +4037,18 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     '.mpr-footer__theme-toggle[data-mpr-theme-toggle-variant="square"]{background:transparent;padding:0;border-radius:0;box-shadow:none}' +
     '.mpr-footer__theme-checkbox[data-variant="square"]{width:auto;height:auto;display:inline-flex;align-items:center;gap:0.75rem;border-radius:0;background:transparent;border:none;padding:0;box-shadow:none}' +
     '.mpr-footer__theme-checkbox[data-variant="square"]::after{content:none;width:0;height:0;background:transparent}' +
-    '@media (max-width:768px){.mpr-footer__layout{flex-direction:column;align-items:flex-start}.mpr-footer__inner{gap:1.75rem}.mpr-footer__spacer{display:none}}';
+    '@media (max-width:768px){.mpr-footer__layout{flex-direction:column;align-items:flex-start}.mpr-footer__inner{gap:1.75rem}.mpr-footer__spacer{display:none}}' +
+    ".mpr-footer.mpr-footer--small{padding:16px 0}" +
+    ".mpr-footer--small .mpr-footer__inner{padding:0 1rem;gap:1rem}" +
+    ".mpr-footer--small .mpr-footer__brand{font-size:0.75rem;gap:0.5rem}" +
+    ".mpr-footer--small .mpr-footer__menu-button{padding:0.25rem 0.65rem;font-size:0.75rem}" +
+    ".mpr-footer--small .mpr-footer__theme-toggle{font-size:0.75rem;gap:0.4rem;padding:0.25rem 0.65rem}" +
+    ".mpr-footer--small .mpr-footer__theme-checkbox{width:34px;height:20px}" +
+    ".mpr-footer--small .mpr-footer__theme-checkbox::after{width:14px;height:14px;top:2px;left:2px}" +
+    ".mpr-footer--small .mpr-footer__theme-checkbox:checked::after{transform:translateX(14px)}" +
+    ".mpr-footer--small .mpr-footer__privacy{font-size:0.75rem}" +
+    ".mpr-footer--small .mpr-footer__menu{min-width:180px;bottom:calc(100% + 4px)}" +
+    ".mpr-footer--small .mpr-footer__menu-item{padding:0.4rem 0.75rem;font-size:0.85rem}";
 
   var FOOTER_LINK_CATALOG = Object.freeze([
     Object.freeze({ label: "Marco Polo Research Lab", url: "https://mprlab.com" }),
@@ -5474,6 +5514,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       mergedConfig.sticky,
       FOOTER_DEFAULTS.sticky,
     );
+    
+    var sizeValue = "normal";
+    if (
+      typeof mergedConfig.size === "string" &&
+      mergedConfig.size.trim().toLowerCase() === "small"
+    ) {
+      sizeValue = "small";
+    }
+    mergedConfig.size = sizeValue;
 
     return mergedConfig;
   }
@@ -5997,6 +6046,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (dataset.sticky !== undefined) {
       options.sticky = normalizeBooleanAttribute(dataset.sticky, true);
     }
+    if (dataset.size) {
+      options.size = dataset.size;
+    }
     return options;
   }
 
@@ -6296,7 +6348,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           footerRoot.id = this.config.elementId;
         }
         if (this.config.baseClass) {
-          setFooterClass(footerRoot, this.config.baseClass);
+          var finalClass = this.config.baseClass;
+          if (this.config.size === "small") {
+            finalClass += " mpr-footer--small";
+          }
+          setFooterClass(footerRoot, finalClass);
         }
 
         var self = this;
