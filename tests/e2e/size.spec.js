@@ -11,6 +11,9 @@ test.describe('Size parameter support', () => {
     const headerHost = page.locator('mpr-header');
     await expect(headerHost).toBeVisible();
 
+    // Ensure we start from normal size
+    await headerHost.evaluate(el => el.removeAttribute('size'));
+
     // Initial state (normal)
     const initialHeight = await headerHost.evaluate(el => el.offsetHeight);
     
@@ -36,6 +39,9 @@ test.describe('Size parameter support', () => {
   test('MU-116: footer accepts size="small" and applies smaller styling', async ({ page }) => {
     const footerHost = page.locator('mpr-footer#page-footer');
     await expect(footerHost).toBeVisible();
+
+    // Ensure we start from normal size
+    await footerHost.evaluate(el => el.removeAttribute('size'));
 
     const internalFooter = footerHost.locator('footer.mpr-footer');
 
