@@ -315,6 +315,39 @@ test.describe('Demo behaviours', () => {
     await expect(page.locator(bandCardIntegration)).toBeVisible();
   });
 
+  test('MU-421: bands inherit the active page theme', async ({ page }) => {
+    const readBandBackground = () =>
+      page.locator('mpr-band#band-observability').evaluate((element) => {
+        const ownerWindow = element.ownerDocument?.defaultView;
+        if (!ownerWindow) {
+          throw new Error('Missing window for band background snapshot');
+        }
+        return ownerWindow.getComputedStyle(element).backgroundColor;
+      });
+
+    const initialBackground = await readBandBackground();
+    await page.evaluate(() => {
+      if (window.MPRUI && typeof window.MPRUI.setThemeMode === 'function') {
+        window.MPRUI.setThemeMode('default-dark');
+      }
+    });
+    await page.waitForFunction(
+      () => document.body.getAttribute('data-demo-theme') === 'dark',
+    );
+    await page.waitForTimeout(200);
+    const toggledBackground = await readBandBackground();
+    expect(toggledBackground).not.toBe(initialBackground);
+
+    const topLineColor = await page.locator('mpr-band#band-observability').evaluate((element) => {
+      const ownerWindow = element.ownerDocument?.defaultView;
+      if (!ownerWindow) {
+        throw new Error('Missing window for band line snapshot');
+      }
+      return ownerWindow.getComputedStyle(element, '::before').backgroundColor;
+    });
+    expect(topLineColor).not.toMatch(/rgba?\(0,\s*0,\s*0,\s*0(?:\.0+)?\)/);
+  });
+
   test('MU-316: settings button opens an accessible modal shell', async ({ page }) => {
     const settingsButton = page.getByRole('button', { name: /settings/i });
     await expect(settingsButton).toBeVisible();
@@ -415,6 +448,7 @@ test.describe('Demo behaviours', () => {
     await page.waitForTimeout(250);
 
     expect(await isLocatorInViewport(chrome.header)).toBe(true);
+    expect(await isLocatorInViewport(chrome.footer)).toBe(true);
   });
 
   test('MU-200: non-sticky header and footer scroll with content', async ({ page }) => {
@@ -442,10 +476,66 @@ test.describe('Demo behaviours', () => {
 
     await page.evaluate(() => window.scrollTo(0, 0));
 
-    await page.evaluate(() => window.scrollTo(0, 1200));
+    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 0.75));
     await page.waitForTimeout(300);
 
     expect(await isLocatorInViewport(chrome.header)).toBe(false);
+    const footerScrolledAway = await scrollFooterUntilHidden(page);
+    expect(footerScrolledAway).toBe(true);
+  });
+
+  test('MU-422: sticky footer is visible without scrolling', async ({ page }) => {
+    const chrome = getChromeLocators(page);
+    await chrome.footer.waitFor({ state: 'visible' });
+    expect(await isLocatorInViewport(chrome.footer)).toBe(true);
+  });
+
+  test('MU-421: sticky attribute respects explicit boolean values', async ({ page }) => {
+    await page.evaluate(() => {
+      const filler = document.createElement('div');
+      filler.style.height = '2000px';
+      filler.setAttribute('data-test', 'scroll-filler');
+      document.body.appendChild(filler);
+    });
+
+    await page.evaluate(() => {
+      const header = document.querySelector('mpr-header#demo-header');
+      const footer = document.querySelector('mpr-footer#page-footer');
+      if (header) {
+        header.setAttribute('sticky', 'FALSE');
+      }
+      if (footer) {
+        footer.setAttribute('sticky', 'FALSE');
+      }
+    });
+
+    const chrome = getChromeLocators(page);
+    await chrome.header.waitFor({ state: 'visible' });
+    await chrome.footer.waitFor({ state: 'visible' });
+    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 0.75));
+    await page.waitForTimeout(200);
+    expect(await isLocatorInViewport(chrome.header)).toBe(false);
+    const footerScrolledAway = await scrollFooterUntilHidden(page);
+    expect(footerScrolledAway).toBe(true);
+
+    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.waitForTimeout(200);
+    await page.evaluate(() => {
+      const header = document.querySelector('mpr-header#demo-header');
+      const footer = document.querySelector('mpr-footer#page-footer');
+      if (header) {
+        header.setAttribute('sticky', 'TRUE');
+      }
+      if (footer) {
+        footer.setAttribute('sticky', 'TRUE');
+      }
+    });
+
+    await page.evaluate(() => window.scrollTo(0, window.innerHeight * 0.75));
+    await page.waitForTimeout(200);
+    expect(await isLocatorInViewport(chrome.header)).toBe(true);
+    const footerStayedVisible = await scrollFooterUntilHidden(page);
+    expect(footerStayedVisible).toBe(false);
   });
 
   test('MU-204: bands span all categories and separate observability cards', async ({ page }) => {
@@ -532,6 +622,24 @@ test.describe('Card fixture behaviours', () => {
     await expect(page.locator(standaloneCardEventEntries)).toHaveCount(1);
     const subscribeOverlay = page.locator('[data-mpr-band-subscribe-loaded="true"]');
     await expect(subscribeOverlay).toBeVisible();
+  });
+
+  test('mpr-card host becomes the rendered card', async ({ page }) => {
+    const hostSnapshot = await page.locator('mpr-card#fixture-card').evaluate((element) => {
+      const ownerWindow = element.ownerDocument?.defaultView;
+      if (!ownerWindow) {
+        throw new Error('Missing window for host snapshot');
+      }
+      const computed = ownerWindow.getComputedStyle(element);
+      return {
+        classList: Array.from(element.classList),
+        backgroundColor: computed.backgroundColor,
+        nestedCards: element.querySelectorAll('.mpr-band__card').length,
+      };
+    });
+    expect(hostSnapshot.classList).toContain('mpr-band__card');
+    expect(hostSnapshot.backgroundColor).not.toBe('rgba(0, 0, 0, 0)');
+    expect(hostSnapshot.nestedCards).toBe(0);
   });
 });
 
@@ -779,5 +887,31 @@ async function isLocatorInViewport(locator) {
     const horizontallyVisible = rect.right > 0 && rect.left < viewportWidth;
     const verticallyVisible = rect.bottom > 0 && rect.top < viewportHeight;
     return horizontallyVisible && verticallyVisible;
+  });
+}
+
+/**
+ * Scrolls the page in increments until the footer leaves the viewport.
+ * Returns true when the footer is no longer visible; false if it remains visible after attempts.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<boolean>}
+ */
+async function scrollFooterUntilHidden(page) {
+  return page.evaluate(() => {
+    const footer = document.querySelector('mpr-footer#page-footer footer.mpr-footer');
+    if (!footer || typeof footer.getBoundingClientRect !== 'function') {
+      return false;
+    }
+    const viewportHeight =
+      window.innerHeight || document.documentElement?.clientHeight || document.body?.clientHeight || 0;
+    const maxSteps = 20;
+    for (let index = 0; index < maxSteps; index += 1) {
+      window.scrollBy(0, viewportHeight / 2);
+      const rect = footer.getBoundingClientRect();
+      if (rect.top >= viewportHeight) {
+        return true;
+      }
+    }
+    return false;
   });
 }

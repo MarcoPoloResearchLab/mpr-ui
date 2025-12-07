@@ -53,13 +53,15 @@
       id="band-observability"
       category="research"
       theme='{
-        "background": "linear-gradient(135deg, rgba(12, 30, 48, 0.95), rgba(6, 18, 32, 0.9))",
-        "panel": "rgba(5, 22, 40, 0.95)",
-        "panelAlt": "rgba(7, 28, 45, 0.9)",
-        "text": "#e2f2ff",
-        "accent": "#38bdf8",
-        "border": "rgba(56, 189, 248, 0.35)",
-        "shadow": "0 25px 60px rgba(0, 0, 0, 0.45)"
+        "background": "var(--mpr-color-surface-primary, rgba(248, 250, 252, 0.95))",
+        "panel": "var(--mpr-color-surface-elevated, rgba(255, 255, 255, 0.95))",
+        "panelAlt": "var(--mpr-color-surface-elevated, rgba(248, 250, 252, 0.95))",
+        "text": "var(--mpr-color-text-primary, #0f172a)",
+        "accent": "var(--mpr-color-accent, #0ea5e9)",
+        "border": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "shadow": "var(--mpr-shadow-elevated, 0 10px 24px rgba(15, 23, 42, 0.2))",
+        "lineTop": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "lineBottom": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))"
       }'
     >
       <div class="container py-5" data-test="bootstrap-grid">
@@ -72,8 +74,7 @@
                 "id": "event-log-card",
                 "title": "Event Log",
                 "description": "Header actions, footer toggles, and band events stream into this log so you can verify integrations.",
-                "status": "beta",
-                "icon": "📟"
+                "status": "beta"
               }'
             ></mpr-card>
           </div>
@@ -85,13 +86,15 @@
       id="band-integration"
       category="tools"
       theme='{
-        "background": "linear-gradient(135deg, rgba(4, 32, 28, 0.95), rgba(3, 20, 17, 0.9))",
-        "panel": "rgba(4, 48, 41, 0.95)",
-        "panelAlt": "rgba(4, 44, 38, 0.9)",
-        "text": "#dcfce7",
-        "accent": "#22c55e",
-        "border": "rgba(34, 197, 94, 0.35)",
-        "shadow": "0 25px 60px rgba(0, 0, 0, 0.45)"
+        "background": "var(--mpr-color-surface-primary, rgba(248, 250, 252, 0.95))",
+        "panel": "var(--mpr-color-surface-elevated, rgba(255, 255, 255, 0.95))",
+        "panelAlt": "var(--mpr-color-surface-elevated, rgba(245, 248, 250, 0.95))",
+        "text": "var(--mpr-color-text-primary, #0f172a)",
+        "accent": "var(--mpr-color-accent-alt, #22c55e)",
+        "border": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "shadow": "var(--mpr-shadow-elevated, 0 10px 24px rgba(15, 23, 42, 0.2))",
+        "lineTop": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "lineBottom": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))"
       }'
     >
       <div class="container py-5" data-test="bootstrap-grid-secondary">
@@ -105,8 +108,7 @@
                 "title": "Integration Reference",
                 "description": "Step-by-step walkthrough for wiring GIS, TAuth, and the bundled demo helpers without Bootstrap clashes.",
                 "status": "production",
-                "url": "../docs/demo-index-auth.md",
-                "icon": "⚙️"
+                "url": "../docs/demo-index-auth.md"
               }'
             ></mpr-card>
           </div>
@@ -116,6 +118,7 @@
 
     <mpr-footer
       id="page-footer"
+      sticky="true"
       privacy-link-label="Privacy &amp; Terms"
       privacy-link-href="#privacy"
       privacy-modal-content="
