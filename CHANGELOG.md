@@ -21,6 +21,8 @@
 - Resolved Bootstrap dropdown conflicts in footer drop-up by renaming data hooks and preventing Bootstrap hijack.
 - Addressed theme toggle halo and sizing issues with improved CSS scoping and test coverage.
 - MU-331: Retired the `<mpr-band>` card/header DSL so the element now acts purely as a themed container; manual content survives attribute updates, demos/tests/docs showcase the container-only behavior, and card events now live exclusively on `<mpr-card>`.
+- MU-421: Refactored `<mpr-card>` so the custom element itself renders the `.mpr-band__card` structure (no nested wrapper), ensured the demo band themes derive from global page tokens so light/dark palettes stay in sync, added DSL-driven `lineTop`/`lineBottom` support for thin band lines, removed broken emoji icons from the Bootstrap bands, and added Playwright coverage to guard the new contract.
+- MU-422: Removed the demo-only `#demo-header` / `.demo-footer-slot` sticky overrides so `<mpr-header>` / `<mpr-footer>` control their own positioning, documented the case-insensitive `sticky` attribute, and reworked `<mpr-footer>` so sticky mode renders a viewport-fixed footer with an automatic spacer/ResizeObserver to keep the layout intact; Playwright now asserts both header and footer visibility for sticky/non-sticky states (including uppercase attribute variants).
   
 ### Testing 🧪
 - Added Playwright and regression tests for:

@@ -82,9 +82,9 @@ const SELECTORS = Object.freeze({
   footerPrefix: '[data-mpr-footer="prefix"]',
   eventLogEntries: '#event-log [data-test="event-log-entry"]',
   bootstrapGrid: '[data-test="bootstrap-grid"]',
-  bandCardEventLog: '[data-test="band-event-log-card"] .mpr-band__card',
-  bandCardIntegration: '[data-test="band-integration-card"] .mpr-band__card',
-  standaloneCard: 'mpr-card#fixture-card .mpr-band__card',
+  bandCardEventLog: '[data-test="band-event-log-card"].mpr-band__card',
+  bandCardIntegration: '[data-test="band-integration-card"].mpr-band__card',
+  standaloneCard: 'mpr-card#fixture-card',
   standaloneCardEventEntries: '#card-event-log [data-test="card-event-entry"]',
 });
 
