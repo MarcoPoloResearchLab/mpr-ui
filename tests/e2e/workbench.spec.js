@@ -761,6 +761,65 @@ test.describe('Default theme toggle behaviours', () => {
     expect(resetMode).toBe(baselineMode);
   });
 
+  test('MU-369: default toggle wrapper renders without a halo', async ({ page }) => {
+    const snapshot = await page.evaluate((wrapperSelector) => {
+      const wrapper = document.querySelector(wrapperSelector);
+      if (!wrapper) {
+        return null;
+      }
+      const style = window.getComputedStyle(wrapper);
+      return {
+        background: style.getPropertyValue('background-color'),
+        borderRadius: style.getPropertyValue('border-radius'),
+        boxShadow: style.getPropertyValue('box-shadow'),
+        paddingTop: style.getPropertyValue('padding-top'),
+        paddingRight: style.getPropertyValue('padding-right'),
+        paddingBottom: style.getPropertyValue('padding-bottom'),
+        paddingLeft: style.getPropertyValue('padding-left'),
+      };
+    }, footerThemeWrapper);
+    expect(snapshot).not.toBeNull();
+    if (snapshot) {
+      expect(snapshot.background).toBe('rgba(0, 0, 0, 0)');
+      expect(snapshot.borderRadius).toBe('0px');
+      expect(snapshot.boxShadow).toBe('none');
+      expect(snapshot.paddingTop).toBe('0px');
+      expect(snapshot.paddingRight).toBe('0px');
+      expect(snapshot.paddingBottom).toBe('0px');
+      expect(snapshot.paddingLeft).toBe('0px');
+    }
+  });
+
+  test('MU-371: default toggle knob keeps contrast when checked', async ({ page }) => {
+    const controlSelector = footerThemeControl;
+    const toggle = page.locator(controlSelector).first();
+    await expect(toggle).toBeVisible();
+
+    await toggle.click();
+    await page.waitForTimeout(200);
+
+    const palette = await page.evaluate((selector) => {
+      const element = document.querySelector(selector);
+      if (!element || !element.ownerDocument || !element.ownerDocument.defaultView) {
+        return null;
+      }
+      const win = element.ownerDocument.defaultView;
+      const track = win.getComputedStyle(element).getPropertyValue('background-color');
+      const knob = win.getComputedStyle(element, '::before').getPropertyValue('background-color');
+      return { track, knob };
+    }, controlSelector);
+
+    expect(palette).not.toBeNull();
+    if (palette) {
+      expect(palette.knob).not.toBe(palette.track);
+      expect(palette.knob).not.toBe('');
+      expect(palette.knob).not.toBe('rgba(0, 0, 0, 0)');
+    }
+
+    await toggle.click();
+    await page.waitForTimeout(200);
+  });
+
   test('MU-321: default toggle knob aligns without halos', async ({ page }) => {
     const control = footerThemeControl;
     const initialSnapshot = await captureToggleSnapshot(page, control);
@@ -774,7 +833,7 @@ test.describe('Default theme toggle behaviours', () => {
 
     const toggledSnapshot = await captureToggleSnapshot(page, control);
     expect(toggledSnapshot.boxShadow).toBe('none');
-    expect(Math.abs(toggledSnapshot.translateX - toggledSnapshot.travelDistance)).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(toggledSnapshot.translateX - toggledSnapshot.expectedTravel)).toBeLessThanOrEqual(0.5);
     expect(toggledSnapshot.borderWidth).toBe(0);
   });
 
