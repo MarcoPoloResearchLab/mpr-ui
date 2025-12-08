@@ -1,5 +1,10 @@
 # Changelog
 
+## [v2.1.1]
+
+### Bug Fixes 🐛
+- MU-336: Fixed visual glitch in footer theme toggle when `size="small"` is used; removed conflicting JS-injected `::after` pseudo-element and implemented correct CSS variable overrides for scaling.
+
 ## [v2.1.0]
 
 ### Features ✨
