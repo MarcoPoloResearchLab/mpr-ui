@@ -58,12 +58,26 @@ const GOOGLE_IDENTITY_STUB = String.raw`
 })();
 `;
 const REPOSITORY_ROOT = join(__dirname, '../../..');
-const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/local.html')).href;
+const WORKBENCH_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/workbench.html'),
+).href;
 const THEME_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/theme-toggle.html'),
 ).href;
 const FOOTER_TEXT_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-text-only.html'),
+).href;
+const FOOTER_MULTIMODE_TOGGLE_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-multimode-toggle.html'),
+).href;
+const FOOTER_MULTIMODE_SQUARE_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-multimode-square.html'),
+).href;
+const FOOTER_MULTIMODE_CONFLICT_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-multimode-conflict.html'),
+).href;
+const FOOTER_TOGGLE_DEMO_CONFIG_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-toggle-demo-config.html'),
 ).href;
 const BAND_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/band-default.html'),
@@ -97,17 +111,17 @@ const LOCAL_ASSETS = Object.freeze({
 });
 
 /**
- * Opens the demo page while serving the local bundle/styles.
+ * Opens the workbench fixture while serving the local bundle/styles.
  * @param {import('@playwright/test').Page} page
  * @returns {Promise<void>}
  */
-async function visitDemoPage(page) {
+async function visitWorkbenchFixture(page) {
   await Promise.all([
     routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
     routeLocalAsset(page, GOOGLE_IDENTITY_URL, GOOGLE_IDENTITY_STUB, 'application/javascript'),
   ]);
-  await page.goto(DEMO_PAGE_URL, { waitUntil: 'load' });
+  await page.goto(WORKBENCH_FIXTURE_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
 }
 
@@ -151,6 +165,62 @@ async function visitFooterTextFixturePage(page) {
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
   ]);
   await page.goto(FOOTER_TEXT_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the footer fixture that wires four modes but forces a toggle variant.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitFooterMultimodeToggleFixture(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(FOOTER_MULTIMODE_TOGGLE_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the footer fixture that defaults to the square variant with four modes.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitFooterMultimodeSquareFixture(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(FOOTER_MULTIMODE_SQUARE_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the footer fixture where theme config encodes a square variant but the host requests a toggle.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitFooterMultimodeConflictFixture(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(FOOTER_MULTIMODE_CONFLICT_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the footer fixture that mirrors the documented demo configuration.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitFooterToggleDemoConfigFixture(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(FOOTER_TOGGLE_DEMO_CONFIG_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
 }
 
@@ -258,15 +328,13 @@ async function captureToggleSnapshot(page, selector) {
     const transform = pseudo.getPropertyValue('transform');
     const translateX = parseTranslateX(transform);
     const knobWidth = toFloat(pseudo.getPropertyValue('width'), 0);
-    const offset = toFloat(control.getPropertyValue('--mpr-theme-toggle-offset'), 2);
-    const trackWidth =
-      toFloat(control.getPropertyValue('--mpr-theme-toggle-track-width'), Number.NaN) ||
-      element.getBoundingClientRect().width ||
-      0;
+    const offset = toFloat(pseudo.getPropertyValue('left'), 0);
+    const trackWidth = element.getBoundingClientRect().width || 0;
     const travelVar = toFloat(control.getPropertyValue('--mpr-theme-toggle-travel'), Number.NaN);
     const travelDistance = Number.isFinite(travelVar)
       ? travelVar
       : trackWidth - knobWidth - offset * 2;
+    const expectedTravel = Math.max(0, trackWidth - knobWidth - offset * 2);
     const borderWidth = toFloat(control.getPropertyValue('border-top-width'), 0);
 
     return {
@@ -278,6 +346,7 @@ async function captureToggleSnapshot(page, selector) {
       ),
       translateX,
       travelDistance,
+      expectedTravel,
       boxShadow: (pseudo.getPropertyValue('box-shadow') || 'none').trim(),
       borderWidth,
     };
@@ -363,10 +432,14 @@ async function routeLocalAsset(page, url, body, contentType) {
 }
 
 module.exports = {
-  visitDemoPage,
+  visitWorkbenchFixture,
   visitFullLayoutFixture,
   visitThemeFixturePage,
   visitFooterTextFixturePage,
+  visitFooterMultimodeToggleFixture,
+  visitFooterMultimodeSquareFixture,
+  visitFooterMultimodeConflictFixture,
+  visitFooterToggleDemoConfigFixture,
   visitBandFixturePage,
   visitCardFixturePage,
   captureToggleSnapshot,

@@ -293,6 +293,17 @@ Need a subscribe overlay? Add the `subscribe` JSON block (`{ "script": "https://
   - `MPRUI.getThemeMode()`
   - `MPRUI.onThemeChange(listener)` (returns an unsubscribe function)
 
+### Restyling components with custom palettes
+
+`mpr-ui` exposes every colour, shadow, and spacing token via CSS custom properties, so you can restyle the components without forking the bundle:
+
+1. **Decide where to scope overrides** – apply CSS variables on `:root`, `body`, or a wrapper element. Header/footer read values such as `--mpr-color-surface-primary`, `--mpr-color-accent`, `--mpr-theme-toggle-knob-bg`, etc. Setting those variables upstream recolours every component.
+2. **Use `theme-config` / `data-theme-toggle` for multi-palette pages** – provide `theme-config` JSON on `<mpr-footer>` / `<mpr-theme-toggle>` (or `data-theme-toggle` on the host) to define the list of modes and per-mode dataset/class updates. When a mode is selected, the manager writes `data-mpr-theme` to each target plus any dataset entries you defined, so you can scope palette overrides with selectors such as `body[data-demo-palette="sunrise"] { … }`.
+3. **Leverage component-specific attributes** – `<mpr-footer>` exposes dataset-driven class overrides (`data-wrapper-class`, `data-brand-wrapper-class`, etc.) for layout tweaks. `<mpr-band>` accepts a `theme` JSON payload that maps directly to the shared CSS vars (`background`, `panel`, `text`, `accent`, `lineTop`, `lineBottom`), making it easy to align cards/bands with your palette.
+4. **Override only what you need** – because tokens cascade, you can set a single property (e.g., `--mpr-theme-toggle-bg`) to change the toggle track while leaving everything else untouched. The demo workbench (`demo/demo.css`) shows concrete examples for “sunrise”/“forest” palettes, and the Playwright suite asserts those overrides apply correctly.
+
+For reference, `docs/custom-elements.md` lists the key attributes/events per component, while [`demo/demo.css`](demo/demo.css) contains practical palette overrides you can adapt for your own brand.
+
 ### Footer Theme Switcher Styles
 
 - `<mpr-footer>` renders no toggle unless you specify `theme-switcher`. Use `theme-switcher="toggle"` for the classic pill switch or `theme-switcher="square"` for the quadrant palette picker inspired by `q.html`.

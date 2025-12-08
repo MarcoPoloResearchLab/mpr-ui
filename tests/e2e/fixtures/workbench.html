@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mpr-ui Demo Workbench Fixture</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <style>
+      :root {
+        color-scheme: light dark;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        background-color: var(--mpr-color-surface-primary, #0f172a);
+        color: var(--mpr-color-text-primary, #e2e8f0);
+      }
+
+      main,
+      .demo-hero {
+        flex: 1 0 auto;
+        padding: 4rem 0 5rem;
+        width: 100%;
+        color: var(--mpr-color-text-primary, #e2e8f0);
+        background: var(--mpr-color-surface-primary, rgba(15, 23, 42, 0.85));
+      }
+
+      .demo-hero h1 {
+        color: var(--mpr-color-accent, #38bdf8);
+      }
+
+      body.theme-light,
+      body[data-mpr-theme='light'],
+      body[data-test-theme='light'] {
+        background-color: #f8fafc;
+        color: #0f172a;
+        --mpr-color-surface-primary: rgba(248, 250, 252, 0.95);
+        --mpr-color-surface-elevated: rgba(255, 255, 255, 0.98);
+        --mpr-color-text-primary: #0f172a;
+        --mpr-color-border: rgba(148, 163, 184, 0.35);
+        --mpr-color-accent: #0ea5e9;
+        --mpr-color-accent-alt: #22c55e;
+        --mpr-shadow-elevated: 0 18px 36px rgba(15, 23, 42, 0.18);
+      }
+
+      body.theme-dark,
+      body[data-mpr-theme='dark'],
+      body[data-test-theme='dark'] {
+        background-color: #0f172a;
+        color: #e2e8f0;
+        --mpr-color-surface-primary: rgba(15, 23, 42, 0.88);
+        --mpr-color-surface-elevated: rgba(15, 23, 42, 0.92);
+        --mpr-color-text-primary: #e2e8f0;
+        --mpr-color-border: rgba(148, 163, 184, 0.45);
+        --mpr-color-accent: #38bdf8;
+        --mpr-color-accent-alt: #22c55e;
+        --mpr-shadow-elevated: 0 25px 50px rgba(2, 6, 23, 0.55);
+      }
+
+      body[data-test-palette='sunrise'] {
+        --mpr-color-surface-primary: rgba(252, 232, 222, 0.92);
+        --mpr-color-surface-elevated: rgba(255, 247, 237, 0.98);
+        --mpr-color-text-primary: #7c2d12;
+        --mpr-color-border: rgba(249, 210, 179, 0.6);
+        --mpr-color-accent: #f97316;
+        --mpr-color-accent-alt: #fb923c;
+        background-image: linear-gradient(135deg, #fff7ed 0%, #fde68a 100%);
+        color: var(--mpr-color-text-primary, #7c2d12);
+      }
+
+      body[data-test-palette='sunrise'][data-mpr-theme='dark'] {
+        --mpr-color-surface-primary: rgba(76, 20, 12, 0.92);
+        --mpr-color-surface-elevated: rgba(111, 38, 22, 0.96);
+        --mpr-color-text-primary: #ffe4d6;
+      }
+
+      body[data-test-palette='forest'] {
+        --mpr-color-surface-primary: rgba(236, 253, 245, 0.92);
+        --mpr-color-surface-elevated: rgba(209, 250, 229, 0.98);
+        --mpr-color-text-primary: #052e16;
+        --mpr-color-border: rgba(16, 185, 129, 0.35);
+        --mpr-color-accent: #10b981;
+        --mpr-color-accent-alt: #34d399;
+        background-image: linear-gradient(135deg, #ecfdf5 0%, #a7f3d0 100%);
+      }
+
+      body[data-test-palette='forest'][data-mpr-theme='dark'] {
+        --mpr-color-surface-primary: rgba(17, 42, 36, 0.94);
+        --mpr-color-surface-elevated: rgba(13, 35, 30, 0.98);
+        --mpr-color-text-primary: #dcfce7;
+        --mpr-color-accent: #22c55e;
+      }
+
+      #event-log {
+        max-height: 200px;
+        overflow-y: auto;
+        border: 1px solid var(--mpr-color-border, rgba(148, 163, 184, 0.25));
+        border-radius: 0.5rem;
+        padding: 0.75rem;
+        background: var(--mpr-color-surface-elevated, rgba(15, 23, 42, 0.85));
+        font-size: 0.85rem;
+        color: var(--mpr-color-text-primary, #e2e8f0);
+      }
+
+      .event-log__entry + .event-log__entry {
+        margin-top: 0.4rem;
+      }
+
+      .mpr-demo__integration-links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        margin-top: 0.5rem;
+      }
+    </style>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
+      type="module"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+    ></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
+  <body class="theme-light" data-test-palette="default" data-test-theme="light">
+    <mpr-header
+      id="workbench-header"
+      brand-label="Marco Polo Research Lab"
+      brand-href="https://mprlab.com/"
+      nav-links='[
+        { "label": "Docs", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/README.md" },
+        { "label": "Architecture", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/ARCHITECTURE.md" }
+      ]'
+      site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+      login-path="/auth/google"
+      logout-path="/auth/logout"
+      nonce-path="/auth/nonce"
+      settings="true"
+      settings-label="Settings"
+    >
+    </mpr-header>
+
+    <div class="container py-5 demo-hero" data-layout-section="hero-title">
+      <div class="row justify-content-center text-center">
+        <div class="col-lg-10 col-xl-8">
+          <p class="text-uppercase text-muted mb-2">Bootstrap hero</p>
+          <h1 class="display-4 fw-semibold mb-3">MPR-UI Demo</h1>
+          <p class="lead mb-0">
+            Sticky chrome from mpr-ui pairs with a Bootstrap hero. Bands below keep Bootstrap scoped
+            to their containers so the shared theme switcher remains conflict free.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <mpr-band
+      id="band-observability"
+      category="research"
+      theme='{
+        "background": "var(--mpr-color-surface-primary, rgba(248, 250, 252, 0.95))",
+        "panel": "var(--mpr-color-surface-elevated, rgba(255, 255, 255, 0.95))",
+        "panelAlt": "var(--mpr-color-surface-elevated, rgba(248, 250, 252, 0.95))",
+        "text": "var(--mpr-color-text-primary, #0f172a)",
+        "accent": "var(--mpr-color-accent, #0ea5e9)",
+        "border": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "shadow": "var(--mpr-shadow-elevated, 0 10px 24px rgba(15, 23, 42, 0.2))",
+        "lineTop": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "lineBottom": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))"
+      }'
+    >
+      <div class="container py-5" data-test="bootstrap-grid">
+        <div class="row g-4 justify-content-center">
+          <div class="col-lg-8 col-xl-7">
+            <mpr-card
+              id="event-log-card"
+              data-test="band-event-log-card"
+              card='{
+                "id": "event-log-card",
+                "title": "Event Log",
+                "description": "Header actions, footer toggles, and band events stream into this log so you can verify integrations.",
+                "status": "beta"
+              }'
+            ></mpr-card>
+          </div>
+        </div>
+      </div>
+    </mpr-band>
+
+    <mpr-band
+      id="band-integration"
+      category="tools"
+      theme='{
+        "background": "var(--mpr-color-surface-primary, rgba(248, 250, 252, 0.95))",
+        "panel": "var(--mpr-color-surface-elevated, rgba(255, 255, 255, 0.95))",
+        "panelAlt": "var(--mpr-color-surface-elevated, rgba(245, 248, 250, 0.95))",
+        "text": "var(--mpr-color-text-primary, #0f172a)",
+        "accent": "var(--mpr-color-accent-alt, #22c55e)",
+        "border": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "shadow": "var(--mpr-shadow-elevated, 0 10px 24px rgba(15, 23, 42, 0.2))",
+        "lineTop": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "lineBottom": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))"
+      }'
+    >
+      <div class="container py-5" data-test="bootstrap-grid-secondary">
+        <div class="row g-4 justify-content-center">
+          <div class="col-lg-8 col-xl-7">
+            <mpr-card
+              id="integration-reference-card"
+              data-test="band-integration-card"
+              card='{
+                "id": "integration-reference",
+                "title": "Integration Reference",
+                "description": "Step-by-step walkthrough for wiring GIS, TAuth, and the bundled demo helpers without Bootstrap clashes.",
+                "status": "production",
+                "url": "../docs/demo-index-auth.md"
+              }'
+            ></mpr-card>
+          </div>
+        </div>
+      </div>
+    </mpr-band>
+
+    <mpr-footer
+      id="page-footer"
+      size="small"
+      privacy-link-label="Privacy &amp; Terms"
+      privacy-link-href="#privacy"
+      privacy-modal-content="
+        <h1>Privacy Policy — MPR UI</h1>
+        <p><strong>Effective Date:</strong> 2025-10-11</p>
+        <p>LoopAware uses Google Identity Services to authenticate users. We receive your Google profile
+           information (name, email, profile image) only to sign you in. We do not sell or share your data,
+           and we only store your notes so the service functions.</p>
+        <p>To request deletion of your data, contact
+           <a href='mailto:support@mprlab.com'>support@mprlab.com</a>.</p>
+      "
+      links-collection='{
+        "style": "drop-up",
+        "text": "Built by Marco Polo Research Lab",
+        "links": [
+          { "label": "Marco Polo Research Lab", "url": "https://mprlab.com" },
+          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+          { "label": "Social Threader", "url": "https://threader.mprlab.com" }
+        ]
+      }'
+      theme-switcher="square"
+      theme-config='{"attribute":"data-test-theme","targets":["body"],"initialMode":"default-light","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-test-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-test-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-test-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-test-palette":"forest"}}]}'
+    >
+    </mpr-footer>
+
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    ></script>
+    <script>
+      (function demoEventLog() {
+        const MAX_ENTRIES = 8;
+        const LOG_ID = 'event-log';
+        const LOG_ENTRY_TEST_ID = 'event-log-entry';
+        const EVENT_CARD_BODY = '#event-log-card .mpr-band__card-body';
+        const INTEGRATION_CARD_BODY = '#integration-reference-card .mpr-band__card-body';
+        const EVENT_LOGGERS = [
+          {
+            type: 'mpr-ui:header:settings-click',
+            formatter: () => 'Settings control activated',
+          },
+          {
+            type: 'mpr-footer:theme-change',
+            formatter: (event) => {
+              const theme = event?.detail?.theme ?? 'unknown';
+              const source = event?.detail?.source ?? 'unknown';
+              return `Theme changed to ${theme} (via ${source})`;
+            },
+          },
+          {
+            type: 'mpr-footer:privacy-modal-open',
+            formatter: (event) => {
+              const origin = event?.detail?.source ?? 'unknown';
+              return `Privacy & Terms modal opened (${origin})`;
+            },
+          },
+        ];
+
+        function formatTimestamp() {
+          return new Date().toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+          });
+        }
+
+        function waitForCardBody(selector, callback, attempt = 0) {
+          const cardBody = document.querySelector(selector);
+          if (cardBody) {
+            callback(cardBody);
+            return;
+          }
+          if (attempt > 120) {
+            return;
+          }
+          requestAnimationFrame(() => waitForCardBody(selector, callback, attempt + 1));
+        }
+
+        function ensureEventLogHost() {
+          const existing = document.getElementById(LOG_ID);
+          if (existing) {
+            return existing;
+          }
+          waitForCardBody(EVENT_CARD_BODY, (cardBody) => {
+            if (cardBody.querySelector(`#${LOG_ID}`)) {
+              return;
+            }
+            const host = document.createElement('div');
+            host.id = LOG_ID;
+            host.className = 'event-log';
+            host.setAttribute('aria-live', 'polite');
+            cardBody.appendChild(host);
+          });
+          return null;
+        }
+
+        function appendLogEntry(message) {
+          if (!message) {
+            return;
+          }
+          const logHost = ensureEventLogHost();
+          if (!logHost) {
+            return;
+          }
+          const entry = document.createElement('div');
+          entry.dataset.test = LOG_ENTRY_TEST_ID;
+          entry.className = 'event-log__entry';
+          entry.textContent = `${formatTimestamp()} — ${message}`;
+          logHost.appendChild(entry);
+          while (logHost.children.length > MAX_ENTRIES) {
+            const first = logHost.firstElementChild;
+            if (!first) {
+              break;
+            }
+            first.remove();
+          }
+        }
+
+        function ensureIntegrationLinks() {
+          waitForCardBody(INTEGRATION_CARD_BODY, (cardBody) => {
+            if (cardBody.querySelector('[data-test="integration-links"]')) {
+              return;
+            }
+            const wrapper = document.createElement('div');
+            wrapper.dataset.test = 'integration-links';
+            wrapper.className = 'mpr-demo__integration-links';
+            wrapper.appendChild(createLink('Read the doc', '../docs/demo-index-auth.md'));
+            wrapper.appendChild(
+              createLink('View source', 'https://github.com/MarcoPoloResearchLab/mpr-ui'),
+            );
+            cardBody.appendChild(wrapper);
+          });
+        }
+
+        function createLink(label, href) {
+          const anchor = document.createElement('a');
+          anchor.textContent = label;
+          anchor.href = href;
+          anchor.target = '_blank';
+          anchor.rel = 'noopener noreferrer';
+          anchor.className = 'btn btn-outline-primary rounded-pill';
+          return anchor;
+        }
+
+        function initEventLog() {
+          EVENT_LOGGERS.forEach((logger) => {
+            document.addEventListener(logger.type, (event) => {
+              const message =
+                typeof logger.formatter === 'function'
+                  ? logger.formatter(event)
+                  : logger.message ?? '';
+              appendLogEntry(message);
+            });
+          });
+        }
+
+        function initDemo() {
+          ensureEventLogHost();
+          ensureIntegrationLinks();
+          initEventLog();
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', initDemo);
+        } else {
+          initDemo();
+        }
+      })();
+    </script>
+  </body>
+</html>
