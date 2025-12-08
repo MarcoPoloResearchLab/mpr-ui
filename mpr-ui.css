@@ -273,6 +273,11 @@ input[type="checkbox"][data-mpr-theme-toggle="control"]:checked {
   background: var(--mpr-theme-square-dot-contrast);
 }
 
+footer.mpr-footer [data-mpr-theme-toggle="control"][data-variant="square"] {
+  --mpr-theme-square-size: calc(28px * var(--mpr-footer-scale, 1));
+  --mpr-theme-square-dot-size: calc(6px * var(--mpr-footer-scale, 1));
+}
+
 footer.mpr-footer [data-mpr-footer="inner"] {
   max-width: 1080px;
   margin: 0 auto;

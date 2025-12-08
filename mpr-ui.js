@@ -1413,8 +1413,10 @@
       ? hostElement.querySelector('[data-mpr-theme-toggle="dot"]')
       : null;
     if (variant === "square" && controlElement && controlElement.style) {
-      controlElement.style.setProperty("--mpr-theme-square-size", "28px");
-      controlElement.style.setProperty("--mpr-theme-square-dot-size", "6px");
+      if (typeof controlElement.style.removeProperty === "function") {
+        controlElement.style.removeProperty("--mpr-theme-square-size");
+        controlElement.style.removeProperty("--mpr-theme-square-dot-size");
+      }
     }
     var squareQuads = [];
     if (variant === "square" && hostElement.querySelectorAll) {
@@ -4027,7 +4029,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     '.mpr-footer input.mpr-footer__theme-checkbox[data-mpr-theme-toggle="control"]{--mpr-theme-toggle-track-width:calc(42px * var(--mpr-footer-toggle-scale,1));--mpr-theme-toggle-track-height:calc(22px * var(--mpr-footer-toggle-scale,1));--mpr-theme-toggle-knob-size:calc(18px * var(--mpr-footer-toggle-scale,1));--mpr-theme-toggle-offset:calc(3px * var(--mpr-footer-toggle-scale,1))}' +
     '.mpr-footer__theme-toggle[data-mpr-theme-toggle-variant="square"]{background:transparent;padding:0;border-radius:0;box-shadow:none;gap:calc(0.75rem * var(--mpr-footer-scale,1))}' +
     '.mpr-footer input.mpr-footer__theme-checkbox[data-variant="square"]{width:auto;height:auto;display:inline-flex;align-items:center;gap:calc(0.75rem * var(--mpr-footer-scale,1));border-radius:0;background:transparent;border:none;padding:0;box-shadow:none}' +
-    ".mpr-footer__theme-toggle [data-mpr-theme-toggle='grid']{--mpr-theme-square-size:calc(28px * var(--mpr-footer-scale,1));--mpr-theme-square-dot-size:calc(6px * var(--mpr-footer-scale,1))}" +
+    ".mpr-footer [data-mpr-theme-toggle='control'][data-variant='square']{--mpr-theme-square-size:calc(28px * var(--mpr-footer-scale,1));--mpr-theme-square-dot-size:calc(6px * var(--mpr-footer-scale,1))}" +
     '@media (max-width:768px){.mpr-footer__layout{flex-direction:column;align-items:flex-start}.mpr-footer__inner{gap:calc(1.75rem * var(--mpr-footer-scale,1))}.mpr-footer__spacer{display:none}}' +
     ".mpr-footer.mpr-footer--small{--mpr-footer-scale:0.7;--mpr-footer-toggle-scale:0.7}";
 

@@ -58,7 +58,9 @@ const GOOGLE_IDENTITY_STUB = String.raw`
 })();
 `;
 const REPOSITORY_ROOT = join(__dirname, '../../..');
-const DEMO_PAGE_URL = pathToFileURL(join(REPOSITORY_ROOT, 'demo/local.html')).href;
+const DEMO_PAGE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/demo-workbench.html'),
+).href;
 const THEME_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/theme-toggle.html'),
 ).href;

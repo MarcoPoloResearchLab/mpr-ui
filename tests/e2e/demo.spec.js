@@ -116,37 +116,73 @@ test.describe('Demo behaviours', () => {
   });
 
   test('MU-201: square footer switcher collapses into a single-quadrant footprint', async ({ page }) => {
-    const toggleSize = await page.$eval(
-      'mpr-footer#page-footer',
-      (element) => element.getAttribute('size') || 'normal',
-    );
-    const isSmall = toggleSize.toLowerCase() === 'small';
-    const metrics = await page.$eval(footerThemeControl, (control) => {
-      const grid = control.querySelector('[data-mpr-theme-toggle="grid"]');
-      const dot = control.querySelector('[data-mpr-theme-toggle="dot"]');
-      const ownerWindow = control.ownerDocument?.defaultView;
-      if (!grid || !dot || !ownerWindow) {
-        return null;
+    const footerHost = 'mpr-footer#page-footer';
+    async function readMetrics() {
+      return page.$eval(footerThemeControl, (control) => {
+        const grid = control.querySelector('[data-mpr-theme-toggle="grid"]');
+        const dot = control.querySelector('[data-mpr-theme-toggle="dot"]');
+        const ownerWindow = control.ownerDocument?.defaultView;
+        if (!grid || !dot || !ownerWindow) {
+          return null;
       }
       const controlStyles = ownerWindow.getComputedStyle(control);
       const dotStyles = ownerWindow.getComputedStyle(dot);
       const gridRect = grid.getBoundingClientRect();
+      const dotRect = dot.getBoundingClientRect();
       return {
         size: controlStyles.getPropertyValue('--mpr-theme-square-size').trim(),
         dotSize: dotStyles.getPropertyValue('inline-size').trim(),
         width: gridRect.width,
         height: gridRect.height,
+        dotWidth: dotRect.width,
+        dotHeight: dotRect.height,
       };
     });
-    expect(metrics).not.toBeNull();
-    if (metrics) {
-      const expectedSize = isSmall ? 22 : 28;
-      const expectedDot = isSmall ? '4px' : '6px';
-      expect(metrics.size).toBe(`${expectedSize}px`);
-      expect(metrics.dotSize).toBe(expectedDot);
-      expect(metrics.width).toBeCloseTo(expectedSize, 0);
-      expect(metrics.height).toBeCloseTo(expectedSize, 0);
     }
+
+    async function setFooterSize(nextSize) {
+      await page.evaluate(
+        ({ selector, size }) => {
+          const footer = document.querySelector(selector);
+          if (footer) {
+            footer.setAttribute('size', size);
+          }
+        },
+        { selector: footerHost, size: nextSize },
+      );
+      await page.waitForFunction(
+        ({ selector, size }) => {
+          const host = document.querySelector(selector);
+          if (!host) {
+            return false;
+          }
+          const root = host.querySelector('footer.mpr-footer');
+          if (!root) {
+            return false;
+          }
+          const hasSmall = root.classList.contains('mpr-footer--small');
+          return size === 'small' ? hasSmall : !hasSmall;
+        },
+        { selector: footerHost, size: nextSize },
+      );
+    }
+
+    await setFooterSize('normal');
+    const normalMetrics = await readMetrics();
+
+    await setFooterSize('small');
+    const smallMetrics = await readMetrics();
+
+    expect(normalMetrics).not.toBeNull();
+    expect(smallMetrics).not.toBeNull();
+    if (normalMetrics && smallMetrics) {
+      expect(smallMetrics.width / normalMetrics.width).toBeCloseTo(0.7, 1);
+      expect(smallMetrics.height / normalMetrics.height).toBeCloseTo(0.7, 1);
+      expect(smallMetrics.dotWidth / normalMetrics.dotWidth).toBeCloseTo(0.7, 1);
+      expect(smallMetrics.dotHeight / normalMetrics.dotHeight).toBeCloseTo(0.7, 1);
+    }
+
+    await setFooterSize('small');
   });
 
   test('MU-310: footer quadrant selection updates the palette attribute', async ({ page }) => {
