@@ -4039,6 +4039,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ".mpr-footer--small .mpr-footer__menu-button{padding:0.25rem 0.65rem;font-size:0.75rem}" +
     ".mpr-footer--small .mpr-footer__theme-toggle{font-size:0.75rem;gap:0.4rem;padding:0.25rem 0.65rem}" +
     ".mpr-footer--small input.mpr-footer__theme-checkbox[data-mpr-theme-toggle='control']{--mpr-theme-toggle-track-width:34px;--mpr-theme-toggle-track-height:20px;--mpr-theme-toggle-knob-size:14px;--mpr-theme-toggle-offset:2px}" +
+    ".mpr-footer.mpr-footer--small [data-mpr-theme-toggle='control'][data-variant='square']{--mpr-theme-square-size:22px!important;--mpr-theme-square-dot-size:4px!important;gap:0.5rem!important}" +
     ".mpr-footer--small .mpr-footer__privacy{font-size:0.75rem}" +
     ".mpr-footer--small .mpr-footer__menu{min-width:180px;bottom:calc(100% + 4px)}" +
     ".mpr-footer--small .mpr-footer__menu-item{padding:0.4rem 0.75rem;font-size:0.85rem}";
