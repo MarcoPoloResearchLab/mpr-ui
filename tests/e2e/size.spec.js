@@ -13,12 +13,14 @@ test.describe('Size parameter support', () => {
 
     await headerHost.evaluate(el => el.setAttribute('size', 'normal'));
     const initialHeight = await headerHost.evaluate(el => el.offsetHeight);
-    
+
     await headerHost.evaluate(el => el.setAttribute('size', 'small'));
     const internalHeader = headerHost.locator('.mpr-header');
     await expect(internalHeader).toHaveClass(/mpr-header--small/);
     const smallHeight = await headerHost.evaluate(el => el.offsetHeight);
     expect(smallHeight).toBeLessThan(initialHeight);
+    const headerRatio = smallHeight / initialHeight;
+    expect(headerRatio).toBeCloseTo(0.7, 1);
 
     await headerHost.evaluate(el => el.setAttribute('size', 'normal'));
     await expect(internalHeader).not.toHaveClass(/mpr-header--small/);
@@ -36,9 +38,15 @@ test.describe('Size parameter support', () => {
     const internalFooter = footerHost.locator('footer.mpr-footer');
 
     // Snapshot initial padding
-    const initialPadding = await internalFooter.evaluate(el => {
-      return window.getComputedStyle(el).paddingTop;
+    const initialMetrics = await internalFooter.evaluate(el => {
+      const style = window.getComputedStyle(el);
+      return {
+        paddingTop: style.paddingTop,
+        height: el.offsetHeight,
+      };
     });
+    const initialPadding = initialMetrics.paddingTop;
+    const initialHeight = initialMetrics.height;
 
     // Set size="small"
     await footerHost.evaluate(el => el.setAttribute('size', 'small'));
@@ -47,16 +55,23 @@ test.describe('Size parameter support', () => {
     await expect(internalFooter).toHaveClass(/mpr-footer--small/);
 
     // Check padding decreased
-    const smallPadding = await internalFooter.evaluate(el => {
-      return window.getComputedStyle(el).paddingTop;
+    const smallMetrics = await internalFooter.evaluate(el => {
+      const style = window.getComputedStyle(el);
+      return {
+        paddingTop: style.paddingTop,
+        height: el.offsetHeight,
+      };
     });
+    const smallPadding = smallMetrics.paddingTop;
 
     const initialVal = parseFloat(initialPadding);
     const smallVal = parseFloat(smallPadding);
     
-    // 24px -> 16px (hardcoded in CSS overrides)
+    // 70% scaling of original padding
     expect(smallVal).toBeLessThan(initialVal);
-    expect(smallVal).toBeCloseTo(16, 0);
+    expect(smallVal).toBeCloseTo(initialVal * 0.7, 0);
+    const footerRatio = smallMetrics.height / initialHeight;
+    expect(footerRatio).toBeCloseTo(0.7, 1);
 
     // Revert
     await footerHost.evaluate(el => el.setAttribute('size', 'normal'));
@@ -68,17 +83,22 @@ test.describe('Size parameter support', () => {
     await expect(footerHost).toBeVisible();
 
     await footerHost.evaluate(el => el.setAttribute('theme-switcher', 'toggle'));
-    await footerHost.evaluate(el => el.setAttribute('size', 'small'));
+    await footerHost.evaluate(el => el.setAttribute('size', 'normal'));
 
     const toggleSelector = 'input[type="checkbox"][data-mpr-theme-toggle="control"]';
     const toggle = footerHost.locator(toggleSelector);
     await expect(toggle).toBeVisible();
 
+    const defaultBox = await toggle.boundingBox();
+    expect(defaultBox).not.toBeNull();
+
+    await footerHost.evaluate(el => el.setAttribute('size', 'small'));
+
     const box = await toggle.boundingBox();
     expect(box).not.toBeNull();
-    if (box) {
-      expect(box.width).toBeCloseTo(34, 1);
-      expect(box.height).toBeCloseTo(20, 1);
+    if (box && defaultBox) {
+      expect(box.width / defaultBox.width).toBeCloseTo(0.7, 1);
+      expect(box.height / defaultBox.height).toBeCloseTo(0.7, 1);
     }
 
     const initialState = await toggle.evaluate(el => el.checked);
@@ -108,18 +128,14 @@ test.describe('Size parameter support', () => {
     const normalGrid = toggle.locator('[data-mpr-theme-toggle="grid"]');
     const normalBox = await normalGrid.boundingBox();
     expect(normalBox).not.toBeNull();
-    if (normalBox) {
-        expect(normalBox.width).toBeCloseTo(28, 1);
-    }
 
     await footerHost.evaluate(el => el.setAttribute('size', 'small'));
 
     const smallBox = await normalGrid.boundingBox();
     
     expect(smallBox).not.toBeNull();
-    if (smallBox) {
-        expect(smallBox.width).toBeLessThan(28);
-        expect(smallBox.width).toBeCloseTo(22, 1);
+    if (smallBox && normalBox) {
+        expect(smallBox.width / normalBox.width).toBeCloseTo(0.7, 1);
     }
   });
 });
