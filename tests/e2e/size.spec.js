@@ -1,10 +1,10 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const { visitDemoPage } = require('./support/demoPage');
+const { visitFullLayoutFixture } = require('./support/demoPage');
 
 test.describe('Size parameter support', () => {
   test.beforeEach(async ({ page }) => {
-    await visitDemoPage(page);
+    await visitFullLayoutFixture(page);
   });
 
   test('MU-116: header accepts size="small" and applies smaller styling', async ({ page }) => {

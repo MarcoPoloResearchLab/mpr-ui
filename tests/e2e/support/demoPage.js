@@ -71,6 +71,9 @@ const BAND_FIXTURE_URL = pathToFileURL(
 const CARD_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/mpr-card.html'),
 ).href;
+const FULL_LAYOUT_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/layout-full.html'),
+).href;
 
 const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
@@ -105,6 +108,21 @@ async function visitDemoPage(page) {
     routeLocalAsset(page, GOOGLE_IDENTITY_URL, GOOGLE_IDENTITY_STUB, 'application/javascript'),
   ]);
   await page.goto(DEMO_PAGE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the full layout fixture with local assets.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitFullLayoutFixture(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+    routeLocalAsset(page, GOOGLE_IDENTITY_URL, GOOGLE_IDENTITY_STUB, 'application/javascript'),
+  ]);
+  await page.goto(FULL_LAYOUT_FIXTURE_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
 }
 
@@ -346,6 +364,7 @@ async function routeLocalAsset(page, url, body, contentType) {
 
 module.exports = {
   visitDemoPage,
+  visitFullLayoutFixture,
   visitThemeFixturePage,
   visitFooterTextFixturePage,
   visitBandFixturePage,
