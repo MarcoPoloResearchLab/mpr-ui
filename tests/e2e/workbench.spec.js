@@ -2,7 +2,7 @@
 
 const { test, expect } = require('@playwright/test');
 const {
-  visitDemoPage,
+  visitWorkbenchFixture,
   visitThemeFixturePage,
   captureToggleSnapshot,
   captureColorSnapshots,
@@ -12,7 +12,7 @@ const {
   visitBandFixturePage,
   visitCardFixturePage,
   selectors,
-} = require('./support/demoPage');
+} = require('./support/fixturePage');
 
 const {
   googleButton,
@@ -37,7 +37,7 @@ const PALETTE_TARGETS = [
   'footer.mpr-footer',
 ];
 
-test.describe('Demo behaviours', () => {
+test.describe('Workbench behaviours', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     if (testInfo.title.includes('MU-203')) {
       await page.addInitScript(() => {
@@ -59,7 +59,7 @@ test.describe('Demo behaviours', () => {
         document.addEventListener('DOMContentLoaded', instrumentBootstrapDropdown, { once: true });
       });
     }
-    await visitDemoPage(page);
+    await visitWorkbenchFixture(page);
     if (testInfo.title.includes('MU-203')) {
       await page.evaluate(() => {
         if (typeof window.__instrumentBootstrapDropdown === 'function') {
@@ -67,6 +67,43 @@ test.describe('Demo behaviours', () => {
         }
       });
     }
+  });
+
+  test('MU-367: header and footer shrink when size="small"', async ({ page }) => {
+    const headerHost = page.locator('mpr-header#workbench-header');
+    const footerHost = page.locator('mpr-footer#page-footer');
+    await expect(headerHost).toBeVisible();
+    await expect(footerHost).toBeVisible();
+
+    async function readHeight(locator) {
+      const box = await locator.boundingBox();
+      if (!box) {
+        throw new Error('Unable to read bounding box for component');
+      }
+      return box.height;
+    }
+
+    await headerHost.evaluate(element => element.setAttribute('size', 'normal'));
+    await footerHost.evaluate(element => element.setAttribute('size', 'normal'));
+    await page.waitForTimeout(50);
+    const headerNormal = await readHeight(headerHost);
+    const footerNormal = await readHeight(footerHost);
+
+    await headerHost.evaluate(element => element.setAttribute('size', 'small'));
+    await footerHost.evaluate(element => element.setAttribute('size', 'small'));
+    await page.waitForTimeout(50);
+    const headerSmall = await readHeight(headerHost);
+    const footerSmall = await readHeight(footerHost);
+
+    const headerRatio = headerSmall / headerNormal;
+    const footerRatio = footerSmall / footerNormal;
+
+    expect(headerSmall).toBeLessThan(headerNormal);
+    expect(headerRatio).toBeGreaterThan(0.6);
+    expect(headerRatio).toBeLessThan(0.8);
+    expect(footerSmall).toBeLessThan(footerNormal);
+    expect(footerRatio).toBeGreaterThan(0.6);
+    expect(footerRatio).toBeLessThan(0.8);
   });
 
   test('MU-307: renders the Google Sign-In button with a valid client id', async ({ page }) => {
@@ -116,37 +153,80 @@ test.describe('Demo behaviours', () => {
   });
 
   test('MU-201: square footer switcher collapses into a single-quadrant footprint', async ({ page }) => {
-    const metrics = await page.$eval(footerThemeControl, (control) => {
-      const grid = control.querySelector('[data-mpr-theme-toggle="grid"]');
-      const dot = control.querySelector('[data-mpr-theme-toggle="dot"]');
-      const ownerWindow = control.ownerDocument?.defaultView;
-      if (!grid || !dot || !ownerWindow) {
-        return null;
+    const footerHost = 'mpr-footer#page-footer';
+    async function readMetrics() {
+      return page.$eval(footerThemeControl, (control) => {
+        const grid = control.querySelector('[data-mpr-theme-toggle="grid"]');
+        const dot = control.querySelector('[data-mpr-theme-toggle="dot"]');
+        const ownerWindow = control.ownerDocument?.defaultView;
+        if (!grid || !dot || !ownerWindow) {
+          return null;
       }
       const controlStyles = ownerWindow.getComputedStyle(control);
       const dotStyles = ownerWindow.getComputedStyle(dot);
       const gridRect = grid.getBoundingClientRect();
+      const dotRect = dot.getBoundingClientRect();
       return {
         size: controlStyles.getPropertyValue('--mpr-theme-square-size').trim(),
         dotSize: dotStyles.getPropertyValue('inline-size').trim(),
         width: gridRect.width,
         height: gridRect.height,
+        dotWidth: dotRect.width,
+        dotHeight: dotRect.height,
       };
     });
-    expect(metrics).not.toBeNull();
-    if (metrics) {
-      expect(metrics.size).toBe('28px');
-      expect(metrics.dotSize).toBe('6px');
-      expect(metrics.width).toBeCloseTo(28, 0);
-      expect(metrics.height).toBeCloseTo(28, 0);
     }
+
+    async function setFooterSize(nextSize) {
+      await page.evaluate(
+        ({ selector, size }) => {
+          const footer = document.querySelector(selector);
+          if (footer) {
+            footer.setAttribute('size', size);
+          }
+        },
+        { selector: footerHost, size: nextSize },
+      );
+      await page.waitForFunction(
+        ({ selector, size }) => {
+          const host = document.querySelector(selector);
+          if (!host) {
+            return false;
+          }
+          const root = host.querySelector('footer.mpr-footer');
+          if (!root) {
+            return false;
+          }
+          const hasSmall = root.classList.contains('mpr-footer--small');
+          return size === 'small' ? hasSmall : !hasSmall;
+        },
+        { selector: footerHost, size: nextSize },
+      );
+    }
+
+    await setFooterSize('normal');
+    const normalMetrics = await readMetrics();
+
+    await setFooterSize('small');
+    const smallMetrics = await readMetrics();
+
+    expect(normalMetrics).not.toBeNull();
+    expect(smallMetrics).not.toBeNull();
+    if (normalMetrics && smallMetrics) {
+      expect(smallMetrics.width / normalMetrics.width).toBeCloseTo(0.7, 1);
+      expect(smallMetrics.height / normalMetrics.height).toBeCloseTo(0.7, 1);
+      expect(smallMetrics.dotWidth / normalMetrics.dotWidth).toBeCloseTo(0.7, 1);
+      expect(smallMetrics.dotHeight / normalMetrics.dotHeight).toBeCloseTo(0.7, 1);
+    }
+
+    await setFooterSize('small');
   });
 
   test('MU-310: footer quadrant selection updates the palette attribute', async ({ page }) => {
-    const paletteBefore = await page.evaluate(() => document.body.getAttribute('data-demo-palette'));
+    const paletteBefore = await page.evaluate(() => document.body.getAttribute('data-test-palette'));
     await clickQuadrant(page, footerThemeControl, 'bottomRight');
     await page.waitForTimeout(200);
-    const paletteAfter = await page.evaluate(() => document.body.getAttribute('data-demo-palette'));
+    const paletteAfter = await page.evaluate(() => document.body.getAttribute('data-test-palette'));
     expect(paletteAfter).toBe('forest');
     expect(paletteAfter).not.toBe(paletteBefore);
   });
@@ -169,7 +249,7 @@ test.describe('Demo behaviours', () => {
     await page.waitForTimeout(200);
     const darkSnapshot = await captureToggleSnapshot(page, footerThemeControl);
     const darkPalette = await page.evaluate(() =>
-      document.body.getAttribute('data-demo-palette'),
+      document.body.getAttribute('data-test-palette'),
     );
     expect(darkSnapshot.mode).toBe('default-dark');
     expect(darkSnapshot.index).toBe(2);
@@ -179,7 +259,7 @@ test.describe('Demo behaviours', () => {
     await page.waitForTimeout(200);
     const paleSnapshot = await captureToggleSnapshot(page, footerThemeControl);
     const palePalette = await page.evaluate(() =>
-      document.body.getAttribute('data-demo-palette'),
+      document.body.getAttribute('data-test-palette'),
     );
     expect(paleSnapshot.mode).toBe('forest-dark');
     expect(paleSnapshot.index).toBe(3);
@@ -332,7 +412,7 @@ test.describe('Demo behaviours', () => {
       }
     });
     await page.waitForFunction(
-      () => document.body.getAttribute('data-demo-theme') === 'dark',
+      () => document.body.getAttribute('data-test-theme') === 'dark',
     );
     await page.waitForTimeout(200);
     const toggledBackground = await readBandBackground();
@@ -460,7 +540,7 @@ test.describe('Demo behaviours', () => {
     });
 
     await page.evaluate(() => {
-      const header = document.querySelector('mpr-header#demo-header');
+      const header = document.querySelector('mpr-header#workbench-header');
       const footer = document.querySelector('mpr-footer#page-footer');
       if (header) {
         header.setAttribute('sticky', 'false');
@@ -499,7 +579,7 @@ test.describe('Demo behaviours', () => {
     });
 
     await page.evaluate(() => {
-      const header = document.querySelector('mpr-header#demo-header');
+      const header = document.querySelector('mpr-header#workbench-header');
       const footer = document.querySelector('mpr-footer#page-footer');
       if (header) {
         header.setAttribute('sticky', 'FALSE');
@@ -521,7 +601,7 @@ test.describe('Demo behaviours', () => {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(200);
     await page.evaluate(() => {
-      const header = document.querySelector('mpr-header#demo-header');
+      const header = document.querySelector('mpr-header#workbench-header');
       const footer = document.querySelector('mpr-footer#page-footer');
       if (header) {
         header.setAttribute('sticky', 'TRUE');
@@ -681,6 +761,65 @@ test.describe('Default theme toggle behaviours', () => {
     expect(resetMode).toBe(baselineMode);
   });
 
+  test('MU-369: default toggle wrapper renders without a halo', async ({ page }) => {
+    const snapshot = await page.evaluate((wrapperSelector) => {
+      const wrapper = document.querySelector(wrapperSelector);
+      if (!wrapper) {
+        return null;
+      }
+      const style = window.getComputedStyle(wrapper);
+      return {
+        background: style.getPropertyValue('background-color'),
+        borderRadius: style.getPropertyValue('border-radius'),
+        boxShadow: style.getPropertyValue('box-shadow'),
+        paddingTop: style.getPropertyValue('padding-top'),
+        paddingRight: style.getPropertyValue('padding-right'),
+        paddingBottom: style.getPropertyValue('padding-bottom'),
+        paddingLeft: style.getPropertyValue('padding-left'),
+      };
+    }, footerThemeWrapper);
+    expect(snapshot).not.toBeNull();
+    if (snapshot) {
+      expect(snapshot.background).toBe('rgba(0, 0, 0, 0)');
+      expect(snapshot.borderRadius).toBe('0px');
+      expect(snapshot.boxShadow).toBe('none');
+      expect(snapshot.paddingTop).toBe('0px');
+      expect(snapshot.paddingRight).toBe('0px');
+      expect(snapshot.paddingBottom).toBe('0px');
+      expect(snapshot.paddingLeft).toBe('0px');
+    }
+  });
+
+  test('MU-371: default toggle knob keeps contrast when checked', async ({ page }) => {
+    const controlSelector = footerThemeControl;
+    const toggle = page.locator(controlSelector).first();
+    await expect(toggle).toBeVisible();
+
+    await toggle.click();
+    await page.waitForTimeout(200);
+
+    const palette = await page.evaluate((selector) => {
+      const element = document.querySelector(selector);
+      if (!element || !element.ownerDocument || !element.ownerDocument.defaultView) {
+        return null;
+      }
+      const win = element.ownerDocument.defaultView;
+      const track = win.getComputedStyle(element).getPropertyValue('background-color');
+      const knob = win.getComputedStyle(element, '::before').getPropertyValue('background-color');
+      return { track, knob };
+    }, controlSelector);
+
+    expect(palette).not.toBeNull();
+    if (palette) {
+      expect(palette.knob).not.toBe(palette.track);
+      expect(palette.knob).not.toBe('');
+      expect(palette.knob).not.toBe('rgba(0, 0, 0, 0)');
+    }
+
+    await toggle.click();
+    await page.waitForTimeout(200);
+  });
+
   test('MU-321: default toggle knob aligns without halos', async ({ page }) => {
     const control = footerThemeControl;
     const initialSnapshot = await captureToggleSnapshot(page, control);
@@ -694,7 +833,7 @@ test.describe('Default theme toggle behaviours', () => {
 
     const toggledSnapshot = await captureToggleSnapshot(page, control);
     expect(toggledSnapshot.boxShadow).toBe('none');
-    expect(Math.abs(toggledSnapshot.translateX - toggledSnapshot.travelDistance)).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(toggledSnapshot.translateX - toggledSnapshot.expectedTravel)).toBeLessThanOrEqual(0.5);
     expect(toggledSnapshot.borderWidth).toBe(0);
   });
 

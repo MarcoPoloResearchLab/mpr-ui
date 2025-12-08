@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Footer Toggle Demo Config</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
+      type="module"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+    ></script>
+  </head>
+  <body>
+    <main style="padding: 2rem;">
+      <h1>Footer Toggle Demo Config</h1>
+      <p>
+        This fixture mirrors the documented footer snippet to ensure <code>theme-switcher="toggle"</code>
+        renders the pill variant even with four theme modes.
+      </p>
+    </main>
+
+    <mpr-footer
+      id="demo-config-footer"
+      sticky="true"
+      size="small"
+      privacy-link-label="Privacy &amp; Terms"
+      privacy-link-href="#privacy"
+      links-collection='{
+        "style": "drop-up",
+        "text": "Built by Marco Polo Research Lab",
+        "links": [
+          { "label": "Marco Polo Research Lab", "url": "https://mprlab.com" }
+        ]
+      }'
+      theme-switcher="toggle"
+      theme-config='{
+        "attribute":"data-demo-theme",
+        "targets":["body"],
+        "initialMode":"default-light",
+        "modes":[
+          {"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},
+          {"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},
+          {"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},
+          {"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}
+        ]
+      }'
+    ></mpr-footer>
+  </body>
+</html>
