@@ -12,11 +12,12 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 
 ## BugFixes (335–399)
 
-- [x] [MU-336] The toogle theme switch is glitching when the footer or header use size="small": it has two circles, and when moved, a small circle is moved in the middle of the switch: @image.png
+- [ ] [MU-336] The toogle theme switch is glitching when the footer or header use size="small": it has two circles, and when moved, a small circle is moved in the middle of the switch: @image.png
 1. Remove an external halo around the toogle switch
 2. use a single circle
 2. make sure circle moves from side to side
-   — Refactored footer theme toggle JS styles to rely on `mpr-ui.css` structure. Removed duplicate `::after` knob definition in JS and instead overrode CSS variables with high-specificity selectors for `size="small"`. Verified with new e2e test case checking computed styles.
+- [ ] [MU-367] Setting `size="small"` does not change the size of the footer/header. It shall make it 70% or the normal size, including its height.
+- [ ] [MU-368] Setting `theme-switcher="toggle"` does not change the theme switcher shape. It shall switch it to the toggle switch even if we supply four themes.
 
 ## Maintenance (415–499)
 
