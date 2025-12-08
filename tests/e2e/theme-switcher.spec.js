@@ -22,6 +22,8 @@ test.describe('Footer theme switcher overrides', () => {
     const toggleControl = page.locator(toggleSelector);
     await expect(toggleControl).toBeVisible();
 
+    const tagName = await toggleControl.evaluate(element => element.tagName);
+    expect(tagName).toBe('INPUT');
     const snapshot = await captureToggleSnapshot(page, toggleSelector);
     expect(snapshot.variant).toBe('switch');
 
@@ -45,6 +47,8 @@ test.describe('Footer theme switcher overrides', () => {
       'mpr-footer#demo-config-footer input[type="checkbox"][data-mpr-theme-toggle="control"]',
     );
     await expect(control).toBeVisible();
+    const tagName = await control.evaluate(element => element.tagName);
+    expect(tagName).toBe('INPUT');
     const snapshot = await captureToggleSnapshot(
       page,
       'mpr-footer#demo-config-footer input[type="checkbox"][data-mpr-theme-toggle="control"]',

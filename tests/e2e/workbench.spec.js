@@ -75,26 +75,29 @@ test.describe('Workbench behaviours', () => {
     await expect(headerHost).toBeVisible();
     await expect(footerHost).toBeVisible();
 
+    async function readHeight(locator) {
+      const box = await locator.boundingBox();
+      if (!box) {
+        throw new Error('Unable to read bounding box for component');
+      }
+      return box.height;
+    }
+
     await headerHost.evaluate(element => element.setAttribute('size', 'normal'));
     await footerHost.evaluate(element => element.setAttribute('size', 'normal'));
-
-    const headerNormal = await headerHost.evaluate(element => element.offsetHeight);
-    const footerNormal = await footerHost.evaluate(element => {
-      const footer = element.querySelector('footer.mpr-footer');
-      return footer ? footer.getBoundingClientRect().height : 0;
-    });
+    await page.waitForTimeout(50);
+    const headerNormal = await readHeight(headerHost);
+    const footerNormal = await readHeight(footerHost);
 
     await headerHost.evaluate(element => element.setAttribute('size', 'small'));
     await footerHost.evaluate(element => element.setAttribute('size', 'small'));
-
-    const headerSmall = await headerHost.evaluate(element => element.offsetHeight);
-    const footerSmall = await footerHost.evaluate(element => {
-      const footer = element.querySelector('footer.mpr-footer');
-      return footer ? footer.getBoundingClientRect().height : 0;
-    });
+    await page.waitForTimeout(50);
+    const headerSmall = await readHeight(headerHost);
+    const footerSmall = await readHeight(footerHost);
 
     const headerRatio = headerSmall / headerNormal;
     const footerRatio = footerSmall / footerNormal;
+
     expect(headerSmall).toBeLessThan(headerNormal);
     expect(headerRatio).toBeGreaterThan(0.6);
     expect(headerRatio).toBeLessThan(0.8);
