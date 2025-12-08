@@ -4034,15 +4034,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     '.mpr-footer input.mpr-footer__theme-checkbox[data-variant="square"]{width:auto;height:auto;display:inline-flex;align-items:center;gap:0.75rem;border-radius:0;background:transparent;border:none;padding:0;box-shadow:none}' +
     '@media (max-width:768px){.mpr-footer__layout{flex-direction:column;align-items:flex-start}.mpr-footer__inner{gap:1.75rem}.mpr-footer__spacer{display:none}}' +
     ".mpr-footer.mpr-footer--small{padding:16px 0}" +
-    ".mpr-footer--small .mpr-footer__inner{padding:0 1rem;gap:1rem}" +
-    ".mpr-footer--small .mpr-footer__brand{font-size:0.75rem;gap:0.5rem}" +
-    ".mpr-footer--small .mpr-footer__menu-button{padding:0.25rem 0.65rem;font-size:0.75rem}" +
-    ".mpr-footer--small .mpr-footer__theme-toggle{font-size:0.75rem;gap:0.4rem;padding:0.25rem 0.65rem}" +
-    ".mpr-footer--small input.mpr-footer__theme-checkbox[data-mpr-theme-toggle='control']{--mpr-theme-toggle-track-width:34px;--mpr-theme-toggle-track-height:20px;--mpr-theme-toggle-knob-size:14px;--mpr-theme-toggle-offset:2px}" +
+    ".mpr-footer.mpr-footer--small .mpr-footer__inner{padding:0 1rem;gap:1rem}" +
+    ".mpr-footer.mpr-footer--small .mpr-footer__brand{font-size:0.75rem;gap:0.5rem}" +
+    ".mpr-footer.mpr-footer--small .mpr-footer__menu-button{padding:0.25rem 0.65rem;font-size:0.75rem}" +
+    ".mpr-footer.mpr-footer--small .mpr-footer__theme-toggle{font-size:0.75rem;gap:0.4rem;padding:0.25rem 0.65rem}" +
+    ".mpr-footer.mpr-footer--small input.mpr-footer__theme-checkbox[data-mpr-theme-toggle='control']{--mpr-theme-toggle-track-width:34px;--mpr-theme-toggle-track-height:20px;--mpr-theme-toggle-knob-size:14px;--mpr-theme-toggle-offset:2px}" +
     ".mpr-footer.mpr-footer--small [data-mpr-theme-toggle='control'][data-variant='square']{--mpr-theme-square-size:22px!important;--mpr-theme-square-dot-size:4px!important;gap:0.5rem!important}" +
-    ".mpr-footer--small .mpr-footer__privacy{font-size:0.75rem}" +
-    ".mpr-footer--small .mpr-footer__menu{min-width:180px;bottom:calc(100% + 4px)}" +
-    ".mpr-footer--small .mpr-footer__menu-item{padding:0.4rem 0.75rem;font-size:0.85rem}";
+    ".mpr-footer.mpr-footer--small .mpr-footer__privacy{font-size:0.75rem}" +
+    ".mpr-footer.mpr-footer--small .mpr-footer__menu{min-width:180px;bottom:calc(100% + 4px)}" +
+    ".mpr-footer.mpr-footer--small .mpr-footer__menu-item{padding:0.4rem 0.75rem;font-size:0.85rem}";
 
   var FOOTER_LINK_CATALOG = Object.freeze([
     Object.freeze({ label: "Marco Polo Research Lab", url: "https://mprlab.com" }),
