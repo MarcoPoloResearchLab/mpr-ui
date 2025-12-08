@@ -2,7 +2,7 @@
 
 const { test, expect } = require('@playwright/test');
 const {
-  visitDemoPage,
+  visitWorkbenchFixture,
   visitThemeFixturePage,
   captureToggleSnapshot,
   captureColorSnapshots,
@@ -12,7 +12,7 @@ const {
   visitBandFixturePage,
   visitCardFixturePage,
   selectors,
-} = require('./support/demoPage');
+} = require('./support/fixturePage');
 
 const {
   googleButton,
@@ -37,7 +37,7 @@ const PALETTE_TARGETS = [
   'footer.mpr-footer',
 ];
 
-test.describe('Demo behaviours', () => {
+test.describe('Workbench behaviours', () => {
   test.beforeEach(async ({ page }, testInfo) => {
     if (testInfo.title.includes('MU-203')) {
       await page.addInitScript(() => {
@@ -59,7 +59,7 @@ test.describe('Demo behaviours', () => {
         document.addEventListener('DOMContentLoaded', instrumentBootstrapDropdown, { once: true });
       });
     }
-    await visitDemoPage(page);
+    await visitWorkbenchFixture(page);
     if (testInfo.title.includes('MU-203')) {
       await page.evaluate(() => {
         if (typeof window.__instrumentBootstrapDropdown === 'function') {
@@ -186,10 +186,10 @@ test.describe('Demo behaviours', () => {
   });
 
   test('MU-310: footer quadrant selection updates the palette attribute', async ({ page }) => {
-    const paletteBefore = await page.evaluate(() => document.body.getAttribute('data-demo-palette'));
+    const paletteBefore = await page.evaluate(() => document.body.getAttribute('data-test-palette'));
     await clickQuadrant(page, footerThemeControl, 'bottomRight');
     await page.waitForTimeout(200);
-    const paletteAfter = await page.evaluate(() => document.body.getAttribute('data-demo-palette'));
+    const paletteAfter = await page.evaluate(() => document.body.getAttribute('data-test-palette'));
     expect(paletteAfter).toBe('forest');
     expect(paletteAfter).not.toBe(paletteBefore);
   });
@@ -212,7 +212,7 @@ test.describe('Demo behaviours', () => {
     await page.waitForTimeout(200);
     const darkSnapshot = await captureToggleSnapshot(page, footerThemeControl);
     const darkPalette = await page.evaluate(() =>
-      document.body.getAttribute('data-demo-palette'),
+      document.body.getAttribute('data-test-palette'),
     );
     expect(darkSnapshot.mode).toBe('default-dark');
     expect(darkSnapshot.index).toBe(2);
@@ -222,7 +222,7 @@ test.describe('Demo behaviours', () => {
     await page.waitForTimeout(200);
     const paleSnapshot = await captureToggleSnapshot(page, footerThemeControl);
     const palePalette = await page.evaluate(() =>
-      document.body.getAttribute('data-demo-palette'),
+      document.body.getAttribute('data-test-palette'),
     );
     expect(paleSnapshot.mode).toBe('forest-dark');
     expect(paleSnapshot.index).toBe(3);
@@ -375,7 +375,7 @@ test.describe('Demo behaviours', () => {
       }
     });
     await page.waitForFunction(
-      () => document.body.getAttribute('data-demo-theme') === 'dark',
+      () => document.body.getAttribute('data-test-theme') === 'dark',
     );
     await page.waitForTimeout(200);
     const toggledBackground = await readBandBackground();
@@ -503,7 +503,7 @@ test.describe('Demo behaviours', () => {
     });
 
     await page.evaluate(() => {
-      const header = document.querySelector('mpr-header#demo-header');
+      const header = document.querySelector('mpr-header#workbench-header');
       const footer = document.querySelector('mpr-footer#page-footer');
       if (header) {
         header.setAttribute('sticky', 'false');
@@ -542,7 +542,7 @@ test.describe('Demo behaviours', () => {
     });
 
     await page.evaluate(() => {
-      const header = document.querySelector('mpr-header#demo-header');
+      const header = document.querySelector('mpr-header#workbench-header');
       const footer = document.querySelector('mpr-footer#page-footer');
       if (header) {
         header.setAttribute('sticky', 'FALSE');
@@ -564,7 +564,7 @@ test.describe('Demo behaviours', () => {
     await page.evaluate(() => window.scrollTo(0, 0));
     await page.waitForTimeout(200);
     await page.evaluate(() => {
-      const header = document.querySelector('mpr-header#demo-header');
+      const header = document.querySelector('mpr-header#workbench-header');
       const footer = document.querySelector('mpr-footer#page-footer');
       if (header) {
         header.setAttribute('sticky', 'TRUE');

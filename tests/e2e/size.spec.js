@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const { visitFullLayoutFixture, captureToggleSnapshot } = require('./support/demoPage');
+const { visitFullLayoutFixture, captureToggleSnapshot } = require('./support/fixturePage');
 
 test.describe('Size parameter support', () => {
   test.beforeEach(async ({ page }) => {

@@ -5349,15 +5349,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     );
     var variantSource = "";
     if (
-      typeof mergedToggle.themeSwitcher === "string" &&
-      mergedToggle.themeSwitcher.trim()
-    ) {
-      variantSource = mergedToggle.themeSwitcher.trim();
-    } else if (
       typeof mergedToggle.variant === "string" &&
       mergedToggle.variant.trim()
     ) {
       variantSource = mergedToggle.variant.trim();
+    } else if (
+      typeof mergedToggle.themeSwitcher === "string" &&
+      mergedToggle.themeSwitcher.trim()
+    ) {
+      variantSource = mergedToggle.themeSwitcher.trim();
     }
     var normalizedVariant = "";
     var invalidVariant = false;
