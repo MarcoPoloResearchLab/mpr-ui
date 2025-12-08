@@ -7,6 +7,8 @@
   --mpr-color-accent: #38bdf8;
   --mpr-color-accent-alt: #22c55e;
   --mpr-shadow-elevated: 0 25px 60px rgba(0, 0, 0, 0.55);
+  --mpr-theme-toggle-knob-bg: #e2e8f0;
+  --mpr-theme-toggle-knob-active: #0f172a;
 }
 
 :root[data-mpr-theme='light'],
@@ -19,6 +21,8 @@ body[data-mpr-theme='light'] {
   --mpr-color-accent: #0ea5e9;
   --mpr-color-accent-alt: #22c55e;
   --mpr-shadow-elevated: 0 18px 36px rgba(15, 23, 42, 0.18);
+  --mpr-theme-toggle-knob-bg: #0f172a;
+  --mpr-theme-toggle-knob-active: #e2e8f0;
 }
 
 :root[data-mpr-theme='dark'],
@@ -31,6 +35,8 @@ body[data-mpr-theme='dark'] {
   --mpr-color-accent: #38bdf8;
   --mpr-color-accent-alt: #22c55e;
   --mpr-shadow-elevated: 0 25px 60px rgba(0, 0, 0, 0.55);
+  --mpr-theme-toggle-knob-bg: #e2e8f0;
+  --mpr-theme-toggle-knob-active: #0f172a;
 }
 
 mpr-footer {
@@ -115,7 +121,7 @@ input[type="checkbox"][data-mpr-theme-toggle="control"]::before {
   left: var(--mpr-theme-toggle-offset);
   width: var(--mpr-theme-toggle-knob-size);
   height: var(--mpr-theme-toggle-knob-size);
-  background: var(--mpr-color-text-primary, #0f172a);
+  background: var(--mpr-theme-toggle-knob-bg, #e2e8f0);
   border-radius: 50%;
   transition: transform 0.2s ease-out, background 0.2s ease, box-shadow 0.2s ease;
   box-shadow: none;
@@ -127,7 +133,7 @@ input[type="checkbox"][data-mpr-theme-toggle="control"]:focus-visible::before {
 
 input[type="checkbox"][data-mpr-theme-toggle="control"]:checked::before {
   transform: translateX(var(--mpr-theme-toggle-travel));
-  background: var(--mpr-color-accent, #38bdf8);
+  background: var(--mpr-theme-toggle-knob-active, var(--mpr-color-accent-contrast, #0f172a));
 }
 
 input[type="checkbox"][data-mpr-theme-toggle="control"]:checked {
