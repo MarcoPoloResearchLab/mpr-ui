@@ -18,7 +18,7 @@ Restored the demo footer to use the square switcher so the regression suite exer
 Propagated `--mpr-header-scale`/`--mpr-footer-scale` custom properties so every padding, gap, and toggle dimension shrinks to ~70%, updated Playwright specs to assert ratios instead of absolute numbers, and tuned small-mode typography + Google button scaling to match the requirement.
 - [x] [MU-368] Setting `theme-switcher="toggle"` does not change the theme switcher shape. It shall switch it to the toggle switch even if we supply four themes. — Footer now prioritizes the explicit attribute/variant over legacy `themeSwitcher` config keys, and Playwright regression fixtures cover multimode + conflicting configs.
 - [x] [MU-369] the toggle control should not have the outer halo. The outer areas of the toggle control should not exist. ![alt text](image.png) — Flattened the footer theme toggle wrapper so it keeps the inline-flex layout without background/padding, and added Playwright coverage (MU-369) that asserts the wrapper reports transparent background, zero padding, and no shadow.
-- [ ] [MU-370] The toogle control stops midway when switched -- the circle should move all the way to the end of the toggle instead. ![alt text](<image copy.png>)
+- [x] [MU-370] The toogle control stops midway when switched -- the circle should move all the way to the end of the toggle instead. ![alt text](<image copy.png>) — Reworked the travel calculation to read the knob offset/width from the computed pseudo-element, added MU-370 Playwright coverage (normal + `size="small"`) that compares the transform to the expected geometric travel, and confirmed the switch now reaches the track edge.
 
 ## Maintenance (415–499)
 

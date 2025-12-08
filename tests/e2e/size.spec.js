@@ -1,6 +1,10 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const { visitFullLayoutFixture, captureToggleSnapshot } = require('./support/fixturePage');
+const {
+  visitFullLayoutFixture,
+  visitThemeFixturePage,
+  captureToggleSnapshot,
+} = require('./support/fixturePage');
 
 test.describe('Size parameter support', () => {
   test.beforeEach(async ({ page }) => {
@@ -29,7 +33,8 @@ test.describe('Size parameter support', () => {
   });
 
   test('MU-116: footer accepts size="small" and applies smaller styling', async ({ page }) => {
-    const footerHost = page.locator('mpr-footer#page-footer');
+    await visitThemeFixturePage(page);
+    const footerHost = page.locator('mpr-footer#fixture-footer');
     await expect(footerHost).toBeVisible();
 
     // Reset to normal explicitely
@@ -107,7 +112,7 @@ test.describe('Size parameter support', () => {
     expect(initialSnapshot.boxShadow).toBe('none');
 
     await toggle.click();
-    await page.waitForTimeout(50);
+    await page.waitForTimeout(200);
 
     const toggledSnapshot = await captureToggleSnapshot(page, toggleSelector);
     expect(toggledSnapshot.boxShadow).toBe('none');
@@ -137,5 +142,32 @@ test.describe('Size parameter support', () => {
     if (smallBox && normalBox) {
         expect(smallBox.width / normalBox.width).toBeCloseTo(0.7, 1);
     }
+  });
+
+});
+
+test.describe('Theme toggle travel', () => {
+  test.beforeEach(async ({ page }) => {
+    await visitThemeFixturePage(page);
+  });
+
+  test('MU-370: footer toggle (switch) in small mode travels the full track', async ({ page }) => {
+    const footerHost = page.locator('mpr-footer#fixture-footer');
+    await expect(footerHost).toBeVisible();
+
+    await footerHost.evaluate(el => {
+      el.setAttribute('size', 'small');
+    });
+
+    const toggleSelector =
+      'mpr-footer#fixture-footer input[type="checkbox"][data-mpr-theme-toggle="control"]';
+    const toggle = footerHost.locator('input[type="checkbox"][data-mpr-theme-toggle="control"]');
+    await expect(toggle).toBeVisible();
+
+    await toggle.click();
+    await page.waitForTimeout(200);
+
+    const toggledSnapshot = await captureToggleSnapshot(page, toggleSelector);
+    expect(Math.abs(toggledSnapshot.translateX - toggledSnapshot.expectedTravel)).toBeLessThanOrEqual(1.5);
   });
 });

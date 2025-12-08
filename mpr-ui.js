@@ -1482,27 +1482,28 @@
           return;
         }
         var computed = computeWindow.getComputedStyle(controlElement);
-        var offsetRaw = computed
-          ? computed.getPropertyValue("--mpr-theme-toggle-offset")
-          : null;
-        var borderRaw = computed
-          ? computed.getPropertyValue("border-left-width")
-          : null;
-        var offset = Math.max(
-          0,
-          isFinite(Number(offsetRaw)) ? Number(offsetRaw) : 2,
-        );
-        var borderWidth = Math.max(
-          0,
-          isFinite(Number(borderRaw)) ? Number(borderRaw) : 0,
-        );
-        var knobRaw = computed
-          ? computed.getPropertyValue("--mpr-theme-toggle-knob-size")
-          : null;
-        var knobSize = Math.max(
-          0,
-          isFinite(Number(knobRaw)) ? Number(knobRaw) : parseFloat(knobRaw) || 0,
-        );
+        var pseudo = computeWindow.getComputedStyle(controlElement, "::before");
+        var offset = 0;
+        if (pseudo) {
+          var offsetValue = parseFloat(pseudo.getPropertyValue("left"));
+          if (Number.isFinite(offsetValue)) {
+            offset = Math.max(0, offsetValue);
+          }
+        }
+        var borderWidth = 0;
+        if (computed) {
+          var borderValue = parseFloat(computed.getPropertyValue("border-left-width"));
+          if (Number.isFinite(borderValue)) {
+            borderWidth = Math.max(0, borderValue);
+          }
+        }
+        var knobSize = 0;
+        if (pseudo) {
+          var knobValue = parseFloat(pseudo.getPropertyValue("width"));
+          if (Number.isFinite(knobValue)) {
+            knobSize = Math.max(0, knobValue);
+          }
+        }
         var travel = rect.width - knobSize - (offset + borderWidth) * 2;
         if (travel > 0 && controlElement.style) {
           controlElement.style.setProperty("--mpr-theme-toggle-travel", travel + "px");

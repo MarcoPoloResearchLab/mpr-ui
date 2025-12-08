@@ -803,7 +803,7 @@ test.describe('Default theme toggle behaviours', () => {
 
     const toggledSnapshot = await captureToggleSnapshot(page, control);
     expect(toggledSnapshot.boxShadow).toBe('none');
-    expect(Math.abs(toggledSnapshot.translateX - toggledSnapshot.travelDistance)).toBeLessThanOrEqual(0.5);
+    expect(Math.abs(toggledSnapshot.translateX - toggledSnapshot.expectedTravel)).toBeLessThanOrEqual(0.5);
     expect(toggledSnapshot.borderWidth).toBe(0);
   });
 
