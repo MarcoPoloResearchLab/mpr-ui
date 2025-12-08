@@ -761,6 +761,35 @@ test.describe('Default theme toggle behaviours', () => {
     expect(resetMode).toBe(baselineMode);
   });
 
+  test('MU-369: default toggle wrapper renders without a halo', async ({ page }) => {
+    const snapshot = await page.evaluate((wrapperSelector) => {
+      const wrapper = document.querySelector(wrapperSelector);
+      if (!wrapper) {
+        return null;
+      }
+      const style = window.getComputedStyle(wrapper);
+      return {
+        background: style.getPropertyValue('background-color'),
+        borderRadius: style.getPropertyValue('border-radius'),
+        boxShadow: style.getPropertyValue('box-shadow'),
+        paddingTop: style.getPropertyValue('padding-top'),
+        paddingRight: style.getPropertyValue('padding-right'),
+        paddingBottom: style.getPropertyValue('padding-bottom'),
+        paddingLeft: style.getPropertyValue('padding-left'),
+      };
+    }, footerThemeWrapper);
+    expect(snapshot).not.toBeNull();
+    if (snapshot) {
+      expect(snapshot.background).toBe('rgba(0, 0, 0, 0)');
+      expect(snapshot.borderRadius).toBe('0px');
+      expect(snapshot.boxShadow).toBe('none');
+      expect(snapshot.paddingTop).toBe('0px');
+      expect(snapshot.paddingRight).toBe('0px');
+      expect(snapshot.paddingBottom).toBe('0px');
+      expect(snapshot.paddingLeft).toBe('0px');
+    }
+  });
+
   test('MU-321: default toggle knob aligns without halos', async ({ page }) => {
     const control = footerThemeControl;
     const initialSnapshot = await captureToggleSnapshot(page, control);

@@ -4,6 +4,7 @@
 
 ### Bug Fixes 🐛
 - MU-336: Fixed visual glitch in footer theme toggle when `size="small"` is used; removed conflicting JS-injected `::after` pseudo-element and implemented correct CSS variable overrides for scaling.
+- MU-369: Removed the footer theme toggle halo by flattening the wrapper styles (no background, padding, or border radius) and added Playwright coverage that asserts the switch host reports transparent background/zero padding.
 
 ## [v2.1.0]
 

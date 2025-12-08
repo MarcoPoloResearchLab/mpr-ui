@@ -305,6 +305,21 @@ footer.mpr-footer [data-mpr-footer="brand"] {
   font-size: calc(0.95rem * var(--mpr-footer-scale, 1));
   margin-left: auto;
 }
+
+footer.mpr-footer [data-mpr-footer="theme-toggle"] {
+  display: inline-flex;
+  align-items: center;
+  gap: calc(0.6rem * var(--mpr-footer-scale, 1));
+  background: transparent;
+  border-radius: 0;
+  padding: 0;
+  color: var(--mpr-color-text-primary, #e2e8f0);
+  font-size: calc(0.85rem * var(--mpr-footer-scale, 1));
+  cursor: pointer;
+  box-shadow: none;
+  border: none;
+}
+
 [data-mpr-modal="container"] {
   position: fixed;
   top: var(--mpr-modal-top-offset, 72px);
