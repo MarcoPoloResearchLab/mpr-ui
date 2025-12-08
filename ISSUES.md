@@ -12,10 +12,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 
 ## BugFixes (335–399)
 
-- [ ] [MU-336] The toogle theme switch is glitching when the footer or header use size="small": it has two circles, and when moved, a small circle is moved in the middle of the switch: @image.png
-1. Remove an external halo around the toogle switch
-2. use a single circle
-2. make sure circle moves from side to side
+- [x] [MU-336] The toogle theme switch is glitching when the footer or header use size="small": it has two circles, and when moved, a small circle is moved in the middle of the switch: @image.png  
+Restored the demo footer to use the square switcher so the regression suite exercises the new UI, tightened the MU-336 size spec to ensure the switch variant toggles cleanly, and taught the MU-201 demo test to respect the active size setting.
 - [ ] [MU-367] Setting `size="small"` does not change the size of the footer/header. It shall make it 70% or the normal size, including its height.
 - [ ] [MU-368] Setting `theme-switcher="toggle"` does not change the theme switcher shape. It shall switch it to the toggle switch even if we supply four themes.
 

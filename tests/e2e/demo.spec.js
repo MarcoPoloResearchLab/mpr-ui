@@ -116,6 +116,11 @@ test.describe('Demo behaviours', () => {
   });
 
   test('MU-201: square footer switcher collapses into a single-quadrant footprint', async ({ page }) => {
+    const toggleSize = await page.$eval(
+      'mpr-footer#page-footer',
+      (element) => element.getAttribute('size') || 'normal',
+    );
+    const isSmall = toggleSize.toLowerCase() === 'small';
     const metrics = await page.$eval(footerThemeControl, (control) => {
       const grid = control.querySelector('[data-mpr-theme-toggle="grid"]');
       const dot = control.querySelector('[data-mpr-theme-toggle="dot"]');
@@ -135,10 +140,12 @@ test.describe('Demo behaviours', () => {
     });
     expect(metrics).not.toBeNull();
     if (metrics) {
-      expect(metrics.size).toBe('28px');
-      expect(metrics.dotSize).toBe('6px');
-      expect(metrics.width).toBeCloseTo(28, 0);
-      expect(metrics.height).toBeCloseTo(28, 0);
+      const expectedSize = isSmall ? 22 : 28;
+      const expectedDot = isSmall ? '4px' : '6px';
+      expect(metrics.size).toBe(`${expectedSize}px`);
+      expect(metrics.dotSize).toBe(expectedDot);
+      expect(metrics.width).toBeCloseTo(expectedSize, 0);
+      expect(metrics.height).toBeCloseTo(expectedSize, 0);
     }
   });
 

@@ -1,6 +1,6 @@
 // @ts-check
 const { test, expect } = require('@playwright/test');
-const { visitFullLayoutFixture } = require('./support/demoPage');
+const { visitFullLayoutFixture, captureToggleSnapshot } = require('./support/demoPage');
 
 test.describe('Size parameter support', () => {
   test.beforeEach(async ({ page }) => {
@@ -70,7 +70,8 @@ test.describe('Size parameter support', () => {
     await footerHost.evaluate(el => el.setAttribute('theme-switcher', 'toggle'));
     await footerHost.evaluate(el => el.setAttribute('size', 'small'));
 
-    const toggle = footerHost.locator('input[type="checkbox"][data-mpr-theme-toggle="control"]');
+    const toggleSelector = 'input[type="checkbox"][data-mpr-theme-toggle="control"]';
+    const toggle = footerHost.locator(toggleSelector);
     await expect(toggle).toBeVisible();
 
     const box = await toggle.boundingBox();
@@ -79,6 +80,19 @@ test.describe('Size parameter support', () => {
       expect(box.width).toBeCloseTo(34, 1);
       expect(box.height).toBeCloseTo(20, 1);
     }
+
+    const initialState = await toggle.evaluate(el => el.checked);
+    const initialSnapshot = await captureToggleSnapshot(page, toggleSelector);
+    expect(initialSnapshot.variant).toBe('switch');
+    expect(initialSnapshot.boxShadow).toBe('none');
+
+    await toggle.click();
+    await page.waitForTimeout(50);
+
+    const toggledSnapshot = await captureToggleSnapshot(page, toggleSelector);
+    expect(toggledSnapshot.boxShadow).toBe('none');
+    const toggledState = await toggle.evaluate(el => el.checked);
+    expect(toggledState).not.toBe(initialState);
   });
 
   test('MU-336: footer toggle (square) in small mode should be smaller', async ({ page }) => {
