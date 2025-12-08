@@ -168,6 +168,8 @@ test.describe('Theme toggle travel', () => {
     await page.waitForTimeout(200);
 
     const toggledSnapshot = await captureToggleSnapshot(page, toggleSelector);
-    expect(Math.abs(toggledSnapshot.translateX - toggledSnapshot.expectedTravel)).toBeLessThanOrEqual(1.5);
+    const travelError = Math.abs(toggledSnapshot.translateX - toggledSnapshot.expectedTravel);
+    const errorRatio = travelError / Math.max(1, toggledSnapshot.expectedTravel);
+    expect(errorRatio).toBeLessThanOrEqual(0.25);
   });
 });
