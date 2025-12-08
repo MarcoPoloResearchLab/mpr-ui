@@ -69,6 +69,40 @@ test.describe('Workbench behaviours', () => {
     }
   });
 
+  test('MU-367: header and footer shrink when size="small"', async ({ page }) => {
+    const headerHost = page.locator('mpr-header#workbench-header');
+    const footerHost = page.locator('mpr-footer#page-footer');
+    await expect(headerHost).toBeVisible();
+    await expect(footerHost).toBeVisible();
+
+    await headerHost.evaluate(element => element.setAttribute('size', 'normal'));
+    await footerHost.evaluate(element => element.setAttribute('size', 'normal'));
+
+    const headerNormal = await headerHost.evaluate(element => element.offsetHeight);
+    const footerNormal = await footerHost.evaluate(element => {
+      const footer = element.querySelector('footer.mpr-footer');
+      return footer ? footer.getBoundingClientRect().height : 0;
+    });
+
+    await headerHost.evaluate(element => element.setAttribute('size', 'small'));
+    await footerHost.evaluate(element => element.setAttribute('size', 'small'));
+
+    const headerSmall = await headerHost.evaluate(element => element.offsetHeight);
+    const footerSmall = await footerHost.evaluate(element => {
+      const footer = element.querySelector('footer.mpr-footer');
+      return footer ? footer.getBoundingClientRect().height : 0;
+    });
+
+    const headerRatio = headerSmall / headerNormal;
+    const footerRatio = footerSmall / footerNormal;
+    expect(headerSmall).toBeLessThan(headerNormal);
+    expect(headerRatio).toBeGreaterThan(0.6);
+    expect(headerRatio).toBeLessThan(0.8);
+    expect(footerSmall).toBeLessThan(footerNormal);
+    expect(footerRatio).toBeGreaterThan(0.6);
+    expect(footerRatio).toBeLessThan(0.8);
+  });
+
   test('MU-307: renders the Google Sign-In button with a valid client id', async ({ page }) => {
     await expect(page.locator(googleButton)).toBeVisible({ timeout: 3000 });
     const googleConfig = await page.evaluate(() => window.__googleInitConfig ?? null);
