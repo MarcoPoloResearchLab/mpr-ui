@@ -141,6 +141,79 @@ Reusable catalog renderer for the Marco Polo Research Lab sites (or your own JSO
 
 **Events:** `mpr-sites:link-click` with `{ label, url, target, rel, index }`.
 
+### `<mpr-band>`
+
+Themed container that applies the bundled palettes and spacing while leaving your layout untouched. It no longer renders cards itself; drop any markup (Bootstrap grids, hero copy, `<mpr-card>` instances) inside the element and it will inherit the palette.
+
+| Attribute | Type | Description |
+| --- | --- | --- |
+| `category` | `"research" \| "tools" \| "platform" \| "products" \| "custom"` | Picks one of the preset palettes. Defaults to `custom`. |
+| `theme` | `JSON` | `{ background, panel, panelAlt, text, muted, accent, border, shadow, lineTop, lineBottom }`. Overrides the palette tokens so you can align with site branding. |
+
+If you need sample card data, call `MPRUI.getBandProjectCatalog()` (the helper returns a fresh copy of the packaged Marco Polo Research Lab catalog).
+
+**Slots:** default slot (all light DOM content is preserved).
+
+**Events:** — (card-specific events now live on `<mpr-card>`).
+
+**Example**
+
+```html
+<mpr-band
+  theme='{
+    "background": "var(--mpr-color-surface-primary, rgba(248, 250, 252, 0.95))",
+    "panel": "var(--mpr-color-surface-elevated, rgba(255, 255, 255, 0.98))",
+    "text": "var(--mpr-color-text-primary, #0f172a)",
+    "border": "rgba(148, 163, 184, 0.35)"
+  }'
+>
+  <div class="row">
+    <!-- Bootstrap grid / custom content -->
+  </div>
+</mpr-band>
+```
+
+### `<mpr-card>`
+
+Standalone card renderer (front/back surfaces, optional LoopAware subscribe overlay, CTA) that you can place inside bands or anywhere else on the page.
+
+| Attribute | Type | Description |
+| --- | --- | --- |
+| `card` | `JSON` | `{ id, title, description, status, url, icon, subscribe }`. Matches the DSL previously embedded in `<mpr-band>`. |
+| `theme` | `JSON` | `{ background, panel, text, accent, border, shadow }` overrides to align the card with your palette. |
+
+**Slots:** — (the component renders its own layout).
+
+**Events:**
+
+- `mpr-card:card-toggle` — fired when the card flips (detail `{ cardId, flipped }`).
+- `mpr-card:subscribe-ready` — fired when the optional subscribe iframe has loaded (detail `{ cardId }`).
+
+**Example**
+
+```html
+<mpr-card
+  card='{
+    "id": "card-demo",
+    "title": "Standalone Card",
+    "description": "Renders anywhere without a band DSL.",
+    "status": "production",
+    "url": "https://mprlab.com"
+  }'
+></mpr-card>
+```
+
+## Restyling & palette overrides
+
+The bundle exposes every colour and spacing token via CSS custom properties (e.g., `--mpr-color-surface-primary`, `--mpr-color-accent`, `--mpr-theme-toggle-knob-bg`). To restyle components:
+
+1. Scope overrides on `:root`, `body`, or any wrapper. Components inherit those variables automatically.
+2. Use `theme-config` / `data-theme-toggle` to define multiple modes. Each mode can set `attributeValue`, `classList`, and `dataset` entries (for example, `{"dataset":{"demo-palette":"sunrise"}}`). When the user switches modes, the manager writes those values to every configured target so you can target selectors like `body[data-demo-palette="sunrise"]`.
+3. For header/footer-specific tweaks, use the dataset-driven class overrides (`data-wrapper-class`, `data-brand-wrapper-class`, etc.) to attach your own utility classes.
+4. For cards/bands, provide a `theme` JSON payload to set `background`, `panel`, `text`, `accent`, `lineTop`, `lineBottom`, etc. Those keys map directly to the shared CSS variables, so band/card colours stay in sync with the active site palette.
+
+See `README.md` (“Theme Management” + “Restyling components with custom palettes”) and `demo/demo.css` for concrete palette examples used by the test workbench.
+
 ## Migration Cheatsheet (≤0.1.x only)
 
 | Previous integration (removed in v0.2.0) | Declarative equivalent |

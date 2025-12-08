@@ -597,6 +597,8 @@
     "--mpr-color-accent:#38bdf8;" +
     "--mpr-color-accent-alt:#22d3ee;" +
     "--mpr-color-accent-contrast:#0f172a;" +
+    "--mpr-theme-toggle-knob-bg:#e2e8f0;" +
+    "--mpr-theme-toggle-knob-active:#0f172a;" +
     "--mpr-theme-toggle-bg:rgba(148,163,184,0.15);" +
     "--mpr-shadow-elevated:0 4px 12px rgba(15,23,42,0.45);" +
     "--mpr-shadow-flyout:0 12px 24px rgba(15,23,42,0.45);" +
@@ -615,6 +617,8 @@
     "--mpr-color-accent:#38bdf8;" +
     "--mpr-color-accent-alt:#22d3ee;" +
     "--mpr-color-accent-contrast:#0f172a;" +
+    "--mpr-theme-toggle-knob-bg:#e2e8f0;" +
+    "--mpr-theme-toggle-knob-active:#0f172a;" +
     "--mpr-theme-toggle-bg:rgba(148,163,184,0.15);" +
     "--mpr-shadow-elevated:0 4px 12px rgba(15,23,42,0.45);" +
     "--mpr-shadow-flyout:0 12px 24px rgba(15,23,42,0.45);" +
@@ -633,6 +637,8 @@
     "--mpr-color-accent:#0284c7;" +
     "--mpr-color-accent-alt:#0ea5e9;" +
     "--mpr-color-accent-contrast:#f8fafc;" +
+    "--mpr-theme-toggle-knob-bg:#0f172a;" +
+    "--mpr-theme-toggle-knob-active:#e2e8f0;" +
     "--mpr-theme-toggle-bg:rgba(14,165,233,0.12);" +
     "--mpr-shadow-elevated:0 8px 16px rgba(15,23,42,0.18);" +
     "--mpr-shadow-flyout:0 16px 32px rgba(15,23,42,0.18);" +
@@ -1482,27 +1488,28 @@
           return;
         }
         var computed = computeWindow.getComputedStyle(controlElement);
-        var offsetRaw = computed
-          ? computed.getPropertyValue("--mpr-theme-toggle-offset")
-          : null;
-        var borderRaw = computed
-          ? computed.getPropertyValue("border-left-width")
-          : null;
-        var offset = Math.max(
-          0,
-          isFinite(Number(offsetRaw)) ? Number(offsetRaw) : 2,
-        );
-        var borderWidth = Math.max(
-          0,
-          isFinite(Number(borderRaw)) ? Number(borderRaw) : 0,
-        );
-        var knobRaw = computed
-          ? computed.getPropertyValue("--mpr-theme-toggle-knob-size")
-          : null;
-        var knobSize = Math.max(
-          0,
-          isFinite(Number(knobRaw)) ? Number(knobRaw) : parseFloat(knobRaw) || 0,
-        );
+        var pseudo = computeWindow.getComputedStyle(controlElement, "::before");
+        var offset = 0;
+        if (pseudo) {
+          var offsetValue = parseFloat(pseudo.getPropertyValue("left"));
+          if (Number.isFinite(offsetValue)) {
+            offset = Math.max(0, offsetValue);
+          }
+        }
+        var borderWidth = 0;
+        if (computed) {
+          var borderValue = parseFloat(computed.getPropertyValue("border-left-width"));
+          if (Number.isFinite(borderValue)) {
+            borderWidth = Math.max(0, borderValue);
+          }
+        }
+        var knobSize = 0;
+        if (pseudo) {
+          var knobValue = parseFloat(pseudo.getPropertyValue("width"));
+          if (Number.isFinite(knobValue)) {
+            knobSize = Math.max(0, knobValue);
+          }
+        }
         var travel = rect.width - knobSize - (offset + borderWidth) * 2;
         if (travel > 0 && controlElement.style) {
           controlElement.style.setProperty("--mpr-theme-toggle-travel", travel + "px");

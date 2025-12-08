@@ -328,15 +328,13 @@ async function captureToggleSnapshot(page, selector) {
     const transform = pseudo.getPropertyValue('transform');
     const translateX = parseTranslateX(transform);
     const knobWidth = toFloat(pseudo.getPropertyValue('width'), 0);
-    const offset = toFloat(control.getPropertyValue('--mpr-theme-toggle-offset'), 2);
-    const trackWidth =
-      toFloat(control.getPropertyValue('--mpr-theme-toggle-track-width'), Number.NaN) ||
-      element.getBoundingClientRect().width ||
-      0;
+    const offset = toFloat(pseudo.getPropertyValue('left'), 0);
+    const trackWidth = element.getBoundingClientRect().width || 0;
     const travelVar = toFloat(control.getPropertyValue('--mpr-theme-toggle-travel'), Number.NaN);
     const travelDistance = Number.isFinite(travelVar)
       ? travelVar
       : trackWidth - knobWidth - offset * 2;
+    const expectedTravel = Math.max(0, trackWidth - knobWidth - offset * 2);
     const borderWidth = toFloat(control.getPropertyValue('border-top-width'), 0);
 
     return {
@@ -348,6 +346,7 @@ async function captureToggleSnapshot(page, selector) {
       ),
       translateX,
       travelDistance,
+      expectedTravel,
       boxShadow: (pseudo.getPropertyValue('box-shadow') || 'none').trim(),
       borderWidth,
     };
