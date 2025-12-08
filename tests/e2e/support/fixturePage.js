@@ -76,6 +76,9 @@ const FOOTER_MULTIMODE_SQUARE_FIXTURE_URL = pathToFileURL(
 const FOOTER_MULTIMODE_CONFLICT_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-multimode-conflict.html'),
 ).href;
+const FOOTER_TOGGLE_DEMO_CONFIG_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-toggle-demo-config.html'),
+).href;
 const BAND_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/band-default.html'),
 ).href;
@@ -204,6 +207,20 @@ async function visitFooterMultimodeConflictFixture(page) {
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
   ]);
   await page.goto(FOOTER_MULTIMODE_CONFLICT_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the footer fixture that mirrors the documented demo configuration.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitFooterToggleDemoConfigFixture(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(FOOTER_TOGGLE_DEMO_CONFIG_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
 }
 
@@ -423,6 +440,7 @@ module.exports = {
   visitFooterMultimodeToggleFixture,
   visitFooterMultimodeSquareFixture,
   visitFooterMultimodeConflictFixture,
+  visitFooterToggleDemoConfigFixture,
   visitBandFixturePage,
   visitCardFixturePage,
   captureToggleSnapshot,

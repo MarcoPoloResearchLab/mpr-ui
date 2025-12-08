@@ -5,6 +5,7 @@ const {
   visitFooterMultimodeToggleFixture,
   visitFooterMultimodeSquareFixture,
   visitFooterMultimodeConflictFixture,
+  visitFooterToggleDemoConfigFixture,
   captureToggleSnapshot,
 } = require('./support/fixturePage');
 
@@ -29,6 +30,26 @@ test.describe('Footer theme switcher overrides', () => {
     await page.waitForTimeout(200);
     const afterMode = await page.evaluate(() => document.body.getAttribute('data-test-theme'));
     expect(afterMode).not.toBe(initialMode);
+  });
+
+  test('MU-368: documented demo configuration renders the toggle switch', async ({ page }) => {
+    await visitFooterToggleDemoConfigFixture(page);
+
+    const toggleHost = page.locator(
+      'mpr-footer#demo-config-footer [data-mpr-footer="theme-toggle"]',
+    );
+    await expect(toggleHost).toBeVisible();
+    await expect(toggleHost).toHaveAttribute('data-mpr-theme-toggle-variant', 'switch');
+
+    const control = page.locator(
+      'mpr-footer#demo-config-footer input[type="checkbox"][data-mpr-theme-toggle="control"]',
+    );
+    await expect(control).toBeVisible();
+    const snapshot = await captureToggleSnapshot(
+      page,
+      'mpr-footer#demo-config-footer input[type="checkbox"][data-mpr-theme-toggle="control"]',
+    );
+    expect(snapshot.variant).toBe('switch');
   });
 
   test('MU-368: switching from square to toggle re-renders the binary control', async ({ page }) => {
