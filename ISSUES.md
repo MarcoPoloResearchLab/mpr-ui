@@ -26,6 +26,7 @@ Propagated `--mpr-header-scale`/`--mpr-footer-scale` custom properties so every 
 - [x] [MU-416] Audit mpr-ui library. Ensure we are not shipping demo-related code. Ensure that demo is shipped using the built-in capabilities. In case there are gaps => open new issues for them. We shall have no demo css or css for the elements that we dont ship (main etc). — Demo-only selectors moved to `demo/demo.css`, all demo pages/fixtures load it, and unit tests now guard that the packaged stylesheet contains component rules only.
 - [x] [MU-417] Playwright suites must not use the demo pages; mirror the scenarios through dedicated fixtures only.  
 Replaced demo references with a self-contained workbench fixture (`tests/e2e/fixtures/workbench.html`), updated helpers/specs to use it, and removed the lingering `demo.css` dependency from the theme toggle fixture.
+- [x] [MU-418] README and docs/custom-elements diverged (missing `<mpr-band>`/`<mpr-card>` coverage, no palette restyling guidance). — Synced README + docs/custom-elements with band/card sections and added a restyling walkthrough referencing CSS tokens and demo palettes.
 
 ## Planning
 *Do not work on these, not ready*
