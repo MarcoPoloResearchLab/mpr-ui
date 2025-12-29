@@ -10,6 +10,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 
 ## Improvements (220–299)
 
+- [x] [MU-423] Require `tenant-id` for TAuth auth flows so every nonce/login/logout call carries `X-TAuth-Tenant`; updated demos, fixtures, docs, and tests to align with the requirement.
+
 ## BugFixes (335–399)
 
 - [x] [MU-336] The toogle theme switch is glitching when the footer or header use size="small": it has two circles, and when moved, a small circle is moved in the middle of the switch: @image.png  

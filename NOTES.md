@@ -101,3 +101,7 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
     3. Plan the required changes to close the open issues. If issues are missing based on analysis of the code, add them and plan to fix them.
     4. Use PLAN.md for an individual issue to plan the fix
     5. Read the documentation of gthe 3rd party libraries before implementing changes
+
+## 2025-12-29
+
+- MU-423: required `tenant-id` for TAuth auth flows, passed the tenant into helper + fetch headers, and updated demos/docs/tests. Tests: `npm test`.

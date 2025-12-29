@@ -39,6 +39,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
      brand-href="/"
      nav-links='[{ "label": "Docs", "href": "#docs" }]'
      site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+     tenant-id="mpr-sites"
      login-path="/auth/google"
      logout-path="/auth/logout"
      nonce-path="/auth/nonce"
@@ -53,7 +54,10 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
    ></mpr-footer>
 
    <mpr-theme-toggle></mpr-theme-toggle>
-   <mpr-login-button site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"></mpr-login-button>
+   <mpr-login-button
+     site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+     tenant-id="mpr-sites"
+   ></mpr-login-button>
    <mpr-settings label="Settings"></mpr-settings>
    <mpr-sites heading="Explore"></mpr-sites>
    ```
@@ -74,7 +78,8 @@ Need a single source of truth for the shutdown plan? See [`docs/deprecation-road
 2. Load `mpr-ui.js` after styles so the bundle can register custom elements immediately on import. No Alpine wiring is required; the Web Components DSL is the only public API.
 3. When authenticating via TAuth, include `http://localhost:8080/tauth.js` (or your deployed origin) before `mpr-ui.js` so `initAuthClient`, `logout`, `getCurrentUser`, and the nonce/exchange helpers are defined.
 4. Always include Google Identity Services (`https://accounts.google.com/gsi/client`) so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
-5. Point `base-url`, `login-path`, `logout-path`, and `nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
+5. Set `tenant-id` to the tenant configured in TAuth; the auth header will not initialize without it.
+6. Point `base-url`, `login-path`, `logout-path`, and `nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
 
 See [`docs/integration-guide.md`](docs/integration-guide.md) for the complete walkthrough plus troubleshooting guidance. For a deep dive into how the demo page wires GIS, `mpr-ui`, and TAuth (including nonce handling), see [`docs/demo-index-auth.md`](docs/demo-index-auth.md).
 
@@ -94,7 +99,7 @@ Need a working authentication backend without wiring your own server? `demo/taut
 
    The template already enables CORS (`APP_ENABLE_CORS=true`, `APP_CORS_ALLOWED_ORIGINS=http://localhost:8000`) and insecure HTTP for local development (`APP_DEV_INSECURE_HTTP=true`). The sample DSN (`sqlite:///data/tauth.db`) stores refresh tokens inside the `tauth_data` volume so restarting the container does not wipe sessions. The Compose file also sets this DSN explicitly to avoid host-path issues.
 
-   After setting `APP_GOOGLE_WEB_CLIENT_ID`, mirror the same value into `demo/tauth-config.js` (`googleClientId`). The header and TAuth must share the exact client ID; otherwise Google Identity Services rejects the origin and the button stays in an error state. When running on plain HTTP (the Compose demo), keep `APP_DEV_INSECURE_HTTP=true` so TAuth drops the `Secure` flag from cookies; Safari ignores Secure cookies over HTTP.
+   After setting `APP_GOOGLE_WEB_CLIENT_ID`, mirror the same value into `demo/tauth-config.js` (`googleClientId`). The header and TAuth must share the exact client ID; otherwise Google Identity Services rejects the origin and the button stays in an error state. Set `tenantId` in `demo/tauth-config.js` to a tenant configured in TAuth (the demo container uses `mpr-sites`). When running on plain HTTP (the Compose demo), keep `APP_DEV_INSECURE_HTTP=true` so TAuth drops the `Secure` flag from cookies; Safari ignores Secure cookies over HTTP.
 
 2. Bring the stack up:
 

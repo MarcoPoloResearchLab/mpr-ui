@@ -37,7 +37,8 @@ Sticky site header with navigation, Google Identity Services button, settings CT
 | --- | --- | --- |
 | `brand-label` / `brand-href` | `string` | Sets the brand copy and URL for the heading. |
 | `nav-links` | `JSON` | Array of `{ label, href, target? }`. |
-| `site-id` | `string` | Google Identity Services client ID. Falls back to the bundled demo ID when omitted. |
+| `site-id` | `string` | Google Identity Services client ID. Required for auth flows. |
+| `tenant-id` | `string` | TAuth tenant identifier. Required whenever auth is enabled. |
 | `login-path`, `logout-path`, `nonce-path`, `base-url` | `string` | Auth endpoints wired into `createAuthHeader`. |
 | `auth-config` | `JSON` | Full object passed to `createAuthHeader` (takes precedence over individual path attributes). |
 | `theme-config`, `theme-mode` | `JSON` / `string` | Configures the shared theme manager (no toggle is rendered; use the footer or `<mpr-theme-toggle>` for user controls). |
@@ -45,7 +46,7 @@ Sticky site header with navigation, Google Identity Services button, settings CT
 | `sign-in-label`, `sign-out-label`, `profile-label` | `string` | Override localized copy. |
 | `sticky` | `boolean` attribute | Controls sticky positioning (case-insensitive `true`/`false`). Default `true` keeps the header viewport-pinned; set `false` to render it in document flow. |
 
-When `tauth.js` is present, `mpr-ui` passes a base URL into `initAuthClient`. If `base-url` is omitted and the backend shares the page origin, `mpr-ui` supplies `window.location.origin` so `tauth.js` can initialize without errors.
+When `tauth.js` is present, `mpr-ui` passes `base-url` and `tenant-id` into `initAuthClient`, and includes the tenant ID in every auth request.
 
 **Slots**
 
@@ -62,6 +63,7 @@ When `tauth.js` is present, `mpr-ui` passes a base URL into `initAuthClient`. If
   brand-label="Marco Polo Research Lab"
   nav-links='[{ "label": "Docs", "href": "#docs" }]'
   site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+  tenant-id="mpr-sites"
   login-path="/auth/google"
   logout-path="/auth/logout"
   nonce-path="/auth/nonce"
@@ -108,7 +110,8 @@ Renders the Google Identity Services button without the rest of the header.
 
 | Attribute | Type | Description |
 | --- | --- | --- |
-| `site-id` | `string` | GIS client ID. Required unless you rely on the fallback demo ID. |
+| `site-id` | `string` | GIS client ID. Required for auth flows. |
+| `tenant-id` | `string` | TAuth tenant identifier. Required whenever auth is enabled. |
 | `login-path`, `logout-path`, `nonce-path`, `base-url` | `string` | Auth endpoints. |
 | `button-text`, `button-size`, `button-theme`, `button-shape` | `string` | Passed directly to `google.accounts.id.renderButton`. |
 

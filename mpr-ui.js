@@ -10,6 +10,7 @@
     logoutPath: "/auth/logout",
     noncePath: "/auth/nonce",
     googleClientId: "",
+    tenantId: "",
     siteName: "",
     siteLink: "",
   };
@@ -23,6 +24,7 @@
 
   var GOOGLE_IDENTITY_SCRIPT_URL = "https://accounts.google.com/gsi/client";
   var GOOGLE_SITE_ID_ERROR_CODE = "mpr-ui.google_site_id_required";
+  var TENANT_ID_ERROR_CODE = "mpr-ui.tenant_id_required";
   var googleIdentityPromise = null;
 
   function normalizeGoogleSiteId(value) {
@@ -43,6 +45,28 @@
     var normalized = normalizeGoogleSiteId(value);
     if (!normalized) {
       throw createGoogleSiteIdError();
+    }
+    return normalized;
+  }
+
+  function normalizeTenantId(value) {
+    if (typeof value !== "string") {
+      return null;
+    }
+    var trimmed = value.trim();
+    return trimmed ? trimmed : null;
+  }
+
+  function createTenantIdError(message) {
+    var error = new Error(message || "Tenant ID is required");
+    error.code = TENANT_ID_ERROR_CODE;
+    return error;
+  }
+
+  function requireTenantId(value) {
+    var normalized = normalizeTenantId(value);
+    if (!normalized) {
+      throw createTenantIdError();
     }
     return normalized;
   }
@@ -198,6 +222,7 @@
     "settings-enabled": "settingsEnabled",
     "settings": "settingsEnabled",
     "site-id": "siteId",
+    "tenant-id": "tenantId",
     "theme-config": "themeToggle",
     "theme-mode": "themeMode",
     "sign-in-label": "signInLabel",
@@ -263,6 +288,7 @@
   ]);
   var LOGIN_BUTTON_ATTRIBUTE_NAMES = Object.freeze([
     "site-id",
+    "tenant-id",
     "login-path",
     "logout-path",
     "nonce-path",
@@ -408,6 +434,8 @@
         hostElement.getAttribute("nonce-path") || DEFAULT_OPTIONS.noncePath,
       googleClientId:
         hostElement.getAttribute("site-id") || DEFAULT_OPTIONS.googleClientId,
+      tenantId:
+        hostElement.getAttribute("tenant-id") || DEFAULT_OPTIONS.tenantId,
     };
   }
 
@@ -1920,6 +1948,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (dataset.siteId) {
       options.siteId = dataset.siteId;
     }
+    if (dataset.tenantId) {
+      options.tenantId = dataset.tenantId;
+    }
     if (dataset.themeToggle) {
       options.themeToggle = parseJsonValue(dataset.themeToggle, {});
     }
@@ -2208,6 +2239,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     var options = Object.assign({}, DEFAULT_OPTIONS, rawOptions || {});
     options.googleClientId = requireGoogleSiteId(options.googleClientId);
+    options.tenantId = requireTenantId(options.tenantId);
     var state = {
       status: "unauthenticated",
       profile: null,
@@ -2218,6 +2250,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var lastAuthenticatedSignature = null;
     var pendingNonceToken = null;
     var nonceRequestPromise = null;
+
+    function configureTenantId() {
+      if (typeof global.setAuthTenantId === "function") {
+        global.setAuthTenantId(options.tenantId);
+      }
+    }
 
     function resolveAuthBaseUrl() {
       if (typeof options.baseUrl === "string") {
@@ -2244,15 +2282,21 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return error.message.indexOf("tauth.missing_base_url") !== -1;
     }
 
+    function withTenantHeader(headers) {
+      var combined = Object.assign({}, headers || {});
+      combined["X-TAuth-Tenant"] = options.tenantId;
+      return combined;
+    }
+
     function requestNonceTokenWithFetch() {
       return global
         .fetch(joinUrl(options.baseUrl, options.noncePath), {
           method: "POST",
           credentials: "include",
-          headers: {
+          headers: withTenantHeader({
             "Content-Type": "application/json",
             "X-Requested-With": "XMLHttpRequest",
-          },
+          }),
         })
         .then(function (response) {
           if (!response || typeof response.json !== "function") {
@@ -2276,6 +2320,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function requestNonceToken() {
+      configureTenantId();
       if (nonceRequestPromise) {
         return nonceRequestPromise;
       }
@@ -2408,10 +2453,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         markUnauthenticated({ emit: false, prompt: false });
         return Promise.resolve();
       }
+      configureTenantId();
       var resolvedBaseUrl = resolveAuthBaseUrl();
       return Promise.resolve(
         global.initAuthClient({
           baseUrl: resolvedBaseUrl,
+          tenantId: options.tenantId,
           onAuthenticated: function (profile) {
             var resolvedProfile = profile || pendingProfile || null;
             if (profile && pendingProfile) {
@@ -2441,10 +2488,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         .fetch(joinUrl(options.baseUrl, options.loginPath), {
           method: "POST",
           credentials: "include",
-          headers: {
+          headers: withTenantHeader({
             "Content-Type": "application/json",
             "X-Requested-With": "XMLHttpRequest",
-          },
+          }),
           body: payload,
         })
         .then(function (response) {
@@ -2461,6 +2508,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function exchangeCredential(credential) {
+      configureTenantId();
       var noncePromise;
       if (pendingNonceToken) {
         noncePromise = Promise.resolve(pendingNonceToken);
@@ -2500,11 +2548,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return global.fetch(joinUrl(options.baseUrl, options.logoutPath), {
         method: "POST",
         credentials: "include",
-        headers: { "X-Requested-With": "XMLHttpRequest" },
+        headers: withTenantHeader({ "X-Requested-With": "XMLHttpRequest" }),
       });
     }
 
     function performLogout() {
+      configureTenantId();
       if (typeof global.logout === "function") {
         return Promise.resolve(global.logout()).catch(function (error) {
           if (shouldFallbackToFetch(error)) {
@@ -2776,6 +2825,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var authOptions =
       options.auth && typeof options.auth === "object" ? options.auth : null;
     var derivedSiteId = normalizeGoogleSiteId(options.siteId);
+    var derivedTenantId = normalizeTenantId(options.tenantId);
     if (authOptions) {
       var authSiteId = normalizeGoogleSiteId(authOptions.googleClientId);
       if (!authSiteId && derivedSiteId) {
@@ -2787,6 +2837,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       if (!derivedSiteId && authSiteId) {
         derivedSiteId = authSiteId;
+      }
+      var authTenantId = normalizeTenantId(authOptions.tenantId);
+      if (!authTenantId && derivedTenantId) {
+        authOptions.tenantId = derivedTenantId;
+        authTenantId = derivedTenantId;
+      }
+      if (!authTenantId) {
+        throw createTenantIdError();
+      }
+      if (!derivedTenantId && authTenantId) {
+        derivedTenantId = authTenantId;
       }
     }
 
@@ -2840,6 +2901,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           ? options.profileLabel.trim()
           : HEADER_DEFAULTS.profileLabel,
       siteId: derivedSiteId,
+      tenantId: derivedTenantId,
       auth: authOptions,
       sticky: stickyValue,
       size: sizeValue,
@@ -6737,7 +6799,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__googleHost = container;
           var authOptions = buildLoginAuthOptionsFromAttributes(this);
           var siteId = normalizeGoogleSiteId(authOptions.googleClientId);
-          if (!siteId) {
+          var tenantId = normalizeTenantId(authOptions.tenantId);
+          if (!siteId || !tenantId) {
             if (
               this.__authController &&
               typeof this.__authController.signOut === "function"
@@ -6752,16 +6815,22 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             this.__googleHost = null;
             this.removeAttribute("data-mpr-google-site-id");
             this.removeAttribute("data-mpr-google-ready");
-            this.setAttribute("data-mpr-google-error", "missing-site-id");
-            var missingSiteIdError = createGoogleSiteIdError();
+            var missingError = !siteId
+              ? createGoogleSiteIdError()
+              : createTenantIdError();
+            this.setAttribute(
+              "data-mpr-google-error",
+              !siteId ? "missing-site-id" : "missing-tenant-id",
+            );
             dispatchEvent(this, "mpr-login:error", {
-              code: missingSiteIdError.code,
-              message: missingSiteIdError.message,
+              code: missingError.code,
+              message: missingError.message,
             });
             return;
           }
           this.removeAttribute("data-mpr-google-error");
           authOptions.googleClientId = siteId;
+          authOptions.tenantId = tenantId;
           this.setAttribute("data-mpr-google-site-id", siteId);
           if (!this.__authController) {
             this.__authController = createAuthHeader(this, authOptions);
