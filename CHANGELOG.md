@@ -1,6 +1,35 @@
 # Changelog
 
-## [Unreleased]
+## [v3.1.1]
+
+### Features ✨
+- Require `tenant-id` for TAuth-backed authentication flows; move tenant validation to the edge.
+- Document the `mpr-ui.tenant_id_required` error and troubleshooting for missing tenant ID.
+
+### Improvements ⚙️
+- Align TAuth integration with updated `tauth.js` helper APIs, including nonce/exchange/logout flows and base-url fallback.
+- Refresh documentation and demo setup to match updated TAuth paths and tenant ID requirements.
+- Update demos, fixtures, and tests to reflect tenant ID contract and new authentication flow.
+
+### Bug Fixes 🐛
+- MU-336: Fixed footer theme toggle visual glitch with `size="small"` by removing conflicting JS-injected styles and adding proper CSS variable overrides.
+- MU-369: Removed footer toggle halo by flattening wrapper styles; added Playwright tests verifying transparent background and padding.
+- MU-370 & MU-371: Corrected theme toggle knob color to ensure proper contrast and fixed toggle travel distance; covered by Playwright tests.
+- MU-331: Retired `<mpr-band>` card/header DSL; element now acts purely as a themed container.
+- MU-421: Refactored `<mpr-card>` rendering and synchronized demo band theming with global tokens; added Playwright test coverage.
+- MU-422: Reworked footer sticky positioning to render a viewport-fixed footer with spacer, removing demo-only sticky overrides; documented sticky attribute usage.
+- MU-328: Fixed TAuth demo origin rejection and adjusted dev cookie Secure flag for Safari compatibility.
+- Resolved Bootstrap dropdown conflicts in footer drop-up by renaming data hooks and adding internal event listeners.
+
+### Testing 🧪
+- Added Playwright and regression tests for footer toggle variants, sticky header/footer states, theme toggling, band and card components, and TAuth authentication flows.
+- Introduced fixtures and e2e tests to verify layout, size scaling, and theme color contrast for small footers and toggles.
+
+### Docs 📚
+- Updated `README.md`, `ARCHITECTURE.md`, and integration guides to document tenant ID requirement and footer/header `sticky` attribute behavior.
+- Refreshed component references and demo instructions to align with new TAuth validation and band/card component updates.
+
+## [v0.3.0]
 
 ### Improvements ⚙️
 - Align TAuth integration with `/tauth.js`, prefer the helper APIs for nonce/exchange/logout, and supply a base-url fallback when bootstrapping sessions.
