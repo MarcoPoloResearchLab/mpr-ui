@@ -17,10 +17,19 @@
   if (config.baseUrl) {
     header.setAttribute('base-url', String(config.baseUrl));
   }
+  if (config.tenantId) {
+    header.setAttribute('tenant-id', String(config.tenantId));
+  }
   if (!config.googleClientId) {
     // eslint-disable-next-line no-console
     console.warn(
       'mpr-ui demo: set googleClientId in demo/tauth-config.js to your Google OAuth Web client ID; GIS will reject sign-in without it.'
+    );
+  }
+  if (!config.tenantId) {
+    // eslint-disable-next-line no-console
+    console.warn(
+      'mpr-ui demo: set tenantId in demo/tauth-config.js to the tenant configured in TAuth; the header will not initialize without it.'
     );
   }
 })();

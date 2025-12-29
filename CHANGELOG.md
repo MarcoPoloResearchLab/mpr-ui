@@ -1,5 +1,13 @@
 # Changelog
 
+## [Unreleased]
+
+### Improvements ⚙️
+- Align TAuth integration with `/tauth.js`, prefer the helper APIs for nonce/exchange/logout, and supply a base-url fallback when bootstrapping sessions.
+- Refresh docs and demo wiring to match the updated TAuth helper path and base-url requirements.
+- Require `tenant-id` for TAuth-backed auth flows, propagate the tenant header across nonce/login/logout requests, and update demos/tests/docs to reflect the new contract.
+- Document the `mpr-ui.tenant_id_required` error and missing-tenant-id troubleshooting steps.
+
 ## [v2.1.1]
 
 ### Bug Fixes 🐛
