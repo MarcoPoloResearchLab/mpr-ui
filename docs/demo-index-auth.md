@@ -15,14 +15,14 @@ The Docker Compose demo (`demo/tauth-demo.html` via `docker-compose.tauth.yml`) 
 
 - Serves the page from `http://localhost:8000`.
 - Talks to a TAuth instance on `http://localhost:8080`.
-- Loads TAuth’s `auth-client.js` helper and sets `base-url="http://localhost:8080"`.
+- Loads TAuth’s `tauth.js` helper and sets `base-url="http://localhost:8080"`.
 
 ## 2. Required scripts and ordering
 
 Every page that wants the same behavior as `demo/index.html` must include, in this order:
 
 1. `mpr-ui.css` – shared layout + theme tokens.
-2. (When using TAuth) `auth-client.js` – served by TAuth at `/static/auth-client.js`.
+2. (When using TAuth) `tauth.js` – served by TAuth at `/tauth.js`.
 3. `mpr-ui.js` – the web-components bundle.
 4. GIS SDK – `https://accounts.google.com/gsi/client`.
 
@@ -40,13 +40,13 @@ The demo page uses CDN URLs for `mpr-ui.css` and `mpr-ui.js`. The Docker Compose
 
 Rules for an automated integrator:
 
-- When the auth backend shares the page origin, omit `base-url`. The header will call `/auth/*` on the current origin.
+- When the auth backend shares the page origin, omit `base-url`. The header will call `/auth/*` on the current origin and `mpr-ui` will pass the page origin into `tauth.js` when bootstrapping sessions.
 - When using a dedicated TAuth origin (e.g. `https://tauth.mprlab.com` or `http://localhost:8080`), set `base-url` to that origin so all `/auth/*` requests go there.
 - The backend must expose:
   - `POST {base-url}/auth/nonce`
   - `POST {base-url}/auth/google`
   - `POST {base-url}/auth/logout`
-  - A session endpoint (TAuth uses `{base-url}/me`) for `auth-client.js` to poll and refresh.
+  - A session endpoint (TAuth uses `{base-url}/me`) for `tauth.js` to poll and refresh.
 
 ## 4. Nonce behavior between GIS, `mpr-ui`, and TAuth
 
@@ -117,11 +117,11 @@ Automated integrators must keep these concerns separate:
 - When you add CSP, ensure the CSP nonce is applied to any inline scripts you introduce.
 - Do not attempt to reuse the CSP nonce as the authentication nonce or vice versa.
 
-## 6. Session maintenance with `auth-client.js`
+## 6. Session maintenance with `tauth.js`
 
-When `auth-client.js` is present (as in `demo/tauth-demo.html`):
+When `tauth.js` is present (as in `demo/tauth-demo.html`):
 
-- `mpr-ui` calls `initAuthClient({ baseUrl, onAuthenticated, onUnauthenticated })`.
+- `mpr-ui` calls `initAuthClient({ baseUrl, onAuthenticated, onUnauthenticated })` and uses `requestNonce`, `exchangeGoogleCredential`, and `logout` when those helpers are available.
 - The helper:
   - Polls `{base-url}/me` to hydrate the current profile.
   - Calls `{base-url}/auth/refresh` when `/me` returns 401.
@@ -142,10 +142,10 @@ To reproduce the `demo/index.html` + TAuth integration in another project:
    - `POST /auth/nonce` → `{ nonce: string }`
    - `POST /auth/google` → profile JSON; issues HttpOnly cookies
    - `POST /auth/logout`
-   - `/me` and `/auth/refresh` for `auth-client.js`.
+- `/me` and `/auth/refresh` for `tauth.js`.
 2. Configure CORS and cookies so the UI origin can call the backend and receive cookies (`SameSite=None; Secure` when cross-origin).
 3. On the UI page:
-   - Load `mpr-ui.css`, (optional) `auth-client.js`, `mpr-ui.js`, and GIS in that order.
+   - Load `mpr-ui.css`, (optional) `tauth.js`, `mpr-ui.js`, and GIS in that order.
    - Add `<mpr-header>` with `site-id`, `login-path`, `logout-path`, `nonce-path`, and (if needed) `base-url`.
    - Add any desired footer and session-panel elements (`demo/tauth-demo.html` shows a complete example).
 4. Verify the flow:

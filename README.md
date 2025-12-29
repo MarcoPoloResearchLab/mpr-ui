@@ -19,11 +19,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
    />
    <!-- Optional but required when integrating with TAuth -->
-   <script
-     defer
-     src="http://localhost:8080/static/auth-client.js"
-     crossorigin="anonymous"
-   ></script>
+   <script defer src="http://localhost:8080/tauth.js"></script>
    <script
      defer
      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
@@ -76,7 +72,7 @@ Need a single source of truth for the shutdown plan? See [`docs/deprecation-road
 
 1. Load `mpr-ui.css` first so layout tokens and theme variables exist before scripts run.
 2. Load `mpr-ui.js` after styles so the bundle can register custom elements immediately on import. No Alpine wiring is required; the Web Components DSL is the only public API.
-3. When authenticating via TAuth, include `http://localhost:8080/static/auth-client.js` (or your deployed origin) before `mpr-ui.js` so `initAuthClient`, `logout`, and `getCurrentUser` are defined.
+3. When authenticating via TAuth, include `http://localhost:8080/tauth.js` (or your deployed origin) before `mpr-ui.js` so `initAuthClient`, `logout`, `getCurrentUser`, and the nonce/exchange helpers are defined.
 4. Always include Google Identity Services (`https://accounts.google.com/gsi/client`) so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
 5. Point `base-url`, `login-path`, `logout-path`, and `nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
 
@@ -110,7 +106,7 @@ Need a working authentication backend without wiring your own server? `demo/taut
 
 3. Sign in and inspect the session card.
 
-   - The header points its `base-url` at `http://localhost:8080` and loads TAuth's `auth-client.js`, so Google credentials are exchanged via `/auth/nonce` and `/auth/google`.
+   - The header points its `base-url` at `http://localhost:8080` and loads TAuth's `tauth.js`, so Google credentials are exchanged via `/auth/nonce` and `/auth/google`.
    - The bundled status panel listens for `mpr-ui:auth:*` events and prints the `/me` payload plus expiry information.
    - Clicking **Sign out** calls `logout()` from the helper and clears cookies issued by TAuth.
 

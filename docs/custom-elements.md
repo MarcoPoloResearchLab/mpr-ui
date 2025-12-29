@@ -45,6 +45,8 @@ Sticky site header with navigation, Google Identity Services button, settings CT
 | `sign-in-label`, `sign-out-label`, `profile-label` | `string` | Override localized copy. |
 | `sticky` | `boolean` attribute | Controls sticky positioning (case-insensitive `true`/`false`). Default `true` keeps the header viewport-pinned; set `false` to render it in document flow. |
 
+When `tauth.js` is present, `mpr-ui` passes a base URL into `initAuthClient`. If `base-url` is omitted and the backend shares the page origin, `mpr-ui` supplies `window.location.origin` so `tauth.js` can initialize without errors.
+
 **Slots**
 
 - `brand`, `nav-left`, `nav-right`, `aux` (light DOM content injected into the header layout).
