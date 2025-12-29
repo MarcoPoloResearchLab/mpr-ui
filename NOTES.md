@@ -105,3 +105,5 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 ## 2025-12-29
 
 - MU-423: required `tenant-id` for TAuth auth flows, passed the tenant into helper + fetch headers, and updated demos/docs/tests. Tests: `npm test`.
+- MU-424: documented `mpr-ui.tenant_id_required` and missing-tenant-id troubleshooting across README and integration docs. Tests: not run (docs-only).
+- MU-424: ran `npm test` after documentation updates.

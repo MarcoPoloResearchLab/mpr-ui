@@ -160,5 +160,8 @@ To reproduce the `demo/index.html` + TAuth integration in another project:
    - Check that `/auth/nonce` returns a JSON object with a `nonce` field.
    - Confirm that cookies from `/auth/nonce` and `/auth/google` are not blocked by the browser.
    - Inspect backend logs for `auth.login.nonce_mismatch` and validate origin, cookie domain, and CORS settings.
+6. For tenant-id failures:
+   - Ensure `tenant-id` matches a configured tenant in TAuth (for the demo container this is `mpr-sites`).
+   - Missing tenant ID raises `mpr-ui.tenant_id_required` and sets `data-mpr-google-error="missing-tenant-id"` on `<mpr-login-button>`.
 
 For deeper background on TAuth’s expectations, see `tools/TAuth/README.md` (section “Google nonce handling”) and `docs/integration-guide.md` for the broader integration walkthrough.

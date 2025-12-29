@@ -15,9 +15,9 @@ This guide walks through the requirements and steps needed to wire `mpr-ui` comp
 
 `mpr-ui` implements the same nonce protocol described in the TAuth documentation:
 
-- Before Google prompts, `mpr-ui` POSTs `{base-url}{nonce-path}` (default `/auth/nonce`) with `credentials: "include"` and header `X-Requested-With: "XMLHttpRequest"`.
+- Before Google prompts, `mpr-ui` POSTs `{base-url}{nonce-path}` (default `/auth/nonce`) with `credentials: "include"` and headers `X-Requested-With: "XMLHttpRequest"` plus `X-TAuth-Tenant`.
 - The backend must respond with JSON containing a `nonce` value; this nonce is passed to Google Identity Services when `google.accounts.id.initialize({ client_id, nonce, callback })` runs inside the bundle.
-- When GIS returns an ID token, `mpr-ui` POSTs `{base-url}{login-path}` (default `/auth/google`) with JSON body `{ "google_id_token": "<id_token>", "nonce_token": "<same nonce from /auth/nonce>" }`.
+- When GIS returns an ID token, `mpr-ui` POSTs `{base-url}{login-path}` (default `/auth/google`) with headers `X-Requested-With: "XMLHttpRequest"` and `X-TAuth-Tenant`, plus JSON body `{ "google_id_token": "<id_token>", "nonce_token": "<same nonce from /auth/nonce>" }`.
 - TAuth verifies the ID token and checks that the embedded `nonce` claim matches the issued nonce (raw or hashed). Mismatches are rejected (`auth.login.nonce_mismatch`) and surfaced via `mpr-ui:auth:error` with code `mpr-ui.auth.exchange_failed` or `mpr-ui.auth.nonce_failed`.
 - A nonce is single-use: clients must fetch a fresh nonce for every sign-in attempt, and servers must invalidate nonces as soon as they are consumed.
 
@@ -87,6 +87,7 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
 
 - **`auth.login.nonce_mismatch`** – ensure `tauth.js` is loaded (look for `/tauth.js` in DevTools) and that you are visiting from an origin listed in `APP_CORS_ALLOWED_ORIGINS`.
 - **Google button missing** – double-check `site-id` is set and the GIS script loads without CSP violations.
+- **`mpr-ui.tenant_id_required`** – set `tenant-id` on `<mpr-header>` / `<mpr-login-button>` to a tenant configured in TAuth (the demo container uses `mpr-sites`); missing values also set `data-mpr-google-error="missing-tenant-id"` on `<mpr-login-button>`.
 - **Session stays signed out** – confirm cookies are not blocked; TAuth issues HttpOnly cookies for both the session and refresh token.
 - **Custom domains** – update `APP_COOKIE_DOMAIN` and `base-url` to match your host when not running everything on `localhost`.
 

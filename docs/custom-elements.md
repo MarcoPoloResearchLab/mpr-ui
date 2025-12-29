@@ -46,7 +46,7 @@ Sticky site header with navigation, Google Identity Services button, settings CT
 | `sign-in-label`, `sign-out-label`, `profile-label` | `string` | Override localized copy. |
 | `sticky` | `boolean` attribute | Controls sticky positioning (case-insensitive `true`/`false`). Default `true` keeps the header viewport-pinned; set `false` to render it in document flow. |
 
-When `tauth.js` is present, `mpr-ui` passes `base-url` and `tenant-id` into `initAuthClient`, and includes the tenant ID in every auth request.
+When `tauth.js` is present, `mpr-ui` passes `base-url` and `tenant-id` into `initAuthClient`, and includes the tenant ID in every auth request. Missing `tenant-id` throws `mpr-ui.tenant_id_required` during header initialization.
 
 **Slots**
 
@@ -115,7 +115,7 @@ Renders the Google Identity Services button without the rest of the header.
 | `login-path`, `logout-path`, `nonce-path`, `base-url` | `string` | Auth endpoints. |
 | `button-text`, `button-size`, `button-theme`, `button-shape` | `string` | Passed directly to `google.accounts.id.renderButton`. |
 
-**Events:** `mpr-ui:auth:*`, `mpr-login:error`.
+**Events:** `mpr-ui:auth:*`, `mpr-login:error`. Missing configuration emits `mpr-login:error` with `mpr-ui.tenant_id_required` or `mpr-ui.google_site_id_required`; the element also sets `data-mpr-google-error="missing-tenant-id"` or `"missing-site-id"`.
 
 ### `<mpr-settings>`
 

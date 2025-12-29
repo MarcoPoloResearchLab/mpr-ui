@@ -78,7 +78,7 @@ Need a single source of truth for the shutdown plan? See [`docs/deprecation-road
 2. Load `mpr-ui.js` after styles so the bundle can register custom elements immediately on import. No Alpine wiring is required; the Web Components DSL is the only public API.
 3. When authenticating via TAuth, include `http://localhost:8080/tauth.js` (or your deployed origin) before `mpr-ui.js` so `initAuthClient`, `logout`, `getCurrentUser`, and the nonce/exchange helpers are defined.
 4. Always include Google Identity Services (`https://accounts.google.com/gsi/client`) so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
-5. Set `tenant-id` to the tenant configured in TAuth; the auth header will not initialize without it.
+5. Set `tenant-id` to the tenant configured in TAuth; missing values raise `mpr-ui.tenant_id_required` (and `<mpr-login-button>` sets `data-mpr-google-error="missing-tenant-id"`).
 6. Point `base-url`, `login-path`, `logout-path`, and `nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
 
 See [`docs/integration-guide.md`](docs/integration-guide.md) for the complete walkthrough plus troubleshooting guidance. For a deep dive into how the demo page wires GIS, `mpr-ui`, and TAuth (including nonce handling), see [`docs/demo-index-auth.md`](docs/demo-index-auth.md).
