@@ -43,9 +43,9 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
      brand-href="/"
      nav-links='[{ "label": "Docs", "href": "#docs" }]'
      site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
-     login-path="/auth/google"
-     logout-path="/auth/logout"
-     nonce-path="/auth/nonce"
+     tauth-login-path="/auth/google"
+     tauth-logout-path="/auth/logout"
+     tauth-nonce-path="/auth/nonce"
      theme-config='{"initialMode":"dark","targets":["body"],"attribute":"data-demo-theme"}'
    ></mpr-header>
 
@@ -78,7 +78,7 @@ Need a single source of truth for the shutdown plan? See [`docs/deprecation-road
 2. Load `mpr-ui.js` after styles so the bundle can register custom elements immediately on import. No Alpine wiring is required; the Web Components DSL is the only public API.
 3. When authenticating via TAuth, include `http://localhost:8080/static/auth-client.js` (or your deployed origin) before `mpr-ui.js` so `initAuthClient`, `logout`, and `getCurrentUser` are defined.
 4. Always include Google Identity Services (`https://accounts.google.com/gsi/client`) so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
-5. Point `base-url`, `login-path`, `logout-path`, and `nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
+5. Point `tauth-url`, `tauth-login-path`, `tauth-logout-path`, and `tauth-nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
 
 See [`docs/integration-guide.md`](docs/integration-guide.md) for the complete walkthrough plus troubleshooting guidance. For a deep dive into how the demo page wires GIS, `mpr-ui`, and TAuth (including nonce handling), see [`docs/demo-index-auth.md`](docs/demo-index-auth.md).
 
@@ -110,7 +110,7 @@ Need a working authentication backend without wiring your own server? `demo/taut
 
 3. Sign in and inspect the session card.
 
-   - The header points its `base-url` at `http://localhost:8080` and loads TAuth's `auth-client.js`, so Google credentials are exchanged via `/auth/nonce` and `/auth/google`.
+   - The header points its `tauth-url` at `http://localhost:8080` and loads TAuth's `auth-client.js`, so Google credentials are exchanged via `/auth/nonce` and `/auth/google`.
    - The bundled status panel listens for `mpr-ui:auth:*` events and prints the `/me` payload plus expiry information.
    - Clicking **Sign out** calls `logout()` from the helper and clears cookies issued by TAuth.
 
@@ -167,9 +167,9 @@ The tags above replace the retired imperative helpers. See the example below for
 
 <mpr-login-button
   site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
-  login-path="/auth/google"
-  logout-path="/auth/logout"
-  nonce-path="/auth/nonce"
+  tauth-login-path="/auth/google"
+  tauth-logout-path="/auth/logout"
+  tauth-nonce-path="/auth/nonce"
 ></mpr-login-button>
 
 <mpr-settings label="Preferences" open>
@@ -186,10 +186,10 @@ The tags above replace the retired imperative helpers. See the example below for
 
 | Element | Primary attributes | Slots | Key events |
 | --- | --- | --- | --- |
-| `<mpr-header>` | `brand-label`, `nav-links`, `site-id`, `login-path`, `logout-path`, `nonce-path`, `theme-config`, `settings-label`, `settings`, `sign-in-label`, `sign-out-label`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
+| `<mpr-header>` | `brand-label`, `nav-links`, `site-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `theme-config`, `settings-label`, `settings`, `sign-in-label`, `sign-out-label`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
 | `<mpr-footer>` | `prefix-text`, `links-collection` (JSON with `{ style, text, links }`), legacy `links`, `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-switcher`, `theme-config`, `sticky`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
 | `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`, `theme-mode` | — | `mpr-ui:theme-change` |
-| `<mpr-login-button>` | `site-id`, `login-path`, `logout-path`, `nonce-path`, `base-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
+| `<mpr-login-button>` | `site-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
 | `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |
 | `<mpr-sites>` | `links`, `variant` (`list`, `grid`, `menu`), `columns`, `heading` | — | `mpr-sites:link-click` |
 | `<mpr-band>` | `category`, `theme` (JSON) | — | — |

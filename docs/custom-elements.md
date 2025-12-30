@@ -38,7 +38,7 @@ Sticky site header with navigation, Google Identity Services button, settings CT
 | `brand-label` / `brand-href` | `string` | Sets the brand copy and URL for the heading. |
 | `nav-links` | `JSON` | Array of `{ label, href, target? }`. |
 | `site-id` | `string` | Google Identity Services client ID. Falls back to the bundled demo ID when omitted. |
-| `login-path`, `logout-path`, `nonce-path`, `base-url` | `string` | Auth endpoints wired into `createAuthHeader`. |
+| `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url` | `string` | Auth endpoints wired into `createAuthHeader`. |
 | `auth-config` | `JSON` | Full object passed to `createAuthHeader` (takes precedence over individual path attributes). |
 | `theme-config`, `theme-mode` | `JSON` / `string` | Configures the shared theme manager (no toggle is rendered; use the footer or `<mpr-theme-toggle>` for user controls). |
 | `settings-label`, `settings` | `string` / `boolean` | Control the built-in settings button. |
@@ -60,9 +60,9 @@ Sticky site header with navigation, Google Identity Services button, settings CT
   brand-label="Marco Polo Research Lab"
   nav-links='[{ "label": "Docs", "href": "#docs" }]'
   site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
-  login-path="/auth/google"
-  logout-path="/auth/logout"
-  nonce-path="/auth/nonce"
+  tauth-login-path="/auth/google"
+  tauth-logout-path="/auth/logout"
+  tauth-nonce-path="/auth/nonce"
   theme-config='{"initialMode":"dark"}'
 >
   <button slot="nav-right" class="demo-link">Request Access</button>
@@ -107,7 +107,7 @@ Renders the Google Identity Services button without the rest of the header.
 | Attribute | Type | Description |
 | --- | --- | --- |
 | `site-id` | `string` | GIS client ID. Required unless you rely on the fallback demo ID. |
-| `login-path`, `logout-path`, `nonce-path`, `base-url` | `string` | Auth endpoints. |
+| `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url` | `string` | Auth endpoints. |
 | `button-text`, `button-size`, `button-theme`, `button-shape` | `string` | Passed directly to `google.accounts.id.renderButton`. |
 
 **Events:** `mpr-ui:auth:*`, `mpr-login:error`.

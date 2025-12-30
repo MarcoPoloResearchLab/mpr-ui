@@ -14,9 +14,9 @@ This guide walks through the requirements and steps needed to wire `mpr-ui` comp
 
 `mpr-ui` implements the same nonce protocol described in the TAuth documentation:
 
-- Before Google prompts, `mpr-ui` POSTs `{base-url}{nonce-path}` (default `/auth/nonce`) with `credentials: "include"` and header `X-Requested-With: "XMLHttpRequest"`.
+- Before Google prompts, `mpr-ui` POSTs `{tauth-url}{tauth-nonce-path}` (default `/auth/nonce`) with `credentials: "include"` and header `X-Requested-With: "XMLHttpRequest"`.
 - The backend must respond with JSON containing a `nonce` value; this nonce is passed to Google Identity Services when `google.accounts.id.initialize({ client_id, nonce, callback })` runs inside the bundle.
-- When GIS returns an ID token, `mpr-ui` POSTs `{base-url}{login-path}` (default `/auth/google`) with JSON body `{ "google_id_token": "<id_token>", "nonce_token": "<same nonce from /auth/nonce>" }`.
+- When GIS returns an ID token, `mpr-ui` POSTs `{tauth-url}{tauth-login-path}` (default `/auth/google`) with JSON body `{ "google_id_token": "<id_token>", "nonce_token": "<same nonce from /auth/nonce>" }`.
 - TAuth verifies the ID token and checks that the embedded `nonce` claim matches the issued nonce (raw or hashed). Mismatches are rejected (`auth.login.nonce_mismatch`) and surfaced via `mpr-ui:auth:error` with code `mpr-ui.auth.exchange_failed` or `mpr-ui.auth.nonce_failed`.
 - A nonce is single-use: clients must fetch a fresh nonce for every sign-in attempt, and servers must invalidate nonces as soon as they are consumed.
 
@@ -51,18 +51,18 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
      brand-href="https://mprlab.com/"
      nav-links='[{"label":"Docs","href":"#docs"}]'
      site-id="REPLACE_WITH_GOOGLE_CLIENT_ID"
-     base-url="http://localhost:8080"
-     login-path="/auth/google"
-     logout-path="/auth/logout"
-     nonce-path="/auth/nonce"
+     tauth-url="http://localhost:8080"
+     tauth-login-path="/auth/google"
+     tauth-logout-path="/auth/logout"
+     tauth-nonce-path="/auth/nonce"
      settings="true"
      settings-label="Settings"
    ></mpr-header>
    ```
    Key attributes:
    - `site-id`: Google OAuth Web Client ID.
-   - `base-url`: TAuth origin. Needed so `/auth/*` requests hit the backend instead of the current page.
-   - `login-path`, `logout-path`, `nonce-path`: keep the defaults unless your reverse proxy rewrites them.
+   - `tauth-url`: TAuth origin. Needed so `/auth/*` requests hit the backend instead of the current page.
+   - `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`: keep the defaults unless your reverse proxy rewrites them.
    - Demo-specific: keep `demo/tauth-config.js` `googleClientId` in sync with `APP_GOOGLE_WEB_CLIENT_ID` so the header and TAuth share the same credentials and GIS accepts the origin.
    - For local HTTP runs (Docker Compose), ensure `APP_DEV_INSECURE_HTTP=true` so cookies drop the `Secure` flag; Safari rejects Secure cookies over HTTP.
 
@@ -85,6 +85,6 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
 - **`auth.login.nonce_mismatch`** – ensure `auth-client.js` is loaded (look for `/static/auth-client.js` in DevTools) and that you are visiting from an origin listed in `APP_CORS_ALLOWED_ORIGINS`.
 - **Google button missing** – double-check `site-id` is set and the GIS script loads without CSP violations.
 - **Session stays signed out** – confirm cookies are not blocked; TAuth issues HttpOnly cookies for both the session and refresh token.
-- **Custom domains** – update `APP_COOKIE_DOMAIN` and `base-url` to match your host when not running everything on `localhost`.
+- **Custom domains** – update `APP_COOKIE_DOMAIN` and `tauth-url` to match your host when not running everything on `localhost`.
 
 With these steps in place, any static page can host `mpr-header`, consume the authentication events, and rely on TAuth for long-lived sessions.

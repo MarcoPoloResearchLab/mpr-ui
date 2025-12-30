@@ -679,7 +679,7 @@ test('mpr-header projects slot content into brand, nav, and actions', () => {
   );
 });
 
-test('mpr-header base-url attribute configures auth endpoints', async () => {
+test('mpr-header tauth-url attribute configures auth endpoints', async () => {
   resetEnvironment();
   const googleStub = {
     accounts: {
@@ -695,10 +695,10 @@ test('mpr-header base-url attribute configures auth endpoints', async () => {
   const harness = createHeaderElementHarness();
   const headerElement = harness.element;
   headerElement.setAttribute('site-id', 'docker-demo-site');
-  headerElement.setAttribute('base-url', 'http://localhost:8080');
-  headerElement.setAttribute('login-path', '/auth/google');
-  headerElement.setAttribute('logout-path', '/auth/logout');
-  headerElement.setAttribute('nonce-path', '/auth/nonce');
+  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
+  headerElement.setAttribute('tauth-login-path', '/auth/google');
+  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
+  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
 
   headerElement.connectedCallback();
   await flushAsync();
@@ -713,13 +713,13 @@ test('mpr-header base-url attribute configures auth endpoints', async () => {
   const authOptions = authController && authController.state && authController.state.options;
   assert.ok(authOptions, 'auth options available on controller state');
   assert.equal(
-    authOptions.baseUrl,
+    authOptions.tauthUrl,
     'http://localhost:8080',
-    'base-url attribute flows into auth options',
+    'tauth-url attribute flows into auth options',
   );
-  assert.equal(authOptions.loginPath, '/auth/google');
-  assert.equal(authOptions.logoutPath, '/auth/logout');
-  assert.equal(authOptions.noncePath, '/auth/nonce');
+  assert.equal(authOptions.tauthLoginPath, '/auth/google');
+  assert.equal(authOptions.tauthLogoutPath, '/auth/logout');
+  assert.equal(authOptions.tauthNoncePath, '/auth/nonce');
 });
 
 test('mpr-footer reflects attributes and slot content', () => {
@@ -927,9 +927,9 @@ test('mpr-login-button renders the Google button with provided site ID', async (
   loadLibrary();
   const { element, buttonHost, renderCalls } = createLoginButtonHarness(googleStub);
   element.setAttribute('site-id', 'custom-site');
-  element.setAttribute('login-path', '/auth/login');
-  element.setAttribute('logout-path', '/auth/logout');
-  element.setAttribute('nonce-path', '/auth/nonce');
+  element.setAttribute('tauth-login-path', '/auth/login');
+  element.setAttribute('tauth-logout-path', '/auth/logout');
+  element.setAttribute('tauth-nonce-path', '/auth/nonce');
   element.connectedCallback();
   await flushAsync();
   assert.equal(
