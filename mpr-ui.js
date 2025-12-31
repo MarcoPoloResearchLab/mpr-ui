@@ -221,7 +221,7 @@
     "settings-label": "settingsLabel",
     "settings-enabled": "settingsEnabled",
     "settings": "settingsEnabled",
-    "site-id": "siteId",
+    "google-site-id": "siteId",
     "tauth-tenant-id": "tenantId",
     "theme-config": "themeToggle",
     "theme-mode": "themeMode",

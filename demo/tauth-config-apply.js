@@ -12,7 +12,7 @@
     return;
   }
   if (config.googleClientId) {
-    header.setAttribute('site-id', String(config.googleClientId));
+    header.setAttribute('google-site-id', String(config.googleClientId));
   }
   if (config.tauthUrl) {
     header.setAttribute('tauth-url', String(config.tauthUrl));

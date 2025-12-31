@@ -150,3 +150,4 @@ qodana.yaml
 .idea/
 bin/
 docs/demo
+tools/

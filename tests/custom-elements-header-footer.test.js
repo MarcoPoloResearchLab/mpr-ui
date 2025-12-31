@@ -589,7 +589,7 @@ test('mpr-header reflects attributes and updates values', () => {
   );
   headerElement.setAttribute('settings-label', 'Preferences');
   headerElement.setAttribute('settings', 'false');
-  headerElement.setAttribute('site-id', 'example-site');
+  headerElement.setAttribute('google-site-id', 'example-site');
   headerElement.setAttribute('tauth-tenant-id', 'tenant-alpha');
   headerElement.setAttribute(
     'theme-config',
@@ -622,7 +622,7 @@ test('mpr-header reflects attributes and updates values', () => {
   assert.equal(
     headerElement.getAttribute('data-mpr-google-site-id'),
     'example-site',
-    'site id reflected on host dataset',
+    'google site id reflected on host dataset',
   );
   assert.equal(headerElement.dataset.tenantId, 'tenant-alpha');
 
@@ -696,7 +696,7 @@ test('mpr-header tauth-url attribute configures auth endpoints', async () => {
   loadLibrary();
   const harness = createHeaderElementHarness();
   const headerElement = harness.element;
-  headerElement.setAttribute('site-id', 'docker-demo-site');
+  headerElement.setAttribute('google-site-id', 'docker-demo-site');
   headerElement.setAttribute('tauth-url', 'http://localhost:8080');
   headerElement.setAttribute('tauth-login-path', '/auth/google');
   headerElement.setAttribute('tauth-logout-path', '/auth/logout');
