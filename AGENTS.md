@@ -1,8 +1,8 @@
 # AGENTS.md
 
-## Product Scanner
+## MPR-UI
 
-A Go-based web app that automates Amazon Pages retrieveal and their analysis. See README.md for details
+Web components for Marco Polo Research Lab projects, delivered as a single CDN-hosted script. . See README.md for details
 
 ## Document Roles
 
