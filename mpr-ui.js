@@ -152,6 +152,50 @@
     global.console.error(parts.join(" "));
   }
 
+  var LEGACY_DSL_ATTRIBUTE_ERROR_CODE = "mpr-ui.dsl.legacy_attribute";
+  var LEGACY_DSL_CONFIG_ERROR_CODE = "mpr-ui.dsl.legacy_config";
+  var LEGACY_DSL_THEME_MODE_REPLACEMENT = '"theme-config" with "initialMode"';
+  var LEGACY_DSL_SETTINGS_REPLACEMENT = '"settings"';
+  var LEGACY_DSL_LINKS_REPLACEMENT = '"links-collection"';
+  var LEGACY_DSL_TAUTH_REPLACEMENT =
+    '"tauth-url"/"tauth-login-path"/"tauth-logout-path"/"tauth-nonce-path"';
+  var LEGACY_DSL_THEME_VARIANT_REPLACEMENT =
+    '"themeToggle.variant" or "theme-switcher"';
+
+  function logLegacyAttribute(componentLabel, attributeName, replacement) {
+    if (!attributeName) {
+      return;
+    }
+    var message =
+      'Unsupported legacy attribute "' +
+      attributeName +
+      '" on ' +
+      componentLabel;
+    if (replacement) {
+      message += ". Use " + replacement + ".";
+    }
+    logError(LEGACY_DSL_ATTRIBUTE_ERROR_CODE, message);
+  }
+
+  function logLegacyConfig(componentLabel, configKey, replacement) {
+    if (!configKey) {
+      return;
+    }
+    var message =
+      'Unsupported legacy config key "' + configKey + '" on ' + componentLabel;
+    if (replacement) {
+      message += ". Use " + replacement + ".";
+    }
+    logError(LEGACY_DSL_CONFIG_ERROR_CODE, message);
+  }
+
+  function hasAttributeValue(hostElement, attributeName) {
+    if (!hostElement || typeof hostElement.getAttribute !== "function") {
+      return false;
+    }
+    return hostElement.getAttribute(attributeName) !== null;
+  }
+
   function resolveHost(target) {
     if (!target) {
       throw new Error("resolveHost requires a selector or element reference");
@@ -373,6 +417,13 @@
   }
 
   function buildThemeToggleOptionsFromAttributes(hostElement) {
+    if (hasAttributeValue(hostElement, "theme-mode")) {
+      logLegacyAttribute(
+        "<mpr-theme-toggle>",
+        "theme-mode",
+        LEGACY_DSL_THEME_MODE_REPLACEMENT,
+      );
+    }
     var options = {};
     var variant = hostElement.getAttribute("variant");
     if (variant) {
@@ -482,6 +533,27 @@
   }
 
   function buildHeaderOptionsFromAttributes(hostElement) {
+    if (hasAttributeValue(hostElement, "settings-enabled")) {
+      logLegacyAttribute(
+        "<mpr-header>",
+        "settings-enabled",
+        LEGACY_DSL_SETTINGS_REPLACEMENT,
+      );
+    }
+    if (hasAttributeValue(hostElement, "auth-config")) {
+      logLegacyAttribute(
+        "<mpr-header>",
+        "auth-config",
+        LEGACY_DSL_TAUTH_REPLACEMENT,
+      );
+    }
+    if (hasAttributeValue(hostElement, "theme-mode")) {
+      logLegacyAttribute(
+        "<mpr-header>",
+        "theme-mode",
+        LEGACY_DSL_THEME_MODE_REPLACEMENT,
+      );
+    }
     var datasetOptions = readHeaderOptionsFromDataset(hostElement);
     var authOptions = null;
     var loginPath = hostElement.getAttribute
@@ -520,6 +592,20 @@
   }
 
   function buildFooterOptionsFromAttributes(hostElement) {
+    if (hasAttributeValue(hostElement, "links")) {
+      logLegacyAttribute(
+        "<mpr-footer>",
+        "links",
+        LEGACY_DSL_LINKS_REPLACEMENT,
+      );
+    }
+    if (hasAttributeValue(hostElement, "theme-mode")) {
+      logLegacyAttribute(
+        "<mpr-footer>",
+        "theme-mode",
+        LEGACY_DSL_THEME_MODE_REPLACEMENT,
+      );
+    }
     var datasetOptions = readFooterOptionsFromDataset(hostElement);
     return deepMergeOptions({}, datasetOptions);
   }
@@ -5454,6 +5540,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   }
 
   function normalizeFooterThemeToggle(themeToggleInput) {
+    if (
+      themeToggleInput &&
+      typeof themeToggleInput === "object" &&
+      Object.prototype.hasOwnProperty.call(themeToggleInput, "themeSwitcher")
+    ) {
+      logLegacyConfig(
+        "<mpr-footer>",
+        "themeToggle.themeSwitcher",
+        LEGACY_DSL_THEME_VARIANT_REPLACEMENT,
+      );
+    }
     var hasExplicitEnabled =
       themeToggleInput &&
       typeof themeToggleInput === "object" &&
