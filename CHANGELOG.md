@@ -1,23 +1,54 @@
 # Changelog
 
+## [v3.3.0]
+
+### Breaking Changes ⚠️
+
+- Rename `<mpr-header>` attribute `site-id` to `google-site-id` for Google Identity Services OAuth client ID.
+
+### Improvements ⚙️
+
+- Update documentation and demos to use `google-site-id` attribute instead of `site-id`.
+- Update architecture and integration guides to reflect the rename of the Google OAuth client ID attribute.
+- Update tests, fixtures, and code references to use `google-site-id`.
+- Add `.gitignore` entry to ignore `tools/` directory.
+- Clarify AGENTS.md to mention MPR-UI web components.
+
+### Bug Fixes 🐛
+
+- _No changes._
+
+### Testing 🧪
+
+- Update tests to reflect renaming of `site-id` to `google-site-id` on the header component.
+
+### Docs 📚
+
+- Correct attribute name from `site-id` to `google-site-id` across all docs including README, AGENTS.md, ARCHITECTURE.md, and integration guides.
+- Update code samples and usage instructions to use `google-site-id`.
+
 ## [v3.2.0]
 
 ### Breaking Changes ⚠️
+
 - Renamed auth wiring attributes to `tauth-url`, `tauth-login-path`, `tauth-logout-path`, and `tauth-nonce-path` to clarify they target the TAuth origin; updated demos/docs/tests, and `createAuthHeader` now expects `tauthUrl`/`tauthLoginPath`/`tauthLogoutPath`/`tauthNoncePath` in programmatic options.
 - Renamed `tenant-id` to `tauth-tenant-id` across the DSL and demos to align the attribute with TAuth-specific configuration.
 
 ## [v3.1.1]
 
 ### Features ✨
+
 - Require `tauth-tenant-id` for TAuth-backed authentication flows; move tenant validation to the edge.
 - Document the `mpr-ui.tenant_id_required` error and troubleshooting for missing tenant ID.
 
 ### Improvements ⚙️
+
 - Align TAuth integration with updated `tauth.js` helper APIs, including nonce/exchange/logout flows and base-url fallback.
 - Refresh documentation and demo setup to match updated TAuth paths and tenant ID requirements.
 - Update demos, fixtures, and tests to reflect tenant ID contract and new authentication flow.
 
 ### Bug Fixes 🐛
+
 - MU-336: Fixed footer theme toggle visual glitch with `size="small"` by removing conflicting JS-injected styles and adding proper CSS variable overrides.
 - MU-369: Removed footer toggle halo by flattening wrapper styles; added Playwright tests verifying transparent background and padding.
 - MU-370 & MU-371: Corrected theme toggle knob color to ensure proper contrast and fixed toggle travel distance; covered by Playwright tests.
@@ -28,16 +59,19 @@
 - Resolved Bootstrap dropdown conflicts in footer drop-up by renaming data hooks and adding internal event listeners.
 
 ### Testing 🧪
+
 - Added Playwright and regression tests for footer toggle variants, sticky header/footer states, theme toggling, band and card components, and TAuth authentication flows.
 - Introduced fixtures and e2e tests to verify layout, size scaling, and theme color contrast for small footers and toggles.
 
 ### Docs 📚
+
 - Updated `README.md`, `ARCHITECTURE.md`, and integration guides to document tenant ID requirement and footer/header `sticky` attribute behavior.
 - Refreshed component references and demo instructions to align with new TAuth validation and band/card component updates.
 
 ## [v0.3.0]
 
 ### Improvements ⚙️
+
 - Align TAuth integration with `/tauth.js`, prefer the helper APIs for nonce/exchange/logout, and supply a base-url fallback when bootstrapping sessions.
 - Refresh docs and demo wiring to match the updated TAuth helper path and base-url requirements.
 - Require `tauth-tenant-id` for TAuth-backed auth flows, propagate the tenant header across nonce/login/logout requests, and update demos/tests/docs to reflect the new contract.
@@ -46,6 +80,7 @@
 ## [v2.1.1]
 
 ### Bug Fixes 🐛
+
 - MU-336: Fixed visual glitch in footer theme toggle when `size="small"` is used; removed conflicting JS-injected `::after` pseudo-element and implemented correct CSS variable overrides for scaling.
 - MU-369: Removed the footer theme toggle halo by flattening the wrapper styles (no background, padding, or border radius) and added Playwright coverage that asserts the switch host reports transparent background/zero padding.
 - MU-371: Knob color is now driven by dedicated idle/active variables (with light/dark defaults) so it always contrasts with the track; Playwright now verifies the knob color differs from the track when toggled.
@@ -54,11 +89,13 @@
 ## [v2.1.0]
 
 ### Features ✨
+
 - MU-202: Added `<mpr-band>`, a new component rendering alternating card bands with a bundled Marco Polo Research Lab catalog, preset palettes, optional LoopAware subscribe overlays, and custom events for card toggling and subscribe readiness.
 - Exposed `MPRUI.getBandProjectCatalog()` helper to clone the bundled dataset for preprocessing or custom usage.
 - MU-110: Added `<mpr-card>` so standalone cards (front/back surfaces, LoopAware overlays, CTA links) can be rendered anywhere using the same declarative DSL and theme tokens as band cards.
   
 ### Improvements ⚙️
+
 - MU-203: Refactored footer drop-up to avoid conflicts with Bootstrap by removing `data-bs-*` attributes, adding internal click/outside/Escape listeners, and updating documentation and tests for compatibility.
 - Consolidated theme toggle footprint to a 28px grid in square mode to avoid stale-style regressions.
 - Enhanced inline docs and demos to reflect new band component and updated footer drop-up behavior.
@@ -67,6 +104,7 @@
 - MU-206: Updated the demo bands to showcase `<mpr-card>` instances (event log + integration reference), injected custom content via the demo helper, and refreshed selectors/tests so the cards exercise the declarative DSL end to end.
   
 ### Bug Fixes 🐛
+
 - MU-328: Fixed TAuth demo sign-in origin rejection by removing hardcoded Google client ID and reading configuration from `demo/tauth-config.js`.
 - MU-328: Dropped Secure flag from dev cookies when `APP_DEV_INSECURE_HTTP=true` for Safari compatibility during HTTP development.
 - Resolved Bootstrap dropdown conflicts in footer drop-up by renaming data hooks and preventing Bootstrap hijack.
@@ -76,6 +114,7 @@
 - MU-422: Removed the demo-only `#demo-header` / `.demo-footer-slot` sticky overrides so `<mpr-header>` / `<mpr-footer>` control their own positioning, documented the case-insensitive `sticky` attribute, and reworked `<mpr-footer>` so sticky mode renders a viewport-fixed footer with an automatic spacer/ResizeObserver to keep the layout intact; Playwright now asserts both header and footer visibility for sticky/non-sticky states (including uppercase attribute variants).
   
 ### Testing 🧪
+
 - Added Playwright and regression tests for:
   - Band component rendering and event emissions.
   - Footer drop-up behavior with and without Bootstrap present.
@@ -84,6 +123,7 @@
 - Expanded demo page with band component usage and event logging.
   
 ### Docs 📚
+
 - Added extensive documentation for `<mpr-band>` in ARCHITECTURE.md, README.md, and demo pages including integration, events, attributes, and usage examples.
 - Updated integration-guide.md and README to reflect migration from legacy helpers to Web Components DSL and new API surface.
 - Documented conflict resolution with Bootstrap for footer drop-up and theme toggles.
