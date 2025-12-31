@@ -10,8 +10,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 
 ## Improvements (220–299)
 
-- [x] [MU-423] Require `tenant-id` for TAuth auth flows so every nonce/login/logout call carries `X-TAuth-Tenant`; updated demos, fixtures, docs, and tests to align with the requirement.
-- [x] [MU-424] Document the `mpr-ui.tenant_id_required` error and missing-tenant-id troubleshooting across README and integration docs.
+- [x] [MU-423] Require `tauth-tenant-id` for TAuth auth flows so every nonce/login/logout call carries `X-TAuth-Tenant`; updated demos, fixtures, docs, and tests to align with the requirement.
+- [x] [MU-424] Document the `mpr-ui.tenant_id_required` error and missing-tauth-tenant-id troubleshooting across README and integration docs.
 
 ## BugFixes (335–399)
 
