@@ -15,6 +15,36 @@
     siteLink: "",
   };
 
+  /**
+   * @typedef {{ code?: string, status?: number }} MprUiErrorMetadata
+   * @typedef {Error & MprUiErrorMetadata} MprUiError
+   * @typedef {{
+   *   tauthUrl?: string,
+   *   tauthLoginPath?: string,
+   *   tauthLogoutPath?: string,
+   *   tauthNoncePath?: string,
+   *   googleClientId?: string,
+   *   tenantId?: string,
+   * }} AuthOptions
+   * @typedef {{ script: string, title: string, copy: string, height?: number }} SubscribeConfig
+   * @typedef {{
+   *   id: string,
+   *   name: string,
+   *   description: string,
+   *   status: string,
+   *   category: string,
+   *   url: string,
+   *   icon: string,
+   *   subscribe?: SubscribeConfig,
+   * }} BandCatalogEntry
+   * @typedef {{
+   *   render?: () => void,
+   *   destroy?: () => void,
+   *   update?: (name: string, oldValue: string|null, newValue: string|null) => void,
+   *   __mprConnected?: boolean,
+   * }} MprElementLifecycle
+   */
+
   var ATTRIBUTE_MAP = {
     user_id: "data-user-id",
     user_email: "data-user-email",
@@ -35,7 +65,12 @@
     return trimmed ? trimmed : null;
   }
 
+  /**
+   * @param {string=} message
+   * @returns {MprUiError}
+   */
   function createGoogleSiteIdError(message) {
+    /** @type {MprUiError} */
     var error = new Error(message || "Google client ID is required");
     error.code = GOOGLE_SITE_ID_ERROR_CODE;
     return error;
@@ -57,7 +92,12 @@
     return trimmed ? trimmed : null;
   }
 
+  /**
+   * @param {string=} message
+   * @returns {MprUiError}
+   */
   function createTenantIdError(message) {
+    /** @type {MprUiError} */
     var error = new Error(message || "Tenant ID is required");
     error.code = TENANT_ID_ERROR_CODE;
     return error;
@@ -555,6 +595,7 @@
       );
     }
     var datasetOptions = readHeaderOptionsFromDataset(hostElement);
+    /** @type {AuthOptions | null} */
     var authOptions = null;
     var loginPath = hostElement.getAttribute
       ? hostElement.getAttribute("tauth-login-path")
@@ -2366,6 +2407,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             throw new Error("invalid response from nonce endpoint");
           }
           if (!response.ok) {
+            /** @type {MprUiError} */
             var nonceError = new Error("nonce issuance failed");
             nonceError.status = response.status;
             throw nonceError;
@@ -2562,6 +2604,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             throw new Error("invalid response from credential exchange");
           }
           if (!response.ok) {
+            /** @type {MprUiError} */
             var errorObject = new Error("credential exchange failed");
             errorObject.status = response.status;
             throw errorObject;
@@ -4257,6 +4300,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
   }
 
+  /** @type {readonly BandCatalogEntry[]} */
   var BAND_PROJECT_CATALOG = Object.freeze([
     Object.freeze({
       id: "issues-md",
@@ -7317,30 +7361,34 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return /** @class */ (function (_super) {
         function MprElementClass() {
           var self = Reflect.construct(_super, [], new.target || MprElementClass);
-          self.__mprConnected = false;
+          var elementInstance = /** @type {MprElementLifecycle} */ (self);
+          elementInstance.__mprConnected = false;
           return self;
         }
         MprElementClass.prototype = Object.create(_super.prototype);
         MprElementClass.prototype.constructor = MprElementClass;
         MprElementClass.prototype.connectedCallback = function connectedCallback() {
-          this.__mprConnected = true;
-          if (typeof this.render === "function") {
-            this.render();
+          var elementInstance = /** @type {MprElementLifecycle} */ (this);
+          elementInstance.__mprConnected = true;
+          if (typeof elementInstance.render === "function") {
+            elementInstance.render();
           }
         };
         MprElementClass.prototype.disconnectedCallback = function disconnectedCallback() {
-          this.__mprConnected = false;
-          if (typeof this.destroy === "function") {
-            this.destroy();
+          var elementInstance = /** @type {MprElementLifecycle} */ (this);
+          elementInstance.__mprConnected = false;
+          if (typeof elementInstance.destroy === "function") {
+            elementInstance.destroy();
           }
         };
         MprElementClass.prototype.attributeChangedCallback =
           function attributeChangedCallback(name, oldValue, newValue) {
-            if (!this.__mprConnected) {
+            var elementInstance = /** @type {MprElementLifecycle} */ (this);
+            if (!elementInstance.__mprConnected) {
               return;
             }
-            if (typeof this.update === "function") {
-              this.update(name, oldValue, newValue);
+            if (typeof elementInstance.update === "function") {
+              elementInstance.update(name, oldValue, newValue);
             }
           };
         return MprElementClass;
@@ -7352,31 +7400,35 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return (function () {
         function FallbackElement() {
           HTMLElementBridge.call(this);
-          this.__mprConnected = false;
+          var elementInstance = /** @type {MprElementLifecycle} */ (this);
+          elementInstance.__mprConnected = false;
         }
         FallbackElement.prototype = Object.create(
           (HTMLElementBridge && HTMLElementBridge.prototype) || Object.prototype,
         );
         FallbackElement.prototype.constructor = FallbackElement;
         FallbackElement.prototype.connectedCallback = function connectedCallback() {
-          this.__mprConnected = true;
-          if (typeof this.render === "function") {
-            this.render();
+          var elementInstance = /** @type {MprElementLifecycle} */ (this);
+          elementInstance.__mprConnected = true;
+          if (typeof elementInstance.render === "function") {
+            elementInstance.render();
           }
         };
         FallbackElement.prototype.disconnectedCallback = function disconnectedCallback() {
-          this.__mprConnected = false;
-          if (typeof this.destroy === "function") {
-            this.destroy();
+          var elementInstance = /** @type {MprElementLifecycle} */ (this);
+          elementInstance.__mprConnected = false;
+          if (typeof elementInstance.destroy === "function") {
+            elementInstance.destroy();
           }
         };
         FallbackElement.prototype.attributeChangedCallback =
           function attributeChangedCallback(name, oldValue, newValue) {
-            if (!this.__mprConnected) {
+            var elementInstance = /** @type {MprElementLifecycle} */ (this);
+            if (!elementInstance.__mprConnected) {
               return;
             }
-            if (typeof this.update === "function") {
-              this.update(name, oldValue, newValue);
+            if (typeof elementInstance.update === "function") {
+              elementInstance.update(name, oldValue, newValue);
             }
           };
         return FallbackElement;
