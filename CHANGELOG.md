@@ -1,6 +1,6 @@
 # Changelog
 
-## [v3.1.2]
+## [v3.2.0]
 
 ### Breaking Changes ⚠️
 - Renamed auth wiring attributes to `tauth-url`, `tauth-login-path`, `tauth-logout-path`, and `tauth-nonce-path` to clarify they target the TAuth origin; updated demos/docs/tests, and `createAuthHeader` now expects `tauthUrl`/`tauthLoginPath`/`tauthLogoutPath`/`tauthNoncePath` in programmatic options.
