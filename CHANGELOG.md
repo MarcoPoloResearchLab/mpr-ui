@@ -1,9 +1,15 @@
 # Changelog
 
+## [v3.1.2]
+
+### Breaking Changes ⚠️
+- Renamed auth wiring attributes to `tauth-url`, `tauth-login-path`, `tauth-logout-path`, and `tauth-nonce-path` to clarify they target the TAuth origin; updated demos/docs/tests, and `createAuthHeader` now expects `tauthUrl`/`tauthLoginPath`/`tauthLogoutPath`/`tauthNoncePath` in programmatic options.
+- Renamed `tenant-id` to `tauth-tenant-id` across the DSL and demos to align the attribute with TAuth-specific configuration.
+
 ## [v3.1.1]
 
 ### Features ✨
-- Require `tenant-id` for TAuth-backed authentication flows; move tenant validation to the edge.
+- Require `tauth-tenant-id` for TAuth-backed authentication flows; move tenant validation to the edge.
 - Document the `mpr-ui.tenant_id_required` error and troubleshooting for missing tenant ID.
 
 ### Improvements ⚙️
@@ -34,8 +40,8 @@
 ### Improvements ⚙️
 - Align TAuth integration with `/tauth.js`, prefer the helper APIs for nonce/exchange/logout, and supply a base-url fallback when bootstrapping sessions.
 - Refresh docs and demo wiring to match the updated TAuth helper path and base-url requirements.
-- Require `tenant-id` for TAuth-backed auth flows, propagate the tenant header across nonce/login/logout requests, and update demos/tests/docs to reflect the new contract.
-- Document the `mpr-ui.tenant_id_required` error and missing-tenant-id troubleshooting steps.
+- Require `tauth-tenant-id` for TAuth-backed auth flows, propagate the tenant header across nonce/login/logout requests, and update demos/tests/docs to reflect the new contract.
+- Document the `mpr-ui.tenant_id_required` error and missing-tauth-tenant-id troubleshooting steps.
 
 ## [v2.1.1]
 
@@ -103,7 +109,7 @@
 - MU-408 / MU-409: Removed the legacy `MPRUI.render*` / `mpr*` helper exports, deleted the associated tests, refreshed README/ARCHITECTURE/custom-elements/integration docs to describe only the `<mpr-*>` Web Components DSL, and added `docs/deprecation-roadmap.md` as the canonical migration reference.
 
 - MU-110: Added `demo/docker-tauth` with a gHTTP + TAuth Docker Compose stack, a dedicated header demo that loads `auth-client.js`, a signed-in status panel, and documentation describing how to configure Google OAuth plus the backing `.env` template.
-- MU-327: `<mpr-header>` now honours the `base-url` attribute, letting custom-element consumers (including the Docker Compose demo) route `/auth/*` calls to remote origins; added regression coverage ensuring the auth controller receives the configured base URL.
+- MU-327: `<mpr-header>` now honours the `tauth-url` attribute, letting custom-element consumers (including the Docker Compose demo) route `/auth/*` calls to remote origins; added regression coverage ensuring the auth controller receives the configured base URL.
 - MU-325: Square theme switcher now maps quadrants to the correct palettes (bottom-left triggers dark blue, bottom-right triggers pale green), loses the stuck halo/outline, and adds unit + Playwright coverage for the updated mapping.
 - MU-326: The default pill toggle drops its border/halo, moves the focus indicator to the knob, and gains regression tests to prove the border width stays zero while the new focus ring appears only during keyboard focus.
 - MU-200: Demo now depends on the v0.0.5 CDN bundle, keeps the header and sticky footer pinned in the layout by default, adds a `sticky` boolean option/attribute for both header and footer so integrators can opt out of sticky positioning, and extends regression coverage for the demo page and new configuration.

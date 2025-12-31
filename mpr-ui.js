@@ -5,10 +5,10 @@
   "use strict";
 
   var DEFAULT_OPTIONS = {
-    baseUrl: "",
-    loginPath: "/auth/google",
-    logoutPath: "/auth/logout",
-    noncePath: "/auth/nonce",
+    tauthUrl: "",
+    tauthLoginPath: "/auth/google",
+    tauthLogoutPath: "/auth/logout",
+    tauthNoncePath: "/auth/nonce",
     googleClientId: "",
     tenantId: "",
     siteName: "",
@@ -78,20 +78,20 @@
     return target.MPRUI;
   }
 
-  function joinUrl(baseUrl, path) {
-    if (!baseUrl) {
+  function joinUrl(tauthUrl, path) {
+    if (!tauthUrl) {
       return path;
     }
     if (!path) {
-      return baseUrl;
+      return tauthUrl;
     }
-    if (baseUrl.endsWith("/") && path.startsWith("/")) {
-      return baseUrl + path.slice(1);
+    if (tauthUrl.endsWith("/") && path.startsWith("/")) {
+      return tauthUrl + path.slice(1);
     }
-    if (!baseUrl.endsWith("/") && !path.startsWith("/")) {
-      return baseUrl + "/" + path;
+    if (!tauthUrl.endsWith("/") && !path.startsWith("/")) {
+      return tauthUrl + "/" + path;
     }
-    return baseUrl + path;
+    return tauthUrl + path;
   }
 
   function toStringOrNull(value) {
@@ -222,7 +222,7 @@
     "settings-enabled": "settingsEnabled",
     "settings": "settingsEnabled",
     "site-id": "siteId",
-    "tenant-id": "tenantId",
+    "tauth-tenant-id": "tenantId",
     "theme-config": "themeToggle",
     "theme-mode": "themeMode",
     "sign-in-label": "signInLabel",
@@ -234,10 +234,10 @@
   var HEADER_ATTRIBUTE_OBSERVERS = Object.freeze(
     Object.keys(HEADER_ATTRIBUTE_DATASET_MAP).concat([
       "auth-config",
-      "login-path",
-      "logout-path",
-      "nonce-path",
-      "base-url",
+      "tauth-login-path",
+      "tauth-logout-path",
+      "tauth-nonce-path",
+      "tauth-url",
     ]),
   );
 
@@ -288,11 +288,11 @@
   ]);
   var LOGIN_BUTTON_ATTRIBUTE_NAMES = Object.freeze([
     "site-id",
-    "tenant-id",
-    "login-path",
-    "logout-path",
-    "nonce-path",
-    "base-url",
+    "tauth-tenant-id",
+    "tauth-login-path",
+    "tauth-logout-path",
+    "tauth-nonce-path",
+    "tauth-url",
     "button-text",
     "button-theme",
     "button-size",
@@ -425,17 +425,20 @@
 
   function buildLoginAuthOptionsFromAttributes(hostElement) {
     return {
-      baseUrl: hostElement.getAttribute("base-url") || "",
-      loginPath:
-        hostElement.getAttribute("login-path") || DEFAULT_OPTIONS.loginPath,
-      logoutPath:
-        hostElement.getAttribute("logout-path") || DEFAULT_OPTIONS.logoutPath,
-      noncePath:
-        hostElement.getAttribute("nonce-path") || DEFAULT_OPTIONS.noncePath,
+      tauthUrl: hostElement.getAttribute("tauth-url") || "",
+      tauthLoginPath:
+        hostElement.getAttribute("tauth-login-path") ||
+        DEFAULT_OPTIONS.tauthLoginPath,
+      tauthLogoutPath:
+        hostElement.getAttribute("tauth-logout-path") ||
+        DEFAULT_OPTIONS.tauthLogoutPath,
+      tauthNoncePath:
+        hostElement.getAttribute("tauth-nonce-path") ||
+        DEFAULT_OPTIONS.tauthNoncePath,
       googleClientId:
         hostElement.getAttribute("site-id") || DEFAULT_OPTIONS.googleClientId,
       tenantId:
-        hostElement.getAttribute("tenant-id") || DEFAULT_OPTIONS.tenantId,
+        hostElement.getAttribute("tauth-tenant-id") || DEFAULT_OPTIONS.tenantId,
     };
   }
 
@@ -498,32 +501,32 @@
       authOptions = parseJsonValue(rawAuth, null);
     }
     var loginPath = hostElement.getAttribute
-      ? hostElement.getAttribute("login-path")
+      ? hostElement.getAttribute("tauth-login-path")
       : null;
     if (loginPath) {
       authOptions = authOptions || {};
-      authOptions.loginPath = loginPath;
+      authOptions.tauthLoginPath = loginPath;
     }
     var logoutPath = hostElement.getAttribute
-      ? hostElement.getAttribute("logout-path")
+      ? hostElement.getAttribute("tauth-logout-path")
       : null;
     if (logoutPath) {
       authOptions = authOptions || {};
-      authOptions.logoutPath = logoutPath;
+      authOptions.tauthLogoutPath = logoutPath;
     }
     var noncePath = hostElement.getAttribute
-      ? hostElement.getAttribute("nonce-path")
+      ? hostElement.getAttribute("tauth-nonce-path")
       : null;
     if (noncePath) {
       authOptions = authOptions || {};
-      authOptions.noncePath = noncePath;
+      authOptions.tauthNoncePath = noncePath;
     }
-    var baseUrl = hostElement.getAttribute
-      ? hostElement.getAttribute("base-url")
+    var tauthUrl = hostElement.getAttribute
+      ? hostElement.getAttribute("tauth-url")
       : null;
-    if (baseUrl) {
+    if (tauthUrl) {
       authOptions = authOptions || {};
-      authOptions.baseUrl = baseUrl;
+      authOptions.tauthUrl = tauthUrl;
     }
     var externalOptions = {};
     if (authOptions) {
@@ -2258,8 +2261,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function resolveAuthBaseUrl() {
-      if (typeof options.baseUrl === "string") {
-        var trimmedBaseUrl = options.baseUrl.trim();
+      if (typeof options.tauthUrl === "string") {
+        var trimmedBaseUrl = options.tauthUrl.trim();
         if (trimmedBaseUrl) {
           return trimmedBaseUrl;
         }
@@ -2290,7 +2293,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     function requestNonceTokenWithFetch() {
       return global
-        .fetch(joinUrl(options.baseUrl, options.noncePath), {
+        .fetch(joinUrl(options.tauthUrl, options.tauthNoncePath), {
           method: "POST",
           credentials: "include",
           headers: withTenantHeader({
@@ -2485,7 +2488,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         nonce_token: nonceToken,
       });
       return global
-        .fetch(joinUrl(options.baseUrl, options.loginPath), {
+        .fetch(joinUrl(options.tauthUrl, options.tauthLoginPath), {
           method: "POST",
           credentials: "include",
           headers: withTenantHeader({
@@ -2545,7 +2548,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function performLogoutWithFetch() {
-      return global.fetch(joinUrl(options.baseUrl, options.logoutPath), {
+      return global.fetch(joinUrl(options.tauthUrl, options.tauthLogoutPath), {
         method: "POST",
         credentials: "include",
         headers: withTenantHeader({ "X-Requested-With": "XMLHttpRequest" }),
@@ -6820,7 +6823,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
               : createTenantIdError();
             this.setAttribute(
               "data-mpr-google-error",
-              !siteId ? "missing-site-id" : "missing-tenant-id",
+              !siteId ? "missing-site-id" : "missing-tauth-tenant-id",
             );
             dispatchEvent(this, "mpr-login:error", {
               code: missingError.code,

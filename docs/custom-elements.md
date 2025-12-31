@@ -38,15 +38,15 @@ Sticky site header with navigation, Google Identity Services button, settings CT
 | `brand-label` / `brand-href` | `string` | Sets the brand copy and URL for the heading. |
 | `nav-links` | `JSON` | Array of `{ label, href, target? }`. |
 | `site-id` | `string` | Google Identity Services client ID. Required for auth flows. |
-| `tenant-id` | `string` | TAuth tenant identifier. Required whenever auth is enabled. |
-| `login-path`, `logout-path`, `nonce-path`, `base-url` | `string` | Auth endpoints wired into `createAuthHeader`. |
+| `tauth-tenant-id` | `string` | TAuth tenant identifier. Required whenever auth is enabled. |
+| `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url` | `string` | Auth endpoints wired into `createAuthHeader`. |
 | `auth-config` | `JSON` | Full object passed to `createAuthHeader` (takes precedence over individual path attributes). |
 | `theme-config`, `theme-mode` | `JSON` / `string` | Configures the shared theme manager (no toggle is rendered; use the footer or `<mpr-theme-toggle>` for user controls). |
 | `settings-label`, `settings` | `string` / `boolean` | Control the built-in settings button. |
 | `sign-in-label`, `sign-out-label`, `profile-label` | `string` | Override localized copy. |
 | `sticky` | `boolean` attribute | Controls sticky positioning (case-insensitive `true`/`false`). Default `true` keeps the header viewport-pinned; set `false` to render it in document flow. |
 
-When `tauth.js` is present, `mpr-ui` passes `base-url` and `tenant-id` into `initAuthClient`, and includes the tenant ID in every auth request. Missing `tenant-id` throws `mpr-ui.tenant_id_required` during header initialization.
+When `tauth.js` is present, `mpr-ui` passes `tauth-url` and `tauth-tenant-id` into `initAuthClient`, and includes the tenant ID in every auth request. Missing `tauth-tenant-id` throws `mpr-ui.tenant_id_required` during header initialization.
 
 **Slots**
 
@@ -63,10 +63,10 @@ When `tauth.js` is present, `mpr-ui` passes `base-url` and `tenant-id` into `ini
   brand-label="Marco Polo Research Lab"
   nav-links='[{ "label": "Docs", "href": "#docs" }]'
   site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
-  tenant-id="mpr-sites"
-  login-path="/auth/google"
-  logout-path="/auth/logout"
-  nonce-path="/auth/nonce"
+  tauth-tenant-id="mpr-sites"
+  tauth-login-path="/auth/google"
+  tauth-logout-path="/auth/logout"
+  tauth-nonce-path="/auth/nonce"
   theme-config='{"initialMode":"dark"}'
 >
   <button slot="nav-right" class="demo-link">Request Access</button>
@@ -111,11 +111,11 @@ Renders the Google Identity Services button without the rest of the header.
 | Attribute | Type | Description |
 | --- | --- | --- |
 | `site-id` | `string` | GIS client ID. Required for auth flows. |
-| `tenant-id` | `string` | TAuth tenant identifier. Required whenever auth is enabled. |
-| `login-path`, `logout-path`, `nonce-path`, `base-url` | `string` | Auth endpoints. |
+| `tauth-tenant-id` | `string` | TAuth tenant identifier. Required whenever auth is enabled. |
+| `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url` | `string` | Auth endpoints. |
 | `button-text`, `button-size`, `button-theme`, `button-shape` | `string` | Passed directly to `google.accounts.id.renderButton`. |
 
-**Events:** `mpr-ui:auth:*`, `mpr-login:error`. Missing configuration emits `mpr-login:error` with `mpr-ui.tenant_id_required` or `mpr-ui.google_site_id_required`; the element also sets `data-mpr-google-error="missing-tenant-id"` or `"missing-site-id"`.
+**Events:** `mpr-ui:auth:*`, `mpr-login:error`. Missing configuration emits `mpr-login:error` with `mpr-ui.tenant_id_required` or `mpr-ui.google_site_id_required`; the element also sets `data-mpr-google-error="missing-tauth-tenant-id"` or `"missing-site-id"`.
 
 ### `<mpr-settings>`
 

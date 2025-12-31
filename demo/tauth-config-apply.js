@@ -3,7 +3,7 @@
 
 /**
  * Applies the TAUTH_DEMO_CONFIG to the demo header element so the client ID
- * and base URL stay aligned with the backend configuration.
+ * and TAuth URL stay aligned with the backend configuration.
  */
 (function applyTauthConfig() {
   var config = globalThis.TAUTH_DEMO_CONFIG || {};
@@ -14,11 +14,11 @@
   if (config.googleClientId) {
     header.setAttribute('site-id', String(config.googleClientId));
   }
-  if (config.baseUrl) {
-    header.setAttribute('base-url', String(config.baseUrl));
+  if (config.tauthUrl) {
+    header.setAttribute('tauth-url', String(config.tauthUrl));
   }
   if (config.tenantId) {
-    header.setAttribute('tenant-id', String(config.tenantId));
+    header.setAttribute('tauth-tenant-id', String(config.tenantId));
   }
   if (!config.googleClientId) {
     // eslint-disable-next-line no-console
