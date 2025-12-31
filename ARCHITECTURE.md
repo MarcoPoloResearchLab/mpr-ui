@@ -40,9 +40,9 @@ The bundle auto-registers modern HTML custom elements when `window.customElement
 
 | Tag               | Backing Helper(s)                              | Key Attributes                                                                                                                        | Emitted Events                                            |
 | ----------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `<mpr-header>`    | Header controller + `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `google-site-id`, `tauth-tenant-id`, `theme-config`, `auth-config`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `sticky` (default `true`)   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
-| `<mpr-footer>`    | Footer controller (internal)                   | `prefix-text`, `links-collection`, legacy `links`, `toggle-label`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides, `sticky` (default `true`)     | `mpr-footer:theme-change`                                 |
-| `<mpr-theme-toggle>` | Theme manager (`configureTheme`)            | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`, `theme-mode`          | `mpr-ui:theme-change` (via the shared theme manager)      |
+| `<mpr-header>`    | Header controller + `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `google-site-id`, `tauth-tenant-id`, `theme-config`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `sticky` (default `true`)   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
+| `<mpr-footer>`    | Footer controller (internal)                   | `prefix-text`, `links-collection`, `toggle-label`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides, `sticky` (default `true`)     | `mpr-footer:theme-change`                                 |
+| `<mpr-theme-toggle>` | Theme manager (`configureTheme`)            | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`          | `mpr-ui:theme-change` (via the shared theme manager)      |
 | `<mpr-login-button>` | `createAuthHeader`, shared GIS helper       | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape`        | `mpr-ui:auth:*`, `mpr-login:error`                        |
 | `<mpr-settings>` | Settings CTA + panel wrapper                    | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open`                                                                    | `mpr-settings:toggle`                                     |
 | `<mpr-sites>`    | `getFooterSiteCatalog` (plus inline renderer)   | `links` (JSON), `variant` (`list`, `grid`, `menu`), `columns`, `heading`                                                              | `mpr-sites:link-click`                                    |
@@ -145,7 +145,7 @@ The header controller produces a sticky banner that combines navigation, auth co
 | `sticky`                   | `boolean`                              | Controls sticky positioning for the header; `true` (default) pins it, `false` renders it in-flow. |
 | `auth`                     | `object \| null`                       | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |
 
-Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the header host element; values are merged with programmatic options and configure the shared theme manager (the header itself no longer renders a toggle).
+Declarative overrides: apply `data-theme-toggle` (JSON) to the header host element and include `initialMode` in the JSON to set the starting mode; values are merged with programmatic options and configure the shared theme manager (the header itself no longer renders a toggle).
 
 ### Events
 
@@ -160,7 +160,7 @@ Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to
 - Defaults write `data-mpr-theme` to `document.documentElement` and dispatch `mpr-ui:theme-change` on the `document` node whenever the active mode changes.
 - `MPRUI.configureTheme({ attribute, targets, modes })` merges attribute/target updates and replaces the mode collection when provided. Targets accept CSS selectors or the sentinel values `"document"` / `"body"`.
 - Modes accept `{ value, attributeValue?, classList?, dataset? }`; each dataset key becomes a `data-*` attribute on the targets and `classList` entries are added while old mode classes are removed.
-- Declarative configuration is supported via `data-theme-toggle` (JSON) and `data-theme-mode` attributes on header/footer hosts. Imperative options and dataset values are merged.
+- Declarative configuration is supported via `data-theme-toggle` (JSON) attributes on header/footer hosts. Include `initialMode` in the JSON to set the starting mode; imperative options and dataset values are merged.
 - Consumers can observe theme changes with `MPRUI.onThemeChange(listener)` or by listening for the bubbling `mpr-ui:theme-change` event (detail `{ mode, source }`).
 
 ## Footer Controller (Internal)
@@ -186,7 +186,6 @@ The footer controller bundles the dropdown/theme implementation, injects styles 
 | `menuClass`                | `string`                               | Class for the `<ul>` menu container.                                          |
 | `menuItemClass`            | `string`                               | Class for each `<a>` inside the menu.                                         |
 | `linksCollection`         | `{ style, text, links }` JSON          | Drives the drop-up menu; omit or leave `links` empty to show text-only footer.|
-| `links` (legacy)          | `{label, url, target?, rel?}[]`        | Backwards-compatible array for menu entries (still supported).                |
 | `privacyLinkClass`         | `string`                               | Class applied to the privacy link.                                            |
 | `privacyLinkHref`          | `string`                               | Destination for the privacy link (`#` default).                               |
 | `privacyLinkLabel`         | `string`                               | Copy for the privacy link (default "Privacy • Terms").                        |
@@ -207,7 +206,7 @@ If `linksCollection` is omitted (or its `links` array is empty), the footer rend
 
 If `privacyModalContent` is provided, the privacy link becomes a button that opens an almost full-screen modal with focus capture, ESC/backdrop/click-to-close, and body scroll locking.
 
-Declarative overrides: apply `data-theme-toggle` (JSON) and `data-theme-mode` to the footer host element; values merge with programmatic options.
+Declarative overrides: apply `data-theme-toggle` (JSON) to the footer host element and include `initialMode` in the JSON to set the starting mode; values merge with programmatic options.
 
 Declarative attribute `theme-switcher` controls `themeToggle.variant` and implicitly enables the control. Supported values: `toggle` (`switch`), `square`, and `button`. Square mode assumes up to four entries in `themeToggle.modes`, letting you encode palette + light/dark combinations by populating `dataset` entries such as `{"data-demo-palette":"sunrise"}` that the theme manager stamps onto every configured target.
 

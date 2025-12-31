@@ -1,5 +1,25 @@
 # Changelog
 
+## [v3.4.0]
+
+### Breaking Changes ⚠️
+
+- Remove legacy DSL attributes/config keys: `<mpr-header>` no longer accepts `settings-enabled` or `auth-config`, `<mpr-footer>` ignores the legacy `links` attribute and `themeToggle.themeSwitcher`, and `theme-mode` is retired in favor of `theme-config.initialMode`.
+
+### Improvements ⚙️
+
+- Align footer theme config fixtures with the canonical `variant` key.
+- Emit console errors when legacy DSL attributes or config keys are detected at runtime.
+- Add a minimal `tsconfig.json` plus `@types/node` for JS type-checking and clean up baseline `mpr-ui.js` type errors.
+
+### Testing 🧪
+
+- Add regression coverage that asserts legacy DSL inputs are ignored and logged for header, footer, and theme toggle components.
+
+### Docs 📚
+
+- Update README, ARCHITECTURE, and custom element reference docs to reflect the canonical DSL and theme configuration.
+
 ## [v3.3.0]
 
 ### Breaking Changes ⚠️

@@ -1,3 +1,4 @@
+// @ts-check
 'use strict';
 
 const { test } = require('node:test');
@@ -184,6 +185,35 @@ function createDocumentStub() {
     },
     querySelectorAll: function querySelectorAll() {
       return [];
+    },
+  };
+}
+
+function captureConsoleErrors() {
+  const messages = [];
+  const originalConsole = global.console || {};
+  const originalError = originalConsole.error;
+  if (!global.console) {
+    global.console = {};
+  }
+  global.console.error = function error() {
+    const parts = [];
+    for (let index = 0; index < arguments.length; index += 1) {
+      parts.push(String(arguments[index]));
+    }
+    messages.push(parts.join(' '));
+  };
+  return {
+    messages,
+    restore: function restore() {
+      if (!global.console) {
+        return;
+      }
+      if (originalError) {
+        global.console.error = originalError;
+        return;
+      }
+      delete global.console.error;
     },
   };
 }
@@ -647,6 +677,149 @@ test('mpr-header enables settings button when settings attribute true', () => {
   );
 });
 
+test('mpr-header ignores legacy attributes', async () => {
+  const legacyCases = [
+    {
+      name: 'settings-enabled',
+      applyAttributes: function applyAttributes(headerElement) {
+        headerElement.setAttribute('settings-enabled', 'true');
+      },
+      assertOutcome: function assertOutcome(headerHarness) {
+        assert.equal(
+          headerHarness.root.classList.contains('mpr-header--no-settings'),
+          true,
+          'settings-enabled should not enable the settings button',
+        );
+      },
+    },
+    {
+      name: 'auth-config',
+      setupGlobals: function setupGlobals() {
+        global.google = {
+          accounts: {
+            id: {
+              renderButton() {},
+              initialize() {},
+              prompt() {},
+            },
+          },
+        };
+      },
+      applyAttributes: function applyAttributes(headerElement) {
+        headerElement.setAttribute(
+          'auth-config',
+          JSON.stringify({
+            googleClientId: 'legacy-site',
+            tenantId: 'legacy-tenant',
+          }),
+        );
+      },
+      assertOutcome: function assertOutcome(headerHarness, headerElement) {
+        const controller = headerElement.__headerController;
+        const authController =
+          controller && typeof controller.getAuthController === 'function'
+            ? controller.getAuthController()
+            : null;
+        assert.equal(
+          authController,
+          null,
+          'auth-config attribute should be ignored',
+        );
+        assert.equal(
+          headerHarness.root.classList.contains('mpr-header--no-auth'),
+          true,
+          'auth-config should not enable auth UI',
+        );
+      },
+    },
+  ];
+
+  for (const legacyCase of legacyCases) {
+    resetEnvironment();
+    if (legacyCase.setupGlobals) {
+      legacyCase.setupGlobals();
+    }
+    loadLibrary();
+    const headerHarness = createHeaderElementHarness();
+    const headerElement = headerHarness.element;
+    legacyCase.applyAttributes(headerElement);
+    headerElement.connectedCallback();
+    await flushAsync();
+    legacyCase.assertOutcome(headerHarness, headerElement);
+  }
+});
+
+test('mpr-header logs legacy attributes', async () => {
+  const legacyAttributeErrorCode = 'mpr-ui.dsl.legacy_attribute';
+  const legacyCases = [
+    {
+      name: 'settings-enabled',
+      expectedToken: 'settings-enabled',
+      applyAttributes: function applyAttributes(headerElement) {
+        headerElement.setAttribute('settings-enabled', 'true');
+      },
+    },
+    {
+      name: 'auth-config',
+      expectedToken: 'auth-config',
+      setupGlobals: function setupGlobals() {
+        global.google = {
+          accounts: {
+            id: {
+              renderButton() {},
+              initialize() {},
+              prompt() {},
+            },
+          },
+        };
+      },
+      applyAttributes: function applyAttributes(headerElement) {
+        headerElement.setAttribute(
+          'auth-config',
+          JSON.stringify({
+            googleClientId: 'legacy-site',
+            tenantId: 'legacy-tenant',
+          }),
+        );
+      },
+    },
+    {
+      name: 'theme-mode',
+      expectedToken: 'theme-mode',
+      applyAttributes: function applyAttributes(headerElement) {
+        headerElement.setAttribute('theme-mode', 'dark');
+      },
+    },
+  ];
+
+  for (const legacyCase of legacyCases) {
+    resetEnvironment();
+    if (legacyCase.setupGlobals) {
+      legacyCase.setupGlobals();
+    }
+    const capture = captureConsoleErrors();
+    try {
+      loadLibrary();
+      const headerHarness = createHeaderElementHarness();
+      const headerElement = headerHarness.element;
+      legacyCase.applyAttributes(headerElement);
+      headerElement.connectedCallback();
+      await flushAsync();
+      const matched = capture.messages.some(
+        (message) =>
+          message.indexOf(legacyAttributeErrorCode) !== -1 &&
+          message.indexOf(legacyCase.expectedToken) !== -1,
+      );
+      assert.ok(
+        matched,
+        'expected legacy DSL log for ' + legacyCase.name,
+      );
+    } finally {
+      capture.restore();
+    }
+  }
+});
+
 test('mpr-header projects slot content into brand, nav, and actions', () => {
   resetEnvironment();
   loadLibrary();
@@ -785,7 +958,7 @@ test('mpr-footer reflects attributes and slot content', () => {
         rel: 'noopener noreferrer',
       },
     ],
-    'links attribute parsed into controller config',
+    'links-collection parsed into controller config',
   );
   assert.equal(
     controllerConfig && controllerConfig.privacyModalContent,
@@ -852,6 +1025,133 @@ test('mpr-footer renders static text when links collection is missing', () => {
   );
 });
 
+test('mpr-footer ignores legacy attributes', () => {
+  const legacyCases = [
+    {
+      name: 'links',
+      applyAttributes: function applyAttributes(footerElement) {
+        footerElement.setAttribute(
+          'links',
+          JSON.stringify([{ label: 'Legacy', url: '#legacy' }]),
+        );
+      },
+      assertOutcome: function assertOutcome(controllerConfig) {
+        assert.equal(
+          controllerConfig.linksMenuEnabled,
+          false,
+          'links attribute should not enable the links menu',
+        );
+        assert.deepEqual(
+          controllerConfig.links,
+          [],
+          'links attribute should not populate menu links',
+        );
+      },
+    },
+    {
+      name: 'themeToggle.themeSwitcher',
+      applyAttributes: function applyAttributes(footerElement) {
+        footerElement.setAttribute(
+          'theme-config',
+          JSON.stringify({
+            themeSwitcher: 'toggle',
+          }),
+        );
+      },
+      assertOutcome: function assertOutcome(controllerConfig) {
+        assert.equal(
+          controllerConfig.themeToggle.enabled,
+          false,
+          'themeToggle.themeSwitcher should not enable the toggle',
+        );
+        assert.equal(
+          controllerConfig.themeToggle.variant,
+          '',
+          'themeToggle.themeSwitcher should not select a variant',
+        );
+      },
+    },
+  ];
+
+  for (const legacyCase of legacyCases) {
+    resetEnvironment();
+    loadLibrary();
+    const footerHarness = createFooterElementHarness();
+    const footerElement = footerHarness.element;
+    legacyCase.applyAttributes(footerElement);
+    footerElement.connectedCallback();
+    const controllerConfig =
+      footerElement.__footerController &&
+      footerElement.__footerController.getConfig
+        ? footerElement.__footerController.getConfig()
+        : null;
+    assert.ok(controllerConfig, 'controller config should be available');
+    legacyCase.assertOutcome(controllerConfig);
+  }
+});
+
+test('mpr-footer logs legacy attributes and config keys', () => {
+  const legacyAttributeErrorCode = 'mpr-ui.dsl.legacy_attribute';
+  const legacyConfigErrorCode = 'mpr-ui.dsl.legacy_config';
+  const legacyCases = [
+    {
+      name: 'links',
+      expectedCode: legacyAttributeErrorCode,
+      expectedToken: 'links',
+      applyAttributes: function applyAttributes(footerElement) {
+        footerElement.setAttribute(
+          'links',
+          JSON.stringify([{ label: 'Legacy', url: '#legacy' }]),
+        );
+      },
+    },
+    {
+      name: 'theme-mode',
+      expectedCode: legacyAttributeErrorCode,
+      expectedToken: 'theme-mode',
+      applyAttributes: function applyAttributes(footerElement) {
+        footerElement.setAttribute('theme-mode', 'light');
+      },
+    },
+    {
+      name: 'themeToggle.themeSwitcher',
+      expectedCode: legacyConfigErrorCode,
+      expectedToken: 'themeToggle.themeSwitcher',
+      applyAttributes: function applyAttributes(footerElement) {
+        footerElement.setAttribute(
+          'theme-config',
+          JSON.stringify({
+            themeSwitcher: 'toggle',
+          }),
+        );
+      },
+    },
+  ];
+
+  for (const legacyCase of legacyCases) {
+    resetEnvironment();
+    const capture = captureConsoleErrors();
+    try {
+      loadLibrary();
+      const footerHarness = createFooterElementHarness();
+      const footerElement = footerHarness.element;
+      legacyCase.applyAttributes(footerElement);
+      footerElement.connectedCallback();
+      const matched = capture.messages.some(
+        (message) =>
+          message.indexOf(legacyCase.expectedCode) !== -1 &&
+          message.indexOf(legacyCase.expectedToken) !== -1,
+      );
+      assert.ok(
+        matched,
+        'expected legacy DSL log for ' + legacyCase.name,
+      );
+    } finally {
+      capture.restore();
+    }
+  }
+});
+
 test('mpr-footer drop-up toggles without Bootstrap dependencies', () => {
   resetEnvironment();
   loadLibrary();
@@ -914,6 +1214,54 @@ test('mpr-theme-toggle custom element toggles theme mode', () => {
     'dark',
     'clicking the control toggles the global theme mode',
   );
+});
+
+test('mpr-theme-toggle ignores legacy theme-mode attribute', () => {
+  const legacyCases = [
+    { attribute: 'theme-mode', value: 'light', expectedMode: 'dark' },
+  ];
+
+  legacyCases.forEach((legacyCase) => {
+    resetEnvironment();
+    const library = loadLibrary();
+    const harness = createThemeToggleElementHarness();
+    harness.element.setAttribute(legacyCase.attribute, legacyCase.value);
+    harness.element.connectedCallback();
+    assert.equal(
+      library.getThemeMode(),
+      legacyCase.expectedMode,
+      'theme-mode attribute should not override the initial mode',
+    );
+  });
+});
+
+test('mpr-theme-toggle logs legacy attributes', () => {
+  const legacyAttributeErrorCode = 'mpr-ui.dsl.legacy_attribute';
+  const legacyCases = [
+    { name: 'theme-mode', value: 'light' },
+  ];
+
+  legacyCases.forEach((legacyCase) => {
+    resetEnvironment();
+    const capture = captureConsoleErrors();
+    try {
+      loadLibrary();
+      const harness = createThemeToggleElementHarness();
+      harness.element.setAttribute('theme-mode', legacyCase.value);
+      harness.element.connectedCallback();
+      const matched = capture.messages.some(
+        (message) =>
+          message.indexOf(legacyAttributeErrorCode) !== -1 &&
+          message.indexOf('theme-mode') !== -1,
+      );
+      assert.ok(
+        matched,
+        'expected legacy DSL log for ' + legacyCase.name,
+      );
+    } finally {
+      capture.restore();
+    }
+  });
 });
 
 test('mpr-login-button renders the Google button with provided site ID', async () => {

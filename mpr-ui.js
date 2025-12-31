@@ -15,6 +15,36 @@
     siteLink: "",
   };
 
+  /**
+   * @typedef {{ code?: string, status?: number }} MprUiErrorMetadata
+   * @typedef {Error & MprUiErrorMetadata} MprUiError
+   * @typedef {{
+   *   tauthUrl?: string,
+   *   tauthLoginPath?: string,
+   *   tauthLogoutPath?: string,
+   *   tauthNoncePath?: string,
+   *   googleClientId?: string,
+   *   tenantId?: string,
+   * }} AuthOptions
+   * @typedef {{ script: string, title: string, copy: string, height?: number }} SubscribeConfig
+   * @typedef {{
+   *   id: string,
+   *   name: string,
+   *   description: string,
+   *   status: string,
+   *   category: string,
+   *   url: string,
+   *   icon: string,
+   *   subscribe?: SubscribeConfig,
+   * }} BandCatalogEntry
+   * @typedef {{
+   *   render?: () => void,
+   *   destroy?: () => void,
+   *   update?: (name: string, oldValue: string|null, newValue: string|null) => void,
+   *   __mprConnected?: boolean,
+   * }} MprElementLifecycle
+   */
+
   var ATTRIBUTE_MAP = {
     user_id: "data-user-id",
     user_email: "data-user-email",
@@ -35,7 +65,12 @@
     return trimmed ? trimmed : null;
   }
 
+  /**
+   * @param {string=} message
+   * @returns {MprUiError}
+   */
   function createGoogleSiteIdError(message) {
+    /** @type {MprUiError} */
     var error = new Error(message || "Google client ID is required");
     error.code = GOOGLE_SITE_ID_ERROR_CODE;
     return error;
@@ -57,7 +92,12 @@
     return trimmed ? trimmed : null;
   }
 
+  /**
+   * @param {string=} message
+   * @returns {MprUiError}
+   */
   function createTenantIdError(message) {
+    /** @type {MprUiError} */
     var error = new Error(message || "Tenant ID is required");
     error.code = TENANT_ID_ERROR_CODE;
     return error;
@@ -152,6 +192,50 @@
     global.console.error(parts.join(" "));
   }
 
+  var LEGACY_DSL_ATTRIBUTE_ERROR_CODE = "mpr-ui.dsl.legacy_attribute";
+  var LEGACY_DSL_CONFIG_ERROR_CODE = "mpr-ui.dsl.legacy_config";
+  var LEGACY_DSL_THEME_MODE_REPLACEMENT = '"theme-config" with "initialMode"';
+  var LEGACY_DSL_SETTINGS_REPLACEMENT = '"settings"';
+  var LEGACY_DSL_LINKS_REPLACEMENT = '"links-collection"';
+  var LEGACY_DSL_TAUTH_REPLACEMENT =
+    '"tauth-url"/"tauth-login-path"/"tauth-logout-path"/"tauth-nonce-path"';
+  var LEGACY_DSL_THEME_VARIANT_REPLACEMENT =
+    '"themeToggle.variant" or "theme-switcher"';
+
+  function logLegacyAttribute(componentLabel, attributeName, replacement) {
+    if (!attributeName) {
+      return;
+    }
+    var message =
+      'Unsupported legacy attribute "' +
+      attributeName +
+      '" on ' +
+      componentLabel;
+    if (replacement) {
+      message += ". Use " + replacement + ".";
+    }
+    logError(LEGACY_DSL_ATTRIBUTE_ERROR_CODE, message);
+  }
+
+  function logLegacyConfig(componentLabel, configKey, replacement) {
+    if (!configKey) {
+      return;
+    }
+    var message =
+      'Unsupported legacy config key "' + configKey + '" on ' + componentLabel;
+    if (replacement) {
+      message += ". Use " + replacement + ".";
+    }
+    logError(LEGACY_DSL_CONFIG_ERROR_CODE, message);
+  }
+
+  function hasAttributeValue(hostElement, attributeName) {
+    if (!hostElement || typeof hostElement.getAttribute !== "function") {
+      return false;
+    }
+    return hostElement.getAttribute(attributeName) !== null;
+  }
+
   function resolveHost(target) {
     if (!target) {
       throw new Error("resolveHost requires a selector or element reference");
@@ -219,12 +303,10 @@
     "brand-href": "brandHref",
     "nav-links": "navLinks",
     "settings-label": "settingsLabel",
-    "settings-enabled": "settingsEnabled",
     "settings": "settingsEnabled",
     "google-site-id": "siteId",
     "tauth-tenant-id": "tenantId",
     "theme-config": "themeToggle",
-    "theme-mode": "themeMode",
     "sign-in-label": "signInLabel",
     "sign-out-label": "signOutLabel",
     sticky: "sticky",
@@ -233,7 +315,6 @@
 
   var HEADER_ATTRIBUTE_OBSERVERS = Object.freeze(
     Object.keys(HEADER_ATTRIBUTE_DATASET_MAP).concat([
-      "auth-config",
       "tauth-login-path",
       "tauth-logout-path",
       "tauth-nonce-path",
@@ -261,10 +342,8 @@
     "privacy-link-label": "privacyLinkLabel",
     "privacy-modal-content": "privacyModalContent",
     "theme-config": "themeToggle",
-    "theme-mode": "themeMode",
     "theme-switcher": "themeSwitcher",
     "links-collection": "linksCollection",
-    links: "links",
     sticky: "sticky",
     size: "size",
   });
@@ -284,7 +363,6 @@
     "control-class",
     "icon-class",
     "theme-config",
-    "theme-mode",
   ]);
   var LOGIN_BUTTON_ATTRIBUTE_NAMES = Object.freeze([
     "site-id",
@@ -316,7 +394,7 @@
     if (value === null || value === undefined) {
       return null;
     }
-    if (attributeName === "settings-enabled" || attributeName === "settings") {
+    if (attributeName === "settings") {
       if (value === "") {
         return "true";
       }
@@ -379,6 +457,13 @@
   }
 
   function buildThemeToggleOptionsFromAttributes(hostElement) {
+    if (hasAttributeValue(hostElement, "theme-mode")) {
+      logLegacyAttribute(
+        "<mpr-theme-toggle>",
+        "theme-mode",
+        LEGACY_DSL_THEME_MODE_REPLACEMENT,
+      );
+    }
     var options = {};
     var variant = hostElement.getAttribute("variant");
     if (variant) {
@@ -412,10 +497,6 @@
     var themeAttr = hostElement.getAttribute("theme-config");
     if (themeAttr) {
       themeConfig = parseJsonValue(themeAttr, {});
-    }
-    var modeAttr = hostElement.getAttribute("theme-mode");
-    if (modeAttr && typeof modeAttr === "string") {
-      themeConfig.initialMode = modeAttr;
     }
     if (Object.keys(themeConfig).length) {
       options.theme = themeConfig;
@@ -492,14 +573,30 @@
   }
 
   function buildHeaderOptionsFromAttributes(hostElement) {
-    var datasetOptions = readHeaderOptionsFromDataset(hostElement);
-    var authOptions = null;
-    var rawAuth = hostElement.getAttribute
-      ? hostElement.getAttribute("auth-config")
-      : null;
-    if (rawAuth) {
-      authOptions = parseJsonValue(rawAuth, null);
+    if (hasAttributeValue(hostElement, "settings-enabled")) {
+      logLegacyAttribute(
+        "<mpr-header>",
+        "settings-enabled",
+        LEGACY_DSL_SETTINGS_REPLACEMENT,
+      );
     }
+    if (hasAttributeValue(hostElement, "auth-config")) {
+      logLegacyAttribute(
+        "<mpr-header>",
+        "auth-config",
+        LEGACY_DSL_TAUTH_REPLACEMENT,
+      );
+    }
+    if (hasAttributeValue(hostElement, "theme-mode")) {
+      logLegacyAttribute(
+        "<mpr-header>",
+        "theme-mode",
+        LEGACY_DSL_THEME_MODE_REPLACEMENT,
+      );
+    }
+    var datasetOptions = readHeaderOptionsFromDataset(hostElement);
+    /** @type {AuthOptions | null} */
+    var authOptions = null;
     var loginPath = hostElement.getAttribute
       ? hostElement.getAttribute("tauth-login-path")
       : null;
@@ -536,6 +633,20 @@
   }
 
   function buildFooterOptionsFromAttributes(hostElement) {
+    if (hasAttributeValue(hostElement, "links")) {
+      logLegacyAttribute(
+        "<mpr-footer>",
+        "links",
+        LEGACY_DSL_LINKS_REPLACEMENT,
+      );
+    }
+    if (hasAttributeValue(hostElement, "theme-mode")) {
+      logLegacyAttribute(
+        "<mpr-footer>",
+        "theme-mode",
+        LEGACY_DSL_THEME_MODE_REPLACEMENT,
+      );
+    }
     var datasetOptions = readFooterOptionsFromDataset(hostElement);
     return deepMergeOptions({}, datasetOptions);
   }
@@ -1937,8 +2048,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var datasetSettingsFlag = undefined;
     if (dataset.settingsEnabled !== undefined) {
       datasetSettingsFlag = dataset.settingsEnabled;
-    } else if (dataset.settings !== undefined) {
-      datasetSettingsFlag = dataset.settings;
     }
     if (dataset.settingsLabel) {
       options.settings = options.settings || {};
@@ -1956,14 +2065,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     if (dataset.themeToggle) {
       options.themeToggle = parseJsonValue(dataset.themeToggle, {});
-    }
-    if (dataset.themeSwitcher) {
-      options.themeToggle = options.themeToggle || {};
-      options.themeToggle.variant = dataset.themeSwitcher;
-    }
-    if (dataset.themeMode) {
-      options.themeToggle = options.themeToggle || {};
-      options.themeToggle.mode = dataset.themeMode;
     }
     if (dataset.signInLabel) {
       options.signInLabel = dataset.signInLabel;
@@ -2306,6 +2407,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             throw new Error("invalid response from nonce endpoint");
           }
           if (!response.ok) {
+            /** @type {MprUiError} */
             var nonceError = new Error("nonce issuance failed");
             nonceError.status = response.status;
             throw nonceError;
@@ -2502,6 +2604,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             throw new Error("invalid response from credential exchange");
           }
           if (!response.ok) {
+            /** @type {MprUiError} */
             var errorObject = new Error("credential exchange failed");
             errorObject.status = response.status;
             throw errorObject;
@@ -4197,6 +4300,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
   }
 
+  /** @type {readonly BandCatalogEntry[]} */
   var BAND_PROJECT_CATALOG = Object.freeze([
     Object.freeze({
       id: "issues-md",
@@ -5480,6 +5584,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   }
 
   function normalizeFooterThemeToggle(themeToggleInput) {
+    if (
+      themeToggleInput &&
+      typeof themeToggleInput === "object" &&
+      Object.prototype.hasOwnProperty.call(themeToggleInput, "themeSwitcher")
+    ) {
+      logLegacyConfig(
+        "<mpr-footer>",
+        "themeToggle.themeSwitcher",
+        LEGACY_DSL_THEME_VARIANT_REPLACEMENT,
+      );
+    }
     var hasExplicitEnabled =
       themeToggleInput &&
       typeof themeToggleInput === "object" &&
@@ -5495,11 +5610,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       mergedToggle.variant.trim()
     ) {
       variantSource = mergedToggle.variant.trim();
-    } else if (
-      typeof mergedToggle.themeSwitcher === "string" &&
-      mergedToggle.themeSwitcher.trim()
-    ) {
-      variantSource = mergedToggle.themeSwitcher.trim();
     }
     var normalizedVariant = "";
     var invalidVariant = false;
@@ -5589,12 +5699,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }, mergedConfig.themeToggle),
     );
 
-    var resolvedLegacyLinks = providedConfigs.reduce(function reduceLinks(current, candidate) {
-      if (candidate && typeof candidate === "object" && Array.isArray(candidate.links)) {
-        return candidate.links;
-      }
-      return current;
-    }, mergedConfig.links);
     var resolvedCollection = providedConfigs.reduce(function reduceCollection(current, candidate) {
       if (candidate && typeof candidate === "object" && candidate.linksCollection) {
         return candidate.linksCollection;
@@ -5603,14 +5707,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }, mergedConfig.linksCollection);
 
     var normalizedCollection = normalizeFooterLinksCollection(resolvedCollection);
-    var legacyLinks = normalizeFooterLinks(resolvedLegacyLinks);
-    var collectionHasLinks =
+    var collectionLinks =
       normalizedCollection && Array.isArray(normalizedCollection.links)
-        ? normalizedCollection.links.length > 0
-        : false;
-    mergedConfig.links = collectionHasLinks ? normalizedCollection.links : legacyLinks;
+        ? normalizedCollection.links
+        : [];
+    mergedConfig.links = collectionLinks;
     mergedConfig.linksCollection = normalizedCollection;
-    mergedConfig.linksMenuEnabled = mergedConfig.links.length > 0;
+    mergedConfig.linksMenuEnabled = collectionLinks.length > 0;
     mergedConfig.privacyModalContent =
       typeof mergedConfig.privacyModalContent === "string" &&
       mergedConfig.privacyModalContent.trim()
@@ -6158,15 +6261,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       options.themeToggle = options.themeToggle || {};
       options.themeToggle.variant = themeSwitcherValue;
     }
-    if (dataset.themeMode) {
-      options.themeToggle = options.themeToggle || {};
-      options.themeToggle.mode = dataset.themeMode;
-    }
     if (dataset.linksCollection) {
       options.linksCollection = parseJsonValue(dataset.linksCollection, {});
-    }
-    if (dataset.links) {
-      options.links = parseJsonValue(dataset.links, []);
     }
     if (dataset.sticky !== undefined) {
       options.sticky = normalizeBooleanAttribute(dataset.sticky, true);
@@ -7265,30 +7361,34 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return /** @class */ (function (_super) {
         function MprElementClass() {
           var self = Reflect.construct(_super, [], new.target || MprElementClass);
-          self.__mprConnected = false;
+          var elementInstance = /** @type {MprElementLifecycle} */ (self);
+          elementInstance.__mprConnected = false;
           return self;
         }
         MprElementClass.prototype = Object.create(_super.prototype);
         MprElementClass.prototype.constructor = MprElementClass;
         MprElementClass.prototype.connectedCallback = function connectedCallback() {
-          this.__mprConnected = true;
-          if (typeof this.render === "function") {
-            this.render();
+          var elementInstance = /** @type {MprElementLifecycle} */ (this);
+          elementInstance.__mprConnected = true;
+          if (typeof elementInstance.render === "function") {
+            elementInstance.render();
           }
         };
         MprElementClass.prototype.disconnectedCallback = function disconnectedCallback() {
-          this.__mprConnected = false;
-          if (typeof this.destroy === "function") {
-            this.destroy();
+          var elementInstance = /** @type {MprElementLifecycle} */ (this);
+          elementInstance.__mprConnected = false;
+          if (typeof elementInstance.destroy === "function") {
+            elementInstance.destroy();
           }
         };
         MprElementClass.prototype.attributeChangedCallback =
           function attributeChangedCallback(name, oldValue, newValue) {
-            if (!this.__mprConnected) {
+            var elementInstance = /** @type {MprElementLifecycle} */ (this);
+            if (!elementInstance.__mprConnected) {
               return;
             }
-            if (typeof this.update === "function") {
-              this.update(name, oldValue, newValue);
+            if (typeof elementInstance.update === "function") {
+              elementInstance.update(name, oldValue, newValue);
             }
           };
         return MprElementClass;
@@ -7300,31 +7400,35 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return (function () {
         function FallbackElement() {
           HTMLElementBridge.call(this);
-          this.__mprConnected = false;
+          var elementInstance = /** @type {MprElementLifecycle} */ (this);
+          elementInstance.__mprConnected = false;
         }
         FallbackElement.prototype = Object.create(
           (HTMLElementBridge && HTMLElementBridge.prototype) || Object.prototype,
         );
         FallbackElement.prototype.constructor = FallbackElement;
         FallbackElement.prototype.connectedCallback = function connectedCallback() {
-          this.__mprConnected = true;
-          if (typeof this.render === "function") {
-            this.render();
+          var elementInstance = /** @type {MprElementLifecycle} */ (this);
+          elementInstance.__mprConnected = true;
+          if (typeof elementInstance.render === "function") {
+            elementInstance.render();
           }
         };
         FallbackElement.prototype.disconnectedCallback = function disconnectedCallback() {
-          this.__mprConnected = false;
-          if (typeof this.destroy === "function") {
-            this.destroy();
+          var elementInstance = /** @type {MprElementLifecycle} */ (this);
+          elementInstance.__mprConnected = false;
+          if (typeof elementInstance.destroy === "function") {
+            elementInstance.destroy();
           }
         };
         FallbackElement.prototype.attributeChangedCallback =
           function attributeChangedCallback(name, oldValue, newValue) {
-            if (!this.__mprConnected) {
+            var elementInstance = /** @type {MprElementLifecycle} */ (this);
+            if (!elementInstance.__mprConnected) {
               return;
             }
-            if (typeof this.update === "function") {
-              this.update(name, oldValue, newValue);
+            if (typeof elementInstance.update === "function") {
+              elementInstance.update(name, oldValue, newValue);
             }
           };
         return FallbackElement;
