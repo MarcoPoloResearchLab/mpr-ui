@@ -9,10 +9,12 @@
 ### Improvements ⚙️
 
 - Align footer theme config fixtures with the canonical `variant` key.
+- Emit console errors when legacy DSL attributes or config keys are detected at runtime.
+- Add a minimal `tsconfig.json` plus `@types/node` for JS type-checking and clean up baseline `mpr-ui.js` type errors.
 
 ### Testing 🧪
 
-- Add regression coverage that asserts legacy DSL inputs are ignored for header, footer, and theme toggle components.
+- Add regression coverage that asserts legacy DSL inputs are ignored and logged for header, footer, and theme toggle components.
 
 ### Docs 📚
 
