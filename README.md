@@ -35,10 +35,10 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
    ```html
    <mpr-header
-     brand-label="Marco Polo Research Lab"
+    brand-label="Marco Polo Research Lab"
     brand-href="/"
     nav-links='[{ "label": "Docs", "href": "#docs" }]'
-    site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+    google-site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
     tauth-tenant-id="mpr-sites"
     tauth-login-path="/auth/google"
     tauth-logout-path="/auth/logout"
@@ -142,7 +142,7 @@ The tags above replace the retired imperative helpers. See the example below for
     { "label": "Docs", "href": "#docs" },
     { "label": "Support", "href": "#support" }
   ]'
-  site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+  google-site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
   theme-config='{"initialMode":"light"}'
 >
   <button slot="nav-right" class="demo-link">Request Access</button>
@@ -187,7 +187,7 @@ The tags above replace the retired imperative helpers. See the example below for
 
 | Element | Primary attributes | Slots | Key events |
 | --- | --- | --- | --- |
-| `<mpr-header>` | `brand-label`, `nav-links`, `site-id`, `tauth-tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `theme-config`, `settings-label`, `settings`, `sign-in-label`, `sign-out-label`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
+| `<mpr-header>` | `brand-label`, `nav-links`, `google-site-id`, `tauth-tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `theme-config`, `settings-label`, `settings`, `sign-in-label`, `sign-out-label`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
 | `<mpr-footer>` | `prefix-text`, `links-collection` (JSON with `{ style, text, links }`), legacy `links`, `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-switcher`, `theme-config`, `sticky`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
 | `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`, `theme-mode` | — | `mpr-ui:theme-change` |
 | `<mpr-login-button>` | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |

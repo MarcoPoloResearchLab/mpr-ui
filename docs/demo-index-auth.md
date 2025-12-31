@@ -7,7 +7,7 @@ This document explains how `demo/index.html` wires Google Identity Services (GIS
 - Loads `mpr-ui` from the CDN alongside Google Identity Services (and, in some variants, the TAuth helper).
 - Renders `<mpr-header>` and `<mpr-footer>` using declarative HTML only, treating the custom elements as a Web Components DSL.
 - Shows how to configure the header with:
-  - A Google OAuth Web Client ID (`site-id`).
+  - A Google OAuth Web Client ID (`google-site-id`).
   - A TAuth tenant identifier (`tauth-tenant-id`).
   - Authentication endpoints (`tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`).
 - Assumes that the page is served from the same origin as the authentication backend unless `tauth-url` is set.
@@ -34,7 +34,7 @@ The demo page uses CDN URLs for `mpr-ui.css` and `mpr-ui.js`. The Docker Compose
 
 `demo/index.html` installs the header like this (paths trimmed for clarity):
 
-- `site-id` – Google OAuth Web Client ID.
+- `google-site-id` – Google OAuth Web Client ID.
 - `tauth-tenant-id` – TAuth tenant identifier (required).
 - `tauth-login-path="/auth/google"` – credential–exchange endpoint.
 - `tauth-logout-path="/auth/logout"` – session termination endpoint.
@@ -150,7 +150,7 @@ To reproduce the `demo/index.html` + TAuth integration in another project:
 2. Configure CORS and cookies so the UI origin can call the backend and receive cookies (`SameSite=None; Secure` when cross-origin).
 3. On the UI page:
    - Load `mpr-ui.css`, (optional) `tauth.js`, `mpr-ui.js`, and GIS in that order.
-   - Add `<mpr-header>` with `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, and (if needed) `tauth-url`.
+   - Add `<mpr-header>` with `google-site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, and (if needed) `tauth-url`.
    - Add any desired footer and session-panel elements (`demo/tauth-demo.html` shows a complete example).
 4. Verify the flow:
    - `POST /auth/nonce` fires before the GIS popup.

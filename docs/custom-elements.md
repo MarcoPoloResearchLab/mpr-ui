@@ -37,7 +37,7 @@ Sticky site header with navigation, Google Identity Services button, settings CT
 | --- | --- | --- |
 | `brand-label` / `brand-href` | `string` | Sets the brand copy and URL for the heading. |
 | `nav-links` | `JSON` | Array of `{ label, href, target? }`. |
-| `site-id` | `string` | Google Identity Services client ID. Required for auth flows. |
+| `google-site-id` | `string` | Google Identity Services client ID. Required for auth flows. |
 | `tauth-tenant-id` | `string` | TAuth tenant identifier. Required whenever auth is enabled. |
 | `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url` | `string` | Auth endpoints wired into `createAuthHeader`. |
 | `auth-config` | `JSON` | Full object passed to `createAuthHeader` (takes precedence over individual path attributes). |
@@ -62,7 +62,7 @@ When `tauth.js` is present, `mpr-ui` passes `tauth-url` and `tauth-tenant-id` in
 <mpr-header
   brand-label="Marco Polo Research Lab"
   nav-links='[{ "label": "Docs", "href": "#docs" }]'
-  site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+  google-site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
   tauth-tenant-id="mpr-sites"
   tauth-login-path="/auth/google"
   tauth-logout-path="/auth/logout"
