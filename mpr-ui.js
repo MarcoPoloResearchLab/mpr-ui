@@ -219,12 +219,10 @@
     "brand-href": "brandHref",
     "nav-links": "navLinks",
     "settings-label": "settingsLabel",
-    "settings-enabled": "settingsEnabled",
     "settings": "settingsEnabled",
     "google-site-id": "siteId",
     "tauth-tenant-id": "tenantId",
     "theme-config": "themeToggle",
-    "theme-mode": "themeMode",
     "sign-in-label": "signInLabel",
     "sign-out-label": "signOutLabel",
     sticky: "sticky",
@@ -233,7 +231,6 @@
 
   var HEADER_ATTRIBUTE_OBSERVERS = Object.freeze(
     Object.keys(HEADER_ATTRIBUTE_DATASET_MAP).concat([
-      "auth-config",
       "tauth-login-path",
       "tauth-logout-path",
       "tauth-nonce-path",
@@ -261,10 +258,8 @@
     "privacy-link-label": "privacyLinkLabel",
     "privacy-modal-content": "privacyModalContent",
     "theme-config": "themeToggle",
-    "theme-mode": "themeMode",
     "theme-switcher": "themeSwitcher",
     "links-collection": "linksCollection",
-    links: "links",
     sticky: "sticky",
     size: "size",
   });
@@ -284,7 +279,6 @@
     "control-class",
     "icon-class",
     "theme-config",
-    "theme-mode",
   ]);
   var LOGIN_BUTTON_ATTRIBUTE_NAMES = Object.freeze([
     "site-id",
@@ -316,7 +310,7 @@
     if (value === null || value === undefined) {
       return null;
     }
-    if (attributeName === "settings-enabled" || attributeName === "settings") {
+    if (attributeName === "settings") {
       if (value === "") {
         return "true";
       }
@@ -413,10 +407,6 @@
     if (themeAttr) {
       themeConfig = parseJsonValue(themeAttr, {});
     }
-    var modeAttr = hostElement.getAttribute("theme-mode");
-    if (modeAttr && typeof modeAttr === "string") {
-      themeConfig.initialMode = modeAttr;
-    }
     if (Object.keys(themeConfig).length) {
       options.theme = themeConfig;
     }
@@ -494,12 +484,6 @@
   function buildHeaderOptionsFromAttributes(hostElement) {
     var datasetOptions = readHeaderOptionsFromDataset(hostElement);
     var authOptions = null;
-    var rawAuth = hostElement.getAttribute
-      ? hostElement.getAttribute("auth-config")
-      : null;
-    if (rawAuth) {
-      authOptions = parseJsonValue(rawAuth, null);
-    }
     var loginPath = hostElement.getAttribute
       ? hostElement.getAttribute("tauth-login-path")
       : null;
@@ -1937,8 +1921,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var datasetSettingsFlag = undefined;
     if (dataset.settingsEnabled !== undefined) {
       datasetSettingsFlag = dataset.settingsEnabled;
-    } else if (dataset.settings !== undefined) {
-      datasetSettingsFlag = dataset.settings;
     }
     if (dataset.settingsLabel) {
       options.settings = options.settings || {};
@@ -1956,14 +1938,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     if (dataset.themeToggle) {
       options.themeToggle = parseJsonValue(dataset.themeToggle, {});
-    }
-    if (dataset.themeSwitcher) {
-      options.themeToggle = options.themeToggle || {};
-      options.themeToggle.variant = dataset.themeSwitcher;
-    }
-    if (dataset.themeMode) {
-      options.themeToggle = options.themeToggle || {};
-      options.themeToggle.mode = dataset.themeMode;
     }
     if (dataset.signInLabel) {
       options.signInLabel = dataset.signInLabel;
@@ -5495,11 +5469,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       mergedToggle.variant.trim()
     ) {
       variantSource = mergedToggle.variant.trim();
-    } else if (
-      typeof mergedToggle.themeSwitcher === "string" &&
-      mergedToggle.themeSwitcher.trim()
-    ) {
-      variantSource = mergedToggle.themeSwitcher.trim();
     }
     var normalizedVariant = "";
     var invalidVariant = false;
@@ -5589,12 +5558,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }, mergedConfig.themeToggle),
     );
 
-    var resolvedLegacyLinks = providedConfigs.reduce(function reduceLinks(current, candidate) {
-      if (candidate && typeof candidate === "object" && Array.isArray(candidate.links)) {
-        return candidate.links;
-      }
-      return current;
-    }, mergedConfig.links);
     var resolvedCollection = providedConfigs.reduce(function reduceCollection(current, candidate) {
       if (candidate && typeof candidate === "object" && candidate.linksCollection) {
         return candidate.linksCollection;
@@ -5603,14 +5566,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }, mergedConfig.linksCollection);
 
     var normalizedCollection = normalizeFooterLinksCollection(resolvedCollection);
-    var legacyLinks = normalizeFooterLinks(resolvedLegacyLinks);
-    var collectionHasLinks =
+    var collectionLinks =
       normalizedCollection && Array.isArray(normalizedCollection.links)
-        ? normalizedCollection.links.length > 0
-        : false;
-    mergedConfig.links = collectionHasLinks ? normalizedCollection.links : legacyLinks;
+        ? normalizedCollection.links
+        : [];
+    mergedConfig.links = collectionLinks;
     mergedConfig.linksCollection = normalizedCollection;
-    mergedConfig.linksMenuEnabled = mergedConfig.links.length > 0;
+    mergedConfig.linksMenuEnabled = collectionLinks.length > 0;
     mergedConfig.privacyModalContent =
       typeof mergedConfig.privacyModalContent === "string" &&
       mergedConfig.privacyModalContent.trim()
@@ -6158,15 +6120,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       options.themeToggle = options.themeToggle || {};
       options.themeToggle.variant = themeSwitcherValue;
     }
-    if (dataset.themeMode) {
-      options.themeToggle = options.themeToggle || {};
-      options.themeToggle.mode = dataset.themeMode;
-    }
     if (dataset.linksCollection) {
       options.linksCollection = parseJsonValue(dataset.linksCollection, {});
-    }
-    if (dataset.links) {
-      options.links = parseJsonValue(dataset.links, []);
     }
     if (dataset.sticky !== undefined) {
       options.sticky = normalizeBooleanAttribute(dataset.sticky, true);

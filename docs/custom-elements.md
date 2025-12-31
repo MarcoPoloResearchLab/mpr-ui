@@ -40,8 +40,7 @@ Sticky site header with navigation, Google Identity Services button, settings CT
 | `google-site-id` | `string` | Google Identity Services client ID. Required for auth flows. |
 | `tauth-tenant-id` | `string` | TAuth tenant identifier. Required whenever auth is enabled. |
 | `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url` | `string` | Auth endpoints wired into `createAuthHeader`. |
-| `auth-config` | `JSON` | Full object passed to `createAuthHeader` (takes precedence over individual path attributes). |
-| `theme-config`, `theme-mode` | `JSON` / `string` | Configures the shared theme manager (no toggle is rendered; use the footer or `<mpr-theme-toggle>` for user controls). |
+| `theme-config` | `JSON` | Configures the shared theme manager (no toggle is rendered; use the footer or `<mpr-theme-toggle>` for user controls). Include `initialMode` in the JSON to set the starting mode. |
 | `settings-label`, `settings` | `string` / `boolean` | Control the built-in settings button. |
 | `sign-in-label`, `sign-out-label`, `profile-label` | `string` | Override localized copy. |
 | `sticky` | `boolean` attribute | Controls sticky positioning (case-insensitive `true`/`false`). Default `true` keeps the header viewport-pinned; set `false` to render it in document flow. |
@@ -80,10 +79,10 @@ Marketing footer with dropdown catalog, privacy link, and shared theme toggle.
 | Attribute | Type | Description |
 | --- | --- | --- |
 | `prefix-text` | `string` | Copy displayed before the menu. |
-| `links` | `JSON` | Array of `{ label, url, target?, rel? }`. Defaults to the packaged Marco Polo Research Lab catalog. |
+| `links-collection` | `JSON` | Object with `{ style, text, links }` to populate the menu; omit or leave `links` empty to render text only. |
 | `toggle-label` | `string` | Text for the catalog trigger. |
 | `privacy-link-label`, `privacy-link-href` | `string` | Controls the legal link. |
-| `theme-config`, `theme-mode` | `JSON` / `string` | Mirrors footer-specific theme toggle options. |
+| `theme-config` | `JSON` | Mirrors footer-specific theme toggle options; include `initialMode` in the JSON to set the starting mode. |
 | `element-id`, `base-class`, `wrapper-class`, etc. | `string` | Dataset-driven class overrides for advanced layouts. |
 | `sticky` | `boolean` attribute | Controls sticky positioning (case-insensitive `true`/`false`). Default `true` renders a viewport-fixed footer plus an automatic spacer so layout below the footer does not jump; set `false` to return to normal document flow (spacer collapses). |
 
@@ -100,7 +99,7 @@ Standalone toggle that proxies the shared theme manager.
 | `variant` | `"switch"` \| `"button"` | Visual presentation. |
 | `label`, `aria-label`, `show-label` | `string`, `boolean` | Accessibility text. |
 | `wrapper-class`, `control-class`, `icon-class` | `string` | CSS hooks for customization. |
-| `theme-config`, `theme-mode` | `JSON` / `string` | Local overrides of the global theme targets/mode. |
+| `theme-config` | `JSON` | Local overrides of the global theme targets/mode. Include `initialMode` in the JSON to set the starting mode. |
 
 **Events:** `mpr-ui:theme-change` (fired by the global theme manager).
 
