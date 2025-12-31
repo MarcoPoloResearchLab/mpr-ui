@@ -19,7 +19,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
    />
    <!-- Required when integrating with TAuth -->
-   <script defer src="http://tauth.mprlab.com/tauth.js"></script>
+   <script defer src="https://tauth.mprlab.com/tauth.js"></script>
    <script
      defer
      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
