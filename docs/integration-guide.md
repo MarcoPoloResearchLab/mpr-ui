@@ -8,7 +8,7 @@ This guide walks through the requirements and steps needed to wire `mpr-ui` comp
 2. **Google Identity Services** – the header renders a GIS button. Include `https://accounts.google.com/gsi/client` and provide a valid OAuth Web Client ID (`site-id`).
 3. **TAuth backend** – the frontend must be able to reach a running TAuth instance, typically on `http://localhost:8080` during local development. Configure `.env.tauth` with your Google client ID, signing key, and allowed origins.
 4. **CORS** – when serving the frontend from a different origin (e.g., `http://localhost:8000`), ensure `APP_ENABLE_CORS=true` and list every origin in `APP_CORS_ALLOWED_ORIGINS`. Always include `https://accounts.google.com` in that list—the GIS iframe issues the `/auth/nonce` and `/auth/google` calls from that origin, so omitting it results in `auth.login.nonce_mismatch`.
-5. **Tenant ID** – TAuth requires the `X-TAuth-Tenant` header. Set `tenant-id` on `<mpr-header>` / `<mpr-login-button>` to the tenant configured in TAuth.
+5. **Tenant ID** – TAuth requires the `X-TAuth-Tenant` header. Set `tauth-tenant-id` on `<mpr-header>` / `<mpr-login-button>` to the tenant configured in TAuth.
 6. **tauth.js helper** – TAuth exposes `/tauth.js`. This script keeps sessions renewed and surfaces `initAuthClient`, `getCurrentUser`, `logout`, and the nonce/exchange helpers that `mpr-ui` prefers when present.
 
 ## Nonce behavior (GIS ↔ mpr-ui ↔ TAuth)
@@ -56,14 +56,14 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
     tauth-login-path="/auth/google"
     tauth-logout-path="/auth/logout"
     tauth-nonce-path="/auth/nonce"
-    tenant-id="REPLACE_WITH_TENANT_ID"
+    tauth-tenant-id="REPLACE_WITH_TENANT_ID"
     settings="true"
     settings-label="Settings"
   ></mpr-header>
    ```
    Key attributes:
    - `site-id`: Google OAuth Web Client ID.
-   - `tenant-id`: Tenant identifier configured in TAuth (sent in `X-TAuth-Tenant`).
+   - `tauth-tenant-id`: Tenant identifier configured in TAuth (sent in `X-TAuth-Tenant`).
    - `tauth-url`: TAuth origin. Required when your backend lives on a different origin; if omitted and the backend shares the page origin, `mpr-ui` supplies `window.location.origin` to `tauth.js` when bootstrapping sessions.
    - `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`: keep the defaults unless your reverse proxy rewrites them.
    - Demo-specific: keep `demo/tauth-config.js` `googleClientId` in sync with `APP_GOOGLE_WEB_CLIENT_ID` so the header and TAuth share the same credentials and GIS accepts the origin.
@@ -87,7 +87,7 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
 
 - **`auth.login.nonce_mismatch`** – ensure `tauth.js` is loaded (look for `/tauth.js` in DevTools) and that you are visiting from an origin listed in `APP_CORS_ALLOWED_ORIGINS`.
 - **Google button missing** – double-check `site-id` is set and the GIS script loads without CSP violations.
-- **`mpr-ui.tenant_id_required`** – set `tenant-id` on `<mpr-header>` / `<mpr-login-button>` to a tenant configured in TAuth (the demo container uses `mpr-sites`); missing values also set `data-mpr-google-error="missing-tenant-id"` on `<mpr-login-button>`.
+- **`mpr-ui.tenant_id_required`** – set `tauth-tenant-id` on `<mpr-header>` / `<mpr-login-button>` to a tenant configured in TAuth (the demo container uses `mpr-sites`); missing values also set `data-mpr-google-error="missing-tauth-tenant-id"` on `<mpr-login-button>`.
 - **Session stays signed out** – confirm cookies are not blocked; TAuth issues HttpOnly cookies for both the session and refresh token.
 - **Custom domains** – update `APP_COOKIE_DOMAIN` and `tauth-url` to match your host when not running everything on `localhost`.
 

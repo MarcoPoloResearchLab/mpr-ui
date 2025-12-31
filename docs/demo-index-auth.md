@@ -8,7 +8,7 @@ This document explains how `demo/index.html` wires Google Identity Services (GIS
 - Renders `<mpr-header>` and `<mpr-footer>` using declarative HTML only, treating the custom elements as a Web Components DSL.
 - Shows how to configure the header with:
   - A Google OAuth Web Client ID (`site-id`).
-  - A TAuth tenant identifier (`tenant-id`).
+  - A TAuth tenant identifier (`tauth-tenant-id`).
   - Authentication endpoints (`tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`).
 - Assumes that the page is served from the same origin as the authentication backend unless `tauth-url` is set.
 
@@ -17,7 +17,7 @@ The Docker Compose demo (`demo/tauth-demo.html` via `docker-compose.tauth.yml`) 
 - Serves the page from `http://localhost:8000`.
 - Talks to a TAuth instance on `http://localhost:8080`.
 - Loads TAuth’s `tauth.js` helper and sets `tauth-url="http://localhost:8080"`.
-- Supplies `tenant-id` so the auth requests include `X-TAuth-Tenant`.
+- Supplies `tauth-tenant-id` so the auth requests include `X-TAuth-Tenant`.
 
 ## 2. Required scripts and ordering
 
@@ -35,7 +35,7 @@ The demo page uses CDN URLs for `mpr-ui.css` and `mpr-ui.js`. The Docker Compose
 `demo/index.html` installs the header like this (paths trimmed for clarity):
 
 - `site-id` – Google OAuth Web Client ID.
-- `tenant-id` – TAuth tenant identifier (required).
+- `tauth-tenant-id` – TAuth tenant identifier (required).
 - `tauth-login-path="/auth/google"` – credential–exchange endpoint.
 - `tauth-logout-path="/auth/logout"` – session termination endpoint.
 - `tauth-nonce-path="/auth/nonce"` – one-time nonce issuance endpoint.
@@ -150,7 +150,7 @@ To reproduce the `demo/index.html` + TAuth integration in another project:
 2. Configure CORS and cookies so the UI origin can call the backend and receive cookies (`SameSite=None; Secure` when cross-origin).
 3. On the UI page:
    - Load `mpr-ui.css`, (optional) `tauth.js`, `mpr-ui.js`, and GIS in that order.
-   - Add `<mpr-header>` with `site-id`, `tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, and (if needed) `tauth-url`.
+   - Add `<mpr-header>` with `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, and (if needed) `tauth-url`.
    - Add any desired footer and session-panel elements (`demo/tauth-demo.html` shows a complete example).
 4. Verify the flow:
    - `POST /auth/nonce` fires before the GIS popup.
@@ -160,8 +160,8 @@ To reproduce the `demo/index.html` + TAuth integration in another project:
    - Check that `/auth/nonce` returns a JSON object with a `nonce` field.
    - Confirm that cookies from `/auth/nonce` and `/auth/google` are not blocked by the browser.
    - Inspect backend logs for `auth.login.nonce_mismatch` and validate origin, cookie domain, and CORS settings.
-6. For tenant-id failures:
-   - Ensure `tenant-id` matches a configured tenant in TAuth (for the demo container this is `mpr-sites`).
-   - Missing tenant ID raises `mpr-ui.tenant_id_required` and sets `data-mpr-google-error="missing-tenant-id"` on `<mpr-login-button>`.
+6. For tauth-tenant-id failures:
+   - Ensure `tauth-tenant-id` matches a configured tenant in TAuth (for the demo container this is `mpr-sites`).
+   - Missing tenant ID raises `mpr-ui.tenant_id_required` and sets `data-mpr-google-error="missing-tauth-tenant-id"` on `<mpr-login-button>`.
 
 For deeper background on TAuth’s expectations, see `tools/TAuth/README.md` (section “Google nonce handling”) and `docs/integration-guide.md` for the broader integration walkthrough.

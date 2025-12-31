@@ -4,11 +4,12 @@
 
 ### Breaking Changes ⚠️
 - Renamed auth wiring attributes to `tauth-url`, `tauth-login-path`, `tauth-logout-path`, and `tauth-nonce-path` to clarify they target the TAuth origin; updated demos/docs/tests, and `createAuthHeader` now expects `tauthUrl`/`tauthLoginPath`/`tauthLogoutPath`/`tauthNoncePath` in programmatic options.
+- Renamed `tenant-id` to `tauth-tenant-id` across the DSL and demos to align the attribute with TAuth-specific configuration.
 
 ## [v3.1.1]
 
 ### Features ✨
-- Require `tenant-id` for TAuth-backed authentication flows; move tenant validation to the edge.
+- Require `tauth-tenant-id` for TAuth-backed authentication flows; move tenant validation to the edge.
 - Document the `mpr-ui.tenant_id_required` error and troubleshooting for missing tenant ID.
 
 ### Improvements ⚙️
@@ -39,8 +40,8 @@
 ### Improvements ⚙️
 - Align TAuth integration with `/tauth.js`, prefer the helper APIs for nonce/exchange/logout, and supply a base-url fallback when bootstrapping sessions.
 - Refresh docs and demo wiring to match the updated TAuth helper path and base-url requirements.
-- Require `tenant-id` for TAuth-backed auth flows, propagate the tenant header across nonce/login/logout requests, and update demos/tests/docs to reflect the new contract.
-- Document the `mpr-ui.tenant_id_required` error and missing-tenant-id troubleshooting steps.
+- Require `tauth-tenant-id` for TAuth-backed auth flows, propagate the tenant header across nonce/login/logout requests, and update demos/tests/docs to reflect the new contract.
+- Document the `mpr-ui.tenant_id_required` error and missing-tauth-tenant-id troubleshooting steps.
 
 ## [v2.1.1]
 

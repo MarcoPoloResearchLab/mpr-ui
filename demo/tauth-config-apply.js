@@ -18,7 +18,7 @@
     header.setAttribute('tauth-url', String(config.tauthUrl));
   }
   if (config.tenantId) {
-    header.setAttribute('tenant-id', String(config.tenantId));
+    header.setAttribute('tauth-tenant-id', String(config.tenantId));
   }
   if (!config.googleClientId) {
     // eslint-disable-next-line no-console

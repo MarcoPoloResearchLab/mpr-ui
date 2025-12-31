@@ -222,7 +222,7 @@
     "settings-enabled": "settingsEnabled",
     "settings": "settingsEnabled",
     "site-id": "siteId",
-    "tenant-id": "tenantId",
+    "tauth-tenant-id": "tenantId",
     "theme-config": "themeToggle",
     "theme-mode": "themeMode",
     "sign-in-label": "signInLabel",
@@ -288,7 +288,7 @@
   ]);
   var LOGIN_BUTTON_ATTRIBUTE_NAMES = Object.freeze([
     "site-id",
-    "tenant-id",
+    "tauth-tenant-id",
     "tauth-login-path",
     "tauth-logout-path",
     "tauth-nonce-path",
@@ -438,7 +438,7 @@
       googleClientId:
         hostElement.getAttribute("site-id") || DEFAULT_OPTIONS.googleClientId,
       tenantId:
-        hostElement.getAttribute("tenant-id") || DEFAULT_OPTIONS.tenantId,
+        hostElement.getAttribute("tauth-tenant-id") || DEFAULT_OPTIONS.tenantId,
     };
   }
 
@@ -6823,7 +6823,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
               : createTenantIdError();
             this.setAttribute(
               "data-mpr-google-error",
-              !siteId ? "missing-site-id" : "missing-tenant-id",
+              !siteId ? "missing-site-id" : "missing-tauth-tenant-id",
             );
             dispatchEvent(this, "mpr-login:error", {
               code: missingError.code,

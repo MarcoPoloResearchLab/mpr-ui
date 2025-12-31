@@ -39,7 +39,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
     brand-href="/"
     nav-links='[{ "label": "Docs", "href": "#docs" }]'
     site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
-    tenant-id="mpr-sites"
+    tauth-tenant-id="mpr-sites"
     tauth-login-path="/auth/google"
     tauth-logout-path="/auth/logout"
     tauth-nonce-path="/auth/nonce"
@@ -56,7 +56,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
    <mpr-theme-toggle></mpr-theme-toggle>
    <mpr-login-button
      site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
-     tenant-id="mpr-sites"
+     tauth-tenant-id="mpr-sites"
    ></mpr-login-button>
    <mpr-settings label="Settings"></mpr-settings>
    <mpr-sites heading="Explore"></mpr-sites>
@@ -78,7 +78,7 @@ Need a single source of truth for the shutdown plan? See [`docs/deprecation-road
 2. Load `mpr-ui.js` after styles so the bundle can register custom elements immediately on import. No Alpine wiring is required; the Web Components DSL is the only public API.
 3. When authenticating via TAuth, include `http://localhost:8080/tauth.js` (or your deployed origin) before `mpr-ui.js` so `initAuthClient`, `logout`, `getCurrentUser`, and the nonce/exchange helpers are defined.
 4. Always include Google Identity Services (`https://accounts.google.com/gsi/client`) so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
-5. Set `tenant-id` to the tenant configured in TAuth; missing values raise `mpr-ui.tenant_id_required` (and `<mpr-login-button>` sets `data-mpr-google-error="missing-tenant-id"`).
+5. Set `tauth-tenant-id` to the tenant configured in TAuth; missing values raise `mpr-ui.tenant_id_required` (and `<mpr-login-button>` sets `data-mpr-google-error="missing-tauth-tenant-id"`).
 6. Point `tauth-url`, `tauth-login-path`, `tauth-logout-path`, and `tauth-nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
 
 See [`docs/integration-guide.md`](docs/integration-guide.md) for the complete walkthrough plus troubleshooting guidance. For a deep dive into how the demo page wires GIS, `mpr-ui`, and TAuth (including nonce handling), see [`docs/demo-index-auth.md`](docs/demo-index-auth.md).
@@ -187,10 +187,10 @@ The tags above replace the retired imperative helpers. See the example below for
 
 | Element | Primary attributes | Slots | Key events |
 | --- | --- | --- | --- |
-| `<mpr-header>` | `brand-label`, `nav-links`, `site-id`, `tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `theme-config`, `settings-label`, `settings`, `sign-in-label`, `sign-out-label`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
+| `<mpr-header>` | `brand-label`, `nav-links`, `site-id`, `tauth-tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `theme-config`, `settings-label`, `settings`, `sign-in-label`, `sign-out-label`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
 | `<mpr-footer>` | `prefix-text`, `links-collection` (JSON with `{ style, text, links }`), legacy `links`, `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-switcher`, `theme-config`, `sticky`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
 | `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`, `theme-mode` | — | `mpr-ui:theme-change` |
-| `<mpr-login-button>` | `site-id`, `tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
+| `<mpr-login-button>` | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
 | `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |
 | `<mpr-sites>` | `links`, `variant` (`list`, `grid`, `menu`), `columns`, `heading` | — | `mpr-sites:link-click` |
 | `<mpr-band>` | `category`, `theme` (JSON) | — | — |

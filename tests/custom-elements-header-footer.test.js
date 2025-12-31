@@ -590,7 +590,7 @@ test('mpr-header reflects attributes and updates values', () => {
   headerElement.setAttribute('settings-label', 'Preferences');
   headerElement.setAttribute('settings', 'false');
   headerElement.setAttribute('site-id', 'example-site');
-  headerElement.setAttribute('tenant-id', 'tenant-alpha');
+  headerElement.setAttribute('tauth-tenant-id', 'tenant-alpha');
   headerElement.setAttribute(
     'theme-config',
     JSON.stringify({ initialMode: 'light' }),
@@ -701,7 +701,7 @@ test('mpr-header tauth-url attribute configures auth endpoints', async () => {
   headerElement.setAttribute('tauth-login-path', '/auth/google');
   headerElement.setAttribute('tauth-logout-path', '/auth/logout');
   headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
-  headerElement.setAttribute('tenant-id', 'tenant-demo');
+  headerElement.setAttribute('tauth-tenant-id', 'tenant-demo');
 
   headerElement.connectedCallback();
   await flushAsync();
@@ -934,7 +934,7 @@ test('mpr-login-button renders the Google button with provided site ID', async (
   element.setAttribute('tauth-login-path', '/auth/login');
   element.setAttribute('tauth-logout-path', '/auth/logout');
   element.setAttribute('tauth-nonce-path', '/auth/nonce');
-  element.setAttribute('tenant-id', 'tenant-login');
+  element.setAttribute('tauth-tenant-id', 'tenant-login');
   element.connectedCallback();
   await flushAsync();
   assert.equal(
@@ -973,7 +973,7 @@ test('mpr-login-button reports missing tenant ID', async () => {
   assert.equal(renderCalls.length, 0, 'Google button should not render');
   assert.equal(
     element.getAttribute('data-mpr-google-error'),
-    'missing-tenant-id',
+    'missing-tauth-tenant-id',
     'missing tenant id captured in the error attribute',
   );
   const lastEvent = element.__dispatchedEvents[element.__dispatchedEvents.length - 1];
