@@ -2492,20 +2492,26 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function markAuthenticated(profile) {
-      var normalized = profile || null;
-      var signature = JSON.stringify(normalized || {});
+      if (!profile || typeof profile !== "object") {
+        emitError("mpr-ui.auth.invalid_profile", {
+          message: "markAuthenticated called without valid profile",
+        });
+        markUnauthenticated({ prompt: false });
+        return;
+      }
+      var signature = JSON.stringify(profile);
       var shouldEmit =
         state.status !== "authenticated" ||
         lastAuthenticatedSignature !== signature;
       state.status = "authenticated";
-      state.profile = normalized;
+      state.profile = profile;
       lastAuthenticatedSignature = signature;
       hasEmittedUnauthenticated = false;
       pendingNonceToken = null;
-      updateDatasetFromProfile(normalized);
+      updateDatasetFromProfile(profile);
       if (shouldEmit) {
         dispatchEvent(rootElement, "mpr-ui:auth:authenticated", {
-          profile: normalized,
+          profile: profile,
         });
       }
     }
