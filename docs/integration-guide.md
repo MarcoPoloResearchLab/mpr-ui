@@ -31,7 +31,7 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
    # Update APP_GOOGLE_WEB_CLIENT_ID, APP_JWT_SIGNING_KEY, and APP_CORS_ALLOWED_ORIGINS
    docker compose -f docker-compose.tauth.yml up
    ```
-   This starts gHTTP (serving the repo) and TAuth (serving `/auth/*`, `/me`, and `/tauth.js`).
+   This starts gHTTP (serving the repo) and TAuth (serving `/auth/*`, `/api/me`, and `/tauth.js`).
 
 2. **Include the required assets in your page**
    ```html
@@ -81,7 +81,7 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
    1. Load the page from gHTTP (`http://localhost:8000/demo/tauth-demo.html`).
    2. Sign in with Google; the header will call `/auth/nonce`, present the GIS button, and exchange the credential at `/auth/google`.
    3. The session card should show your name, email, roles, and cookie expiry. TAuth will keep refreshing the session until you click **Sign out**.
-   4. Inspect the browser network log to verify `/auth/refresh` runs automatically when `/me` returns 401.
+   4. Inspect the browser network log to verify `/auth/refresh` runs automatically when `/api/me` returns 401.
 
 ## Troubleshooting
 
