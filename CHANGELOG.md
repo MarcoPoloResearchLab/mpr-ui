@@ -1,17 +1,18 @@
 # Changelog
 
-## [v3.4.1]
+## [v3.4.0]
 
 ### Features ✨
 
-- _No changes._
+- Validate user profile at edge during authentication; fail fast on invalid profiles.
 
 ### Improvements ⚙️
 
-- Remove legacy DSL attributes/config keys: no more `settings-enabled` or `auth-config` on `<mpr-header>`, legacy `links` and `themeToggle.themeSwitcher` ignored on `<mpr-footer>`, and `theme-mode` replaced by `theme-config.initialMode`.
+- Remove legacy DSL attributes and config keys from header, footer, and theme toggle components for cleaner configuration.
 - Emit console errors when legacy DSL attributes or config keys are detected at runtime.
-- Add minimal `tsconfig.json` plus `@types/node` for improved JavaScript type checking and fix baseline type errors in `mpr-ui.js`.
-- Align footer theme config fixtures with canonical `variant` key.
+- Add minimal `tsconfig.json` plus `@types/node` for improved JavaScript type checking; fix baseline typing errors.
+- Update footer theme config fixtures to use canonical `variant` key.
+- Update TAuth script source to HTTPS and improve integration documentation in README.
 
 ### Bug Fixes 🐛
 
@@ -19,32 +20,12 @@
 
 ### Testing 🧪
 
-- Add regression tests ensuring legacy DSL inputs are ignored and log errors for header, footer, and theme toggle components.
+- Add regression tests ensuring legacy DSL inputs are ignored and warn in the console for header, footer, and theme toggle components.
 
 ### Docs 📚
 
-- Update README, ARCHITECTURE, and custom element docs to reflect canonical DSL and theme configuration changes, including removal of deprecated attributes and addition of `initialMode` in theme configs.
-- Update TAuth script source URL to HTTPS and integration instructions in README.
-
-## [v3.4.0]
-
-### Breaking Changes ⚠️
-
-- Remove legacy DSL attributes/config keys: `<mpr-header>` no longer accepts `settings-enabled` or `auth-config`, `<mpr-footer>` ignores the legacy `links` attribute and `themeToggle.themeSwitcher`, and `theme-mode` is retired in favor of `theme-config.initialMode`.
-
-### Improvements ⚙️
-
-- Align footer theme config fixtures with the canonical `variant` key.
-- Emit console errors when legacy DSL attributes or config keys are detected at runtime.
-- Add a minimal `tsconfig.json` plus `@types/node` for JS type-checking and clean up baseline `mpr-ui.js` type errors.
-
-### Testing 🧪
-
-- Add regression coverage that asserts legacy DSL inputs are ignored and logged for header, footer, and theme toggle components.
-
-### Docs 📚
-
-- Update README, ARCHITECTURE, and custom element reference docs to reflect the canonical DSL and theme configuration.
+- Update README, ARCHITECTURE, and custom elements documentation to reflect removal of deprecated attributes and addition of `initialMode` in theme configuration.
+- Improve documentation of endpoints and update TAuth integration instructions.
 
 ## [v3.3.0]
 
