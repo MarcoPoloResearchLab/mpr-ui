@@ -7,6 +7,9 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 ## Features (116–199)
 
 - [x] [MU-116] Add a size parameter to footer and header. Allow two sizes: small and normal. small size shall be 70% of the normal size and normal size is the current size. <mpr-footer size="small" — Implemented `size="small"` support for both components with scaled-down CSS overrides. Added `mpr-header--small` and `mpr-footer--small` modifier classes and updated controllers to reflect the attribute. Verified with e2e tests.
+- [ ] [MU-117] Add a new element called <mpr-user-menu> which displays an avatar of a user, and when clicked on, displays a drop-down with settings and Sign out menu items. Clicking on Sign out logs out the user, clicking on settings opens the settings dialog. The eleemnt shall allow two main use cases: 
+1. being nested in the mpr-header or mpr-footer, in which case it is placed inside the mpr-header or footer
+2. being used in a stand alone operation.
 
 ## Improvements (220–299)
 
