@@ -40,8 +40,8 @@ The bundle auto-registers modern HTML custom elements when `window.customElement
 
 | Tag               | Backing Helper(s)                              | Key Attributes                                                                                                                        | Emitted Events                                            |
 | ----------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `<mpr-header>`    | Header controller + `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `google-site-id`, `tauth-tenant-id`, `theme-config`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `sticky` (default `true`)   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
-| `<mpr-footer>`    | Footer controller (internal)                   | `prefix-text`, `links-collection`, `toggle-label`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides, `sticky` (default `true`)     | `mpr-footer:theme-change`                                 |
+| `<mpr-header>`    | Header controller + `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `google-site-id`, `tauth-tenant-id`, `theme-config`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `size`, `sticky` (default `true`)   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
+| `<mpr-footer>`    | Footer controller (internal)                   | `prefix-text`, `links-collection`, `toggle-label`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides, `size`, `sticky` (default `true`)     | `mpr-footer:theme-change`                                 |
 | `<mpr-theme-toggle>` | Theme manager (`configureTheme`)            | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`          | `mpr-ui:theme-change` (via the shared theme manager)      |
 | `<mpr-login-button>` | `createAuthHeader`, shared GIS helper       | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape`        | `mpr-ui:auth:*`, `mpr-login:error`                        |
 | `<mpr-settings>` | Settings CTA + panel wrapper                    | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open`                                                                    | `mpr-settings:toggle`                                     |
@@ -142,6 +142,7 @@ The header controller produces a sticky banner that combines navigation, auth co
 | `signInLabel`              | `string`                               | Copy for the sign-in button (default "Sign in").                            |
 | `signOutLabel`             | `string`                               | Copy for the sign-out button (default "Sign out").                          |
 | `profileLabel`             | `string`                               | Optional text shown above the authenticated user name (default empty).      |
+| `size`                     | `"normal" \| "small"`                  | Controls the header scale; `small` is about 70% of the normal footprint.    |
 | `sticky`                   | `boolean`                              | Controls sticky positioning for the header; `true` (default) pins it, `false` renders it in-flow. |
 | `auth`                     | `object \| null`                       | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |
 
@@ -173,6 +174,7 @@ The footer controller bundles the dropdown/theme implementation, injects styles 
 | -------------------------- | -------------------------------------- | ----------------------------------------------------------------------------- |
 | `elementId`                | `string`                               | Optional `id` applied to the `<footer>` root.                                 |
 | `baseClass`                | `string`                               | Root class name (defaults to `mpr-footer`).                                   |
+| `size`                     | `"normal" \| "small"`                  | Controls the footer scale; `small` is about 70% of the normal footprint.     |
 | `sticky`                   | `boolean`                              | Controls sticky positioning for the footer; `true` (default) pins it, `false` renders it in-flow. |
 | `innerClass`               | `string`                               | Wrapper class for the inner flex container.                                   |
 | `wrapperClass`             | `string`                               | Class applied to the layout wrapper around brand/menu/privacy.                |
@@ -208,7 +210,7 @@ If `privacyModalContent` is provided, the privacy link becomes a button that ope
 
 Declarative overrides: apply `data-theme-toggle` (JSON) to the footer host element and include `initialMode` in the JSON to set the starting mode; values merge with programmatic options.
 
-Declarative attribute `theme-switcher` controls `themeToggle.variant` and implicitly enables the control. Supported values: `toggle` (`switch`), `square`, and `button`. Square mode assumes up to four entries in `themeToggle.modes`, letting you encode palette + light/dark combinations by populating `dataset` entries such as `{"data-demo-palette":"sunrise"}` that the theme manager stamps onto every configured target.
+Declarative attribute `theme-switcher` controls `themeToggle.variant` and implicitly enables the control. Supported values: `toggle` (`switch`), `square`, and `button`. Square mode assumes up to four entries in `themeToggle.modes`, letting you encode palette + light/dark combinations by populating `dataset` entries such as `{"data-demo-palette":"sunrise"}` that the theme manager stamps onto every configured target. When `theme-switcher` is set, it overrides the mode count in `theme-config`; `toggle` always renders the switch even when four modes are defined.
 
 ### Behaviour
 
