@@ -5,6 +5,7 @@
 ### Features ✨
 
 - Validate user profile at edge during authentication; fail fast on invalid profiles.
+- MU-118: Add `<mpr-user>` profile menu with avatar modes, TAuth-backed log out, and event hooks.
 
 ### Improvements ⚙️
 
@@ -21,11 +22,13 @@
 ### Testing 🧪
 
 - Add regression tests ensuring legacy DSL inputs are ignored and warn in the console for header, footer, and theme toggle components.
+- Add unit and Playwright coverage for the `<mpr-user>` element (rendering, logout, and theme token behavior).
 
 ### Docs 📚
 
 - Update README, ARCHITECTURE, and custom elements documentation to reflect removal of deprecated attributes and addition of `initialMode` in theme configuration.
 - Improve documentation of endpoints and update TAuth integration instructions.
+- Document `<mpr-user>` attributes, events, and TAuth requirements across README and integration guides.
 
 ## [v3.3.0]
 

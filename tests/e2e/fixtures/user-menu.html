@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MPR User Menu Fixture</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <style>
+      :root {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 1.5rem;
+        padding: 3rem;
+        background: var(--mpr-color-surface-primary, #0f172a);
+        color: var(--mpr-color-text-primary, #e2e8f0);
+      }
+
+      .fixture-row {
+        display: flex;
+        align-items: center;
+        gap: 1.5rem;
+      }
+    </style>
+    <script>
+      window.__mprUserProfile = {
+        display: 'Ada Lovelace',
+        given_name: 'Ada',
+        avatar_url: 'https://cdn.example.com/avatar.png',
+        user_email: 'ada@example.com',
+      };
+      window.getCurrentUser = () => window.__mprUserProfile;
+      window.logout = () => {
+        window.__mprUserLogoutCalled = true;
+        return Promise.resolve();
+      };
+      window.setAuthTenantId = (tenantId) => {
+        window.__mprUserTenantId = tenantId;
+      };
+    </script>
+  </head>
+  <body data-mpr-theme="dark">
+    <div class="fixture-row">
+      <mpr-user
+        id="fixture-user"
+        display-mode="avatar-name"
+        logout-url="#signed-out"
+        logout-label="Log out"
+        tauth-tenant-id="tenant-test"
+      ></mpr-user>
+      <mpr-user
+        id="fixture-user-custom"
+        display-mode="custom-avatar"
+        avatar-url="https://cdn.example.com/custom.png"
+        logout-url="#custom-logout"
+        logout-label="Log out"
+        tauth-tenant-id="tenant-test"
+      ></mpr-user>
+    </div>
+    <script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"></script>
+  </body>
+</html>

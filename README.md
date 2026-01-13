@@ -58,6 +58,12 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
      site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
      tauth-tenant-id="mpr-sites"
    ></mpr-login-button>
+   <mpr-user
+     display-mode="avatar-name"
+     logout-url="/auth/logout"
+     logout-label="Log out"
+     tauth-tenant-id="mpr-sites"
+   ></mpr-user>
    <mpr-settings label="Settings"></mpr-settings>
    <mpr-sites heading="Explore"></mpr-sites>
    ```
@@ -80,6 +86,7 @@ Need a single source of truth for the shutdown plan? See [`docs/deprecation-road
 4. Always include Google Identity Services (`https://accounts.google.com/gsi/client`) so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
 5. Set `tauth-tenant-id` to the tenant configured in TAuth; missing values raise `mpr-ui.tenant_id_required` (and `<mpr-login-button>` sets `data-mpr-google-error="missing-tauth-tenant-id"`).
 6. Point `tauth-url`, `tauth-login-path`, `tauth-logout-path`, and `tauth-nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
+7. `<mpr-user>` depends on `tauth.js` for `getCurrentUser` and `logout`. Set `display-mode`, `logout-url`, `logout-label`, and `tauth-tenant-id` so the menu can show the profile and redirect after log out.
 
 See [`docs/integration-guide.md`](docs/integration-guide.md) for the complete walkthrough plus troubleshooting guidance. For a deep dive into how the demo page wires GIS, `mpr-ui`, and TAuth (including nonce handling), see [`docs/demo-index-auth.md`](docs/demo-index-auth.md).
 
@@ -125,6 +132,7 @@ Every UI surface is a custom element. The list below maps directly to the `<mpr-
 - `<mpr-footer>` — marketing footer with prefix dropdown menu, privacy link, and theme toggle that now uses internal dropdown listeners so it no longer collides with Bootstrap classes or `data-bs-*` hooks.
 - `<mpr-theme-toggle>` — shared switch/button that talks to the global theme manager.
 - `<mpr-login-button>` — GIS-only control for contexts that do not need the full header.
+- `<mpr-user>` — profile menu that displays the signed-in user and triggers TAuth logout.
 - `<mpr-settings>` — emits toggle events so you can wire your own modal/drawer.
 - `<mpr-sites>` — renders the Marco Polo Research Lab network or any JSON catalog you provide.
 - `<mpr-band>` — themed horizontal container that applies preset palettes while letting you drop Bootstrap grids or `<mpr-card>` instances inside without extra DSL.
@@ -173,6 +181,13 @@ The tags above replace the retired imperative helpers. See the example below for
   tauth-nonce-path="/auth/nonce"
 ></mpr-login-button>
 
+<mpr-user
+  display-mode="avatar-name"
+  logout-url="/auth/logout"
+  logout-label="Log out"
+  tauth-tenant-id="mpr-sites"
+></mpr-user>
+
 <mpr-settings label="Preferences" open>
   <div slot="panel">
     <label>
@@ -191,6 +206,7 @@ The tags above replace the retired imperative helpers. See the example below for
 | `<mpr-footer>` | `prefix-text`, `links-collection` (JSON with `{ style, text, links }`), `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-switcher`, `theme-config`, `size`, `sticky`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
 | `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config` | — | `mpr-ui:theme-change` |
 | `<mpr-login-button>` | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
+| `<mpr-user>` | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `avatar-url`, `avatar-label` | — | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:error` |
 | `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |
 | `<mpr-sites>` | `links`, `variant` (`list`, `grid`, `menu`), `columns`, `heading` | — | `mpr-sites:link-click` |
 | `<mpr-band>` | `category`, `theme` (JSON) | — | — |

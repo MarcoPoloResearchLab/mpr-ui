@@ -107,3 +107,7 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - MU-423: required `tauth-tenant-id` for TAuth auth flows, passed the tenant into helper + fetch headers, and updated demos/docs/tests. Tests: `npm test`.
 - MU-424: documented `mpr-ui.tenant_id_required` and missing-tauth-tenant-id troubleshooting across README and integration docs. Tests: not run (docs-only).
 - MU-424: ran `npm test` after documentation updates.
+
+## 2026-01-13
+
+- MU-118: added `<mpr-user>` profile menu with TAuth-backed logout, display modes, and docs/tests. Tests: `npm test`.

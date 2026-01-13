@@ -5,7 +5,7 @@
 - An authentication header controller that orchestrates Google Identity Services (GIS) sign-in flows.
 - A sticky footer renderer with dropdown navigation, privacy link, and theme toggle support.
 
-The library assumes a CDN delivery model and no build tooling. Everything runs in the browser with optional Alpine.js convenience factories. The bundle auto-registers `<mpr-*>` custom elements (header, footer, login button, theme toggle, settings, sites) on load; those declarative tags form the primary public API and the declarative DSL of the package, while the namespace functions documented below exist for frameworks that need imperative mounting or advanced integration.
+The library assumes a CDN delivery model and no build tooling. Everything runs in the browser with optional Alpine.js convenience factories. The bundle auto-registers `<mpr-*>` custom elements (header, footer, login button, user menu, theme toggle, settings, sites) on load; those declarative tags form the primary public API and the declarative DSL of the package, while the namespace functions documented below exist for frameworks that need imperative mounting or advanced integration.
 
 ## Files and Responsibilities
 
@@ -44,6 +44,7 @@ The bundle auto-registers modern HTML custom elements when `window.customElement
 | `<mpr-footer>`    | Footer controller (internal)                   | `prefix-text`, `links-collection`, `toggle-label`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides, `size`, `sticky` (default `true`)     | `mpr-footer:theme-change`                                 |
 | `<mpr-theme-toggle>` | Theme manager (`configureTheme`)            | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`          | `mpr-ui:theme-change` (via the shared theme manager)      |
 | `<mpr-login-button>` | `createAuthHeader`, shared GIS helper       | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape`        | `mpr-ui:auth:*`, `mpr-login:error`                        |
+| `<mpr-user>`      | TAuth profile + menu renderer                  | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `avatar-url`, `avatar-label`                                                                   | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:error`    |
 | `<mpr-settings>` | Settings CTA + panel wrapper                    | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open`                                                                    | `mpr-settings:toggle`                                     |
 | `<mpr-sites>`    | `getFooterSiteCatalog` (plus inline renderer)   | `links` (JSON), `variant` (`list`, `grid`, `menu`), `columns`, `heading`                                                              | `mpr-sites:link-click`                                    |
 | `<mpr-band>`     | Themed container with palette tokens            | `category`, `theme` (JSON)                                                                                                            | —                                                         |
@@ -53,7 +54,7 @@ Slots:
 
 - `<mpr-header>`: `brand`, `nav-left`, `nav-right`, `aux`
 - `<mpr-footer>`: `menu-prefix`, `menu-links`, `legal`
-- `<mpr-theme-toggle>` / `<mpr-login-button>` render controlled content and do not expose slots.
+- `<mpr-theme-toggle>` / `<mpr-login-button>` / `<mpr-user>` render controlled content and do not expose slots.
 
 When `customElements.define` is unavailable the helpers fall back gracefully: the registry caches null definitions and no DOM is mutated until the host polyfills the API. The registry performs three key tasks:
 

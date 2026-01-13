@@ -10,6 +10,7 @@ This guide walks through the requirements and steps needed to wire `mpr-ui` comp
 4. **CORS** – when serving the frontend from a different origin (e.g., `http://localhost:8000`), ensure `APP_ENABLE_CORS=true` and list every origin in `APP_CORS_ALLOWED_ORIGINS`. Always include `https://accounts.google.com` in that list—the GIS iframe issues the `/auth/nonce` and `/auth/google` calls from that origin, so omitting it results in `auth.login.nonce_mismatch`.
 5. **Tenant ID** – TAuth requires the `X-TAuth-Tenant` header. Set `tauth-tenant-id` on `<mpr-header>` / `<mpr-login-button>` to the tenant configured in TAuth.
 6. **tauth.js helper** – TAuth exposes `/tauth.js`. This script keeps sessions renewed and surfaces `initAuthClient`, `getCurrentUser`, `logout`, and the nonce/exchange helpers that `mpr-ui` prefers when present.
+7. **User menu** – `<mpr-user>` consumes `getCurrentUser` and `logout` from `tauth.js`, plus `tauth-tenant-id`, `display-mode`, `logout-url`, and `logout-label` attributes to render the profile and redirect after log out.
 
 ## Nonce behavior (GIS ↔ mpr-ui ↔ TAuth)
 
@@ -69,7 +70,18 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
    - Demo-specific: keep `demo/tauth-config.js` `googleClientId` in sync with `APP_GOOGLE_WEB_CLIENT_ID` so the header and TAuth share the same credentials and GIS accepts the origin.
    - For local HTTP runs (Docker Compose), ensure `APP_DEV_INSECURE_HTTP=true` so cookies drop the `Secure` flag; Safari rejects Secure cookies over HTTP.
 
-4. **(Optional) Show session status**
+4. **(Optional) Add a user menu**
+   ```html
+   <mpr-user
+     display-mode="avatar-name"
+     logout-url="/auth/logout"
+     logout-label="Log out"
+     tauth-tenant-id="REPLACE_WITH_TENANT_ID"
+   ></mpr-user>
+   ```
+   Place `<mpr-user>` inside `<mpr-header>`, `<mpr-footer>`, or anywhere else on the page. It listens for `mpr-ui:auth:*` events when available and falls back to `getCurrentUser()` on load.
+
+5. **(Optional) Show session status**
    Wire a panel to the auth events:
    ```html
    <div data-demo-auth-status>Awaiting connection…</div>
@@ -77,7 +89,7 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
    ```
    `status-panel.js` listens for `mpr-ui:auth:authenticated` / `mpr-ui:auth:unauthenticated` and mirrors the profile data.
 
-5. **Test the flow**
+6. **Test the flow**
    1. Load the page from gHTTP (`http://localhost:8000/demo/tauth-demo.html`).
    2. Sign in with Google; the header will call `/auth/nonce`, present the GIS button, and exchange the credential at `/auth/google`.
    3. The session card should show your name, email, roles, and cookie expiry. TAuth will keep refreshing the session until you click **Sign out**.

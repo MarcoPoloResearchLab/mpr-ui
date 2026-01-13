@@ -116,6 +116,45 @@ Renders the Google Identity Services button without the rest of the header.
 
 **Events:** `mpr-ui:auth:*`, `mpr-login:error`. Missing configuration emits `mpr-login:error` with `mpr-ui.tenant_id_required` or `mpr-ui.google_site_id_required`; the element also sets `data-mpr-google-error="missing-tauth-tenant-id"` or `"missing-site-id"`.
 
+### `<mpr-user>`
+
+Profile menu for TAuth-backed sessions. It queries `getCurrentUser()` from `tauth.js` and listens for `mpr-ui:auth:*` events to keep the avatar in sync. Clicking the trigger toggles a drop-down menu with a log out button that calls `logout()` and redirects to `logout-url`.
+
+| Attribute | Type | Description |
+| --- | --- | --- |
+| `display-mode` | `"avatar"` \| `"avatar-name"` \| `"avatar-full-name"` \| `"custom-avatar"` | Required. Controls whether the menu shows just the avatar, avatar + first name, avatar + full name, or a custom avatar URL. |
+| `logout-url` | `string` | Required. Redirect target after log out. |
+| `logout-label` | `string` | Required. Label for the log out button. |
+| `tauth-tenant-id` | `string` | Required. Tenant identifier forwarded to the TAuth helper (`setAuthTenantId` when available). |
+| `avatar-url` | `string` | Required when `display-mode="custom-avatar"`. |
+| `avatar-label` | `string` | Optional accessible label for the avatar. Falls back to profile name. |
+
+**Events**
+
+- `mpr-user:toggle` with `{ open, source }`.
+- `mpr-user:logout` with `{ redirectUrl }`.
+- `mpr-user:error` with `{ code, message }`. The host also sets `data-mpr-user-error` for styling.
+
+**Dataset**
+
+- `data-mpr-user-status`: `authenticated`, `unauthenticated`, or `error`.
+- `data-mpr-user-mode`: active display mode.
+- `data-mpr-user-open`: `"true"` when the menu is open.
+- `data-user-id`, `data-user-email`, `data-user-display`, `data-user-avatar-url`: mirrored from the TAuth profile payload.
+
+The element can live standalone or inside `<mpr-header>` / `<mpr-footer>`. When nested, it inherits the header/footer scale tokens so the avatar sizing stays in sync.
+
+**Example**
+
+```html
+<mpr-user
+  display-mode="avatar-name"
+  logout-url="/auth/logout"
+  logout-label="Log out"
+  tauth-tenant-id="mpr-sites"
+></mpr-user>
+```
+
 ### `<mpr-settings>`
 
 Lightweight CTA + panel wrapper used by the header or standalone settings panes.
