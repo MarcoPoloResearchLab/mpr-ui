@@ -6,6 +6,10 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 
 ## Features (117–199)
 
+- [ ] [MU-118] add an element to display logged in user. The element shall allow configuration: avatr only, avatar and name, avatar and full name, custom avatar. when cl;icked, the element shall display a drop down which has a l;og off button. The log off button, when clicked, logs the user out to a predefined url/location. Have tests that work with TAuth. The elemented shall be able to be a stand-alone, a nested element in both mpr-header and mpr-footer. It shall depende on TAuth to get user information and log off.
+
+Use the current styling of the logged in user in gravity as an inspiration. the elemtn shall support theming, and all four of the light switches.
+
 ## Improvements (428–527)
 
 ## BugFixes (372–399)
