@@ -100,13 +100,14 @@ Need a working authentication backend without wiring your own server? `demo/taut
 
    ```bash
    cp .env.tauth.example .env.tauth
-   # Replace APP_GOOGLE_WEB_CLIENT_ID with your OAuth Web Client ID
-   # Replace APP_JWT_SIGNING_KEY (generate with: openssl rand -base64 48)
+   # Replace TAUTH_GOOGLE_WEB_CLIENT_ID with your OAuth Web Client ID
+   # Replace TAUTH_JWT_SIGNING_KEY (generate with: openssl rand -base64 48)
    ```
 
-   The template already enables CORS (`APP_ENABLE_CORS=true`, `APP_CORS_ALLOWED_ORIGINS=http://localhost:8000`) and insecure HTTP for local development (`APP_DEV_INSECURE_HTTP=true`). The sample DSN (`sqlite:///data/tauth.db`) stores refresh tokens inside the `tauth_data` volume so restarting the container does not wipe sessions. The Compose file also sets this DSN explicitly to avoid host-path issues.
+   The template already enables CORS (`TAUTH_ENABLE_CORS=true`, `TAUTH_CORS_ORIGIN_1=http://localhost:8000`) and includes `TAUTH_CORS_EXCEPTION_1=https://accounts.google.com` so the GIS iframe can access `/auth/*`. Insecure HTTP for local development is enabled via `TAUTH_ALLOW_INSECURE_HTTP=true`, and tenant header overrides are allowed by `TAUTH_ENABLE_TENANT_HEADER_OVERRIDE=true` so the demo can pass `X-TAuth-Tenant`. The sample DSN (`sqlite:///data/tauth.db`) stores refresh tokens inside the `tauth_data` volume so restarting the container does not wipe sessions.
+   Review `tauth-config.yaml` to ensure the tenant origins and IDs align with your local ports before starting the stack.
 
-   After setting `APP_GOOGLE_WEB_CLIENT_ID`, mirror the same value into `demo/tauth-config.js` (`googleClientId`). The header and TAuth must share the exact client ID; otherwise Google Identity Services rejects the origin and the button stays in an error state. Set `tenantId` in `demo/tauth-config.js` to a tenant configured in TAuth (the demo container uses `mpr-sites`). When running on plain HTTP (the Compose demo), keep `APP_DEV_INSECURE_HTTP=true` so TAuth drops the `Secure` flag from cookies; Safari ignores Secure cookies over HTTP.
+   After setting `TAUTH_GOOGLE_WEB_CLIENT_ID`, mirror the same value into `demo/tauth-config.js` (`googleClientId`). The header and TAuth must share the exact client ID; otherwise Google Identity Services rejects the origin and the button stays in an error state. Set `tenantId` in `demo/tauth-config.js` to match `TAUTH_TENANT_ID_1` in `tauth-config.yaml` (the demo container uses `mpr-sites`). When running on plain HTTP (the Compose demo), keep `TAUTH_ALLOW_INSECURE_HTTP=true` so TAuth drops the `Secure` flag from cookies; Safari ignores Secure cookies over HTTP.
 
 2. Bring the stack up:
 

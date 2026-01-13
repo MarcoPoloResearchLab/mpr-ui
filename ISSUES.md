@@ -15,6 +15,9 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 ## Improvements (428–527)
 
+- [x] [MU-120] update TAuth demo configuration to the current YAML-based config with TAUTH_* env variables and explicit tenant ID wiring.
+  Resolved: added YAML config, updated compose/env/docs to TAUTH_* variables, and enforced tenant header override. Tests: `npm test`.
+
 ## BugFixes (372–399)
 
 ## Maintenance (419–499)

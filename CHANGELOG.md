@@ -15,6 +15,7 @@
 - Update footer theme config fixtures to use canonical `variant` key.
 - Update TAuth script source to HTTPS and improve integration documentation in README.
 - Update the TAuth demo to showcase the `<mpr-user>` profile menu.
+- Refresh the TAuth demo configuration to use YAML config + `TAUTH_*` environment variables with tenant header override enabled.
 
 ### Bug Fixes 🐛
 

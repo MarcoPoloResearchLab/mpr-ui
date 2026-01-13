@@ -22,6 +22,7 @@ services:
       - "8080:8080"
     volumes:
       - tauth_data:/data
+      - ./tauth-config.yaml:/config/tauth-config.yaml:ro
     restart: unless-stopped
 
 volumes:
