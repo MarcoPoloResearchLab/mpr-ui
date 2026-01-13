@@ -14,6 +14,7 @@
 - Add minimal `tsconfig.json` plus `@types/node` for improved JavaScript type checking; fix baseline typing errors.
 - Update footer theme config fixtures to use canonical `variant` key.
 - Update TAuth script source to HTTPS and improve integration documentation in README.
+- Update the TAuth demo to showcase the `<mpr-user>` profile menu.
 
 ### Bug Fixes 🐛
 

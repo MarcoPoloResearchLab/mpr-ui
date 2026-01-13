@@ -8,6 +8,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 
 - [x] [MU-118] add an element to display logged in user. The element shall allow configuration: avatr only, avatar and name, avatar and full name, custom avatar. when cl;icked, the element shall display a drop down which has a l;og off button. The log off button, when clicked, logs the user out to a predefined url/location. Have tests that work with TAuth. The elemented shall be able to be a stand-alone, a nested element in both mpr-header and mpr-footer. It shall depende on TAuth to get user information and log off.
   Resolved: added `<mpr-user>` element with avatar display modes, TAuth logout redirect, and event hooks; covered by unit and Playwright tests. Tests: `npm test`.
+- [x] [MU-119] add `<mpr-user>` to `demo/tauth-demo.html` so the profile menu is visible in the TAuth demo.
+  Resolved: added the user menu section and aligned demo config updates for tenant ID. Tests: `npm test`.
 
 Use the current styling of the logged in user in gravity as an inspiration. the elemtn shall support theming, and all four of the light switches.
 
@@ -30,4 +32,3 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
   - Header settings boolean accepts both `settings` and `settings-enabled` attributes (aliasing the same behavior).
   - Header auth wiring can be supplied via `auth-config` JSON or the individual `tauth-*` attributes; auth `googleClientId`/`tenantId` can be supplied via `google-site-id`/`tauth-tenant-id` or inside `auth-config`.
   - Theme initial mode can be set via `theme-mode` attribute or `theme-config.initialMode` across header/footer/theme toggle.
-

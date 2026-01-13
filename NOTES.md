@@ -111,3 +111,4 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 ## 2026-01-13
 
 - MU-118: added `<mpr-user>` profile menu with TAuth-backed logout, display modes, and docs/tests. Tests: `npm test`.
+- MU-119: added `<mpr-user>` to the TAuth demo and aligned demo config for tenant IDs. Tests: `npm test`.

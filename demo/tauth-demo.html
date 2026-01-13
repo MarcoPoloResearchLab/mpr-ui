@@ -119,6 +119,20 @@
         clear your session.
       </p>
 
+      <section aria-labelledby="profile-menu-title" class="demo-section">
+        <h2 id="profile-menu-title">Profile menu</h2>
+        <p>
+          The <code>mpr-user</code> element uses the TAuth helper to display the
+          signed-in profile and routes log out through the configured redirect.
+        </p>
+        <mpr-user
+          display-mode="avatar-name"
+          logout-url="/demo/tauth-demo.html"
+          logout-label="Log out"
+          tauth-tenant-id="mpr-sites"
+        ></mpr-user>
+      </section>
+
       <section aria-labelledby="profile-status-title" class="demo-section">
         <h2 id="profile-status-title">Current session</h2>
         <p>
