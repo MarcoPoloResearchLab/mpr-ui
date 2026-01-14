@@ -24,6 +24,9 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 ## BugFixes (372–399)
 
+- [x] [MU-123] load tauth.js from a CDN-hosted URL while serving mpr-ui assets from the local filesystem in the TAuth demo.
+  Resolved: updated demo HTML and docker-compose mounts to use local mpr-ui assets with a CDN tauth.js script, plus regression coverage in tauth-demo tests. Tests: `node --test tests/tauth-demo.test.js`.
+
 ## Maintenance (419–499)
 
 ## Planning (500–59999)
