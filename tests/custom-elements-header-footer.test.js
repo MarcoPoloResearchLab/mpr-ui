@@ -467,9 +467,7 @@ function createHeaderElementHarness() {
   const actions = createStubNode({});
   const googleHost = createStubNode({ attributes: true, classList: true, supportsEvents: true });
   const settingsButton = createStubNode({ attributes: true, supportsEvents: true });
-  const profileContainer = createStubNode({});
-  const profileName = createStubNode({});
-  const signOutButton = createStubNode({ attributes: true, supportsEvents: true });
+  const userMenu = createStubNode({ attributes: true, supportsEvents: true });
 
   const selectorMap = new Map([
     ['header.mpr-header', root],
@@ -478,9 +476,7 @@ function createHeaderElementHarness() {
     ['[data-mpr-header="nav"]', nav],
     ['[data-mpr-header="google-signin"]', googleHost],
     ['[data-mpr-header="settings-button"]', settingsButton],
-    ['[data-mpr-header="profile"]', profileContainer],
-    ['[data-mpr-header="profile-name"]', profileName],
-    ['[data-mpr-header="sign-out-button"]', signOutButton],
+    ['[data-mpr-header="user-menu"]', userMenu],
     ['.mpr-header__actions', actions],
   ]);
 
@@ -494,6 +490,7 @@ function createHeaderElementHarness() {
     brandContainer,
     nav,
     actions,
+    userMenu,
     selectorMap,
   };
 }
@@ -718,6 +715,51 @@ test('mpr-header reflects attributes and updates values', () => {
 
   headerElement.setAttribute('brand-label', 'Next Brand');
   assert.equal(harness.brandLink.textContent, 'Next Brand');
+});
+
+test('mpr-header wires the user menu element with logout and tenant attributes', () => {
+  resetEnvironment();
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  harness.element.setAttribute('tauth-tenant-id', 'tenant-demo');
+  harness.element.setAttribute('logout-url', '/signed-out');
+  harness.element.setAttribute('sign-out-label', 'Log out');
+  harness.element.setAttribute('user-menu-display-mode', 'avatar-name');
+  harness.element.setAttribute('user-menu-avatar-url', 'https://cdn.example.com/avatar.png');
+  harness.element.setAttribute('user-menu-avatar-label', 'Profile photo');
+  harness.element.connectedCallback();
+
+  assert.ok(harness.userMenu, 'user menu host is available');
+  assert.equal(
+    harness.userMenu.getAttribute('tauth-tenant-id'),
+    'tenant-demo',
+    'tenant id is forwarded to the user menu',
+  );
+  assert.equal(
+    harness.userMenu.getAttribute('logout-url'),
+    '/signed-out',
+    'logout url is forwarded to the user menu',
+  );
+  assert.equal(
+    harness.userMenu.getAttribute('logout-label'),
+    'Log out',
+    'logout label is forwarded to the user menu',
+  );
+  assert.equal(
+    harness.userMenu.getAttribute('display-mode'),
+    'avatar-name',
+    'display mode is forwarded to the user menu',
+  );
+  assert.equal(
+    harness.userMenu.getAttribute('avatar-url'),
+    'https://cdn.example.com/avatar.png',
+    'avatar url is forwarded to the user menu',
+  );
+  assert.equal(
+    harness.userMenu.getAttribute('avatar-label'),
+    'Profile photo',
+    'avatar label is forwarded to the user menu',
+  );
 });
 
 test('mpr-header enables settings button when settings attribute true', () => {

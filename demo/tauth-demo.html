@@ -16,10 +16,7 @@
       src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
       type="module"
     ></script>
-    <script
-      defer
-      src="http://localhost:8080/tauth.js"
-    ></script>
+    <script defer src="http://localhost:8080/tauth.js"></script>
     <script
       id="mpr-ui-bundle"
       defer
@@ -107,6 +104,8 @@
       tauth-login-path="/auth/google"
       tauth-logout-path="/auth/logout"
       tauth-nonce-path="/auth/nonce"
+      logout-url="/demo/tauth-demo.html"
+      sign-out-label="Log out"
       settings="true"
       settings-label="Settings"
     ></mpr-header>
@@ -115,7 +114,7 @@
       <p>
         This page connects the <code>mpr-header</code> web component to a local
         TAuth service running under Docker Compose. Sign in with Google, observe
-        the authenticated profile state, and use the header sign-out control to
+        the authenticated profile state, and use the header profile menu to
         clear your session.
       </p>
 
@@ -165,12 +164,12 @@
             <code>/auth/google</code>.
           </li>
           <li>
-              The embedded <code>tauth.js</code> helper refreshes sessions by
+            The embedded <code>tauth.js</code> helper refreshes sessions by
             calling <code>/auth/refresh</code> whenever a request returns 401.
           </li>
           <li>
-            Clicking <strong>Sign out</strong> invokes <code>/auth/logout</code>
-            and resets the profile snapshot below.
+            Clicking <strong>Log out</strong> in the menu invokes
+            <code>/auth/logout</code> and resets the profile snapshot below.
           </li>
         </ol>
       </section>

@@ -343,6 +343,10 @@
     "theme-config": "themeToggle",
     "sign-in-label": "signInLabel",
     "sign-out-label": "signOutLabel",
+    "logout-url": "logoutUrl",
+    "user-menu-display-mode": "userMenuDisplayMode",
+    "user-menu-avatar-url": "userMenuAvatarUrl",
+    "user-menu-avatar-label": "userMenuAvatarLabel",
     sticky: "sticky",
     size: "size",
   });
@@ -2117,6 +2121,22 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (dataset.profileLabel) {
       options.profileLabel = dataset.profileLabel;
     }
+    if (dataset.logoutUrl) {
+      options.userMenu = options.userMenu || {};
+      options.userMenu.logoutUrl = dataset.logoutUrl;
+    }
+    if (dataset.userMenuDisplayMode) {
+      options.userMenu = options.userMenu || {};
+      options.userMenu.displayMode = dataset.userMenuDisplayMode;
+    }
+    if (dataset.userMenuAvatarUrl) {
+      options.userMenu = options.userMenu || {};
+      options.userMenu.avatarUrl = dataset.userMenuAvatarUrl;
+    }
+    if (dataset.userMenuAvatarLabel) {
+      options.userMenu = options.userMenu || {};
+      options.userMenu.avatarLabel = dataset.userMenuAvatarLabel;
+    }
     if (dataset.sticky !== undefined) {
       options.sticky = normalizeBooleanAttribute(dataset.sticky, true);
     }
@@ -2824,10 +2844,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     '__google[data-mpr-google-ready="true"]{display:inline-flex}' +
     "." +
     HEADER_ROOT_CLASS +
-    "__chip{display:none;flex-direction:column;align-items:flex-start;gap:calc(0.25rem * var(--mpr-header-scale,1));font-size:calc(0.85rem * var(--mpr-header-scale,1))}" +
-    "." +
-    HEADER_ROOT_CLASS +
-    "__profile-name{font-weight:600}" +
+    "__user{display:none;align-items:center}" +
     "." +
     HEADER_ROOT_CLASS +
     "__button{border:none;border-radius:999px;padding:calc(0.4rem * var(--mpr-header-scale,1)) calc(0.95rem * var(--mpr-header-scale,1));font-weight:600;cursor:pointer;background:var(--mpr-chip-bg,rgba(148,163,184,0.18));color:var(--mpr-color-text-primary,#e2e8f0)}" +
@@ -2845,7 +2862,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "__icon-btn{display:inline-flex;align-items:center;gap:0.35rem}" +
     "." +
     HEADER_ROOT_CLASS +
-    "--authenticated [data-mpr-header=\"profile\"]{display:flex}" +
+    "--authenticated [data-mpr-header=\"user-menu\"]{display:inline-flex}" +
     "." +
     HEADER_ROOT_CLASS +
     "--authenticated [data-mpr-header=\"google-signin\"]{display:none}" +
@@ -2888,10 +2905,48 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     signInLabel: "Sign in",
     signOutLabel: "Sign out",
     profileLabel: "",
+    userMenu: Object.freeze({
+      displayMode: USER_MENU_DISPLAY_MODES.AVATAR_NAME,
+      logoutUrl: "",
+      avatarUrl: "",
+      avatarLabel: "",
+    }),
     initialTheme: "light",
     auth: null,
     sticky: true,
   });
+
+  function normalizeHeaderUserMenuDisplayMode(value) {
+    var normalized = normalizeUserMenuDisplayMode(value);
+    return normalized || USER_MENU_DISPLAY_MODES.AVATAR_NAME;
+  }
+
+  function normalizeHeaderUserMenuLogoutUrl(value, fallbackUrl) {
+    var candidate =
+      typeof value === "string" && value.trim() ? value.trim() : "";
+    if (!candidate) {
+      candidate =
+        typeof fallbackUrl === "string" && fallbackUrl.trim()
+          ? fallbackUrl.trim()
+          : "";
+    }
+    if (!candidate) {
+      candidate = HEADER_DEFAULTS.brand.href;
+    }
+    var sanitized = sanitizeHref(candidate);
+    if (sanitized === "#" && candidate !== "#") {
+      return HEADER_DEFAULTS.brand.href;
+    }
+    return sanitized;
+  }
+
+  function normalizeHeaderUserMenuOptionalValue(value) {
+    if (typeof value !== "string") {
+      return "";
+    }
+    var trimmed = value.trim();
+    return trimmed ? trimmed : "";
+  }
 
   function ensureHeaderStyles(documentObject) {
     if (
@@ -3017,16 +3072,48 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       themeNormalized.initialMode = options.initialTheme.trim();
     }
 
+    var brandLabel =
+      typeof brandSource.label === "string" && brandSource.label.trim()
+        ? brandSource.label.trim()
+        : HEADER_DEFAULTS.brand.label;
+    var brandHref =
+      typeof brandSource.href === "string" && brandSource.href.trim()
+        ? brandSource.href.trim()
+        : HEADER_DEFAULTS.brand.href;
+    var signInLabel =
+      typeof options.signInLabel === "string" && options.signInLabel.trim()
+        ? options.signInLabel.trim()
+        : HEADER_DEFAULTS.signInLabel;
+    var signOutLabel =
+      typeof options.signOutLabel === "string" && options.signOutLabel.trim()
+        ? options.signOutLabel.trim()
+        : HEADER_DEFAULTS.signOutLabel;
+    var profileLabel =
+      typeof options.profileLabel === "string" && options.profileLabel.trim()
+        ? options.profileLabel.trim()
+        : HEADER_DEFAULTS.profileLabel;
+    var userMenuSource =
+      options.userMenu && typeof options.userMenu === "object"
+        ? options.userMenu
+        : {};
+    var userMenuDisplayMode = normalizeHeaderUserMenuDisplayMode(
+      userMenuSource.displayMode,
+    );
+    var userMenuLogoutUrl = normalizeHeaderUserMenuLogoutUrl(
+      userMenuSource.logoutUrl,
+      brandHref,
+    );
+    var userMenuAvatarUrl = normalizeHeaderUserMenuOptionalValue(
+      userMenuSource.avatarUrl,
+    );
+    var userMenuAvatarLabel = normalizeHeaderUserMenuOptionalValue(
+      userMenuSource.avatarLabel,
+    );
+
     return {
       brand: {
-        label:
-          typeof brandSource.label === "string" && brandSource.label.trim()
-            ? brandSource.label.trim()
-            : HEADER_DEFAULTS.brand.label,
-        href:
-          typeof brandSource.href === "string" && brandSource.href.trim()
-            ? brandSource.href.trim()
-            : HEADER_DEFAULTS.brand.href,
+        label: brandLabel,
+        href: brandHref,
       },
       navLinks: navLinks,
       settings: {
@@ -3042,18 +3129,16 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         modes: themeNormalized.modes,
         initialMode: themeNormalized.initialMode,
       },
-      signInLabel:
-        typeof options.signInLabel === "string" && options.signInLabel.trim()
-          ? options.signInLabel.trim()
-          : HEADER_DEFAULTS.signInLabel,
-      signOutLabel:
-        typeof options.signOutLabel === "string" && options.signOutLabel.trim()
-          ? options.signOutLabel.trim()
-          : HEADER_DEFAULTS.signOutLabel,
-      profileLabel:
-        typeof options.profileLabel === "string" && options.profileLabel.trim()
-          ? options.profileLabel.trim()
-          : HEADER_DEFAULTS.profileLabel,
+      signInLabel: signInLabel,
+      signOutLabel: signOutLabel,
+      profileLabel: profileLabel,
+      userMenu: {
+        displayMode: userMenuDisplayMode,
+        logoutUrl: userMenuLogoutUrl,
+        logoutLabel: signOutLabel,
+        avatarUrl: userMenuAvatarUrl,
+        avatarLabel: userMenuAvatarLabel,
+      },
       siteId: derivedSiteId,
       tenantId: derivedTenantId,
       auth: authOptions,
@@ -3102,6 +3187,30 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       })
       .filter(Boolean)
       .join("");
+    var userMenuMarkup = "";
+    if (options && options.userMenu && options.tenantId) {
+      var userMenuAttributes =
+        ' class="' +
+        HEADER_ROOT_CLASS +
+        '__user" data-mpr-header="user-menu" display-mode="' +
+        escapeHtml(options.userMenu.displayMode) +
+        '" logout-url="' +
+        escapeHtml(options.userMenu.logoutUrl) +
+        '" logout-label="' +
+        escapeHtml(options.userMenu.logoutLabel) +
+        '" tauth-tenant-id="' +
+        escapeHtml(options.tenantId) +
+        '"';
+      if (options.userMenu.avatarUrl) {
+        userMenuAttributes +=
+          ' avatar-url="' + escapeHtml(options.userMenu.avatarUrl) + '"';
+      }
+      if (options.userMenu.avatarLabel) {
+        userMenuAttributes +=
+          ' avatar-label="' + escapeHtml(options.userMenu.avatarLabel) + '"';
+      }
+      userMenuMarkup = "<mpr-user" + userMenuAttributes + "></mpr-user>";
+    }
 
     return (
       '<header class="' +
@@ -3137,16 +3246,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       '<div class="' +
       HEADER_ROOT_CLASS +
       '__google" data-mpr-header="google-signin"></div>' +
-      '<div class="' +
-      HEADER_ROOT_CLASS +
-      '__chip" data-mpr-header="profile">' +
-      '<span class="' +
-      HEADER_ROOT_CLASS +
-      '__profile-name" data-mpr-header="profile-name"></span>' +
-      '<button type="button" class="' +
-      HEADER_ROOT_CLASS +
-      '__button" data-mpr-header="sign-out-button">Sign out</button>' +
-      "</div>" +
+      userMenuMarkup +
       "</div>" +
       "</div>" +
       "</header>" +
@@ -3186,15 +3286,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       settingsButton: hostElement.querySelector(
         '[data-mpr-header="settings-button"]',
       ),
-      profileContainer: hostElement.querySelector(
-        '[data-mpr-header="profile"]',
-      ),
-      profileLabel: null,
-      profileName: hostElement.querySelector(
-        '[data-mpr-header="profile-name"]',
-      ),
-      signOutButton: hostElement.querySelector(
-        '[data-mpr-header="sign-out-button"]',
+      userMenu: hostElement.querySelector(
+        '[data-mpr-header="user-menu"]',
       ),
       settingsModal: hostElement.querySelector(
         '[data-mpr-header="settings-modal"]',
@@ -3638,16 +3731,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         HEADER_ROOT_CLASS + "--authenticated",
         HEADER_ROOT_CLASS + "--no-auth",
       );
-      if (elements.profileName) {
-        elements.profileName.textContent = "";
-      }
       return;
     }
     elements.root.classList.add(HEADER_ROOT_CLASS + "--authenticated");
-    if (elements.profileName) {
-      var preference = state.profile.display || state.profile.user_id;
-      elements.profileName.textContent = preference ? String(preference) : "";
-    }
   }
 
   function applyHeaderStickyState(headerRootElement, sticky, hostElement) {
@@ -3671,6 +3757,47 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     } else if (typeof hostElement.removeAttribute === "function") {
       hostElement.removeAttribute("data-mpr-sticky");
     }
+  }
+
+  function applyHeaderUserMenuAttributes(userMenuElement, options) {
+    if (
+      !userMenuElement ||
+      !options ||
+      !options.userMenu ||
+      typeof userMenuElement.setAttribute !== "function"
+    ) {
+      return;
+    }
+    setAttributeOrRemove(
+      userMenuElement,
+      "display-mode",
+      options.userMenu.displayMode,
+    );
+    setAttributeOrRemove(
+      userMenuElement,
+      "logout-url",
+      options.userMenu.logoutUrl,
+    );
+    setAttributeOrRemove(
+      userMenuElement,
+      "logout-label",
+      options.userMenu.logoutLabel,
+    );
+    setAttributeOrRemove(
+      userMenuElement,
+      "tauth-tenant-id",
+      options.tenantId,
+    );
+    setAttributeOrRemove(
+      userMenuElement,
+      "avatar-url",
+      options.userMenu.avatarUrl,
+    );
+    setAttributeOrRemove(
+      userMenuElement,
+      "avatar-label",
+      options.userMenu.avatarLabel,
+    );
   }
 
   function applyHeaderOptions(hostElement, elements, options) {
@@ -3698,8 +3825,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (elements.settingsButton) {
       elements.settingsButton.textContent = options.settings.label;
     }
-    if (elements.signOutButton) {
-      elements.signOutButton.textContent = options.signOutLabel;
+    if (elements.userMenu) {
+      applyHeaderUserMenuAttributes(elements.userMenu, options);
     }
   }
 
@@ -3945,13 +4072,22 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       elements.root.classList.add(HEADER_ROOT_CLASS + "--no-auth");
     }
 
-    if (elements.signOutButton) {
-      elements.signOutButton.addEventListener("click", function () {
-        if (authController && typeof authController.signOut === "function") {
-          authController.signOut();
-        } else {
-          dispatchHeaderEvent("mpr-ui:header:signout-click", {});
+    if (
+      elements.userMenu &&
+      typeof elements.userMenu.addEventListener === "function"
+    ) {
+      elements.userMenu.addEventListener("mpr-user:logout", function (eventObject) {
+        if (
+          authController &&
+          typeof authController.restartSessionWatcher === "function"
+        ) {
+          authController.restartSessionWatcher();
         }
+        dispatchHeaderEvent("mpr-ui:header:signout-click", {
+          source: "user-menu",
+          redirectUrl:
+            eventObject && eventObject.detail ? eventObject.detail.redirectUrl : null,
+        });
       });
     }
 

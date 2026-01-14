@@ -16,6 +16,8 @@
 - Update TAuth script source to HTTPS and improve integration documentation in README.
 - Update the TAuth demo to showcase the `<mpr-user>` profile menu.
 - Refresh the TAuth demo configuration to use YAML config + `TAUTH_*` environment variables with tenant header override enabled.
+- MU-121: Replace the signed-in header layout with the `<mpr-user>` avatar menu and forward tenant/logout attributes.
+- Refresh the local TAuth demo config defaults (CORS origins, docker-compose.yml wiring, local helper URL).
 
 ### Bug Fixes 🐛
 
@@ -25,12 +27,14 @@
 
 - Add regression tests ensuring legacy DSL inputs are ignored and warn in the console for header, footer, and theme toggle components.
 - Add unit and Playwright coverage for the `<mpr-user>` element (rendering, logout, and theme token behavior).
+- Update header and TAuth config unit coverage for the new user menu wiring and CORS env template.
 
 ### Docs 📚
 
 - Update README, ARCHITECTURE, and custom elements documentation to reflect removal of deprecated attributes and addition of `initialMode` in theme configuration.
 - Improve documentation of endpoints and update TAuth integration instructions.
 - Document `<mpr-user>` attributes, events, and TAuth requirements across README and integration guides.
+- Refresh demo and integration docs for the header user menu, logout redirect wiring, and local Compose setup.
 
 ## [v3.3.0]
 

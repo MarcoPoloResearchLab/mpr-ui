@@ -31,7 +31,7 @@ The bundle shields double registrations via `MPRUI.createCustomElementRegistry()
 
 ### `<mpr-header>`
 
-Sticky site header with navigation, Google Identity Services button, settings CTA, and shared theme configuration (the header no longer renders a theme toggle — pair it with `<mpr-footer>` or `<mpr-theme-toggle>` for user controls).
+Sticky site header with navigation, Google Identity Services button, profile menu, settings CTA, and shared theme configuration (the header no longer renders a theme toggle — pair it with `<mpr-footer>` or `<mpr-theme-toggle>` for user controls).
 
 | Attribute | Type | Description |
 | --- | --- | --- |
@@ -40,9 +40,10 @@ Sticky site header with navigation, Google Identity Services button, settings CT
 | `google-site-id` | `string` | Google Identity Services client ID. Required for auth flows. |
 | `tauth-tenant-id` | `string` | TAuth tenant identifier. Required whenever auth is enabled. |
 | `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url` | `string` | Auth endpoints wired into `createAuthHeader`. |
+| `logout-url`, `user-menu-display-mode`, `user-menu-avatar-url`, `user-menu-avatar-label` | `string` | Configures the embedded `<mpr-user>` menu (logout redirect, display mode, and optional avatar overrides). |
 | `theme-config` | `JSON` | Configures the shared theme manager (no toggle is rendered; use the footer or `<mpr-theme-toggle>` for user controls). Include `initialMode` in the JSON to set the starting mode. |
 | `settings-label`, `settings` | `string` / `boolean` | Control the built-in settings button. |
-| `sign-in-label`, `sign-out-label`, `profile-label` | `string` | Override localized copy. |
+| `sign-in-label`, `sign-out-label`, `profile-label` | `string` | Override localized copy (`sign-out-label` is forwarded to the menu). |
 | `sticky` | `boolean` attribute | Controls sticky positioning (case-insensitive `true`/`false`). Default `true` keeps the header viewport-pinned; set `false` to render it in document flow. |
 
 When `tauth.js` is present, `mpr-ui` passes `tauth-url` and `tauth-tenant-id` into `initAuthClient`, and includes the tenant ID in every auth request. Missing `tauth-tenant-id` throws `mpr-ui.tenant_id_required` during header initialization.
@@ -66,6 +67,7 @@ When `tauth.js` is present, `mpr-ui` passes `tauth-url` and `tauth-tenant-id` in
   tauth-login-path="/auth/google"
   tauth-logout-path="/auth/logout"
   tauth-nonce-path="/auth/nonce"
+  logout-url="/"
   theme-config='{"initialMode":"dark"}'
 >
   <button slot="nav-right" class="demo-link">Request Access</button>

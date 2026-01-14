@@ -7,7 +7,7 @@ const { join } = require('node:path');
 
 const repoRoot = join(__dirname, '..');
 const envExamplePath = join(repoRoot, '.env.tauth.example');
-const composePath = join(repoRoot, 'docker-compose.tauth.yml');
+const composePath = join(repoRoot, 'docker-compose.yml');
 const configPath = join(repoRoot, 'tauth-config.yaml');
 
 const envExampleContents = readFileSync(envExamplePath, 'utf8');
@@ -23,6 +23,8 @@ test('tauth env example uses TAUTH_* variables', () => {
     'TAUTH_DATABASE_URL=',
     'TAUTH_ENABLE_CORS=',
     'TAUTH_CORS_ORIGIN_1=',
+    'TAUTH_CORS_ORIGIN_2=',
+    'TAUTH_CORS_ORIGIN_3=',
     'TAUTH_CORS_EXCEPTION_1=',
     'TAUTH_ALLOW_INSECURE_HTTP=',
     'TAUTH_TENANT_ID_1=',
@@ -47,7 +49,7 @@ test('tauth docker compose mounts the yaml config', () => {
   assert.match(
     composeContents,
     /tauth-config\.yaml/,
-    'Expected docker-compose.tauth.yml to mount tauth-config.yaml',
+    'Expected docker-compose.yml to mount tauth-config.yaml',
   );
 });
 

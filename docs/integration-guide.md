@@ -7,7 +7,7 @@ This guide walks through the requirements and steps needed to wire `mpr-ui` comp
 1. **mpr-ui assets** – load `mpr-ui.css` and `mpr-ui.js` from the CDN or from a local build. The `<mpr-*>` Web Components DSL works without Alpine; the retired factories (`mprSiteHeader`, `mprFooter`, `mprThemeToggle`, etc.) no longer ship in v0.2.0+. See [`docs/deprecation-roadmap.md`](deprecation-roadmap.md) if you are upgrading from ≤0.1.x.
 2. **Google Identity Services** – the header renders a GIS button. Include `https://accounts.google.com/gsi/client` and provide a valid OAuth Web Client ID (`google-site-id`).
 3. **TAuth backend** – the frontend must be able to reach a running TAuth instance, typically on `http://localhost:8080` during local development. Configure `.env.tauth` with your Google client ID, signing key, and allowed origins.
-4. **CORS** – when serving the frontend from a different origin (e.g., `http://localhost:8000`), ensure `TAUTH_ENABLE_CORS=true` and list every origin in `TAUTH_CORS_ORIGIN_1` / `TAUTH_CORS_ORIGIN_2`. Always include `https://accounts.google.com` in `TAUTH_CORS_EXCEPTION_1`—the GIS iframe issues the `/auth/nonce` and `/auth/google` calls from that origin, so omitting it results in `auth.login.nonce_mismatch`.
+4. **CORS** – when serving the frontend from a different origin (e.g., `http://localhost:8000`), ensure `TAUTH_ENABLE_CORS=true` and list every UI origin in `TAUTH_CORS_ORIGIN_1` / `TAUTH_CORS_ORIGIN_2`. Add `https://accounts.google.com` as `TAUTH_CORS_ORIGIN_3` and keep it in `TAUTH_CORS_EXCEPTION_1`—the GIS iframe issues the `/auth/nonce` and `/auth/google` calls from that origin, so omitting it results in `auth.login.nonce_mismatch`.
 5. **Tenant ID** – TAuth requires the `X-TAuth-Tenant` header. Set `tauth-tenant-id` on `<mpr-header>` / `<mpr-login-button>` to the tenant configured in TAuth.
 6. **tauth.js helper** – TAuth exposes `/tauth.js`. This script keeps sessions renewed and surfaces `initAuthClient`, `getCurrentUser`, `logout`, and the nonce/exchange helpers that `mpr-ui` prefers when present.
 7. **User menu** – `<mpr-user>` consumes `getCurrentUser` and `logout` from `tauth.js`, plus `tauth-tenant-id`, `display-mode`, `logout-url`, and `logout-label` attributes to render the profile and redirect after log out.
@@ -30,7 +30,7 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
    ```bash
    cp .env.tauth.example .env.tauth
    # Update TAUTH_GOOGLE_WEB_CLIENT_ID, TAUTH_JWT_SIGNING_KEY, TAUTH_TENANT_ID_1, and TAUTH_CORS_ORIGIN_1
-   docker compose -f docker-compose.tauth.yml up
+   docker compose up
    ```
    This starts gHTTP (serving the repo) and TAuth (serving `/auth/*`, `/api/me`, and `/tauth.js`).
    Review `tauth-config.yaml` to confirm tenant origins and the tenant header override flag match your local setup.
@@ -54,11 +54,12 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
     brand-href="https://mprlab.com/"
     nav-links='[{"label":"Docs","href":"#docs"}]'
     google-site-id="REPLACE_WITH_GOOGLE_CLIENT_ID"
-    tauth-url="http://localhost:8080"
+     tauth-url="http://localhost:8080"
     tauth-login-path="/auth/google"
     tauth-logout-path="/auth/logout"
     tauth-nonce-path="/auth/nonce"
     tauth-tenant-id="REPLACE_WITH_TENANT_ID"
+    logout-url="/"
     settings="true"
     settings-label="Settings"
   ></mpr-header>
@@ -68,6 +69,7 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
    - `tauth-tenant-id`: Tenant identifier configured in TAuth (sent in `X-TAuth-Tenant`).
    - `tauth-url`: TAuth origin. Required when your backend lives on a different origin; if omitted and the backend shares the page origin, `mpr-ui` supplies `window.location.origin` to `tauth.js` when bootstrapping sessions.
    - `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`: keep the defaults unless your reverse proxy rewrites them.
+   - `logout-url`: Redirect target after log out (used by the header user menu).
    - Demo-specific: keep `demo/tauth-config.js` `googleClientId` in sync with `TAUTH_GOOGLE_WEB_CLIENT_ID` so the header and TAuth share the same credentials and GIS accepts the origin.
    - For local HTTP runs (Docker Compose), ensure `TAUTH_ALLOW_INSECURE_HTTP=true` so cookies drop the `Secure` flag; Safari rejects Secure cookies over HTTP.
 
@@ -93,7 +95,7 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
 6. **Test the flow**
    1. Load the page from gHTTP (`http://localhost:8000/demo/tauth-demo.html`).
    2. Sign in with Google; the header will call `/auth/nonce`, present the GIS button, and exchange the credential at `/auth/google`.
-   3. The session card should show your name, email, roles, and cookie expiry. TAuth will keep refreshing the session until you click **Sign out**.
+   3. The session card should show your name, email, roles, and cookie expiry. TAuth will keep refreshing the session until you click **Log out**.
    4. Inspect the browser network log to verify `/auth/refresh` runs automatically when `/api/me` returns 401.
 
 ## Troubleshooting
