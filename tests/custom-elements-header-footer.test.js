@@ -775,6 +775,7 @@ test('mpr-header uses a slotted mpr-user element for header menu wiring', () => 
     supportsEvents: true,
   });
   slottedUserMenu.tagName = 'MPR-USER';
+  slottedUserMenu.setAttribute('display-mode', 'avatar');
   harness.element.__setSlotNodes({ aux: [slottedUserMenu] });
   harness.element.setAttribute('tauth-tenant-id', 'tenant-demo');
   harness.element.setAttribute('logout-url', '/signed-out');
@@ -805,8 +806,8 @@ test('mpr-header uses a slotted mpr-user element for header menu wiring', () => 
   );
   assert.equal(
     slottedUserMenu.getAttribute('display-mode'),
-    'avatar-name',
-    'display mode is forwarded to the slotted user menu',
+    'avatar',
+    'slotted user menu preserves the explicit display mode',
   );
   assert.equal(
     slottedUserMenu.classList.contains('mpr-header__user'),

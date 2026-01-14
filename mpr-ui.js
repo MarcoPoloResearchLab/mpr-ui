@@ -2885,6 +2885,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "</div>";
   var HEADER_LINK_DEFAULT_TARGET = "_blank";
   var HEADER_LINK_DEFAULT_REL = "noopener noreferrer";
+  var HEADER_USER_MENU_OVERRIDE_ATTRIBUTE =
+    "data-mpr-header-user-menu-overrides";
+  var HEADER_USER_MENU_OVERRIDE_SEPARATOR = ",";
+  var HEADER_USER_MENU_OVERRIDE_ATTRIBUTES = Object.freeze([
+    "display-mode",
+    "logout-url",
+    "logout-label",
+    "tauth-tenant-id",
+    "avatar-url",
+    "avatar-label",
+  ]);
 
   var HEADER_DEFAULTS = Object.freeze({
     brand: Object.freeze({
@@ -2946,6 +2957,75 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     var trimmed = value.trim();
     return trimmed ? trimmed : "";
+  }
+
+  function captureHeaderUserMenuOverrides(userMenuElement) {
+    if (
+      !userMenuElement ||
+      typeof userMenuElement.setAttribute !== "function" ||
+      typeof userMenuElement.hasAttribute !== "function"
+    ) {
+      return;
+    }
+    var overrideAttributes = [];
+    for (
+      var index = 0;
+      index < HEADER_USER_MENU_OVERRIDE_ATTRIBUTES.length;
+      index += 1
+    ) {
+      var attributeName = HEADER_USER_MENU_OVERRIDE_ATTRIBUTES[index];
+      if (userMenuElement.hasAttribute(attributeName)) {
+        overrideAttributes.push(attributeName);
+      }
+    }
+    if (!overrideAttributes.length) {
+      return;
+    }
+    userMenuElement.setAttribute(
+      HEADER_USER_MENU_OVERRIDE_ATTRIBUTE,
+      overrideAttributes.join(HEADER_USER_MENU_OVERRIDE_SEPARATOR),
+    );
+  }
+
+  function resolveHeaderUserMenuOverrides(userMenuElement) {
+    if (
+      !userMenuElement ||
+      typeof userMenuElement.getAttribute !== "function"
+    ) {
+      return null;
+    }
+    var overrideValue = userMenuElement.getAttribute(
+      HEADER_USER_MENU_OVERRIDE_ATTRIBUTE,
+    );
+    if (!overrideValue) {
+      return null;
+    }
+    var overrideEntries = overrideValue
+      .split(HEADER_USER_MENU_OVERRIDE_SEPARATOR)
+      .map(function trimEntry(entry) {
+        return entry.trim();
+      })
+      .filter(Boolean);
+    return overrideEntries.length ? overrideEntries : null;
+  }
+
+  function isHeaderUserMenuOverride(overrideEntries, attributeName) {
+    if (!overrideEntries) {
+      return false;
+    }
+    return overrideEntries.indexOf(attributeName) !== -1;
+  }
+
+  function setHeaderUserMenuAttribute(
+    userMenuElement,
+    attributeName,
+    value,
+    overrideEntries,
+  ) {
+    if (isHeaderUserMenuOverride(overrideEntries, attributeName)) {
+      return;
+    }
+    setAttributeOrRemove(userMenuElement, attributeName, value);
   }
 
   function ensureHeaderStyles(documentObject) {
@@ -3395,6 +3475,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (!userMenuElement || typeof userMenuElement.setAttribute !== "function") {
       return;
     }
+    captureHeaderUserMenuOverrides(userMenuElement);
     userMenuElement.setAttribute("data-mpr-header", "user-menu");
     if (
       userMenuElement.classList &&
@@ -3824,35 +3905,42 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ) {
       return;
     }
-    setAttributeOrRemove(
+    var overrideEntries = resolveHeaderUserMenuOverrides(userMenuElement);
+    setHeaderUserMenuAttribute(
       userMenuElement,
       "display-mode",
       options.userMenu.displayMode,
+      overrideEntries,
     );
-    setAttributeOrRemove(
+    setHeaderUserMenuAttribute(
       userMenuElement,
       "logout-url",
       options.userMenu.logoutUrl,
+      overrideEntries,
     );
-    setAttributeOrRemove(
+    setHeaderUserMenuAttribute(
       userMenuElement,
       "logout-label",
       options.userMenu.logoutLabel,
+      overrideEntries,
     );
-    setAttributeOrRemove(
+    setHeaderUserMenuAttribute(
       userMenuElement,
       "tauth-tenant-id",
       options.tenantId,
+      overrideEntries,
     );
-    setAttributeOrRemove(
+    setHeaderUserMenuAttribute(
       userMenuElement,
       "avatar-url",
       options.userMenu.avatarUrl,
+      overrideEntries,
     );
-    setAttributeOrRemove(
+    setHeaderUserMenuAttribute(
       userMenuElement,
       "avatar-label",
       options.userMenu.avatarLabel,
+      overrideEntries,
     );
   }
 

@@ -23,6 +23,7 @@
 ### Bug Fixes 🐛
 
 - Load tauth.js from a CDN-hosted URL while serving local mpr-ui assets in the TAuth demo.
+- Preserve explicit `display-mode` overrides on slotted `<mpr-user>` menus inside the header.
 
 ### Testing 🧪
 
@@ -31,6 +32,7 @@
 - Update header and TAuth config unit coverage for the new user menu wiring and CORS env template.
 - Add unit coverage for slotted `<mpr-user>` menus inside the header.
 - Add regression coverage asserting the TAuth demo loads tauth.js from a CDN-hosted URL and local mpr-ui assets.
+- Update header unit coverage to ensure slotted user menus preserve explicit display-mode overrides.
 
 ### Docs 📚
 

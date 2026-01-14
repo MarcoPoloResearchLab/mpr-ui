@@ -26,6 +26,8 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 - [x] [MU-123] load tauth.js from a CDN-hosted URL while serving mpr-ui assets from the local filesystem in the TAuth demo.
   Resolved: updated demo HTML and docker-compose mounts to use local mpr-ui assets with a CDN tauth.js script, plus regression coverage in tauth-demo tests. Tests: `node --test tests/tauth-demo.test.js`.
+- [x] [MU-124] allow slotted `<mpr-user>` display-mode overrides so header wiring does not force the default avatar-name.
+  Resolved: header preserves explicit slotted menu attributes and still applies defaults for missing values; updated unit coverage. Tests: `node --test tests/custom-elements-header-footer.test.js`.
 
 ## Maintenance (419–499)
 

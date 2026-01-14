@@ -33,7 +33,7 @@ The bundle shields double registrations via `MPRUI.createCustomElementRegistry()
 
 Sticky site header with navigation, Google Identity Services button, profile menu, settings CTA, and shared theme configuration (the header no longer renders a theme toggle — pair it with `<mpr-footer>` or `<mpr-theme-toggle>` for user controls).
 
-If you need to supply your own profile menu instance, place `<mpr-user slot="aux">` inside the header; the component will reuse the slotted element instead of rendering its default menu.
+If you need to supply your own profile menu instance, place `<mpr-user slot="aux">` inside the header; the component will reuse the slotted element instead of rendering its default menu. Explicit attributes on the slotted menu take precedence, and the header fills in any missing values.
 
 | Attribute | Type | Description |
 | --- | --- | --- |
