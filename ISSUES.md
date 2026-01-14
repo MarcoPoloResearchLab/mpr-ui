@@ -19,6 +19,8 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
   Resolved: added YAML config, updated compose/env/docs to TAUTH_* variables, and enforced tenant header override. Tests: `npm test`.
 - [x] [MU-121] replace the legacy signed-in header layout with the `<mpr-user>` avatar + dropdown menu.
   Resolved: header now renders `<mpr-user>` and forwards logout/menu/tenant attributes; demo config/docs updated with current TAuth defaults and local URLs. Tests: `npm test`.
+- [x] [MU-122] allow slotted `<mpr-user>` inside `<mpr-header>` actions so the demo can nest the menu in the header layout.
+  Resolved: header reuses slotted user menus (wiring attributes + logout events) and the demo nests `<mpr-user>` in the header. Tests: `npm test`.
 
 ## BugFixes (372–399)
 

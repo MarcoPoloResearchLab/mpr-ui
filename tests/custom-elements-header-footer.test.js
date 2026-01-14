@@ -456,7 +456,8 @@ function flushAsync() {
   });
 }
 
-function createHeaderElementHarness() {
+function createHeaderElementHarness(options) {
+  const settings = Object.assign({ includeInternalUserMenu: true }, options);
   const HeaderElement = global.customElements.get('mpr-header');
   assert.ok(HeaderElement, 'mpr-header is defined');
 
@@ -476,9 +477,11 @@ function createHeaderElementHarness() {
     ['[data-mpr-header="nav"]', nav],
     ['[data-mpr-header="google-signin"]', googleHost],
     ['[data-mpr-header="settings-button"]', settingsButton],
-    ['[data-mpr-header="user-menu"]', userMenu],
     ['.mpr-header__actions', actions],
   ]);
+  if (settings.includeInternalUserMenu) {
+    selectorMap.set('[data-mpr-header="user-menu"]', userMenu);
+  }
 
   const element = attachHostApi(new HeaderElement(), selectorMap);
   element.dataset = element.dataset || {};
@@ -759,6 +762,56 @@ test('mpr-header wires the user menu element with logout and tenant attributes',
     harness.userMenu.getAttribute('avatar-label'),
     'Profile photo',
     'avatar label is forwarded to the user menu',
+  );
+});
+
+test('mpr-header uses a slotted mpr-user element for header menu wiring', () => {
+  resetEnvironment();
+  loadLibrary();
+  const harness = createHeaderElementHarness({ includeInternalUserMenu: false });
+  const slottedUserMenu = createStubNode({
+    attributes: true,
+    classList: true,
+    supportsEvents: true,
+  });
+  slottedUserMenu.tagName = 'MPR-USER';
+  harness.element.__setSlotNodes({ aux: [slottedUserMenu] });
+  harness.element.setAttribute('tauth-tenant-id', 'tenant-demo');
+  harness.element.setAttribute('logout-url', '/signed-out');
+  harness.element.setAttribute('sign-out-label', 'Log out');
+  harness.element.setAttribute('user-menu-display-mode', 'avatar-name');
+
+  harness.element.connectedCallback();
+
+  assert.equal(
+    slottedUserMenu.getAttribute('data-mpr-header'),
+    'user-menu',
+    'slotted user menu is tagged for header styling',
+  );
+  assert.equal(
+    slottedUserMenu.getAttribute('tauth-tenant-id'),
+    'tenant-demo',
+    'tenant id is forwarded to the slotted user menu',
+  );
+  assert.equal(
+    slottedUserMenu.getAttribute('logout-url'),
+    '/signed-out',
+    'logout url is forwarded to the slotted user menu',
+  );
+  assert.equal(
+    slottedUserMenu.getAttribute('logout-label'),
+    'Log out',
+    'logout label is forwarded to the slotted user menu',
+  );
+  assert.equal(
+    slottedUserMenu.getAttribute('display-mode'),
+    'avatar-name',
+    'display mode is forwarded to the slotted user menu',
+  );
+  assert.equal(
+    slottedUserMenu.classList.contains('mpr-header__user'),
+    true,
+    'slotted user menu inherits header user styling class',
   );
 });
 

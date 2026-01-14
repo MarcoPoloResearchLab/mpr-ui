@@ -3147,7 +3147,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     };
   }
 
-  function buildHeaderMarkup(options) {
+  function buildHeaderMarkup(options, renderUserMenu) {
     var brandHref = escapeHtml(options.brand.href);
     var brandLabel = escapeHtml(options.brand.label);
     var stickyAttribute =
@@ -3188,7 +3188,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       .filter(Boolean)
       .join("");
     var userMenuMarkup = "";
-    if (options && options.userMenu && options.tenantId) {
+    if (renderUserMenu !== false && options && options.userMenu && options.tenantId) {
       var userMenuAttributes =
         ' class="' +
         HEADER_ROOT_CLASS +
@@ -3354,6 +3354,62 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     if (slotMap.aux && elements.actions) {
       appendHeaderSlotNodes(elements.actions, slotMap.aux, "append");
+    }
+  }
+
+  function isUserMenuElement(node) {
+    var tagName = node ? node.tagName || node.nodeName : null;
+    return typeof tagName === "string" && tagName.toLowerCase() === "mpr-user";
+  }
+
+  function findUserMenuNode(node) {
+    if (!node) {
+      return null;
+    }
+    if (isUserMenuElement(node)) {
+      return node;
+    }
+    if (typeof node.querySelector === "function") {
+      var nested = node.querySelector("mpr-user");
+      if (nested) {
+        return nested;
+      }
+    }
+    return null;
+  }
+
+  function resolveHeaderUserMenuSlot(slotMap) {
+    if (!slotMap || !Array.isArray(slotMap.aux)) {
+      return null;
+    }
+    for (var index = 0; index < slotMap.aux.length; index += 1) {
+      var candidate = findUserMenuNode(slotMap.aux[index]);
+      if (candidate) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  function prepareHeaderUserMenuSlotElement(userMenuElement) {
+    if (!userMenuElement || typeof userMenuElement.setAttribute !== "function") {
+      return;
+    }
+    userMenuElement.setAttribute("data-mpr-header", "user-menu");
+    if (
+      userMenuElement.classList &&
+      typeof userMenuElement.classList.add === "function"
+    ) {
+      userMenuElement.classList.add(HEADER_ROOT_CLASS + "__user");
+      return;
+    }
+    if (typeof userMenuElement.className === "string") {
+      var className = userMenuElement.className;
+      if (className.indexOf(HEADER_ROOT_CLASS + "__user") === -1) {
+        userMenuElement.className = className
+          ? className + " " + HEADER_ROOT_CLASS + "__user"
+          : HEADER_ROOT_CLASS + "__user";
+      }
     }
   }
 
@@ -3674,11 +3730,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
   }
 
-  function mountHeaderDom(hostElement, options) {
+  function mountHeaderDom(hostElement, options, renderUserMenu) {
     if (!hostElement || typeof hostElement !== "object") {
       throw new Error("mountHeaderDom requires a host element");
     }
-    hostElement.innerHTML = buildHeaderMarkup(options);
+    hostElement.innerHTML = buildHeaderMarkup(options, renderUserMenu);
     var elements = resolveHeaderElements(hostElement);
     if (!elements.root) {
       throw new Error("mountHeaderDom failed to locate the header root");
@@ -3830,10 +3886,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
   }
 
-  function createSiteHeaderController(target, rawOptions) {
+  function createSiteHeaderController(target, rawOptions, slotConfig) {
     var hostElement = resolveHost(target);
     if (!hostElement || typeof hostElement !== "object") {
       throw new Error("createSiteHeaderController requires a host element");
+    }
+    var userMenuElement =
+      slotConfig && slotConfig.userMenuElement
+        ? slotConfig.userMenuElement
+        : null;
+    if (userMenuElement) {
+      prepareHeaderUserMenuSlotElement(userMenuElement);
     }
 
     var datasetOptions = readHeaderOptionsFromDataset(hostElement);
@@ -3847,7 +3910,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var cleanupHandlers = [];
     ensureHeaderStyles(global.document || (global.window && global.window.document));
 
-    var elements = mountHeaderDom(hostElement, options);
+    var elements = mountHeaderDom(hostElement, options, !userMenuElement);
+    if (userMenuElement) {
+      elements.userMenu = userMenuElement;
+    }
 
     applyHeaderOptions(hostElement, elements, options);
     var settingsModalController = createHeaderSettingsModalController(
@@ -7436,6 +7502,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__headerController = null;
           this.__headerSlots = null;
           this.__headerSlotsCaptured = false;
+          this.__headerUserMenuElement = null;
         }
         static get observedAttributes() {
           return HEADER_ATTRIBUTE_OBSERVERS;
@@ -7465,6 +7532,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             return;
           }
           this.__headerSlots = captureSlotNodes(this, HEADER_SLOT_NAMES);
+          this.__headerUserMenuElement = resolveHeaderUserMenuSlot(
+            this.__headerSlots,
+          );
+          if (this.__headerUserMenuElement) {
+            prepareHeaderUserMenuSlotElement(this.__headerUserMenuElement);
+          }
           this.__headerSlotsCaptured = true;
         }
         __renderHeader() {
@@ -7472,10 +7545,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             return;
           }
           var options = buildHeaderOptionsFromAttributes(this);
+          var userMenuElement = this.__headerUserMenuElement;
           if (this.__headerController) {
             this.__headerController.update(options);
           } else {
-            this.__headerController = createSiteHeaderController(this, options);
+            this.__headerController = createSiteHeaderController(this, options, {
+              userMenuElement: userMenuElement,
+            });
           }
           if (this.__headerSlots) {
             var elements = resolveHeaderElements(this);

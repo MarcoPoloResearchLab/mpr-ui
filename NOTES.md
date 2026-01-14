@@ -114,3 +114,4 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - MU-119: added `<mpr-user>` to the TAuth demo and aligned demo config for tenant IDs. Tests: `npm test`.
 - MU-120: refreshed TAuth demo config to YAML + `TAUTH_*` env vars with tenant header override. Tests: `npm test`.
 - MU-121: replaced the header signed-in layout with `<mpr-user>`, refreshed TAuth demo defaults/docs, and updated tests. Tests: `npm test`.
+- MU-122: enabled slotted `<mpr-user>` menus in `<mpr-header>` and nested the demo menu in the header. Tests: `npm test`.
