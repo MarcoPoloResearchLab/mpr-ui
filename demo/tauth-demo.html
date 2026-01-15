@@ -6,7 +6,7 @@
     <title>TAuth + mpr-ui (Docker Compose)</title>
     <link
       rel="stylesheet"
-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+      href="./mpr-ui.css"
     />
     <link rel="stylesheet" href="./demo.css" />
     <script defer src="./tauth-config.js"></script>
@@ -16,11 +16,11 @@
       src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
       type="module"
     ></script>
-    <script defer src="http://http://computercat.tyemirov.net:8080/tauth.js"></script>
+    <script defer src="https://tauth.mprlab.com/tauth.js"></script>
     <script
       id="mpr-ui-bundle"
       defer
-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+      src="./mpr-ui.js"
     ></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
@@ -84,6 +84,59 @@
       .logout-button:hover {
         background: #0842a8;
       }
+      .demo-modal {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        z-index: 2000;
+      }
+      .demo-modal[hidden] {
+        display: none;
+      }
+      .demo-modal__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+      }
+      .demo-modal__dialog {
+        position: relative;
+        width: min(90vw, 540px);
+        border-radius: 1rem;
+        border: 1px solid var(--mpr-color-border, rgba(148, 163, 184, 0.25));
+        background: var(--mpr-color-surface-elevated, rgba(15, 23, 42, 0.95));
+        color: var(--mpr-color-text-primary, #e2e8f0);
+        box-shadow: var(--mpr-shadow-flyout, 0 24px 48px rgba(15, 23, 42, 0.45));
+        padding: 1.5rem;
+      }
+      .demo-modal__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+      .demo-modal__title {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      .demo-modal__close {
+        border: 0;
+        border-radius: 999px;
+        padding: 0.4rem 0.85rem;
+        background: var(--mpr-chip-bg, rgba(148, 163, 184, 0.2));
+        color: inherit;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .demo-modal__close:hover {
+        background: var(--mpr-chip-hover-bg, rgba(148, 163, 184, 0.32));
+      }
+      .demo-modal__body {
+        margin-top: 1rem;
+        color: var(--mpr-color-text-muted, #cbd5f5);
+      }
       ol {
         padding-left: 1.25rem;
       }
@@ -106,15 +159,14 @@
       tauth-nonce-path="/auth/nonce"
       logout-url="/demo/tauth-demo.html"
       sign-out-label="Log out"
-      settings="true"
-      settings-label="Settings"
     >
       <mpr-user
         slot="aux"
-        display-mode="avatar-name"
-        logout-url="/demo/tauth-demo.html"
+        display-mode="avatar"
+        logout-url="/tauth-demo.html"
         logout-label="Log out"
         tauth-tenant-id="mpr-sites"
+        menu-items='[{"label":"Settings","action":"open-settings"}]'
       ></mpr-user>
     </mpr-header>
     <main>
@@ -169,6 +221,38 @@
       </section>
     </main>
 
+    <div
+      id="demo-settings-modal"
+      class="demo-modal"
+      hidden
+      aria-hidden="true"
+    >
+      <div class="demo-modal__backdrop" data-demo-settings-close></div>
+      <div
+        class="demo-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="demo-settings-title"
+      >
+        <div class="demo-modal__header">
+          <h2 class="demo-modal__title" id="demo-settings-title">Settings</h2>
+          <button
+            type="button"
+            class="demo-modal__close"
+            data-demo-settings-close
+          >
+            Close
+          </button>
+        </div>
+        <div class="demo-modal__body">
+          <p>
+            This modal opens from the user menu action item. Wire your own
+            settings panel here.
+          </p>
+        </div>
+      </div>
+    </div>
+
     <mpr-footer
       id="page-footer"
       prefix-text="Built by Marco Polo Research Lab"
@@ -194,6 +278,7 @@
       theme-switcher="square"
       theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-light","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
     ></mpr-footer>
+    <script defer src="./tauth-settings-modal.js"></script>
     <script defer src="./status-panel.js"></script>
   </body>
 </html>

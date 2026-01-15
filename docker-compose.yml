@@ -11,6 +11,8 @@ services:
     volumes:
       - ./demo/:/app/demo
       - ./demo/tauth-demo.html:/app/demo/index.html:ro
+      - ./mpr-ui.css:/app/demo/mpr-ui.css:ro
+      - ./mpr-ui.js:/app/demo/mpr-ui.js:ro
     restart: unless-stopped
 
   tauth:
