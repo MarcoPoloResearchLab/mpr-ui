@@ -145,7 +145,8 @@ function createDocumentStub() {
   const headChildren = [];
   const documentElement = createStubNode({ attributes: true });
   const bodyElement = createStubNode({ attributes: true });
-  return {
+  const eventListeners = {};
+  const documentStub = {
     __headChildren: headChildren,
     head: {
       appendChild: function appendChild(node) {
@@ -186,7 +187,34 @@ function createDocumentStub() {
     querySelectorAll: function querySelectorAll() {
       return [];
     },
+    addEventListener: function addEventListener(type, handler) {
+      const eventType = String(type);
+      if (!eventListeners[eventType]) {
+        eventListeners[eventType] = [];
+      }
+      if (eventListeners[eventType].indexOf(handler) === -1) {
+        eventListeners[eventType].push(handler);
+      }
+    },
+    removeEventListener: function removeEventListener(type, handler) {
+      const eventType = String(type);
+      if (!eventListeners[eventType]) {
+        return;
+      }
+      eventListeners[eventType] = eventListeners[eventType].filter(function keep(entry) {
+        return entry !== handler;
+      });
+    },
+    dispatchEvent: function dispatchEvent(event) {
+      const descriptor = event && event.type ? String(event.type) : '';
+      const handlers = eventListeners[descriptor] ? eventListeners[descriptor].slice() : [];
+      handlers.forEach(function invoke(handler) {
+        handler.call(documentStub, event);
+      });
+      return handlers.length > 0;
+    },
   };
+  return documentStub;
 }
 
 function captureConsoleErrors() {
@@ -428,7 +456,8 @@ function flushAsync() {
   });
 }
 
-function createHeaderElementHarness() {
+function createHeaderElementHarness(options) {
+  const settings = Object.assign({ includeInternalUserMenu: true }, options);
   const HeaderElement = global.customElements.get('mpr-header');
   assert.ok(HeaderElement, 'mpr-header is defined');
 
@@ -439,9 +468,7 @@ function createHeaderElementHarness() {
   const actions = createStubNode({});
   const googleHost = createStubNode({ attributes: true, classList: true, supportsEvents: true });
   const settingsButton = createStubNode({ attributes: true, supportsEvents: true });
-  const profileContainer = createStubNode({});
-  const profileName = createStubNode({});
-  const signOutButton = createStubNode({ attributes: true, supportsEvents: true });
+  const userMenu = createStubNode({ attributes: true, supportsEvents: true });
 
   const selectorMap = new Map([
     ['header.mpr-header', root],
@@ -450,11 +477,11 @@ function createHeaderElementHarness() {
     ['[data-mpr-header="nav"]', nav],
     ['[data-mpr-header="google-signin"]', googleHost],
     ['[data-mpr-header="settings-button"]', settingsButton],
-    ['[data-mpr-header="profile"]', profileContainer],
-    ['[data-mpr-header="profile-name"]', profileName],
-    ['[data-mpr-header="sign-out-button"]', signOutButton],
     ['.mpr-header__actions', actions],
   ]);
+  if (settings.includeInternalUserMenu) {
+    selectorMap.set('[data-mpr-header="user-menu"]', userMenu);
+  }
 
   const element = attachHostApi(new HeaderElement(), selectorMap);
   element.dataset = element.dataset || {};
@@ -466,6 +493,7 @@ function createHeaderElementHarness() {
     brandContainer,
     nav,
     actions,
+    userMenu,
     selectorMap,
   };
 }
@@ -605,6 +633,57 @@ function createSitesElementHarness(links) {
   return { element, anchors };
 }
 
+function createUserElementHarness(options) {
+  const settings = Object.assign({ menuItems: [] }, options);
+  const UserElement = global.customElements.get('mpr-user');
+  assert.ok(UserElement, 'mpr-user is defined');
+  const trigger = createStubNode({ supportsEvents: true, attributes: true });
+  const avatarWrapper = createStubNode({ attributes: true });
+  const avatarImage = createStubNode({ attributes: true });
+  const name = createStubNode({});
+  const menu = createStubNode({ attributes: true });
+  const logoutButton = createStubNode({ supportsEvents: true, attributes: true });
+
+  const selectorMap = new Map([
+    ['[data-mpr-user="trigger"]', trigger],
+    ['[data-mpr-user="avatar"]', avatarWrapper],
+    ['[data-mpr-user="avatar-image"]', avatarImage],
+    ['[data-mpr-user="name"]', name],
+    ['[data-mpr-user="menu"]', menu],
+    ['[data-mpr-user="logout"]', logoutButton],
+  ]);
+
+  const menuItems = Array.isArray(settings.menuItems)
+    ? settings.menuItems.map((menuItem, index) => {
+        const menuItemNode = createStubNode({
+          attributes: true,
+          supportsEvents: true,
+        });
+        menuItemNode.setAttribute('data-mpr-user-index', String(index));
+        if (menuItem && menuItem.action) {
+          menuItemNode.setAttribute('data-mpr-user-action', menuItem.action);
+        }
+        return menuItemNode;
+      })
+    : [];
+  const multiSelectorMap = new Map([
+    ['[data-mpr-user="menu-item"]', menuItems],
+  ]);
+
+  const element = attachHostApi(new UserElement(), selectorMap, multiSelectorMap);
+  element.dataset = element.dataset || {};
+  return {
+    element,
+    trigger,
+    avatarWrapper,
+    avatarImage,
+    name,
+    menu,
+    logoutButton,
+    menuItems,
+  };
+}
+
 test('mpr-header reflects attributes and updates values', () => {
   resetEnvironment();
   loadLibrary();
@@ -658,6 +737,102 @@ test('mpr-header reflects attributes and updates values', () => {
 
   headerElement.setAttribute('brand-label', 'Next Brand');
   assert.equal(harness.brandLink.textContent, 'Next Brand');
+});
+
+test('mpr-header wires the user menu element with logout and tenant attributes', () => {
+  resetEnvironment();
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  harness.element.setAttribute('tauth-tenant-id', 'tenant-demo');
+  harness.element.setAttribute('logout-url', '/signed-out');
+  harness.element.setAttribute('sign-out-label', 'Log out');
+  harness.element.setAttribute('user-menu-display-mode', 'avatar-name');
+  harness.element.setAttribute('user-menu-avatar-url', 'https://cdn.example.com/avatar.png');
+  harness.element.setAttribute('user-menu-avatar-label', 'Profile photo');
+  harness.element.connectedCallback();
+
+  assert.ok(harness.userMenu, 'user menu host is available');
+  assert.equal(
+    harness.userMenu.getAttribute('tauth-tenant-id'),
+    'tenant-demo',
+    'tenant id is forwarded to the user menu',
+  );
+  assert.equal(
+    harness.userMenu.getAttribute('logout-url'),
+    '/signed-out',
+    'logout url is forwarded to the user menu',
+  );
+  assert.equal(
+    harness.userMenu.getAttribute('logout-label'),
+    'Log out',
+    'logout label is forwarded to the user menu',
+  );
+  assert.equal(
+    harness.userMenu.getAttribute('display-mode'),
+    'avatar-name',
+    'display mode is forwarded to the user menu',
+  );
+  assert.equal(
+    harness.userMenu.getAttribute('avatar-url'),
+    'https://cdn.example.com/avatar.png',
+    'avatar url is forwarded to the user menu',
+  );
+  assert.equal(
+    harness.userMenu.getAttribute('avatar-label'),
+    'Profile photo',
+    'avatar label is forwarded to the user menu',
+  );
+});
+
+test('mpr-header uses a slotted mpr-user element for header menu wiring', () => {
+  resetEnvironment();
+  loadLibrary();
+  const harness = createHeaderElementHarness({ includeInternalUserMenu: false });
+  const slottedUserMenu = createStubNode({
+    attributes: true,
+    classList: true,
+    supportsEvents: true,
+  });
+  slottedUserMenu.tagName = 'MPR-USER';
+  slottedUserMenu.setAttribute('display-mode', 'avatar');
+  harness.element.__setSlotNodes({ aux: [slottedUserMenu] });
+  harness.element.setAttribute('tauth-tenant-id', 'tenant-demo');
+  harness.element.setAttribute('logout-url', '/signed-out');
+  harness.element.setAttribute('sign-out-label', 'Log out');
+  harness.element.setAttribute('user-menu-display-mode', 'avatar-name');
+
+  harness.element.connectedCallback();
+
+  assert.equal(
+    slottedUserMenu.getAttribute('data-mpr-header'),
+    'user-menu',
+    'slotted user menu is tagged for header styling',
+  );
+  assert.equal(
+    slottedUserMenu.getAttribute('tauth-tenant-id'),
+    'tenant-demo',
+    'tenant id is forwarded to the slotted user menu',
+  );
+  assert.equal(
+    slottedUserMenu.getAttribute('logout-url'),
+    '/signed-out',
+    'logout url is forwarded to the slotted user menu',
+  );
+  assert.equal(
+    slottedUserMenu.getAttribute('logout-label'),
+    'Log out',
+    'logout label is forwarded to the slotted user menu',
+  );
+  assert.equal(
+    slottedUserMenu.getAttribute('display-mode'),
+    'avatar',
+    'slotted user menu preserves the explicit display mode',
+  );
+  assert.equal(
+    slottedUserMenu.classList.contains('mpr-header__user'),
+    true,
+    'slotted user menu inherits header user styling class',
+  );
 });
 
 test('mpr-header enables settings button when settings attribute true', () => {
@@ -1554,4 +1729,349 @@ test('mpr-footer sticky attribute controls root sticky dataset', () => {
     'footer dataset updated to reflect sticky attribute',
   );
   assert.notEqual(spacer.style.height, '0px', 'sticky spacer reserves footer height when sticky is true');
+});
+
+test('mpr-user renders avatar modes from TAuth profile data', () => {
+  const cases = [
+    {
+      label: 'avatar-only',
+      displayMode: 'avatar',
+      expectedName: '',
+      expectedAvatar: 'https://cdn.example.com/avatar.png',
+      customAvatarUrl: null,
+    },
+    {
+      label: 'avatar-name',
+      displayMode: 'avatar-name',
+      expectedName: 'Ada',
+      expectedAvatar: 'https://cdn.example.com/avatar.png',
+      customAvatarUrl: null,
+    },
+    {
+      label: 'avatar-full-name',
+      displayMode: 'avatar-full-name',
+      expectedName: 'Ada Lovelace',
+      expectedAvatar: 'https://cdn.example.com/avatar.png',
+      customAvatarUrl: null,
+    },
+    {
+      label: 'custom-avatar',
+      displayMode: 'custom-avatar',
+      expectedName: '',
+      expectedAvatar: 'https://cdn.example.com/custom.png',
+      customAvatarUrl: 'https://cdn.example.com/custom.png',
+    },
+  ];
+
+  cases.forEach((testCase) => {
+    resetEnvironment();
+    loadLibrary();
+    global.getCurrentUser = function getCurrentUser() {
+      return {
+        display: 'Ada Lovelace',
+        given_name: 'Ada',
+        avatar_url: 'https://cdn.example.com/avatar.png',
+        user_email: 'ada@example.com',
+      };
+    };
+    global.logout = function logout() {
+      return Promise.resolve();
+    };
+    global.setAuthTenantId = function setAuthTenantId() {};
+
+    const harness = createUserElementHarness();
+    const element = harness.element;
+    element.setAttribute('display-mode', testCase.displayMode);
+    element.setAttribute('logout-url', '#signed-out');
+    element.setAttribute('logout-label', 'Log out');
+    element.setAttribute('tauth-tenant-id', 'tenant-test');
+    if (testCase.customAvatarUrl) {
+      element.setAttribute('avatar-url', testCase.customAvatarUrl);
+    }
+
+    element.connectedCallback();
+
+    assert.equal(
+      element.getAttribute('data-mpr-user-status'),
+      'authenticated',
+      `${testCase.label}: sets authenticated status`,
+    );
+    assert.equal(
+      harness.name.textContent,
+      testCase.expectedName,
+      `${testCase.label}: renders expected name`,
+    );
+    assert.equal(
+      harness.avatarImage.attributes && harness.avatarImage.attributes.src,
+      testCase.expectedAvatar,
+      `${testCase.label}: renders expected avatar url`,
+    );
+  });
+});
+
+test('mpr-user renders menu items when configured', () => {
+  resetEnvironment();
+  loadLibrary();
+  global.getCurrentUser = function getCurrentUser() {
+    return {
+      display: 'Ada Lovelace',
+      given_name: 'Ada',
+      avatar_url: 'https://cdn.example.com/avatar.png',
+      user_email: 'ada@example.com',
+    };
+  };
+  global.logout = function logout() {
+    return Promise.resolve();
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+
+  const harness = createUserElementHarness();
+  const element = harness.element;
+  element.setAttribute('display-mode', 'avatar-name');
+  element.setAttribute('logout-url', '#signed-out');
+  element.setAttribute('logout-label', 'Log out');
+  element.setAttribute('tauth-tenant-id', 'tenant-test');
+  element.setAttribute(
+    'menu-items',
+    JSON.stringify([
+      { label: 'Account settings', href: '/settings' },
+      { label: 'Billing', href: '/billing' },
+    ]),
+  );
+
+  element.connectedCallback();
+
+  assert.match(
+    element.innerHTML,
+    /data-mpr-user="menu-item"[^>]*>Account settings</,
+    'menu item labels render above logout',
+  );
+  assert.match(
+    element.innerHTML,
+    /data-mpr-user="menu-item"[^>]*href="\/billing"/,
+    'menu item hrefs are rendered',
+  );
+});
+
+test('mpr-user dispatches menu-item events for action items', () => {
+  resetEnvironment();
+  loadLibrary();
+  global.getCurrentUser = function getCurrentUser() {
+    return {
+      display: 'Ada Lovelace',
+      given_name: 'Ada',
+      avatar_url: 'https://cdn.example.com/avatar.png',
+      user_email: 'ada@example.com',
+    };
+  };
+  global.logout = function logout() {
+    return Promise.resolve();
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+
+  const menuItems = [
+    { label: 'Open settings', action: 'open-settings' },
+    { label: 'Billing', href: '/billing' },
+  ];
+  const harness = createUserElementHarness({ menuItems });
+  const element = harness.element;
+  element.setAttribute('display-mode', 'avatar-name');
+  element.setAttribute('logout-url', '#signed-out');
+  element.setAttribute('logout-label', 'Log out');
+  element.setAttribute('tauth-tenant-id', 'tenant-test');
+  element.setAttribute('menu-items', JSON.stringify(menuItems));
+
+  element.connectedCallback();
+
+  harness.menuItems[0].dispatchEvent({
+    type: 'click',
+    preventDefault: function preventDefault() {},
+  });
+
+  const menuItemEvent = element.__dispatchedEvents.find(
+    (eventEntry) => eventEntry.type === 'mpr-user:menu-item',
+  );
+  assert.ok(menuItemEvent, 'menu-item event dispatched for action items');
+  assert.deepEqual(menuItemEvent.detail, {
+    action: 'open-settings',
+    label: 'Open settings',
+    index: 0,
+  });
+});
+
+test('mpr-user toggles menu and triggers logout redirect', async () => {
+  resetEnvironment();
+  loadLibrary();
+  global.getCurrentUser = function getCurrentUser() {
+    return {
+      display: 'Ada Lovelace',
+      given_name: 'Ada',
+      avatar_url: 'https://cdn.example.com/avatar.png',
+      user_email: 'ada@example.com',
+    };
+  };
+  let logoutCalled = false;
+  global.logout = function logout() {
+    logoutCalled = true;
+    return Promise.resolve();
+  };
+  const tenantCalls = [];
+  global.setAuthTenantId = function setAuthTenantId(value) {
+    tenantCalls.push(value);
+  };
+  const locationCalls = [];
+  global.location = {
+    assign: function assign(url) {
+      locationCalls.push(url);
+    },
+  };
+
+  const harness = createUserElementHarness();
+  const element = harness.element;
+  element.setAttribute('display-mode', 'avatar');
+  element.setAttribute('logout-url', '#signed-out');
+  element.setAttribute('logout-label', 'Log out');
+  element.setAttribute('tauth-tenant-id', 'tenant-test');
+
+  element.connectedCallback();
+
+  harness.trigger.dispatchEvent({ type: 'click', preventDefault() {} });
+  assert.equal(
+    element.getAttribute('data-mpr-user-open'),
+    'true',
+    'user menu opens after trigger click',
+  );
+
+  harness.logoutButton.dispatchEvent({ type: 'click', preventDefault() {} });
+  await flushAsync();
+
+  assert.equal(logoutCalled, true, 'logout helper invoked');
+  assert.deepEqual(locationCalls, ['#signed-out'], 'redirects to logout url');
+  assert.ok(
+    tenantCalls.indexOf('tenant-test') !== -1,
+    'tenant id configured before logout',
+  );
+  const logoutEvent = element.__dispatchedEvents.find(
+    (eventEntry) => eventEntry.type === 'mpr-user:logout',
+  );
+  assert.ok(logoutEvent, 'logout event dispatched');
+});
+
+test('mpr-user validates required attributes', () => {
+  const cases = [
+    {
+      label: 'missing display mode',
+      attributes: {
+        'logout-url': '#signed-out',
+        'logout-label': 'Log out',
+        'tauth-tenant-id': 'tenant-test',
+      },
+      expectedError: 'mpr-ui.user.invalid_display_mode',
+    },
+    {
+      label: 'missing logout url',
+      attributes: {
+        'display-mode': 'avatar',
+        'logout-label': 'Log out',
+        'tauth-tenant-id': 'tenant-test',
+      },
+      expectedError: 'mpr-ui.user.missing_logout_url',
+    },
+    {
+      label: 'missing logout label',
+      attributes: {
+        'display-mode': 'avatar',
+        'logout-url': '#signed-out',
+        'tauth-tenant-id': 'tenant-test',
+      },
+      expectedError: 'mpr-ui.user.missing_logout_label',
+    },
+    {
+      label: 'missing tenant id',
+      attributes: {
+        'display-mode': 'avatar',
+        'logout-url': '#signed-out',
+        'logout-label': 'Log out',
+      },
+      expectedError: 'mpr-ui.tenant_id_required',
+    },
+    {
+      label: 'missing custom avatar url',
+      attributes: {
+        'display-mode': 'custom-avatar',
+        'logout-url': '#signed-out',
+        'logout-label': 'Log out',
+        'tauth-tenant-id': 'tenant-test',
+      },
+      expectedError: 'mpr-ui.user.missing_custom_avatar',
+    },
+    {
+      label: 'invalid menu items',
+      attributes: {
+        'display-mode': 'avatar',
+        'logout-url': '#signed-out',
+        'logout-label': 'Log out',
+        'tauth-tenant-id': 'tenant-test',
+        'menu-items': 'not-json',
+      },
+      expectedError: 'mpr-ui.user.invalid_menu_items',
+    },
+    {
+      label: 'menu item missing href or action',
+      attributes: {
+        'display-mode': 'avatar',
+        'logout-url': '#signed-out',
+        'logout-label': 'Log out',
+        'tauth-tenant-id': 'tenant-test',
+        'menu-items': '[{"label":"Settings"}]',
+      },
+      expectedError: 'mpr-ui.user.invalid_menu_items',
+    },
+    {
+      label: 'menu item with action and href',
+      attributes: {
+        'display-mode': 'avatar',
+        'logout-url': '#signed-out',
+        'logout-label': 'Log out',
+        'tauth-tenant-id': 'tenant-test',
+        'menu-items': '[{"label":"Settings","href":"/settings","action":"open-settings"}]',
+      },
+      expectedError: 'mpr-ui.user.invalid_menu_items',
+    },
+  ];
+
+  cases.forEach((testCase) => {
+    resetEnvironment();
+    loadLibrary();
+    global.getCurrentUser = function getCurrentUser() {
+      return null;
+    };
+    global.logout = function logout() {
+      return Promise.resolve();
+    };
+    global.setAuthTenantId = function setAuthTenantId() {};
+
+    const harness = createUserElementHarness();
+    const element = harness.element;
+    Object.keys(testCase.attributes).forEach((attributeName) => {
+      element.setAttribute(attributeName, testCase.attributes[attributeName]);
+    });
+
+    element.connectedCallback();
+
+    assert.equal(
+      element.getAttribute('data-mpr-user-error'),
+      testCase.expectedError,
+      `${testCase.label}: exposes error code`,
+    );
+    const errorEvent = element.__dispatchedEvents.find(
+      (eventEntry) => eventEntry.type === 'mpr-user:error',
+    );
+    assert.ok(errorEvent, `${testCase.label}: error event dispatched`);
+    assert.equal(
+      errorEvent && errorEvent.detail && errorEvent.detail.code,
+      testCase.expectedError,
+      `${testCase.label}: error code details match`,
+    );
+  });
 });

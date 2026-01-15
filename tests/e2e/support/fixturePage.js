@@ -88,6 +88,9 @@ const CARD_FIXTURE_URL = pathToFileURL(
 const FULL_LAYOUT_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/layout-full.html'),
 ).href;
+const USER_MENU_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/user-menu.html'),
+).href;
 
 const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
@@ -249,6 +252,20 @@ async function visitCardFixturePage(page) {
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
   ]);
   await page.goto(CARD_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the user menu fixture with local assets.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitUserMenuFixture(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(USER_MENU_FIXTURE_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
 }
 
@@ -442,6 +459,7 @@ module.exports = {
   visitFooterToggleDemoConfigFixture,
   visitBandFixturePage,
   visitCardFixturePage,
+  visitUserMenuFixture,
   captureToggleSnapshot,
   captureColorSnapshots,
   captureDropUpMetrics,

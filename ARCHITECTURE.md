@@ -5,7 +5,7 @@
 - An authentication header controller that orchestrates Google Identity Services (GIS) sign-in flows.
 - A sticky footer renderer with dropdown navigation, privacy link, and theme toggle support.
 
-The library assumes a CDN delivery model and no build tooling. Everything runs in the browser with optional Alpine.js convenience factories. The bundle auto-registers `<mpr-*>` custom elements (header, footer, login button, theme toggle, settings, sites) on load; those declarative tags form the primary public API and the declarative DSL of the package, while the namespace functions documented below exist for frameworks that need imperative mounting or advanced integration.
+The library assumes a CDN delivery model and no build tooling. Everything runs in the browser with optional Alpine.js convenience factories. The bundle auto-registers `<mpr-*>` custom elements (header, footer, login button, user menu, theme toggle, settings, sites) on load; those declarative tags form the primary public API and the declarative DSL of the package, while the namespace functions documented below exist for frameworks that need imperative mounting or advanced integration.
 
 ## Files and Responsibilities
 
@@ -40,10 +40,11 @@ The bundle auto-registers modern HTML custom elements when `window.customElement
 
 | Tag               | Backing Helper(s)                              | Key Attributes                                                                                                                        | Emitted Events                                            |
 | ----------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `<mpr-header>`    | Header controller + `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `google-site-id`, `tauth-tenant-id`, `theme-config`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `size`, `sticky` (default `true`)   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
+| `<mpr-header>`    | Header controller + `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `google-site-id`, `tauth-tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `logout-url`, `user-menu-display-mode`, `user-menu-avatar-url`, `user-menu-avatar-label`, `theme-config`, `size`, `sticky` (default `true`)   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
 | `<mpr-footer>`    | Footer controller (internal)                   | `prefix-text`, `links-collection`, `toggle-label`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides, `size`, `sticky` (default `true`)     | `mpr-footer:theme-change`                                 |
 | `<mpr-theme-toggle>` | Theme manager (`configureTheme`)            | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`          | `mpr-ui:theme-change` (via the shared theme manager)      |
 | `<mpr-login-button>` | `createAuthHeader`, shared GIS helper       | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape`        | `mpr-ui:auth:*`, `mpr-login:error`                        |
+| `<mpr-user>`      | TAuth profile + menu renderer                  | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `avatar-url`, `avatar-label`                                                                   | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:menu-item`, `mpr-user:error`    |
 | `<mpr-settings>` | Settings CTA + panel wrapper                    | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open`                                                                    | `mpr-settings:toggle`                                     |
 | `<mpr-sites>`    | `getFooterSiteCatalog` (plus inline renderer)   | `links` (JSON), `variant` (`list`, `grid`, `menu`), `columns`, `heading`                                                              | `mpr-sites:link-click`                                    |
 | `<mpr-band>`     | Themed container with palette tokens            | `category`, `theme` (JSON)                                                                                                            | —                                                         |
@@ -53,7 +54,7 @@ Slots:
 
 - `<mpr-header>`: `brand`, `nav-left`, `nav-right`, `aux`
 - `<mpr-footer>`: `menu-prefix`, `menu-links`, `legal`
-- `<mpr-theme-toggle>` / `<mpr-login-button>` render controlled content and do not expose slots.
+- `<mpr-theme-toggle>` / `<mpr-login-button>` / `<mpr-user>` render controlled content and do not expose slots.
 
 When `customElements.define` is unavailable the helpers fall back gracefully: the registry caches null definitions and no DOM is mutated until the host polyfills the API. The registry performs three key tasks:
 
@@ -115,14 +116,14 @@ The controller automatically prompts GIS after logout or failed exchanges and su
 
 ## Site Header Component
 
-The header controller produces a sticky banner that combines navigation, auth controls, and shared theme configuration (it no longer renders a theme toggle; pair it with the footer or `<mpr-theme-toggle>` for user interaction). When `auth` options are supplied it internally initialises `createAuthHeader`, so the host element still receives the `mpr-ui:auth:*` events and dataset updates documented earlier.
+The header controller produces a sticky banner that combines navigation, auth controls, and shared theme configuration (it no longer renders a theme toggle; pair it with the footer or `<mpr-theme-toggle>` for user interaction). When `auth` options are supplied it internally initialises `createAuthHeader`, so the host element still receives the `mpr-ui:auth:*` events and dataset updates documented earlier. When authenticated, the header renders an embedded `<mpr-user>` menu.
 
 ### Markup & Styling
 
-- Outputs `<header class="mpr-header" role="banner">` with `__inner`, `__nav`, `__actions`, and `__chip` sub-elements.
+- Outputs `<header class="mpr-header" role="banner">` with `__inner`, `__nav`, `__actions`, and `__user` sub-elements.
 - Injects styles via `<style id="mpr-ui-header-styles">`; the header is `position: sticky` at the top (z-index `1200`), uses a translucent slate backdrop, and adapts to flex layouts.
 - Applies modifier classes to the root:
-  - `mpr-header--authenticated` shows the profile chip / hides sign-in.
+  - `mpr-header--authenticated` shows the user menu / hides sign-in.
   - `mpr-header--no-auth` hides auth UI when no controller is attached.
   - `mpr-header--no-settings` hides the settings button.
 
@@ -140,8 +141,12 @@ The header controller produces a sticky banner that combines navigation, auth co
 | `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Ordered list of theme modes (default light/dark).            |
 | `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
 | `signInLabel`              | `string`                               | Copy for the sign-in button (default "Sign in").                            |
-| `signOutLabel`             | `string`                               | Copy for the sign-out button (default "Sign out").                          |
+| `signOutLabel`             | `string`                               | Copy for the sign-out button (default "Sign out"); forwarded to the menu.   |
 | `profileLabel`             | `string`                               | Optional text shown above the authenticated user name (default empty).      |
+| `userMenu.displayMode`     | `"avatar" \| "avatar-name" \| "avatar-full-name" \| "custom-avatar"` | Display mode for the embedded user menu. |
+| `userMenu.logoutUrl`       | `string`                               | Redirect target after log out (defaults to the brand href).                 |
+| `userMenu.avatarUrl`       | `string`                               | Optional avatar URL override for the menu.                                  |
+| `userMenu.avatarLabel`     | `string`                               | Optional accessible label for the avatar.                                   |
 | `size`                     | `"normal" \| "small"`                  | Controls the header scale; `small` is about 70% of the normal footprint.    |
 | `sticky`                   | `boolean`                              | Controls sticky positioning for the header; `true` (default) pins it, `false` renders it in-flow. |
 | `auth`                     | `object \| null`                       | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |

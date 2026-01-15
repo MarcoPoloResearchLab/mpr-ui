@@ -31,7 +31,9 @@ The bundle shields double registrations via `MPRUI.createCustomElementRegistry()
 
 ### `<mpr-header>`
 
-Sticky site header with navigation, Google Identity Services button, settings CTA, and shared theme configuration (the header no longer renders a theme toggle — pair it with `<mpr-footer>` or `<mpr-theme-toggle>` for user controls).
+Sticky site header with navigation, Google Identity Services button, profile menu, settings CTA, and shared theme configuration (the header no longer renders a theme toggle — pair it with `<mpr-footer>` or `<mpr-theme-toggle>` for user controls).
+
+If you need to supply your own profile menu instance, place `<mpr-user slot="aux">` inside the header; the component will reuse the slotted element instead of rendering its default menu. Explicit attributes on the slotted menu take precedence, and the header fills in any missing values.
 
 | Attribute | Type | Description |
 | --- | --- | --- |
@@ -40,9 +42,10 @@ Sticky site header with navigation, Google Identity Services button, settings CT
 | `google-site-id` | `string` | Google Identity Services client ID. Required for auth flows. |
 | `tauth-tenant-id` | `string` | TAuth tenant identifier. Required whenever auth is enabled. |
 | `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url` | `string` | Auth endpoints wired into `createAuthHeader`. |
+| `logout-url`, `user-menu-display-mode`, `user-menu-avatar-url`, `user-menu-avatar-label` | `string` | Configures the embedded `<mpr-user>` menu (logout redirect, display mode, and optional avatar overrides). |
 | `theme-config` | `JSON` | Configures the shared theme manager (no toggle is rendered; use the footer or `<mpr-theme-toggle>` for user controls). Include `initialMode` in the JSON to set the starting mode. |
 | `settings-label`, `settings` | `string` / `boolean` | Control the built-in settings button. |
-| `sign-in-label`, `sign-out-label`, `profile-label` | `string` | Override localized copy. |
+| `sign-in-label`, `sign-out-label`, `profile-label` | `string` | Override localized copy (`sign-out-label` is forwarded to the menu). |
 | `sticky` | `boolean` attribute | Controls sticky positioning (case-insensitive `true`/`false`). Default `true` keeps the header viewport-pinned; set `false` to render it in document flow. |
 
 When `tauth.js` is present, `mpr-ui` passes `tauth-url` and `tauth-tenant-id` into `initAuthClient`, and includes the tenant ID in every auth request. Missing `tauth-tenant-id` throws `mpr-ui.tenant_id_required` during header initialization.
@@ -66,6 +69,7 @@ When `tauth.js` is present, `mpr-ui` passes `tauth-url` and `tauth-tenant-id` in
   tauth-login-path="/auth/google"
   tauth-logout-path="/auth/logout"
   tauth-nonce-path="/auth/nonce"
+  logout-url="/"
   theme-config='{"initialMode":"dark"}'
 >
   <button slot="nav-right" class="demo-link">Request Access</button>
@@ -115,6 +119,48 @@ Renders the Google Identity Services button without the rest of the header.
 | `button-text`, `button-size`, `button-theme`, `button-shape` | `string` | Passed directly to `google.accounts.id.renderButton`. |
 
 **Events:** `mpr-ui:auth:*`, `mpr-login:error`. Missing configuration emits `mpr-login:error` with `mpr-ui.tenant_id_required` or `mpr-ui.google_site_id_required`; the element also sets `data-mpr-google-error="missing-tauth-tenant-id"` or `"missing-site-id"`.
+
+### `<mpr-user>`
+
+Profile menu for TAuth-backed sessions. It queries `getCurrentUser()` from `tauth.js` and listens for `mpr-ui:auth:*` events to keep the avatar in sync. Clicking the trigger toggles a drop-down menu with a log out button that calls `logout()` and redirects to `logout-url`.
+
+| Attribute | Type | Description |
+| --- | --- | --- |
+| `display-mode` | `"avatar"` \| `"avatar-name"` \| `"avatar-full-name"` \| `"custom-avatar"` | Required. Controls whether the menu shows just the avatar, avatar + first name, avatar + full name, or a custom avatar URL. |
+| `logout-url` | `string` | Required. Redirect target after log out. |
+| `logout-label` | `string` | Required. Label for the log out button. |
+| `tauth-tenant-id` | `string` | Required. Tenant identifier forwarded to the TAuth helper (`setAuthTenantId` when available). |
+| `avatar-url` | `string` | Required when `display-mode="custom-avatar"`. |
+| `avatar-label` | `string` | Optional accessible label for the avatar. Falls back to profile name. |
+| `menu-items` | `JSON` | Optional array of `{ label, href }` links or `{ label, action }` action items rendered above the log out button. Action items dispatch `mpr-user:menu-item`. |
+
+**Events**
+
+- `mpr-user:toggle` with `{ open, source }`.
+- `mpr-user:logout` with `{ redirectUrl }`.
+- `mpr-user:menu-item` with `{ action, label, index }` when an action menu item is selected.
+- `mpr-user:error` with `{ code, message }`. The host also sets `data-mpr-user-error` for styling.
+
+**Dataset**
+
+- `data-mpr-user-status`: `authenticated`, `unauthenticated`, or `error`.
+- `data-mpr-user-mode`: active display mode.
+- `data-mpr-user-open`: `"true"` when the menu is open.
+- `data-user-id`, `data-user-email`, `data-user-display`, `data-user-avatar-url`: mirrored from the TAuth profile payload.
+
+The element can live standalone or inside `<mpr-header>` / `<mpr-footer>`. When nested, it inherits the header/footer scale tokens so the avatar sizing stays in sync.
+
+**Example**
+
+```html
+<mpr-user
+  display-mode="avatar-name"
+  logout-url="/auth/logout"
+  logout-label="Log out"
+  tauth-tenant-id="mpr-sites"
+  menu-items='[{"label":"Account settings","href":"/settings"},{"label":"Open settings","action":"open-settings"}]'
+></mpr-user>
+```
 
 ### `<mpr-settings>`
 

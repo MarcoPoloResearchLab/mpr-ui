@@ -43,6 +43,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
     tauth-login-path="/auth/google"
     tauth-logout-path="/auth/logout"
     tauth-nonce-path="/auth/nonce"
+    logout-url="/"
     theme-config='{"initialMode":"dark","targets":["body"],"attribute":"data-demo-theme"}'
   ></mpr-header>
 
@@ -58,6 +59,12 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
      site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
      tauth-tenant-id="mpr-sites"
    ></mpr-login-button>
+   <mpr-user
+     display-mode="avatar-name"
+     logout-url="/auth/logout"
+     logout-label="Log out"
+     tauth-tenant-id="mpr-sites"
+   ></mpr-user>
    <mpr-settings label="Settings"></mpr-settings>
    <mpr-sites heading="Explore"></mpr-sites>
    ```
@@ -80,6 +87,7 @@ Need a single source of truth for the shutdown plan? See [`docs/deprecation-road
 4. Always include Google Identity Services (`https://accounts.google.com/gsi/client`) so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
 5. Set `tauth-tenant-id` to the tenant configured in TAuth; missing values raise `mpr-ui.tenant_id_required` (and `<mpr-login-button>` sets `data-mpr-google-error="missing-tauth-tenant-id"`).
 6. Point `tauth-url`, `tauth-login-path`, `tauth-logout-path`, and `tauth-nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
+7. `<mpr-user>` depends on `tauth.js` for `getCurrentUser` and `logout`. Set `display-mode`, `logout-url`, `logout-label`, and `tauth-tenant-id` so the menu can show the profile and redirect after log out.
 
 See [`docs/integration-guide.md`](docs/integration-guide.md) for the complete walkthrough plus troubleshooting guidance. For a deep dive into how the demo page wires GIS, `mpr-ui`, and TAuth (including nonce handling), see [`docs/demo-index-auth.md`](docs/demo-index-auth.md).
 
@@ -87,24 +95,25 @@ See [`docs/integration-guide.md`](docs/integration-guide.md) for the complete wa
 
 Looking for a step–by–step walkthrough? See [`docs/integration-guide.md`](docs/integration-guide.md), which covers prerequisites, exact script ordering, attribute mapping, and debugging tips for wiring `mpr-header` to TAuth in any project. The summary below focuses on the bundled Compose demo.
 
-Need a working authentication backend without wiring your own server? `demo/tauth-demo.html` pairs with `docker-compose.tauth.yml` to spin up [gHTTP](tools/ghttp) plus the published `ghcr.io/marcopoloresearchlab/tauth:latest` service. gHTTP serves the entire repository, so the page loads `mpr-ui.js` directly from your working tree—no extra copy step required.
+Need a working authentication backend without wiring your own server? `demo/tauth-demo.html` pairs with `docker-compose.yml` to spin up [gHTTP](tools/ghttp) plus the published `ghcr.io/marcopoloresearchlab/tauth:latest` service. gHTTP serves the entire repository, so the page loads `mpr-ui.js` directly from your working tree—no extra copy step required.
 
 1. Configure TAuth:
 
    ```bash
    cp .env.tauth.example .env.tauth
-   # Replace APP_GOOGLE_WEB_CLIENT_ID with your OAuth Web Client ID
-   # Replace APP_JWT_SIGNING_KEY (generate with: openssl rand -base64 48)
+   # Replace TAUTH_GOOGLE_WEB_CLIENT_ID with your OAuth Web Client ID
+   # Replace TAUTH_JWT_SIGNING_KEY (generate with: openssl rand -base64 48)
    ```
 
-   The template already enables CORS (`APP_ENABLE_CORS=true`, `APP_CORS_ALLOWED_ORIGINS=http://localhost:8000`) and insecure HTTP for local development (`APP_DEV_INSECURE_HTTP=true`). The sample DSN (`sqlite:///data/tauth.db`) stores refresh tokens inside the `tauth_data` volume so restarting the container does not wipe sessions. The Compose file also sets this DSN explicitly to avoid host-path issues.
+   The template already enables CORS (`TAUTH_ENABLE_CORS=true`, `TAUTH_CORS_ORIGIN_1=http://localhost:8000`, `TAUTH_CORS_ORIGIN_2=http://127.0.0.1:8000`, `TAUTH_CORS_ORIGIN_3=https://accounts.google.com`) and includes `TAUTH_CORS_EXCEPTION_1=https://accounts.google.com` so the GIS iframe can access `/auth/*`. Insecure HTTP for local development is enabled via `TAUTH_ALLOW_INSECURE_HTTP=true`, and tenant header overrides are allowed by `TAUTH_ENABLE_TENANT_HEADER_OVERRIDE=true` so the demo can pass `X-TAuth-Tenant`. The sample DSN (`sqlite:///data/tauth.db`) stores refresh tokens inside the `tauth_data` volume so restarting the container does not wipe sessions.
+   Review `tauth-config.yaml` to ensure the tenant origins and IDs align with your local ports before starting the stack.
 
-   After setting `APP_GOOGLE_WEB_CLIENT_ID`, mirror the same value into `demo/tauth-config.js` (`googleClientId`). The header and TAuth must share the exact client ID; otherwise Google Identity Services rejects the origin and the button stays in an error state. Set `tenantId` in `demo/tauth-config.js` to a tenant configured in TAuth (the demo container uses `mpr-sites`). When running on plain HTTP (the Compose demo), keep `APP_DEV_INSECURE_HTTP=true` so TAuth drops the `Secure` flag from cookies; Safari ignores Secure cookies over HTTP.
+   After setting `TAUTH_GOOGLE_WEB_CLIENT_ID`, mirror the same value into `demo/tauth-config.js` (`googleClientId`). The header and TAuth must share the exact client ID; otherwise Google Identity Services rejects the origin and the button stays in an error state. Set `tenantId` in `demo/tauth-config.js` to match `TAUTH_TENANT_ID_1` in `tauth-config.yaml` (the demo container uses `mpr-sites`). When running on plain HTTP (the Compose demo), keep `TAUTH_ALLOW_INSECURE_HTTP=true` so TAuth drops the `Secure` flag from cookies; Safari ignores Secure cookies over HTTP.
 
 2. Bring the stack up:
 
    ```bash
-   docker compose -f docker-compose.tauth.yml up --remove-orphans
+   docker compose up --remove-orphans
    ```
 
    gHTTP serves the repo root on [http://localhost:8000](http://localhost:8000); open `/demo/tauth-demo.html` to view the page, while TAuth listens on [http://localhost:8080](http://localhost:8080). Because the bundle is loaded straight from `/mpr-ui.js`, any change you make to the library is immediately reflected in the demo. If you still see the CDN bundle after restarting the stack, open DevTools, enable “Disable cache,” and hard-reload the page to ensure the local script is being served.
@@ -113,7 +122,7 @@ Need a working authentication backend without wiring your own server? `demo/taut
 
    - The header points its `tauth-url` at `http://localhost:8080` and loads TAuth's `tauth.js`, so Google credentials are exchanged via `/auth/nonce` and `/auth/google`.
    - The bundled status panel listens for `mpr-ui:auth:*` events and prints the `/me` payload plus expiry information.
-   - Clicking **Sign out** calls `logout()` from the helper and clears cookies issued by TAuth.
+   - Selecting **Log out** from the profile menu calls `logout()` from the helper and clears cookies issued by TAuth.
 
 Stop the stack with `docker compose down -v` to reclaim the SQLite volume. Copy the template again any time you need to rotate secrets.
 
@@ -125,6 +134,7 @@ Every UI surface is a custom element. The list below maps directly to the `<mpr-
 - `<mpr-footer>` — marketing footer with prefix dropdown menu, privacy link, and theme toggle that now uses internal dropdown listeners so it no longer collides with Bootstrap classes or `data-bs-*` hooks.
 - `<mpr-theme-toggle>` — shared switch/button that talks to the global theme manager.
 - `<mpr-login-button>` — GIS-only control for contexts that do not need the full header.
+- `<mpr-user>` — profile menu that displays the signed-in user and triggers TAuth logout.
 - `<mpr-settings>` — emits toggle events so you can wire your own modal/drawer.
 - `<mpr-sites>` — renders the Marco Polo Research Lab network or any JSON catalog you provide.
 - `<mpr-band>` — themed horizontal container that applies preset palettes while letting you drop Bootstrap grids or `<mpr-card>` instances inside without extra DSL.
@@ -173,6 +183,14 @@ The tags above replace the retired imperative helpers. See the example below for
   tauth-nonce-path="/auth/nonce"
 ></mpr-login-button>
 
+<mpr-user
+  display-mode="avatar-name"
+  logout-url="/auth/logout"
+  logout-label="Log out"
+  tauth-tenant-id="mpr-sites"
+  menu-items='[{"label":"Account settings","href":"/settings"},{"label":"Open settings","action":"open-settings"}]'
+></mpr-user>
+
 <mpr-settings label="Preferences" open>
   <div slot="panel">
     <label>
@@ -187,10 +205,11 @@ The tags above replace the retired imperative helpers. See the example below for
 
 | Element | Primary attributes | Slots | Key events |
 | --- | --- | --- | --- |
-| `<mpr-header>` | `brand-label`, `nav-links`, `google-site-id`, `tauth-tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `theme-config`, `settings-label`, `settings`, `sign-in-label`, `sign-out-label`, `size`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
+| `<mpr-header>` | `brand-label`, `nav-links`, `google-site-id`, `tauth-tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `logout-url`, `user-menu-display-mode`, `user-menu-avatar-url`, `user-menu-avatar-label`, `theme-config`, `settings-label`, `settings`, `sign-in-label`, `sign-out-label`, `size`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
 | `<mpr-footer>` | `prefix-text`, `links-collection` (JSON with `{ style, text, links }`), `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-switcher`, `theme-config`, `size`, `sticky`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
 | `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config` | — | `mpr-ui:theme-change` |
 | `<mpr-login-button>` | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
+| `<mpr-user>` | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `avatar-url`, `avatar-label`, `menu-items` | — | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:menu-item`, `mpr-user:error` |
 | `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |
 | `<mpr-sites>` | `links`, `variant` (`list`, `grid`, `menu`), `columns`, `heading` | — | `mpr-sites:link-click` |
 | `<mpr-band>` | `category`, `theme` (JSON) | — | — |

@@ -201,6 +201,46 @@
     '"tauth-url"/"tauth-login-path"/"tauth-logout-path"/"tauth-nonce-path"';
   var LEGACY_DSL_THEME_VARIANT_REPLACEMENT =
     '"themeToggle.variant" or "theme-switcher"';
+  var USER_MENU_DISPLAY_MODE_ERROR_CODE = "mpr-ui.user.invalid_display_mode";
+  var USER_MENU_LOGOUT_URL_ERROR_CODE = "mpr-ui.user.missing_logout_url";
+  var USER_MENU_LOGOUT_LABEL_ERROR_CODE = "mpr-ui.user.missing_logout_label";
+  var USER_MENU_CUSTOM_AVATAR_ERROR_CODE = "mpr-ui.user.missing_custom_avatar";
+  var USER_MENU_ITEMS_ERROR_CODE = "mpr-ui.user.invalid_menu_items";
+  var USER_MENU_TAUTH_MISSING_ERROR_CODE = "mpr-ui.user.tauth_missing";
+  var USER_MENU_PROFILE_ERROR_CODE = "mpr-ui.user.invalid_profile";
+  var USER_MENU_LOGOUT_FAILED_ERROR_CODE = "mpr-ui.user.logout_failed";
+  var USER_MENU_GENERIC_ERROR_CODE = "mpr-ui.user.error";
+  var USER_MENU_ITEM_EVENT = "mpr-user:menu-item";
+  var USER_MENU_ITEM_SELECTOR = '[data-mpr-user="menu-item"]';
+  var USER_MENU_ITEM_ACTION_ATTRIBUTE = "data-mpr-user-action";
+  var USER_MENU_ITEM_INDEX_ATTRIBUTE = "data-mpr-user-index";
+
+  var USER_MENU_DISPLAY_MODES = Object.freeze({
+    AVATAR: "avatar",
+    AVATAR_NAME: "avatar-name",
+    AVATAR_FULL_NAME: "avatar-full-name",
+    CUSTOM_AVATAR: "custom-avatar",
+  });
+  /** @type {readonly string[]} */
+  var USER_MENU_DISPLAY_MODE_VALUES = Object.freeze([
+    USER_MENU_DISPLAY_MODES.AVATAR,
+    USER_MENU_DISPLAY_MODES.AVATAR_NAME,
+    USER_MENU_DISPLAY_MODES.AVATAR_FULL_NAME,
+    USER_MENU_DISPLAY_MODES.CUSTOM_AVATAR,
+  ]);
+  var USER_MENU_PROFILE_SHORT_NAME_FIELDS = Object.freeze([
+    "given_name",
+    "first_name",
+  ]);
+  var USER_MENU_PROFILE_FULL_NAME_FIELDS = Object.freeze([
+    "full_name",
+    "name",
+    "display",
+  ]);
+  var USER_MENU_PROFILE_AVATAR_FIELDS = Object.freeze([
+    "avatar_url",
+    "avatarUrl",
+  ]);
 
   function logLegacyAttribute(componentLabel, attributeName, replacement) {
     if (!attributeName) {
@@ -309,6 +349,10 @@
     "theme-config": "themeToggle",
     "sign-in-label": "signInLabel",
     "sign-out-label": "signOutLabel",
+    "logout-url": "logoutUrl",
+    "user-menu-display-mode": "userMenuDisplayMode",
+    "user-menu-avatar-url": "userMenuAvatarUrl",
+    "user-menu-avatar-label": "userMenuAvatarLabel",
     sticky: "sticky",
     size: "size",
   });
@@ -375,6 +419,15 @@
     "button-theme",
     "button-size",
     "button-shape",
+  ]);
+  var USER_MENU_ATTRIBUTE_NAMES = Object.freeze([
+    "display-mode",
+    "logout-url",
+    "logout-label",
+    "tauth-tenant-id",
+    "avatar-url",
+    "avatar-label",
+    "menu-items",
   ]);
 
   var SETTINGS_ATTRIBUTE_NAMES = Object.freeze([
@@ -2075,6 +2128,22 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (dataset.profileLabel) {
       options.profileLabel = dataset.profileLabel;
     }
+    if (dataset.logoutUrl) {
+      options.userMenu = options.userMenu || {};
+      options.userMenu.logoutUrl = dataset.logoutUrl;
+    }
+    if (dataset.userMenuDisplayMode) {
+      options.userMenu = options.userMenu || {};
+      options.userMenu.displayMode = dataset.userMenuDisplayMode;
+    }
+    if (dataset.userMenuAvatarUrl) {
+      options.userMenu = options.userMenu || {};
+      options.userMenu.avatarUrl = dataset.userMenuAvatarUrl;
+    }
+    if (dataset.userMenuAvatarLabel) {
+      options.userMenu = options.userMenu || {};
+      options.userMenu.avatarLabel = dataset.userMenuAvatarLabel;
+    }
     if (dataset.sticky !== undefined) {
       options.sticky = normalizeBooleanAttribute(dataset.sticky, true);
     }
@@ -2782,10 +2851,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     '__google[data-mpr-google-ready="true"]{display:inline-flex}' +
     "." +
     HEADER_ROOT_CLASS +
-    "__chip{display:none;flex-direction:column;align-items:flex-start;gap:calc(0.25rem * var(--mpr-header-scale,1));font-size:calc(0.85rem * var(--mpr-header-scale,1))}" +
-    "." +
-    HEADER_ROOT_CLASS +
-    "__profile-name{font-weight:600}" +
+    "__user{display:none;align-items:center}" +
     "." +
     HEADER_ROOT_CLASS +
     "__button{border:none;border-radius:999px;padding:calc(0.4rem * var(--mpr-header-scale,1)) calc(0.95rem * var(--mpr-header-scale,1));font-weight:600;cursor:pointer;background:var(--mpr-chip-bg,rgba(148,163,184,0.18));color:var(--mpr-color-text-primary,#e2e8f0)}" +
@@ -2803,7 +2869,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "__icon-btn{display:inline-flex;align-items:center;gap:0.35rem}" +
     "." +
     HEADER_ROOT_CLASS +
-    "--authenticated [data-mpr-header=\"profile\"]{display:flex}" +
+    "--authenticated [data-mpr-header=\"user-menu\"]{display:inline-flex}" +
     "." +
     HEADER_ROOT_CLASS +
     "--authenticated [data-mpr-header=\"google-signin\"]{display:none}" +
@@ -2826,6 +2892,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "</div>";
   var HEADER_LINK_DEFAULT_TARGET = "_blank";
   var HEADER_LINK_DEFAULT_REL = "noopener noreferrer";
+  var HEADER_USER_MENU_OVERRIDE_ATTRIBUTE =
+    "data-mpr-header-user-menu-overrides";
+  var HEADER_USER_MENU_OVERRIDE_SEPARATOR = ",";
+  var HEADER_USER_MENU_OVERRIDE_ATTRIBUTES = Object.freeze([
+    "display-mode",
+    "logout-url",
+    "logout-label",
+    "tauth-tenant-id",
+    "avatar-url",
+    "avatar-label",
+  ]);
 
   var HEADER_DEFAULTS = Object.freeze({
     brand: Object.freeze({
@@ -2846,10 +2923,117 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     signInLabel: "Sign in",
     signOutLabel: "Sign out",
     profileLabel: "",
+    userMenu: Object.freeze({
+      displayMode: USER_MENU_DISPLAY_MODES.AVATAR_NAME,
+      logoutUrl: "",
+      avatarUrl: "",
+      avatarLabel: "",
+    }),
     initialTheme: "light",
     auth: null,
     sticky: true,
   });
+
+  function normalizeHeaderUserMenuDisplayMode(value) {
+    var normalized = normalizeUserMenuDisplayMode(value);
+    return normalized || USER_MENU_DISPLAY_MODES.AVATAR_NAME;
+  }
+
+  function normalizeHeaderUserMenuLogoutUrl(value, fallbackUrl) {
+    var candidate =
+      typeof value === "string" && value.trim() ? value.trim() : "";
+    if (!candidate) {
+      candidate =
+        typeof fallbackUrl === "string" && fallbackUrl.trim()
+          ? fallbackUrl.trim()
+          : "";
+    }
+    if (!candidate) {
+      candidate = HEADER_DEFAULTS.brand.href;
+    }
+    var sanitized = sanitizeHref(candidate);
+    if (sanitized === "#" && candidate !== "#") {
+      return HEADER_DEFAULTS.brand.href;
+    }
+    return sanitized;
+  }
+
+  function normalizeHeaderUserMenuOptionalValue(value) {
+    if (typeof value !== "string") {
+      return "";
+    }
+    var trimmed = value.trim();
+    return trimmed ? trimmed : "";
+  }
+
+  function captureHeaderUserMenuOverrides(userMenuElement) {
+    if (
+      !userMenuElement ||
+      typeof userMenuElement.setAttribute !== "function" ||
+      typeof userMenuElement.hasAttribute !== "function"
+    ) {
+      return;
+    }
+    var overrideAttributes = [];
+    for (
+      var index = 0;
+      index < HEADER_USER_MENU_OVERRIDE_ATTRIBUTES.length;
+      index += 1
+    ) {
+      var attributeName = HEADER_USER_MENU_OVERRIDE_ATTRIBUTES[index];
+      if (userMenuElement.hasAttribute(attributeName)) {
+        overrideAttributes.push(attributeName);
+      }
+    }
+    if (!overrideAttributes.length) {
+      return;
+    }
+    userMenuElement.setAttribute(
+      HEADER_USER_MENU_OVERRIDE_ATTRIBUTE,
+      overrideAttributes.join(HEADER_USER_MENU_OVERRIDE_SEPARATOR),
+    );
+  }
+
+  function resolveHeaderUserMenuOverrides(userMenuElement) {
+    if (
+      !userMenuElement ||
+      typeof userMenuElement.getAttribute !== "function"
+    ) {
+      return null;
+    }
+    var overrideValue = userMenuElement.getAttribute(
+      HEADER_USER_MENU_OVERRIDE_ATTRIBUTE,
+    );
+    if (!overrideValue) {
+      return null;
+    }
+    var overrideEntries = overrideValue
+      .split(HEADER_USER_MENU_OVERRIDE_SEPARATOR)
+      .map(function trimEntry(entry) {
+        return entry.trim();
+      })
+      .filter(Boolean);
+    return overrideEntries.length ? overrideEntries : null;
+  }
+
+  function isHeaderUserMenuOverride(overrideEntries, attributeName) {
+    if (!overrideEntries) {
+      return false;
+    }
+    return overrideEntries.indexOf(attributeName) !== -1;
+  }
+
+  function setHeaderUserMenuAttribute(
+    userMenuElement,
+    attributeName,
+    value,
+    overrideEntries,
+  ) {
+    if (isHeaderUserMenuOverride(overrideEntries, attributeName)) {
+      return;
+    }
+    setAttributeOrRemove(userMenuElement, attributeName, value);
+  }
 
   function ensureHeaderStyles(documentObject) {
     if (
@@ -2975,16 +3159,48 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       themeNormalized.initialMode = options.initialTheme.trim();
     }
 
+    var brandLabel =
+      typeof brandSource.label === "string" && brandSource.label.trim()
+        ? brandSource.label.trim()
+        : HEADER_DEFAULTS.brand.label;
+    var brandHref =
+      typeof brandSource.href === "string" && brandSource.href.trim()
+        ? brandSource.href.trim()
+        : HEADER_DEFAULTS.brand.href;
+    var signInLabel =
+      typeof options.signInLabel === "string" && options.signInLabel.trim()
+        ? options.signInLabel.trim()
+        : HEADER_DEFAULTS.signInLabel;
+    var signOutLabel =
+      typeof options.signOutLabel === "string" && options.signOutLabel.trim()
+        ? options.signOutLabel.trim()
+        : HEADER_DEFAULTS.signOutLabel;
+    var profileLabel =
+      typeof options.profileLabel === "string" && options.profileLabel.trim()
+        ? options.profileLabel.trim()
+        : HEADER_DEFAULTS.profileLabel;
+    var userMenuSource =
+      options.userMenu && typeof options.userMenu === "object"
+        ? options.userMenu
+        : {};
+    var userMenuDisplayMode = normalizeHeaderUserMenuDisplayMode(
+      userMenuSource.displayMode,
+    );
+    var userMenuLogoutUrl = normalizeHeaderUserMenuLogoutUrl(
+      userMenuSource.logoutUrl,
+      brandHref,
+    );
+    var userMenuAvatarUrl = normalizeHeaderUserMenuOptionalValue(
+      userMenuSource.avatarUrl,
+    );
+    var userMenuAvatarLabel = normalizeHeaderUserMenuOptionalValue(
+      userMenuSource.avatarLabel,
+    );
+
     return {
       brand: {
-        label:
-          typeof brandSource.label === "string" && brandSource.label.trim()
-            ? brandSource.label.trim()
-            : HEADER_DEFAULTS.brand.label,
-        href:
-          typeof brandSource.href === "string" && brandSource.href.trim()
-            ? brandSource.href.trim()
-            : HEADER_DEFAULTS.brand.href,
+        label: brandLabel,
+        href: brandHref,
       },
       navLinks: navLinks,
       settings: {
@@ -3000,18 +3216,16 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         modes: themeNormalized.modes,
         initialMode: themeNormalized.initialMode,
       },
-      signInLabel:
-        typeof options.signInLabel === "string" && options.signInLabel.trim()
-          ? options.signInLabel.trim()
-          : HEADER_DEFAULTS.signInLabel,
-      signOutLabel:
-        typeof options.signOutLabel === "string" && options.signOutLabel.trim()
-          ? options.signOutLabel.trim()
-          : HEADER_DEFAULTS.signOutLabel,
-      profileLabel:
-        typeof options.profileLabel === "string" && options.profileLabel.trim()
-          ? options.profileLabel.trim()
-          : HEADER_DEFAULTS.profileLabel,
+      signInLabel: signInLabel,
+      signOutLabel: signOutLabel,
+      profileLabel: profileLabel,
+      userMenu: {
+        displayMode: userMenuDisplayMode,
+        logoutUrl: userMenuLogoutUrl,
+        logoutLabel: signOutLabel,
+        avatarUrl: userMenuAvatarUrl,
+        avatarLabel: userMenuAvatarLabel,
+      },
       siteId: derivedSiteId,
       tenantId: derivedTenantId,
       auth: authOptions,
@@ -3020,7 +3234,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     };
   }
 
-  function buildHeaderMarkup(options) {
+  function buildHeaderMarkup(options, renderUserMenu) {
     var brandHref = escapeHtml(options.brand.href);
     var brandLabel = escapeHtml(options.brand.label);
     var stickyAttribute =
@@ -3060,6 +3274,30 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       })
       .filter(Boolean)
       .join("");
+    var userMenuMarkup = "";
+    if (renderUserMenu !== false && options && options.userMenu && options.tenantId) {
+      var userMenuAttributes =
+        ' class="' +
+        HEADER_ROOT_CLASS +
+        '__user" data-mpr-header="user-menu" display-mode="' +
+        escapeHtml(options.userMenu.displayMode) +
+        '" logout-url="' +
+        escapeHtml(options.userMenu.logoutUrl) +
+        '" logout-label="' +
+        escapeHtml(options.userMenu.logoutLabel) +
+        '" tauth-tenant-id="' +
+        escapeHtml(options.tenantId) +
+        '"';
+      if (options.userMenu.avatarUrl) {
+        userMenuAttributes +=
+          ' avatar-url="' + escapeHtml(options.userMenu.avatarUrl) + '"';
+      }
+      if (options.userMenu.avatarLabel) {
+        userMenuAttributes +=
+          ' avatar-label="' + escapeHtml(options.userMenu.avatarLabel) + '"';
+      }
+      userMenuMarkup = "<mpr-user" + userMenuAttributes + "></mpr-user>";
+    }
 
     return (
       '<header class="' +
@@ -3095,16 +3333,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       '<div class="' +
       HEADER_ROOT_CLASS +
       '__google" data-mpr-header="google-signin"></div>' +
-      '<div class="' +
-      HEADER_ROOT_CLASS +
-      '__chip" data-mpr-header="profile">' +
-      '<span class="' +
-      HEADER_ROOT_CLASS +
-      '__profile-name" data-mpr-header="profile-name"></span>' +
-      '<button type="button" class="' +
-      HEADER_ROOT_CLASS +
-      '__button" data-mpr-header="sign-out-button">Sign out</button>' +
-      "</div>" +
+      userMenuMarkup +
       "</div>" +
       "</div>" +
       "</header>" +
@@ -3144,15 +3373,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       settingsButton: hostElement.querySelector(
         '[data-mpr-header="settings-button"]',
       ),
-      profileContainer: hostElement.querySelector(
-        '[data-mpr-header="profile"]',
-      ),
-      profileLabel: null,
-      profileName: hostElement.querySelector(
-        '[data-mpr-header="profile-name"]',
-      ),
-      signOutButton: hostElement.querySelector(
-        '[data-mpr-header="sign-out-button"]',
+      userMenu: hostElement.querySelector(
+        '[data-mpr-header="user-menu"]',
       ),
       settingsModal: hostElement.querySelector(
         '[data-mpr-header="settings-modal"]',
@@ -3219,6 +3441,63 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     if (slotMap.aux && elements.actions) {
       appendHeaderSlotNodes(elements.actions, slotMap.aux, "append");
+    }
+  }
+
+  function isUserMenuElement(node) {
+    var tagName = node ? node.tagName || node.nodeName : null;
+    return typeof tagName === "string" && tagName.toLowerCase() === "mpr-user";
+  }
+
+  function findUserMenuNode(node) {
+    if (!node) {
+      return null;
+    }
+    if (isUserMenuElement(node)) {
+      return node;
+    }
+    if (typeof node.querySelector === "function") {
+      var nested = node.querySelector("mpr-user");
+      if (nested) {
+        return nested;
+      }
+    }
+    return null;
+  }
+
+  function resolveHeaderUserMenuSlot(slotMap) {
+    if (!slotMap || !Array.isArray(slotMap.aux)) {
+      return null;
+    }
+    for (var index = 0; index < slotMap.aux.length; index += 1) {
+      var candidate = findUserMenuNode(slotMap.aux[index]);
+      if (candidate) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  function prepareHeaderUserMenuSlotElement(userMenuElement) {
+    if (!userMenuElement || typeof userMenuElement.setAttribute !== "function") {
+      return;
+    }
+    captureHeaderUserMenuOverrides(userMenuElement);
+    userMenuElement.setAttribute("data-mpr-header", "user-menu");
+    if (
+      userMenuElement.classList &&
+      typeof userMenuElement.classList.add === "function"
+    ) {
+      userMenuElement.classList.add(HEADER_ROOT_CLASS + "__user");
+      return;
+    }
+    if (typeof userMenuElement.className === "string") {
+      var className = userMenuElement.className;
+      if (className.indexOf(HEADER_ROOT_CLASS + "__user") === -1) {
+        userMenuElement.className = className
+          ? className + " " + HEADER_ROOT_CLASS + "__user"
+          : HEADER_ROOT_CLASS + "__user";
+      }
     }
   }
 
@@ -3539,11 +3818,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
   }
 
-  function mountHeaderDom(hostElement, options) {
+  function mountHeaderDom(hostElement, options, renderUserMenu) {
     if (!hostElement || typeof hostElement !== "object") {
       throw new Error("mountHeaderDom requires a host element");
     }
-    hostElement.innerHTML = buildHeaderMarkup(options);
+    hostElement.innerHTML = buildHeaderMarkup(options, renderUserMenu);
     var elements = resolveHeaderElements(hostElement);
     if (!elements.root) {
       throw new Error("mountHeaderDom failed to locate the header root");
@@ -3596,16 +3875,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         HEADER_ROOT_CLASS + "--authenticated",
         HEADER_ROOT_CLASS + "--no-auth",
       );
-      if (elements.profileName) {
-        elements.profileName.textContent = "";
-      }
       return;
     }
     elements.root.classList.add(HEADER_ROOT_CLASS + "--authenticated");
-    if (elements.profileName) {
-      var preference = state.profile.display || state.profile.user_id;
-      elements.profileName.textContent = preference ? String(preference) : "";
-    }
   }
 
   function applyHeaderStickyState(headerRootElement, sticky, hostElement) {
@@ -3629,6 +3901,54 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     } else if (typeof hostElement.removeAttribute === "function") {
       hostElement.removeAttribute("data-mpr-sticky");
     }
+  }
+
+  function applyHeaderUserMenuAttributes(userMenuElement, options) {
+    if (
+      !userMenuElement ||
+      !options ||
+      !options.userMenu ||
+      typeof userMenuElement.setAttribute !== "function"
+    ) {
+      return;
+    }
+    var overrideEntries = resolveHeaderUserMenuOverrides(userMenuElement);
+    setHeaderUserMenuAttribute(
+      userMenuElement,
+      "display-mode",
+      options.userMenu.displayMode,
+      overrideEntries,
+    );
+    setHeaderUserMenuAttribute(
+      userMenuElement,
+      "logout-url",
+      options.userMenu.logoutUrl,
+      overrideEntries,
+    );
+    setHeaderUserMenuAttribute(
+      userMenuElement,
+      "logout-label",
+      options.userMenu.logoutLabel,
+      overrideEntries,
+    );
+    setHeaderUserMenuAttribute(
+      userMenuElement,
+      "tauth-tenant-id",
+      options.tenantId,
+      overrideEntries,
+    );
+    setHeaderUserMenuAttribute(
+      userMenuElement,
+      "avatar-url",
+      options.userMenu.avatarUrl,
+      overrideEntries,
+    );
+    setHeaderUserMenuAttribute(
+      userMenuElement,
+      "avatar-label",
+      options.userMenu.avatarLabel,
+      overrideEntries,
+    );
   }
 
   function applyHeaderOptions(hostElement, elements, options) {
@@ -3656,15 +3976,22 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (elements.settingsButton) {
       elements.settingsButton.textContent = options.settings.label;
     }
-    if (elements.signOutButton) {
-      elements.signOutButton.textContent = options.signOutLabel;
+    if (elements.userMenu) {
+      applyHeaderUserMenuAttributes(elements.userMenu, options);
     }
   }
 
-  function createSiteHeaderController(target, rawOptions) {
+  function createSiteHeaderController(target, rawOptions, slotConfig) {
     var hostElement = resolveHost(target);
     if (!hostElement || typeof hostElement !== "object") {
       throw new Error("createSiteHeaderController requires a host element");
+    }
+    var userMenuElement =
+      slotConfig && slotConfig.userMenuElement
+        ? slotConfig.userMenuElement
+        : null;
+    if (userMenuElement) {
+      prepareHeaderUserMenuSlotElement(userMenuElement);
     }
 
     var datasetOptions = readHeaderOptionsFromDataset(hostElement);
@@ -3678,7 +4005,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var cleanupHandlers = [];
     ensureHeaderStyles(global.document || (global.window && global.window.document));
 
-    var elements = mountHeaderDom(hostElement, options);
+    var elements = mountHeaderDom(hostElement, options, !userMenuElement);
+    if (userMenuElement) {
+      elements.userMenu = userMenuElement;
+    }
 
     applyHeaderOptions(hostElement, elements, options);
     var settingsModalController = createHeaderSettingsModalController(
@@ -3903,13 +4233,22 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       elements.root.classList.add(HEADER_ROOT_CLASS + "--no-auth");
     }
 
-    if (elements.signOutButton) {
-      elements.signOutButton.addEventListener("click", function () {
-        if (authController && typeof authController.signOut === "function") {
-          authController.signOut();
-        } else {
-          dispatchHeaderEvent("mpr-ui:header:signout-click", {});
+    if (
+      elements.userMenu &&
+      typeof elements.userMenu.addEventListener === "function"
+    ) {
+      elements.userMenu.addEventListener("mpr-user:logout", function (eventObject) {
+        if (
+          authController &&
+          typeof authController.restartSessionWatcher === "function"
+        ) {
+          authController.restartSessionWatcher();
         }
+        dispatchHeaderEvent("mpr-ui:header:signout-click", {
+          source: "user-menu",
+          redirectUrl:
+            eventObject && eventObject.detail ? eventObject.detail.redirectUrl : null,
+        });
       });
     }
 
@@ -4016,6 +4355,740 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;")
       .replace(/'/g, "&#39;");
+  }
+
+  var USER_MENU_ROOT_CLASS = "mpr-user";
+  var USER_MENU_STYLE_ID = "mpr-ui-user-styles";
+  var USER_MENU_STYLE_MARKUP =
+    "mpr-user{display:inline-flex;align-items:center;position:relative;--mpr-user-scale:1}" +
+    'mpr-user[data-mpr-user-status="unauthenticated"],mpr-user[data-mpr-user-status="error"]{display:none}' +
+    "mpr-header mpr-user{--mpr-user-scale:var(--mpr-header-scale,1)}" +
+    "mpr-footer mpr-user{--mpr-user-scale:var(--mpr-footer-scale,1)}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
+    "__layout{display:flex;align-items:center;position:relative}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
+    "__trigger{display:inline-flex;align-items:center;gap:calc(0.5rem * var(--mpr-user-scale,1));padding:calc(0.35rem * var(--mpr-user-scale,1)) calc(0.6rem * var(--mpr-user-scale,1));border-radius:999px;border:1px solid var(--mpr-color-border,rgba(148,163,184,0.25));background:var(--mpr-color-surface-elevated,rgba(15,23,42,0.9));color:var(--mpr-color-text-primary,#e2e8f0);cursor:pointer;font-weight:600;font-size:calc(0.9rem * var(--mpr-user-scale,1));}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
+    "__trigger:hover{background:var(--mpr-chip-hover-bg,rgba(148,163,184,0.32))}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
+    "__avatar{width:calc(32px * var(--mpr-user-scale,1));height:calc(32px * var(--mpr-user-scale,1));border-radius:50%;overflow:hidden;background:var(--mpr-chip-bg,rgba(148,163,184,0.18));display:inline-flex;align-items:center;justify-content:center}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
+    "__avatar-image{width:100%;height:100%;object-fit:cover;display:block}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
+    "__name{white-space:nowrap}" +
+    'mpr-user[data-mpr-user-mode="avatar"] .' +
+    USER_MENU_ROOT_CLASS +
+    "__name{display:none}" +
+    'mpr-user[data-mpr-user-mode="custom-avatar"] .' +
+    USER_MENU_ROOT_CLASS +
+    "__name{display:none}" +
+    'mpr-user[data-mpr-user-mode="avatar"] .' +
+    USER_MENU_ROOT_CLASS +
+    "__trigger{padding:0;border:none;background:transparent}" +
+    'mpr-user[data-mpr-user-mode="avatar"] .' +
+    USER_MENU_ROOT_CLASS +
+    "__trigger:hover{background:transparent}" +
+    'mpr-user[data-mpr-user-mode="avatar"] .' +
+    USER_MENU_ROOT_CLASS +
+    "__avatar{border:1px solid var(--mpr-color-border,rgba(148,163,184,0.35));background:var(--mpr-color-surface-elevated,rgba(255,255,255,0.98))}" +
+    'mpr-user[data-mpr-user-mode="avatar"] .' +
+    USER_MENU_ROOT_CLASS +
+    "__trigger:hover ." +
+    USER_MENU_ROOT_CLASS +
+    "__avatar{border-color:var(--mpr-color-accent,#38bdf8);box-shadow:0 0 0 2px rgba(56,189,248,0.35)}" +
+    'mpr-user[data-mpr-user-mode="avatar"] .' +
+    USER_MENU_ROOT_CLASS +
+    "__trigger:focus-visible ." +
+    USER_MENU_ROOT_CLASS +
+    "__avatar{border-color:var(--mpr-color-accent,#38bdf8);box-shadow:0 0 0 2px rgba(56,189,248,0.35)}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
+    "__menu{position:absolute;right:0;top:calc(100% + (8px * var(--mpr-user-scale,1)));min-width:calc(180px * var(--mpr-user-scale,1));padding:calc(0.5rem * var(--mpr-user-scale,1));border-radius:0.75rem;border:1px solid var(--mpr-color-border,rgba(148,163,184,0.25));background:var(--mpr-color-surface-elevated,rgba(15,23,42,0.98));box-shadow:var(--mpr-shadow-flyout,0 12px 24px rgba(15,23,42,0.45));display:none;flex-direction:column;gap:0.5rem;z-index:1300}" +
+    'mpr-user[data-mpr-user-open="true"] .' +
+    USER_MENU_ROOT_CLASS +
+    "__menu{display:flex}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
+    "__menu-item{display:flex;align-items:center;gap:0.5rem;padding:calc(0.4rem * var(--mpr-user-scale,1)) calc(0.75rem * var(--mpr-user-scale,1));border-radius:0.65rem;text-decoration:none;background:transparent;color:var(--mpr-color-text-primary,#e2e8f0);font-weight:600;border:none;cursor:pointer;text-align:left;width:100%;font:inherit;appearance:none}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
+    "__menu-item:hover{background:var(--mpr-chip-hover-bg,rgba(148,163,184,0.32))}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
+    "__menu-item:focus-visible{outline:none;box-shadow:0 0 0 2px rgba(56,189,248,0.4)}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
+    "__logout{border:none;border-radius:999px;padding:calc(0.4rem * var(--mpr-user-scale,1)) calc(0.75rem * var(--mpr-user-scale,1));background:var(--mpr-chip-bg,rgba(148,163,184,0.18));color:var(--mpr-color-text-primary,#e2e8f0);cursor:pointer;font-weight:600;text-align:left}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
+    "__logout:hover{background:var(--mpr-chip-hover-bg,rgba(148,163,184,0.32))}";
+
+  var USER_MENU_MENU_ID_PREFIX = "mpr-user-menu-";
+  var userMenuCounter = 0;
+
+  function ensureUserMenuStyles(documentObject) {
+    if (
+      !documentObject ||
+      typeof documentObject.createElement !== "function" ||
+      !documentObject.head
+    ) {
+      return;
+    }
+    ensureThemeTokenStyles(documentObject);
+    if (documentObject.getElementById(USER_MENU_STYLE_ID)) {
+      return;
+    }
+    var styleElement = documentObject.createElement("style");
+    styleElement.type = "text/css";
+    styleElement.id = USER_MENU_STYLE_ID;
+    if (styleElement.styleSheet) {
+      styleElement.styleSheet.cssText = USER_MENU_STYLE_MARKUP;
+    } else {
+      styleElement.appendChild(
+        documentObject.createTextNode(USER_MENU_STYLE_MARKUP),
+      );
+    }
+    documentObject.head.appendChild(styleElement);
+  }
+
+  function buildUserMenuOptionsFromAttributes(hostElement) {
+    var options = {};
+    if (!hostElement || typeof hostElement.getAttribute !== "function") {
+      return options;
+    }
+    var displayMode = hostElement.getAttribute("display-mode");
+    if (displayMode !== null) {
+      options.displayMode = displayMode;
+    }
+    var logoutUrl = hostElement.getAttribute("logout-url");
+    if (logoutUrl !== null) {
+      options.logoutUrl = logoutUrl;
+    }
+    var logoutLabel = hostElement.getAttribute("logout-label");
+    if (logoutLabel !== null) {
+      options.logoutLabel = logoutLabel;
+    }
+    var tenantId = hostElement.getAttribute("tauth-tenant-id");
+    if (tenantId !== null) {
+      options.tenantId = tenantId;
+    }
+    var avatarUrl = hostElement.getAttribute("avatar-url");
+    if (avatarUrl !== null) {
+      options.avatarUrl = avatarUrl;
+    }
+    var avatarLabel = hostElement.getAttribute("avatar-label");
+    if (avatarLabel !== null) {
+      options.avatarLabel = avatarLabel;
+    }
+    var menuItems = hostElement.getAttribute("menu-items");
+    if (menuItems !== null) {
+      options.menuItems = menuItems;
+    }
+    return options;
+  }
+
+  /**
+   * @param {string} code
+   * @param {string} message
+   * @returns {MprUiError}
+   */
+  function createUserMenuError(code, message) {
+    /** @type {MprUiError} */
+    var error = new Error(message);
+    error.code = code;
+    return error;
+  }
+
+  function normalizeUserMenuDisplayMode(value) {
+    if (typeof value !== "string") {
+      return null;
+    }
+    var normalized = value.trim().toLowerCase();
+    if (USER_MENU_DISPLAY_MODE_VALUES.indexOf(normalized) === -1) {
+      return null;
+    }
+    return normalized;
+  }
+
+  function normalizeRequiredString(value, code, message) {
+    if (typeof value !== "string") {
+      throw createUserMenuError(code, message);
+    }
+    var trimmed = value.trim();
+    if (!trimmed) {
+      throw createUserMenuError(code, message);
+    }
+    return trimmed;
+  }
+
+  function normalizeUserMenuLogoutUrl(value) {
+    var trimmed = normalizeRequiredString(
+      value,
+      USER_MENU_LOGOUT_URL_ERROR_CODE,
+      "Logout URL is required",
+    );
+    var sanitized = sanitizeHref(trimmed);
+    if (sanitized === "#" && trimmed !== "#") {
+      throw createUserMenuError(
+        USER_MENU_LOGOUT_URL_ERROR_CODE,
+        "Logout URL is invalid",
+      );
+    }
+    return sanitized;
+  }
+
+  function normalizeUserMenuLabel(value) {
+    return normalizeRequiredString(
+      value,
+      USER_MENU_LOGOUT_LABEL_ERROR_CODE,
+      "Logout label is required",
+    );
+  }
+
+  function parseUserMenuItemsValue(rawValue) {
+    if (rawValue === null || rawValue === undefined) {
+      return null;
+    }
+    if (Array.isArray(rawValue)) {
+      return rawValue.slice();
+    }
+    if (typeof rawValue === "string") {
+      var trimmed = rawValue.trim();
+      if (!trimmed) {
+        return null;
+      }
+      try {
+        return JSON.parse(trimmed);
+      } catch (_error) {
+        throw createUserMenuError(
+          USER_MENU_ITEMS_ERROR_CODE,
+          "User menu items must be valid JSON",
+        );
+      }
+    }
+    if (typeof rawValue === "object") {
+      return rawValue;
+    }
+    throw createUserMenuError(
+      USER_MENU_ITEMS_ERROR_CODE,
+      "User menu items must be an array",
+    );
+  }
+
+  function normalizeUserMenuItemHref(value) {
+    var href = normalizeRequiredString(
+      value,
+      USER_MENU_ITEMS_ERROR_CODE,
+      "User menu item href is required",
+    );
+    var sanitizedHref = sanitizeHref(href);
+    if (sanitizedHref === "#" && href !== "#") {
+      throw createUserMenuError(
+        USER_MENU_ITEMS_ERROR_CODE,
+        "User menu item href is invalid",
+      );
+    }
+    return sanitizedHref;
+  }
+
+  function normalizeUserMenuItemAction(value) {
+    return normalizeRequiredString(
+      value,
+      USER_MENU_ITEMS_ERROR_CODE,
+      "User menu item action is required",
+    );
+  }
+
+  function normalizeUserMenuItem(rawItem, index) {
+    if (!rawItem || typeof rawItem !== "object") {
+      throw createUserMenuError(
+        USER_MENU_ITEMS_ERROR_CODE,
+        "User menu item at index " + index + " is invalid",
+      );
+    }
+    var label = normalizeRequiredString(
+      rawItem.label,
+      USER_MENU_ITEMS_ERROR_CODE,
+      "User menu item label is required",
+    );
+    var hasHref = Object.prototype.hasOwnProperty.call(rawItem, "href");
+    var hasAction = Object.prototype.hasOwnProperty.call(rawItem, "action");
+    if (hasHref && hasAction) {
+      throw createUserMenuError(
+        USER_MENU_ITEMS_ERROR_CODE,
+        "User menu item cannot include both href and action",
+      );
+    }
+    if (!hasHref && !hasAction) {
+      throw createUserMenuError(
+        USER_MENU_ITEMS_ERROR_CODE,
+        "User menu item must include href or action",
+      );
+    }
+    if (hasHref) {
+      return {
+        label: label,
+        href: normalizeUserMenuItemHref(rawItem.href),
+      };
+    }
+    return {
+      label: label,
+      action: normalizeUserMenuItemAction(rawItem.action),
+    };
+  }
+
+  function normalizeUserMenuItems(rawValue) {
+    var parsedItems = parseUserMenuItemsValue(rawValue);
+    if (parsedItems === null) {
+      return null;
+    }
+    if (!Array.isArray(parsedItems)) {
+      throw createUserMenuError(
+        USER_MENU_ITEMS_ERROR_CODE,
+        "User menu items must be an array",
+      );
+    }
+    if (!parsedItems.length) {
+      return null;
+    }
+    return parsedItems.map(function normalizeEntry(entry, index) {
+      return normalizeUserMenuItem(entry, index);
+    });
+  }
+
+  function normalizeUserMenuAvatarUrl(value, errorCode, message) {
+    var trimmed = normalizeRequiredString(value, errorCode, message);
+    if (trimmed.indexOf("data:") === 0 || trimmed.indexOf("blob:") === 0) {
+      return trimmed;
+    }
+    var sanitized = sanitizeHref(trimmed);
+    if (sanitized === "#" || !sanitized) {
+      throw createUserMenuError(errorCode, message);
+    }
+    return sanitized;
+  }
+
+  function normalizeUserMenuOptions(rawOptions) {
+    var options = rawOptions && typeof rawOptions === "object" ? rawOptions : {};
+    var displayMode = normalizeUserMenuDisplayMode(options.displayMode);
+    if (!displayMode) {
+      throw createUserMenuError(
+        USER_MENU_DISPLAY_MODE_ERROR_CODE,
+        "User menu display mode is required",
+      );
+    }
+    var tenantId = normalizeTenantId(options.tenantId);
+    if (!tenantId) {
+      throw createTenantIdError();
+    }
+    var logoutUrl = normalizeUserMenuLogoutUrl(options.logoutUrl);
+    var logoutLabel = normalizeUserMenuLabel(options.logoutLabel);
+    var avatarUrl = null;
+    if (displayMode === USER_MENU_DISPLAY_MODES.CUSTOM_AVATAR) {
+      avatarUrl = normalizeUserMenuAvatarUrl(
+        options.avatarUrl,
+        USER_MENU_CUSTOM_AVATAR_ERROR_CODE,
+        "Custom avatar URL is required",
+      );
+    }
+    var avatarLabel =
+      typeof options.avatarLabel === "string" && options.avatarLabel.trim()
+        ? options.avatarLabel.trim()
+        : null;
+    var menuItems = normalizeUserMenuItems(options.menuItems);
+    return {
+      displayMode: displayMode,
+      tenantId: tenantId,
+      logoutUrl: logoutUrl,
+      logoutLabel: logoutLabel,
+      avatarUrl: avatarUrl,
+      avatarLabel: avatarLabel,
+      menuItems: menuItems,
+    };
+  }
+
+  function createUserMenuDomId() {
+    userMenuCounter += 1;
+    return USER_MENU_MENU_ID_PREFIX + userMenuCounter;
+  }
+
+  function buildUserMenuItemsMarkup(menuItems) {
+    if (!menuItems || !menuItems.length) {
+      return "";
+    }
+    return menuItems
+      .map(function buildItemMarkup(item, index) {
+        var label = escapeHtml(item.label);
+        var indexValue = escapeHtml(String(index));
+        var baseAttributes =
+          'class="' +
+          USER_MENU_ROOT_CLASS +
+          '__menu-item" data-mpr-user="menu-item" role="menuitem" ' +
+          USER_MENU_ITEM_INDEX_ATTRIBUTE +
+          '="' +
+          indexValue +
+          '"';
+        if (item.action) {
+          return (
+            '<button type="button" ' +
+            baseAttributes +
+            " " +
+            USER_MENU_ITEM_ACTION_ATTRIBUTE +
+            '="' +
+            escapeHtml(item.action) +
+            '">' +
+            label +
+            "</button>"
+          );
+        }
+        return (
+          '<a ' +
+          baseAttributes +
+          ' href="' +
+          escapeHtml(item.href) +
+          '">' +
+          label +
+          "</a>"
+        );
+      })
+      .join("");
+  }
+
+  function buildUserMenuMarkup(config, menuId) {
+    var logoutLabel = escapeHtml(config.logoutLabel);
+    var menuIdValue = escapeHtml(menuId);
+    var menuItemsMarkup = buildUserMenuItemsMarkup(config.menuItems);
+    return (
+      '<div class="' +
+      USER_MENU_ROOT_CLASS +
+      '__layout">' +
+      '<button type="button" class="' +
+      USER_MENU_ROOT_CLASS +
+      '__trigger" data-mpr-user="trigger" aria-haspopup="true" aria-expanded="false" aria-controls="' +
+      menuIdValue +
+      '">' +
+      '<span class="' +
+      USER_MENU_ROOT_CLASS +
+      '__avatar" data-mpr-user="avatar">' +
+      '<img class="' +
+      USER_MENU_ROOT_CLASS +
+      '__avatar-image" data-mpr-user="avatar-image" alt="" />' +
+      "</span>" +
+      '<span class="' +
+      USER_MENU_ROOT_CLASS +
+      '__name" data-mpr-user="name"></span>' +
+      "</button>" +
+      '<div class="' +
+      USER_MENU_ROOT_CLASS +
+      '__menu" data-mpr-user="menu" id="' +
+      menuIdValue +
+      '" role="menu" aria-hidden="true">' +
+      menuItemsMarkup +
+      '<button type="button" class="' +
+      USER_MENU_ROOT_CLASS +
+      '__logout" data-mpr-user="logout" role="menuitem">' +
+      logoutLabel +
+      "</button>" +
+      "</div>" +
+      "</div>"
+    );
+  }
+
+  function resolveUserMenuElements(hostElement) {
+    return {
+      trigger: hostElement.querySelector('[data-mpr-user="trigger"]'),
+      avatarWrapper: hostElement.querySelector('[data-mpr-user="avatar"]'),
+      avatarImage: hostElement.querySelector('[data-mpr-user="avatar-image"]'),
+      name: hostElement.querySelector('[data-mpr-user="name"]'),
+      menu: hostElement.querySelector('[data-mpr-user="menu"]'),
+      logoutButton: hostElement.querySelector('[data-mpr-user="logout"]'),
+      menuItems: Array.prototype.slice.call(
+        hostElement.querySelectorAll(USER_MENU_ITEM_SELECTOR),
+      ),
+    };
+  }
+
+  function normalizeProfileString(value) {
+    if (typeof value !== "string") {
+      return "";
+    }
+    return value.trim();
+  }
+
+  function resolveProfileField(profile, fieldNames) {
+    if (!profile || typeof profile !== "object") {
+      return "";
+    }
+    for (var index = 0; index < fieldNames.length; index += 1) {
+      var fieldName = fieldNames[index];
+      if (!Object.prototype.hasOwnProperty.call(profile, fieldName)) {
+        continue;
+      }
+      var normalized = normalizeProfileString(profile[fieldName]);
+      if (normalized) {
+        return normalized;
+      }
+    }
+    return "";
+  }
+
+  function resolveProfileFullName(profile) {
+    return resolveProfileField(profile, USER_MENU_PROFILE_FULL_NAME_FIELDS);
+  }
+
+  function resolveProfileShortName(profile, fullName) {
+    var shortName = resolveProfileField(profile, USER_MENU_PROFILE_SHORT_NAME_FIELDS);
+    if (shortName) {
+      return shortName;
+    }
+    if (!fullName) {
+      return "";
+    }
+    var parts = fullName.split(/\s+/);
+    return parts.length ? parts[0] : "";
+  }
+
+  function resolveProfileAvatar(profile) {
+    return resolveProfileField(profile, USER_MENU_PROFILE_AVATAR_FIELDS);
+  }
+
+  function buildUserMenuProfile(profile, config) {
+    if (!profile || typeof profile !== "object") {
+      return null;
+    }
+    var fullName = resolveProfileFullName(profile);
+    var shortName = resolveProfileShortName(profile, fullName);
+    var avatarUrl =
+      config.displayMode === USER_MENU_DISPLAY_MODES.CUSTOM_AVATAR
+        ? config.avatarUrl
+        : normalizeUserMenuAvatarUrl(
+            resolveProfileAvatar(profile),
+            USER_MENU_PROFILE_ERROR_CODE,
+            "Profile avatar URL is required",
+          );
+    if (
+      config.displayMode === USER_MENU_DISPLAY_MODES.AVATAR_NAME &&
+      !shortName
+    ) {
+      throw createUserMenuError(
+        USER_MENU_PROFILE_ERROR_CODE,
+        "Profile short name is required",
+      );
+    }
+    if (
+      config.displayMode === USER_MENU_DISPLAY_MODES.AVATAR_FULL_NAME &&
+      !fullName
+    ) {
+      throw createUserMenuError(
+        USER_MENU_PROFILE_ERROR_CODE,
+        "Profile full name is required",
+      );
+    }
+    var displayName = "";
+    if (config.displayMode === USER_MENU_DISPLAY_MODES.AVATAR_NAME) {
+      displayName = shortName;
+    } else if (config.displayMode === USER_MENU_DISPLAY_MODES.AVATAR_FULL_NAME) {
+      displayName = fullName;
+    }
+    var altLabel =
+      config.avatarLabel ||
+      fullName ||
+      shortName ||
+      resolveProfileField(profile, USER_MENU_PROFILE_FULL_NAME_FIELDS);
+    return {
+      avatarUrl: avatarUrl,
+      displayName: displayName,
+      altLabel: altLabel,
+      profile: profile,
+    };
+  }
+
+  function applyUserProfileDataset(hostElement, profile) {
+    Object.keys(ATTRIBUTE_MAP).forEach(function (key) {
+      var attributeName = ATTRIBUTE_MAP[key];
+      setAttributeOrRemove(
+        hostElement,
+        attributeName,
+        profile ? profile[key] : null,
+      );
+    });
+  }
+
+  function resolveUserMenuEventTarget(hostElement) {
+    if (!hostElement) {
+      return null;
+    }
+    if (typeof hostElement.closest === "function") {
+      var scopedHost = hostElement.closest("mpr-header, mpr-login-button");
+      if (scopedHost && typeof scopedHost.addEventListener === "function") {
+        return scopedHost;
+      }
+    }
+    var documentObject =
+      hostElement.ownerDocument ||
+      global.document ||
+      (global.window && global.window.document) ||
+      null;
+    if (documentObject && typeof documentObject.addEventListener === "function") {
+      return documentObject;
+    }
+    return null;
+  }
+
+  function isUserMenuEventTarget(hostElement, elements, target) {
+    if (!target) {
+      return false;
+    }
+    if (hostElement && typeof hostElement.contains === "function") {
+      return hostElement.contains(target);
+    }
+    if (target === hostElement) {
+      return true;
+    }
+    if (!elements) {
+      return false;
+    }
+    return (
+      target === elements.trigger ||
+      target === elements.avatarWrapper ||
+      target === elements.avatarImage ||
+      target === elements.name ||
+      target === elements.menu ||
+      target === elements.logoutButton ||
+      (elements.menuItems && elements.menuItems.indexOf(target) !== -1)
+    );
+  }
+
+  function resolveLocationTarget(hostElement) {
+    var documentObject =
+      hostElement &&
+      hostElement.ownerDocument &&
+      hostElement.ownerDocument.defaultView
+        ? hostElement.ownerDocument.defaultView
+        : null;
+    if (documentObject && documentObject.location) {
+      return documentObject.location;
+    }
+    if (global.location) {
+      return global.location;
+    }
+    if (global.window && global.window.location) {
+      return global.window.location;
+    }
+    return null;
+  }
+
+  function requestTauthProfile() {
+    if (typeof global.getCurrentUser !== "function") {
+      throw createUserMenuError(
+        USER_MENU_TAUTH_MISSING_ERROR_CODE,
+        "TAuth helper getCurrentUser is required",
+      );
+    }
+    return global.getCurrentUser();
+  }
+
+  function requestTauthLogout() {
+    if (typeof global.logout !== "function") {
+      throw createUserMenuError(
+        USER_MENU_TAUTH_MISSING_ERROR_CODE,
+        "TAuth helper logout is required",
+      );
+    }
+    return global.logout();
+  }
+
+  function configureAuthTenant(tenantId) {
+    if (typeof global.setAuthTenantId === "function") {
+      global.setAuthTenantId(tenantId);
+    }
+  }
+
+  function applyUserMenuStatus(hostElement, status) {
+    hostElement.setAttribute("data-mpr-user-status", status);
+  }
+
+  function applyUserMenuOpenState(hostElement, elements, isOpen) {
+    hostElement.setAttribute("data-mpr-user-open", isOpen ? "true" : "false");
+    if (elements.trigger) {
+      elements.trigger.setAttribute("aria-expanded", isOpen ? "true" : "false");
+    }
+    if (elements.menu) {
+      elements.menu.setAttribute("aria-hidden", isOpen ? "false" : "true");
+    }
+  }
+
+  function clearUserMenuContent(elements) {
+    if (elements.avatarImage) {
+      elements.avatarImage.removeAttribute("src");
+      elements.avatarImage.removeAttribute("alt");
+    }
+    if (elements.name) {
+      elements.name.textContent = "";
+    }
+  }
+
+  function applyUserMenuProfile(hostElement, elements, config, profile) {
+    hostElement.setAttribute("data-mpr-user-mode", config.displayMode);
+    if (!profile) {
+      applyUserMenuStatus(hostElement, "unauthenticated");
+      applyUserProfileDataset(hostElement, null);
+      clearUserMenuContent(elements);
+      return;
+    }
+    var view = buildUserMenuProfile(profile, config);
+    if (!view) {
+      applyUserMenuStatus(hostElement, "unauthenticated");
+      applyUserProfileDataset(hostElement, null);
+      clearUserMenuContent(elements);
+      return;
+    }
+    applyUserMenuStatus(hostElement, "authenticated");
+    applyUserProfileDataset(hostElement, view.profile);
+    if (elements.avatarImage) {
+      elements.avatarImage.setAttribute("src", view.avatarUrl);
+      if (view.altLabel) {
+        elements.avatarImage.setAttribute("alt", view.altLabel);
+      } else {
+        elements.avatarImage.setAttribute("alt", "");
+      }
+    }
+    if (elements.name) {
+      elements.name.textContent = view.displayName;
+    }
+    if (elements.trigger && view.altLabel) {
+      elements.trigger.setAttribute("aria-label", view.altLabel);
+    }
+  }
+
+  function clearUserMenuError(hostElement) {
+    if (!hostElement || typeof hostElement.removeAttribute !== "function") {
+      return;
+    }
+    hostElement.removeAttribute("data-mpr-user-error");
+  }
+
+  function reportUserMenuError(hostElement, error) {
+    if (!hostElement) {
+      return;
+    }
+    /** @type {MprUiError} */
+    var errorObject =
+      error instanceof Error ? error : new Error(String(error));
+    var errorCode = errorObject.code || USER_MENU_GENERIC_ERROR_CODE;
+    hostElement.setAttribute("data-mpr-user-error", errorCode);
+    applyUserMenuStatus(hostElement, "error");
+    logError(errorCode, errorObject.message);
+    dispatchEvent(hostElement, "mpr-user:error", {
+      code: errorCode,
+      message: errorObject.message,
+    });
   }
 
   var SETTINGS_ROOT_CLASS = "mpr-settings";
@@ -6719,6 +7792,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__headerController = null;
           this.__headerSlots = null;
           this.__headerSlotsCaptured = false;
+          this.__headerUserMenuElement = null;
         }
         static get observedAttributes() {
           return HEADER_ATTRIBUTE_OBSERVERS;
@@ -6748,6 +7822,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             return;
           }
           this.__headerSlots = captureSlotNodes(this, HEADER_SLOT_NAMES);
+          this.__headerUserMenuElement = resolveHeaderUserMenuSlot(
+            this.__headerSlots,
+          );
+          if (this.__headerUserMenuElement) {
+            prepareHeaderUserMenuSlotElement(this.__headerUserMenuElement);
+          }
           this.__headerSlotsCaptured = true;
         }
         __renderHeader() {
@@ -6755,10 +7835,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             return;
           }
           var options = buildHeaderOptionsFromAttributes(this);
+          var userMenuElement = this.__headerUserMenuElement;
           if (this.__headerController) {
             this.__headerController.update(options);
           } else {
-            this.__headerController = createSiteHeaderController(this, options);
+            this.__headerController = createSiteHeaderController(this, options, {
+              userMenuElement: userMenuElement,
+            });
           }
           if (this.__headerSlots) {
             var elements = resolveHeaderElements(this);
@@ -6953,6 +8036,474 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
               dispatchEvent(this, "mpr-login:error", detail || {});
             }.bind(this),
           );
+        }
+      };
+    });
+  }
+
+  function defineUserMenuElement(registry) {
+    registry.define("mpr-user", function setupUserElement(Base) {
+      return class MprUserElement extends Base {
+        constructor() {
+          super();
+          this.__userMenuConfig = null;
+          this.__userMenuElements = null;
+          this.__menuDomId = "";
+          this.__profile = null;
+          this.__isOpen = false;
+          this.__authEventTarget = null;
+          this.__dismissTarget = null;
+          this.__boundTriggerHandler = this.__handleTriggerClick.bind(this);
+          this.__boundLogoutHandler = this.__handleLogoutClick.bind(this);
+          this.__boundMenuItemHandler = this.__handleMenuItemClick.bind(this);
+          this.__boundOutsideClickHandler = this.__handleOutsideClick.bind(this);
+          this.__boundEscapeHandler = this.__handleEscape.bind(this);
+          this.__boundAuthHandler = this.__handleAuthEvent.bind(this);
+        }
+        static get observedAttributes() {
+          return USER_MENU_ATTRIBUTE_NAMES;
+        }
+        render() {
+          this.__applyUserMenu();
+        }
+        update() {
+          this.__applyUserMenu();
+        }
+        destroy() {
+          this.__detachMenuEvents();
+          this.__detachDismissEvents();
+          this.__detachAuthEvents();
+          this.__userMenuElements = null;
+          this.__userMenuConfig = null;
+          this.__profile = null;
+          this.__isOpen = false;
+          clearUserMenuError(this);
+          this.removeAttribute("data-mpr-user-status");
+          this.removeAttribute("data-mpr-user-mode");
+          this.removeAttribute("data-mpr-user-open");
+          applyUserProfileDataset(this, null);
+        }
+        __applyUserMenu() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          var documentObject =
+            this.ownerDocument ||
+            global.document ||
+            (global.window && global.window.document) ||
+            null;
+          ensureUserMenuStyles(documentObject);
+          var rawOptions = buildUserMenuOptionsFromAttributes(this);
+          var config = null;
+          try {
+            config = normalizeUserMenuOptions(rawOptions);
+          } catch (error) {
+            this.__applyUserMenuError(error);
+            return;
+          }
+          clearUserMenuError(this);
+          this.__userMenuConfig = config;
+          this.classList.add(USER_MENU_ROOT_CLASS);
+          if (!this.__menuDomId) {
+            this.__menuDomId = createUserMenuDomId();
+          }
+          this.__detachMenuEvents();
+          this.__detachDismissEvents();
+          this.innerHTML = buildUserMenuMarkup(config, this.__menuDomId);
+          this.__userMenuElements = resolveUserMenuElements(this);
+          applyUserMenuOpenState(this, this.__userMenuElements, this.__isOpen);
+          try {
+            applyUserMenuProfile(this, this.__userMenuElements, config, this.__profile);
+          } catch (error) {
+            reportUserMenuError(this, error);
+            return;
+          }
+          this.__attachMenuEvents();
+          this.__attachAuthEvents();
+          this.__refreshProfile();
+        }
+        __applyUserMenuError(error) {
+          this.__userMenuConfig = null;
+          this.__profile = null;
+          this.__isOpen = false;
+          this.__detachMenuEvents();
+          this.__detachDismissEvents();
+          this.__detachAuthEvents();
+          if (Object.prototype.hasOwnProperty.call(this, "innerHTML")) {
+            this.innerHTML = "";
+          }
+          reportUserMenuError(this, error);
+        }
+        __attachMenuEvents() {
+          if (!this.__userMenuElements) {
+            return;
+          }
+          if (
+            this.__userMenuElements.trigger &&
+            typeof this.__userMenuElements.trigger.addEventListener === "function"
+          ) {
+            this.__userMenuElements.trigger.addEventListener(
+              "click",
+              this.__boundTriggerHandler,
+            );
+          }
+          if (
+            this.__userMenuElements.menuItems &&
+            this.__userMenuElements.menuItems.length
+          ) {
+            for (
+              var menuItemIndex = 0;
+              menuItemIndex < this.__userMenuElements.menuItems.length;
+              menuItemIndex += 1
+            ) {
+              var menuItem = this.__userMenuElements.menuItems[menuItemIndex];
+              if (menuItem && typeof menuItem.addEventListener === "function") {
+                menuItem.addEventListener("click", this.__boundMenuItemHandler);
+              }
+            }
+          }
+          if (
+            this.__userMenuElements.logoutButton &&
+            typeof this.__userMenuElements.logoutButton.addEventListener === "function"
+          ) {
+            this.__userMenuElements.logoutButton.addEventListener(
+              "click",
+              this.__boundLogoutHandler,
+            );
+          }
+        }
+        __detachMenuEvents() {
+          if (!this.__userMenuElements) {
+            return;
+          }
+          if (
+            this.__userMenuElements.trigger &&
+            typeof this.__userMenuElements.trigger.removeEventListener === "function"
+          ) {
+            this.__userMenuElements.trigger.removeEventListener(
+              "click",
+              this.__boundTriggerHandler,
+            );
+          }
+          if (
+            this.__userMenuElements.menuItems &&
+            this.__userMenuElements.menuItems.length
+          ) {
+            for (
+              var menuItemIndex = 0;
+              menuItemIndex < this.__userMenuElements.menuItems.length;
+              menuItemIndex += 1
+            ) {
+              var menuItem = this.__userMenuElements.menuItems[menuItemIndex];
+              if (menuItem && typeof menuItem.removeEventListener === "function") {
+                menuItem.removeEventListener("click", this.__boundMenuItemHandler);
+              }
+            }
+          }
+          if (
+            this.__userMenuElements.logoutButton &&
+            typeof this.__userMenuElements.logoutButton.removeEventListener === "function"
+          ) {
+            this.__userMenuElements.logoutButton.removeEventListener(
+              "click",
+              this.__boundLogoutHandler,
+            );
+          }
+        }
+        __attachAuthEvents() {
+          var target = resolveUserMenuEventTarget(this);
+          if (target === this.__authEventTarget) {
+            return;
+          }
+          this.__detachAuthEvents();
+          this.__authEventTarget = target;
+          if (!target) {
+            return;
+          }
+          target.addEventListener("mpr-ui:auth:authenticated", this.__boundAuthHandler);
+          target.addEventListener("mpr-ui:auth:unauthenticated", this.__boundAuthHandler);
+        }
+        __detachAuthEvents() {
+          if (!this.__authEventTarget) {
+            return;
+          }
+          this.__authEventTarget.removeEventListener(
+            "mpr-ui:auth:authenticated",
+            this.__boundAuthHandler,
+          );
+          this.__authEventTarget.removeEventListener(
+            "mpr-ui:auth:unauthenticated",
+            this.__boundAuthHandler,
+          );
+          this.__authEventTarget = null;
+        }
+        __attachDismissEvents() {
+          var documentObject =
+            this.ownerDocument ||
+            global.document ||
+            (global.window && global.window.document) ||
+            null;
+          if (
+            !documentObject ||
+            typeof documentObject.addEventListener !== "function"
+          ) {
+            return;
+          }
+          if (documentObject === this.__dismissTarget) {
+            return;
+          }
+          this.__detachDismissEvents();
+          this.__dismissTarget = documentObject;
+          documentObject.addEventListener("click", this.__boundOutsideClickHandler);
+          documentObject.addEventListener("keydown", this.__boundEscapeHandler);
+        }
+        __detachDismissEvents() {
+          if (!this.__dismissTarget) {
+            return;
+          }
+          if (typeof this.__dismissTarget.removeEventListener === "function") {
+            this.__dismissTarget.removeEventListener(
+              "click",
+              this.__boundOutsideClickHandler,
+            );
+            this.__dismissTarget.removeEventListener(
+              "keydown",
+              this.__boundEscapeHandler,
+            );
+          }
+          this.__dismissTarget = null;
+        }
+        __refreshProfile() {
+          if (!this.__userMenuConfig) {
+            return;
+          }
+          var currentConfig = this.__userMenuConfig;
+          configureAuthTenant(currentConfig.tenantId);
+          var profileResult;
+          try {
+            profileResult = requestTauthProfile();
+          } catch (error) {
+            reportUserMenuError(this, error);
+            return;
+          }
+          if (profileResult && typeof profileResult.then === "function") {
+            profileResult
+              .then(
+                function handleProfile(profile) {
+                  if (this.__userMenuConfig !== currentConfig) {
+                    return;
+                  }
+                  this.__setProfile(profile, "tauth");
+                }.bind(this),
+              )
+              .catch(
+                function handleProfileError(error) {
+                  reportUserMenuError(this, error);
+                }.bind(this),
+              );
+            return;
+          }
+          this.__setProfile(profileResult, "tauth");
+        }
+        __handleAuthEvent(eventObject) {
+          if (!this.__userMenuConfig) {
+            return;
+          }
+          var eventType = eventObject ? eventObject.type : "";
+          if (eventType === "mpr-ui:auth:authenticated") {
+            var profile =
+              eventObject && eventObject.detail ? eventObject.detail.profile : null;
+            this.__setProfile(profile, "event");
+            return;
+          }
+          if (eventType === "mpr-ui:auth:unauthenticated") {
+            this.__setProfile(null, "event");
+          }
+        }
+        __setProfile(profile, source) {
+          var resolvedProfile = null;
+          if (profile !== null && profile !== undefined) {
+            if (!profile || typeof profile !== "object") {
+              reportUserMenuError(
+                this,
+                createUserMenuError(
+                  USER_MENU_PROFILE_ERROR_CODE,
+                  "Profile payload is invalid",
+                ),
+              );
+              return;
+            }
+            resolvedProfile = profile;
+          }
+          this.__profile = resolvedProfile;
+          if (!this.__userMenuElements || !this.__userMenuConfig) {
+            return;
+          }
+          try {
+            applyUserMenuProfile(
+              this,
+              this.__userMenuElements,
+              this.__userMenuConfig,
+              resolvedProfile,
+            );
+            clearUserMenuError(this);
+          } catch (error) {
+            reportUserMenuError(this, error);
+            return;
+          }
+          if (!resolvedProfile) {
+            this.__setMenuOpen(false, source || "profile");
+          }
+        }
+        __handleTriggerClick(eventObject) {
+          if (eventObject && typeof eventObject.preventDefault === "function") {
+            eventObject.preventDefault();
+          }
+          this.__setMenuOpen(!this.__isOpen, "user");
+        }
+        __handleOutsideClick(eventObject) {
+          if (!this.__isOpen || !eventObject) {
+            return;
+          }
+          var target = eventObject.target || null;
+          if (isUserMenuEventTarget(this, this.__userMenuElements, target)) {
+            return;
+          }
+          this.__setMenuOpen(false, "outside");
+        }
+        __handleEscape(eventObject) {
+          if (!this.__isOpen || !eventObject) {
+            return;
+          }
+          var key = eventObject.key || eventObject.keyCode || "";
+          if (key === "Escape" || key === "Esc" || key === 27) {
+            this.__setMenuOpen(false, "escape");
+          }
+        }
+        __handleMenuItemClick(eventObject) {
+          var config = this.__userMenuConfig;
+          if (!config || !config.menuItems || !config.menuItems.length) {
+            return;
+          }
+          var menuItemElement =
+            eventObject && eventObject.currentTarget ? eventObject.currentTarget : null;
+          if (!menuItemElement || typeof menuItemElement.getAttribute !== "function") {
+            return;
+          }
+          var menuItemIndexValue = menuItemElement.getAttribute(
+            USER_MENU_ITEM_INDEX_ATTRIBUTE,
+          );
+          if (menuItemIndexValue === null) {
+            reportUserMenuError(
+              this,
+              createUserMenuError(
+                USER_MENU_ITEMS_ERROR_CODE,
+                "User menu item index is required",
+              ),
+            );
+            return;
+          }
+          var menuItemIndex = Number(menuItemIndexValue);
+          if (!Number.isFinite(menuItemIndex) || menuItemIndex < 0) {
+            reportUserMenuError(
+              this,
+              createUserMenuError(
+                USER_MENU_ITEMS_ERROR_CODE,
+                "User menu item index is invalid",
+              ),
+            );
+            return;
+          }
+          var menuItem = config.menuItems[menuItemIndex];
+          if (!menuItem) {
+            reportUserMenuError(
+              this,
+              createUserMenuError(
+                USER_MENU_ITEMS_ERROR_CODE,
+                "User menu item is missing",
+              ),
+            );
+            return;
+          }
+          if (!menuItem.action) {
+            return;
+          }
+          if (eventObject && typeof eventObject.preventDefault === "function") {
+            eventObject.preventDefault();
+          }
+          this.__setMenuOpen(false, "menu-item");
+          dispatchEvent(this, USER_MENU_ITEM_EVENT, {
+            action: menuItem.action,
+            label: menuItem.label,
+            index: menuItemIndex,
+          });
+        }
+        __handleLogoutClick(eventObject) {
+          if (eventObject && typeof eventObject.preventDefault === "function") {
+            eventObject.preventDefault();
+          }
+          var config = this.__userMenuConfig;
+          if (!config) {
+            return;
+          }
+          configureAuthTenant(config.tenantId);
+          this.__setMenuOpen(false, "logout");
+          var logoutResult;
+          try {
+            logoutResult = requestTauthLogout();
+          } catch (error) {
+            reportUserMenuError(this, error);
+            return;
+          }
+          var handleLogoutSuccess = function handleLogoutSuccess() {
+            this.__setProfile(null, "logout");
+            dispatchEvent(this, "mpr-user:logout", {
+              redirectUrl: config.logoutUrl,
+            });
+            var locationTarget = resolveLocationTarget(this);
+            if (locationTarget && typeof locationTarget.assign === "function") {
+              locationTarget.assign(config.logoutUrl);
+            } else if (locationTarget) {
+              locationTarget.href = config.logoutUrl;
+            }
+          }.bind(this);
+          var handleLogoutFailure = function handleLogoutFailure(error) {
+            /** @type {MprUiError | null} */
+            var errorObject = error instanceof Error ? error : null;
+            if (!errorObject || !errorObject.code) {
+              errorObject = createUserMenuError(
+                USER_MENU_LOGOUT_FAILED_ERROR_CODE,
+                errorObject && errorObject.message
+                  ? errorObject.message
+                  : "Logout failed",
+              );
+            }
+            reportUserMenuError(this, errorObject);
+          }.bind(this);
+          if (logoutResult && typeof logoutResult.then === "function") {
+            logoutResult.then(handleLogoutSuccess).catch(handleLogoutFailure);
+            return;
+          }
+          handleLogoutSuccess();
+        }
+        __setMenuOpen(nextValue, source) {
+          var nextState = Boolean(nextValue);
+          var changed = nextState !== this.__isOpen;
+          this.__isOpen = nextState;
+          if (this.__userMenuElements) {
+            applyUserMenuOpenState(this, this.__userMenuElements, nextState);
+          }
+          if (nextState) {
+            this.__attachDismissEvents();
+          } else {
+            this.__detachDismissEvents();
+          }
+          if (changed && source && source !== "render") {
+            dispatchEvent(this, "mpr-user:toggle", {
+              open: nextState,
+              source: source,
+            });
+          }
         }
       };
     });
@@ -7351,6 +8902,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     defineFooterElement(registry);
     defineThemeToggleElement(registry);
     defineLoginButtonElement(registry);
+    defineUserMenuElement(registry);
     defineSettingsElement(registry);
     defineSitesElement(registry);
     defineBandElement(registry);
