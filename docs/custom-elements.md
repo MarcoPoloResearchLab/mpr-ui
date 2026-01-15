@@ -132,6 +132,7 @@ Profile menu for TAuth-backed sessions. It queries `getCurrentUser()` from `taut
 | `tauth-tenant-id` | `string` | Required. Tenant identifier forwarded to the TAuth helper (`setAuthTenantId` when available). |
 | `avatar-url` | `string` | Required when `display-mode="custom-avatar"`. |
 | `avatar-label` | `string` | Optional accessible label for the avatar. Falls back to profile name. |
+| `menu-items` | `JSON` | Optional array of `{ label, href }` objects rendered above the log out button. |
 
 **Events**
 
@@ -156,6 +157,7 @@ The element can live standalone or inside `<mpr-header>` / `<mpr-footer>`. When 
   logout-url="/auth/logout"
   logout-label="Log out"
   tauth-tenant-id="mpr-sites"
+  menu-items='[{"label":"Account settings","href":"/settings"}]'
 ></mpr-user>
 ```
 

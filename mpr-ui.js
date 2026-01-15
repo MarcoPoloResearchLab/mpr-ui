@@ -205,6 +205,7 @@
   var USER_MENU_LOGOUT_URL_ERROR_CODE = "mpr-ui.user.missing_logout_url";
   var USER_MENU_LOGOUT_LABEL_ERROR_CODE = "mpr-ui.user.missing_logout_label";
   var USER_MENU_CUSTOM_AVATAR_ERROR_CODE = "mpr-ui.user.missing_custom_avatar";
+  var USER_MENU_ITEMS_ERROR_CODE = "mpr-ui.user.invalid_menu_items";
   var USER_MENU_TAUTH_MISSING_ERROR_CODE = "mpr-ui.user.tauth_missing";
   var USER_MENU_PROFILE_ERROR_CODE = "mpr-ui.user.invalid_profile";
   var USER_MENU_LOGOUT_FAILED_ERROR_CODE = "mpr-ui.user.logout_failed";
@@ -421,6 +422,7 @@
     "tauth-tenant-id",
     "avatar-url",
     "avatar-label",
+    "menu-items",
   ]);
 
   var SETTINGS_ATTRIBUTE_NAMES = Object.freeze([
@@ -4408,6 +4410,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "__menu{display:flex}" +
     "." +
     USER_MENU_ROOT_CLASS +
+    "__menu-item{display:flex;align-items:center;gap:0.5rem;padding:calc(0.4rem * var(--mpr-user-scale,1)) calc(0.75rem * var(--mpr-user-scale,1));border-radius:0.65rem;text-decoration:none;background:transparent;color:var(--mpr-color-text-primary,#e2e8f0);font-weight:600}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
+    "__menu-item:hover{background:var(--mpr-chip-hover-bg,rgba(148,163,184,0.32))}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
+    "__menu-item:focus-visible{outline:none;box-shadow:0 0 0 2px rgba(56,189,248,0.4)}" +
+    "." +
+    USER_MENU_ROOT_CLASS +
     "__logout{border:none;border-radius:999px;padding:calc(0.4rem * var(--mpr-user-scale,1)) calc(0.75rem * var(--mpr-user-scale,1));background:var(--mpr-chip-bg,rgba(148,163,184,0.18));color:var(--mpr-color-text-primary,#e2e8f0);cursor:pointer;font-weight:600;text-align:left}" +
     "." +
     USER_MENU_ROOT_CLASS +
@@ -4470,6 +4481,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (avatarLabel !== null) {
       options.avatarLabel = avatarLabel;
     }
+    var menuItems = hostElement.getAttribute("menu-items");
+    if (menuItems !== null) {
+      options.menuItems = menuItems;
+    }
     return options;
   }
 
@@ -4531,6 +4546,85 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     );
   }
 
+  function parseUserMenuItemsValue(rawValue) {
+    if (rawValue === null || rawValue === undefined) {
+      return null;
+    }
+    if (Array.isArray(rawValue)) {
+      return rawValue.slice();
+    }
+    if (typeof rawValue === "string") {
+      var trimmed = rawValue.trim();
+      if (!trimmed) {
+        return null;
+      }
+      try {
+        return JSON.parse(trimmed);
+      } catch (_error) {
+        throw createUserMenuError(
+          USER_MENU_ITEMS_ERROR_CODE,
+          "User menu items must be valid JSON",
+        );
+      }
+    }
+    if (typeof rawValue === "object") {
+      return rawValue;
+    }
+    throw createUserMenuError(
+      USER_MENU_ITEMS_ERROR_CODE,
+      "User menu items must be an array",
+    );
+  }
+
+  function normalizeUserMenuItem(rawItem, index) {
+    if (!rawItem || typeof rawItem !== "object") {
+      throw createUserMenuError(
+        USER_MENU_ITEMS_ERROR_CODE,
+        "User menu item at index " + index + " is invalid",
+      );
+    }
+    var label = normalizeRequiredString(
+      rawItem.label,
+      USER_MENU_ITEMS_ERROR_CODE,
+      "User menu item label is required",
+    );
+    var href = normalizeRequiredString(
+      rawItem.href,
+      USER_MENU_ITEMS_ERROR_CODE,
+      "User menu item href is required",
+    );
+    var sanitizedHref = sanitizeHref(href);
+    if (sanitizedHref === "#" && href !== "#") {
+      throw createUserMenuError(
+        USER_MENU_ITEMS_ERROR_CODE,
+        "User menu item href is invalid",
+      );
+    }
+    return {
+      label: label,
+      href: sanitizedHref,
+    };
+  }
+
+  function normalizeUserMenuItems(rawValue) {
+    var parsedItems = parseUserMenuItemsValue(rawValue);
+    if (parsedItems === null) {
+      return null;
+    }
+    if (!Array.isArray(parsedItems)) {
+      throw createUserMenuError(
+        USER_MENU_ITEMS_ERROR_CODE,
+        "User menu items must be an array",
+      );
+    }
+    if (!parsedItems.length) {
+      return null;
+    }
+    return parsedItems.map(function normalizeEntry(entry, index) {
+      return normalizeUserMenuItem(entry, index);
+    });
+  }
+
   function normalizeUserMenuAvatarUrl(value, errorCode, message) {
     var trimmed = normalizeRequiredString(value, errorCode, message);
     if (trimmed.indexOf("data:") === 0 || trimmed.indexOf("blob:") === 0) {
@@ -4570,6 +4664,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       typeof options.avatarLabel === "string" && options.avatarLabel.trim()
         ? options.avatarLabel.trim()
         : null;
+    var menuItems = normalizeUserMenuItems(options.menuItems);
     return {
       displayMode: displayMode,
       tenantId: tenantId,
@@ -4577,6 +4672,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       logoutLabel: logoutLabel,
       avatarUrl: avatarUrl,
       avatarLabel: avatarLabel,
+      menuItems: menuItems,
     };
   }
 
@@ -4585,9 +4681,31 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return USER_MENU_MENU_ID_PREFIX + userMenuCounter;
   }
 
+  function buildUserMenuItemsMarkup(menuItems) {
+    if (!menuItems || !menuItems.length) {
+      return "";
+    }
+    return menuItems
+      .map(function buildItemMarkup(item) {
+        var label = escapeHtml(item.label);
+        var href = escapeHtml(item.href);
+        return (
+          '<a class="' +
+          USER_MENU_ROOT_CLASS +
+          '__menu-item" data-mpr-user="menu-item" role="menuitem" href="' +
+          href +
+          '">' +
+          label +
+          "</a>"
+        );
+      })
+      .join("");
+  }
+
   function buildUserMenuMarkup(config, menuId) {
     var logoutLabel = escapeHtml(config.logoutLabel);
     var menuIdValue = escapeHtml(menuId);
+    var menuItemsMarkup = buildUserMenuItemsMarkup(config.menuItems);
     return (
       '<div class="' +
       USER_MENU_ROOT_CLASS +
@@ -4613,6 +4731,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       '__menu" data-mpr-user="menu" id="' +
       menuIdValue +
       '" role="menu" aria-hidden="true">' +
+      menuItemsMarkup +
       '<button type="button" class="' +
       USER_MENU_ROOT_CLASS +
       '__logout" data-mpr-user="logout" role="menuitem">' +

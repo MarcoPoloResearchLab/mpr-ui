@@ -65,6 +65,14 @@
         tauth-tenant-id="tenant-test"
       ></mpr-user>
       <mpr-user
+        id="fixture-user-menu-items"
+        display-mode="avatar-name"
+        logout-url="#menu-items"
+        logout-label="Log out"
+        tauth-tenant-id="tenant-test"
+        menu-items='[{"label":"Account settings","href":"/settings"},{"label":"Billing","href":"/billing"}]'
+      ></mpr-user>
+      <mpr-user
         id="fixture-user-custom"
         display-mode="custom-avatar"
         avatar-url="https://cdn.example.com/custom.png"

@@ -10,7 +10,7 @@ This guide walks through the requirements and steps needed to wire `mpr-ui` comp
 4. **CORS** – when serving the frontend from a different origin (e.g., `http://localhost:8000`), ensure `TAUTH_ENABLE_CORS=true` and list every UI origin in `TAUTH_CORS_ORIGIN_1` / `TAUTH_CORS_ORIGIN_2`. Add `https://accounts.google.com` as `TAUTH_CORS_ORIGIN_3` and keep it in `TAUTH_CORS_EXCEPTION_1`—the GIS iframe issues the `/auth/nonce` and `/auth/google` calls from that origin, so omitting it results in `auth.login.nonce_mismatch`.
 5. **Tenant ID** – TAuth requires the `X-TAuth-Tenant` header. Set `tauth-tenant-id` on `<mpr-header>` / `<mpr-login-button>` to the tenant configured in TAuth.
 6. **tauth.js helper** – TAuth exposes `/tauth.js`. This script keeps sessions renewed and surfaces `initAuthClient`, `getCurrentUser`, `logout`, and the nonce/exchange helpers that `mpr-ui` prefers when present.
-7. **User menu** – `<mpr-user>` consumes `getCurrentUser` and `logout` from `tauth.js`, plus `tauth-tenant-id`, `display-mode`, `logout-url`, and `logout-label` attributes to render the profile and redirect after log out.
+7. **User menu** – `<mpr-user>` consumes `getCurrentUser` and `logout` from `tauth.js`, plus `tauth-tenant-id`, `display-mode`, `logout-url`, `logout-label`, and optional `menu-items` attributes to render the profile and redirect after log out.
 
 ## Nonce behavior (GIS ↔ mpr-ui ↔ TAuth)
 
@@ -75,12 +75,13 @@ See `tools/TAuth/README.md` (“Google nonce handling”) and `docs/demo-index-a
 
 4. **(Optional) Add a user menu**
    ```html
-   <mpr-user
-     display-mode="avatar-name"
-     logout-url="/auth/logout"
-     logout-label="Log out"
-     tauth-tenant-id="REPLACE_WITH_TENANT_ID"
-   ></mpr-user>
+  <mpr-user
+    display-mode="avatar-name"
+    logout-url="/auth/logout"
+    logout-label="Log out"
+    tauth-tenant-id="REPLACE_WITH_TENANT_ID"
+    menu-items='[{"label":"Account settings","href":"/settings"}]'
+  ></mpr-user>
    ```
    Place `<mpr-user>` inside `<mpr-header>`, `<mpr-footer>`, or anywhere else on the page. It listens for `mpr-ui:auth:*` events when available and falls back to `getCurrentUser()` on load.
 

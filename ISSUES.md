@@ -10,6 +10,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   Resolved: added `<mpr-user>` element with avatar display modes, TAuth logout redirect, and event hooks; covered by unit and Playwright tests. Tests: `npm test`.
 - [x] [MU-119] add `<mpr-user>` to `demo/tauth-demo.html` so the profile menu is visible in the TAuth demo.
   Resolved: added the user menu section and aligned demo config updates for tenant ID. Tests: `npm test`.
+- [x] [MU-126] add `menu-items` attribute to `<mpr-user>` to render menu links above the logout action.
+  Resolved: parsed/validated menu-items JSON, rendered menu links with styling, and added unit + Playwright coverage. Tests: `node --test tests/custom-elements-header-footer.test.js`, `npx playwright test tests/e2e/user-menu.spec.js`.
 
 Use the current styling of the logged in user in gravity as an inspiration. the elemtn shall support theming, and all four of the light switches.
 

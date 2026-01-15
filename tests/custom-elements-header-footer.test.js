@@ -1790,6 +1790,50 @@ test('mpr-user renders avatar modes from TAuth profile data', () => {
   });
 });
 
+test('mpr-user renders menu items when configured', () => {
+  resetEnvironment();
+  loadLibrary();
+  global.getCurrentUser = function getCurrentUser() {
+    return {
+      display: 'Ada Lovelace',
+      given_name: 'Ada',
+      avatar_url: 'https://cdn.example.com/avatar.png',
+      user_email: 'ada@example.com',
+    };
+  };
+  global.logout = function logout() {
+    return Promise.resolve();
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+
+  const harness = createUserElementHarness();
+  const element = harness.element;
+  element.setAttribute('display-mode', 'avatar-name');
+  element.setAttribute('logout-url', '#signed-out');
+  element.setAttribute('logout-label', 'Log out');
+  element.setAttribute('tauth-tenant-id', 'tenant-test');
+  element.setAttribute(
+    'menu-items',
+    JSON.stringify([
+      { label: 'Account settings', href: '/settings' },
+      { label: 'Billing', href: '/billing' },
+    ]),
+  );
+
+  element.connectedCallback();
+
+  assert.match(
+    element.innerHTML,
+    /data-mpr-user="menu-item"[^>]*>Account settings</,
+    'menu item labels render above logout',
+  );
+  assert.match(
+    element.innerHTML,
+    /data-mpr-user="menu-item"[^>]*href="\/billing"/,
+    'menu item hrefs are rendered',
+  );
+});
+
 test('mpr-user toggles menu and triggers logout redirect', async () => {
   resetEnvironment();
   loadLibrary();
@@ -1895,6 +1939,17 @@ test('mpr-user validates required attributes', () => {
         'tauth-tenant-id': 'tenant-test',
       },
       expectedError: 'mpr-ui.user.missing_custom_avatar',
+    },
+    {
+      label: 'invalid menu items',
+      attributes: {
+        'display-mode': 'avatar',
+        'logout-url': '#signed-out',
+        'logout-label': 'Log out',
+        'tauth-tenant-id': 'tenant-test',
+        'menu-items': 'not-json',
+      },
+      expectedError: 'mpr-ui.user.invalid_menu_items',
     },
   ];
 

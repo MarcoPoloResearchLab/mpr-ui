@@ -6,6 +6,7 @@
 
 - Validate user profile at edge during authentication; fail fast on invalid profiles.
 - MU-118: Add `<mpr-user>` profile menu with avatar modes, TAuth-backed log out, and event hooks.
+- MU-126: Add `menu-items` JSON attribute to `<mpr-user>` to render menu links above the logout action.
 
 ### Improvements ⚙️
 
@@ -35,6 +36,7 @@
 - Add regression coverage asserting the TAuth demo loads tauth.js from a CDN-hosted URL and local mpr-ui assets.
 - Update header unit coverage to ensure slotted user menus preserve explicit display-mode overrides.
 - Add Playwright coverage for avatar-only styling on the `<mpr-user>` menu.
+- Add unit and Playwright coverage for `menu-items` rendering in the `<mpr-user>` menu.
 
 ### Docs 📚
 
