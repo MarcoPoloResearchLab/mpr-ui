@@ -7,6 +7,7 @@
 - Validate user profile at edge during authentication; fail fast on invalid profiles.
 - MU-118: Add `<mpr-user>` profile menu with avatar modes, TAuth-backed log out, and event hooks.
 - MU-126: Add `menu-items` JSON attribute to `<mpr-user>` to render menu links above the logout action.
+- MU-127: Add action menu items to `<mpr-user>` that dispatch `mpr-user:menu-item` events.
 
 ### Improvements ⚙️
 
@@ -16,6 +17,7 @@
 - Update footer theme config fixtures to use canonical `variant` key.
 - Update TAuth script source to HTTPS and improve integration documentation in README.
 - Update the TAuth demo to showcase the `<mpr-user>` profile menu.
+- Update the TAuth demo to open a settings modal from the `<mpr-user>` menu and remove the header settings button.
 - Refresh the TAuth demo configuration to use YAML config + `TAUTH_*` environment variables with tenant header override enabled.
 - MU-121: Replace the signed-in header layout with the `<mpr-user>` avatar menu and forward tenant/logout attributes.
 - Refresh the local TAuth demo config defaults (CORS origins, docker-compose.yml wiring, local helper URL).
@@ -37,6 +39,7 @@
 - Update header unit coverage to ensure slotted user menus preserve explicit display-mode overrides.
 - Add Playwright coverage for avatar-only styling on the `<mpr-user>` menu.
 - Add unit and Playwright coverage for `menu-items` rendering in the `<mpr-user>` menu.
+- Add unit and Playwright coverage for action menu items in the `<mpr-user>` menu.
 
 ### Docs 📚
 
@@ -45,6 +48,7 @@
 - Document `<mpr-user>` attributes, events, and TAuth requirements across README and integration guides.
 - Refresh demo and integration docs for the header user menu, logout redirect wiring, and local Compose setup.
 - Document slotted `<mpr-user>` usage inside `<mpr-header>`.
+- Document action menu items and the `mpr-user:menu-item` event in `<mpr-user>` docs.
 
 ## [v3.3.0]
 
