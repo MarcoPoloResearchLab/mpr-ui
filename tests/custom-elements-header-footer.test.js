@@ -633,7 +633,8 @@ function createSitesElementHarness(links) {
   return { element, anchors };
 }
 
-function createUserElementHarness() {
+function createUserElementHarness(options) {
+  const settings = Object.assign({ menuItems: [] }, options);
   const UserElement = global.customElements.get('mpr-user');
   assert.ok(UserElement, 'mpr-user is defined');
   const trigger = createStubNode({ supportsEvents: true, attributes: true });
@@ -652,7 +653,24 @@ function createUserElementHarness() {
     ['[data-mpr-user="logout"]', logoutButton],
   ]);
 
-  const element = attachHostApi(new UserElement(), selectorMap);
+  const menuItems = Array.isArray(settings.menuItems)
+    ? settings.menuItems.map((menuItem, index) => {
+        const menuItemNode = createStubNode({
+          attributes: true,
+          supportsEvents: true,
+        });
+        menuItemNode.setAttribute('data-mpr-user-index', String(index));
+        if (menuItem && menuItem.action) {
+          menuItemNode.setAttribute('data-mpr-user-action', menuItem.action);
+        }
+        return menuItemNode;
+      })
+    : [];
+  const multiSelectorMap = new Map([
+    ['[data-mpr-user="menu-item"]', menuItems],
+  ]);
+
+  const element = attachHostApi(new UserElement(), selectorMap, multiSelectorMap);
   element.dataset = element.dataset || {};
   return {
     element,
@@ -662,6 +680,7 @@ function createUserElementHarness() {
     name,
     menu,
     logoutButton,
+    menuItems,
   };
 }
 
@@ -1790,6 +1809,96 @@ test('mpr-user renders avatar modes from TAuth profile data', () => {
   });
 });
 
+test('mpr-user renders menu items when configured', () => {
+  resetEnvironment();
+  loadLibrary();
+  global.getCurrentUser = function getCurrentUser() {
+    return {
+      display: 'Ada Lovelace',
+      given_name: 'Ada',
+      avatar_url: 'https://cdn.example.com/avatar.png',
+      user_email: 'ada@example.com',
+    };
+  };
+  global.logout = function logout() {
+    return Promise.resolve();
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+
+  const harness = createUserElementHarness();
+  const element = harness.element;
+  element.setAttribute('display-mode', 'avatar-name');
+  element.setAttribute('logout-url', '#signed-out');
+  element.setAttribute('logout-label', 'Log out');
+  element.setAttribute('tauth-tenant-id', 'tenant-test');
+  element.setAttribute(
+    'menu-items',
+    JSON.stringify([
+      { label: 'Account settings', href: '/settings' },
+      { label: 'Billing', href: '/billing' },
+    ]),
+  );
+
+  element.connectedCallback();
+
+  assert.match(
+    element.innerHTML,
+    /data-mpr-user="menu-item"[^>]*>Account settings</,
+    'menu item labels render above logout',
+  );
+  assert.match(
+    element.innerHTML,
+    /data-mpr-user="menu-item"[^>]*href="\/billing"/,
+    'menu item hrefs are rendered',
+  );
+});
+
+test('mpr-user dispatches menu-item events for action items', () => {
+  resetEnvironment();
+  loadLibrary();
+  global.getCurrentUser = function getCurrentUser() {
+    return {
+      display: 'Ada Lovelace',
+      given_name: 'Ada',
+      avatar_url: 'https://cdn.example.com/avatar.png',
+      user_email: 'ada@example.com',
+    };
+  };
+  global.logout = function logout() {
+    return Promise.resolve();
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+
+  const menuItems = [
+    { label: 'Open settings', action: 'open-settings' },
+    { label: 'Billing', href: '/billing' },
+  ];
+  const harness = createUserElementHarness({ menuItems });
+  const element = harness.element;
+  element.setAttribute('display-mode', 'avatar-name');
+  element.setAttribute('logout-url', '#signed-out');
+  element.setAttribute('logout-label', 'Log out');
+  element.setAttribute('tauth-tenant-id', 'tenant-test');
+  element.setAttribute('menu-items', JSON.stringify(menuItems));
+
+  element.connectedCallback();
+
+  harness.menuItems[0].dispatchEvent({
+    type: 'click',
+    preventDefault: function preventDefault() {},
+  });
+
+  const menuItemEvent = element.__dispatchedEvents.find(
+    (eventEntry) => eventEntry.type === 'mpr-user:menu-item',
+  );
+  assert.ok(menuItemEvent, 'menu-item event dispatched for action items');
+  assert.deepEqual(menuItemEvent.detail, {
+    action: 'open-settings',
+    label: 'Open settings',
+    index: 0,
+  });
+});
+
 test('mpr-user toggles menu and triggers logout redirect', async () => {
   resetEnvironment();
   loadLibrary();
@@ -1895,6 +2004,39 @@ test('mpr-user validates required attributes', () => {
         'tauth-tenant-id': 'tenant-test',
       },
       expectedError: 'mpr-ui.user.missing_custom_avatar',
+    },
+    {
+      label: 'invalid menu items',
+      attributes: {
+        'display-mode': 'avatar',
+        'logout-url': '#signed-out',
+        'logout-label': 'Log out',
+        'tauth-tenant-id': 'tenant-test',
+        'menu-items': 'not-json',
+      },
+      expectedError: 'mpr-ui.user.invalid_menu_items',
+    },
+    {
+      label: 'menu item missing href or action',
+      attributes: {
+        'display-mode': 'avatar',
+        'logout-url': '#signed-out',
+        'logout-label': 'Log out',
+        'tauth-tenant-id': 'tenant-test',
+        'menu-items': '[{"label":"Settings"}]',
+      },
+      expectedError: 'mpr-ui.user.invalid_menu_items',
+    },
+    {
+      label: 'menu item with action and href',
+      attributes: {
+        'display-mode': 'avatar',
+        'logout-url': '#signed-out',
+        'logout-label': 'Log out',
+        'tauth-tenant-id': 'tenant-test',
+        'menu-items': '[{"label":"Settings","href":"/settings","action":"open-settings"}]',
+      },
+      expectedError: 'mpr-ui.user.invalid_menu_items',
     },
   ];
 
