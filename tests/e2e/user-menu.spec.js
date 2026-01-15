@@ -119,6 +119,31 @@ test.describe('User menu element', () => {
     expect(menuOrderIsValid).toBe(true);
   });
 
+  test('MU-127: action menu items dispatch events', async ({ page }) => {
+    await visitUserMenuFixture(page);
+
+    const menuHost = page.locator('mpr-user#fixture-user-actions');
+    await expect(menuHost).toBeVisible();
+
+    const trigger = menuHost.locator('[data-mpr-user="trigger"]');
+    await trigger.click();
+
+    const menuItems = menuHost.locator('[data-mpr-user="menu-item"]');
+    await expect(menuItems).toHaveCount(2);
+
+    const actionItem = menuItems.nth(0);
+    await expect(actionItem).toHaveText('Open settings');
+    await expect(actionItem).toHaveAttribute('data-mpr-user-action', 'open-settings');
+    await actionItem.click();
+
+    const actionDetail = await page.evaluate(() => window.__mprUserMenuAction);
+    expect(actionDetail).toEqual({
+      action: 'open-settings',
+      label: 'Open settings',
+      index: 0,
+    });
+  });
+
   test('MU-118: user menu styles respond to theme tokens', async ({ page }) => {
     await visitUserMenuFixture(page);
 

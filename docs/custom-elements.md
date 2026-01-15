@@ -132,12 +132,13 @@ Profile menu for TAuth-backed sessions. It queries `getCurrentUser()` from `taut
 | `tauth-tenant-id` | `string` | Required. Tenant identifier forwarded to the TAuth helper (`setAuthTenantId` when available). |
 | `avatar-url` | `string` | Required when `display-mode="custom-avatar"`. |
 | `avatar-label` | `string` | Optional accessible label for the avatar. Falls back to profile name. |
-| `menu-items` | `JSON` | Optional array of `{ label, href }` objects rendered above the log out button. |
+| `menu-items` | `JSON` | Optional array of `{ label, href }` links or `{ label, action }` action items rendered above the log out button. Action items dispatch `mpr-user:menu-item`. |
 
 **Events**
 
 - `mpr-user:toggle` with `{ open, source }`.
 - `mpr-user:logout` with `{ redirectUrl }`.
+- `mpr-user:menu-item` with `{ action, label, index }` when an action menu item is selected.
 - `mpr-user:error` with `{ code, message }`. The host also sets `data-mpr-user-error` for styling.
 
 **Dataset**
@@ -157,7 +158,7 @@ The element can live standalone or inside `<mpr-header>` / `<mpr-footer>`. When 
   logout-url="/auth/logout"
   logout-label="Log out"
   tauth-tenant-id="mpr-sites"
-  menu-items='[{"label":"Account settings","href":"/settings"}]'
+  menu-items='[{"label":"Account settings","href":"/settings"},{"label":"Open settings","action":"open-settings"}]'
 ></mpr-user>
 ```
 

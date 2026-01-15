@@ -210,6 +210,10 @@
   var USER_MENU_PROFILE_ERROR_CODE = "mpr-ui.user.invalid_profile";
   var USER_MENU_LOGOUT_FAILED_ERROR_CODE = "mpr-ui.user.logout_failed";
   var USER_MENU_GENERIC_ERROR_CODE = "mpr-ui.user.error";
+  var USER_MENU_ITEM_EVENT = "mpr-user:menu-item";
+  var USER_MENU_ITEM_SELECTOR = '[data-mpr-user="menu-item"]';
+  var USER_MENU_ITEM_ACTION_ATTRIBUTE = "data-mpr-user-action";
+  var USER_MENU_ITEM_INDEX_ATTRIBUTE = "data-mpr-user-index";
 
   var USER_MENU_DISPLAY_MODES = Object.freeze({
     AVATAR: "avatar",
@@ -217,6 +221,7 @@
     AVATAR_FULL_NAME: "avatar-full-name",
     CUSTOM_AVATAR: "custom-avatar",
   });
+  /** @type {readonly string[]} */
   var USER_MENU_DISPLAY_MODE_VALUES = Object.freeze([
     USER_MENU_DISPLAY_MODES.AVATAR,
     USER_MENU_DISPLAY_MODES.AVATAR_NAME,
@@ -4410,7 +4415,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "__menu{display:flex}" +
     "." +
     USER_MENU_ROOT_CLASS +
-    "__menu-item{display:flex;align-items:center;gap:0.5rem;padding:calc(0.4rem * var(--mpr-user-scale,1)) calc(0.75rem * var(--mpr-user-scale,1));border-radius:0.65rem;text-decoration:none;background:transparent;color:var(--mpr-color-text-primary,#e2e8f0);font-weight:600}" +
+    "__menu-item{display:flex;align-items:center;gap:0.5rem;padding:calc(0.4rem * var(--mpr-user-scale,1)) calc(0.75rem * var(--mpr-user-scale,1));border-radius:0.65rem;text-decoration:none;background:transparent;color:var(--mpr-color-text-primary,#e2e8f0);font-weight:600;border:none;cursor:pointer;text-align:left;width:100%;font:inherit;appearance:none}" +
     "." +
     USER_MENU_ROOT_CLASS +
     "__menu-item:hover{background:var(--mpr-chip-hover-bg,rgba(148,163,184,0.32))}" +
@@ -4576,6 +4581,30 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     );
   }
 
+  function normalizeUserMenuItemHref(value) {
+    var href = normalizeRequiredString(
+      value,
+      USER_MENU_ITEMS_ERROR_CODE,
+      "User menu item href is required",
+    );
+    var sanitizedHref = sanitizeHref(href);
+    if (sanitizedHref === "#" && href !== "#") {
+      throw createUserMenuError(
+        USER_MENU_ITEMS_ERROR_CODE,
+        "User menu item href is invalid",
+      );
+    }
+    return sanitizedHref;
+  }
+
+  function normalizeUserMenuItemAction(value) {
+    return normalizeRequiredString(
+      value,
+      USER_MENU_ITEMS_ERROR_CODE,
+      "User menu item action is required",
+    );
+  }
+
   function normalizeUserMenuItem(rawItem, index) {
     if (!rawItem || typeof rawItem !== "object") {
       throw createUserMenuError(
@@ -4588,21 +4617,29 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       USER_MENU_ITEMS_ERROR_CODE,
       "User menu item label is required",
     );
-    var href = normalizeRequiredString(
-      rawItem.href,
-      USER_MENU_ITEMS_ERROR_CODE,
-      "User menu item href is required",
-    );
-    var sanitizedHref = sanitizeHref(href);
-    if (sanitizedHref === "#" && href !== "#") {
+    var hasHref = Object.prototype.hasOwnProperty.call(rawItem, "href");
+    var hasAction = Object.prototype.hasOwnProperty.call(rawItem, "action");
+    if (hasHref && hasAction) {
       throw createUserMenuError(
         USER_MENU_ITEMS_ERROR_CODE,
-        "User menu item href is invalid",
+        "User menu item cannot include both href and action",
       );
+    }
+    if (!hasHref && !hasAction) {
+      throw createUserMenuError(
+        USER_MENU_ITEMS_ERROR_CODE,
+        "User menu item must include href or action",
+      );
+    }
+    if (hasHref) {
+      return {
+        label: label,
+        href: normalizeUserMenuItemHref(rawItem.href),
+      };
     }
     return {
       label: label,
-      href: sanitizedHref,
+      action: normalizeUserMenuItemAction(rawItem.action),
     };
   }
 
@@ -4686,14 +4723,35 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return "";
     }
     return menuItems
-      .map(function buildItemMarkup(item) {
+      .map(function buildItemMarkup(item, index) {
         var label = escapeHtml(item.label);
-        var href = escapeHtml(item.href);
-        return (
-          '<a class="' +
+        var indexValue = escapeHtml(String(index));
+        var baseAttributes =
+          'class="' +
           USER_MENU_ROOT_CLASS +
-          '__menu-item" data-mpr-user="menu-item" role="menuitem" href="' +
-          href +
+          '__menu-item" data-mpr-user="menu-item" role="menuitem" ' +
+          USER_MENU_ITEM_INDEX_ATTRIBUTE +
+          '="' +
+          indexValue +
+          '"';
+        if (item.action) {
+          return (
+            '<button type="button" ' +
+            baseAttributes +
+            " " +
+            USER_MENU_ITEM_ACTION_ATTRIBUTE +
+            '="' +
+            escapeHtml(item.action) +
+            '">' +
+            label +
+            "</button>"
+          );
+        }
+        return (
+          '<a ' +
+          baseAttributes +
+          ' href="' +
+          escapeHtml(item.href) +
           '">' +
           label +
           "</a>"
@@ -4750,6 +4808,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       name: hostElement.querySelector('[data-mpr-user="name"]'),
       menu: hostElement.querySelector('[data-mpr-user="menu"]'),
       logoutButton: hostElement.querySelector('[data-mpr-user="logout"]'),
+      menuItems: Array.prototype.slice.call(
+        hostElement.querySelectorAll(USER_MENU_ITEM_SELECTOR),
+      ),
     };
   }
 
@@ -4899,7 +4960,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       target === elements.avatarImage ||
       target === elements.name ||
       target === elements.menu ||
-      target === elements.logoutButton
+      target === elements.logoutButton ||
+      (elements.menuItems && elements.menuItems.indexOf(target) !== -1)
     );
   }
 
@@ -5016,7 +5078,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (!hostElement) {
       return;
     }
-    var errorObject = error instanceof Error ? error : new Error(String(error));
+    /** @type {MprUiError} */
+    var errorObject =
+      error instanceof Error ? error : new Error(String(error));
     var errorCode = errorObject.code || USER_MENU_GENERIC_ERROR_CODE;
     hostElement.setAttribute("data-mpr-user-error", errorCode);
     applyUserMenuStatus(hostElement, "error");
@@ -7991,6 +8055,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__dismissTarget = null;
           this.__boundTriggerHandler = this.__handleTriggerClick.bind(this);
           this.__boundLogoutHandler = this.__handleLogoutClick.bind(this);
+          this.__boundMenuItemHandler = this.__handleMenuItemClick.bind(this);
           this.__boundOutsideClickHandler = this.__handleOutsideClick.bind(this);
           this.__boundEscapeHandler = this.__handleEscape.bind(this);
           this.__boundAuthHandler = this.__handleAuthEvent.bind(this);
@@ -8083,6 +8148,21 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             );
           }
           if (
+            this.__userMenuElements.menuItems &&
+            this.__userMenuElements.menuItems.length
+          ) {
+            for (
+              var menuItemIndex = 0;
+              menuItemIndex < this.__userMenuElements.menuItems.length;
+              menuItemIndex += 1
+            ) {
+              var menuItem = this.__userMenuElements.menuItems[menuItemIndex];
+              if (menuItem && typeof menuItem.addEventListener === "function") {
+                menuItem.addEventListener("click", this.__boundMenuItemHandler);
+              }
+            }
+          }
+          if (
             this.__userMenuElements.logoutButton &&
             typeof this.__userMenuElements.logoutButton.addEventListener === "function"
           ) {
@@ -8104,6 +8184,21 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
               "click",
               this.__boundTriggerHandler,
             );
+          }
+          if (
+            this.__userMenuElements.menuItems &&
+            this.__userMenuElements.menuItems.length
+          ) {
+            for (
+              var menuItemIndex = 0;
+              menuItemIndex < this.__userMenuElements.menuItems.length;
+              menuItemIndex += 1
+            ) {
+              var menuItem = this.__userMenuElements.menuItems[menuItemIndex];
+              if (menuItem && typeof menuItem.removeEventListener === "function") {
+                menuItem.removeEventListener("click", this.__boundMenuItemHandler);
+              }
+            }
           }
           if (
             this.__userMenuElements.logoutButton &&
@@ -8285,6 +8380,64 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             this.__setMenuOpen(false, "escape");
           }
         }
+        __handleMenuItemClick(eventObject) {
+          var config = this.__userMenuConfig;
+          if (!config || !config.menuItems || !config.menuItems.length) {
+            return;
+          }
+          var menuItemElement =
+            eventObject && eventObject.currentTarget ? eventObject.currentTarget : null;
+          if (!menuItemElement || typeof menuItemElement.getAttribute !== "function") {
+            return;
+          }
+          var menuItemIndexValue = menuItemElement.getAttribute(
+            USER_MENU_ITEM_INDEX_ATTRIBUTE,
+          );
+          if (menuItemIndexValue === null) {
+            reportUserMenuError(
+              this,
+              createUserMenuError(
+                USER_MENU_ITEMS_ERROR_CODE,
+                "User menu item index is required",
+              ),
+            );
+            return;
+          }
+          var menuItemIndex = Number(menuItemIndexValue);
+          if (!Number.isFinite(menuItemIndex) || menuItemIndex < 0) {
+            reportUserMenuError(
+              this,
+              createUserMenuError(
+                USER_MENU_ITEMS_ERROR_CODE,
+                "User menu item index is invalid",
+              ),
+            );
+            return;
+          }
+          var menuItem = config.menuItems[menuItemIndex];
+          if (!menuItem) {
+            reportUserMenuError(
+              this,
+              createUserMenuError(
+                USER_MENU_ITEMS_ERROR_CODE,
+                "User menu item is missing",
+              ),
+            );
+            return;
+          }
+          if (!menuItem.action) {
+            return;
+          }
+          if (eventObject && typeof eventObject.preventDefault === "function") {
+            eventObject.preventDefault();
+          }
+          this.__setMenuOpen(false, "menu-item");
+          dispatchEvent(this, USER_MENU_ITEM_EVENT, {
+            action: menuItem.action,
+            label: menuItem.label,
+            index: menuItemIndex,
+          });
+        }
         __handleLogoutClick(eventObject) {
           if (eventObject && typeof eventObject.preventDefault === "function") {
             eventObject.preventDefault();
@@ -8315,6 +8468,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             }
           }.bind(this);
           var handleLogoutFailure = function handleLogoutFailure(error) {
+            /** @type {MprUiError | null} */
             var errorObject = error instanceof Error ? error : null;
             if (!errorObject || !errorObject.code) {
               errorObject = createUserMenuError(

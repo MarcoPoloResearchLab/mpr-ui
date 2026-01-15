@@ -12,6 +12,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
   Resolved: added the user menu section and aligned demo config updates for tenant ID. Tests: `npm test`.
 - [x] [MU-126] add `menu-items` attribute to `<mpr-user>` to render menu links above the logout action.
   Resolved: parsed/validated menu-items JSON, rendered menu links with styling, and added unit + Playwright coverage. Tests: `node --test tests/custom-elements-header-footer.test.js`, `npx playwright test tests/e2e/user-menu.spec.js`.
+- [x] [MU-127] add action-driven menu items to `<mpr-user>` so menu entries can dispatch events for modals/actions.
+  Resolved: validated `{ label, action }` items, dispatched `mpr-user:menu-item`, updated docs and tests. Tests: `node --test tests/custom-elements-header-footer.test.js`, `npx playwright test tests/e2e/user-menu.spec.js`, `npx --yes --package typescript tsc --noEmit`.
 
 Use the current styling of the logged in user in gravity as an inspiration. the elemtn shall support theming, and all four of the light switches.
 

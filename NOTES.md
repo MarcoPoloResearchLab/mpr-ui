@@ -119,3 +119,8 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - MU-124: preserved explicit display-mode overrides on slotted `<mpr-user>` elements and documented the behavior. Tests: `node --test tests/custom-elements-header-footer.test.js`.
 - MU-125: removed the avatar-only halo and added an outlined hover ring for `<mpr-user>` avatar mode, updated demo and tests. Tests: `npx playwright test tests/e2e/user-menu.spec.js`.
 - MU-126: added `menu-items` JSON support for `<mpr-user>` menus and regression coverage. Tests: `node --test tests/custom-elements-header-footer.test.js`, `npx playwright test tests/e2e/user-menu.spec.js`.
+
+## 2026-01-15
+
+- MU-127: added action menu items for `<mpr-user>` with `mpr-user:menu-item`, updated docs and tests. Tests: `node --test tests/custom-elements-header-footer.test.js`, `npx playwright test tests/e2e/user-menu.spec.js`.
+- MU-127: JS typecheck `npx --yes --package typescript tsc --noEmit`.
