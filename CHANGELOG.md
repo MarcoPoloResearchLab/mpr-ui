@@ -28,6 +28,7 @@
 - Load tauth.js from a CDN-hosted URL while serving local mpr-ui assets in the TAuth demo.
 - Preserve explicit `display-mode` overrides on slotted `<mpr-user>` menus inside the header.
 - Remove the avatar-only halo and add an outlined hover ring for the `<mpr-user>` avatar mode.
+- Fix the invalid `TAUTH_CORS_ORIGIN_2` example URL in `.env.tauth.example`.
 
 ### Testing 🧪
 
