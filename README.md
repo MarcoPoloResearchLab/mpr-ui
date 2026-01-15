@@ -188,6 +188,7 @@ The tags above replace the retired imperative helpers. See the example below for
   logout-url="/auth/logout"
   logout-label="Log out"
   tauth-tenant-id="mpr-sites"
+  menu-items='[{"label":"Account settings","href":"/settings"},{"label":"Open settings","action":"open-settings"}]'
 ></mpr-user>
 
 <mpr-settings label="Preferences" open>
@@ -208,7 +209,7 @@ The tags above replace the retired imperative helpers. See the example below for
 | `<mpr-footer>` | `prefix-text`, `links-collection` (JSON with `{ style, text, links }`), `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-switcher`, `theme-config`, `size`, `sticky`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
 | `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config` | — | `mpr-ui:theme-change` |
 | `<mpr-login-button>` | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
-| `<mpr-user>` | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `avatar-url`, `avatar-label` | — | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:error` |
+| `<mpr-user>` | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `avatar-url`, `avatar-label`, `menu-items` | — | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:menu-item`, `mpr-user:error` |
 | `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |
 | `<mpr-sites>` | `links`, `variant` (`list`, `grid`, `menu`), `columns`, `heading` | — | `mpr-sites:link-click` |
 | `<mpr-band>` | `category`, `theme` (JSON) | — | — |
