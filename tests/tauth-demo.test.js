@@ -8,6 +8,9 @@ const { join } = require('node:path');
 const demoDir = join(__dirname, '..', 'demo');
 const tauthDemoHtmlPath = join(demoDir, 'tauth-demo.html');
 const tauthDemoHtml = readFileSync(tauthDemoHtmlPath, 'utf8');
+const LOCAL_MPR_UI_CSS_PATTERN = /\bhref="\.\/mpr-ui\.css(?:\?[^"]*)?"/i;
+const LOCAL_MPR_UI_SCRIPT_PATTERN = /\bsrc="\.\/mpr-ui\.js(?:\?[^"]*)?"/i;
+const TAUTH_SCRIPT_PATTERN = /\bsrc="([^"]*tauth\.js[^"]*)"/i;
 
 test('tauth demo includes mpr-user menu element', () => {
   assert.match(
@@ -52,4 +55,31 @@ test('tauth demo user menu sets required attributes', () => {
       `Expected <mpr-user> to include ${attributeCheck.name} in tauth-demo.html`,
     );
   });
+});
+
+test('tauth demo loads tauth.js from CDN and mpr-ui from local files', () => {
+  assert.match(
+    tauthDemoHtml,
+    LOCAL_MPR_UI_CSS_PATTERN,
+    'Expected tauth-demo.html to load mpr-ui.css from the local filesystem',
+  );
+  assert.match(
+    tauthDemoHtml,
+    LOCAL_MPR_UI_SCRIPT_PATTERN,
+    'Expected tauth-demo.html to load mpr-ui.js from the local filesystem',
+  );
+  const tauthScriptMatch = tauthDemoHtml.match(TAUTH_SCRIPT_PATTERN);
+  assert.ok(
+    tauthScriptMatch,
+    'Expected tauth-demo.html to include a tauth.js script',
+  );
+  const tauthScriptSource = tauthScriptMatch[1];
+  assert.ok(
+    tauthScriptSource.startsWith('https://'),
+    'Expected tauth.js to load from a CDN-hosted https URL',
+  );
+  assert.ok(
+    !tauthScriptSource.startsWith('./'),
+    'Expected tauth.js to avoid a local filesystem path',
+  );
 });

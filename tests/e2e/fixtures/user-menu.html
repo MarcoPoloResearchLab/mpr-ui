@@ -46,6 +46,12 @@
       window.setAuthTenantId = (tenantId) => {
         window.__mprUserTenantId = tenantId;
       };
+      window.__mprUserMenuAction = null;
+      document.addEventListener('mpr-user:menu-item', function handleMenuItem(eventObject) {
+        if (eventObject && eventObject.target && eventObject.target.id === 'fixture-user-actions') {
+          window.__mprUserMenuAction = eventObject.detail;
+        }
+      });
     </script>
   </head>
   <body data-mpr-theme="dark">
@@ -56,6 +62,29 @@
         logout-url="#signed-out"
         logout-label="Log out"
         tauth-tenant-id="tenant-test"
+      ></mpr-user>
+      <mpr-user
+        id="fixture-user-avatar"
+        display-mode="avatar"
+        logout-url="#avatar-only"
+        logout-label="Log out"
+        tauth-tenant-id="tenant-test"
+      ></mpr-user>
+      <mpr-user
+        id="fixture-user-menu-items"
+        display-mode="avatar-name"
+        logout-url="#menu-items"
+        logout-label="Log out"
+        tauth-tenant-id="tenant-test"
+        menu-items='[{"label":"Account settings","href":"/settings"},{"label":"Billing","href":"/billing"}]'
+      ></mpr-user>
+      <mpr-user
+        id="fixture-user-actions"
+        display-mode="avatar-name"
+        logout-url="#menu-actions"
+        logout-label="Log out"
+        tauth-tenant-id="tenant-test"
+        menu-items='[{"label":"Open settings","action":"open-settings"},{"label":"Billing","href":"/billing"}]'
       ></mpr-user>
       <mpr-user
         id="fixture-user-custom"

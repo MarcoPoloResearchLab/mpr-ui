@@ -282,9 +282,7 @@ test('shared DOM helpers mount header and footer markup', () => {
     '[data-mpr-header="brand"]',
     '[data-mpr-header="google-signin"]',
     '[data-mpr-header="settings-button"]',
-    '[data-mpr-header="profile"]',
-    '[data-mpr-header="profile-name"]',
-    '[data-mpr-header="sign-out-button"]',
+    '[data-mpr-header="user-menu"]',
   ].forEach((selector) => {
     headerSelectors[selector] = createElementStub({ selector });
   });
@@ -295,11 +293,23 @@ test('shared DOM helpers mount header and footer markup', () => {
     settings: { enabled: true, label: 'Settings' },
     signInLabel: 'Sign in',
     signOutLabel: 'Sign out',
+    tenantId: 'tenant-demo',
+    userMenu: {
+      displayMode: 'avatar-name',
+      logoutUrl: '/signed-out',
+      logoutLabel: 'Sign out',
+      avatarUrl: '',
+      avatarLabel: '',
+    },
   };
   const headerElements = mountHeaderDom(headerHost, headerOptions);
   assert.ok(
     headerHost.innerHTML.includes('mpr-header'),
     'header DOM helper should inject markup into the host',
+  );
+  assert.ok(
+    headerHost.innerHTML.includes('mpr-user'),
+    'header DOM helper should render the user menu element',
   );
   assert.strictEqual(
     headerElements.root,
