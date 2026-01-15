@@ -117,3 +117,4 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - MU-122: enabled slotted `<mpr-user>` menus in `<mpr-header>` and nested the demo menu in the header. Tests: `npm test`.
 - MU-123: loaded tauth.js from a CDN-hosted URL while serving local mpr-ui assets in the TAuth demo, added regression coverage. Tests: `node --test tests/tauth-demo.test.js`.
 - MU-124: preserved explicit display-mode overrides on slotted `<mpr-user>` elements and documented the behavior. Tests: `node --test tests/custom-elements-header-footer.test.js`.
+- MU-125: removed the avatar-only halo and added an outlined hover ring for `<mpr-user>` avatar mode, updated demo and tests. Tests: `npx playwright test tests/e2e/user-menu.spec.js`.

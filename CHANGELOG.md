@@ -24,6 +24,7 @@
 
 - Load tauth.js from a CDN-hosted URL while serving local mpr-ui assets in the TAuth demo.
 - Preserve explicit `display-mode` overrides on slotted `<mpr-user>` menus inside the header.
+- Remove the avatar-only halo and add an outlined hover ring for the `<mpr-user>` avatar mode.
 
 ### Testing 🧪
 
@@ -33,6 +34,7 @@
 - Add unit coverage for slotted `<mpr-user>` menus inside the header.
 - Add regression coverage asserting the TAuth demo loads tauth.js from a CDN-hosted URL and local mpr-ui assets.
 - Update header unit coverage to ensure slotted user menus preserve explicit display-mode overrides.
+- Add Playwright coverage for avatar-only styling on the `<mpr-user>` menu.
 
 ### Docs 📚
 
