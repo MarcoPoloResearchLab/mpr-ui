@@ -87,6 +87,63 @@ test.describe('User menu element', () => {
     expect(hoverAvatarStyles.boxShadow).not.toBe('none');
   });
 
+  test('MU-126: menu items render above the logout action', async ({ page }) => {
+    await visitUserMenuFixture(page);
+
+    const menuHost = page.locator('mpr-user#fixture-user-menu-items');
+    await expect(menuHost).toBeVisible();
+
+    const trigger = menuHost.locator('[data-mpr-user="trigger"]');
+    await trigger.click();
+
+    const menuItems = menuHost.locator('[data-mpr-user="menu-item"]');
+    await expect(menuItems).toHaveCount(2);
+    await expect(menuItems.nth(0)).toHaveText('Account settings');
+    await expect(menuItems.nth(0)).toHaveAttribute('href', '/settings');
+    await expect(menuItems.nth(1)).toHaveText('Billing');
+    await expect(menuItems.nth(1)).toHaveAttribute('href', '/billing');
+
+    const menuOrderIsValid = await page.evaluate(() => {
+      const menuItem = document.querySelector(
+        'mpr-user#fixture-user-menu-items [data-mpr-user="menu-item"]',
+      );
+      const logoutButton = document.querySelector(
+        'mpr-user#fixture-user-menu-items [data-mpr-user="logout"]',
+      );
+      if (!menuItem || !logoutButton) {
+        return false;
+      }
+      return Boolean(menuItem.compareDocumentPosition(logoutButton) & Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+
+    expect(menuOrderIsValid).toBe(true);
+  });
+
+  test('MU-127: action menu items dispatch events', async ({ page }) => {
+    await visitUserMenuFixture(page);
+
+    const menuHost = page.locator('mpr-user#fixture-user-actions');
+    await expect(menuHost).toBeVisible();
+
+    const trigger = menuHost.locator('[data-mpr-user="trigger"]');
+    await trigger.click();
+
+    const menuItems = menuHost.locator('[data-mpr-user="menu-item"]');
+    await expect(menuItems).toHaveCount(2);
+
+    const actionItem = menuItems.nth(0);
+    await expect(actionItem).toHaveText('Open settings');
+    await expect(actionItem).toHaveAttribute('data-mpr-user-action', 'open-settings');
+    await actionItem.click();
+
+    const actionDetail = await page.evaluate(() => window.__mprUserMenuAction);
+    expect(actionDetail).toEqual({
+      action: 'open-settings',
+      label: 'Open settings',
+      index: 0,
+    });
+  });
+
   test('MU-118: user menu styles respond to theme tokens', async ({ page }) => {
     await visitUserMenuFixture(page);
 
