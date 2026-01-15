@@ -124,3 +124,4 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 
 - MU-127: added action menu items for `<mpr-user>` with `mpr-user:menu-item`, updated docs and tests. Tests: `node --test tests/custom-elements-header-footer.test.js`, `npx playwright test tests/e2e/user-menu.spec.js`.
 - MU-127: JS typecheck `npx --yes --package typescript tsc --noEmit`.
+- MU-128: added settings action menu + modal example in tauth demo and removed header settings button. Tests: `node --test tests/tauth-demo.test.js`, `npx --yes --package typescript tsc --noEmit`.
