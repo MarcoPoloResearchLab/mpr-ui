@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Full Layout Fixture</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
+      type="module"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+    ></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
+  <body class="theme-light">
+    <mpr-header
+      id="test-header"
+      brand-label="Test Brand"
+      brand-href="/"
+      nav-links='[{"label": "Link 1", "href": "#"}, {"label": "Link 2", "href": "#"}]'
+      settings="true"
+      google-site-id="test-site-id"
+      tauth-login-path="/auth/login"
+      tauth-logout-path="/auth/logout"
+      tauth-nonce-path="/auth/nonce"
+      tauth-tenant-id="test-tenant"
+    ></mpr-header>
+
+    <main style="padding: 2rem;">
+        <h1>Full Layout Fixture</h1>
+        <p>Fixture for testing header, footer, and other components in a full layout context.</p>
+
+        <mpr-band
+          id="test-band"
+          category="custom"
+          theme='{
+            "background": "#f0f0f0",
+            "panel": "#ffffff",
+            "text": "#000000"
+          }'
+        >
+          <div style="padding: 1rem;">Band Content</div>
+        </mpr-band>
+        
+        <mpr-settings label="Preferences" open>
+            <div slot="panel">Settings Panel Content</div>
+        </mpr-settings>
+    </main>
+
+    <mpr-footer
+      id="page-footer"
+      prefix-text="Built by Test"
+      privacy-link-label="Privacy"
+      theme-switcher="square"
+      theme-config='{
+        "targets": ["body"],
+        "modes": [
+            {"value": "light", "classList": ["theme-light"]},
+            {"value": "dark", "classList": ["theme-dark"]}
+        ]
+      }'
+      links-collection='{
+        "style": "drop-up",
+        "text": "Explore",
+        "links": [{"label": "Test Link", "url": "#"}]
+      }'
+    ></mpr-footer>
+  </body>
+</html>

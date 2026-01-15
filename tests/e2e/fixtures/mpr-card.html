@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>MPR Card Fixture</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
+      type="module"
+    ></script>
+    <script
+      id="mpr-ui-bundle"
+      defer
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+    ></script>
+  </head>
+  <body>
+    <main>
+      <h1>mpr-card fixture</h1>
+      <p>This page renders a standalone card for Playwright tests.</p>
+    </main>
+    <mpr-card
+      id="fixture-card"
+      card='{
+        "id": "fixture-card",
+        "title": "Standalone Card",
+        "description": "Demonstrates the standalone mpr-card component.",
+        "status": "beta",
+        "icon": "⭐",
+        "url": "https://mprlab.com",
+        "subscribe": {
+          "script": "https://loopaware.mprlab.com/widget.js",
+          "title": "Get Standalone Card updates",
+          "copy": "LoopAware notifies you when this component evolves.",
+          "height": 260
+        }
+      }'
+    ></mpr-card>
+    <section aria-live="polite">
+      <h2>Event log</h2>
+      <ul id="card-event-log"></ul>
+    </section>
+    <script>
+      document.addEventListener('mpr-card:card-toggle', function handleToggle(event) {
+        var log = document.getElementById('card-event-log');
+        if (!log) return;
+        var entry = document.createElement('li');
+        entry.textContent = JSON.stringify(event.detail || {});
+        entry.dataset.test = 'card-event-entry';
+        log.appendChild(entry);
+      });
+    </script>
+  </body>
+</html>

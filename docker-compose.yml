@@ -1,0 +1,31 @@
+services:
+  frontend:
+    image: ghcr.io/tyemirov/ghttp:latest
+    pull_policy: always
+    depends_on:
+      tauth:
+        condition: service_started
+    command: ["--directory", "/app/demo", "8000"]
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./demo/:/app/demo
+      - ./demo/tauth-demo.html:/app/demo/index.html:ro
+      - ./mpr-ui.css:/app/demo/mpr-ui.css:ro
+      - ./mpr-ui.js:/app/demo/mpr-ui.js:ro
+    restart: unless-stopped
+
+  tauth:
+    image: ghcr.io/tyemirov/tauth:latest
+    pull_policy: always
+    env_file:
+      - ./.env.tauth
+    ports:
+      - "8080:8080"
+    volumes:
+      - tauth_data:/data
+      - ./tauth-config.yaml:/config/tauth-config.yaml:ro
+    restart: unless-stopped
+
+volumes:
+  tauth_data:

@@ -69,6 +69,7 @@ web_modules/
 .env
 .env.*
 !.env.example
+!.env.tauth.example
 
 # parcel-bundler cache (https://parceljs.org/)
 .cache
@@ -137,3 +138,16 @@ dist
 # Vite logs files
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
+
+PLAN.md
+tools/
+test-results/
+
+*.png
+# Managed by gix gitignore workflow
+.DS_Store
+qodana.yaml
+.idea/
+bin/
+docs/demo
+tools/

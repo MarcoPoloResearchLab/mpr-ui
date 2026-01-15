@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mpr-ui Demo</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+    />
+    <link rel="stylesheet" href="./demo.css" />
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
+      type="module"
+    ></script>
+    <script
+      id="mpr-ui-bundle"
+      defer
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+    ></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
+  <body class="theme-light" data-demo-palette="default">
+    <mpr-header
+      id="demo-header"
+      brand-label="Marco Polo Research Lab"
+      brand-href="https://mprlab.com/"
+      nav-links='[
+        { "label": "Docs", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/README.md" },
+        { "label": "Architecture", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/ARCHITECTURE.md" }
+      ]'
+      google-site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+      tauth-tenant-id="mpr-sites"
+      tauth-login-path="/auth/google"
+      tauth-logout-path="/auth/logout"
+      tauth-nonce-path="/auth/nonce"
+      settings="true"
+      settings-label="Settings"
+    >
+    </mpr-header>
+
+    <div class="container py-5" data-layout-section="hero-title">
+      <div class="row justify-content-center text-center">
+        <div class="col-lg-10 col-xl-8">
+          <p class="text-uppercase text-muted mb-2">Bootstrap hero</p>
+          <h1 class="display-4 fw-semibold mb-3">MPR-UI Demo</h1>
+          <p class="lead mb-0">
+            Sticky chrome from mpr-ui pairs with a Bootstrap hero. Bands below keep Bootstrap scoped
+            to their containers so the shared theme switcher remains conflict free.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <mpr-band
+      id="band-observability"
+      category="research"
+      theme='{
+        "background": "var(--mpr-color-surface-primary, rgba(248, 250, 252, 0.95))",
+        "panel": "var(--mpr-color-surface-elevated, rgba(255, 255, 255, 0.95))",
+        "panelAlt": "var(--mpr-color-surface-elevated, rgba(248, 250, 252, 0.95))",
+        "text": "var(--mpr-color-text-primary, #0f172a)",
+        "accent": "var(--mpr-color-accent, #0ea5e9)",
+        "border": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "shadow": "var(--mpr-shadow-elevated, 0 10px 24px rgba(15, 23, 42, 0.2))",
+        "lineTop": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "lineBottom": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))"
+      }'
+    >
+      <div class="container py-5" data-test="bootstrap-grid">
+        <div class="row g-4 justify-content-center">
+          <div class="col-lg-8 col-xl-7">
+            <mpr-card
+              id="event-log-card"
+              data-test="band-event-log-card"
+              card='{
+                "id": "event-log-card",
+                "title": "Event Log",
+                "description": "Header actions, footer toggles, and band events stream into this log so you can verify integrations.",
+                "status": "beta"
+              }'
+            ></mpr-card>
+          </div>
+        </div>
+      </div>
+    </mpr-band>
+
+    <mpr-band
+      id="band-integration"
+      category="tools"
+      theme='{
+        "background": "var(--mpr-color-surface-primary, rgba(248, 250, 252, 0.95))",
+        "panel": "var(--mpr-color-surface-elevated, rgba(255, 255, 255, 0.95))",
+        "panelAlt": "var(--mpr-color-surface-elevated, rgba(245, 248, 250, 0.95))",
+        "text": "var(--mpr-color-text-primary, #0f172a)",
+        "accent": "var(--mpr-color-accent-alt, #22c55e)",
+        "border": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "shadow": "var(--mpr-shadow-elevated, 0 10px 24px rgba(15, 23, 42, 0.2))",
+        "lineTop": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+        "lineBottom": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))"
+      }'
+    >
+      <div class="container py-5" data-test="bootstrap-grid-secondary">
+        <div class="row g-4 justify-content-center">
+          <div class="col-lg-8 col-xl-7">
+            <mpr-card
+              id="integration-reference-card"
+              data-test="band-integration-card"
+              card='{
+                "id": "integration-reference",
+                "title": "Integration Reference",
+                "description": "Step-by-step walkthrough for wiring GIS, TAuth, and the bundled demo helpers without Bootstrap clashes.",
+                "status": "production",
+                "url": "../docs/demo-index-auth.md"
+              }'
+            ></mpr-card>
+          </div>
+        </div>
+      </div>
+    </mpr-band>
+
+    <mpr-footer
+      id="page-footer"
+      sticky="true"
+      size="small"
+      privacy-link-label="Privacy &amp; Terms"
+      privacy-link-href="#privacy"
+      privacy-modal-content="
+        <h1>Privacy Policy — MPR UI</h1>
+        <p><strong>Effective Date:</strong> 2025-10-11</p>
+        <p>LoopAware uses Google Identity Services to authenticate users. We receive your Google profile
+           information (name, email, profile image) only to sign you in. We do not sell or share your data,
+           and we only store your notes so the service functions.</p>
+        <p>To request deletion of your data, contact
+           <a href='mailto:support@mprlab.com'>support@mprlab.com</a>.</p>
+      "
+      links-collection='{
+        "style": "drop-up",
+        "text": "Built by Marco Polo Research Lab",
+        "links": [
+          { "label": "Marco Polo Research Lab", "url": "https://mprlab.com" },
+          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+        ]
+      }'
+      theme-switcher="toggle"
+      theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-light","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
+    >
+    </mpr-footer>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    ></script>
+    <script defer src="./demo.js"></script>
+  </body>
+</html>
