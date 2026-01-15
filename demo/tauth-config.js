@@ -11,6 +11,6 @@
  */
 window.TAUTH_DEMO_CONFIG = Object.freeze({
   googleClientId: '991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com',
-  tauthUrl: 'http://localhost:8080',
+  tauthUrl: 'http://computercat.tyemirov.net:8080',
   tenantId: 'mpr-sites',
 });
