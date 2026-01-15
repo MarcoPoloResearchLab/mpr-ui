@@ -19,6 +19,9 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 ## Improvements (428–527)
 
+- [x] [MU-128] add a TAuth demo example that opens a settings modal from the `<mpr-user>` menu action and remove the header settings button.
+  Resolved: added menu action + modal demo wiring and removed header settings button. Tests: `node --test tests/tauth-demo.test.js`, `npx --yes --package typescript tsc --noEmit`.
+
 - [x] [MU-120] update TAuth demo configuration to the current YAML-based config with TAUTH_* env variables and explicit tenant ID wiring.
   Resolved: added YAML config, updated compose/env/docs to TAUTH_* variables, and enforced tenant header override. Tests: `npm test`.
 - [x] [MU-121] replace the legacy signed-in header layout with the `<mpr-user>` avatar + dropdown menu.
