@@ -12,7 +12,7 @@ This document explains how `demo/index.html` wires Google Identity Services (GIS
   - Authentication endpoints (`tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`).
 - Assumes that the page is served from the same origin as the authentication backend unless `tauth-url` is set.
 
-The Docker Compose demo (`demo/tauth-demo.html` via `docker-compose.tauth.yml`) is identical in terms of auth flow but additionally:
+The Docker Compose demo (`demo/tauth-demo.html` via `docker-compose.yml`) is identical in terms of auth flow but additionally:
 
 - Serves the page from `http://localhost:8000`.
 - Talks to a TAuth instance on `http://localhost:8080`.
