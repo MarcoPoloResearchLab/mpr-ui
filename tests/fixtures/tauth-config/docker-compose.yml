@@ -1,0 +1,7 @@
+services:
+  tauth:
+    image: ghcr.io/example/tauth:latest
+    env_file:
+      - ./.env.tauth
+    volumes:
+      - ./tauth-config.yaml:/config.yaml:ro

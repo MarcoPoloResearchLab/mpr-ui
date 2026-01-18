@@ -5,14 +5,14 @@ const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 
-const repoRoot = join(__dirname, '..');
-const envExamplePath = join(repoRoot, '.env.tauth.example');
-const composePath = join(repoRoot, 'docker-compose.yml');
-const configPath = join(repoRoot, 'tauth-config.yaml');
+const fixtureRoot = join(__dirname, 'fixtures', 'tauth-config');
+const envExamplePath = join(fixtureRoot, '.env.tauth.example');
+const composePath = join(fixtureRoot, 'docker-compose.yml');
+const configPath = join(fixtureRoot, 'tauth-config.yaml');
 
-const envExampleContents = readFileSync(envExamplePath, 'utf8');
-const composeContents = readFileSync(composePath, 'utf8');
-const configContents = readFileSync(configPath, 'utf8');
+const envExampleFixtureContents = readFileSync(envExamplePath, 'utf8');
+const composeFixtureContents = readFileSync(composePath, 'utf8');
+const configFixtureContents = readFileSync(configPath, 'utf8');
 
 test('tauth env example uses TAUTH_* variables', () => {
   const requiredVariables = [
@@ -32,46 +32,46 @@ test('tauth env example uses TAUTH_* variables', () => {
 
   requiredVariables.forEach((requiredVariable) => {
     assert.match(
-      envExampleContents,
+      envExampleFixtureContents,
       new RegExp(`^${requiredVariable}`, 'm'),
-      `Expected .env.tauth.example to include ${requiredVariable}`,
+      `Expected tauth env fixture to include ${requiredVariable}`,
     );
   });
 
   assert.doesNotMatch(
-    envExampleContents,
+    envExampleFixtureContents,
     /^APP_[A-Z_]+=.+$/m,
-    'Expected .env.tauth.example to avoid legacy APP_* variables',
+    'Expected tauth env fixture to avoid legacy APP_* variables',
   );
 });
 
 test('tauth docker compose mounts the yaml config', () => {
   assert.match(
-    composeContents,
+    composeFixtureContents,
     /tauth-config\.yaml/,
-    'Expected docker-compose.yml to mount tauth-config.yaml',
+    'Expected docker-compose fixture to mount tauth-config.yaml',
   );
 });
 
 test('tauth yaml config wires tenants and tenant override flag', () => {
   assert.match(
-    configContents,
+    configFixtureContents,
     /tenants:/,
-    'Expected tauth-config.yaml to define a tenants list',
+    'Expected tauth-config fixture to define a tenants list',
   );
   assert.match(
-    configContents,
+    configFixtureContents,
     /id:\s*\$\{TAUTH_TENANT_ID_1\}/,
-    'Expected tauth-config.yaml to use TAUTH_TENANT_ID_1 for tenant id',
+    'Expected tauth-config fixture to use TAUTH_TENANT_ID_1 for tenant id',
   );
   assert.match(
-    configContents,
+    configFixtureContents,
     /enable_tenant_header_override:/,
-    'Expected tauth-config.yaml to define enable_tenant_header_override',
+    'Expected tauth-config fixture to define enable_tenant_header_override',
   );
   assert.match(
-    configContents,
+    configFixtureContents,
     /cors_allowed_origin_exceptions:/,
-    'Expected tauth-config.yaml to include cors_allowed_origin_exceptions',
+    'Expected tauth-config fixture to include cors_allowed_origin_exceptions',
   );
 });
