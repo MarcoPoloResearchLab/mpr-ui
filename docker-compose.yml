@@ -17,12 +17,12 @@ services:
     image: ghcr.io/tyemirov/tauth:latest
     pull_policy: always
     env_file:
-      - ./.env.tauth
+      - ./demo/.env.tauth
     ports:
       - "8080:8080"
     volumes:
       - tauth_data:/data
-      - ./tauth-config.yaml:/config/tauth-config.yaml:ro
+      - ./demo/tauth-config.yaml:/config.yaml:ro
     restart: unless-stopped
 
 volumes:
