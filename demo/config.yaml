@@ -4,12 +4,27 @@
 
 environments:
   # Local development with ghttp reverse proxy to TAuth container
-  - description: "Local TAuth demo with HTTPS and ghttp proxy"
+  - description: "Local TAuth demo (computercat)"
     origins:
       - "https://computercat.tyemirov.net:4443"
+    auth:
+      tauthUrl: "https://computercat.tyemirov.net:4443"
+      googleClientId: "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+      tenantId: "mpr-sites"
+      loginPath: "/auth/google"
+      logoutPath: "/auth/logout"
+      noncePath: "/auth/nonce"
+    authButton:
+      text: "signin_with"
+      size: "large"
+      theme: "outline"
+      shape: "circle"
+
+  - description: "Local TAuth demo (localhost)"
+    origins:
       - "https://localhost:4443"
     auth:
-      # tauthUrl omitted = same-origin; ghttp proxies /auth/* and /me to TAuth container
+      tauthUrl: "https://localhost:4443"
       googleClientId: "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
       tenantId: "mpr-sites"
       loginPath: "/auth/google"

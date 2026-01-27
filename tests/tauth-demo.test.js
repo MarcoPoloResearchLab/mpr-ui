@@ -147,9 +147,8 @@ test('config.yaml exists and has valid structure', () => {
     typeof environment.auth.noncePath === 'string',
     'Expected auth to have noncePath',
   );
-  assert.equal(
-    environment.auth.tauthUrl,
-    undefined,
-    'Expected auth.tauthUrl to be omitted for same-origin operation',
+  assert.ok(
+    typeof environment.auth.tauthUrl === 'string' && environment.auth.tauthUrl.length > 0,
+    'Expected auth.tauthUrl to be a non-empty URL',
   );
 });
