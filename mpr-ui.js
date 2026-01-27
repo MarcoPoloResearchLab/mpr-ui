@@ -2153,20 +2153,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return options;
   }
 
-  function promptGoogleIfAvailable(globalObject) {
-    var google = globalObject.google;
-    if (
-      google &&
-      google.accounts &&
-      google.accounts.id &&
-      typeof google.accounts.id.prompt === "function"
-    ) {
-      try {
-        google.accounts.id.prompt();
-      } catch (_ignore) {}
-    }
-  }
-
   var pendingGoogleInitializeQueue = [];
 
   function recordGoogleInitializeConfig(config) {
@@ -2213,6 +2199,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           client_id: config.clientId || undefined,
           callback: config.callback,
           nonce: config.nonce,
+          auto_select: false,
         });
       } catch (_error) {}
     }
@@ -2605,19 +2592,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         });
         hasEmittedUnauthenticated = true;
       }
-      if (prompt) {
-        prepareGooglePromptNonce()
-          .then(function () {
-            promptGoogleIfAvailable(global);
-          })
-          .catch(function (error) {
-            emitError("mpr-ui.auth.nonce_failed", {
-              message:
-                error && error.message ? error.message : String(error),
-              status: error && error.status ? error.status : null,
-            });
-          });
-      }
+      // One Tap prompt intentionally disabled - users must click the sign-in button
+      void prompt;
     }
 
     function emitError(code, extra) {
