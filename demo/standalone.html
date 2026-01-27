@@ -46,9 +46,6 @@
       }
       .auth-section {
         margin-bottom: 2.5rem;
-      }
-      /* Ensure session section is above info-section (demo.css applies backdrop-filter to sections which creates stacking contexts) */
-      #session-section {
         position: relative;
         z-index: 20;
       }
@@ -56,64 +53,71 @@
         font-size: 1.25rem;
         margin: 0 0 1rem;
       }
-      /* Use mpr-ui design tokens for cards */
-      .mpr-card-container {
+      /* Auth card using mpr-ui design tokens */
+      .auth-card {
         border: 1px solid var(--mpr-color-border, rgba(148,163,184,0.35));
         border-radius: 0.75rem;
         padding: 1.5rem;
         background: var(--mpr-color-surface-elevated, #ffffff);
         box-shadow: var(--mpr-shadow-elevated, 0 8px 16px rgba(15,23,42,0.18));
       }
-      .mpr-card-container--centered {
+      /* Sign-in state */
+      .auth-card__signin {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 1rem;
         text-align: center;
       }
-      .mpr-card-container p {
+      .auth-card__signin p {
         margin: 0;
         color: var(--mpr-color-text-muted, #64748b);
       }
-      .mpr-card-container mpr-login-button {
+      .auth-card__signin mpr-login-button {
         margin-top: 0.5rem;
       }
-      .session-profile {
+      /* Session state */
+      .auth-card__session {
         display: flex;
-        gap: 1rem;
         align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
       }
-      .session-profile ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
+      .auth-card__profile {
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        flex: 1;
+        min-width: 0;
       }
-      .session-profile li + li {
-        margin-top: 0.25rem;
-      }
-      .session-avatar {
-        width: 56px;
-        height: 56px;
+      .auth-card__avatar {
+        width: 48px;
+        height: 48px;
         border-radius: 50%;
         object-fit: cover;
         border: 2px solid var(--mpr-color-border, rgba(148,163,184,0.35));
+        flex-shrink: 0;
       }
-      .session-expires {
-        margin-top: 1rem;
-        font-size: 0.95rem;
-        color: var(--mpr-color-text-muted, #64748b);
+      .auth-card__info {
+        min-width: 0;
       }
-      .user-menu-section {
-        margin-top: 2rem;
-        display: flex;
-        align-items: center;
-        gap: 1rem;
-        position: relative;
-        z-index: 10;
-      }
-      .user-menu-section p {
+      .auth-card__name {
+        font-weight: 600;
         margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .auth-card__email {
+        margin: 0.25rem 0 0;
+        font-size: 0.875rem;
         color: var(--mpr-color-text-muted, #64748b);
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+      .auth-card__menu {
+        flex-shrink: 0;
       }
       .info-section {
         margin-top: 3rem;
@@ -151,41 +155,41 @@
           <code>&lt;mpr-user&gt;</code> without the header component.
         </p>
 
-        <section class="auth-section" data-auth-state="signed-out">
-          <h2>Sign in</h2>
-          <div class="mpr-card-container mpr-card-container--centered" id="login-card">
-            <p>Click the button below to sign in with Google via TAuth.</p>
-            <mpr-login-button
-              id="demo-login-button"
-              button-size="large"
-              button-theme="outline"
-              button-text="signin_with"
-              tauth-login-path="/auth/google"
-              tauth-logout-path="/auth/logout"
-              tauth-nonce-path="/auth/nonce"
-            ></mpr-login-button>
-          </div>
-        </section>
-
-        <section class="auth-section" id="session-section" hidden>
-          <h2>Current session</h2>
-          <div
-            class="mpr-card-container"
-            data-demo-auth-status
-            aria-live="polite"
-            aria-atomic="true"
-          >
-            <p>Loading session...</p>
-          </div>
-          <div class="user-menu-section">
-            <p>Profile menu:</p>
-            <mpr-user
-              id="demo-user-menu"
-              display-mode="avatar-name"
-              logout-url="/demo/standalone.html"
-              logout-label="Sign out"
-              menu-items='[{"label":"Account","href":"#account"},{"label":"Settings","action":"open-settings"}]'
-            ></mpr-user>
+        <section class="auth-section">
+          <h2>Authentication</h2>
+          <div class="auth-card" aria-live="polite" aria-atomic="true">
+            <!-- Sign-in state -->
+            <div class="auth-card__signin" id="signin-content">
+              <p>Click the button below to sign in with Google via TAuth.</p>
+              <mpr-login-button
+                id="demo-login-button"
+                button-size="large"
+                button-theme="outline"
+                button-text="signin_with"
+                tauth-login-path="/auth/google"
+                tauth-logout-path="/auth/logout"
+                tauth-nonce-path="/auth/nonce"
+              ></mpr-login-button>
+            </div>
+            <!-- Session state -->
+            <div class="auth-card__session" id="session-content" hidden>
+              <div class="auth-card__profile">
+                <img class="auth-card__avatar" id="session-avatar" src="" alt="Profile" />
+                <div class="auth-card__info">
+                  <p class="auth-card__name" id="session-name"></p>
+                  <p class="auth-card__email" id="session-email"></p>
+                </div>
+              </div>
+              <div class="auth-card__menu">
+                <mpr-user
+                  id="demo-user-menu"
+                  display-mode="avatar"
+                  logout-url="/"
+                  logout-label="Sign out"
+                  menu-items='[{"label":"Account","href":"#account"},{"label":"Settings","action":"open-settings"}]'
+                ></mpr-user>
+              </div>
+            </div>
           </div>
         </section>
 
@@ -254,24 +258,41 @@
           }
         }
 
+        // Update session display with user info
+        function updateSessionDisplay(profile) {
+          var avatar = document.getElementById('session-avatar');
+          var name = document.getElementById('session-name');
+          var email = document.getElementById('session-email');
+          if (avatar && profile) {
+            avatar.src = profile.avatar_url || '';
+            avatar.alt = profile.display || 'Profile';
+          }
+          if (name) name.textContent = profile ? profile.display : '';
+          if (email) email.textContent = profile ? profile.user_email : '';
+        }
+
         // Toggle visibility based on auth state
-        function updateAuthVisibility(isAuthenticated) {
-          var loginCard = document.getElementById('login-card');
-          var sessionSection = document.getElementById('session-section');
-          if (loginCard) loginCard.hidden = isAuthenticated;
-          if (sessionSection) sessionSection.hidden = !isAuthenticated;
+        function updateAuthVisibility(isAuthenticated, profile) {
+          var signinContent = document.getElementById('signin-content');
+          var sessionContent = document.getElementById('session-content');
+          if (signinContent) signinContent.hidden = isAuthenticated;
+          if (sessionContent) sessionContent.hidden = !isAuthenticated;
+          if (isAuthenticated && profile) {
+            updateSessionDisplay(profile);
+          }
         }
 
         function init() {
           applyConfig();
           var currentUser = typeof window.getCurrentUser === 'function' ? window.getCurrentUser() : null;
-          updateAuthVisibility(Boolean(currentUser));
+          updateAuthVisibility(Boolean(currentUser), currentUser);
 
-          document.addEventListener('mpr-ui:auth:authenticated', function() {
-            updateAuthVisibility(true);
+          document.addEventListener('mpr-ui:auth:authenticated', function(event) {
+            var profile = event.detail && event.detail.profile;
+            updateAuthVisibility(true, profile);
           });
           document.addEventListener('mpr-ui:auth:unauthenticated', function() {
-            updateAuthVisibility(false);
+            updateAuthVisibility(false, null);
           });
           document.addEventListener('mpr-user:menu-item', function(event) {
             if (event.detail && event.detail.action === 'open-settings') {
