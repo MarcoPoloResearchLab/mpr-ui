@@ -47,6 +47,11 @@
       .auth-section {
         margin-bottom: 2.5rem;
       }
+      /* Ensure session section is above info-section (demo.css applies backdrop-filter to sections which creates stacking contexts) */
+      #session-section {
+        position: relative;
+        z-index: 20;
+      }
       .auth-section h2 {
         font-size: 1.25rem;
         margin: 0 0 1rem;
