@@ -175,7 +175,7 @@
         <h2 id="profile-status-title">Current session</h2>
         <p>
           Google sign-in requests are exchanged via the TAuth service configured
-          in <code>/demo/config.yaml</code>. The helper script provided by TAuth
+          in <code>/config.yaml</code>. The helper script provided by TAuth
           monitors <code>/me</code> and <code>/auth/refresh</code> to keep a
           valid browser session without storing tokens in localStorage.
         </p>
@@ -196,7 +196,7 @@
             The frontend is served by gHTTP on port 4443 (HTTPS).
           </li>
           <li>
-            Auth configuration is loaded from <code>/demo/config.yaml</code>
+            Auth configuration is loaded from <code>/config.yaml</code>
             via the <code>mpr-ui-config.js</code> loader, which applies
             attributes (<code>google-site-id</code>, <code>tauth-tenant-id</code>,
             <code>tauth-url</code>, etc.) to <code>&lt;mpr-header&gt;</code> and
@@ -287,7 +287,7 @@
             setTimeout(applyConfig, 50);
             return;
           }
-          window.MPRUI.applyYamlConfig({ configUrl: '/demo/config.yaml' }).catch(function handleError(error) {
+          window.MPRUI.applyYamlConfig({ configUrl: '/config.yaml' }).catch(function handleError(error) {
             // eslint-disable-next-line no-console
             console.error('Failed to apply YAML config:', error);
           });
