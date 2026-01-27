@@ -11,62 +11,86 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 ## Quick Start
 
-1. **Load the bundle + prerequisites** — add the packaged stylesheet, the `mpr-ui` bundle, and Google Identity Services in this order. Include the TAuth helper only when integrating with TAuth:
+1. **Load the bundle + prerequisites** — add the packaged stylesheet, the config loader, the `mpr-ui` bundle, TAuth helper, and Google Identity Services:
 
    ```html
    <link
      rel="stylesheet"
      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
    />
-   <!-- Required when integrating with TAuth -->
    <script defer src="https://tauth.mprlab.com/tauth.js"></script>
-   <script
-     defer
-     src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
-   ></script>
-   <script
-     src="https://accounts.google.com/gsi/client"
-     async
-     defer
-   ></script>
+   <script src="https://accounts.google.com/gsi/client" async defer></script>
+   <script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"></script>
+   <script>
+     // Load config, then dynamically load mpr-ui.js after config is applied
+     (function() {
+       function loadMprUi() {
+         var script = document.createElement('script');
+         script.src = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js';
+         document.head.appendChild(script);
+       }
+       if (document.readyState === 'loading') {
+         document.addEventListener('DOMContentLoaded', function() {
+           MPRUI.applyYamlConfig({ configUrl: '/config.yaml' })
+             .then(loadMprUi)
+             .catch(function(err) { console.error('Config failed:', err); });
+         });
+       } else {
+         MPRUI.applyYamlConfig({ configUrl: '/config.yaml' })
+           .then(loadMprUi)
+           .catch(function(err) { console.error('Config failed:', err); });
+       }
+     })();
+   </script>
    ```
 
-2. **Drop the custom elements** — compose pages declaratively with `<mpr-header>`, `<mpr-footer>`, `<mpr-theme-toggle>`, and friends:
+2. **Create `config.yaml`** — define auth settings per environment:
+
+   ```yaml
+   environments:
+     - description: "Production"
+       origins:
+         - "https://myapp.example.com"
+       auth:
+         tauthUrl: "https://tauth.example.com"
+         googleClientId: "YOUR_GOOGLE_CLIENT_ID"
+         tenantId: "my-tenant"
+         loginPath: "/auth/google"
+         logoutPath: "/auth/logout"
+         noncePath: "/auth/nonce"
+       authButton:
+         text: "signin_with"
+         size: "large"
+         theme: "outline"
+   ```
+
+   The loader matches the environment by `window.location.origin` and applies auth attributes to `<mpr-header>`, `<mpr-login-button>`, and `<mpr-user>` elements automatically. Missing or invalid config halts the app with an error.
+
+3. **Drop the custom elements** — compose pages declaratively:
 
    ```html
+   <!-- Auth attributes applied automatically from config.yaml -->
    <mpr-header
-    brand-label="Marco Polo Research Lab"
-    brand-href="/"
-    nav-links='[{ "label": "Docs", "href": "#docs" }]'
-    google-site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
-    tauth-tenant-id="mpr-sites"
-    tauth-login-path="/auth/google"
-    tauth-logout-path="/auth/logout"
-    tauth-nonce-path="/auth/nonce"
-    logout-url="/"
-    theme-config='{"initialMode":"dark","targets":["body"],"attribute":"data-demo-theme"}'
-  ></mpr-header>
+     brand-label="Marco Polo Research Lab"
+     brand-href="/"
+     nav-links='[{ "label": "Docs", "href": "#docs" }]'
+     logout-url="/"
+   >
+     <mpr-user
+       slot="aux"
+       display-mode="avatar"
+       logout-url="/"
+       logout-label="Log out"
+     ></mpr-user>
+   </mpr-header>
 
    <mpr-footer
      prefix-text="Built by Marco Polo Research Lab"
      privacy-link-label="Privacy &amp; Terms"
      privacy-modal-content="<p>Privacy copy...</p>"
      links-collection='{"style":"drop-up","text":"Explore","links":[{ "label": "Docs", "url": "#docs" }]}'
+     theme-switcher="square"
    ></mpr-footer>
-
-   <mpr-theme-toggle></mpr-theme-toggle>
-   <mpr-login-button
-     site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
-     tauth-tenant-id="mpr-sites"
-   ></mpr-login-button>
-   <mpr-user
-     display-mode="avatar-name"
-     logout-url="/auth/logout"
-     logout-label="Log out"
-     tauth-tenant-id="mpr-sites"
-   ></mpr-user>
-   <mpr-settings label="Settings"></mpr-settings>
-   <mpr-sites heading="Explore"></mpr-sites>
    ```
 
    Each element reflects attributes to props, dispatches `mpr-ui:*` events, and accepts slots so you stay declarative even when you need custom markup.
@@ -81,15 +105,94 @@ Need a single source of truth for the shutdown plan? See [`docs/deprecation-road
 
 ## Integration requirements
 
-1. Load `mpr-ui.css` first so layout tokens and theme variables exist before scripts run.
-2. Load `mpr-ui.js` after styles so the bundle can register custom elements immediately on import. No Alpine wiring is required; the Web Components DSL is the only public API.
-3. When authenticating via TAuth, include `http://localhost:8080/tauth.js` (or your deployed origin) before `mpr-ui.js` so `initAuthClient`, `logout`, `getCurrentUser`, and the nonce/exchange helpers are defined.
-4. Always include Google Identity Services (`https://accounts.google.com/gsi/client`) so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
-5. Set `tauth-tenant-id` to the tenant configured in TAuth; missing values raise `mpr-ui.tenant_id_required` (and `<mpr-login-button>` sets `data-mpr-google-error="missing-tauth-tenant-id"`).
-6. Point `tauth-url`, `tauth-login-path`, `tauth-logout-path`, and `tauth-nonce-path` at the backend that issues sessions; the header uses those attributes directly for every fetch.
-7. `<mpr-user>` depends on `tauth.js` for `getCurrentUser` and `logout`. Set `display-mode`, `logout-url`, `logout-label`, and `tauth-tenant-id` so the menu can show the profile and redirect after log out.
+1. **Load styles first** — `mpr-ui.css` must load before scripts so layout tokens and theme variables exist.
+2. **Load config loader before mpr-ui.js** — `mpr-ui-config.js` must load and apply config before `mpr-ui.js` so auth attributes are set when components initialize.
+3. **Load tauth.js from CDN** — include `https://tauth.mprlab.com/tauth.js` (or your TAuth deployment) so `initAuthClient`, `logout`, `getCurrentUser`, and the nonce/exchange helpers are defined. The mpr-ui components call `initAuthClient` with `tauthUrl` and `tenantId` from the config.
+4. **Load Google Identity Services** — include `https://accounts.google.com/gsi/client` so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
+5. **Create config.yaml** — define environments with required auth fields:
+   - `tauthUrl` — full URL to TAuth service (required, cannot be empty)
+   - `googleClientId` — OAuth Web client ID (required)
+   - `tenantId` — tenant configured in TAuth (required)
+   - `loginPath`, `logoutPath`, `noncePath` — auth endpoint paths (required)
+6. **Set component attributes** — `<mpr-user>` requires `display-mode`, `logout-url`, and `logout-label`. Auth attributes (`tauth-tenant-id`, etc.) are applied automatically from config.
 
 See [`docs/integration-guide.md`](docs/integration-guide.md) for the complete walkthrough plus troubleshooting guidance. For a deep dive into how the demo page wires GIS, `mpr-ui`, and TAuth (including nonce handling), see [`docs/demo-index-auth.md`](docs/demo-index-auth.md).
+
+## YAML configuration
+
+The YAML config loader is the recommended way to configure auth. It centralizes settings in a single file, validates required fields, and applies attributes to components before they initialize.
+
+### Config structure
+
+```yaml
+environments:
+  - description: "Production"
+    origins:
+      - "https://myapp.example.com"
+    auth:
+      tauthUrl: "https://tauth.example.com"      # Required: full URL to TAuth service
+      googleClientId: "YOUR_GOOGLE_CLIENT_ID"   # Required: OAuth Web client ID
+      tenantId: "my-tenant"                     # Required: TAuth tenant ID
+      loginPath: "/auth/google"                 # Required: credential exchange endpoint
+      logoutPath: "/auth/logout"                # Required: logout endpoint
+      noncePath: "/auth/nonce"                  # Required: nonce endpoint
+    authButton:                                 # Optional: GIS button styling
+      text: "signin_with"
+      size: "large"
+      theme: "outline"
+      shape: "circle"                           # Optional: "circle" for circular button
+```
+
+### Environment matching
+
+The loader matches environments by `window.location.origin`. Each origin must appear in exactly one environment. If no environment matches or multiple environments match, the loader throws an error and the app halts.
+
+### Validation rules
+
+- `tauthUrl` — required, must be a non-empty URL (empty string throws error)
+- `googleClientId` — required, non-empty string
+- `tenantId` — required, non-empty string
+- `loginPath`, `logoutPath`, `noncePath` — required, non-empty strings
+- `authButton` — optional; if present, `text`, `size`, and `theme` are required
+
+The loader fetches the YAML and parses it with `js-yaml` loaded from the CDN. If you already include `js-yaml` on the page, the loader will reuse it instead of injecting the script.
+
+## Manual configuration (alternative)
+
+If you prefer not to use YAML config, you can set auth attributes directly on components:
+
+```html
+<script defer src="https://tauth.mprlab.com/tauth.js"></script>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"></script>
+
+<mpr-header
+  google-site-id="YOUR_GOOGLE_CLIENT_ID"
+  tauth-url="https://tauth.example.com"
+  tauth-tenant-id="my-tenant"
+  tauth-login-path="/auth/google"
+  tauth-logout-path="/auth/logout"
+  tauth-nonce-path="/auth/nonce"
+  ...
+></mpr-header>
+
+<mpr-user
+  tauth-tenant-id="my-tenant"
+  display-mode="avatar"
+  logout-url="/"
+  logout-label="Log out"
+></mpr-user>
+
+<mpr-login-button
+  site-id="YOUR_GOOGLE_CLIENT_ID"
+  tauth-tenant-id="my-tenant"
+  tauth-login-path="/auth/google"
+  tauth-logout-path="/auth/logout"
+  tauth-nonce-path="/auth/nonce"
+></mpr-login-button>
+```
+
+This approach requires duplicating auth settings across components and doesn't benefit from environment-based configuration.
 
 ## Docker Compose example (TAuth + gHTTP)
 
@@ -388,4 +491,4 @@ Use that reference when you need to fine-tune copy, extend authentication flows,
 
 ## License
 
-MIT © 2025 Marco Polo Research Lab
+MIT © 2025, 2026 Marco Polo Research Lab

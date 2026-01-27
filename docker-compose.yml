@@ -10,12 +10,15 @@ services:
     env_file:
       - ./demo/.env.ghttp
     ports:
-      - "8000:8000"
+      - "4443:8443"
     volumes:
       - ./demo/:/app/demo
       - ./demo/tauth-demo.html:/app/demo/index.html:ro
       - ./mpr-ui.css:/app/demo/mpr-ui.css:ro
       - ./mpr-ui.js:/app/demo/mpr-ui.js:ro
+      - ./mpr-ui-config.js:/app/demo/mpr-ui-config.js:ro
+      - /media/share/Drive/exchange/certs/computercat/computercat-cert.pem:/certs/cert.pem:ro
+      - /media/share/Drive/exchange/certs/computercat/computercat-key.pem:/certs/key.pem:ro
     restart: unless-stopped
 
   frontend-standalone:

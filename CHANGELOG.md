@@ -1,5 +1,22 @@
 # Changelog
 
+## [v3.5.2]
+
+### Features ✨
+- Add YAML config loader (`mpr-ui-config.js`) with origin-based environment selection and `MPRUI.loadYamlConfig` / `MPRUI.applyYamlConfig` helpers
+
+### Improvements ⚙️
+- Document YAML config loader usage in README
+
+### Bug Fixes 🐛
+- _No changes._
+
+### Testing 🧪
+- Add unit coverage for YAML config loader
+
+### Docs 📚
+- Document YAML config loader and sample schema
+
 ## [v3.5.1]
 
 ### Features ✨
