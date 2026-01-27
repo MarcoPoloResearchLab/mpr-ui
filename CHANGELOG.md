@@ -1,21 +1,31 @@
 # Changelog
 
-## [v3.5.2]
+## [v3.6.0]
 
 ### Features ✨
-- Add YAML config loader (`mpr-ui-config.js`) with origin-based environment selection and `MPRUI.loadYamlConfig` / `MPRUI.applyYamlConfig` helpers
+- Add YAML config loader (`mpr-ui-config.js`) with environment matching and helpers to load and apply config
+- Integrate YAML config loader into TAuth demo for streamlined auth setup
+- Add interactive profile selection to `up.sh` for easier demo environment setup
 
 ### Improvements ⚙️
-- Document YAML config loader usage in README
+- Update docs and README to document and promote YAML config loader usage as default configuration
+- Remove redundant TAuth initialization; `mpr-ui` now manages it directly
+- Remove localhost environment from config and enforce explicit TAuth URL with validation
+- Load `tauth.js` from CDN; pass `tauthUrl` through without proxy keyword
+- Load YAML config before `mpr-ui.js` to prevent race conditions during initialization
+- Use `ghttp` proxy for same-origin TAuth operations
+- Fix config.yaml path adjustments for gHTTP serving
 
 ### Bug Fixes 🐛
-- _No changes._
+- Validate required auth fields in YAML config; missing or empty fields now throw user-facing errors
+- Prevent app startup if config environment matching fails or multiple matches occur
 
 ### Testing 🧪
-- Add unit coverage for YAML config loader
+- Add unit tests covering config loader error cases and functionality
 
 ### Docs 📚
-- Document YAML config loader and sample schema
+- Update integration guide and README with detailed instructions for YAML config usage and manual fallbacks
+- Document YAML config schema, environment matching, and validation rules comprehensively
 
 ## [v3.5.1]
 
