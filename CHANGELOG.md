@@ -1,5 +1,35 @@
 # Changelog
 
+## [v3.5.1]
+
+### Features ✨
+- Add standalone TAuth demo with ghttp reverse proxy enabling same-origin operation (MU-130)
+- Add session details card to standalone demo
+- Enable HTTPS for standalone profile (GIS requirement)
+- Helper scripts to easily start and stop docker orchestration
+
+### Improvements ⚙️
+- Combine sign-in and session into single auth card
+- Use mpr-ui design tokens for card styling
+- Use small circular Google sign-in button in demo
+- Align tauth config docs and tests
+- Simplify tenant ID and site ID attribute wiring directly to components
+- Add gHTTP configuration for proxying TAuth endpoints in standalone demo
+
+### Bug Fixes 🐛
+- Disable Google One Tap automatic sign-in prompt
+- Ensure session section renders above info section
+- Ensure user menu dropdown appears above subsequent content
+
+### Testing 🧪
+- _No changes._
+
+### Docs 📚
+- Update TAuth demo setup for new YAML config and proxy mode
+- Add instructions for standalone demo configuration with ghttp reverse proxy and HTTPS
+- Revise environment variable examples and docker-compose profiles for TAuth and standalone modes
+- Document tenant ID and client ID alignment requirements for Google Identity Services compatibility
+
 ## [v3.5.0]
 
 ### Features ✨
