@@ -127,10 +127,24 @@
     return matches[0];
   }
 
+  function readOptionalString(source, key, scope) {
+    if (!Object.prototype.hasOwnProperty.call(source, key)) {
+      return null;
+    }
+    var value = source[key];
+    if (typeof value !== "string") {
+      throw new Error("config.yaml " + scope + "." + key + " must be a string");
+    }
+    if (value.trim().length === 0) {
+      throw new Error("config.yaml " + scope + "." + key + " cannot be empty string");
+    }
+    return value.trim();
+  }
+
   function buildAuthConfig(environment) {
     var authPayload = requireObject(environment, SECTION_AUTH, SECTION_AUTH);
     return Object.freeze({
-      tauthUrl: requireStringAllowEmpty(authPayload, "tauthUrl", SECTION_AUTH),
+      tauthUrl: readOptionalString(authPayload, "tauthUrl", SECTION_AUTH),
       googleClientId: requireString(authPayload, "googleClientId", SECTION_AUTH),
       tenantId: requireString(authPayload, "tenantId", SECTION_AUTH),
       loginPath: requireString(authPayload, "loginPath", SECTION_AUTH),

@@ -149,7 +149,7 @@ test('config.yaml exists and has valid structure', () => {
   );
   assert.equal(
     environment.auth.tauthUrl,
-    '',
-    'Expected auth.tauthUrl to be empty string for same-origin operation',
+    undefined,
+    'Expected auth.tauthUrl to be omitted for same-origin operation',
   );
 });
