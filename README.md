@@ -134,7 +134,7 @@ Need a working authentication backend without wiring your own server? `demo/taut
      docker compose --profile tauth-standalone up --remove-orphans
      ```
 
-   For the `tauth` profile, gHTTP serves on [http://localhost:8000](http://localhost:8000). For the `tauth-standalone` profile, gHTTP serves HTTPS on port 8443 (e.g., `https://your-hostname:8443`). TAuth listens on [http://localhost:8080](http://localhost:8080) in both cases. In standalone mode, gHTTP proxies `/auth/*`, `/me`, and `/tauth.js` to TAuth so all requests stay same-origin. Because the bundle is loaded straight from `/mpr-ui.js`, any change you make to the library is immediately reflected in the demo. If you still see the CDN bundle after restarting the stack, open DevTools, enable "Disable cache," and hard-reload the page to ensure the local script is being served.
+   For the `tauth` profile, gHTTP serves on [http://localhost:8000](http://localhost:8000). For the `tauth-standalone` profile, gHTTP serves HTTPS on port 4443 (e.g., `https://your-hostname:4443`). TAuth listens on [http://localhost:8080](http://localhost:8080) in both cases. In standalone mode, gHTTP proxies `/auth/*`, `/me`, and `/tauth.js` to TAuth so all requests stay same-origin. Because the bundle is loaded straight from `/mpr-ui.js`, any change you make to the library is immediately reflected in the demo. If you still see the CDN bundle after restarting the stack, open DevTools, enable "Disable cache," and hard-reload the page to ensure the local script is being served.
 
 4. Sign in and inspect the session card.
 

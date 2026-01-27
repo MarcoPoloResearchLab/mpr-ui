@@ -29,7 +29,7 @@ services:
     env_file:
       - ./demo/.env.ghttp
     ports:
-      - "8443:8443"
+      - "4443:8443"
     volumes:
       - ./demo/:/app/demo
       - ./demo/standalone.html:/app/demo/index.html:ro
