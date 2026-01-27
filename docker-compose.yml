@@ -1,11 +1,14 @@
 services:
   frontend:
+    profiles:
+      - tauth
     image: ghcr.io/tyemirov/ghttp:latest
     pull_policy: always
     depends_on:
       tauth:
         condition: service_started
-    command: ["--directory", "/app/demo", "8000"]
+    env_file:
+      - ./demo/.env.ghttp
     ports:
       - "8000:8000"
     volumes:
@@ -15,7 +18,29 @@ services:
       - ./mpr-ui.js:/app/demo/mpr-ui.js:ro
     restart: unless-stopped
 
+  frontend-standalone:
+    profiles:
+      - tauth-standalone
+    image: ghcr.io/tyemirov/ghttp:latest
+    pull_policy: always
+    depends_on:
+      tauth:
+        condition: service_started
+    env_file:
+      - ./demo/.env.ghttp
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./demo/:/app/demo
+      - ./demo/standalone.html:/app/demo/index.html:ro
+      - ./mpr-ui.css:/app/demo/mpr-ui.css:ro
+      - ./mpr-ui.js:/app/demo/mpr-ui.js:ro
+    restart: unless-stopped
+
   tauth:
+    profiles:
+      - tauth
+      - tauth-standalone
     image: ghcr.io/tyemirov/tauth:latest
     pull_policy: always
     env_file:

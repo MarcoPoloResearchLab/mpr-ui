@@ -110,15 +110,33 @@ Need a working authentication backend without wiring your own server? `demo/taut
 
    After setting `TAUTH_GOOGLE_WEB_CLIENT_ID`, mirror the same value into `demo/tauth-config.js` (`googleClientId`). The header and TAuth must share the exact client ID; otherwise Google Identity Services rejects the origin and the button stays in an error state. Set `tenantId` in `demo/tauth-config.js` to match `TAUTH_TENANT_ID_1` in `demo/tauth-config.yaml` (the demo container uses `mpr-sites`). When running on plain HTTP (the Compose demo), keep `TAUTH_ALLOW_INSECURE_HTTP=true` so TAuth drops the `Secure` flag from cookies; Safari ignores Secure cookies over HTTP.
 
-2. Bring the stack up:
+2. Configure gHTTP (for standalone profile only):
 
    ```bash
-   docker compose up --remove-orphans
+   cp demo/.env.ghttp.example demo/.env.ghttp
    ```
 
-   gHTTP serves the repo root on [http://localhost:8000](http://localhost:8000); open `/demo/tauth-demo.html` to view the page, while TAuth listens on [http://localhost:8080](http://localhost:8080). Because the bundle is loaded straight from `/mpr-ui.js`, any change you make to the library is immediately reflected in the demo. If you still see the CDN bundle after restarting the stack, open DevTools, enable “Disable cache,” and hard-reload the page to ensure the local script is being served.
+   The gHTTP environment enables reverse proxy for TAuth endpoints (`/auth/*`, `/me`, `/tauth.js`) so the standalone demo operates same-origin without CORS. The default config works out of the box.
 
-3. Sign in and inspect the session card.
+3. Bring the stack up:
+
+   The compose file defines two profiles:
+
+   - **`tauth`** (default): Full header demo with cross-origin TAuth calls.
+
+     ```bash
+     docker compose --profile tauth up --remove-orphans
+     ```
+
+   - **`tauth-standalone`**: Standalone login button demo with gHTTP reverse proxy to TAuth (same-origin operation).
+
+     ```bash
+     docker compose --profile tauth-standalone up --remove-orphans
+     ```
+
+   gHTTP serves the repo root on [http://localhost:8000](http://localhost:8000); open the root URL to view the demo page, while TAuth listens on [http://localhost:8080](http://localhost:8080). In standalone mode, gHTTP proxies `/auth/*`, `/me`, and `/tauth.js` to TAuth so all requests stay same-origin. Because the bundle is loaded straight from `/mpr-ui.js`, any change you make to the library is immediately reflected in the demo. If you still see the CDN bundle after restarting the stack, open DevTools, enable "Disable cache," and hard-reload the page to ensure the local script is being served.
+
+4. Sign in and inspect the session card.
 
    - The header points its `tauth-url` at `http://localhost:8080` and loads TAuth's `tauth.js`, so Google credentials are exchanged via `/auth/nonce` and `/auth/google`.
    - The bundled status panel listens for `mpr-ui:auth:*` events and prints the `/me` payload plus expiry information.
