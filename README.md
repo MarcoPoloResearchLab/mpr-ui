@@ -91,6 +91,66 @@ Need a single source of truth for the shutdown plan? See [`docs/deprecation-road
 
 See [`docs/integration-guide.md`](docs/integration-guide.md) for the complete walkthrough plus troubleshooting guidance. For a deep dive into how the demo page wires GIS, `mpr-ui`, and TAuth (including nonce handling), see [`docs/demo-index-auth.md`](docs/demo-index-auth.md).
 
+## YAML config loader (optional)
+
+If you want to centralize auth wiring, you can load a YAML configuration file and let `mpr-ui` apply the settings to `<mpr-header>`, `<mpr-login-button>`, and `<mpr-user>` automatically.
+
+1. Add the convenience loader after `mpr-ui.js`:
+
+   ```html
+   <script
+     defer
+     src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+   ></script>
+   <script
+     defer
+     src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+   ></script>
+   <script>
+     MPRUI.applyYamlConfig({ configUrl: "/config.yaml" });
+   </script>
+   ```
+
+   The loader fetches `config.yaml`, selects the matching environment by `window.location.origin`, and applies the auth attributes to the matching elements. It will throw if the config is missing or ambiguous.
+
+2. Create a `config.yaml` with per-origin environments:
+
+   ```yaml
+   version: 1
+   environments:
+     - description: Local environment
+       origins:
+         - "https://computercat.tyemirov.net:4443"
+         - "http://localhost:8080"
+       auth:
+         tauthUrl: "https://computercat.tyemirov.net:4443"
+         googleClientId: "YOUR_GOOGLE_CLIENT_ID"
+         tenantId: "mpr-sites"
+         loginPath: "/auth/google"
+         logoutPath: "/auth/logout"
+         noncePath: "/auth/nonce"
+       authButton:
+         text: "signin_with"
+         size: "large"
+         theme: "outline"
+     - description: Production
+       origins:
+         - "https://prompts.mprlab.com"
+       auth:
+         tauthUrl: "https://tauth.mprlab.com"
+         googleClientId: "YOUR_GOOGLE_CLIENT_ID"
+         tenantId: "mpr-sites"
+         loginPath: "/auth/google"
+         logoutPath: "/auth/logout"
+         noncePath: "/auth/nonce"
+       authButton:
+         text: "signin_with"
+         size: "large"
+         theme: "outline"
+   ```
+
+The loader fetches the YAML and parses it with `js-yaml` loaded from the CDN. If you already include `js-yaml` on the page, the loader will reuse it instead of injecting the script.
+
 ## Docker Compose example (TAuth + gHTTP)
 
 Looking for a step–by–step walkthrough? See [`docs/integration-guide.md`](docs/integration-guide.md), which covers prerequisites, exact script ordering, attribute mapping, and debugging tips for wiring `mpr-header` to TAuth in any project. The summary below focuses on the bundled Compose demo.
