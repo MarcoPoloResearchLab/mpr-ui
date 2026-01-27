@@ -144,6 +144,11 @@ PLAN.md
 tools/
 test-results/
 
+# Docker volume mount artifacts in demo/
+demo/mpr-ui.js
+demo/mpr-ui.css
+demo/mpr-ui-config.js
+
 *.png
 # Managed by gix gitignore workflow
 .DS_Store

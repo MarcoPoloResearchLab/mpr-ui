@@ -77,14 +77,11 @@ test('tauth demo loads tauth.js from proxy and mpr-ui dynamically from local fil
     'Expected tauth-demo.html to include a tauth.js script',
   );
   const tauthScriptSource = tauthScriptMatch[1];
-  // tauth.js loaded from ghttp proxy (/tauth.js) for same-origin operation
-  assert.ok(
-    tauthScriptSource === '/tauth.js' || tauthScriptSource.startsWith('https://'),
-    'Expected tauth.js to load from proxy path or CDN',
-  );
-  assert.ok(
-    !tauthScriptSource.startsWith('./'),
-    'Expected tauth.js to avoid a local filesystem path',
+  // tauth.js loaded from CDN
+  assert.equal(
+    tauthScriptSource,
+    'https://tauth.mprlab.com/tauth.js',
+    'Expected tauth.js to load from CDN',
   );
 });
 
@@ -149,5 +146,10 @@ test('config.yaml exists and has valid structure', () => {
   assert.ok(
     typeof environment.auth.noncePath === 'string',
     'Expected auth to have noncePath',
+  );
+  assert.equal(
+    environment.auth.tauthUrl,
+    'proxy',
+    'Expected auth.tauthUrl to be "proxy" for same-origin operation',
   );
 });
