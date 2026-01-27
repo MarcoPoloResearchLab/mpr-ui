@@ -491,4 +491,4 @@ Use that reference when you need to fine-tune copy, extend authentication flows,
 
 ## License
 
-MIT © 2025 Marco Polo Research Lab
+MIT © 2025, 2026 Marco Polo Research Lab
