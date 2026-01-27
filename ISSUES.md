@@ -21,6 +21,8 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 - [x] [MU-128] add a TAuth demo example that opens a settings modal from the `<mpr-user>` menu action and remove the header settings button.
   Resolved: added menu action + modal demo wiring and removed header settings button. Tests: `node --test tests/tauth-demo.test.js`, `npx --yes --package typescript tsc --noEmit`.
+- [ ] [MU-130] Orchestrate standalone TAuth HTML demo with ghttp as a reverse proxy to a local TAuth instance.
+  Configure ghttp to proxy `/auth/*` and `/tauth.js` routes to the local TAuth container so the standalone demo can operate same-origin without external CDN dependencies. Update docker-compose.yml with the proxy configuration, adjust standalone.html to use relative paths, and document the setup.
 
 - [x] [MU-120] update TAuth demo configuration to the current YAML-based config with TAUTH_* env variables and explicit tenant ID wiring.
   Resolved: added YAML config, updated compose/env/docs to TAUTH_* variables, and enforced tenant header override. Tests: `npm test`.
