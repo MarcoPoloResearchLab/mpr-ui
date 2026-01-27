@@ -17,23 +17,9 @@
     <script id="mpr-ui-bundle" defer src="./mpr-ui.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <style>
-      :root {
-        --card-background: rgba(255, 255, 255, 0.9);
-        --card-border: rgba(0, 0, 0, 0.1);
-        --page-bg: #f8fafc;
-        --text-primary: #0f172a;
-        --text-muted: #64748b;
-      }
-      body.theme-dark {
-        --card-background: rgba(18, 21, 23, 0.8);
-        --card-border: rgba(255, 255, 255, 0.2);
-        --page-bg: #0f172a;
-        --text-primary: #e2e8f0;
-        --text-muted: #94a3b8;
-      }
       body {
-        background: var(--page-bg);
-        color: var(--text-primary);
+        background: var(--mpr-color-surface-primary, #f8fafc);
+        color: var(--mpr-color-text-primary, #0f172a);
         min-height: 100vh;
         margin: 0;
         font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -54,7 +40,7 @@
         font-size: 2rem;
       }
       .subtitle {
-        color: var(--text-muted);
+        color: var(--mpr-color-text-muted, #64748b);
         margin: 0 0 2.5rem;
         font-size: 1.1rem;
       }
@@ -65,51 +51,52 @@
         font-size: 1.25rem;
         margin: 0 0 1rem;
       }
-      .login-card,
-      .session-card {
-        border: 1px solid var(--card-border);
+      /* Use mpr-ui design tokens for cards */
+      .mpr-card-container {
+        border: 1px solid var(--mpr-color-border, rgba(148,163,184,0.35));
         border-radius: 0.75rem;
         padding: 1.5rem;
-        background: var(--card-background);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+        background: var(--mpr-color-surface-elevated, #ffffff);
+        box-shadow: var(--mpr-shadow-elevated, 0 8px 16px rgba(15,23,42,0.18));
       }
-      .login-card {
+      .mpr-card-container--centered {
         display: flex;
         flex-direction: column;
         align-items: center;
         gap: 1rem;
         text-align: center;
       }
-      .login-card p {
+      .mpr-card-container p {
         margin: 0;
-        color: var(--text-muted);
+        color: var(--mpr-color-text-muted, #64748b);
       }
-      .login-card mpr-login-button {
+      .mpr-card-container mpr-login-button {
         margin-top: 0.5rem;
       }
-      .session-card__profile {
+      .session-profile {
         display: flex;
         gap: 1rem;
         align-items: center;
       }
-      .session-card__profile ul {
+      .session-profile ul {
         list-style: none;
         padding: 0;
         margin: 0;
       }
-      .session-card__profile li + li {
+      .session-profile li + li {
         margin-top: 0.25rem;
       }
-      .session-card__avatar {
+      .session-avatar {
         width: 56px;
         height: 56px;
-        border-radius: 999px;
+        border-radius: 50%;
         object-fit: cover;
+        border: 2px solid var(--mpr-color-border, rgba(148,163,184,0.35));
       }
-      .session-card__expires {
+      .session-expires {
         margin-top: 1rem;
         font-size: 0.95rem;
-        color: var(--text-muted);
+        color: var(--mpr-color-text-muted, #64748b);
       }
       .user-menu-section {
         margin-top: 2rem;
@@ -121,12 +108,12 @@
       }
       .user-menu-section p {
         margin: 0;
-        color: var(--text-muted);
+        color: var(--mpr-color-text-muted, #64748b);
       }
       .info-section {
         margin-top: 3rem;
         padding-top: 2rem;
-        border-top: 1px solid var(--card-border);
+        border-top: 1px solid var(--mpr-color-border, rgba(148,163,184,0.35));
       }
       .info-section h2 {
         font-size: 1.25rem;
@@ -134,13 +121,13 @@
       }
       .info-section ul {
         padding-left: 1.25rem;
-        color: var(--text-muted);
+        color: var(--mpr-color-text-muted, #64748b);
       }
       .info-section li + li {
         margin-top: 0.5rem;
       }
       .info-section code {
-        background: var(--card-background);
+        background: var(--mpr-chip-bg, rgba(148,163,184,0.18));
         padding: 0.15rem 0.4rem;
         border-radius: 0.25rem;
         font-size: 0.9em;
@@ -150,7 +137,7 @@
       }
     </style>
   </head>
-  <body class="theme-light" data-demo-palette="default">
+  <body data-mpr-theme="light">
     <div class="page-container">
       <main>
         <h1>Standalone Login Button</h1>
@@ -161,7 +148,7 @@
 
         <section class="auth-section" data-auth-state="signed-out">
           <h2>Sign in</h2>
-          <div class="login-card" id="login-card">
+          <div class="mpr-card-container mpr-card-container--centered" id="login-card">
             <p>Click the button below to sign in with Google via TAuth.</p>
             <mpr-login-button
               id="demo-login-button"
@@ -178,7 +165,7 @@
         <section class="auth-section" id="session-section" hidden>
           <h2>Current session</h2>
           <div
-            class="session-card"
+            class="mpr-card-container"
             data-demo-auth-status
             aria-live="polite"
             aria-atomic="true"
@@ -240,7 +227,7 @@
           ]
         }'
         theme-switcher="toggle"
-        theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-light","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"]},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"]}]}'
+        theme-config='{"attribute":"data-mpr-theme","targets":["body"],"initialMode":"light","modes":[{"value":"light","attributeValue":"light"},{"value":"dark","attributeValue":"dark"}]}'
       ></mpr-footer>
     </div>
 
