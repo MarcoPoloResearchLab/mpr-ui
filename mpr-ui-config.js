@@ -267,9 +267,7 @@
     setAttributeValue(targetElement, "tauth-login-path", authConfig.loginPath);
     setAttributeValue(targetElement, "tauth-logout-path", authConfig.logoutPath);
     setAttributeValue(targetElement, "tauth-nonce-path", authConfig.noncePath);
-    // "proxy" means same-origin (ghttp proxies /auth/* to TAuth); do not set tauth-url attribute
-    var tauthUrlValue = authConfig.tauthUrl ? authConfig.tauthUrl.trim() : "";
-    if (tauthUrlValue.length > 0 && tauthUrlValue !== "proxy") {
+    if (authConfig.tauthUrl && authConfig.tauthUrl.trim().length > 0) {
       setAttributeValue(targetElement, "tauth-url", authConfig.tauthUrl);
     }
   }

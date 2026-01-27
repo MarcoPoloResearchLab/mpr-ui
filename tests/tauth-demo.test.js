@@ -149,7 +149,7 @@ test('config.yaml exists and has valid structure', () => {
   );
   assert.equal(
     environment.auth.tauthUrl,
-    'proxy',
-    'Expected auth.tauthUrl to be "proxy" for same-origin operation',
+    '',
+    'Expected auth.tauthUrl to be empty string for same-origin operation',
   );
 });
