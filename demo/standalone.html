@@ -119,6 +119,54 @@
       .auth-card__menu {
         flex-shrink: 0;
       }
+      /* Session info card */
+      .session-section {
+        margin-top: 2.5rem;
+      }
+      .session-section h2 {
+        font-size: 1.25rem;
+        margin: 0 0 1rem;
+      }
+      .session-card {
+        border: 1px solid var(--mpr-color-border, rgba(148,163,184,0.35));
+        border-radius: 0.75rem;
+        padding: 1.5rem;
+        background: var(--mpr-color-surface-elevated, #ffffff);
+        box-shadow: var(--mpr-shadow-elevated, 0 8px 16px rgba(15,23,42,0.18));
+      }
+      .session-card h3 {
+        margin: 0 0 0.5rem;
+        font-size: 1.1rem;
+      }
+      .session-card p {
+        margin: 0;
+        color: var(--mpr-color-text-muted, #64748b);
+      }
+      .session-card__profile {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+      }
+      .session-card__profile ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .session-card__profile li + li {
+        margin-top: 0.25rem;
+      }
+      .session-card__avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 2px solid var(--mpr-color-border, rgba(148,163,184,0.35));
+      }
+      .session-card__expires {
+        margin-top: 1rem;
+        font-size: 0.95rem;
+        color: var(--mpr-color-text-muted, #64748b);
+      }
       .info-section {
         margin-top: 3rem;
         padding-top: 2rem;
@@ -193,6 +241,19 @@
                 ></mpr-user>
               </div>
             </div>
+          </div>
+        </section>
+
+        <section class="session-section">
+          <h2>Session Details</h2>
+          <div
+            class="session-card"
+            data-demo-auth-status
+            aria-live="polite"
+            aria-atomic="true"
+          >
+            <h3>Signed out</h3>
+            <p>Use the Google Sign-In button above to begin.</p>
           </div>
         </section>
 
