@@ -59,7 +59,7 @@ test('tauth demo user menu sets required static attributes', () => {
   });
 });
 
-test('tauth demo loads tauth.js from CDN and mpr-ui dynamically from local files', () => {
+test('tauth demo loads tauth.js from proxy and mpr-ui dynamically from local files', () => {
   assert.match(
     tauthDemoHtml,
     LOCAL_MPR_UI_CSS_PATTERN,
@@ -77,9 +77,10 @@ test('tauth demo loads tauth.js from CDN and mpr-ui dynamically from local files
     'Expected tauth-demo.html to include a tauth.js script',
   );
   const tauthScriptSource = tauthScriptMatch[1];
+  // tauth.js loaded from ghttp proxy (/tauth.js) for same-origin operation
   assert.ok(
-    tauthScriptSource.startsWith('https://'),
-    'Expected tauth.js to load from a CDN-hosted https URL',
+    tauthScriptSource === '/tauth.js' || tauthScriptSource.startsWith('https://'),
+    'Expected tauth.js to load from proxy path or CDN',
   );
   assert.ok(
     !tauthScriptSource.startsWith('./'),

@@ -3,14 +3,14 @@
 # Each environment is matched by window.location.origin; exactly one must match at runtime.
 
 environments:
-  # Local development with ghttp serving HTTPS (TAuth via CDN helper)
-  - description: "Local TAuth demo with HTTPS"
+  # Local development with ghttp reverse proxy to TAuth container
+  - description: "Local TAuth demo with HTTPS and ghttp proxy"
     origins:
       - "https://computercat.tyemirov.net:4443"
       - "https://localhost:4443"
     auth:
-      # TAuth URL for cross-origin auth requests (CDN tauth.js uses this)
-      tauthUrl: "https://tauth.mprlab.com"
+      # Empty tauthUrl = same-origin; ghttp proxies /auth/*, /me, /tauth.js to TAuth container
+      tauthUrl: ""
       googleClientId: "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
       tenantId: "mpr-sites"
       loginPath: "/auth/google"

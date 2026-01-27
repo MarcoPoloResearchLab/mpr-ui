@@ -14,7 +14,8 @@
       src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
       type="module"
     ></script>
-    <script defer src="https://tauth.mprlab.com/tauth.js"></script>
+    <!-- TAuth helper proxied through ghttp for same-origin operation -->
+    <script defer src="/tauth.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <!-- Load config first, then mpr-ui.js after config is applied -->
     <script src="./mpr-ui-config.js"></script>
@@ -243,13 +244,15 @@
         <h2 id="instructions-title">How it works</h2>
         <ol>
           <li>
-            The frontend is served by gHTTP on port 4443 (HTTPS).
+            The frontend is served by gHTTP on port 4443 (HTTPS), which proxies
+            <code>/auth/*</code>, <code>/me</code>, and <code>/tauth.js</code>
+            to the local TAuth container for same-origin operation.
           </li>
           <li>
             Auth configuration is loaded from <code>/config.yaml</code>
             via the <code>mpr-ui-config.js</code> loader, which applies
             attributes (<code>google-site-id</code>, <code>tauth-tenant-id</code>,
-            <code>tauth-url</code>, etc.) to <code>&lt;mpr-header&gt;</code> and
+            etc.) to <code>&lt;mpr-header&gt;</code> and
             <code>&lt;mpr-user&gt;</code> elements.
           </li>
           <li>
@@ -258,7 +261,7 @@
             <code>/auth/google</code>.
           </li>
           <li>
-            The CDN-hosted <code>tauth.js</code> helper refreshes sessions by
+            The proxied <code>tauth.js</code> helper refreshes sessions by
             calling <code>/auth/refresh</code> whenever a request returns 401.
           </li>
           <li>
