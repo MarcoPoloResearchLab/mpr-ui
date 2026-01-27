@@ -15,9 +15,59 @@
       type="module"
     ></script>
     <script defer src="https://tauth.mprlab.com/tauth.js"></script>
-    <script id="mpr-ui-bundle" defer src="./mpr-ui.js"></script>
-    <script defer src="./mpr-ui-config.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Load config first, then mpr-ui.js after config is applied -->
+    <script src="./mpr-ui-config.js"></script>
+    <script>
+      (function initWithConfig() {
+        var CONFIG_TIMEOUT_MS = 5000;
+        var mprUiLoaded = false;
+
+        function loadMprUi() {
+          if (mprUiLoaded) return;
+          mprUiLoaded = true;
+          var script = document.createElement('script');
+          script.src = './mpr-ui.js';
+          script.id = 'mpr-ui-bundle';
+          document.head.appendChild(script);
+        }
+
+        function applyConfigAndLoad() {
+          if (!window.MPRUI || !window.MPRUI.applyYamlConfig) {
+            // Config loader not ready, load mpr-ui.js directly
+            // eslint-disable-next-line no-console
+            console.warn('mpr-ui-config.js not available, loading mpr-ui.js without config');
+            loadMprUi();
+            return;
+          }
+
+          // Set timeout fallback
+          var timeoutId = setTimeout(function handleTimeout() {
+            // eslint-disable-next-line no-console
+            console.warn('YAML config timed out after ' + CONFIG_TIMEOUT_MS + 'ms, loading mpr-ui.js');
+            loadMprUi();
+          }, CONFIG_TIMEOUT_MS);
+
+          window.MPRUI.applyYamlConfig({ configUrl: '/config.yaml' })
+            .then(function handleSuccess() {
+              clearTimeout(timeoutId);
+              loadMprUi();
+            })
+            .catch(function handleError(error) {
+              clearTimeout(timeoutId);
+              // eslint-disable-next-line no-console
+              console.error('Failed to apply YAML config:', error);
+              loadMprUi();
+            });
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', applyConfigAndLoad);
+        } else {
+          applyConfigAndLoad();
+        }
+      })();
+    </script>
     <style>
       :root {
         --card-background: rgba(255, 255, 255, 0.9);
@@ -278,26 +328,5 @@
     ></mpr-footer>
     <script defer src="./tauth-settings-modal.js"></script>
     <script defer src="./status-panel.js"></script>
-    <script>
-      // Apply YAML configuration to mpr-ui components
-      (function initYamlConfig() {
-        function applyConfig() {
-          if (!window.MPRUI || !window.MPRUI.applyYamlConfig) {
-            // mpr-ui-config.js not loaded yet, retry
-            setTimeout(applyConfig, 50);
-            return;
-          }
-          window.MPRUI.applyYamlConfig({ configUrl: '/config.yaml' }).catch(function handleError(error) {
-            // eslint-disable-next-line no-console
-            console.error('Failed to apply YAML config:', error);
-          });
-        }
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', applyConfig);
-        } else {
-          applyConfig();
-        }
-      })();
-    </script>
   </body>
 </html>

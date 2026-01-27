@@ -11,7 +11,8 @@ const tauthDemoHtmlPath = join(demoDir, 'tauth-demo.html');
 const tauthDemoHtml = readFileSync(tauthDemoHtmlPath, 'utf8');
 const configYamlPath = join(demoDir, 'config.yaml');
 const LOCAL_MPR_UI_CSS_PATTERN = /\bhref="\.\/mpr-ui\.css(?:\?[^"]*)?"/i;
-const LOCAL_MPR_UI_SCRIPT_PATTERN = /\bsrc="\.\/mpr-ui\.js(?:\?[^"]*)?"/i;
+// mpr-ui.js is loaded dynamically after config is applied
+const DYNAMIC_MPR_UI_SCRIPT_PATTERN = /script\.src\s*=\s*['"]\.\/mpr-ui\.js['"]/i;
 const TAUTH_SCRIPT_PATTERN = /\bsrc="([^"]*tauth\.js[^"]*)"/i;
 const CONFIG_LOADER_PATTERN = /\bsrc="\.\/mpr-ui-config\.js(?:\?[^"]*)?"/i;
 const APPLY_YAML_CONFIG_PATTERN = /applyYamlConfig\s*\(/i;
@@ -58,16 +59,17 @@ test('tauth demo user menu sets required static attributes', () => {
   });
 });
 
-test('tauth demo loads tauth.js from CDN and mpr-ui from local files', () => {
+test('tauth demo loads tauth.js from CDN and mpr-ui dynamically from local files', () => {
   assert.match(
     tauthDemoHtml,
     LOCAL_MPR_UI_CSS_PATTERN,
     'Expected tauth-demo.html to load mpr-ui.css from the local filesystem',
   );
+  // mpr-ui.js is loaded dynamically after YAML config is applied
   assert.match(
     tauthDemoHtml,
-    LOCAL_MPR_UI_SCRIPT_PATTERN,
-    'Expected tauth-demo.html to load mpr-ui.js from the local filesystem',
+    DYNAMIC_MPR_UI_SCRIPT_PATTERN,
+    'Expected tauth-demo.html to dynamically load mpr-ui.js from the local filesystem',
   );
   const tauthScriptMatch = tauthDemoHtml.match(TAUTH_SCRIPT_PATTERN);
   assert.ok(
