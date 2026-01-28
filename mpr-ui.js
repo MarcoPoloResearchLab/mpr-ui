@@ -7999,6 +7999,18 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           if (!this.__authController) {
             this.__authController = createAuthHeader(this, authOptions);
           }
+          var authControllerRef = this.__authController;
+          enqueueGoogleInitialize({
+            clientId: siteId,
+            callback: function handleGoogleCredential(payload) {
+              if (
+                authControllerRef &&
+                typeof authControllerRef.handleCredential === "function"
+              ) {
+                authControllerRef.handleCredential(payload);
+              }
+            },
+          });
           if (this.__googleCleanup) {
             this.__googleCleanup();
             this.__googleCleanup = null;

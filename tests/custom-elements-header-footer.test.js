@@ -1504,6 +1504,50 @@ test('mpr-login-button reports missing tenant ID', async () => {
   assert.equal(lastEvent.detail.code, 'mpr-ui.tenant_id_required');
 });
 
+test('mpr-login-button calls GSI initialize before renderButton (MU-131)', async () => {
+  resetEnvironment();
+  const callOrder = [];
+  const googleStub = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.google = googleStub;
+  loadLibrary();
+  const { element, buttonHost } = createLoginButtonHarness(googleStub);
+  googleStub.accounts.id.initialize = function initialize() {
+    callOrder.push('initialize');
+  };
+  googleStub.accounts.id.renderButton = function renderButton() {
+    callOrder.push('renderButton');
+  };
+  element.setAttribute('site-id', 'race-condition-test-site');
+  element.setAttribute('tauth-login-path', '/auth/login');
+  element.setAttribute('tauth-logout-path', '/auth/logout');
+  element.setAttribute('tauth-nonce-path', '/auth/nonce');
+  element.setAttribute('tauth-tenant-id', 'tenant-race');
+  element.connectedCallback();
+  await flushAsync();
+  const initializeIndex = callOrder.indexOf('initialize');
+  const renderButtonIndex = callOrder.indexOf('renderButton');
+  assert.ok(
+    initializeIndex !== -1,
+    'GSI initialize should be called',
+  );
+  assert.ok(
+    renderButtonIndex !== -1,
+    'GSI renderButton should be called',
+  );
+  assert.ok(
+    initializeIndex < renderButtonIndex,
+    'GSI initialize must be called before renderButton to avoid "[GSI_LOGGER]: Failed to render button before calling initialize()" warning',
+  );
+});
+
 test('mpr-settings toggles open state and dispatches events', () => {
   resetEnvironment();
   loadLibrary();

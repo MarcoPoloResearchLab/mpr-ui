@@ -33,21 +33,8 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 ## BugFixes (372–399)
 
-- [ ] [MU-131] `<mpr-login-button>` calls `renderGoogleButton()` before GSI `initialize()` due to async nonce fetch race condition.
-
-  **Symptom**: Console warning `[GSI_LOGGER]: Failed to render button before calling initialize()` when using `<mpr-login-button>` with TAuth integration.
-
-  **Root cause**: In `__renderLoginButton()` (mpr-ui.js:7999-8014), `createAuthHeader()` is called which internally fires `primeGoogleNonce()` as a fire-and-forget async operation (line 2695-2702). This calls `prepareGooglePromptNonce()` which fetches a nonce from TAuth and only then calls `configureGoogleNonce()` → `enqueueGoogleInitialize()` to populate the pending initialize queue.
-
-  However, `renderGoogleButton()` is called synchronously immediately after `createAuthHeader()` returns (line 8007). When `renderGoogleButton()` calls `ensureGoogleIdentityClient()`, if GSI loads before the nonce fetch completes, `runGoogleInitializeQueue()` runs with an empty queue, and then `googleId.renderButton()` is called without `googleId.initialize()` having been called first.
-
-  **Contrast with `<mpr-header>`**: The header element (lines 4118-4130) calls `enqueueGoogleInitialize()` synchronously before `renderGoogleButton()`, without waiting for a nonce. This ensures the queue is populated before GSI loads. The nonce is only needed when the credential callback fires, not for the initial `initialize()` call.
-
-  **Suggested fix**: `<mpr-login-button>` should call `enqueueGoogleInitialize()` synchronously (with clientId and callback, but without nonce) before calling `renderGoogleButton()`, matching the pattern used by `<mpr-header>`. The nonce can still be fetched async and used when the credential arrives.
-
-  **Files affected**:
-  - `mpr-ui.js` lines 7999-8014 (`MprLoginButtonElement.__renderLoginButton`)
-  - Compare with `mpr-ui.js` lines 4118-4130 (`<mpr-header>` auth wiring)
+- [x] [MU-131] `<mpr-login-button>` calls `renderGoogleButton()` before GSI `initialize()` due to async nonce fetch race condition.
+  Resolved: added synchronous `enqueueGoogleInitialize()` call before `renderGoogleButton()` in `MprLoginButtonElement.__renderLoginButton`, matching the pattern used by `<mpr-header>`. Tests: `npm test`.
 
 - [x] [MU-129] fix invalid TAUTH_CORS_ORIGIN_2 example URL in `.env.tauth.example`.
   Resolved: corrected the sample origin URL. Tests: `node --test tests/tauth-demo.test.js`.
