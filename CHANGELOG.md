@@ -1,5 +1,27 @@
 # Changelog
 
+## [v3.6.1]
+
+### Features ✨
+- Ensure nonce is prepared before rendering login button to prevent race conditions.
+- Add synchronous Google Identity Services (GSI) initialize call before rendering login button.
+
+### Improvements ⚙️
+- Introduce a nonce preparation method to support authentication flow.
+- Update login button component to handle nonce async preparation with sequence control.
+- Emit descriptive error events on nonce preparation failure.
+
+### Bug Fixes 🐛
+- Fix login button rendering sequence by calling GSI initialize before renderButton to resolve async nonce race condition (MU-131).
+
+### Testing 🧪
+- Add tests verifying GSI initialize is called before renderButton.
+- Stub nonce in tests to ensure consistent login button initialization.
+- Fix fetch stub to provide valid nonce in default testing environment.
+
+### Docs 📚
+- Document race condition fix for login button's Google Identity Services initialization (MU-131).
+
 ## [v3.6.0]
 
 ### Features ✨
