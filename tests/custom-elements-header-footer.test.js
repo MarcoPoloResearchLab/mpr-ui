@@ -1517,6 +1517,14 @@ test('mpr-login-button calls GSI initialize before renderButton (MU-131)', async
     },
   };
   global.google = googleStub;
+  global.fetch = function fetch() {
+    return Promise.resolve({
+      ok: true,
+      json: function json() {
+        return Promise.resolve({ nonce: 'nonce-token' });
+      },
+    });
+  };
   loadLibrary();
   const { element, buttonHost } = createLoginButtonHarness(googleStub);
   googleStub.accounts.id.initialize = function initialize() {
