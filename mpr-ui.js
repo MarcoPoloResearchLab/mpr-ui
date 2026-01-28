@@ -2736,12 +2736,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       return exchangeCredential(credentialResponse.credential)
         .then(function (profile) {
-          if (typeof global.initAuthClient !== "function") {
-            markAuthenticated(profile);
-            return profile;
-          }
-          pendingProfile = profile || null;
-          return bootstrapSession();
+          // Always mark authenticated directly after successful credential exchange.
+          // Previously relied on bootstrapSession() → initAuthClient() → onAuthenticated callback,
+          // but TAuth may not call callbacks on subsequent initAuthClient invocations.
+          markAuthenticated(profile);
+          return profile;
         })
         .catch(function (error) {
           emitError("mpr-ui.auth.exchange_failed", {
