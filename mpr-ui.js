@@ -2536,6 +2536,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       });
     }
 
+    function prepareGoogleNonce() {
+      return prepareGooglePromptNonce();
+    }
+
     function updateDatasetFromProfile(profile) {
       Object.keys(ATTRIBUTE_MAP).forEach(function (key) {
         var attributeName = ATTRIBUTE_MAP[key];
@@ -2767,6 +2771,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return {
       host: rootElement,
       state: state,
+      prepareGoogleNonce: prepareGoogleNonce,
       handleCredential: handleCredential,
       signOut: signOut,
       restartSessionWatcher: bootstrapSession,
@@ -7934,6 +7939,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__authController = null;
           this.__googleCleanup = null;
           this.__googleHost = null;
+          this.__renderSequenceNumber = 0;
         }
         static get observedAttributes() {
           return LOGIN_BUTTON_ATTRIBUTE_NAMES;
@@ -7999,31 +8005,45 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           if (!this.__authController) {
             this.__authController = createAuthHeader(this, authOptions);
           }
-          var authControllerRef = this.__authController;
-          enqueueGoogleInitialize({
-            clientId: siteId,
-            callback: function handleGoogleCredential(payload) {
-              if (
-                authControllerRef &&
-                typeof authControllerRef.handleCredential === "function"
-              ) {
-                authControllerRef.handleCredential(payload);
-              }
-            },
-          });
           if (this.__googleCleanup) {
             this.__googleCleanup();
             this.__googleCleanup = null;
           }
-          var buttonOptions = buildLoginButtonDisplayOptions(this);
-          this.__googleCleanup = renderGoogleButton(
-            container,
-            siteId,
-            buttonOptions,
-            function handleLoginError(detail) {
-              dispatchEvent(this, "mpr-login:error", detail || {});
-            }.bind(this),
-          );
+          var renderSequenceNumber = ++this.__renderSequenceNumber;
+          var loginElement = this;
+          var authControllerRef = this.__authController;
+          authControllerRef
+            .prepareGoogleNonce()
+            .then(function handleNoncePrepared() {
+              if (
+                !loginElement.__mprConnected ||
+                loginElement.__renderSequenceNumber !== renderSequenceNumber
+              ) {
+                return;
+              }
+              var buttonOptions = buildLoginButtonDisplayOptions(loginElement);
+              loginElement.__googleCleanup = renderGoogleButton(
+                container,
+                siteId,
+                buttonOptions,
+                function handleLoginError(detail) {
+                  dispatchEvent(loginElement, "mpr-login:error", detail || {});
+                },
+              );
+            })
+            .catch(function handleNonceFailure(error) {
+              if (
+                !loginElement.__mprConnected ||
+                loginElement.__renderSequenceNumber !== renderSequenceNumber
+              ) {
+                return;
+              }
+              loginElement.setAttribute("data-mpr-google-error", "nonce-failed");
+              dispatchEvent(loginElement, "mpr-login:error", {
+                code: "mpr-ui.auth.nonce_failed",
+                message: error && error.message ? error.message : String(error),
+              });
+            });
         }
       };
     });
