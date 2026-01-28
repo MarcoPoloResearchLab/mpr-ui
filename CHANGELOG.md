@@ -1,5 +1,22 @@
 # Changelog
 
+## [v3.6.2]
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- Dispatch authenticated event immediately after credential exchange, improving reliability when using TAuth.
+
+### Bug Fixes 🐛
+- Fixed dispatch of `mpr-ui:auth:authenticated` event not firing after credential exchange due to reliance on TAuth callback chain.
+
+### Testing 🧪
+- Added comprehensive tests verifying authenticated event dispatch and code correctness of credential exchange handling.
+
+### Docs 📚
+- Updated ISSUE.md with details on authentication event dispatch fix (MU-132).
+
 ## [v3.6.1]
 
 ### Features ✨
