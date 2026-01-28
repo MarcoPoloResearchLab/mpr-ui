@@ -33,6 +33,9 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 ## BugFixes (372–399)
 
+- [x] [MU-132] `mpr-ui:auth:authenticated` event not dispatched after successful credential exchange when TAuth's `initAuthClient` is present.
+  Resolved: `handleCredential` now calls `markAuthenticated(profile)` directly after successful credential exchange instead of relying on `bootstrapSession()` → `initAuthClient()` → `onAuthenticated` callback chain (which fails because TAuth does not call callbacks on subsequent `initAuthClient` invocations). Tests: `node --test tests/auth-credential-exchange.test.js`.
+
 - [x] [MU-131] `<mpr-login-button>` calls `renderGoogleButton()` before GSI `initialize()` due to async nonce fetch race condition.
   Resolved: added synchronous `enqueueGoogleInitialize()` call before `renderGoogleButton()` in `MprLoginButtonElement.__renderLoginButton`, matching the pattern used by `<mpr-header>`. Tests: `npm test`.
 
