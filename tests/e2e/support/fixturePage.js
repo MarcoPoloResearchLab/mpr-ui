@@ -67,6 +67,9 @@ const THEME_FIXTURE_URL = pathToFileURL(
 const FOOTER_TEXT_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-text-only.html'),
 ).href;
+const FOOTER_PRIVACY_HIDDEN_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-privacy-hidden.html'),
+).href;
 const FOOTER_MULTIMODE_TOGGLE_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-multimode-toggle.html'),
 ).href;
@@ -168,6 +171,20 @@ async function visitFooterTextFixturePage(page) {
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
   ]);
   await page.goto(FOOTER_TEXT_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the footer fixture that hides the privacy link entirely.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitFooterPrivacyHiddenFixturePage(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(FOOTER_PRIVACY_HIDDEN_FIXTURE_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
 }
 
@@ -453,6 +470,7 @@ module.exports = {
   visitFullLayoutFixture,
   visitThemeFixturePage,
   visitFooterTextFixturePage,
+  visitFooterPrivacyHiddenFixturePage,
   visitFooterMultimodeToggleFixture,
   visitFooterMultimodeSquareFixture,
   visitFooterMultimodeConflictFixture,
