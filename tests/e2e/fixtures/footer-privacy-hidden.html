@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Footer Privacy Hidden Fixture</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
+      type="module"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+    ></script>
+  </head>
+  <body>
+    <main>
+      <h1>Privacy Hidden Footer Fixture</h1>
+      <p>This fixture disables the privacy link entirely.</p>
+    </main>
+    <mpr-footer
+      id="privacy-hidden-footer"
+      prefix-text="Built by Marco Polo Research Lab"
+      privacy-link-hidden="true"
+      privacy-modal-content="<p>Privacy content that should not render.</p>"
+    ></mpr-footer>
+  </body>
+</html>

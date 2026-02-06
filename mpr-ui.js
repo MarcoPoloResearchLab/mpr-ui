@@ -384,6 +384,7 @@
     "privacy-link-class": "privacyLinkClass",
     "privacy-link-href": "privacyLinkHref",
     "privacy-link-label": "privacyLinkLabel",
+    "privacy-link-hidden": "privacyLinkHidden",
     "privacy-modal-content": "privacyModalContent",
     "theme-config": "themeToggle",
     "theme-switcher": "themeSwitcher",
@@ -6527,6 +6528,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     privacyLinkClass: "mpr-footer__privacy",
     privacyLinkHref: "#",
     privacyLinkLabel: "Privacy • Terms",
+    privacyLinkHidden: false,
     privacyModalContent: "",
     themeToggle: Object.freeze({
       enabled: false,
@@ -6778,6 +6780,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       mergedConfig.privacyModalContent.trim()
         ? mergedConfig.privacyModalContent.trim()
         : "";
+    mergedConfig.privacyLinkHidden = normalizeBooleanAttribute(
+      mergedConfig.privacyLinkHidden,
+      FOOTER_DEFAULTS.privacyLinkHidden,
+    );
 
     if (normalizedCollection && normalizedCollection.text) {
       if (!hasExplicitPrefix) {
@@ -6952,7 +6958,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var privacyHeading = escapeFooterHtml(
       config.privacyModalTitle || config.privacyLinkLabel || "Privacy & Terms",
     );
-    var modalMarkup = config.privacyModalContent
+    var modalMarkup = config.privacyModalContent && !config.privacyLinkHidden
       ? '<div data-mpr-footer="privacy-modal" data-mpr-modal="container" aria-hidden="true" data-mpr-modal-open="false">' +
         '<div data-mpr-modal="backdrop" data-mpr-footer="privacy-modal-backdrop"></div>' +
         '<div data-mpr-modal="dialog" data-mpr-footer="privacy-modal-dialog" role="dialog" aria-modal="true" tabindex="-1">' +
@@ -6973,11 +6979,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       ? '<span data-mpr-footer="prefix"></span>'
       : "";
 
+    var privacyLinkMarkup = config.privacyLinkHidden
+      ? ""
+      : '<a data-mpr-footer="privacy-link" href="' +
+        escapeFooterHtml(sanitizeFooterHref(config.privacyLinkHref)) +
+        '"></a>';
+
     var layoutMarkup =
       '<div data-mpr-footer="layout">' +
-      '<a data-mpr-footer="privacy-link" href="' +
-      escapeFooterHtml(sanitizeFooterHref(config.privacyLinkHref)) +
-      '"></a>' +
+      privacyLinkMarkup +
       spacerMarkup +
       themeToggleMarkup +
       '<div data-mpr-footer="brand">' +
@@ -7298,6 +7308,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     if (dataset.privacyLinkLabel) {
       options.privacyLinkLabel = dataset.privacyLinkLabel;
+    }
+    if (dataset.privacyLinkHidden !== undefined) {
+      options.privacyLinkHidden = normalizeBooleanAttribute(
+        dataset.privacyLinkHidden,
+        FOOTER_DEFAULTS.privacyLinkHidden,
+      );
     }
     if (dataset.privacyModalContent) {
       options.privacyModalContent = dataset.privacyModalContent;
@@ -7650,7 +7666,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         this.cleanupHandlers.push(footerThemeUnsubscribe);
 
         applyFooterStructure(footerRoot, this.config);
-        var privacyModalLifecycle = this.config.privacyModalContent
+        var privacyModalLifecycle = this.config.privacyModalContent && !this.config.privacyLinkHidden
           ? initializeFooterPrivacyModal(footerRoot, this.config)
           : null;
         updateFooterPrivacy(

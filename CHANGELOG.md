@@ -3,7 +3,7 @@
 ## [v3.6.2]
 
 ### Features ✨
-- _No changes._
+- Add `privacy-link-hidden` attribute to `<mpr-footer>` to suppress privacy link/modal rendering (MU-133).
 
 ### Improvements ⚙️
 - Dispatch authenticated event immediately after credential exchange, improving reliability when using TAuth.
@@ -13,9 +13,11 @@
 
 ### Testing 🧪
 - Added comprehensive tests verifying authenticated event dispatch and code correctness of credential exchange handling.
+- Added unit + Playwright coverage for `privacy-link-hidden` behaviour (MU-133).
 
 ### Docs 📚
-- Updated ISSUE.md with details on authentication event dispatch fix (MU-132).
+- Updated ISSUES.md with details on authentication event dispatch fix (MU-132).
+- Updated ISSUES.md with MU-133 resolution notes.
 
 ## [v3.6.1]
 

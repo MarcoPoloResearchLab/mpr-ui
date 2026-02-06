@@ -1170,6 +1170,40 @@ test('mpr-footer reflects attributes and slot content', () => {
   );
 });
 
+test('MU-133: mpr-footer suppresses privacy link markup when privacy-link-hidden is true', () => {
+  resetEnvironment();
+  loadLibrary();
+  const harness = createFooterElementHarness({ includeMenu: false });
+  const footerElement = harness.element;
+  footerElement.setAttribute('privacy-link-hidden', 'true');
+  footerElement.setAttribute('privacy-modal-content', '<p>Policy</p>');
+
+  footerElement.connectedCallback();
+
+  const controllerConfig =
+    footerElement.__footerController &&
+    footerElement.__footerController.getConfig
+      ? footerElement.__footerController.getConfig()
+      : null;
+
+  assert.ok(controllerConfig, 'controller config should be available');
+  assert.equal(
+    controllerConfig.privacyLinkHidden,
+    true,
+    'controller config records privacyLinkHidden',
+  );
+  assert.doesNotMatch(
+    footerElement.innerHTML,
+    /data-mpr-footer="privacy-link"/,
+    'privacy link markup is omitted',
+  );
+  assert.doesNotMatch(
+    footerElement.innerHTML,
+    /data-mpr-footer="privacy-modal"/,
+    'privacy modal markup is omitted when the privacy link is hidden',
+  );
+});
+
 test('mpr-footer renders static text when links collection is missing', () => {
   resetEnvironment();
   loadLibrary();

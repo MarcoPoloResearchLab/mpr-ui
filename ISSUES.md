@@ -17,8 +17,8 @@ Read @AGENTS.md, @ARCHITECTURE.md, @POLICY.md, @NOTES.md,  @README.md and @ISSUE
 
 Use the current styling of the logged in user in gravity as an inspiration. the elemtn shall support theming, and all four of the light switches.
 
-- [ ] [MU-133] Add ability to hide/disable the privacy link in `<mpr-footer>`.
-  Currently the privacy link is always rendered with a default label "Privacy • Terms" and href "#". There is no DSL attribute to hide it when a page does not require a privacy link. Proposed solution: add a `privacy-link-hidden="true"` attribute or allow `privacy-link-label=""` (empty string) to suppress rendering the link entirely.
+- [x] [MU-133] Add ability to hide/disable the privacy link in `<mpr-footer>`.
+  Resolved: added `privacy-link-hidden` (boolean) which omits the privacy link and privacy modal markup when enabled. Tests: `npm test`, `npx --yes --package typescript tsc --noEmit`.
 
 ## Improvements (428–527)
 
