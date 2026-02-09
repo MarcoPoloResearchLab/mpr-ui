@@ -91,8 +91,8 @@ const CARD_FIXTURE_URL = pathToFileURL(
 const FULL_LAYOUT_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/layout-full.html'),
 ).href;
-const INLINE_LINKS_FIXTURE_URL = pathToFileURL(
-  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/inline-links.html'),
+const HORIZONTAL_LINKS_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/horizontal-links.html'),
 ).href;
 const USER_MENU_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/user-menu.html'),
@@ -150,17 +150,17 @@ async function visitFullLayoutFixture(page) {
 }
 
 /**
- * Opens the inline-links fixture with local assets.
+ * Opens the horizontal-links fixture with local assets.
  * @param {import('@playwright/test').Page} page
  * @returns {Promise<void>}
  */
-async function visitInlineLinksFixture(page) {
+async function visitHorizontalLinksFixture(page) {
   await Promise.all([
     routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
     routeLocalAsset(page, GOOGLE_IDENTITY_URL, GOOGLE_IDENTITY_STUB, 'application/javascript'),
   ]);
-  await page.goto(INLINE_LINKS_FIXTURE_URL, { waitUntil: 'load' });
+  await page.goto(HORIZONTAL_LINKS_FIXTURE_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
 }
 
@@ -486,7 +486,7 @@ async function routeLocalAsset(page, url, body, contentType) {
 module.exports = {
   visitWorkbenchFixture,
   visitFullLayoutFixture,
-  visitInlineLinksFixture,
+  visitHorizontalLinksFixture,
   visitThemeFixturePage,
   visitFooterTextFixturePage,
   visitFooterPrivacyHiddenFixturePage,
