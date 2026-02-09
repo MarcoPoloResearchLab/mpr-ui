@@ -1,5 +1,22 @@
 # Changelog
 
+## [v3.6.4]
+
+### Features ✨
+- Add `horizontal-links` JSON attribute to `<mpr-header>` and `<mpr-footer>` to render wrapping horizontal link lists as a new declarative DSL (MU-134).
+
+### Improvements ⚙️
+- Replace inline-links with horizontal-links DSL for improved, theme-token-driven horizontal link rendering without requiring consumer CSS (MU-134).
+
+### Bug Fixes 🐛
+- _No changes._
+
+### Testing 🧪
+- Add unit tests and Playwright end-to-end coverage for header/footer inline links wrapping and behaviour (MU-134).
+
+### Docs 📚
+- Update README, ARCHITECTURE, and ISSUES documentation with `horizontal-links` usage and examples (MU-134).
+
 ## [v3.6.3]
 
 ### Features ✨
