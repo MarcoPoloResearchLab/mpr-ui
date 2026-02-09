@@ -34,6 +34,27 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 - [x] [MU-122] allow slotted `<mpr-user>` inside `<mpr-header>` actions so the demo can nest the menu in the header layout.
   Resolved: header reuses slotted user menus (wiring attributes + logout events) and the demo nests `<mpr-user>` in the header. Tests: `npm test`.
 
+- [x] [MU-134] Support horizontal link lists in both `<mpr-header>` and `<mpr-footer>` DSL (no slots)
+  Context: product teams need small sets of always-visible links (Privacy, Terms, Pricing, Docs, etc.) in the shared chrome. Today consumers either:
+  - use `<mpr-footer>` `links-collection` (drop-up) which hides links behind a menu, or
+  - inject custom markup via slots (commonly `slot="legal"`) plus per-app CSS to force a second row.
+  This slot-based approach is fragile: footer slot content is appended into the same flex row (`[data-mpr-footer="layout"]`) as the privacy link / dropdown / theme toggle, so adding multiple links often requires `flex: 1 1 100%` + `order` hacks and still wraps unevenly across products.
+  Goal: add a first-class, declarative horizontal link list API that works the same way in both header and footer, wraps evenly, and is fully theme-token driven without requiring consumer CSS.
+  Suggested implementation path:
+  - Add a shared inline link renderer (either a new `<mpr-links>` element or an `inline`/`row` variant on `<mpr-sites>`), accepting `links` JSON (array of `{ label, href/url, target?, rel? }`) and optional alignment/class overrides.
+  - Expose a single, consistent DSL surface on both components (name TBD, e.g. `inline-links='[...]'`), rather than component-specific names, so consumers can copy/paste chrome configuration across products.
+  - `<mpr-footer>`: render the inline links into a dedicated full-width row inside `[data-mpr-footer="inner"]` (not inside `[data-mpr-footer="layout"]`) so wrapping/alignment is independent from the dropdown/theme/privacy layout.
+  - `<mpr-header>`: render the inline links into a dedicated row inside the header chrome (placement TBD: beside `nav-links` or in the actions area). Keep `nav-links` as the primary navigation surface; the inline list is for low-emphasis secondary links.
+  - Reuse existing link normalization + sanitization (`normalizeLinkForRendering`, `sanitizeHref`) so protocol allowlists stay consistent and per-link `target`/`rel` can support `_self` for internal routes.
+  - CSS: ship styles in both `mpr-ui.css` and injected style tags so the inline link list works even when consumers rely on injected styles only. Style should be `display:flex; flex-wrap:wrap; justify-content:center; gap:...; font-size:...; color: var(--mpr-color-text-muted)` with `:empty{display:none}`.
+  - Tests: unit coverage for parsing/normalization + attribute reflection; Playwright coverage proving multiple inline links wrap cleanly at narrow widths and do not break the drop-up menu, theme toggle, privacy modal, or user menu.
+  Consumer example:
+  ```html
+  <mpr-header inline-links='[{ "label": "Pricing", "href": "/pricing", "target": "_self" }]'></mpr-header>
+  <mpr-footer inline-links='[{ "label": "Privacy", "url": "/privacy", "target": "_self" }, { "label": "Terms", "url": "/tos", "target": "_self" }]'></mpr-footer>
+  ```
+  Resolved 2026-02-09: added `inline-links` attribute support to both components, rendering into dedicated flex-wrap rows without slot/CSS hacks; added unit + Playwright coverage. Tests: `make ci`.
+
 ## BugFixes (372–399)
 
 - [x] [MU-132] `mpr-ui:auth:authenticated` event not dispatched after successful credential exchange when TAuth's `initAuthClient` is present.

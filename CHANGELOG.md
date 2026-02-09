@@ -1,5 +1,16 @@
 # Changelog
 
+## [v3.6.3]
+
+### Features ✨
+- Add `inline-links` JSON attribute to `<mpr-header>` and `<mpr-footer>` to render wrapping horizontal link lists (MU-134).
+
+### Testing 🧪
+- Add unit + Playwright coverage for header/footer inline links wrapping behaviour (MU-134).
+
+### Docs 📚
+- Update README + ARCHITECTURE + ISSUES with `inline-links` usage (MU-134).
+
 ## [v3.6.2]
 
 ### Features ✨
