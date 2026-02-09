@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Horizontal Links Fixture</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
+      type="module"
+    ></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+    ></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+  </head>
+  <body class="theme-light">
+    <mpr-header
+      id="fixture-header"
+      brand-label="Test Brand"
+      brand-href="/"
+      nav-links='[{"label":"Home","href":"/"},{"label":"Docs","href":"#docs"}]'
+      horizontal-links='{
+        "alignment": "right",
+        "links": [
+          {"label":"Pricing","href":"/pricing"},
+          {"label":"Support","href":"/support"},
+          {"label":"Security & Compliance","href":"/security"},
+          {"label":"Status","href":"https://status.example.com","target":"_blank"},
+          {"label":"Changelog","href":"/changelog"},
+          {"label":"Terms","href":"/terms"},
+          {"label":"Privacy","href":"/privacy"},
+          {"label":"GitHub","href":"https://github.com/MarcoPoloResearchLab","target":"_blank"}
+        ]
+      }'
+      settings="false"
+      google-site-id="test-site-id"
+      tauth-login-path="/auth/login"
+      tauth-logout-path="/auth/logout"
+      tauth-nonce-path="/auth/nonce"
+      tauth-tenant-id="test-tenant"
+    ></mpr-header>
+
+    <main style="padding: 2rem 1.5rem 10rem; max-width: 900px; margin: 0 auto;">
+      <h1>Horizontal Links Fixture</h1>
+      <p>Fixture page for verifying header/footer horizontal link lists render and wrap cleanly.</p>
+      <p style="max-width: 60ch;">Resize the viewport to confirm the utility links wrap into multiple rows without breaking the primary chrome layout.</p>
+      <div style="height: 1200px;"></div>
+    </main>
+
+    <mpr-footer
+      id="fixture-footer"
+      prefix-text="Built by Test"
+      privacy-link-label="Privacy"
+      theme-switcher="square"
+      horizontal-links='{
+        "alignment": "left",
+        "links": [
+          {"label":"Privacy","href":"/privacy"},
+          {"label":"Terms","href":"/terms","target":"_blank"},
+          {"label":"Pricing","href":"/pricing"},
+          {"label":"Docs","href":"#docs"},
+          {"label":"Security & Compliance","href":"/security"},
+          {"label":"Status","href":"https://status.example.com","target":"_blank"},
+          {"label":"Changelog","href":"/changelog"},
+          {"label":"Careers","href":"/careers"},
+          {"label":"Contact","href":"mailto:hello@example.com"},
+          {"label":"GitHub","href":"https://github.com/MarcoPoloResearchLab","target":"_blank"}
+        ]
+      }'
+      links-collection='{
+        "style":"drop-up",
+        "text":"Explore",
+        "links":[{"label":"Test Link","url":"#"}]
+      }'
+    ></mpr-footer>
+  </body>
+</html>

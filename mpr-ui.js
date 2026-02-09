@@ -201,6 +201,14 @@
     '"tauth-url"/"tauth-login-path"/"tauth-logout-path"/"tauth-nonce-path"';
   var LEGACY_DSL_THEME_VARIANT_REPLACEMENT =
     '"themeToggle.variant" or "theme-switcher"';
+  var HORIZONTAL_LINKS_ALIGNMENT_ERROR_CODE =
+    "mpr-ui.horizontal-links.invalid_alignment";
+  var HORIZONTAL_LINKS_CONFIG_ERROR_CODE = "mpr-ui.horizontal-links.invalid_config";
+  var HORIZONTAL_LINKS_ALIGNMENT_VALUES = Object.freeze(["left", "right", "center"]);
+  var HORIZONTAL_LINKS_DEFAULTS = Object.freeze({
+    alignment: "center",
+    links: Object.freeze([]),
+  });
   var USER_MENU_DISPLAY_MODE_ERROR_CODE = "mpr-ui.user.invalid_display_mode";
   var USER_MENU_LOGOUT_URL_ERROR_CODE = "mpr-ui.user.missing_logout_url";
   var USER_MENU_LOGOUT_LABEL_ERROR_CODE = "mpr-ui.user.missing_logout_label";
@@ -342,6 +350,7 @@
     "brand-label": "brandLabel",
     "brand-href": "brandHref",
     "nav-links": "navLinks",
+    "horizontal-links": "horizontalLinks",
     "settings-label": "settingsLabel",
     "settings": "settingsEnabled",
     "google-site-id": "siteId",
@@ -381,6 +390,7 @@
     "toggle-label": "toggleLabel",
     "menu-class": "menuClass",
     "menu-item-class": "menuItemClass",
+    "horizontal-links": "horizontalLinks",
     "privacy-link-class": "privacyLinkClass",
     "privacy-link-href": "privacyLinkHref",
     "privacy-link-label": "privacyLinkLabel",
@@ -2099,6 +2109,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (dataset.navLinks) {
       options.navLinks = parseJsonValue(dataset.navLinks, []);
     }
+    if (dataset.horizontalLinks) {
+      options.horizontalLinks = parseJsonValue(dataset.horizontalLinks, {});
+    }
     var datasetSettingsFlag = undefined;
     if (dataset.settingsEnabled !== undefined) {
       datasetSettingsFlag = dataset.settingsEnabled;
@@ -2823,6 +2836,21 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "__nav a:hover{text-decoration:underline}" +
     "." +
     HEADER_ROOT_CLASS +
+    "__horizontal-links{max-width:1080px;margin:0 auto;padding:0 calc(1.5rem * var(--mpr-header-scale,1)) calc(0.55rem * var(--mpr-header-scale,1));display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:calc(0.75rem * var(--mpr-header-scale,1));font-size:calc(0.85rem * var(--mpr-header-scale,1));color:var(--mpr-color-text-muted,#cbd5f5)}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    '__horizontal-links[data-mpr-align="left"]{justify-content:flex-start}' +
+    "." +
+    HEADER_ROOT_CLASS +
+    '__horizontal-links[data-mpr-align="right"]{justify-content:flex-end}' +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__horizontal-links a{color:inherit;text-decoration:none;font-weight:500}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__horizontal-links a:hover{text-decoration:underline}" +
+    "." +
+    HEADER_ROOT_CLASS +
     "__actions{display:flex;gap:calc(0.75rem * var(--mpr-header-scale,1));align-items:center}" +
     "." +
     HEADER_ROOT_CLASS +
@@ -2863,6 +2891,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "." +
     HEADER_ROOT_CLASS +
     "__nav:empty{display:none}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__horizontal-links:empty{display:none}" +
     ".mpr-header__google .g_id_signin iframe{transform:scale(var(--mpr-header-google-scale,1));transform-origin:right center}" +
     ".mpr-header--small{--mpr-header-scale:0.6;--mpr-header-google-scale:0.6}";
 
@@ -2891,6 +2922,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       href: "/",
     }),
     navLinks: Object.freeze([]),
+    horizontalLinks: Object.freeze({
+      alignment: "center",
+      links: Object.freeze([]),
+    }),
     settings: Object.freeze({
       enabled: false,
       label: "Settings",
@@ -3099,6 +3134,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       })
       .filter(Boolean);
 
+    var horizontalLinks = normalizeHorizontalLinksConfig(
+      options.horizontalLinks,
+      HEADER_DEFAULTS.horizontalLinks,
+    );
+
     var authOptions =
       options.auth && typeof options.auth === "object" ? options.auth : null;
     var derivedSiteId = normalizeGoogleSiteId(options.siteId);
@@ -3184,6 +3224,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         href: brandHref,
       },
       navLinks: navLinks,
+      horizontalLinks: horizontalLinks,
       settings: {
         enabled: Boolean(settingsSource.enabled),
         label:
@@ -3255,6 +3296,49 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       })
       .filter(Boolean)
       .join("");
+    var horizontalLinksConfig =
+      options.horizontalLinks && typeof options.horizontalLinks === "object"
+        ? options.horizontalLinks
+        : HEADER_DEFAULTS.horizontalLinks;
+    var horizontalLinksAlignment = horizontalLinksConfig.alignment
+      ? escapeHtml(horizontalLinksConfig.alignment)
+      : escapeHtml(HEADER_DEFAULTS.horizontalLinks.alignment);
+    var horizontalLinksMarkup = Array.isArray(horizontalLinksConfig.links)
+      ? horizontalLinksConfig.links
+          .map(function (link) {
+            var normalizedLink = normalizeLinkForRendering(link, {});
+            if (!normalizedLink) {
+              return "";
+            }
+            var linkHref = escapeHtml(normalizedLink.href);
+            var linkLabel = escapeHtml(normalizedLink.label);
+            var linkTarget = normalizedLink.target
+              ? escapeHtml(normalizedLink.target)
+              : "";
+            var linkRel = normalizedLink.rel ? escapeHtml(normalizedLink.rel) : "";
+            if (linkTarget === "_blank" && !linkRel) {
+              linkRel = HEADER_LINK_DEFAULT_REL;
+            }
+            var extraAttributes = "";
+            if (linkTarget) {
+              extraAttributes += ' target="' + linkTarget + '"';
+            }
+            if (linkRel) {
+              extraAttributes += ' rel="' + linkRel + '"';
+            }
+            return (
+              '<a href="' +
+              linkHref +
+              '"' +
+              extraAttributes +
+              ">" +
+              linkLabel +
+              "</a>"
+            );
+          })
+          .filter(Boolean)
+          .join("")
+      : "";
     var userMenuMarkup = "";
     if (renderUserMenu !== false && options && options.userMenu && options.tenantId) {
       var userMenuAttributes =
@@ -3317,6 +3401,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       userMenuMarkup +
       "</div>" +
       "</div>" +
+      '<nav data-mpr-header="horizontal-links" class="' +
+      HEADER_ROOT_CLASS +
+      '__horizontal-links" aria-label="Utility links" data-mpr-align="' +
+      horizontalLinksAlignment +
+      '">' +
+      horizontalLinksMarkup +
+      "</nav>" +
       "</header>" +
       buildHeaderSettingsModalMarkup(options.settings.label)
     );
@@ -3346,6 +3437,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return {
       root: hostElement.querySelector("header." + HEADER_ROOT_CLASS),
       nav: hostElement.querySelector('[data-mpr-header="nav"]'),
+      horizontalLinks: hostElement.querySelector('[data-mpr-header="horizontal-links"]'),
       brand: hostElement.querySelector('[data-mpr-header="brand"]'),
       brandContainer: hostElement.querySelector("." + HEADER_ROOT_CLASS + "__brand"),
       googleSignin: hostElement.querySelector(
@@ -3847,6 +3939,58 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       .join("");
   }
 
+  function renderHeaderHorizontalLinks(containerElement, horizontalLinks) {
+    if (!containerElement) {
+      return;
+    }
+    var config =
+      horizontalLinks && typeof horizontalLinks === "object"
+        ? horizontalLinks
+        : HEADER_DEFAULTS.horizontalLinks;
+    var alignment =
+      typeof config.alignment === "string" && config.alignment.trim()
+        ? config.alignment.trim()
+        : HEADER_DEFAULTS.horizontalLinks.alignment;
+    if (typeof containerElement.setAttribute === "function") {
+      containerElement.setAttribute("data-mpr-align", alignment);
+    }
+    var items = Array.isArray(config.links) ? config.links : [];
+    containerElement.innerHTML = items
+      .map(function (link) {
+        var normalizedLink = normalizeLinkForRendering(link, {});
+        if (!normalizedLink) {
+          return "";
+        }
+        var hrefValue = escapeHtml(normalizedLink.href);
+        var labelValue = escapeHtml(normalizedLink.label);
+        var targetValue = normalizedLink.target
+          ? escapeHtml(normalizedLink.target)
+          : "";
+        var relValue = normalizedLink.rel ? escapeHtml(normalizedLink.rel) : "";
+        if (targetValue === "_blank" && !relValue) {
+          relValue = HEADER_LINK_DEFAULT_REL;
+        }
+        var extraAttributes = "";
+        if (targetValue) {
+          extraAttributes += ' target="' + targetValue + '"';
+        }
+        if (relValue) {
+          extraAttributes += ' rel="' + relValue + '"';
+        }
+        return (
+          '<a href="' +
+          hrefValue +
+          '"' +
+          extraAttributes +
+          ">" +
+          labelValue +
+          "</a>"
+        );
+      })
+      .filter(Boolean)
+      .join("");
+  }
+
   function updateHeaderAuthView(hostElement, elements, options, state) {
     if (!elements.root) {
       return;
@@ -3944,6 +4088,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       elements.brand.setAttribute("rel", "noopener noreferrer");
     }
     renderHeaderNav(elements.nav, options.navLinks);
+    renderHeaderHorizontalLinks(elements.horizontalLinks, options.horizontalLinks);
 
     elements.root.classList.toggle(
       HEADER_ROOT_CLASS + "--no-settings",
@@ -5307,6 +5452,69 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     };
   }
 
+  function normalizeHorizontalLinksAlignment(value, fallback) {
+    if (typeof value !== "string") {
+      return fallback;
+    }
+    var normalized = value.trim().toLowerCase();
+    if (!normalized) {
+      return fallback;
+    }
+    if (HORIZONTAL_LINKS_ALIGNMENT_VALUES.indexOf(normalized) !== -1) {
+      return normalized;
+    }
+    logError(
+      HORIZONTAL_LINKS_ALIGNMENT_ERROR_CODE,
+      'Unsupported horizontal-links alignment "' + value + '"',
+    );
+    return fallback;
+  }
+
+  function normalizeHorizontalLinksConfig(candidateConfig, fallbackConfig) {
+    var fallback =
+      fallbackConfig && typeof fallbackConfig === "object"
+        ? fallbackConfig
+        : HORIZONTAL_LINKS_DEFAULTS;
+    var fallbackAlignment =
+      typeof fallback.alignment === "string" && fallback.alignment.trim()
+        ? fallback.alignment.trim()
+        : HORIZONTAL_LINKS_DEFAULTS.alignment;
+
+    if (Array.isArray(candidateConfig)) {
+      logError(
+        HORIZONTAL_LINKS_CONFIG_ERROR_CODE,
+        "horizontal-links expects an object with { alignment, links }. Received an array; treating it as links list.",
+      );
+      return {
+        alignment: fallbackAlignment,
+        links: candidateConfig
+          .map(function normalizeSingleLink(link) {
+            return normalizeLinkForRendering(link, {});
+          })
+          .filter(Boolean),
+      };
+    }
+
+    if (!candidateConfig || typeof candidateConfig !== "object") {
+      return { alignment: fallbackAlignment, links: [] };
+    }
+
+    var alignmentSource = candidateConfig.alignment || candidateConfig.align || "";
+    var alignment = normalizeHorizontalLinksAlignment(
+      alignmentSource,
+      fallbackAlignment,
+    );
+    var linksSource = Array.isArray(candidateConfig.links)
+      ? candidateConfig.links
+      : [];
+    var links = linksSource
+      .map(function normalizeSingleLink(link) {
+        return normalizeLinkForRendering(link, {});
+      })
+      .filter(Boolean);
+    return { alignment: alignment, links: links };
+  }
+
   var FOOTER_LINK_DEFAULT_TARGET = "_blank";
   var FOOTER_LINK_DEFAULT_REL = "noopener noreferrer";
   var FOOTER_STYLE_ID = "mpr-ui-footer-styles";
@@ -5318,6 +5526,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     '.mpr-footer[data-mpr-sticky="false"]{position:static;left:auto;right:auto;bottom:auto}' +
     '.mpr-footer__inner{max-width:1080px;margin:0 auto;padding:0 calc(1.5rem * var(--mpr-footer-scale,1));display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:calc(1.5rem * var(--mpr-footer-scale,1))}' +
     '.mpr-footer__layout{display:flex;flex-wrap:wrap;align-items:center;gap:calc(1.25rem * var(--mpr-footer-scale,1));width:100%}' +
+    '.mpr-footer__horizontal-links{width:100%;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:calc(0.75rem * var(--mpr-footer-scale,1));font-size:calc(0.85rem * var(--mpr-footer-scale,1));color:var(--mpr-color-text-muted,#cbd5f5)}' +
+    '.mpr-footer__horizontal-links[data-mpr-align="left"]{justify-content:flex-start}' +
+    '.mpr-footer__horizontal-links[data-mpr-align="right"]{justify-content:flex-end}' +
+    ".mpr-footer__horizontal-links a{color:inherit;text-decoration:none;font-weight:500}" +
+    ".mpr-footer__horizontal-links a:hover{text-decoration:underline}" +
+    ".mpr-footer__horizontal-links:empty{display:none}" +
     '.mpr-footer__spacer{display:block;flex:1 1 auto;min-width:1px}' +
     '.mpr-footer__brand{display:flex;flex-wrap:wrap;align-items:center;gap:calc(0.75rem * var(--mpr-footer-scale,1));font-size:calc(0.95rem * var(--mpr-footer-scale,1));margin-left:auto}' +
     '.mpr-footer__prefix{font-weight:600;color:var(--mpr-color-accent,#38bdf8)}' +
@@ -6525,6 +6739,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     toggleLabel: "Build by Marco Polo Research Lab",
     menuClass: "mpr-footer__menu",
     menuItemClass: "mpr-footer__menu-item",
+    horizontalLinks: HORIZONTAL_LINKS_DEFAULTS,
     privacyLinkClass: "mpr-footer__privacy",
     privacyLinkHref: "#",
     privacyLinkLabel: "Privacy • Terms",
@@ -6784,6 +6999,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       mergedConfig.privacyLinkHidden,
       FOOTER_DEFAULTS.privacyLinkHidden,
     );
+    mergedConfig.horizontalLinks = normalizeHorizontalLinksConfig(
+      mergedConfig.horizontalLinks,
+      FOOTER_DEFAULTS.horizontalLinks,
+    );
 
     if (normalizedCollection && normalizedCollection.text) {
       if (!hasExplicitPrefix) {
@@ -7004,6 +7223,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       '<footer role="contentinfo" data-mpr-footer="root">' +
       '<div data-mpr-footer="inner">' +
       layoutMarkup +
+      '<nav data-mpr-footer="horizontal-links" class="mpr-footer__horizontal-links" aria-label="Utility links" data-mpr-align="' +
+      escapeFooterHtml(config.horizontalLinks && config.horizontalLinks.alignment
+        ? config.horizontalLinks.alignment
+        : FOOTER_DEFAULTS.horizontalLinks.alignment) +
+      '"></nav>' +
       modalMarkup +
       "</div>" +
       "</footer>"
@@ -7228,6 +7452,63 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     menuContainer.innerHTML = markup;
   }
 
+  function updateFooterHorizontalLinks(containerElement, config) {
+    var horizontalLinksContainer = footerQuery(
+      containerElement,
+      '[data-mpr-footer="horizontal-links"]',
+    );
+    if (!horizontalLinksContainer) {
+      return;
+    }
+    var horizontalLinksConfig =
+      config.horizontalLinks && typeof config.horizontalLinks === "object"
+        ? config.horizontalLinks
+        : FOOTER_DEFAULTS.horizontalLinks;
+    var alignment =
+      typeof horizontalLinksConfig.alignment === "string" &&
+      horizontalLinksConfig.alignment.trim()
+        ? horizontalLinksConfig.alignment.trim()
+        : FOOTER_DEFAULTS.horizontalLinks.alignment;
+    if (typeof horizontalLinksContainer.setAttribute === "function") {
+      horizontalLinksContainer.setAttribute("data-mpr-align", alignment);
+    }
+    var items = Array.isArray(horizontalLinksConfig.links)
+      ? horizontalLinksConfig.links
+      : [];
+    horizontalLinksContainer.innerHTML = items
+      .map(function renderSingle(link) {
+        var normalizedLink = normalizeLinkForRendering(link, {});
+        if (!normalizedLink) {
+          return "";
+        }
+        var hrefValue = escapeFooterHtml(normalizedLink.href);
+        var labelValue = escapeFooterHtml(normalizedLink.label);
+        var targetValue = normalizedLink.target ? normalizedLink.target : "";
+        var relValue = normalizedLink.rel ? normalizedLink.rel : "";
+        if (targetValue === "_blank" && !relValue) {
+          relValue = FOOTER_LINK_DEFAULT_REL;
+        }
+        var extraAttributes = "";
+        if (targetValue) {
+          extraAttributes += ' target="' + escapeFooterHtml(targetValue) + '"';
+        }
+        if (relValue) {
+          extraAttributes += ' rel="' + escapeFooterHtml(relValue) + '"';
+        }
+        return (
+          '<a href="' +
+          hrefValue +
+          '"' +
+          extraAttributes +
+          ">" +
+          labelValue +
+          "</a>"
+        );
+      })
+      .filter(Boolean)
+      .join("");
+  }
+
   function applyFooterStructure(containerElement, config) {
     if (!containerElement) {
       return;
@@ -7299,6 +7580,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     if (dataset.menuItemClass) {
       options.menuItemClass = dataset.menuItemClass;
+    }
+    if (dataset.horizontalLinks) {
+      options.horizontalLinks = parseJsonValue(dataset.horizontalLinks, {});
     }
     if (dataset.privacyLinkClass) {
       options.privacyLinkClass = dataset.privacyLinkClass;
@@ -7677,6 +7961,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         updateFooterPrefix(footerRoot, this.config);
         updateFooterToggleButton(footerRoot, this.config);
         updateFooterMenuLinks(footerRoot, this.config);
+        updateFooterHorizontalLinks(footerRoot, this.config);
 
         var dropdownCleanup = initializeFooterDropdown(footerRoot);
         if (dropdownCleanup) {

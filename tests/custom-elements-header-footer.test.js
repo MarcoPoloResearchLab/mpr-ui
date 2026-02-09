@@ -465,6 +465,7 @@ function createHeaderElementHarness(options) {
   const brandLink = createStubNode({ attributes: true });
   const brandContainer = createStubNode();
   const nav = createStubNode({});
+  const horizontalLinks = createStubNode({ attributes: true });
   const actions = createStubNode({});
   const googleHost = createStubNode({ attributes: true, classList: true, supportsEvents: true });
   const settingsButton = createStubNode({ attributes: true, supportsEvents: true });
@@ -475,6 +476,7 @@ function createHeaderElementHarness(options) {
     ['[data-mpr-header="brand"]', brandLink],
     ['.mpr-header__brand', brandContainer],
     ['[data-mpr-header="nav"]', nav],
+    ['[data-mpr-header="horizontal-links"]', horizontalLinks],
     ['[data-mpr-header="google-signin"]', googleHost],
     ['[data-mpr-header="settings-button"]', settingsButton],
     ['.mpr-header__actions', actions],
@@ -492,6 +494,7 @@ function createHeaderElementHarness(options) {
     brandLink,
     brandContainer,
     nav,
+    horizontalLinks,
     actions,
     userMenu,
     selectorMap,
@@ -517,6 +520,7 @@ function createFooterElementHarness(options) {
   const toggleButton = createStubNode({ attributes: true, supportsEvents: true });
   const themeToggleHost = createStubNode({ attributes: true });
   const privacyLink = createStubNode({ attributes: true });
+  const horizontalLinks = createStubNode({ attributes: true });
 
   const stickySpacer = createStubNode({});
   stickySpacer.style = { height: '' };
@@ -526,6 +530,7 @@ function createFooterElementHarness(options) {
     ['[data-mpr-footer="inner"]', inner],
     ['[data-mpr-footer="layout"]', layout],
     ['[data-mpr-footer="brand"]', brandContainer],
+    ['[data-mpr-footer="horizontal-links"]', horizontalLinks],
     ['[data-mpr-footer="prefix"]', prefix],
     ['[data-mpr-footer="toggle-button"]', toggleButton],
     ['[data-mpr-footer="theme-toggle"]', themeToggleHost],
@@ -553,6 +558,7 @@ function createFooterElementHarness(options) {
     menu: settings.includeMenu ? menu : null,
     menuWrapper: settings.includeMenu ? menuWrapper : null,
     privacyLink,
+    horizontalLinks,
     toggleButton,
     selectorMap,
   };
@@ -696,6 +702,13 @@ test('mpr-header reflects attributes and updates values', () => {
     'nav-links',
     JSON.stringify([{ label: 'Docs', href: '#docs' }]),
   );
+  headerElement.setAttribute(
+    'horizontal-links',
+    JSON.stringify({
+      alignment: 'right',
+      links: [{ label: 'Pricing', href: '/pricing' }],
+    }),
+  );
   headerElement.setAttribute('settings-label', 'Preferences');
   headerElement.setAttribute('settings', 'false');
   headerElement.setAttribute('google-site-id', 'example-site');
@@ -723,6 +736,15 @@ test('mpr-header reflects attributes and updates values', () => {
     harness.nav.innerHTML.indexOf('Docs') !== -1,
     'nav links rendered from attribute JSON',
   );
+  assert.ok(
+    harness.horizontalLinks.innerHTML.indexOf('Pricing') !== -1,
+    'horizontal links rendered from attribute JSON',
+  );
+  assert.equal(
+    harness.horizontalLinks.getAttribute('data-mpr-align'),
+    'right',
+    'horizontal links alignment reflected on the row container',
+  );
   assert.equal(
     harness.root.classList.contains('mpr-header--no-settings'),
     true,
@@ -737,6 +759,37 @@ test('mpr-header reflects attributes and updates values', () => {
 
   headerElement.setAttribute('brand-label', 'Next Brand');
   assert.equal(harness.brandLink.textContent, 'Next Brand');
+});
+
+test('MU-134: mpr-header sets rel="noopener noreferrer" when horizontal-links target is _blank', () => {
+  resetEnvironment();
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+
+  headerElement.setAttribute(
+    'horizontal-links',
+    JSON.stringify({
+      alignment: 'center',
+      links: [
+        { label: 'Pricing', href: '/pricing' },
+        { label: 'Docs', href: 'https://example.com/docs', target: '_blank' },
+      ],
+    }),
+  );
+
+  headerElement.connectedCallback();
+
+  assert.match(
+    harness.horizontalLinks.innerHTML,
+    /<a href="\/pricing">Pricing<\/a>/,
+    'inline link without target/rel omits extra attributes',
+  );
+  assert.match(
+    harness.horizontalLinks.innerHTML,
+    /<a href="https:\/\/example\.com\/docs" target="_blank" rel="noopener noreferrer">Docs<\/a>/,
+    'inline link with target _blank receives noopener rel by default',
+  );
 });
 
 test('mpr-header wires the user menu element with logout and tenant attributes', () => {
@@ -1100,6 +1153,16 @@ test('mpr-footer reflects attributes and slot content', () => {
       links: [{ label: 'Docs', url: '#docs' }],
     }),
   );
+  footerElement.setAttribute(
+    'horizontal-links',
+    JSON.stringify({
+      alignment: 'left',
+      links: [
+        { label: 'Privacy', href: '/privacy' },
+        { label: 'Terms', href: '/terms', target: '_blank' },
+      ],
+    }),
+  );
   footerElement.setAttribute('privacy-modal-content', '<p>Policy</p>');
 
   footerElement.connectedCallback();
@@ -1144,6 +1207,44 @@ test('mpr-footer reflects attributes and slot content', () => {
     controllerConfig && controllerConfig.linksMenuEnabled,
     true,
     'linksCollection should enable the drop-up by default',
+  );
+  assert.deepEqual(
+    controllerConfig && controllerConfig.horizontalLinks,
+    {
+      alignment: 'left',
+      links: [
+        {
+          label: 'Privacy',
+          href: '/privacy',
+          url: '/privacy',
+          target: '',
+          rel: '',
+        },
+        {
+          label: 'Terms',
+          href: '/terms',
+          url: '/terms',
+          target: '_blank',
+          rel: '',
+        },
+      ],
+    },
+    'horizontal-links parsed into controller config',
+  );
+  assert.match(
+    harness.horizontalLinks.innerHTML,
+    /<a href="\/privacy">Privacy<\/a>/,
+    'footer horizontal links render anchor markup',
+  );
+  assert.match(
+    harness.horizontalLinks.innerHTML,
+    /<a href="\/terms" target="_blank" rel="noopener noreferrer">Terms<\/a>/,
+    'footer horizontal links default rel for _blank',
+  );
+  assert.equal(
+    harness.horizontalLinks.getAttribute('data-mpr-align'),
+    'left',
+    'footer horizontal links alignment reflected on the row container',
   );
   footerElement.setAttribute('prefix-text', 'Updated by');
   const updatedConfig =
