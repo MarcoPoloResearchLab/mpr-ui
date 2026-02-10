@@ -116,4 +116,85 @@ test.describe('MU-428: horizontal-links stays inline (single-row chrome)', () =>
     );
     expect(range(footerRowCenters)).toBeLessThanOrEqual(2);
   });
+
+  test('restores header horizontal-links alignment when there is free space', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    await page.evaluate(() => {
+      const header = document.getElementById('fixture-header');
+      if (!header) {
+        return;
+      }
+
+      header.setAttribute('settings', 'false');
+      header.setAttribute('nav-links', '[]');
+
+      header.removeAttribute('tauth-login-path');
+      header.removeAttribute('tauth-logout-path');
+      header.removeAttribute('tauth-nonce-path');
+      header.removeAttribute('tauth-url');
+      header.removeAttribute('tauth-tenant-id');
+      header.removeAttribute('google-site-id');
+    });
+
+    const headerHorizontalLinks = page.locator('[data-mpr-header="horizontal-links"]');
+
+    async function updateHeaderLinks(alignment) {
+      await page.evaluate((nextAlignment) => {
+        const header = document.getElementById('fixture-header');
+        if (!header) {
+          return;
+        }
+        header.setAttribute(
+          'horizontal-links',
+          JSON.stringify({
+            alignment: nextAlignment,
+            links: [
+              { label: 'Alpha', href: '#alpha' },
+              { label: 'Beta', href: '#beta' },
+            ],
+          }),
+        );
+      }, alignment);
+      await expect(headerHorizontalLinks).toHaveAttribute('data-mpr-align', alignment);
+      await expect(page.locator('[data-mpr-header="horizontal-links"] a')).toHaveCount(2);
+    }
+
+    async function readHeaderGaps() {
+      return headerHorizontalLinks.evaluate((container) => {
+        const anchors = Array.from(container.querySelectorAll('a'));
+        if (anchors.length < 2) {
+          return null;
+        }
+        const containerRect = container.getBoundingClientRect();
+        const firstRect = anchors[0].getBoundingClientRect();
+        const lastRect = anchors[anchors.length - 1].getBoundingClientRect();
+        return {
+          leftGap: firstRect.left - containerRect.left,
+          rightGap: containerRect.right - lastRect.right,
+          containerWidth: containerRect.width,
+          contentWidth: lastRect.right - firstRect.left,
+        };
+      });
+    }
+
+    await updateHeaderLinks('left');
+    const leftGaps = await readHeaderGaps();
+    expect(leftGaps).not.toBeNull();
+    expect(leftGaps.leftGap).toBeLessThanOrEqual(2);
+    expect(leftGaps.rightGap).toBeGreaterThan(leftGaps.leftGap + 12);
+
+    await updateHeaderLinks('center');
+    const centerGaps = await readHeaderGaps();
+    expect(centerGaps).not.toBeNull();
+    expect(Math.abs(centerGaps.leftGap - centerGaps.rightGap)).toBeLessThanOrEqual(2);
+    expect(centerGaps.leftGap).toBeGreaterThanOrEqual(8);
+    expect(centerGaps.containerWidth).toBeGreaterThan(centerGaps.contentWidth + 24);
+
+    await updateHeaderLinks('right');
+    const rightGaps = await readHeaderGaps();
+    expect(rightGaps).not.toBeNull();
+    expect(rightGaps.rightGap).toBeLessThanOrEqual(2);
+    expect(rightGaps.leftGap).toBeGreaterThan(rightGaps.rightGap + 12);
+  });
 });

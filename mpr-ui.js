@@ -2836,7 +2836,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "__nav a:hover{text-decoration:underline}" +
     "." +
     HEADER_ROOT_CLASS +
-    "__horizontal-links{display:flex;flex-shrink:0;flex-wrap:nowrap;align-items:center;justify-content:center;gap:calc(0.75rem * var(--mpr-header-scale,1));font-size:calc(0.85rem * var(--mpr-header-scale,1));color:var(--mpr-color-text-muted,#cbd5f5);white-space:nowrap}" +
+    "__horizontal-links{display:flex;flex:1 0 auto;min-width:0;flex-wrap:nowrap;align-items:center;justify-content:center;gap:calc(0.75rem * var(--mpr-header-scale,1));font-size:calc(0.85rem * var(--mpr-header-scale,1));color:var(--mpr-color-text-muted,#cbd5f5);white-space:nowrap}" +
     "." +
     HEADER_ROOT_CLASS +
     '__horizontal-links[data-mpr-align="left"]{justify-content:flex-start}' +
