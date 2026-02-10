@@ -15,6 +15,7 @@ The header integrates Google Identity Services with TAuth and emits auth events 
 
 ### Optional attributes
 - `tauth-url`: Base URL of the TAuth service. When omitted, the current origin is used.
+- `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders a wrapping utility link row.
 - `sign-in-label`: Text for the fallback sign-in button.
 - `sign-out-label`: Text for the sign-out button.
 - `sticky`: `true` or `false` to toggle sticky positioning.
@@ -48,6 +49,13 @@ The header updates these attributes when authenticated:
   tauth-login-path="/auth/google"
   tauth-logout-path="/auth/logout"
   tauth-nonce-path="/auth/nonce"
+  horizontal-links='{
+    "alignment": "right",
+    "links": [
+      { "label": "Docs", "href": "/docs" },
+      { "label": "Status", "href": "https://status.example.com", "target": "_blank" }
+    ]
+  }'
   sign-in-label="Sign in"
   sign-out-label="Sign out"
 >
@@ -64,6 +72,7 @@ The footer renders product links, privacy links, and an optional theme switch.
 
 ### Common attributes used by LoopAware
 - `links-collection`: JSON string containing link text, style, and URLs.
+- `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders a wrapping utility link row.
 - `privacy-link-href`: URL for the privacy page.
 - `privacy-link-label`: Label for the privacy link.
 - `theme-switcher`: `toggle` to enable the theme switch.
@@ -80,6 +89,13 @@ The footer renders product links, privacy links, and an optional theme switch.
   id="page-footer"
   privacy-link-href="/privacy"
   privacy-link-label="Privacy • Terms"
+  horizontal-links='{
+    "alignment": "left",
+    "links": [
+      { "label": "Docs", "href": "/docs" },
+      { "label": "GitHub", "href": "https://github.com/MarcoPoloResearchLab", "target": "_blank" }
+    ]
+  }'
   links-collection='{"style":"drop-up","text":"LoopAware","links":[{"label":"LoopAware","url":"https://loopaware.mprlab.com"}]}'
   theme-switcher="toggle"
   theme-config='{"attribute":"data-bs-theme","modes":["light","dark"],"initialMode":"dark"}'

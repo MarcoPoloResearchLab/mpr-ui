@@ -126,3 +126,7 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - MU-127: JS typecheck `npx --yes --package typescript tsc --noEmit`.
 - MU-128: added settings action menu + modal example in tauth demo and removed header settings button. Tests: `node --test tests/tauth-demo.test.js`, `npx --yes --package typescript tsc --noEmit`.
 - MU-129: fixed invalid TAUTH_CORS_ORIGIN_2 example URL. Tests: `node --test tests/tauth-demo.test.js`.
+
+## 2026-02-10
+
+- MU-427: added `horizontal-links` examples to demo pages and documented the DSL across README and `docs/` guides. Tests: `npm test`.

@@ -75,6 +75,9 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 ## Maintenance (419–499)
 
+- [x] [MU-427] Add `horizontal-links` examples to demo pages and document the DSL across guides.
+  Resolved 2026-02-10: added `horizontal-links` usage to demo pages (index/local/tauth/standalone) and documented the attribute shape + examples in README and `docs/` guides. Tests: `npm test`.
+
 ## Planning (500–59999)
 *do not implement yet*
 
