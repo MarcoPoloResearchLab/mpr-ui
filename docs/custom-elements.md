@@ -15,7 +15,7 @@ The header integrates Google Identity Services with TAuth and emits auth events 
 
 ### Optional attributes
 - `tauth-url`: Base URL of the TAuth service. When omitted, the current origin is used.
-- `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders a wrapping utility link row.
+- `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders an inline utility link list inside the same row as the other header controls.
 - `sign-in-label`: Text for the fallback sign-in button.
 - `sign-out-label`: Text for the sign-out button.
 - `sticky`: `true` or `false` to toggle sticky positioning.
@@ -72,7 +72,7 @@ The footer renders product links, privacy links, and an optional theme switch.
 
 ### Common attributes used by LoopAware
 - `links-collection`: JSON string containing link text, style, and URLs.
-- `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders a wrapping utility link row.
+- `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders an inline utility link list inside the same row as the other footer controls.
 - `privacy-link-href`: URL for the privacy page.
 - `privacy-link-label`: Label for the privacy link.
 - `theme-switcher`: `toggle` to enable the theme switch.

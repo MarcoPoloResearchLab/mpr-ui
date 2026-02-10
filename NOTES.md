@@ -130,3 +130,4 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 ## 2026-02-10
 
 - MU-427: added `horizontal-links` examples to demo pages and documented the DSL across README and `docs/` guides. Tests: `npm test`.
+- MU-428: moved `horizontal-links` into the primary header/footer rows and enforced single-row chrome layout via Playwright regression coverage. Tests: `npm test`.

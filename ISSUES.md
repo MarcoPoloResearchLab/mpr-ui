@@ -73,6 +73,9 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 - [x] [MU-125] remove the avatar-only halo and add an outlined hover ring for the `<mpr-user>` avatar mode.
   Resolved: avatar-only mode removes trigger pill styling, adds outline + hover ring, updates demo avatar mode, and adds Playwright coverage. Tests: `npx playwright test tests/e2e/user-menu.spec.js`.
 
+- [x] [MU-428] `horizontal-links` should render inline in the header/footer chrome instead of a second row
+  Resolved 2026-02-10: moved `horizontal-links` into the primary header/footer layout rows, enforced nowrap single-row chrome styling, and added Playwright coverage to prevent regressions. Tests: `npm test`.
+
 ## Maintenance (419–499)
 
 - [x] [MU-427] Add `horizontal-links` examples to demo pages and document the DSL across guides.
