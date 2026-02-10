@@ -129,6 +129,13 @@ automatically from config.yaml.
   brand-label="My Application"
   brand-href="/"
   nav-links='[{ "label": "Docs", "href": "/docs" }]'
+  horizontal-links='{
+    "alignment": "right",
+    "links": [
+      { "label": "Support", "href": "/support" },
+      { "label": "Status", "href": "https://status.example.com", "target": "_blank" }
+    ]
+  }'
   logout-url="/"
   sign-in-label="Sign in"
   sign-out-label="Sign out"
@@ -155,10 +162,19 @@ automatically from config.yaml.
 | `brand-label` | | Yes |
 | `brand-href` | | Yes |
 | `nav-links` | | Yes |
+| `horizontal-links` | | Yes |
 | `logout-url` | | Yes |
 | `sign-in-label` | | Yes |
 | `sign-out-label` | | Yes |
 | `sticky` | | Yes |
+
+## Horizontal links (optional)
+
+Both `<mpr-header>` and `<mpr-footer>` accept a `horizontal-links` JSON attribute to render a wrapping row of utility links.
+
+- Shape: `{ "alignment": "left" | "center" | "right", "links": [{ "label": string, "href": string, "target"?: string, "rel"?: string }] }`
+- `href` may also be provided as `url` (both are accepted).
+- If `target` is `_blank` and `rel` is omitted, the component sets `rel="noopener noreferrer"`.
 
 ## User menu integration
 
