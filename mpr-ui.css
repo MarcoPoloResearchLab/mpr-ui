@@ -307,7 +307,8 @@ footer.mpr-footer [data-mpr-footer="layout"] {
 
 footer.mpr-footer .mpr-footer__horizontal-links {
   display: flex;
-  flex-shrink: 0;
+  flex: 1 0 auto;
+  min-width: 0;
   flex-wrap: nowrap;
   align-items: center;
   justify-content: center;

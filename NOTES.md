@@ -132,3 +132,7 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - MU-427: added `horizontal-links` examples to demo pages and documented the DSL across README and `docs/` guides. Tests: `npm test`.
 - MU-428: moved `horizontal-links` into the primary header/footer rows and enforced single-row chrome layout via Playwright regression coverage. Tests: `npm test`.
 - MU-429: restored `<mpr-header>` `horizontal-links.alignment` behavior after the inline layout refactor by letting `horizontal-links` flex to fill remaining space; added Playwright regression coverage. Tests: `npm test`.
+
+## 2026-02-11
+
+- MU-430: restored `<mpr-footer>` `horizontal-links.alignment` behavior after the inline layout refactor by letting `horizontal-links` flex to fill remaining space; added Playwright regression coverage. Tests: `npm test`.

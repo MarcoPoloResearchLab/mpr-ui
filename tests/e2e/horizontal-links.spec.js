@@ -197,4 +197,85 @@ test.describe('MU-428: horizontal-links stays inline (single-row chrome)', () =>
     expect(rightGaps.rightGap).toBeLessThanOrEqual(2);
     expect(rightGaps.leftGap).toBeGreaterThan(rightGaps.rightGap + 12);
   });
+
+  test('restores footer horizontal-links alignment when there is free space', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    await page.evaluate(() => {
+      const footer = document.getElementById('fixture-footer');
+      if (!footer) {
+        return;
+      }
+
+      footer.removeAttribute('theme-switcher');
+      footer.setAttribute(
+        'links-collection',
+        JSON.stringify({
+          style: 'drop-up',
+          text: 'Explore',
+          links: [{ label: 'Test Link', url: '#test-link' }],
+        }),
+      );
+    });
+
+    const footerHorizontalLinks = page.locator('[data-mpr-footer="horizontal-links"]');
+
+    async function updateFooterLinks(alignment) {
+      await page.evaluate((nextAlignment) => {
+        const footer = document.getElementById('fixture-footer');
+        if (!footer) {
+          return;
+        }
+        footer.setAttribute(
+          'horizontal-links',
+          JSON.stringify({
+            alignment: nextAlignment,
+            links: [
+              { label: 'Alpha', href: '#alpha' },
+              { label: 'Beta', href: '#beta' },
+            ],
+          }),
+        );
+      }, alignment);
+      await expect(footerHorizontalLinks).toHaveAttribute('data-mpr-align', alignment);
+      await expect(page.locator('[data-mpr-footer="horizontal-links"] a')).toHaveCount(2);
+    }
+
+    async function readFooterGaps() {
+      return footerHorizontalLinks.evaluate((container) => {
+        const anchors = Array.from(container.querySelectorAll('a'));
+        if (anchors.length < 2) {
+          return null;
+        }
+        const containerRect = container.getBoundingClientRect();
+        const firstRect = anchors[0].getBoundingClientRect();
+        const lastRect = anchors[anchors.length - 1].getBoundingClientRect();
+        return {
+          leftGap: firstRect.left - containerRect.left,
+          rightGap: containerRect.right - lastRect.right,
+          containerWidth: containerRect.width,
+          contentWidth: lastRect.right - firstRect.left,
+        };
+      });
+    }
+
+    await updateFooterLinks('left');
+    const leftGaps = await readFooterGaps();
+    expect(leftGaps).not.toBeNull();
+    expect(leftGaps.leftGap).toBeLessThanOrEqual(2);
+    expect(leftGaps.rightGap).toBeGreaterThan(leftGaps.leftGap + 12);
+
+    await updateFooterLinks('center');
+    const centerGaps = await readFooterGaps();
+    expect(centerGaps).not.toBeNull();
+    expect(Math.abs(centerGaps.leftGap - centerGaps.rightGap)).toBeLessThanOrEqual(2);
+    expect(centerGaps.leftGap).toBeGreaterThanOrEqual(8);
+    expect(centerGaps.containerWidth).toBeGreaterThan(centerGaps.contentWidth + 24);
+
+    await updateFooterLinks('right');
+    const rightGaps = await readFooterGaps();
+    expect(rightGaps).not.toBeNull();
+    expect(rightGaps.rightGap).toBeLessThanOrEqual(2);
+    expect(rightGaps.leftGap).toBeGreaterThan(rightGaps.rightGap + 12);
+  });
 });

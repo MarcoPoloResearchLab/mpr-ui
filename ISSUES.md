@@ -79,6 +79,9 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 - [x] [MU-429] Restore `horizontal-links.alignment` behavior in `<mpr-header>` after moving links into the primary header row
   Resolved 2026-02-10: header `horizontal-links` now flexes to fill remaining space inside `.mpr-header__inner` so `alignment` (left|center|right) produces distinct layouts again; added Playwright regression coverage. Tests: `npm test`.
 
+- [x] [MU-430] Restore `horizontal-links.alignment` behavior in `<mpr-footer>` after moving links into the primary footer row
+  Resolved 2026-02-11: footer `horizontal-links` now flexes to fill remaining space inside `[data-mpr-footer="layout"]` so `alignment` (left|center|right) produces distinct layouts again; added Playwright regression coverage. Tests: `npm test`.
+
 ## Maintenance (419–499)
 
 - [x] [MU-427] Add `horizontal-links` examples to demo pages and document the DSL across guides.
