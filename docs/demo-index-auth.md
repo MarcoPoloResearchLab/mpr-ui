@@ -41,7 +41,7 @@ The demo page uses CDN URLs for `mpr-ui.css` and `mpr-ui.js`. The Docker Compose
 - `tauth-logout-path="/auth/logout"` – session termination endpoint.
 - `tauth-nonce-path="/auth/nonce"` – one-time nonce issuance endpoint.
 - `tauth-url` (optional) – origin where the auth endpoints live.
-- `horizontal-links` (optional) – a wrapping utility link row rendered by both header and footer (does not affect auth).
+- `horizontal-links` (optional) – an inline utility link list rendered inside the same row as the other header/footer controls (does not affect auth).
 
 Rules for an automated integrator:
 

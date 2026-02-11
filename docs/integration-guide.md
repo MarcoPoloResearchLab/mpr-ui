@@ -170,7 +170,7 @@ automatically from config.yaml.
 
 ## Horizontal links (optional)
 
-Both `<mpr-header>` and `<mpr-footer>` accept a `horizontal-links` JSON attribute to render a wrapping row of utility links.
+Both `<mpr-header>` and `<mpr-footer>` accept a `horizontal-links` JSON attribute to render an inline list of utility links inside the same row as the other chrome controls (no wrapping; content overflows horizontally when crowded).
 
 - Shape: `{ "alignment": "left" | "center" | "right", "links": [{ "label": string, "href": string, "target"?: string, "rel"?: string }] }`
 - `href` may also be provided as `url` (both are accepted).

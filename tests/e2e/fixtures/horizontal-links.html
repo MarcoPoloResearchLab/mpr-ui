@@ -38,13 +38,18 @@
           {"label":"GitHub","href":"https://github.com/MarcoPoloResearchLab","target":"_blank"}
         ]
       }'
-      settings="false"
+      settings="true"
+      settings-label="Settings"
       google-site-id="test-site-id"
       tauth-login-path="/auth/login"
       tauth-logout-path="/auth/logout"
       tauth-nonce-path="/auth/nonce"
       tauth-tenant-id="test-tenant"
-    ></mpr-header>
+    >
+      <a slot="nav-left" href="#left" style="color: inherit; text-decoration: none;">Left</a>
+      <a slot="nav-right" href="#right" style="color: inherit; text-decoration: none;">Right</a>
+      <button slot="aux" type="button">Aux</button>
+    </mpr-header>
 
     <main style="padding: 2rem 1.5rem 10rem; max-width: 900px; margin: 0 auto;">
       <h1>Horizontal Links Fixture</h1>
@@ -78,6 +83,9 @@
         "text":"Explore",
         "links":[{"label":"Test Link","url":"#"}]
       }'
-    ></mpr-footer>
+    >
+      <span slot="menu-prefix">Explore</span>
+      <a slot="legal" href="#legal" style="color: inherit; text-decoration: none;">Legal</a>
+    </mpr-footer>
   </body>
 </html>
