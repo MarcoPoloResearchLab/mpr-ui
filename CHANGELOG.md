@@ -1,5 +1,29 @@
 # Changelog
 
+## [v3.6.5]
+
+### Features ✨
+- Added `horizontal-links` attribute to `<mpr-header>` and `<mpr-footer>` that renders inline utility link lists inside the same chrome row.
+- Added demo examples and documentation for `horizontal-links` usage in README and guides.
+- Introduced Playwright regression tests covering the new horizontal-links inline behavior and alignment features.
+
+### Improvements ⚙️
+- Moved `horizontal-links` rendering inline in header and footer chrome, enforcing single-row no-wrap layout.
+- Restored and improved `horizontal-links.alignment` support in both header and footer, allowing left, center, and right alignment by flexing to fill available horizontal space.
+- Enhanced demo pages to showcase `horizontal-links` with practical examples.
+- Updated integration guides to include `horizontal-links` configuration and usage.
+
+### Bug Fixes 🐛
+- Fixed horizontal-links layout regressions that caused unwanted wrapping and alignment issues in header and footer.
+
+### Testing 🧪
+- Added comprehensive Playwright tests to prevent regressions for horizontal-links inline rendering and alignment behaviors.
+
+### Docs 📚
+- Documented `horizontal-links` attribute and its DSL in README, integration guide, and custom-elements reference.
+- Updated demo pages and documentation with horizontal-links usage and examples.
+- Added related issue notes to ISSUES.md and release notes to NOTES.md.
+
 ## [v3.6.4]
 
 ### Features ✨
