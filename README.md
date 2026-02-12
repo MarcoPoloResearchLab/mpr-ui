@@ -74,6 +74,13 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
      brand-label="Marco Polo Research Lab"
      brand-href="/"
      nav-links='[{ "label": "Docs", "href": "#docs" }]'
+     horizontal-links='{
+       "alignment": "right",
+       "links": [
+         { "label": "Support", "href": "#support" },
+         { "label": "Status", "href": "https://status.example.com", "target": "_blank" }
+       ]
+     }'
      logout-url="/"
    >
      <mpr-user
@@ -88,6 +95,13 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
      prefix-text="Built by Marco Polo Research Lab"
      privacy-link-label="Privacy &amp; Terms"
      privacy-modal-content="<p>Privacy copy...</p>"
+     horizontal-links='{
+       "alignment": "left",
+       "links": [
+         { "label": "Docs", "href": "#docs" },
+         { "label": "GitHub", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui", "target": "_blank" }
+       ]
+     }'
      links-collection='{"style":"drop-up","text":"Explore","links":[{ "label": "Docs", "url": "#docs" }]}'
      theme-switcher="square"
    ></mpr-footer>
@@ -273,6 +287,13 @@ The tags above replace the retired imperative helpers. See the example below for
     { "label": "Docs", "href": "#docs" },
     { "label": "Support", "href": "#support" }
   ]'
+  horizontal-links='{
+    "alignment": "center",
+    "links": [
+      { "label": "Changelog", "href": "#changelog" },
+      { "label": "GitHub", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui", "target": "_blank" }
+    ]
+  }'
   google-site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
   theme-config='{"initialMode":"light"}'
 >
@@ -287,6 +308,14 @@ The tags above replace the retired imperative helpers. See the example below for
     <h1>Privacy Policy — MPR UI</h1>
     <p>LoopAware uses Google Identity Services to authenticate users...</p>
   "
+  horizontal-links='{
+    "alignment": "center",
+    "links": [
+      { "label": "Docs", "href": "#docs" },
+      { "label": "Support", "href": "#support" },
+      { "label": "GitHub", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui", "target": "_blank" }
+    ]
+  }'
   links-collection='{"style":"drop-up","text":"Built by Marco Polo Research Lab","links":[{ "label": "Docs", "url": "#docs" }]}'
 >
   <span slot="menu-prefix">Explore</span>

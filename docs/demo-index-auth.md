@@ -6,6 +6,7 @@ This document explains how `demo/index.html` wires Google Identity Services (GIS
 
 - Loads `mpr-ui` from the CDN alongside Google Identity Services (and, in some variants, the TAuth helper).
 - Renders `<mpr-header>` and `<mpr-footer>` using declarative HTML only, treating the custom elements as a Web Components DSL.
+- Demonstrates the `horizontal-links` DSL on both header and footer for always-visible utility links (optional).
 - Shows how to configure the header with:
   - A Google OAuth Web Client ID (`google-site-id`).
   - A TAuth tenant identifier (`tauth-tenant-id`).
@@ -40,6 +41,7 @@ The demo page uses CDN URLs for `mpr-ui.css` and `mpr-ui.js`. The Docker Compose
 - `tauth-logout-path="/auth/logout"` – session termination endpoint.
 - `tauth-nonce-path="/auth/nonce"` – one-time nonce issuance endpoint.
 - `tauth-url` (optional) – origin where the auth endpoints live.
+- `horizontal-links` (optional) – an inline utility link list rendered inside the same row as the other header/footer controls (does not affect auth).
 
 Rules for an automated integrator:
 

@@ -83,8 +83,19 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
   Proposed direction:
   - Add a first-class footer option to render `horizontal-links` inline within `[data-mpr-footer="layout"]` (single-row mode), while preserving current dedicated-row behavior as an explicit mode for existing consumers.
   Status 2026-02-12: logged from ProductScanner B050 investigation; ProductScanner temporarily uses `slot="legal"` links to keep one-row alignment until mpr-ui exposes a canonical single-row horizontal-links mode.
+- [x] [MU-428] `horizontal-links` should render inline in the header/footer chrome instead of a second row
+  Resolved 2026-02-10: moved `horizontal-links` into the primary header/footer layout rows, enforced nowrap single-row chrome styling, and added Playwright coverage to prevent regressions. Tests: `npm test`.
+
+- [x] [MU-429] Restore `horizontal-links.alignment` behavior in `<mpr-header>` after moving links into the primary header row
+  Resolved 2026-02-10: header `horizontal-links` now flexes to fill remaining space inside `.mpr-header__inner` so `alignment` (left|center|right) produces distinct layouts again; added Playwright regression coverage. Tests: `npm test`.
+
+- [x] [MU-430] Restore `horizontal-links.alignment` behavior in `<mpr-footer>` after moving links into the primary footer row
+  Resolved 2026-02-11: footer `horizontal-links` now flexes to fill remaining space inside `[data-mpr-footer="layout"]` so `alignment` (left|center|right) produces distinct layouts again; added Playwright regression coverage. Tests: `npm test`.
 
 ## Maintenance (419–499)
+
+- [x] [MU-427] Add `horizontal-links` examples to demo pages and document the DSL across guides.
+  Resolved 2026-02-10: added `horizontal-links` usage to demo pages (index/local/tauth/standalone) and documented the attribute shape + examples in README and `docs/` guides. Tests: `npm test`.
 
 ## Planning (500–59999)
 *do not implement yet*
