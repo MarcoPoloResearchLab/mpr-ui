@@ -73,6 +73,17 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 - [x] [MU-125] remove the avatar-only halo and add an outlined hover ring for the `<mpr-user>` avatar mode.
   Resolved: avatar-only mode removes trigger pill styling, adds outline + hover ring, updates demo avatar mode, and adds Playwright coverage. Tests: `npx playwright test tests/e2e/user-menu.spec.js`.
 
+- [ ] [MU-427] Footer `horizontal-links` should align in the main footer row with theme switcher and links menu
+  Summary: ProductScanner integration exposed that footer legal links rendered via `horizontal-links` appear on a separate full-width row, while product expectation is a single aligned row containing legal links, theme switcher, and "Built by ..." menu.
+  Context:
+  - Current footer markup builds `horizontal-links` as a dedicated `<nav data-mpr-footer="horizontal-links">` after `[data-mpr-footer="layout"]`.
+  - CSS sets `.mpr-footer__horizontal-links { width: 100%; ... }`, forcing a second row even for short legal link sets.
+  Expected:
+  - Footer legal links can be rendered in the same row as privacy/theme/menu controls without consumer-specific CSS/layout hacks.
+  Proposed direction:
+  - Add a first-class footer option to render `horizontal-links` inline within `[data-mpr-footer="layout"]` (single-row mode), while preserving current dedicated-row behavior as an explicit mode for existing consumers.
+  Status 2026-02-12: logged from ProductScanner B050 investigation; ProductScanner temporarily uses `slot="legal"` links to keep one-row alignment until mpr-ui exposes a canonical single-row horizontal-links mode.
+
 ## Maintenance (419–499)
 
 ## Planning (500–59999)
