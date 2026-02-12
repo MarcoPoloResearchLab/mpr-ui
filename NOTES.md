@@ -136,3 +136,8 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 ## 2026-02-11
 
 - MU-430: restored `<mpr-footer>` `horizontal-links.alignment` behavior after the inline layout refactor by letting `horizontal-links` flex to fill remaining space; added Playwright regression coverage. Tests: `npm test`.
+
+## 2026-02-12
+
+- MU-427 / B050: validated footer `horizontal-links` inline layout in current sources (`mpr-ui.js` + `mpr-ui.css`), closed stale issue context in `ISSUES.md`, and re-ran Playwright coverage. Tests: `npx playwright test tests/e2e/horizontal-links.spec.js`.
+- MU-427 follow-up: added regression coverage in `tests/demo-page.test.js` to enforce footer `horizontal-links` examples in `demo/index.html`, `demo/local.html`, `demo/tauth-demo.html`, and `demo/standalone.html`. Tests: `node --test tests/demo-page.test.js`.

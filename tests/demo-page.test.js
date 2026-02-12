@@ -12,6 +12,12 @@ const demoCssPath = join(demoDir, 'demo.css');
 const demoHtml = readFileSync(demoHtmlPath, 'utf8');
 const sharedCss = readFileSync(sharedCssPath, 'utf8');
 const demoCss = readFileSync(demoCssPath, 'utf8');
+const FOOTER_HORIZONTAL_LINK_DEMO_FILES = Object.freeze([
+  'index.html',
+  'local.html',
+  'tauth-demo.html',
+  'standalone.html',
+]);
 
 const CDN_VERSION_PATTERN = '(?:latest|0\\.1\\.0|0\\.0\\.8)';
 
@@ -102,6 +108,18 @@ test('palette-specific overrides live in the demo stylesheet only', () => {
       demoCss,
       selector,
       'Demo stylesheet should include palette overrides for showcase themes',
+    );
+  });
+});
+
+test('all demo footers include horizontal-links DSL examples', () => {
+  FOOTER_HORIZONTAL_LINK_DEMO_FILES.forEach((demoFileName) => {
+    const demoFilePath = join(demoDir, demoFileName);
+    const demoFileHtml = readFileSync(demoFilePath, 'utf8');
+    assert.match(
+      demoFileHtml,
+      /<mpr-footer[\s\S]*?horizontal-links='/i,
+      `Expected ${demoFileName} to include a footer horizontal-links example`,
     );
   });
 });

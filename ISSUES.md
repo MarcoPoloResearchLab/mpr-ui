@@ -73,7 +73,7 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 - [x] [MU-125] remove the avatar-only halo and add an outlined hover ring for the `<mpr-user>` avatar mode.
   Resolved: avatar-only mode removes trigger pill styling, adds outline + hover ring, updates demo avatar mode, and adds Playwright coverage. Tests: `npx playwright test tests/e2e/user-menu.spec.js`.
 
-- [ ] [MU-427] Footer `horizontal-links` should align in the main footer row with theme switcher and links menu
+- [x] [MU-427] Footer `horizontal-links` should align in the main footer row with theme switcher and links menu
   Summary: ProductScanner integration exposed that footer legal links rendered via `horizontal-links` appear on a separate full-width row, while product expectation is a single aligned row containing legal links, theme switcher, and "Built by ..." menu.
   Context:
   - Current footer markup builds `horizontal-links` as a dedicated `<nav data-mpr-footer="horizontal-links">` after `[data-mpr-footer="layout"]`.
@@ -83,6 +83,7 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
   Proposed direction:
   - Add a first-class footer option to render `horizontal-links` inline within `[data-mpr-footer="layout"]` (single-row mode), while preserving current dedicated-row behavior as an explicit mode for existing consumers.
   Status 2026-02-12: logged from ProductScanner B050 investigation; ProductScanner temporarily uses `slot="legal"` links to keep one-row alignment until mpr-ui exposes a canonical single-row horizontal-links mode.
+  Resolved 2026-02-12: verified current `mpr-ui.js` + `mpr-ui.css` render `horizontal-links` inside `[data-mpr-footer="layout"]` with no dedicated second row, and Playwright regression passes (`npx playwright test tests/e2e/horizontal-links.spec.js`); B050 was a stale report from pre-inline behavior.
 - [x] [MU-428] `horizontal-links` should render inline in the header/footer chrome instead of a second row
   Resolved 2026-02-10: moved `horizontal-links` into the primary header/footer layout rows, enforced nowrap single-row chrome styling, and added Playwright coverage to prevent regressions. Tests: `npm test`.
 
@@ -96,6 +97,7 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 - [x] [MU-427] Add `horizontal-links` examples to demo pages and document the DSL across guides.
   Resolved 2026-02-10: added `horizontal-links` usage to demo pages (index/local/tauth/standalone) and documented the attribute shape + examples in README and `docs/` guides. Tests: `npm test`.
+  Resolved 2026-02-12 follow-up: added regression coverage in `tests/demo-page.test.js` to enforce that all shipped demos keep footer `horizontal-links` examples. Tests: `node --test tests/demo-page.test.js`.
 
 ## Planning (500–59999)
 *do not implement yet*
