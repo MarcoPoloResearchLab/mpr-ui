@@ -2815,7 +2815,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     '[data-mpr-sticky="false"]{box-shadow:none;backdrop-filter:none}' +
     "." +
     HEADER_ROOT_CLASS +
-    "__inner{max-width:1080px;margin:0 auto;padding:calc(0.75rem * var(--mpr-header-scale,1)) calc(1.5rem * var(--mpr-header-scale,1));display:flex;flex-wrap:nowrap;align-items:center;gap:calc(1.5rem * var(--mpr-header-scale,1));overflow-x:auto}" +
+    "__inner{max-width:1080px;margin:0 auto;padding:calc(0.75rem * var(--mpr-header-scale,1)) calc(1.5rem * var(--mpr-header-scale,1));display:flex;flex-wrap:nowrap;align-items:center;gap:calc(1.5rem * var(--mpr-header-scale,1));overflow:visible}" +
     "." +
     HEADER_ROOT_CLASS +
     "__brand{font-size:calc(1.05rem * var(--mpr-header-scale,1));font-weight:700;letter-spacing:0.02em;white-space:nowrap}" +

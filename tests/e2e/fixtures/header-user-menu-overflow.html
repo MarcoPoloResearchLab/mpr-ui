@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MPR Header User Menu Overflow Fixture</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <style>
+      :root {
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #f8fafc;
+        color: #0f172a;
+      }
+
+      main {
+        min-height: 160vh;
+        padding: 2rem 1.5rem;
+        background: linear-gradient(180deg, #e2e8f0 0%, #cbd5e1 100%);
+      }
+
+      .content-card {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 2rem;
+        border-radius: 1rem;
+        background: rgba(255, 255, 255, 0.92);
+        border: 1px solid rgba(148, 163, 184, 0.35);
+      }
+    </style>
+    <script>
+      window.__mprHeaderProfile = {
+        id: 'usr-1',
+        display: 'Ada Lovelace',
+        given_name: 'Ada',
+        avatar_url: 'https://cdn.example.com/avatar.png',
+        user_email: 'ada@example.com',
+      };
+
+      window.setAuthTenantId = function setAuthTenantId(tenantId) {
+        window.__mprHeaderTenantId = tenantId;
+      };
+
+      window.getCurrentUser = function getCurrentUser() {
+        return window.__mprHeaderProfile;
+      };
+
+      window.initAuthClient = function initAuthClient(config) {
+        if (config && typeof config.onAuthenticated === 'function') {
+          config.onAuthenticated(window.__mprHeaderProfile);
+        }
+        return Promise.resolve({
+          status: 'authenticated',
+          profile: window.__mprHeaderProfile,
+        });
+      };
+
+      window.logout = function logout() {
+        window.__mprHeaderLogoutCalled = true;
+        return Promise.resolve();
+      };
+    </script>
+  </head>
+  <body data-mpr-theme="light">
+    <mpr-header
+      id="fixture-header"
+      brand-label="Fixture Header"
+      brand-href="/"
+      nav-links='[
+        { "label": "Docs", "href": "/docs", "target": "_self" },
+        { "label": "Pricing", "href": "/pricing", "target": "_self" }
+      ]'
+      google-site-id="fixture-google-client-id"
+      tauth-tenant-id="tenant-test"
+      tauth-login-path="/auth/google"
+      tauth-logout-path="/auth/logout"
+      tauth-nonce-path="/auth/nonce"
+      sign-in-label="Sign in"
+      sign-out-label="Sign out"
+      settings="false"
+    >
+      <mpr-user
+        id="fixture-header-user"
+        slot="aux"
+        display-mode="avatar"
+        logout-url="#signed-out"
+        logout-label="Sign out"
+      ></mpr-user>
+    </mpr-header>
+
+    <main>
+      <section class="content-card">
+        <h1>Scrollable content</h1>
+        <p>
+          This content ensures there is painted UI below the header so clipping and hit testing can be
+          asserted reliably.
+        </p>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"></script>
+  </body>
+</html>

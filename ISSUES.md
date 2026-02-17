@@ -93,6 +93,9 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 - [x] [MU-430] Restore `horizontal-links.alignment` behavior in `<mpr-footer>` after moving links into the primary footer row
   Resolved 2026-02-11: footer `horizontal-links` now flexes to fill remaining space inside `[data-mpr-footer="layout"]` so `alignment` (left|center|right) produces distinct layouts again; added Playwright regression coverage. Tests: `npm test`.
 
+- [x] [MU-431] `mpr-user` dropdown opens underneath the header and menu actions become unreachable.
+  Resolved 2026-02-17: removed `overflow-x:auto` clipping from `.mpr-header__inner` (now `overflow:visible`) so the absolutely positioned `mpr-user` flyout can render and receive pointer events outside the header bounds; added Playwright regression coverage (`MU-431`) with a header fixture that verifies menu hit-testing below the header boundary. Tests: `make ci`.
+
 ## Maintenance (419–499)
 
 - [x] [MU-427] Add `horizontal-links` examples to demo pages and document the DSL across guides.
