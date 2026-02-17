@@ -1,5 +1,22 @@
 # Changelog
 
+## [v3.6.6]
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- _No changes._
+
+### Bug Fixes 🐛
+- MU-431: prevent `<mpr-user>` dropdown clipping by allowing visible overflow on `.mpr-header__inner`, so header user-menu actions remain reachable.
+
+### Testing 🧪
+- Added Playwright regression coverage for MU-431 using a dedicated header+user-menu fixture that verifies menu hit-testing below the header boundary.
+
+### Docs 📚
+- Updated `ISSUES.md` with MU-431 resolution details.
+
 ## [v3.6.5]
 
 ### Features ✨

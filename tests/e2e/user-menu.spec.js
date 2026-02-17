@@ -1,7 +1,11 @@
 // @ts-check
 
 const { test, expect } = require('@playwright/test');
-const { visitUserMenuFixture, captureColorSnapshots } = require('./support/fixturePage');
+const {
+  visitUserMenuFixture,
+  visitHeaderUserMenuOverflowFixture,
+  captureColorSnapshots,
+} = require('./support/fixturePage');
 
 test.describe('User menu element', () => {
   test('MU-118: renders profile data and logs out', async ({ page }) => {
@@ -162,5 +166,53 @@ test.describe('User menu element', () => {
     expect(darkSnapshot && lightSnapshot && darkSnapshot.background).not.toBe(
       lightSnapshot && lightSnapshot.background,
     );
+  });
+
+  test('MU-431: header dropdown remains hittable below the header boundary', async ({ page }) => {
+    await visitHeaderUserMenuOverflowFixture(page);
+
+    const headerHost = page.locator('mpr-header#fixture-header');
+    await expect(headerHost).toBeVisible();
+
+    const userHost = page.locator('mpr-user#fixture-header-user');
+    await expect(userHost).toBeVisible();
+    await expect(page.locator('header.mpr-header')).toHaveClass(/mpr-header--authenticated/);
+
+    await userHost.locator('[data-mpr-user="trigger"]').click();
+    await expect(userHost).toHaveAttribute('data-mpr-user-open', 'true');
+
+    const metrics = await page.evaluate(() => {
+      const headerInner = document.querySelector('header.mpr-header .mpr-header__inner');
+      const menu = document.querySelector(
+        'mpr-user#fixture-header-user [data-mpr-user="menu"]',
+      );
+      if (!headerInner || !menu) {
+        return null;
+      }
+      const headerRect = headerInner.getBoundingClientRect();
+      const menuRect = menu.getBoundingClientRect();
+      const probeX = Math.max(menuRect.left + 12, menuRect.left + (menuRect.width * 0.25));
+      const probeY = Math.max(headerRect.bottom + 12, menuRect.top + 12);
+      const probeNode = document.elementFromPoint(probeX, probeY);
+      const probeInsideMenu = Boolean(probeNode && menu.contains(probeNode));
+      const computedStyle = window.getComputedStyle(headerInner);
+      return {
+        menuTop: menuRect.top,
+        menuBottom: menuRect.bottom,
+        headerBottom: headerRect.bottom,
+        probeInsideMenu,
+        probeY,
+        overflowX: computedStyle.overflowX,
+        overflowY: computedStyle.overflowY,
+      };
+    });
+
+    expect(metrics).not.toBeNull();
+    if (metrics) {
+      expect(metrics.menuBottom).toBeGreaterThan(metrics.headerBottom + 12);
+      expect(metrics.probeY).toBeGreaterThan(metrics.headerBottom + 4);
+      expect(metrics.probeInsideMenu).toBe(true);
+      expect(metrics.overflowY).toBe('visible');
+    }
   });
 });

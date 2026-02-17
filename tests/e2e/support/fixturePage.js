@@ -97,6 +97,9 @@ const HORIZONTAL_LINKS_FIXTURE_URL = pathToFileURL(
 const USER_MENU_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/user-menu.html'),
 ).href;
+const HEADER_USER_MENU_OVERFLOW_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/header-user-menu-overflow.html'),
+).href;
 
 const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
@@ -305,6 +308,21 @@ async function visitUserMenuFixture(page) {
 }
 
 /**
+ * Opens the header fixture that exercises slotted mpr-user dropdown overflow behavior.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitHeaderUserMenuOverflowFixture(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+    routeLocalAsset(page, GOOGLE_IDENTITY_URL, GOOGLE_IDENTITY_STUB, 'application/javascript'),
+  ]);
+  await page.goto(HEADER_USER_MENU_OVERFLOW_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
  * Reads a repository-local asset.
  * @param {string} relativePath
  * @returns {string}
@@ -497,6 +515,7 @@ module.exports = {
   visitBandFixturePage,
   visitCardFixturePage,
   visitUserMenuFixture,
+  visitHeaderUserMenuOverflowFixture,
   captureToggleSnapshot,
   captureColorSnapshots,
   captureDropUpMetrics,
