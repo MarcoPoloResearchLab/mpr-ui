@@ -1,5 +1,22 @@
 # Changelog
 
+## [v3.6.7]
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- _No changes._
+
+### Bug Fixes 🐛
+- Prevent `<mpr-footer>` drop-up menu clipping by allowing visible overflow on `.mpr-footer__inner`, so affiliated-site menus remain visible above sticky footer chrome.
+
+### Testing 🧪
+- Added Playwright regression coverage that verifies footer drop-up links render visibly above the sticky footer when opened.
+
+### Docs 📚
+- _No changes._
+
 ## [v3.6.6]
 
 ### Features ✨
