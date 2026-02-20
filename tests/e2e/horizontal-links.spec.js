@@ -117,6 +117,69 @@ test.describe('MU-428: horizontal-links stays inline (single-row chrome)', () =>
     expect(range(footerRowCenters)).toBeLessThanOrEqual(2);
   });
 
+  test('footer drop-up remains visually reachable above the sticky footer', async ({ page }) => {
+    await page.setViewportSize({ width: 1280, height: 720 });
+
+    const toggleButton = page.locator('[data-mpr-footer="toggle-button"]');
+    const menu = page.locator('[data-mpr-footer="menu"]');
+
+    await expect(toggleButton).toBeVisible();
+    const clickApplied = await page.evaluate(() => {
+      const target = document.querySelector('[data-mpr-footer="toggle-button"]');
+      if (!target || typeof target.click !== 'function') {
+        return false;
+      }
+      target.click();
+      return true;
+    });
+    expect(clickApplied).toBe(true);
+    await expect(menu).toHaveClass(/mpr-footer__menu--open/);
+
+    const menuVisibility = await page.evaluate(() => {
+      const footerRoot = document.querySelector('footer.mpr-footer');
+      const menuElement = document.querySelector('[data-mpr-footer="menu"]');
+      const firstMenuLink = document.querySelector('[data-mpr-footer="menu-link"]');
+
+      if (!footerRoot || !menuElement || !firstMenuLink) {
+        return null;
+      }
+
+      const footerRect = footerRoot.getBoundingClientRect();
+      const linkRect = firstMenuLink.getBoundingClientRect();
+      const visibleLeft = Math.max(0, linkRect.left);
+      const visibleRight = Math.min(window.innerWidth, linkRect.right);
+      const visibleTop = Math.max(0, linkRect.top);
+      const visibleBottom = Math.min(window.innerHeight, linkRect.bottom);
+      const hasVisiblePixels =
+        visibleRight > visibleLeft && visibleBottom > visibleTop;
+      const sampleX = hasVisiblePixels
+        ? visibleLeft + (visibleRight - visibleLeft) / 2
+        : Math.min(window.innerWidth - 1, Math.max(0, linkRect.left));
+      const sampleY = hasVisiblePixels
+        ? visibleTop + (visibleBottom - visibleTop) / 2
+        : Math.min(window.innerHeight - 1, Math.max(0, linkRect.top));
+      const sampledElement = document.elementFromPoint(sampleX, sampleY);
+
+      return {
+        menuDisplay: window.getComputedStyle(menuElement).display,
+        linkCenterAboveFooter:
+          linkRect.top + linkRect.height / 2 < footerRect.top,
+        linkHasVisiblePixels: hasVisiblePixels,
+        linkPointPaintedByMenu:
+          Boolean(sampledElement) &&
+          (sampledElement === firstMenuLink ||
+            firstMenuLink.contains(sampledElement) ||
+            menuElement.contains(sampledElement)),
+      };
+    });
+
+    expect(menuVisibility).not.toBeNull();
+    expect(menuVisibility.menuDisplay).toBe('block');
+    expect(menuVisibility.linkHasVisiblePixels).toBe(true);
+    expect(menuVisibility.linkCenterAboveFooter).toBe(true);
+    expect(menuVisibility.linkPointPaintedByMenu).toBe(true);
+  });
+
   test('restores header horizontal-links alignment when there is free space', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
 

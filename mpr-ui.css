@@ -293,7 +293,7 @@ footer.mpr-footer [data-mpr-footer="inner"] {
   align-items: center;
   justify-content: space-between;
   gap: calc(1.5rem * var(--mpr-footer-scale, 1));
-  overflow-x: auto;
+  overflow: visible;
 }
 
 footer.mpr-footer [data-mpr-footer="layout"] {
