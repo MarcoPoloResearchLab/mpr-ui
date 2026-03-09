@@ -96,6 +96,16 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 - [x] [MU-431] `mpr-user` dropdown opens underneath the header and menu actions become unreachable.
   Resolved 2026-02-17: removed `overflow-x:auto` clipping from `.mpr-header__inner` (now `overflow:visible`) so the absolutely positioned `mpr-user` flyout can render and receive pointer events outside the header bounds; added Playwright regression coverage (`MU-431`) with a header fixture that verifies menu hit-testing below the header boundary. Tests: `make ci`.
 
+- [ ] [MU-428] Footer/Header runtime theme update path should be explicit after `theme-mode` deprecation
+  Summary: ProductScanner integration surfaced console warnings from mpr-ui when legacy `theme-mode` is set dynamically on `<mpr-footer>` (for example `element.setAttribute("theme-mode", preferredTheme)`), after MU-425 removed legacy DSL support.
+  Context:
+  - mpr-ui logs `mpr-ui.dsl.legacy_attribute Unsupported legacy attribute "theme-mode" on <mpr-footer>`.
+  - Integrations migrating from old DSL may still perform runtime attribute updates and see noisy warnings without a clear component-level replacement flow.
+  Expected:
+  - Document and expose a canonical runtime API for header/footer theme mode updates (beyond static `theme-config.initialMode`), or provide a compatibility adapter that maps runtime `theme-mode` updates to supported theme config/state.
+  - Keep strict deprecation logging, but include migration guidance in docs/examples so consumers avoid trial-and-error.
+  Status 2026-02-17: logged from ProductScanner billing/settings integration cleanup.
+
 ## Maintenance (419–499)
 
 - [x] [MU-427] Add `horizontal-links` examples to demo pages and document the DSL across guides.
@@ -104,6 +114,16 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 ## Planning (500–59999)
 *do not implement yet*
+
+- [ ] [MU-429] Define a reusable entity-workspace kit for cross-app collection/detail layouts
+  Summary: ProductScanner now demonstrates a reusable operational layout made of a left sidebar, horizontal collection rail, detail workspace, selectable media cards, and a side drawer. We want that layout grammar in `mpr-ui` so both ProductScanner and a future YouTube-style app can reuse the same primitives without exporting ProductScanner business logic.
+  Deliverables:
+  - Architecture proposal: document the reusable layout grammar shared by ProductScanner and a video-oriented app.
+  - `mpr-ui` API proposal: define the recommended shell/headless surface (`workspace layout`, `sidebar nav`, `entity rail`, `entity tile`, `entity workspace`, `entity card`, `detail drawer`, selection helper).
+  - Boundaries: explicitly identify ProductScanner-specific behaviors that must not move into `mpr-ui`.
+  - Migration strategy: define a staged extraction order that starts with low-risk headless/layout primitives before card composition.
+  - Cross-app mapping: include a concrete mapping from ProductScanner catalogs/products to YouTube collections/videos.
+  Reference: `docs/entity-workspace-proposal.md`
 
 - [x] [MU-425] Remove legacy footer DSL ("links" fallback, theme-switcher aliasing, settings/settings-enabled aliasing, auth-config overrides) so each feature has a single canonical attribute/config path.
   Removed legacy DSL inputs (`settings-enabled`, `auth-config`, `links`, `themeToggle.themeSwitcher`, `theme-mode`), updated docs/fixtures/tests; tests: `npm run test:unit`, `npm run test:e2e`.
