@@ -115,7 +115,7 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 ## Planning (500–59999)
 *do not implement yet*
 
-- [ ] [MU-429] Define a reusable entity-workspace kit for cross-app collection/detail layouts
+- [x] [MU-429] Define a reusable entity-workspace kit for cross-app collection/detail layouts
   Summary: ProductScanner now demonstrates a reusable operational layout made of a left sidebar, horizontal collection rail, detail workspace, selectable media cards, and a side drawer. We want that layout grammar in `mpr-ui` so both ProductScanner and a future YouTube-style app can reuse the same primitives without exporting ProductScanner business logic.
   Deliverables:
   - Architecture proposal: document the reusable layout grammar shared by ProductScanner and a video-oriented app.
@@ -124,6 +124,9 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
   - Migration strategy: define a staged extraction order that starts with low-risk headless/layout primitives before card composition.
   - Cross-app mapping: include a concrete mapping from ProductScanner catalogs/products to YouTube collections/videos.
   Reference: `docs/entity-workspace-proposal.md`
+  Resolved 2026-03-09: rewrote `docs/entity-workspace-proposal.md` around the actual `tools/PoodleScanner` source seams, defining the shared workspace grammar, proposed `mpr-ui` surface, non-goal boundaries, staged extraction order, and a concrete PoodleScanner-to-video mapping.
+  Resolved 2026-03-09 follow-up: implemented `MPRUI.createSelectionState()` plus the proposed workspace/drawer/rail/tile/card/layout custom elements in `mpr-ui.js`, added unit coverage in `tests/entity-workspace.test.js`, and added browser coverage in `tests/e2e/entity-workspace.spec.js`. Tests: `npm test`.
+  Resolved 2026-03-09 demo follow-up: added `demo/entity-workspace.html` with local JSON data (`demo/entity-workspace.json`) and host-side wiring in `demo/entity-workspace.js`, plus Playwright coverage for the runnable example. Tests: targeted JS typecheck, unit suite, and Playwright specs.
 
 - [x] [MU-425] Remove legacy footer DSL ("links" fallback, theme-switcher aliasing, settings/settings-enabled aliasing, auth-config overrides) so each feature has a single canonical attribute/config path.
   Removed legacy DSL inputs (`settings-enabled`, `auth-config`, `links`, `themeToggle.themeSwitcher`, `theme-mode`), updated docs/fixtures/tests; tests: `npm run test:unit`, `npm run test:e2e`.

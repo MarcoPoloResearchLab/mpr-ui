@@ -362,6 +362,13 @@ The tags above replace the retired imperative helpers. See the example below for
 | `<mpr-user>` | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `avatar-url`, `avatar-label`, `menu-items` | — | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:menu-item`, `mpr-user:error` |
 | `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |
 | `<mpr-sites>` | `links`, `variant` (`list`, `grid`, `menu`), `columns`, `heading` | — | `mpr-sites:link-click` |
+| `<mpr-workspace-layout>` | `sidebar-width`, `collapsed`, `stacked-breakpoint` | `header`, `sidebar`, `content` (default slot also maps to `content`) | `mpr-workspace-layout:sidebar-toggle` |
+| `<mpr-sidebar-nav>` | `label`, `dense`, `variant` | `header`, `footer` (default slot becomes the keyed nav list) | `mpr-sidebar-nav:change` |
+| `<mpr-entity-rail>` | `label`, `empty-label`, `show-nav`, `nav-step` | `leading`, `trailing` plus default rail items | `mpr-entity-rail:scroll-start`, `mpr-entity-rail:scroll-end` |
+| `<mpr-entity-tile>` | `selected`, `interactive`, `disabled`, `variant` | `title`, `meta`, `badge`, `actions`, `empty` (default slot also maps to `title`) | — |
+| `<mpr-entity-workspace>` | `busy`, `empty`, `selection-count`, `can-load-more` | `heading`, `toolbar`, `filters`, `bulk-actions`, `list`, `empty`, `load-more` (default slot also maps to `list`) | `mpr-entity-workspace:load-more` |
+| `<mpr-entity-card>` | `selected`, `interactive`, `disabled`, `busy`, `density` | `select`, `media`, `title`, `meta`, `summary`, `metric`, `actions`, `footer` (default slot also maps to `summary`) | — |
+| `<mpr-detail-drawer>` | `open`, `heading`, `subheading`, `placement`, `busy` | `header-actions`, `body`, `footer` (default slot also maps to `body`) | `mpr-detail-drawer:open`, `mpr-detail-drawer:close` |
 | `<mpr-band>` | `category`, `theme` (JSON) | — | — |
 | `<mpr-card>` | `card` (JSON with `{ id, title, description, status, url, icon, subscribe }`), `theme` (JSON) | — | `mpr-card:card-toggle`, `mpr-card:subscribe-ready` |
 
@@ -371,7 +378,7 @@ Slots let you inject custom markup without leaving declarative mode:
 - Footer slots: `menu-prefix`, `menu-links`, `legal`
 - Login button inherits the global `mpr-ui:auth:*` events dispatched by `createAuthHeader` and emits `mpr-login:error` when GIS cannot load, so you can listen for authentication without writing any extra glue.
 
-Custom elements dispatch the same `mpr-ui:*` events that the deprecated helpers emitted, so event listeners continue working after migrating. See [`docs/custom-elements.md`](docs/custom-elements.md) for a deep-dive covering attribute shapes, events, and migration tips (Alpine → custom elements).
+Custom elements dispatch the same `mpr-ui:*` events that the deprecated helpers emitted, so event listeners continue working after migrating. See [`docs/custom-elements.md`](docs/custom-elements.md) for a deep-dive covering attribute shapes, events, migration tips, and a concrete YouTube playlists/videos workspace example built from the entity-workspace primitives. For a runnable JSON-backed version of that flow, use [`demo/entity-workspace.html`](demo/entity-workspace.html).
 
 > Both `<mpr-header>` and `<mpr-footer>` are sticky by default. Add `sticky="false"` (or pass the equivalent option) if you want them to render in-flow; setting `sticky="true"` is redundant because `true` is the default. The attribute values are case-insensitive (`sticky="FALSE"` works), and the components manage stickiness internally so no host-level CSS overrides are required. In sticky mode the footer renders a spacer + viewport-fixed footer so it stays visible even when the page is scrolled to the top.
 
@@ -422,10 +429,20 @@ Need a subscribe overlay? Add the `subscribe` JSON block (`{ "script": "https://
 
 ### Optional helpers
 
+`MPRUI.createSelectionState()` is the headless companion for the entity-workspace components. Use it to track selected ids for video rows, product rows, or any other host-owned bulk-action flow:
+
+```js
+const selectionState = MPRUI.createSelectionState();
+selectionState.toggle("video-123");
+selectionState.setSelected("video-456", true);
+console.log(selectionState.getSelectedIds());
+```
+
 ## Demo
 
 - Open `demo/index.html` in a browser to explore the authentication header mock and both footer helpers.
-- Need to test local changes before publishing? Open `demo/demo-local.html` instead; it loads `mpr-ui.js` and `mpr-ui.css` from your working tree but still fetches Google Identity Services from the official CDN.
+- Need to test local changes before publishing? Open `demo/local.html` instead; it loads `mpr-ui.js` and `mpr-ui.css` from your working tree but still fetches Google Identity Services from the official CDN.
+- Need a concrete entity-workspace example? Serve the repo over HTTP and open `demo/entity-workspace.html`; it fetches `demo/entity-workspace.json` from disk and wires the new collection/detail primitives without app-specific API logic.
 - Both demo variants rely on the real Google Identity Services script (`https://accounts.google.com/gsi/client`), so ensure you have network access when testing sign-in flows.
 
 ## Testing

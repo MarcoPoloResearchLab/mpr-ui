@@ -1,433 +1,442 @@
-# Proposal: extract an entity-workspace kit into `mpr-ui`
+# Proposal: reusable entity-workspace kit for `mpr-ui`
 
 Last updated: 2026-03-09
 
-## Summary
+## Decision
 
-`mpr-ui` should grow a reusable entity-workspace kit that can serve both:
+`mpr-ui` should extract a reusable entity-workspace kit from the layout and interaction patterns already proven in `tools/PoodleScanner`, but only as layout shells and headless UI helpers.
 
-- ProductScanner's catalog/product experience, and
-- a future video-oriented app that shows playlists, channels, feeds, and videos.
+`mpr-ui` should own:
 
-The reusable part is the layout system and a small amount of headless selection state.
-The non-reusable part is the ProductScanner business logic currently embedded in those layouts.
+- workspace structure
+- sidebar navigation chrome
+- horizontal entity rails
+- tile and card shells
+- detail drawer chrome
+- small reusable primitives such as selection state
 
-Recommended end state:
+Host apps should keep ownership of:
 
-- move reusable layout primitives and headless selection state into `mpr-ui`,
-- keep ProductScanner catalog/product/run/billing semantics local,
-- do not export ProductScanner managers as package APIs,
-- build a generic entity-workspace surface that multiple apps can compose differently.
+- domain nouns and business copy
+- fetching, pagination, and hydration
+- scoring, rules, billing, schedules, and run history semantics
+- app-specific action workflows
+
+The issue text refers to ProductScanner. In this checkout, the concrete reference implementation is `tools/PoodleScanner`, and that is the source used for this proposal.
 
 ## Why this belongs in `mpr-ui`
 
-ProductScanner already proves the visual grammar:
+PoodleScanner already demonstrates a repeatable operational layout:
 
-- browse many collections,
-- open one collection into a focused detail workspace,
-- scan a long list of media-heavy rows,
-- select multiple items,
-- take scoped actions,
-- open a richer side drawer,
-- navigate workspace sections from a reusable-looking left sidebar.
+- a left navigation/sidebar surface
+- a horizontal collection rail
+- a focused detail workspace
+- dense media-aware entity rows
+- bulk selection controls
+- a side drawer for richer item detail
 
-That same shape maps naturally to a video app:
+That grammar is not specific to product catalogs. The same shape fits a video-oriented app:
 
-- catalog tile -> playlist, channel, saved search, feed
-- settings/sidebar tree -> playlists, channels, saved filters, folders, moderation queues
-- product card -> video card
-- product image -> thumbnail
-- score block -> views, freshness, watch score, moderation score
-- run/history chips -> processing state, publish state, queue markers
-- product drawer -> video details drawer
+- catalogs become playlists, channels, feeds, or saved searches
+- products become videos
+- thumbnails remain thumbnails
+- score blocks become metrics such as views, freshness, watch score, or moderation score
+- history chips become publish, processing, or queue state
+- the detail drawer becomes a video details drawer
 
-So the question is not whether the layout can be reused.
-It can.
+The reusable asset is the grammar. The non-reusable asset is the PoodleScanner business logic currently attached to that grammar.
 
-The question is where to cut the abstraction boundary so `mpr-ui` remains a UI package instead of absorbing ProductScanner logic.
+## Observed source patterns in `tools/PoodleScanner`
 
-## Source patterns in ProductScanner
+### Clearly reusable seams
 
-These file references are relative to this vendored `mpr-ui` checkout inside ProductScanner.
+- Headless multi-select state in `tools/PoodleScanner/web/js/ui/catalogProductSelectionState.js`
+- Drawer shell markup in `tools/PoodleScanner/web/templates/app.html` around `#infoDrawer`
+- Drawer shell styling in `tools/PoodleScanner/web/static/style.css` around `#infoDrawer` and `.ps-drawer-header`
+- Horizontal entity rail markup in `tools/PoodleScanner/web/templates/app.html` around `#catalogGrid`
+- Rail and tile styling in `tools/PoodleScanner/web/static/style.css` around `.ps-catalog-grid` and `.ps-catalog-tile`
+- Sidebar layout markup in `tools/PoodleScanner/web/templates/app.html` around `#settingsModal`
+- Sidebar active-state orchestration in `tools/PoodleScanner/web/js/ui/settingsHandler.js`
+- Dense row/card shell styling in `tools/PoodleScanner/web/static/style.css` around `.ps-catalog-product`
 
-### Good extraction candidates
+### App-local seams that should not move
 
-- headless selection state in `../../web/js/ui/catalogProductSelectionState.js`
-- drawer shell patterns in `../../web/js/ui/productDrawerManager.js`
-- horizontal collection rail structure in `../../web/templates/app.html` and `../../web/js/ui/catalogTileManager.js`
-- left sidebar/tree layout in `../../web/templates/app.html`, `../../web/static/style.css`, and `../../web/js/ui/settingsHandler.js`
-- card-shell CSS regions in `../../web/static/style.css`
+- Card composition in `tools/PoodleScanner/web/js/ui/appUI.js` `buildCatalogProductCard`
+- Detail loading, filtering, and infinite-scroll bookkeeping in `tools/PoodleScanner/web/js/ui/catalogDetailManager.js` and `tools/PoodleScanner/web/js/ui/catalogDetailViewState.js`
+- Run, rescore, history, and pending-job semantics in `tools/PoodleScanner/web/js/ui/catalogRunStateService.js`
+- Bulk action semantics in `tools/PoodleScanner/web/js/ui/catalogBulkActionService.js`
+- Scheduling semantics in `tools/PoodleScanner/web/js/ui/catalogScheduleManager.js`
+- Billing, credit, admin, and rescore orchestration spread across `tools/PoodleScanner/web/js/ui/appUI.js`
 
-### Bad extraction candidates
+## Shared layout grammar
 
-- product card composition in `../../web/js/ui/appUI.js`
-- detail view orchestration in `../../web/js/ui/catalogDetailManager.js`
-- infinite-scroll/load-state bookkeeping in `../../web/js/ui/catalogDetailViewState.js`
-- catalog edit/run/history/schedule/credits semantics spread across `appUI`, `catalogRunStateService`, `catalogBulkActionService`, and related services
+### 1. Workspace frame
 
-The first group is reusable because it is about shape and interaction primitives.
-The second group is ProductScanner-specific because it encodes catalog/run/rules/billing meaning.
+The top-level shell is a two-region layout:
 
-## Design principles
+- left region for navigation or filters
+- main region for the active collection/detail context
 
-### 1. Export layout primitives, not ProductScanner nouns
+Evidence:
 
-`mpr-ui` should not learn what a catalog, product, scan, rescore, or credit is.
+- settings modal layout in `tools/PoodleScanner/web/templates/app.html`
+- `.settings-modal__layout` and `.settings-modal__sidebar` in `tools/PoodleScanner/web/static/style.css`
 
-It should know:
+### 2. Sidebar navigation
 
-- workspace layout
-- sidebar nav
-- rail
-- tile
-- list workspace
-- card shell
-- drawer shell
-- selection state
-- toolbar
-- badge/chip/button primitives
+The sidebar is not settings-specific. It is a generic tree/list with:
 
-### 2. Keep fetching and business rules outside `mpr-ui`
+- grouped headings
+- active item styling
+- section switching
+- app-owned meaning
 
-`mpr-ui` should not own:
+Evidence:
 
-- API loading
-- pagination semantics
-- history/run resolution
-- affordability checks
-- schedule semantics
-- scoring thresholds
-- rules evaluation display logic
+- settings nav buttons in `tools/PoodleScanner/web/templates/app.html`
+- active-state handling in `tools/PoodleScanner/web/js/ui/settingsHandler.js`
 
-Those stay in the host app.
+### 3. Entity rail
 
-### 3. Prefer declarative custom elements plus headless JS helpers
+The horizontal catalog strip is the cross-app collection rail:
 
-This matches the current `mpr-ui` direction:
+- scrollable
+- optional left and right nav buttons
+- fixed-width tiles
+- host-owned tile meaning
 
-- custom elements for structural shells
-- plain JS helpers for headless state where composition flexibility matters
+Evidence:
 
-### 4. Use slots and semantic regions instead of app-specific DOM conventions
+- `#catalogGrid`, `#catalogTilesScroll`, and `#catalogTiles` in `tools/PoodleScanner/web/templates/app.html`
+- `.ps-catalog-grid` and `.ps-catalog-tiles` in `tools/PoodleScanner/web/static/style.css`
 
-The package should provide stable regions like:
+### 4. Entity tile
 
-- `media`
-- `title`
-- `meta`
-- `summary`
-- `metric`
-- `actions`
-- `footer`
+The catalog tile is a reusable collection summary shell:
 
-The host app fills them.
+- title
+- meta
+- badges or profile state
+- small action cluster
+- selected state
 
-That gives ProductScanner and a YouTube-style app the same skeleton without forcing identical content.
+Evidence:
+
+- tile builder in `tools/PoodleScanner/web/js/ui/catalogTileManager.js`
+- tile styling in `tools/PoodleScanner/web/static/style.css`
+
+### 5. Detail workspace
+
+The catalog detail area is a reusable workspace shell, even though its business logic is not:
+
+- heading row
+- filters
+- bulk actions
+- list body
+- empty state
+- load-more area
+
+Evidence:
+
+- `#catalogProductsHeader` and `#catalogProductsLoadMore` in `tools/PoodleScanner/web/templates/app.html`
+- `.ps-catalog-products-header` and `.ps-catalog-products__load-more` in `tools/PoodleScanner/web/static/style.css`
+
+### 6. Entity card
+
+The product row shows the right generic shell shape:
+
+- selectable
+- media region
+- title and summary
+- metric block
+- action cluster
+- footer metadata/history
+
+The exact content of those regions is PoodleScanner-specific. The shell is not.
+
+Evidence:
+
+- `.ps-catalog-product` structure in `tools/PoodleScanner/web/static/style.css`
+- `buildCatalogProductCard` in `tools/PoodleScanner/web/js/ui/appUI.js`
+
+### 7. Detail drawer
+
+The detail drawer is already a generic shell:
+
+- heading and subheading area
+- close action
+- image or media region
+- detail body
+- optional footer actions
+
+What is app-specific is the rule table and error content rendered inside it.
+
+Evidence:
+
+- drawer markup in `tools/PoodleScanner/web/templates/app.html`
+- drawer behavior in `tools/PoodleScanner/web/js/ui/productDrawerManager.js`
+
+### 8. Selection helper
+
+Selection state is the cleanest non-visual primitive:
+
+- normalize ids
+- toggle/set membership
+- replace selection
+- reconcile against authoritative ids
+- read selected ids
+
+Evidence:
+
+- `tools/PoodleScanner/web/js/ui/catalogProductSelectionState.js`
 
 ## Proposed `mpr-ui` surface
 
-### 1. `<mpr-workspace-layout>`
+### `<mpr-workspace-layout>`
 
 Purpose:
 
-- reusable two-column workspace shell with an explicit left sidebar and main content region
+- reusable two-region layout shell
 
-Attributes:
+Suggested contract:
 
-- `sidebar-width`
-- `collapsed`
-- `stacked-breakpoint`
+- attributes: `sidebar-width`, `collapsed`, `stacked-breakpoint`
+- slots: `header`, `sidebar`, `content`
+- events: `mpr-workspace-layout:sidebar-toggle`
 
-Slots:
+Host responsibilities:
 
-- `sidebar`
-- `content`
-- `header`
+- what the sidebar items mean
+- route or section ownership
 
-Events:
-
-- `mpr-workspace-layout:sidebar-toggle`
-
-Notes:
-
-- layout only
-- no routing, selection semantics, or active-section meaning
-
-### 2. `<mpr-sidebar-nav>`
+### `<mpr-sidebar-nav>`
 
 Purpose:
 
-- reusable left navigation tree/list for section switching inside a workspace
+- reusable list or tree for workspace section switching
 
-Attributes:
+Suggested contract:
 
-- `label`
-- `dense`
-- `variant`
+- attributes: `label`, `dense`, `variant`
+- slots: default, `header`, `footer`
+- events: `mpr-sidebar-nav:change`
 
-Slots:
+Host responsibilities:
 
-- default slot for nav items
-- `header`
-- `footer`
+- active key state
+- item labels, icons, and hierarchy
 
-Events:
-
-- `mpr-sidebar-nav:change`
-
-Notes:
-
-- `mpr-ui` owns shell and active-state affordances
-- host app owns item meaning and active-key state
-
-### 3. `<mpr-entity-rail>`
+### `<mpr-entity-rail>`
 
 Purpose:
 
-- horizontally scrollable strip of collections/entities with optional left/right navigation buttons
+- horizontally scrollable collection strip
 
-Attributes:
+Suggested contract:
 
-- `label`
-- `empty-label`
-- `show-nav`
-- `nav-step`
+- attributes: `label`, `empty-label`, `show-nav`, `nav-step`
+- slots: default, `leading`, `trailing`
+- events: `mpr-entity-rail:scroll-start`, `mpr-entity-rail:scroll-end`
 
-Slots:
+Host responsibilities:
 
-- default slot for entity tiles
-- `leading`
-- `trailing`
+- rail contents
+- selection and open behavior
 
-Events:
-
-- `mpr-entity-rail:scroll-start`
-- `mpr-entity-rail:scroll-end`
-
-### 4. `<mpr-entity-tile>`
+### `<mpr-entity-tile>`
 
 Purpose:
 
-- reusable collection tile shell for things like catalogs, playlists, channels, feeds, or saved searches
+- generic tile shell for catalogs, playlists, channels, feeds, or saved searches
 
-Attributes:
+Suggested contract:
 
-- `selected`
-- `interactive`
-- `disabled`
-- `variant`
+- attributes: `selected`, `interactive`, `disabled`, `variant`
+- slots: `title`, `meta`, `badge`, `actions`, `empty`
 
-Slots:
+Host responsibilities:
 
-- `title`
-- `meta`
-- `actions`
-- `badge`
-- `empty`
+- tile content and actions
 
-### 5. `<mpr-entity-workspace>`
+### `<mpr-entity-workspace>`
 
 Purpose:
 
-- main detail workspace shell: header, tools, list body, load-more area, empty state
+- main detail workspace shell
 
-Attributes:
+Suggested contract:
 
-- `busy`
-- `empty`
-- `selection-count`
-- `can-load-more`
+- attributes: `busy`, `empty`, `selection-count`, `can-load-more`
+- slots: `heading`, `toolbar`, `filters`, `bulk-actions`, `list`, `empty`, `load-more`
+- events: `mpr-entity-workspace:load-more`
 
-Slots:
+Host responsibilities:
 
-- `heading`
-- `toolbar`
-- `filters`
-- `bulk-actions`
-- `list`
-- `empty`
-- `load-more`
+- fetch policy
+- virtualization or pagination
+- bulk action behavior
 
-Events:
-
-- `mpr-entity-workspace:load-more`
-
-Notes:
-
-- host decides whether list behavior is paged, infinite, virtualized, or static
-
-### 6. `<mpr-entity-card>`
+### `<mpr-entity-card>`
 
 Purpose:
 
-- reusable structured card shell for rows/cards with media, selection, metrics, actions, and footer state
+- structured shell for dense entity rows or cards
 
-Attributes:
+Suggested contract:
 
-- `selected`
-- `interactive`
-- `disabled`
-- `busy`
-- `density`
+- attributes: `selected`, `interactive`, `disabled`, `busy`, `density`
+- slots: `select`, `media`, `title`, `meta`, `summary`, `metric`, `actions`, `footer`
 
-Slots:
+Host responsibilities:
 
-- `select`
-- `media`
-- `title`
-- `meta`
-- `summary`
-- `metric`
-- `actions`
-- `footer`
+- semantic meaning of metrics, badges, and actions
 
-### 7. `<mpr-detail-drawer>`
+### `<mpr-detail-drawer>`
 
 Purpose:
 
 - reusable side drawer shell for richer item detail
 
-Attributes:
+Suggested contract:
 
-- `open`
-- `heading`
-- `subheading`
-- `placement`
-- `busy`
+- attributes: `open`, `heading`, `subheading`, `placement`, `busy`
+- slots: `header-actions`, `body`, `footer`
+- events: `mpr-detail-drawer:open`, `mpr-detail-drawer:close`
 
-Slots:
+Host responsibilities:
 
-- `header-actions`
-- `body`
-- `footer`
+- detail content
+- fetch timing
 
-Events:
-
-- `mpr-detail-drawer:open`
-- `mpr-detail-drawer:close`
-
-### 8. `MPRUI.createSelectionState()`
+### `MPRUI.createSelectionState()`
 
 Purpose:
 
-- headless helper for multi-select state shared across rails/lists/cards
+- reusable headless multi-select state
 
-Expected surface:
+Suggested contract:
 
 ```js
-const selection = MPRUI.createSelectionState();
-selection.replace(ids);
-selection.toggle(id);
-selection.clear();
-selection.reconcile(validIds);
-selection.getSelectedIds();
-selection.isSelected(id);
-selection.count();
+const selectionState = MPRUI.createSelectionState();
+selectionState.replace(ids);
+selectionState.toggle(id);
+selectionState.setSelected(id, true);
+selectionState.clear();
+selectionState.reconcile(validIds);
+selectionState.getSelectedIds();
+selectionState.isSelected(id);
+selectionState.count();
 ```
 
-This is the most reusable non-visual primitive in the current ProductScanner implementation.
+## Hard boundaries
 
-### 9. Small reusable building blocks
+The following behaviors must stay outside `mpr-ui`:
 
-Internal/public building blocks that may support the larger primitives:
+| Keep in host app | Why |
+| --- | --- |
+| Catalog, product, playlist, video, run, rescore, or credit terminology | Those are domain nouns, not UI primitives. |
+| Querying, hydration, pagination, and infinite-scroll policy | The host app owns data shape and loading costs. |
+| Rule summaries, score thresholds, and score color meaning | Those encode app-specific semantics. |
+| Billing, credits, scheduling, and admin workflows | Those are business workflows, not reusable chrome. |
+| Bulk action confirmation copy and action execution | The meaning of scan, rescore, delete, queue, and publish is app-local. |
+| History chip meaning | Run state, processing state, and publish state differ by app. |
 
-- card action button
-- status chip/badge
-- workspace toolbar shell
-- empty-state shell
-- rail nav button
+The main rule is simple: `mpr-ui` can provide named regions and event boundaries, but not the business interpretation that fills them.
 
-## Non-goals
+## Cross-app mapping
 
-The following should not move to `mpr-ui`:
+| PoodleScanner today | Generic primitive | Video-oriented app |
+| --- | --- | --- |
+| Catalog rail | `mpr-entity-rail` + `mpr-entity-tile` | Playlist rail or channel rail |
+| Catalog tile | `mpr-entity-tile` | Playlist tile, channel tile, saved search tile |
+| Catalog detail page | `mpr-entity-workspace` | Playlist detail workspace |
+| Product row | `mpr-entity-card` | Video row or moderation card |
+| Product thumbnail | `media` slot | Video thumbnail |
+| Score block | `metric` slot | Views, freshness, engagement, moderation score |
+| Product actions | `actions` slot | Queue, publish, add to playlist, moderate |
+| Product details drawer | `mpr-detail-drawer` | Video details drawer |
+| Settings sidebar | `mpr-workspace-layout` + `mpr-sidebar-nav` | Library/sidebar navigation |
+| Product multi-select | `createSelectionState()` | Bulk video selection |
 
-- ProductScanner catalog-detail view state
-- ProductScanner infinite-scroll hydration logic
-- ProductScanner settings-section routing semantics
-- ProductScanner history/run chip semantics
-- ProductScanner rules summary rendering
-- ProductScanner score thresholds and score colors
-- ProductScanner credits/billing/schedule logic
-- ProductScanner rescore/run modal semantics
+## Migration strategy
 
-## Why the sidebar matters
+### Phase 1: extract headless selection state
 
-The current settings tree is the best sidebar precedent.
+Deliver:
 
-ProductScanner already has a reusable-looking sidebar pattern in the settings modal:
+- `MPRUI.createSelectionState()`
 
-- semantic sidebar markup in `../../web/templates/app.html`
-- generic tree styling in `../../web/static/style.css`
-- active-key orchestration in `../../web/js/ui/settingsHandler.js`
-
-That should be treated as the source pattern for `mpr-workspace-layout` plus `mpr-sidebar-nav`, not as a one-off settings-only structure.
-
-## Migration plan
-
-### Phase 1: headless selection state
-
-Extract `createSelectionState()` first.
-
-Why:
+Why first:
 
 - lowest coupling
-- no visual lock-in
-- immediately reusable by multiple apps
+- zero visual lock-in
+- useful to multiple apps immediately
 
-### Phase 2: detail drawer shell
+### Phase 2: extract detail drawer shell
 
-Extract `mpr-detail-drawer`.
+Deliver:
 
-Keep ProductScanner rule-table rendering local.
+- `<mpr-detail-drawer>`
 
-### Phase 3: workspace layout and sidebar
+Keep local:
 
-Extract:
+- PoodleScanner rule table rendering
+- app-specific error summaries
 
-- `mpr-workspace-layout`
-- `mpr-sidebar-nav`
+### Phase 3: extract workspace layout and sidebar
 
-Use the existing settings modal as the first proving ground.
+Deliver:
 
-Why before card work:
+- `<mpr-workspace-layout>`
+- `<mpr-sidebar-nav>`
 
-- structurally simpler
-- clear cross-app value
-- avoids pushing left-nav behavior into `mpr-entity-workspace`
+Use the existing settings modal as the proving ground.
 
-### Phase 4: rail and tile shells
+Why before cards:
 
-Extract:
+- clearer boundary
+- lower semantic risk
+- validates the left-nav contract without dragging in catalog semantics
 
-- `mpr-entity-rail`
-- `mpr-entity-tile`
+### Phase 4: extract rail and tile shells
 
-Use ProductScanner catalogs as the proving ground.
+Deliver:
 
-### Phase 5: entity card shell
+- `<mpr-entity-rail>`
+- `<mpr-entity-tile>`
 
-Extract `mpr-entity-card` only after the slot contract is stable.
+Use PoodleScanner catalogs as the proving ground.
 
-Validate against:
+### Phase 5: extract entity card shell
 
-- ProductScanner products
-- one video-oriented prototype
+Deliver:
 
-### Phase 6: workspace shell
+- `<mpr-entity-card>`
 
-Extract `mpr-entity-workspace` once the host responsibilities are clear.
+Guardrail:
 
-This should come after sidebar and card boundaries are proven.
+- do not move `buildCatalogProductCard` into `mpr-ui`
+- first stabilize slot boundaries in one product workflow and one video-style prototype
 
-## Recommended extraction sequence
+### Phase 6: extract workspace shell
 
-1. `createSelectionState`
-2. `mpr-detail-drawer`
-3. `mpr-workspace-layout`
-4. `mpr-sidebar-nav`
-5. `mpr-entity-rail`
-6. `mpr-entity-tile`
-7. `mpr-entity-card`
-8. `mpr-entity-workspace`
+Deliver:
 
-That gives `mpr-ui` a reusable operational layout kit for both ProductScanner and a YouTube-style app without turning the package into a second copy of ProductScanner.
+- `<mpr-entity-workspace>`
+
+Guardrail:
+
+- keep data fetching, filtering, and load-more policy in the host app
+
+## Recommended extraction order
+
+1. `MPRUI.createSelectionState()`
+2. `<mpr-detail-drawer>`
+3. `<mpr-workspace-layout>`
+4. `<mpr-sidebar-nav>`
+5. `<mpr-entity-rail>`
+6. `<mpr-entity-tile>`
+7. `<mpr-entity-card>`
+8. `<mpr-entity-workspace>`
+
+That order starts with low-risk headless and layout primitives, proves the chrome contracts before card composition, and avoids turning `mpr-ui` into a second copy of PoodleScanner.
