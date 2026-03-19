@@ -2622,6 +2622,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       );
     }
 
+    function requestCurrentProfile() {
+      if (typeof global.getCurrentUser !== "function") {
+        return Promise.resolve(null);
+      }
+      configureTenantId();
+      return Promise.resolve(global.getCurrentUser());
+    }
+
     function bootstrapSession() {
       if (typeof global.initAuthClient !== "function") {
         markUnauthenticated({ emit: false, prompt: false });
@@ -2646,11 +2654,26 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             markUnauthenticated({ prompt: true });
           },
         }),
-      ).catch(function (error) {
-        emitError("mpr-ui.auth.bootstrap_failed", {
-          message: error && error.message ? error.message : String(error),
+      )
+        .then(function reconcileCurrentProfile() {
+          if (state.status === "authenticated") {
+            return null;
+          }
+          return requestCurrentProfile();
+        })
+        .then(function applyRecoveredProfile(profile) {
+          if (state.status === "authenticated") {
+            return;
+          }
+          if (profile) {
+            markAuthenticated(profile);
+          }
+        })
+        .catch(function (error) {
+          emitError("mpr-ui.auth.bootstrap_failed", {
+            message: error && error.message ? error.message : String(error),
+          });
         });
-      });
     }
 
     function exchangeCredentialWithFetch(credential, nonceToken) {
