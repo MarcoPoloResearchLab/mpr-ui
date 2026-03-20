@@ -3,16 +3,38 @@
 ## [Unreleased]
 
 ### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- _No changes._
+
+### Bug Fixes 🐛
+- _No changes._
+
+### Testing 🧪
+- _No changes._
+
+### Docs 📚
+- _No changes._
+
+## [v3.7.0] - 2026-03-19
+
+### Features ✨
 - MU-429: added the entity-workspace kit primitives to `mpr-ui`, including `MPRUI.createSelectionState()`, `<mpr-workspace-layout>`, `<mpr-sidebar-nav>`, `<mpr-entity-rail>`, `<mpr-entity-tile>`, `<mpr-entity-workspace>`, `<mpr-entity-card>`, and `<mpr-detail-drawer>`.
 
 ### Improvements ⚙️
 - MU-429: extracted reusable collection/detail chrome from the PoodleScanner-inspired workspace grammar without moving app-specific fetch, scoring, or workflow logic into `mpr-ui`.
 
 ### Bug Fixes 🐛
-- _No changes._
+- MU-432: reconciled `mpr-header` auth bootstrap from `getCurrentUser()` after `initAuthClient()` so existing-session recovery marks the header authenticated on first render and keeps `mpr-ui:auth:authenticated` in sync with the current session.
+- MU-432 follow-up: prevented `getCurrentUser()` bootstrap recovery from overriding an explicit `initAuthClient()` unauthenticated callback, including the case where the profile lookup is still pending.
+- MU-429 follow-up: fixed post-mount slot absorption for `mpr-entity-rail` and `mpr-entity-workspace` so removed late-appended tiles/cards no longer reappear on later renders.
+- MU-429 follow-up: fixed entity-workspace load-more state and demo pagination guards so empty filtered views can still expose pagination and concurrent load-more interactions do not skip or resurrect content.
 
 ### Testing 🧪
-- MU-429: added unit coverage for the new entity-workspace helper/custom elements and Playwright coverage for browser rendering + interaction flows in the new entity-workspace fixture.
+- MU-429: added unit coverage for the new entity-workspace helper/custom elements and Playwright coverage for browser rendering and interaction flows in the new entity-workspace fixture.
+- MU-432: added regression tests for auth state synchronization in header.
+- MU-429 follow-up: added focused unit and Playwright regression coverage for entity-rail/entity-workspace slot absorption, empty-state pagination affordances, and concurrent load-more handling.
 
 ### Docs 📚
 - MU-429: rewrote `docs/entity-workspace-proposal.md` to define the reusable entity-workspace grammar, proposed `mpr-ui` API, hard boundaries, migration order, and cross-app mapping using `tools/PoodleScanner` as the concrete reference.
