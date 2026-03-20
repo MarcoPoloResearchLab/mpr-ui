@@ -50,20 +50,26 @@ test('standalone demo loads YAML config before the local bundle', () => {
   );
 });
 
-test('MU-130: standalone demo uses relative demo navigation links', () => {
+test('MU-130: standalone demo uses the shared header navigation links', () => {
   assert.doesNotMatch(
     standaloneHtml,
     /"url"\s*:\s*"\/?demo\//i,
     'Expected standalone.html links-collection URLs to avoid a /demo/ prefix when served from demo as web root',
   );
 
-  const expectedLinks = ['./tauth-demo.html', './local.html', './index.html'];
+  const expectedLinks = [
+    './index.html',
+    './tauth-demo.html',
+    './entity-workspace.html?entity-demo-docker=2',
+    './local.html',
+    './standalone.html',
+  ];
   expectedLinks.forEach((href) => {
     const escapedHref = href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
     assert.match(
       standaloneHtml,
-      new RegExp(`\"url\"\\s*:\\s*\"${escapedHref}\"`),
-      `Expected standalone.html to include link url ${href}`,
+      new RegExp(`\"href\"\\s*:\\s*\"${escapedHref}\"`),
+      `Expected standalone.html to include header link ${href}`,
     );
   });
 });

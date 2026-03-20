@@ -238,13 +238,43 @@
       }
     </style>
   </head>
-  <body data-mpr-theme="light">
+  <body class="theme-light" data-demo-palette="default">
+    <mpr-header
+      id="demo-header"
+      brand-label="Marco Polo Research Lab"
+      brand-href="https://mprlab.com/"
+      nav-links='[
+        { "label": "Docs", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/README.md" },
+        { "label": "Architecture", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/ARCHITECTURE.md" }
+      ]'
+      horizontal-links='{
+        "alignment": "right",
+        "links": [
+          { "label": "Index demo", "href": "./index.html" },
+          { "label": "TAuth demo", "href": "./tauth-demo.html" },
+          { "label": "Entity workspace", "href": "./entity-workspace.html?entity-demo-docker=2" },
+          { "label": "Local bundle", "href": "./local.html" },
+          { "label": "Standalone demo", "href": "./standalone.html" }
+        ]
+      }'
+      user-menu-display-mode="avatar"
+      logout-url="/"
+      sign-out-label="Log out"
+    >
+      <mpr-user
+        slot="aux"
+        display-mode="avatar"
+        tauth-tenant-id="mpr-sites"
+        logout-url="/"
+        logout-label="Log out"
+      ></mpr-user>
+    </mpr-header>
     <div class="page-container">
       <main>
         <h1>Standalone Login Button</h1>
         <p class="subtitle">
           Using <code>&lt;mpr-login-button&gt;</code> and
-          <code>&lt;mpr-user&gt;</code> without the header component.
+          <code>&lt;mpr-user&gt;</code> as the primary auth surface outside the header.
         </p>
 
         <section class="auth-section">
@@ -318,7 +348,7 @@
             </li>
             <li>
               This pattern is useful for login pages, sidebars, or anywhere you
-              need auth controls without the full header.
+              need auth controls outside the header authentication flow.
             </li>
           </ul>
         </section>
@@ -326,28 +356,46 @@
 
       <mpr-footer
         id="page-footer"
-        prefix-text="Built by Marco Polo Research Lab"
+        sticky="true"
+        size="small"
         privacy-link-label="Privacy &amp; Terms"
         privacy-link-href="#privacy"
+        privacy-modal-content="
+          <h1>Privacy Policy — MPR UI</h1>
+          <p><strong>Effective Date:</strong> 2025-10-11</p>
+          <p>LoopAware uses Google Identity Services to authenticate users. We receive your Google profile
+             information (name, email, profile image) only to sign you in. We do not sell or share your data,
+             and we only store your notes so the service functions.</p>
+          <p>To request deletion of your data, contact
+             <a href='mailto:support@mprlab.com'>support@mprlab.com</a>.</p>
+        "
         horizontal-links='{
           "alignment": "center",
           "links": [
-            { "label": "TAuth Demo", "href": "./tauth-demo.html" },
-            { "label": "Local Demo", "href": "./local.html" },
-            { "label": "Index Demo", "href": "./index.html" }
+            { "label": "Docs", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/README.md", "target": "_blank" },
+            { "label": "Changelog", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/CHANGELOG.md", "target": "_blank" },
+            { "label": "GitHub", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui", "target": "_blank" },
+            { "label": "Support", "href": "mailto:support@mprlab.com" }
           ]
         }'
         links-collection='{
           "style": "drop-up",
-          "text": "More demos",
+          "text": "Built by Marco Polo Research Lab",
           "links": [
-            { "label": "TAuth Demo", "url": "./tauth-demo.html" },
-            { "label": "Local Demo", "url": "./local.html" },
-            { "label": "Index Demo", "url": "./index.html" }
+            { "label": "Marco Polo Research Lab", "url": "https://mprlab.com" },
+            { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+            { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+            { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+            { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+            { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+            { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+            { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+            { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+            { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
           ]
         }'
         theme-switcher="toggle"
-        theme-config='{"attribute":"data-mpr-theme","targets":["body"],"initialMode":"light","modes":[{"value":"light","attributeValue":"light"},{"value":"dark","attributeValue":"dark"}]}'
+        theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-light","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
       ></mpr-footer>
     </div>
 
