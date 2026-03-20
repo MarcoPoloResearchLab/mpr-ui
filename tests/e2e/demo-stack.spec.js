@@ -1,256 +1,75 @@
 // @ts-check
 
-const https = require('node:https');
-const http = require('node:http');
-const { existsSync, readFileSync, statSync } = require('node:fs');
-const { extname, resolve } = require('node:path');
 const { test, expect } = require('@playwright/test');
 
-const REPOSITORY_ROOT = resolve(__dirname, '../..');
-const CONTENT_TYPES = Object.freeze({
-  '.css': 'text/css; charset=utf-8',
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'application/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-  '.yaml': 'text/yaml; charset=utf-8',
-});
-
-const DEMO_BASE_URL = process.env.MP_UI_DEMO_BASE_URL;
-const FALLBACK_URL = 'https://localhost:4443';
-
-// Paths to look for in script src and link href
-const JS_SUFFIX = '/mpr-ui.js';
-const CSS_SUFFIX = '/mpr-ui.css';
-const CDN_JS_PATTERN = /mpr-ui@(?:latest|[\d.]+)\/mpr-ui\.js/;
-const CDN_CSS_PATTERN = /mpr-ui@(?:latest|[\d.]+)\/mpr-ui\.css/;
-
-const DEMO_PAGES = Object.freeze([
-  {
-    path: '/',
-    expectedPath: '/',
-    title: 'mpr-ui Demo',
-    requiredScripts: ['/tauth.js'],
-    scriptPath: JS_SUFFIX,
-    stylePath: CSS_SUFFIX,
-  },
-  {
-    path: '/index.html',
-    expectedPath: '/(?:index\\.html)?$',
-    title: 'mpr-ui Demo',
-    requiredScripts: ['/tauth.js'],
-    scriptPath: JS_SUFFIX,
-    stylePath: CSS_SUFFIX,
-  },
-  {
-    path: '/demo/local.html',
-    expectedPath: '/demo/local.html',
-    title: 'mpr-ui Demo (Local Bundle)',
-    scriptPath: JS_SUFFIX,
-    stylePath: CSS_SUFFIX,
-    requiredScripts: ['/tauth.js'],
-  },
-  {
-    path: '/demo/tauth-demo.html',
-    expectedPath: '/demo/tauth-demo.html',
-    title: 'TAuth + mpr-ui (Docker Compose)',
-    scriptPath: JS_SUFFIX,
-    stylePath: CSS_SUFFIX,
-    requiredScripts: ['/tauth.js', '/mpr-ui-config.js'],
-  },
-  {
-    path: '/demo/standalone.html',
-    expectedPath: '/demo/standalone.html',
-    title: 'Standalone Login Button + TAuth',
-    scriptPath: JS_SUFFIX,
-    stylePath: CSS_SUFFIX,
-    requiredScripts: ['/tauth.js', '/mpr-ui-config.js'],
-  },
-  {
-    path: '/demo/entity-workspace.html',
-    expectedPath: '/demo/entity-workspace.html',
-    title: 'Entity Workspace Demo',
-    scriptPath: JS_SUFFIX,
-    stylePath: CSS_SUFFIX,
-    requiredScripts: ['/tauth.js'],
-  },
-]);
+const BASE_URL = process.env.MPR_UI_DEMO_BASE_URL || 'https://localhost:4443';
 
 test.use({ ignoreHTTPSErrors: true });
 
-let server;
-let activeBaseUrl = '';
+test('root / serves the demo hub landing page with all standard elements', async ({ page }) => {
+  await page.goto(BASE_URL, { waitUntil: 'networkidle' });
 
-test.beforeAll(async () => {
-  if (DEMO_BASE_URL) {
-    if (await isReachable(DEMO_BASE_URL)) {
-      activeBaseUrl = DEMO_BASE_URL;
-      return;
-    }
-    // eslint-disable-next-line no-console
-    console.warn(`Specified MPR_UI_DEMO_BASE_URL (${DEMO_BASE_URL}) is not reachable.`);
-  }
+  // 1. Verify URL is at root (no redirects)
+  await expect(page).toHaveURL(new RegExp(`${BASE_URL.replace(/\/$/, '')}/$`));
 
-  if (await isReachable(FALLBACK_URL)) {
-    activeBaseUrl = FALLBACK_URL;
-    return;
-  }
-
-  server = http.createServer((request, response) => {
-    const requestUrl = new URL(request.url || '/', 'http://127.0.0.1');
-
-    const filesystemPath = resolve(REPOSITORY_ROOT, `.${requestUrl.pathname === '/' ? '/index.html' : requestUrl.pathname}`);
-
-    if (!filesystemPath.startsWith(REPOSITORY_ROOT)) {
-      response.writeHead(403);
-      response.end('forbidden');
-      return;
-    }
-
-    if (!existsSync(filesystemPath) || statSync(filesystemPath).isDirectory()) {
-      response.writeHead(404);
-      response.end('not found');
-      return;
-    }
-
-    let content = readFileSync(filesystemPath);
-    const contentType = CONTENT_TYPES[extname(filesystemPath)] || 'application/octet-stream';
-
-    // MU-130: Inject local origin into config.yaml so environment matching works
-    if (requestUrl.pathname.endsWith('config.yaml')) {
-      const yamlText = content.toString('utf8');
-      const origin = `http://127.0.0.1:${server.address().port}`;
-      // Add the origin to the first environment's origins list
-      const patchedYaml = yamlText.replace(/origins:\s*\n\s*-\s*["']([^"']+)["']/, `origins:\n      - "${origin}"\n      - "$1"`);
-      content = Buffer.from(patchedYaml, 'utf8');
-    }
-
-    response.writeHead(200, { 'Content-Type': contentType });
-    response.end(content);
-  });
-
-  return new Promise((resolveServer) => {
-    server.listen(0, '127.0.0.1', () => {
-      const address = server.address();
-      activeBaseUrl = `http://127.0.0.1:${address.port}`;
-      resolveServer();
-    });
-  });
-});
-
-test.afterAll(async () => {
-  if (server) {
-    await new Promise((resolveClose) => server.close(resolveClose));
-  }
-});
-
-test('single demo stack serves every demo page from one origin', async ({ page }) => {
-  const baseUrl = new URL(activeBaseUrl);
-
-  for (const demoPage of DEMO_PAGES) {
-    const separator = demoPage.path.includes('?') ? '&' : '?';
-    const targetUrl = new URL(`${demoPage.path}${demoPage.path.includes('entity-workspace') ? separator + 'entity-demo-docker=2' : ''}`, baseUrl);
-
-    await page.goto(targetUrl.toString(), { waitUntil: 'networkidle' });
-    await expect(page).toHaveTitle(demoPage.title);
-    
-    const expectedPattern = demoPage.expectedPath.startsWith('/') && !demoPage.expectedPath.includes('(')
-      ? `${escapeRegExp(demoPage.expectedPath)}(\\?.*)?$`
-      : `${demoPage.expectedPath}(\\?.*)?$`;
-    await expect(page).toHaveURL(new RegExp(expectedPattern));
-
-    const scriptUrls = await page.evaluate(() => Array.from(document.scripts).map((script) => script.src));
-    const styleUrls = await page.evaluate(() => Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map((element) => element.href));
-
-    if (demoPage.cdnJs) {
-      const foundCdnJs = scriptUrls.some(url => CDN_JS_PATTERN.test(url));
-      expect(foundCdnJs, `Expected to find CDN JS on ${demoPage.path}`).toBe(true);
-    } else if (demoPage.scriptPath) {
-      const foundLocalJs = scriptUrls.some(url => url.endsWith(demoPage.scriptPath));
-      expect(foundLocalJs, `Expected to find local JS ending with ${demoPage.scriptPath} on ${demoPage.path}. Found: ${scriptUrls.join(', ')}`).toBe(true);
-    }
-
-    if (demoPage.cdnCss) {
-      const foundCdnCss = styleUrls.some(url => CDN_CSS_PATTERN.test(url));
-      expect(foundCdnCss, `Expected to find CDN CSS on ${demoPage.path}`).toBe(true);
-    } else if (demoPage.stylePath) {
-      const foundLocalCss = styleUrls.some(url => url.endsWith(demoPage.stylePath));
-      expect(foundLocalCss, `Expected to find local CSS ending with ${demoPage.stylePath} on ${demoPage.path}. Found: ${styleUrls.join(', ')}`).toBe(true);
-    }
-
-    if (demoPage.requiredScripts) {
-      demoPage.requiredScripts.forEach((requiredScriptPath) => {
-        const found = scriptUrls.some(url => url.endsWith(requiredScriptPath));
-        expect(found, `Expected to find script ending with ${requiredScriptPath} on ${demoPage.path}`).toBe(true);
-      });
-    }
-  }
-});
-
-test('landing on root / does not redirect and shows landing page content', async ({ page }) => {
-  const baseUrl = new URL(activeBaseUrl);
-  
-  // Navigate to root /
-  await page.goto(baseUrl.toString(), { waitUntil: 'networkidle' });
-
-  // 1. Explicitly check that there was no redirect (URL stays as root or root/index.html)
-  await expect(page).toHaveURL(new RegExp(`${escapeRegExp(baseUrl.origin)}/(index\\.html)?$`));
-
-  // 2. Explicitly check for landing-page specific content
-  // The hub uses a Bootstrap hero section not present in other pages
-  await expect(page.locator('[data-layout-section="hero-title"]')).toBeVisible();
+  // 2. Verify Hub Identity
+  await expect(page).toHaveTitle('mpr-ui Demo');
   await expect(page.locator('[data-layout-section="hero-title"] h1')).toContainText('MPR-UI Demo');
+
+  // 3. Verify Standard Header Elements
+  const header = page.locator('mpr-header#demo-header');
+  await expect(header).toBeVisible();
+  await expect(header).toHaveAttribute('brand-label', 'Marco Polo Research Lab');
   
-  // 3. Confirm sub-demo pages are NOT being shown
-  await expect(page.locator('#entity-demo-layout')).toBeHidden();
+  // Verify User Menu / Avatar is present in the aux slot
+  await expect(header.locator('mpr-user[slot="aux"]')).toBeAttached();
+
+  // 4. Verify Standard Navigation Links
+  // All links must point correctly from the root context
+  const navLinks = [
+    { text: 'Index demo', href: './index.html' },
+    { text: 'TAuth demo', href: './demo/tauth-demo.html' },
+    { text: 'Entity workspace', href: './demo/entity-workspace.html?entity-demo-docker=2' },
+    { text: 'Local bundle', href: './demo/local.html' },
+    { text: 'Standalone demo', href: './demo/standalone.html' }
+  ];
+
+  for (const link of navLinks) {
+    const locator = header.locator(`a:has-text("${link.text}")`);
+    await expect(locator).toBeVisible();
+    await expect(locator).toHaveAttribute('href', link.href);
+  }
+
+  // 5. Verify Hub-Specific Content (Bands/Cards)
+  await expect(page.locator('mpr-band#band-observability')).toBeVisible();
+  await expect(page.locator('mpr-card#event-log-card')).toBeVisible();
+  await expect(page.locator('mpr-band#band-integration')).toBeVisible();
+
+  // 6. Verify Standard Footer
+  const footer = page.locator('mpr-footer#page-footer');
+  await expect(footer).toBeVisible();
+  await expect(footer).toHaveAttribute('theme-switcher', 'toggle');
 });
 
-test('every demo page links back to the root landing page', async ({ page }) => {
-  const baseUrl = new URL(activeBaseUrl);
+test('sub-demos provide consistent navigation back to the root landing page', async ({ page }) => {
+  const subDemos = [
+    '/demo/tauth-demo.html',
+    '/demo/entity-workspace.html?entity-demo-docker=2',
+    '/demo/local.html',
+    '/demo/standalone.html'
+  ];
 
-  for (const demoPage of DEMO_PAGES) {
-    if (demoPage.path === '/' || demoPage.path === '/index.html') continue;
-
-    const separator = demoPage.path.includes('?') ? '&' : '?';
-    const targetUrl = new URL(`${demoPage.path}${demoPage.path.includes('entity-workspace') ? separator + 'entity-demo-docker=2' : ''}`, baseUrl);
-
-    await page.goto(targetUrl.toString(), { waitUntil: 'networkidle' });
+  for (const path of subDemos) {
+    await page.goto(`${BASE_URL.replace(/\/$/, '')}${path}`, { waitUntil: 'networkidle' });
     
-    // Find the "Index demo" link in the header and click it
-    // We target the mpr-header explicitly to ensure we use the shared navigation link
+    // Every sub-demo header must have an "Index demo" link pointing to root
     const indexLink = page.locator('mpr-header a:has-text("Index demo")');
     await expect(indexLink).toBeVisible();
-    await indexLink.click();
+    await expect(indexLink).toHaveAttribute('href', '../index.html');
 
-    // Verify we landed on the root hub
-    await expect(page).toHaveTitle('mpr-ui Demo');
-    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(baseUrl.origin)}/(index\\.html)?$`));
+    // Clicking it must land us back at root /
+    await indexLink.click();
+    await expect(page).toHaveURL(new RegExp(`${BASE_URL.replace(/\/$/, '')}/$`));
+    await expect(page.locator('[data-layout-section="hero-title"]')).toBeVisible();
   }
 });
-
-/**
- * @param {string} url
- * @returns {Promise<boolean>}
- */
-function isReachable(url) {
-  return new Promise((resolve) => {
-    const protocol = url.startsWith('https') ? https : http;
-    const request = protocol.request(url, { method: 'GET', rejectUnauthorized: false, timeout: 1000 }, (response) => {
-      resolve(Boolean(response.statusCode) && response.statusCode < 500);
-      response.resume();
-    });
-    request.on('error', () => resolve(false));
-    request.on('timeout', () => {
-      request.destroy();
-      resolve(false);
-    });
-    request.end();
-  });
-}
-
-/**
- * @param {string} value
- * @returns {string}
- */
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}

@@ -1,68 +1,16 @@
 // @ts-check
 
-const { createServer } = require('node:http');
-const { once } = require('node:events');
-const { existsSync, readFileSync, statSync } = require('node:fs');
-const { extname, resolve } = require('node:path');
 const { test, expect } = require('@playwright/test');
 
-const REPOSITORY_ROOT = resolve(__dirname, '../..');
-const CONTENT_TYPES = Object.freeze({
-  '.css': 'text/css; charset=utf-8',
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'application/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-});
+const BASE_URL = process.env.MPR_UI_DEMO_BASE_URL || 'https://localhost:4443';
 
-let server;
-let serverBaseUrl = '';
-
-test.beforeAll(async () => {
-  server = createServer((request, response) => {
-    const requestUrl = new URL(request.url || '/', 'http://127.0.0.1');
-    const requestedPath =
-      requestUrl.pathname === '/' ? '/demo/entity-workspace.html' : requestUrl.pathname;
-    const filesystemPath = resolve(REPOSITORY_ROOT, `.${requestedPath}`);
-
-    if (!filesystemPath.startsWith(REPOSITORY_ROOT)) {
-      response.writeHead(403);
-      response.end('forbidden');
-      return;
-    }
-
-    if (!existsSync(filesystemPath) || statSync(filesystemPath).isDirectory()) {
-      response.writeHead(404);
-      response.end('not found');
-      return;
-    }
-
-    const contentType = CONTENT_TYPES[extname(filesystemPath)] || 'application/octet-stream';
-    response.writeHead(200, { 'Content-Type': contentType });
-    response.end(readFileSync(filesystemPath));
-  });
-
-  server.listen(0, '127.0.0.1');
-  await once(server, 'listening');
-
-  const address = server.address();
-  if (!address || typeof address === 'string') {
-    throw new Error('entity_workspace.demo.server.invalid_address');
-  }
-  serverBaseUrl = `http://127.0.0.1:${address.port}`;
-});
-
-test.afterAll(async () => {
-  if (!server) {
-    return;
-  }
-  server.close();
-  await once(server, 'close');
-});
+test.use({ ignoreHTTPSErrors: true });
 
 test('MU-429: entity workspace demo blocks direct static serving and requires Docker', async ({
   page,
 }) => {
-  await page.goto(`${serverBaseUrl}/demo/entity-workspace.html`, {
+  // Accessing without the bypass parameter
+  await page.goto(`${BASE_URL.replace(/\/$/, '')}/demo/entity-workspace.html`, {
     waitUntil: 'networkidle',
   });
 
@@ -78,8 +26,8 @@ test('MU-429: entity workspace demo blocks direct static serving and requires Do
 test('MU-429: JSON-backed entity workspace demo loads and responds to interactions', async ({
   page,
 }) => {
-  // Use the Docker bypass parameter to enable the demo in the test server
-  await page.goto(`${serverBaseUrl}/demo/entity-workspace.html?entity-demo-docker=2`, {
+  // Use the Docker bypass parameter to enable the demo
+  await page.goto(`${BASE_URL.replace(/\/$/, '')}/demo/entity-workspace.html?entity-demo-docker=2`, {
     waitUntil: 'networkidle',
   });
 
@@ -116,7 +64,7 @@ test('MU-429: JSON-backed entity workspace ignores concurrent load-more clicks',
   });
 
   // Use the Docker bypass parameter
-  await page.goto(`${serverBaseUrl}/demo/entity-workspace.html?entity-demo-docker=2`, {
+  await page.goto(`${BASE_URL.replace(/\/$/, '')}/demo/entity-workspace.html?entity-demo-docker=2`, {
     waitUntil: 'networkidle',
   });
 
