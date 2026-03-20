@@ -2637,11 +2637,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       configureTenantId();
       var resolvedBaseUrl = resolveAuthBaseUrl();
+      var bootstrapCallbackStatus = "none";
       return Promise.resolve(
         global.initAuthClient({
           baseUrl: resolvedBaseUrl,
           tenantId: options.tenantId,
           onAuthenticated: function (profile) {
+            bootstrapCallbackStatus = "authenticated";
             var resolvedProfile = profile || pendingProfile || null;
             if (profile && pendingProfile) {
               resolvedProfile = Object.assign({}, pendingProfile, profile);
@@ -2650,19 +2652,26 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             markAuthenticated(resolvedProfile);
           },
           onUnauthenticated: function () {
+            bootstrapCallbackStatus = "unauthenticated";
             pendingProfile = null;
             markUnauthenticated({ prompt: true });
           },
         }),
       )
         .then(function reconcileCurrentProfile() {
-          if (state.status === "authenticated") {
+          if (
+            bootstrapCallbackStatus !== "none" ||
+            state.status === "authenticated"
+          ) {
             return null;
           }
           return requestCurrentProfile();
         })
         .then(function applyRecoveredProfile(profile) {
-          if (state.status === "authenticated") {
+          if (
+            bootstrapCallbackStatus !== "none" ||
+            state.status === "authenticated"
+          ) {
             return;
           }
           if (profile) {
