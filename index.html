@@ -11,7 +11,7 @@
     <link rel="stylesheet" href="./demo/demo.css" />
     <link
       rel="stylesheet"
-      href="./mpr-ui.css"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
     />
     <script
       defer
@@ -20,25 +20,17 @@
     ></script>
     <script defer src="/tauth.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <script src="./mpr-ui-config.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <script id="mpr-ui-bundle" defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"></script>
     <script>
       (function initWithConfig() {
         var CONFIG_TIMEOUT_MS = 5000;
-        var mprUiLoaded = false;
 
-        function loadMprUi() {
-          if (mprUiLoaded) return;
-          mprUiLoaded = true;
-          var script = document.createElement('script');
-          script.src = './mpr-ui.js';
-          script.id = 'mpr-ui-bundle';
-          document.head.appendChild(script);
-        }
-
-        function applyConfigAndLoad() {
+        function applyConfig() {
           if (!window.MPRUI || !window.MPRUI.applyYamlConfig) {
-            // eslint-disable-next-line no-console
-            console.error('mpr-ui-config.js not available, cannot proceed without config');
+            // Wait for bundle if not yet available
+            setTimeout(applyConfig, 50);
             return;
           }
 
@@ -50,7 +42,6 @@
           window.MPRUI.applyYamlConfig({ configUrl: './demo/config.yaml' })
             .then(function handleSuccess() {
               clearTimeout(timeoutId);
-              loadMprUi();
             })
             .catch(function handleError(error) {
               clearTimeout(timeoutId);
@@ -60,9 +51,9 @@
         }
 
         if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', applyConfigAndLoad);
+          document.addEventListener('DOMContentLoaded', applyConfig);
         } else {
-          applyConfigAndLoad();
+          applyConfig();
         }
       })();
     </script>

@@ -57,21 +57,21 @@ function normalizeAttributeValue(attributeValue) {
   return attributeValue.replace(/\s+/g, ' ').trim();
 }
 
-test('landing page loads mpr-ui from the local bundle', () => {
-  const dynamicScriptRegex = /script\.src\s*=\s*['"]\.\/mpr-ui\.js['"]/;
+test('landing page loads mpr-ui from the production CDN bundle', () => {
+  const cdnScriptRegex = /<script[^>]+id="mpr-ui-bundle"[^>]+src="https:\/\/cdn\.jsdelivr\.net\/gh\/MarcoPoloResearchLab\/mpr-ui@latest\/mpr-ui\.js"/;
   assert.match(
     landingHtml,
-    dynamicScriptRegex,
-    'Expected root index.html to dynamically load the local bundle',
+    cdnScriptRegex,
+    'Expected root index.html to reference the production bundle on the CDN',
   );
 });
 
-test('landing page loads the local shared stylesheet', () => {
-  const cssRegex = /<link[^>]+href="\.\/mpr-ui\.css"/;
+test('landing page loads the shared stylesheet from the CDN', () => {
+  const cdnCssRegex = /<link[^>]+href="https:\/\/cdn\.jsdelivr\.net\/gh\/MarcoPoloResearchLab\/mpr-ui@latest\/mpr-ui\.css"/;
   assert.match(
     landingHtml,
-    cssRegex,
-    'Expected root index.html to reference the local packaged stylesheet',
+    cdnCssRegex,
+    'Expected root index.html to reference the packaged stylesheet on the CDN',
   );
 });
 
