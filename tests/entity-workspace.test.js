@@ -56,6 +56,7 @@ function createStubNode(options) {
     textContent: config.textContent || '',
     innerHTML: config.innerHTML || '',
     children: [],
+    parentNode: null,
   };
   if (config.classList) {
     node.classList = createClassList();
@@ -119,6 +120,26 @@ function createStubNode(options) {
     };
   }
   return node;
+}
+
+function detachStubNode(node) {
+  if (!node || !node.parentNode) {
+    return;
+  }
+  const parentNode = node.parentNode;
+  if (Array.isArray(parentNode.children)) {
+    const childIndex = parentNode.children.indexOf(node);
+    if (childIndex !== -1) {
+      parentNode.children.splice(childIndex, 1);
+    }
+  }
+  if (Array.isArray(parentNode.childNodes)) {
+    const childIndex = parentNode.childNodes.indexOf(node);
+    if (childIndex !== -1) {
+      parentNode.childNodes.splice(childIndex, 1);
+    }
+  }
+  node.parentNode = null;
 }
 
 function createWindowStub() {
@@ -781,6 +802,22 @@ test('mpr-entity-rail merges default items appended after connection on update',
   assert.equal(element.__entityRailElements.track.children.length, 3);
 });
 
+test('mpr-entity-rail drops late items removed before update', () => {
+  resetEnvironment();
+  loadLibrary();
+  const { element } = createEntityRailHarness();
+  element.connectedCallback();
+
+  const lateTile = createStubNode({ textContent: 'Tile C' });
+  element.appendChild(lateTile);
+  element.update();
+  detachStubNode(lateTile);
+  element.update();
+
+  assert.equal(element.__entityRailElements.track.children.includes(lateTile), false);
+  assert.equal(element.__entityRailElements.track.children.length, 2);
+});
+
 test('mpr-entity-workspace exposes busy, empty, and load-more state', () => {
   resetEnvironment();
   loadLibrary();
@@ -810,6 +847,7 @@ test('mpr-entity-workspace exposes busy, empty, and load-more state', () => {
   element.setAttribute('empty', '');
   assert.equal(list.getAttribute('hidden'), 'hidden');
   assert.equal(empty.getAttribute('hidden'), null);
+  assert.equal(loadMore.getAttribute('hidden'), null);
 });
 
 test('mpr-entity-workspace merges cards appended after connection on update', () => {
@@ -825,6 +863,22 @@ test('mpr-entity-workspace merges cards appended after connection on update', ()
   assert.equal(element.__lightChildren.length, 0);
   assert.equal(list.children.includes(lateCard), true);
   assert.equal(list.children.length, 2);
+});
+
+test('mpr-entity-workspace drops late cards removed before update', () => {
+  resetEnvironment();
+  loadLibrary();
+  const { element, list } = createEntityWorkspaceHarness();
+  element.connectedCallback();
+
+  const lateCard = createStubNode({ textContent: 'Row B' });
+  element.appendChild(lateCard);
+  element.update();
+  detachStubNode(lateCard);
+  element.update();
+
+  assert.equal(list.children.includes(lateCard), false);
+  assert.equal(list.children.length, 1);
 });
 
 test('mpr-entity-tile and mpr-entity-card reflect shell state attributes', () => {

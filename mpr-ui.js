@@ -6256,6 +6256,36 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return [];
   }
 
+  function isTrackedNodeAttachedToHost(node, hostElement) {
+    if (!node || !hostElement) {
+      return false;
+    }
+    if (typeof hostElement.contains === "function") {
+      try {
+        return hostElement.contains(node);
+      } catch (_error) {}
+    }
+    var currentNode = node;
+    while (currentNode) {
+      if (currentNode === hostElement) {
+        return true;
+      }
+      currentNode = currentNode.parentNode || null;
+    }
+    return node.parentNode !== null;
+  }
+
+  function hasTrackedNodeMounted(node) {
+    return Boolean(node && node.__mprTrackedSlotMounted);
+  }
+
+  function markTrackedNodeAsMounted(node) {
+    if (!node || (typeof node !== "object" && typeof node !== "function")) {
+      return;
+    }
+    node.__mprTrackedSlotMounted = true;
+  }
+
   function syncTrackedSlotsWithHost(
     hostElement,
     slotNames,
@@ -6270,7 +6300,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           ? currentSlots[slotName]
           : [];
       nodes.forEach(function keepNode(node) {
-        if (!node || trackedSlotMapHasNode(nextSlots, node)) {
+        if (
+          !node ||
+          trackedSlotMapHasNode(nextSlots, node) ||
+          (hasTrackedNodeMounted(node) &&
+            !isTrackedNodeAttachedToHost(node, hostElement))
+        ) {
           return;
         }
         nextSlots[slotName].push(node);
@@ -7064,6 +7099,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       slotMap.leading.forEach(function appendLeadingNode(node) {
         if (node && typeof elements.leading.appendChild === "function") {
           elements.leading.appendChild(node);
+          markTrackedNodeAsMounted(node);
         }
       });
     }
@@ -7079,6 +7115,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       slotMap.trailing.forEach(function appendTrailingNode(node) {
         if (node && typeof elements.trailing.appendChild === "function") {
           elements.trailing.appendChild(node);
+          markTrackedNodeAsMounted(node);
         }
       });
     }
@@ -7087,6 +7124,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       slotMap.default.forEach(function appendTrackNode(node) {
         if (node && typeof elements.track.appendChild === "function") {
           elements.track.appendChild(node);
+          markTrackedNodeAsMounted(node);
         }
       });
     }
@@ -7430,6 +7468,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       slotMap[slotName].forEach(function appendNode(node) {
         if (node && typeof elements[elementName].appendChild === "function") {
           elements[elementName].appendChild(node);
+          markTrackedNodeAsMounted(node);
         }
       });
     });
@@ -7439,6 +7478,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         slotMap.empty.forEach(function appendEmptyNode(node) {
           if (node && typeof elements.empty.appendChild === "function") {
             elements.empty.appendChild(node);
+            markTrackedNodeAsMounted(node);
           }
         });
       }
@@ -7456,6 +7496,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         slotMap["load-more"].forEach(function appendLoadMoreNode(node) {
           if (node && typeof elements.loadMore.appendChild === "function") {
             elements.loadMore.appendChild(node);
+            markTrackedNodeAsMounted(node);
           }
         });
       }
@@ -11932,7 +11973,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           ) {
             setHiddenState(
               this.__entityWorkspaceElements.loadMore,
-              !config.canLoadMore || config.empty,
+              !config.canLoadMore,
             );
           }
         }

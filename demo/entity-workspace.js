@@ -112,7 +112,8 @@ const DEMO_ERROR_CODES = Object.freeze({
  *   activePlaylistId: string,
  *   activePageIndex: number,
  *   loadedVideos: DemoVideo[],
- *   searchQuery: string
+ *   searchQuery: string,
+ *   isLoadingNextPage: boolean
  * }} ExampleState
  */
 
@@ -217,6 +218,7 @@ function createExampleState(demoData, elements) {
     activePageIndex: 0,
     loadedVideos: [],
     searchQuery: '',
+    isLoadingNextPage: false,
   };
 }
 
@@ -439,6 +441,7 @@ async function selectPlaylist(exampleState, playlistId, openDrawer) {
   exampleState.activePlaylistId = playlistId;
   exampleState.activePageIndex = 0;
   exampleState.searchQuery = '';
+  exampleState.isLoadingNextPage = false;
   exampleState.elements.searchInput.value = '';
   exampleState.selectionState.clear();
 
@@ -463,19 +466,39 @@ async function selectPlaylist(exampleState, playlistId, openDrawer) {
  * @returns {Promise<void>}
  */
 async function loadNextPage(exampleState) {
-  const playlistPages = requireVideoPages(exampleState, exampleState.activePlaylistId);
-  if (exampleState.activePageIndex >= playlistPages.length - 1) {
+  if (exampleState.isLoadingNextPage) {
     return;
   }
 
+  const playlistId = exampleState.activePlaylistId;
+  const playlistPages = requireVideoPages(exampleState, playlistId);
+  const nextPageIndex = exampleState.activePageIndex + 1;
+  if (nextPageIndex >= playlistPages.length) {
+    return;
+  }
+
+  exampleState.isLoadingNextPage = true;
   exampleState.elements.workspace.setAttribute('busy', 'true');
-  await waitForFrame();
-  exampleState.activePageIndex += 1;
-  exampleState.loadedVideos = exampleState.loadedVideos.concat(
-    playlistPages[exampleState.activePageIndex].items,
-  );
-  exampleState.elements.workspace.removeAttribute('busy');
-  renderWorkspace(exampleState);
+  try {
+    await waitForFrame();
+    if (exampleState.activePlaylistId !== playlistId) {
+      return;
+    }
+
+    const nextPage = playlistPages[nextPageIndex];
+    if (!nextPage) {
+      return;
+    }
+
+    exampleState.activePageIndex = nextPageIndex;
+    exampleState.loadedVideos = exampleState.loadedVideos.concat(nextPage.items);
+    renderWorkspace(exampleState);
+  } finally {
+    if (exampleState.activePlaylistId === playlistId) {
+      exampleState.elements.workspace.removeAttribute('busy');
+    }
+    exampleState.isLoadingNextPage = false;
+  }
 }
 
 /**

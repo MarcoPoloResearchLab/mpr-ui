@@ -90,3 +90,33 @@ test('MU-429: JSON-backed entity workspace demo loads and responds to interactio
   );
   await expect(page.locator('[data-demo-drawer-mode="video"]')).toBeVisible();
 });
+
+test('MU-429: JSON-backed entity workspace ignores concurrent load-more clicks', async ({
+  page,
+}) => {
+  const pageErrors = [];
+  page.on('pageerror', (error) => {
+    pageErrors.push(error.message);
+  });
+
+  await page.goto(`${serverBaseUrl}/demo/entity-workspace.html`, {
+    waitUntil: 'networkidle',
+  });
+
+  await page.locator('mpr-sidebar-nav [data-mpr-sidebar-key="research"]').click();
+  await expect(page.locator('#entity-demo-playlist-title')).toContainText('Field Notes');
+  await expect(page.locator('[data-mpr-entity-workspace="load-more-button"]')).toBeVisible();
+
+  await page.evaluate(() => {
+    const loadMoreButton = document.querySelector('[data-mpr-entity-workspace="load-more-button"]');
+    if (!(loadMoreButton instanceof HTMLButtonElement)) {
+      throw new Error('entity_workspace.demo.missing_load_more_button');
+    }
+    loadMoreButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+    loadMoreButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
+  });
+
+  await expect(page.locator('#entity-demo-pagination')).toContainText('Page 2 of 2');
+  await expect(page.locator('[data-demo-video-id="field-notes-04"]')).toBeVisible();
+  expect(pageErrors).toEqual([]);
+});
