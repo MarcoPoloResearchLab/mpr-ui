@@ -3,12 +3,15 @@
 # Each environment is matched by window.location.origin; exactly one must match at runtime.
 
 environments:
-  # Local development with ghttp reverse proxy to TAuth container
+  # Local development with gHTTP serving the repository root over HTTPS.
   - description: "Local TAuth demo"
     origins:
       - "https://computercat.tyemirov.net:4443"
+      - "https://localhost:4443"
+      - "https://127.0.0.1:4443"
     auth:
-      tauthUrl: "https://computercat.tyemirov.net:4443"
+      # Empty string means the auth endpoints are same-origin via gHTTP proxy.
+      tauthUrl: ""
       googleClientId: "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
       tenantId: "mpr-sites"
       loginPath: "/auth/google"

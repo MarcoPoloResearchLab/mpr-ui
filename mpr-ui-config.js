@@ -57,7 +57,7 @@
     if (typeof value !== "string") {
       throw new Error("config.yaml missing " + scope + "." + key);
     }
-    return value;
+    return value.trim();
   }
 
   function requireObject(source, key, scope) {
@@ -130,7 +130,7 @@
   function buildAuthConfig(environment) {
     var authPayload = requireObject(environment, SECTION_AUTH, SECTION_AUTH);
     return Object.freeze({
-      tauthUrl: requireString(authPayload, "tauthUrl", SECTION_AUTH),
+      tauthUrl: requireStringAllowEmpty(authPayload, "tauthUrl", SECTION_AUTH),
       googleClientId: requireString(authPayload, "googleClientId", SECTION_AUTH),
       tenantId: requireString(authPayload, "tenantId", SECTION_AUTH),
       loginPath: requireString(authPayload, "loginPath", SECTION_AUTH),
@@ -262,6 +262,13 @@
     targetElement.setAttribute(attributeName, String(attributeValue));
   }
 
+  function removeAttributeValue(targetElement, attributeName) {
+    if (!targetElement || typeof targetElement.removeAttribute !== "function") {
+      return;
+    }
+    targetElement.removeAttribute(attributeName);
+  }
+
   function applyAuthAttributes(targetElement, authConfig) {
     setAttributeValue(targetElement, "tauth-tenant-id", authConfig.tenantId);
     setAttributeValue(targetElement, "tauth-login-path", authConfig.loginPath);
@@ -269,7 +276,9 @@
     setAttributeValue(targetElement, "tauth-nonce-path", authConfig.noncePath);
     if (authConfig.tauthUrl && authConfig.tauthUrl.trim().length > 0) {
       setAttributeValue(targetElement, "tauth-url", authConfig.tauthUrl);
+      return;
     }
+    removeAttributeValue(targetElement, "tauth-url");
   }
 
   function applyHeaderAttributes(headerElement, authConfig) {

@@ -121,10 +121,10 @@ Need a single source of truth for the shutdown plan? See [`docs/deprecation-road
 
 1. **Load styles first** — `mpr-ui.css` must load before scripts so layout tokens and theme variables exist.
 2. **Load config loader before mpr-ui.js** — `mpr-ui-config.js` must load and apply config before `mpr-ui.js` so auth attributes are set when components initialize.
-3. **Load tauth.js from CDN** — include `https://tauth.mprlab.com/tauth.js` (or your TAuth deployment) so `initAuthClient`, `logout`, `getCurrentUser`, and the nonce/exchange helpers are defined. The mpr-ui components call `initAuthClient` with `tauthUrl` and `tenantId` from the config.
+3. **Load tauth.js before GIS** — include `/tauth.js` through a same-origin proxy or load it from your TAuth deployment so `initAuthClient`, `logout`, `getCurrentUser`, and the nonce/exchange helpers are defined. The mpr-ui components call `initAuthClient` with `tauthUrl` and `tenantId` from the config.
 4. **Load Google Identity Services** — include `https://accounts.google.com/gsi/client` so `<mpr-header>` / `<mpr-login-button>` can render the GIS button.
 5. **Create config.yaml** — define environments with required auth fields:
-   - `tauthUrl` — full URL to TAuth service (required, cannot be empty)
+   - `tauthUrl` — TAuth origin override (required string; use `""` for same-origin proxy mode)
    - `googleClientId` — OAuth Web client ID (required)
    - `tenantId` — tenant configured in TAuth (required)
    - `loginPath`, `logoutPath`, `noncePath` — auth endpoint paths (required)
@@ -144,7 +144,7 @@ environments:
     origins:
       - "https://myapp.example.com"
     auth:
-      tauthUrl: "https://tauth.example.com"      # Required: full URL to TAuth service
+      tauthUrl: ""                               # Required string; empty means same-origin
       googleClientId: "YOUR_GOOGLE_CLIENT_ID"   # Required: OAuth Web client ID
       tenantId: "my-tenant"                     # Required: TAuth tenant ID
       loginPath: "/auth/google"                 # Required: credential exchange endpoint
@@ -163,7 +163,7 @@ The loader matches environments by `window.location.origin`. Each origin must ap
 
 ### Validation rules
 
-- `tauthUrl` — required, must be a non-empty URL (empty string throws error)
+- `tauthUrl` — required string; use `""` to keep auth requests on the current origin
 - `googleClientId` — required, non-empty string
 - `tenantId` — required, non-empty string
 - `loginPath`, `logoutPath`, `noncePath` — required, non-empty strings
@@ -222,44 +222,34 @@ Need a working authentication backend without wiring your own server? `demo/taut
    # Replace TAUTH_JWT_SIGNING_KEY (generate with: openssl rand -base64 48)
    ```
 
-   The template already enables CORS (`TAUTH_ENABLE_CORS=true`, `TAUTH_CORS_ORIGIN_1=http://localhost:8000`, `TAUTH_CORS_ORIGIN_2=http://127.0.0.1:8000`, `TAUTH_CORS_ORIGIN_3=https://accounts.google.com`) and includes `TAUTH_CORS_EXCEPTION_1=https://accounts.google.com` so the GIS iframe can access `/auth/*`. Insecure HTTP for local development is enabled via `TAUTH_ALLOW_INSECURE_HTTP=true`, and tenant header overrides are allowed by `TAUTH_ENABLE_TENANT_HEADER_OVERRIDE=true` so the demo can pass `X-TAuth-Tenant`. The sample DSN (`sqlite:///data/tauth.db`) stores refresh tokens inside the `tauth_data` volume so restarting the container does not wipe sessions.
+   The template already enables CORS (`TAUTH_ENABLE_CORS=true`, `TAUTH_CORS_ORIGIN_1=https://computercat.tyemirov.net:4443`, `TAUTH_CORS_ORIGIN_2=https://localhost:4443`, `TAUTH_CORS_ORIGIN_3=https://127.0.0.1:4443`) and includes `TAUTH_CORS_EXCEPTION_1=https://accounts.google.com` so the GIS iframe can access `/auth/*`. Tenant header overrides are allowed by `TAUTH_ENABLE_TENANT_HEADER_OVERRIDE=true` so the demo can pass `X-TAuth-Tenant`, and the sample DSN (`sqlite:///data/tauth.db`) stores refresh tokens inside the `tauth_data` volume so restarting the container does not wipe sessions.
    Review `demo/tauth-config.yaml` to ensure the tenant origins and IDs align with your local ports before starting the stack.
 
-   After setting `TAUTH_GOOGLE_WEB_CLIENT_ID`, mirror the same value into `demo/tauth-config.js` (`googleClientId`). The header and TAuth must share the exact client ID; otherwise Google Identity Services rejects the origin and the button stays in an error state. Set `tenantId` in `demo/tauth-config.js` to match `TAUTH_TENANT_ID_1` in `demo/tauth-config.yaml` (the demo container uses `mpr-sites`). When running on plain HTTP (the Compose demo), keep `TAUTH_ALLOW_INSECURE_HTTP=true` so TAuth drops the `Secure` flag from cookies; Safari ignores Secure cookies over HTTP.
+   After setting `TAUTH_GOOGLE_WEB_CLIENT_ID`, mirror the same value into `demo/config.yaml` (`googleClientId`). Set `tenantId` in `demo/config.yaml` to match `TAUTH_TENANT_ID_1` in `demo/tauth-config.yaml` (the demo container uses `mpr-sites`). Leave `tauthUrl: ""` in `demo/config.yaml` to keep the demos on the same-origin proxy.
 
-2. Configure gHTTP (for standalone profile only):
+2. Configure gHTTP:
 
    ```bash
    cp demo/.env.ghttp.example demo/.env.ghttp
    ```
 
-   The gHTTP environment enables HTTPS (required for GIS) and reverse proxy for TAuth endpoints (`/auth/*`, `/me`, `/tauth.js`) so the standalone demo operates same-origin. Update `docker-compose.yml` to mount your TLS certificate and key files, then set `GHTTP_SERVE_TLS_CERTIFICATE` and `GHTTP_SERVE_TLS_PRIVATE_KEY` to the container paths.
+   The gHTTP environment enables HTTPS (required for GIS), serves the repository root, and reverse-proxies TAuth endpoints (`/auth/*`, `/me`, `/tauth.js`) so every demo page stays on one origin. Update `docker-compose.yml` to mount your TLS certificate and key files, then set `GHTTP_SERVE_TLS_CERTIFICATE` and `GHTTP_SERVE_TLS_PRIVATE_KEY` to the container paths.
 
 3. Bring the stack up:
 
-   The compose file defines two profiles:
+   ```bash
+   ./up.sh
+   ```
 
-   - **`tauth`** (default): Full header demo with cross-origin TAuth calls.
-
-     ```bash
-     docker compose --profile tauth up --remove-orphans
-     ```
-
-   - **`tauth-standalone`**: Standalone login button demo with gHTTP HTTPS reverse proxy to TAuth (same-origin operation, GIS-compatible).
-
-     ```bash
-     docker compose --profile tauth-standalone up --remove-orphans
-     ```
-
-   For the `tauth` profile, gHTTP serves on [http://localhost:8000](http://localhost:8000). For the `tauth-standalone` profile, gHTTP serves HTTPS on port 4443 (e.g., `https://your-hostname:4443`). TAuth listens on [http://localhost:8080](http://localhost:8080) in both cases. In standalone mode, gHTTP proxies `/auth/*`, `/me`, and `/tauth.js` to TAuth so all requests stay same-origin. Because the bundle is loaded straight from `/mpr-ui.js`, any change you make to the library is immediately reflected in the demo. If you still see the CDN bundle after restarting the stack, open DevTools, enable "Disable cache," and hard-reload the page to ensure the local script is being served.
+   The stack exposes one HTTPS origin on port 4443 (for example `https://computercat.tyemirov.net:4443/`). The root URL redirects to `/demo/index.html`, and the same frontend serves `/demo/index.html`, `/demo/local.html`, `/demo/tauth-demo.html`, `/demo/standalone.html`, and `/demo/entity-workspace.html`. TAuth still listens on [http://localhost:8080](http://localhost:8080) behind the proxy. Because the local demos load `/mpr-ui.js` and `/mpr-ui.css` from the repository root, any change you make to the library is immediately reflected after a hard reload.
 
 4. Sign in and inspect the session card.
 
-   - The header points its `tauth-url` at `http://localhost:8080` and loads TAuth's `tauth.js`, so Google credentials are exchanged via `/auth/nonce` and `/auth/google`.
+   - The auth demos load `/tauth.js` from the same origin, so Google credentials are exchanged via `/auth/nonce` and `/auth/google` without a cross-origin `tauth-url`.
    - The bundled status panel listens for `mpr-ui:auth:*` events and prints the `/me` payload plus expiry information.
    - Selecting **Log out** from the profile menu calls `logout()` from the helper and clears cookies issued by TAuth.
 
-Stop the stack with `docker compose down -v` to reclaim the SQLite volume. Copy the template again any time you need to rotate secrets.
+Stop the stack with `./down.sh` (or `docker compose down -v` if you want to reclaim the SQLite volume). Copy the template again any time you need to rotate secrets.
 
 ## Components (Custom Elements First)
 
@@ -440,15 +430,16 @@ console.log(selectionState.getSelectedIds());
 
 ## Demo
 
-- Open `demo/index.html` in a browser to explore the authentication header mock and both footer helpers.
-- Need to test local changes before publishing? Open `demo/local.html` instead; it loads `mpr-ui.js` and `mpr-ui.css` from your working tree but still fetches Google Identity Services from the official CDN.
-- Need a concrete entity-workspace example? Serve the repo over HTTP and open `demo/entity-workspace.html`; it fetches `demo/entity-workspace.json` from disk and wires the new collection/detail primitives without app-specific API logic.
-- Both demo variants rely on the real Google Identity Services script (`https://accounts.google.com/gsi/client`), so ensure you have network access when testing sign-in flows.
+- Run `./up.sh` and open the printed HTTPS URL; the root path redirects to `demo/index.html`.
+- Need to test local bundle changes before publishing? Open `demo/local.html`, `demo/tauth-demo.html`, `demo/standalone.html`, or `demo/entity-workspace.html` from that same origin; they load `mpr-ui.js` and `mpr-ui.css` from your working tree.
+- Need a concrete entity-workspace example? Open `demo/entity-workspace.html`; it fetches `demo/entity-workspace.json` from the same server and wires the collection/detail primitives without app-specific API logic.
+- The auth demos rely on the real Google Identity Services script (`https://accounts.google.com/gsi/client`), so ensure you have network access when testing sign-in flows.
 
 ## Testing
 
 - `npm run test:unit` executes the Node-based regression suite (`node --test`) that guards the DOM helpers, custom elements, and shared utilities.
 - `npm run test:e2e` runs Playwright headlessly against the fixture HTML in `tests/e2e/fixtures`. The harness routes CDN requests for `mpr-ui.js`/`mpr-ui.css` to the local bundle and stubs GIS where needed, so coverage does not depend on the demo pages.
+- `MPR_UI_DEMO_BASE_URL=https://localhost:4443 npx playwright test tests/e2e/demo-stack.spec.js` runs the optional browser smoke test against a live demo stack started by `./up.sh`.
 - Run `npx playwright install --with-deps` (or `npx playwright install chromium`) once per machine if the browsers are missing; the command is a no-op when the binaries already exist. Because the tests no longer stub network calls, ensure the environment has outbound access to the CDN and GIS endpoints.
 - `make test` runs the full suite with the repository-standard timeouts; `make test-unit` and `make test-e2e` target the individual phases if you need to isolate failures.
 

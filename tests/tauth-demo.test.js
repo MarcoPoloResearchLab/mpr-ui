@@ -10,11 +10,11 @@ const demoDir = join(__dirname, '..', 'demo');
 const tauthDemoHtmlPath = join(demoDir, 'tauth-demo.html');
 const tauthDemoHtml = readFileSync(tauthDemoHtmlPath, 'utf8');
 const configYamlPath = join(demoDir, 'config.yaml');
-const LOCAL_MPR_UI_CSS_PATTERN = /\bhref="\.\/mpr-ui\.css(?:\?[^"]*)?"/i;
+const LOCAL_MPR_UI_CSS_PATTERN = /\bhref="\.\.\/mpr-ui\.css(?:\?[^"]*)?"/i;
 // mpr-ui.js is loaded dynamically after config is applied
-const DYNAMIC_MPR_UI_SCRIPT_PATTERN = /script\.src\s*=\s*['"]\.\/mpr-ui\.js['"]/i;
+const DYNAMIC_MPR_UI_SCRIPT_PATTERN = /script\.src\s*=\s*['"]\.\.\/mpr-ui\.js['"]/i;
 const TAUTH_SCRIPT_PATTERN = /\bsrc="([^"]*tauth\.js[^"]*)"/i;
-const CONFIG_LOADER_PATTERN = /\bsrc="\.\/mpr-ui-config\.js(?:\?[^"]*)?"/i;
+const CONFIG_LOADER_PATTERN = /\bsrc="\.\.\/mpr-ui-config\.js(?:\?[^"]*)?"/i;
 const APPLY_YAML_CONFIG_PATTERN = /applyYamlConfig\s*\(/i;
 
 test('tauth demo includes mpr-user menu element', () => {
@@ -77,11 +77,10 @@ test('tauth demo loads tauth.js from proxy and mpr-ui dynamically from local fil
     'Expected tauth-demo.html to include a tauth.js script',
   );
   const tauthScriptSource = tauthScriptMatch[1];
-  // tauth.js loaded from CDN
   assert.equal(
     tauthScriptSource,
-    'https://tauth.mprlab.com/tauth.js',
-    'Expected tauth.js to load from CDN',
+    '/tauth.js',
+    'Expected tauth.js to load from the same-origin proxy',
   );
 });
 
@@ -147,8 +146,5 @@ test('config.yaml exists and has valid structure', () => {
     typeof environment.auth.noncePath === 'string',
     'Expected auth to have noncePath',
   );
-  assert.ok(
-    typeof environment.auth.tauthUrl === 'string' && environment.auth.tauthUrl.length > 0,
-    'Expected auth.tauthUrl to be a non-empty URL',
-  );
+  assert.equal(environment.auth.tauthUrl, '', 'Expected auth.tauthUrl to use same-origin mode');
 });
