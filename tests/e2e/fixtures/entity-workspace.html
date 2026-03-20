@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Entity Workspace Fixture</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <script
+      id="mpr-ui-bundle"
+      defer
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+    ></script>
+    <style>
+      body {
+        margin: 0;
+        padding: 1.5rem;
+        font-family: "Space Grotesk", system-ui, sans-serif;
+        background: linear-gradient(180deg, #07111f 0%, #10213d 100%);
+        color: #e2e8f0;
+      }
+
+      .fixture-shell {
+        max-width: 1100px;
+        margin: 0 auto;
+      }
+
+      .fixture-section {
+        display: flex;
+        flex-direction: column;
+        gap: 1rem;
+      }
+
+      .fixture-rail-tile {
+        inline-size: 22rem;
+        flex: 0 0 22rem;
+      }
+
+      .fixture-sidebar-button {
+        appearance: none;
+        border: 0;
+        background: transparent;
+        color: inherit;
+        text-align: left;
+        font: inherit;
+      }
+
+      #workspace-event-log {
+        margin-top: 1.5rem;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="fixture-shell">
+      <mpr-workspace-layout id="fixture-workspace" sidebar-width="18rem">
+        <div slot="header">
+          <h1>Entity Workspace Fixture</h1>
+        </div>
+
+        <mpr-sidebar-nav id="fixture-sidebar" slot="sidebar" label="Sections" variant="surface">
+          <button class="fixture-sidebar-button" data-mpr-sidebar-key="library">Library</button>
+          <button class="fixture-sidebar-button" data-mpr-sidebar-key="uploads">Uploads</button>
+        </mpr-sidebar-nav>
+
+        <div slot="content" class="fixture-section">
+          <button id="open-drawer-button" type="button">Open Drawer</button>
+
+          <mpr-entity-rail id="fixture-rail" label="Playlists" nav-step="720">
+            <mpr-entity-tile class="fixture-rail-tile" selected interactive>
+              <div slot="title">Launch Queue</div>
+              <div slot="meta">12 videos</div>
+            </mpr-entity-tile>
+            <mpr-entity-tile class="fixture-rail-tile" interactive>
+              <div slot="title">Uploads</div>
+              <div slot="meta">8 videos</div>
+            </mpr-entity-tile>
+            <mpr-entity-tile class="fixture-rail-tile" interactive>
+              <div slot="title">Moderation</div>
+              <div slot="meta">5 videos</div>
+            </mpr-entity-tile>
+          </mpr-entity-rail>
+
+          <mpr-entity-workspace
+            id="fixture-entity-workspace"
+            selection-count="2"
+            can-load-more
+          >
+            <div slot="heading">
+              <h2>Launch Queue</h2>
+            </div>
+            <div slot="toolbar">
+              <p>2 videos selected</p>
+            </div>
+            <mpr-entity-card selected density="compact">
+              <div slot="title">Video A</div>
+              <div slot="summary">Ready to publish</div>
+            </mpr-entity-card>
+          </mpr-entity-workspace>
+        </div>
+      </mpr-workspace-layout>
+
+      <mpr-detail-drawer id="fixture-drawer" heading="Video details" subheading="Queued">
+        <div slot="body">
+          <p>Drawer content rendered inside the shared shell.</p>
+        </div>
+      </mpr-detail-drawer>
+
+      <section aria-live="polite">
+        <h2>Event log</h2>
+        <ul id="workspace-event-log"></ul>
+      </section>
+    </div>
+
+    <script>
+      (function initializeFixture() {
+        const drawerElement = document.getElementById('fixture-drawer');
+        const openDrawerButton = document.getElementById('open-drawer-button');
+        const eventLog = document.getElementById('workspace-event-log');
+
+        function appendEvent(type, detail) {
+          if (!eventLog) {
+            return;
+          }
+          const entry = document.createElement('li');
+          entry.dataset.test = 'workspace-event-entry';
+          entry.textContent = JSON.stringify({ type, detail: detail || {} });
+          eventLog.appendChild(entry);
+        }
+
+        if (openDrawerButton && drawerElement) {
+          openDrawerButton.addEventListener('click', () => {
+            drawerElement.show();
+          });
+        }
+
+        document.addEventListener('mpr-sidebar-nav:change', (eventObject) => {
+          appendEvent('mpr-sidebar-nav:change', eventObject.detail);
+        });
+        document.addEventListener('mpr-entity-workspace:load-more', (eventObject) => {
+          appendEvent('mpr-entity-workspace:load-more', eventObject.detail);
+        });
+        document.addEventListener('mpr-entity-rail:scroll-start', (eventObject) => {
+          appendEvent('mpr-entity-rail:scroll-start', eventObject.detail);
+        });
+        document.addEventListener('mpr-entity-rail:scroll-end', (eventObject) => {
+          appendEvent('mpr-entity-rail:scroll-end', eventObject.detail);
+        });
+        document.addEventListener('mpr-detail-drawer:open', (eventObject) => {
+          appendEvent('mpr-detail-drawer:open', eventObject.detail);
+        });
+        document.addEventListener('mpr-detail-drawer:close', (eventObject) => {
+          appendEvent('mpr-detail-drawer:close', eventObject.detail);
+        });
+      })();
+    </script>
+  </body>
+</html>

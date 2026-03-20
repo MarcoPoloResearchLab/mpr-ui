@@ -1,5 +1,25 @@
 # Changelog
 
+## [Unreleased]
+
+### Features ✨
+- MU-429: added the entity-workspace kit primitives to `mpr-ui`, including `MPRUI.createSelectionState()`, `<mpr-workspace-layout>`, `<mpr-sidebar-nav>`, `<mpr-entity-rail>`, `<mpr-entity-tile>`, `<mpr-entity-workspace>`, `<mpr-entity-card>`, and `<mpr-detail-drawer>`.
+
+### Improvements ⚙️
+- MU-429: extracted reusable collection/detail chrome from the PoodleScanner-inspired workspace grammar without moving app-specific fetch, scoring, or workflow logic into `mpr-ui`.
+
+### Bug Fixes 🐛
+- _No changes._
+
+### Testing 🧪
+- MU-429: added unit coverage for the new entity-workspace helper/custom elements and Playwright coverage for browser rendering + interaction flows in the new entity-workspace fixture.
+
+### Docs 📚
+- MU-429: rewrote `docs/entity-workspace-proposal.md` to define the reusable entity-workspace grammar, proposed `mpr-ui` API, hard boundaries, migration order, and cross-app mapping using `tools/PoodleScanner` as the concrete reference.
+- MU-429: documented the shipped entity-workspace primitives in `docs/custom-elements.md`.
+- MU-429 docs follow-up: expanded the entity-workspace usage guide in `docs/custom-elements.md` and `README.md`, including a concrete YouTube playlists-to-videos example and host-side wiring notes.
+- MU-429 demo follow-up: added `demo/entity-workspace.html` plus `demo/entity-workspace.js` and `demo/entity-workspace.json` as a runnable JSON-backed example of the new workspace primitives.
+
 ## [v3.6.7]
 
 ### Features ✨

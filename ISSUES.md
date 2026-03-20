@@ -96,6 +96,16 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 - [x] [MU-431] `mpr-user` dropdown opens underneath the header and menu actions become unreachable.
   Resolved 2026-02-17: removed `overflow-x:auto` clipping from `.mpr-header__inner` (now `overflow:visible`) so the absolutely positioned `mpr-user` flyout can render and receive pointer events outside the header bounds; added Playwright regression coverage (`MU-431`) with a header fixture that verifies menu hit-testing below the header boundary. Tests: `make ci`.
 
+- [ ] [MU-428] Footer/Header runtime theme update path should be explicit after `theme-mode` deprecation
+  Summary: ProductScanner integration surfaced console warnings from mpr-ui when legacy `theme-mode` is set dynamically on `<mpr-footer>` (for example `element.setAttribute("theme-mode", preferredTheme)`), after MU-425 removed legacy DSL support.
+  Context:
+  - mpr-ui logs `mpr-ui.dsl.legacy_attribute Unsupported legacy attribute "theme-mode" on <mpr-footer>`.
+  - Integrations migrating from old DSL may still perform runtime attribute updates and see noisy warnings without a clear component-level replacement flow.
+  Expected:
+  - Document and expose a canonical runtime API for header/footer theme mode updates (beyond static `theme-config.initialMode`), or provide a compatibility adapter that maps runtime `theme-mode` updates to supported theme config/state.
+  - Keep strict deprecation logging, but include migration guidance in docs/examples so consumers avoid trial-and-error.
+  Status 2026-02-17: logged from ProductScanner billing/settings integration cleanup.
+
 ## Maintenance (419–499)
 
 - [x] [MU-427] Add `horizontal-links` examples to demo pages and document the DSL across guides.
@@ -104,6 +114,19 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 ## Planning (500–59999)
 *do not implement yet*
+
+- [x] [MU-429] Define a reusable entity-workspace kit for cross-app collection/detail layouts
+  Summary: ProductScanner now demonstrates a reusable operational layout made of a left sidebar, horizontal collection rail, detail workspace, selectable media cards, and a side drawer. We want that layout grammar in `mpr-ui` so both ProductScanner and a future YouTube-style app can reuse the same primitives without exporting ProductScanner business logic.
+  Deliverables:
+  - Architecture proposal: document the reusable layout grammar shared by ProductScanner and a video-oriented app.
+  - `mpr-ui` API proposal: define the recommended shell/headless surface (`workspace layout`, `sidebar nav`, `entity rail`, `entity tile`, `entity workspace`, `entity card`, `detail drawer`, selection helper).
+  - Boundaries: explicitly identify ProductScanner-specific behaviors that must not move into `mpr-ui`.
+  - Migration strategy: define a staged extraction order that starts with low-risk headless/layout primitives before card composition.
+  - Cross-app mapping: include a concrete mapping from ProductScanner catalogs/products to YouTube collections/videos.
+  Reference: `docs/entity-workspace-proposal.md`
+  Resolved 2026-03-09: rewrote `docs/entity-workspace-proposal.md` around the actual `tools/PoodleScanner` source seams, defining the shared workspace grammar, proposed `mpr-ui` surface, non-goal boundaries, staged extraction order, and a concrete PoodleScanner-to-video mapping.
+  Resolved 2026-03-09 follow-up: implemented `MPRUI.createSelectionState()` plus the proposed workspace/drawer/rail/tile/card/layout custom elements in `mpr-ui.js`, added unit coverage in `tests/entity-workspace.test.js`, and added browser coverage in `tests/e2e/entity-workspace.spec.js`. Tests: `npm test`.
+  Resolved 2026-03-09 demo follow-up: added `demo/entity-workspace.html` with local JSON data (`demo/entity-workspace.json`) and host-side wiring in `demo/entity-workspace.js`, plus Playwright coverage for the runnable example. Tests: targeted JS typecheck, unit suite, and Playwright specs.
 
 - [x] [MU-425] Remove legacy footer DSL ("links" fallback, theme-switcher aliasing, settings/settings-enabled aliasing, auth-config overrides) so each feature has a single canonical attribute/config path.
   Removed legacy DSL inputs (`settings-enabled`, `auth-config`, `links`, `themeToggle.themeSwitcher`, `theme-mode`), updated docs/fixtures/tests; tests: `npm run test:unit`, `npm run test:e2e`.
@@ -119,3 +142,5 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
   Resolved 2026-03-19: updated `createAuthHeader` bootstrap to reconcile the auth controller state from `getCurrentUser()` after `initAuthClient()` when no authenticated callback has fired, so `<mpr-header>` and `mpr-ui:auth:authenticated` stay synchronized with existing-session recovery; added unit regression coverage in `tests/custom-elements-header-footer.test.js`. Tests: `node --test tests/custom-elements-header-footer.test.js`; `node --test tests/auth-credential-exchange.test.js`; `npx --yes --package typescript tsc --noEmit`; `npm test`.
 - [x] [MU-432 follow-up] `mpr-header` bootstrap must not let a stale `getCurrentUser()` result override an explicit `initAuthClient()` unauthenticated callback.
   Resolved 2026-03-19: tracked per-bootstrap auth callback status inside `createAuthHeader` and now only recover from `getCurrentUser()` when `initAuthClient()` has not fired either auth callback, including the race where `getCurrentUser()` is already pending; added regression coverage in `tests/custom-elements-header-footer.test.js`. Tests: `node --test tests/custom-elements-header-footer.test.js`; `node --test tests/auth-credential-exchange.test.js`; `npx --yes --package typescript tsc --noEmit`.
+- [x] [MU-429 follow-up] `mpr-entity-rail` and `mpr-entity-workspace` can drop tiles/cards appended after the initial render.
+  Resolved 2026-03-19: updated `mpr-ui.js` so the rail/workspace keep captured slot nodes across rerenders, absorb new direct child nodes after mount, and added regression coverage in `tests/entity-workspace.test.js` plus `tests/e2e/entity-workspace.spec.js`. Tests: `node --test tests/entity-workspace.test.js`; `npx playwright test tests/e2e/entity-workspace.spec.js`; `npx playwright test tests/e2e/entity-workspace-demo.spec.js`; `npm test`.
