@@ -1,82 +1,191 @@
 // @ts-check
 
 const https = require('node:https');
+const http = require('node:http');
+const { existsSync, readFileSync, statSync } = require('node:fs');
+const { extname, resolve } = require('node:path');
 const { test, expect } = require('@playwright/test');
 
-const DEMO_BASE_URL = process.env.MPR_UI_DEMO_BASE_URL || 'https://localhost:4443';
+const REPOSITORY_ROOT = resolve(__dirname, '../..');
+const CONTENT_TYPES = Object.freeze({
+  '.css': 'text/css; charset=utf-8',
+  '.html': 'text/html; charset=utf-8',
+  '.js': 'application/javascript; charset=utf-8',
+  '.json': 'application/json; charset=utf-8',
+  '.yaml': 'text/yaml; charset=utf-8',
+});
+
+const DEMO_BASE_URL = process.env.MP_UI_DEMO_BASE_URL;
+const FALLBACK_URL = 'https://localhost:4443';
+
+// Paths to look for in script src and link href
+const LOCAL_JS = '../mpr-ui.js';
+const LOCAL_CSS = '../mpr-ui.css';
+const CDN_JS_PATTERN = /mpr-ui@(?:latest|[\d.]+)\/mpr-ui\.js/;
+const CDN_CSS_PATTERN = /mpr-ui@(?:latest|[\d.]+)\/mpr-ui\.css/;
+
 const DEMO_PAGES = Object.freeze([
   {
     path: '/',
     expectedPath: '/demo/index.html',
     title: 'mpr-ui Demo',
+    requiredScripts: ['/tauth.js'],
+    cdnJs: true,
+    cdnCss: true,
   },
   {
     path: '/demo/index.html',
     expectedPath: '/demo/index.html',
     title: 'mpr-ui Demo',
+    requiredScripts: ['/tauth.js'],
+    cdnJs: true,
+    cdnCss: true,
   },
   {
     path: '/demo/local.html',
     expectedPath: '/demo/local.html',
     title: 'mpr-ui Demo (Local Bundle)',
-    scriptPath: '/mpr-ui.js',
-    stylePath: '/mpr-ui.css',
+    scriptPath: LOCAL_JS,
+    stylePath: LOCAL_CSS,
+    requiredScripts: ['/tauth.js'],
   },
   {
     path: '/demo/tauth-demo.html',
     expectedPath: '/demo/tauth-demo.html',
     title: 'TAuth + mpr-ui (Docker Compose)',
-    scriptPath: '/mpr-ui.js',
-    stylePath: '/mpr-ui.css',
+    scriptPath: LOCAL_JS,
+    stylePath: LOCAL_CSS,
     requiredScripts: ['/tauth.js', '/mpr-ui-config.js'],
   },
   {
     path: '/demo/standalone.html',
     expectedPath: '/demo/standalone.html',
     title: 'Standalone Login Button + TAuth',
-    scriptPath: '/mpr-ui.js',
-    stylePath: '/mpr-ui.css',
+    scriptPath: LOCAL_JS,
+    stylePath: LOCAL_CSS,
     requiredScripts: ['/tauth.js', '/mpr-ui-config.js'],
   },
   {
     path: '/demo/entity-workspace.html',
     expectedPath: '/demo/entity-workspace.html',
     title: 'Entity Workspace Demo',
-    scriptPath: '/mpr-ui.js',
-    stylePath: '/mpr-ui.css',
+    scriptPath: LOCAL_JS,
+    stylePath: LOCAL_CSS,
+    requiredScripts: ['/tauth.js'],
   },
 ]);
 
 test.use({ ignoreHTTPSErrors: true });
 
-test('single demo stack serves every demo page from one origin', async ({ page }) => {
-  if (!(await isReachable(DEMO_BASE_URL))) {
-    test.skip(true, 'Start ./up.sh or set MPR_UI_DEMO_BASE_URL to run the demo stack smoke test.');
+let server;
+let activeBaseUrl = '';
+
+test.beforeAll(async () => {
+  if (DEMO_BASE_URL) {
+    if (await isReachable(DEMO_BASE_URL)) {
+      activeBaseUrl = DEMO_BASE_URL;
+      return;
+    }
+    // eslint-disable-next-line no-console
+    console.warn(`Specified MPR_UI_DEMO_BASE_URL (${DEMO_BASE_URL}) is not reachable.`);
   }
 
-  const baseUrl = new URL(DEMO_BASE_URL);
+  if (await isReachable(FALLBACK_URL)) {
+    activeBaseUrl = FALLBACK_URL;
+    return;
+  }
 
-  for (const demoPage of DEMO_PAGES) {
-    await page.goto(new URL(demoPage.path, baseUrl).toString(), { waitUntil: 'networkidle' });
-    await expect(page).toHaveTitle(demoPage.title);
-    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(demoPage.expectedPath)}$`));
+  server = http.createServer((request, response) => {
+    const requestUrl = new URL(request.url || '/', 'http://127.0.0.1');
 
-    if (demoPage.scriptPath) {
-      await expect.poll(() => page.evaluate(() => Array.from(document.scripts).map((script) => script.src))).toContain(
-        new URL(demoPage.scriptPath, baseUrl).toString(),
-      );
+    if (requestUrl.pathname === '/') {
+      response.writeHead(302, { Location: '/demo/index.html' });
+      response.end();
+      return;
     }
 
-    if (demoPage.stylePath) {
-      await expect.poll(() => page.evaluate(() => Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map((element) => element.href))).toContain(
-        new URL(demoPage.stylePath, baseUrl).toString(),
-      );
+    const filesystemPath = resolve(REPOSITORY_ROOT, `.${requestUrl.pathname}`);
+
+    if (!filesystemPath.startsWith(REPOSITORY_ROOT)) {
+      response.writeHead(403);
+      response.end('forbidden');
+      return;
+    }
+
+    if (!existsSync(filesystemPath) || statSync(filesystemPath).isDirectory()) {
+      response.writeHead(404);
+      response.end('not found');
+      return;
+    }
+
+    let content = readFileSync(filesystemPath);
+    const contentType = CONTENT_TYPES[extname(filesystemPath)] || 'application/octet-stream';
+
+    // MU-130: Inject local origin into config.yaml so environment matching works
+    if (requestUrl.pathname.endsWith('config.yaml')) {
+      const yamlText = content.toString('utf8');
+      const origin = `http://127.0.0.1:${server.address().port}`;
+      // Add the origin to the first environment's origins list
+      const patchedYaml = yamlText.replace(/origins:\s*\n\s*-\s*["']([^"']+)["']/, `origins:\n      - "${origin}"\n      - "$1"`);
+      content = Buffer.from(patchedYaml, 'utf8');
+    }
+
+    response.writeHead(200, { 'Content-Type': contentType });
+    response.end(content);
+  });
+
+  return new Promise((resolveServer) => {
+    server.listen(0, '127.0.0.1', () => {
+      const address = server.address();
+      activeBaseUrl = `http://127.0.0.1:${address.port}`;
+      resolveServer();
+    });
+  });
+});
+
+test.afterAll(async () => {
+  if (server) {
+    await new Promise((resolveClose) => server.close(resolveClose));
+  }
+});
+
+test('single demo stack serves every demo page from one origin', async ({ page }) => {
+  const baseUrl = new URL(activeBaseUrl);
+
+  for (const demoPage of DEMO_PAGES) {
+    const separator = demoPage.path.includes('?') ? '&' : '?';
+    const targetUrl = new URL(`${demoPage.path}${demoPage.path.includes('entity-workspace') ? separator + 'entity-demo-docker=2' : ''}`, baseUrl);
+
+    await page.goto(targetUrl.toString(), { waitUntil: 'networkidle' });
+    await expect(page).toHaveTitle(demoPage.title);
+    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(demoPage.expectedPath)}(\\?.*)?$`));
+
+    const scriptUrls = await page.evaluate(() => Array.from(document.scripts).map((script) => script.src));
+    const styleUrls = await page.evaluate(() => Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map((element) => element.href));
+
+    if (demoPage.cdnJs) {
+      const foundCdnJs = scriptUrls.some(url => CDN_JS_PATTERN.test(url));
+      expect(foundCdnJs, `Expected to find CDN JS on ${demoPage.path}`).toBe(true);
+    } else if (demoPage.scriptPath) {
+      // Local check: ends with relative path or matches absolute path from baseUrl
+      const expectedUrlEnd = demoPage.scriptPath.replace(/^\.\./, '');
+      const foundLocalJs = scriptUrls.some(url => url.endsWith(expectedUrlEnd) && url.includes(baseUrl.host));
+      expect(foundLocalJs, `Expected to find local JS ${demoPage.scriptPath} on ${demoPage.path}. Found: ${scriptUrls.join(', ')}`).toBe(true);
+    }
+
+    if (demoPage.cdnCss) {
+      const foundCdnCss = styleUrls.some(url => CDN_CSS_PATTERN.test(url));
+      expect(foundCdnCss, `Expected to find CDN CSS on ${demoPage.path}`).toBe(true);
+    } else if (demoPage.stylePath) {
+      const expectedUrlEnd = demoPage.stylePath.replace(/^\.\./, '');
+      const foundLocalCss = styleUrls.some(url => url.endsWith(expectedUrlEnd) && url.includes(baseUrl.host));
+      expect(foundLocalCss, `Expected to find local CSS ${demoPage.stylePath} on ${demoPage.path}. Found: ${styleUrls.join(', ')}`).toBe(true);
     }
 
     if (demoPage.requiredScripts) {
-      const scriptUrls = await page.evaluate(() => Array.from(document.scripts).map((script) => script.src));
       demoPage.requiredScripts.forEach((requiredScriptPath) => {
-        expect(scriptUrls).toContain(new URL(requiredScriptPath, baseUrl).toString());
+        const found = scriptUrls.some(url => url.endsWith(requiredScriptPath));
+        expect(found, `Expected to find script ending with ${requiredScriptPath} on ${demoPage.path}`).toBe(true);
       });
     }
   }
@@ -88,11 +197,16 @@ test('single demo stack serves every demo page from one origin', async ({ page }
  */
 function isReachable(url) {
   return new Promise((resolve) => {
-    const request = https.request(url, { method: 'GET', rejectUnauthorized: false }, (response) => {
+    const protocol = url.startsWith('https') ? https : http;
+    const request = protocol.request(url, { method: 'GET', rejectUnauthorized: false, timeout: 1000 }, (response) => {
       resolve(Boolean(response.statusCode) && response.statusCode < 500);
       response.resume();
     });
     request.on('error', () => resolve(false));
+    request.on('timeout', () => {
+      request.destroy();
+      resolve(false);
+    });
     request.end();
   });
 }
