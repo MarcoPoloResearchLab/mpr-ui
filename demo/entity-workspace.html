@@ -6,12 +6,31 @@
     <title>Entity Workspace Demo</title>
     <link rel="stylesheet" href="../mpr-ui.css" />
     <link rel="stylesheet" href="./entity-workspace.css" />
-    <script id="entity-demo-mpr-ui-bundle" defer src="../mpr-ui.js"></script>
     <script defer src="/tauth.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <!-- Config loader -->
+    <script src="../mpr-ui-config.js"></script>
+    <script>
+      (function initWithConfig() {
+        function loadMprUi() {
+          var script = document.createElement('script');
+          script.src = '../mpr-ui.js';
+          script.id = 'entity-demo-mpr-ui-bundle';
+          document.head.appendChild(script);
+        }
+
+        if (window.MPRUI && window.MPRUI.applyYamlConfig) {
+          window.MPRUI.applyYamlConfig({ configUrl: './config.yaml' })
+            .then(loadMprUi)
+            .catch(function(err) { console.error('Config failed:', err); });
+        }
+      })();
+    </script>
     <script defer src="./entity-workspace.js"></script>
   </head>
   <body class="theme-light" data-demo-palette="default">
+    <!-- MPR UI orchestration via Web Components DSL -->
     <mpr-header
       id="demo-header"
       brand-label="Marco Polo Research Lab"
@@ -30,11 +49,6 @@
           { "label": "Standalone demo", "href": "./standalone.html" }
         ]
       }'
-      google-site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
-      tauth-tenant-id="mpr-sites"
-      tauth-login-path="/auth/google"
-      tauth-logout-path="/auth/logout"
-      tauth-nonce-path="/auth/nonce"
       user-menu-display-mode="avatar"
       logout-url="/"
       sign-out-label="Log out"
@@ -42,7 +56,6 @@
       <mpr-user
         slot="aux"
         display-mode="avatar"
-        tauth-tenant-id="mpr-sites"
         logout-url="/"
         logout-label="Log out"
       ></mpr-user>

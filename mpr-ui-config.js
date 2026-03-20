@@ -335,8 +335,37 @@
     var resolved = normalizeOptions(options);
     return loadYamlConfigInternal(resolved).then(function applyConfig(runtimeConfig) {
       return ensureDocumentReady().then(function finalizeApply() {
-        return applyConfigToDom(runtimeConfig, resolved);
+        var result = applyConfigToDom(runtimeConfig, resolved);
+        if (typeof document !== 'undefined' && typeof document.dispatchEvent === 'function') {
+          document.dispatchEvent(new CustomEvent('mpr-ui:config:applied', { detail: { config: resolved } }));
+        }
+        return result;
       });
     });
   };
+
+  // MU-130: Automatic orchestration for components with data-config-url
+  function autoOrchestrate() {
+    if (typeof document === 'undefined' || typeof document.querySelector !== 'function') {
+      return;
+    }
+    var header = document.querySelector('mpr-header[data-config-url]');
+    if (header) {
+      var configUrl = header.getAttribute('data-config-url');
+      if (configUrl) {
+        global.MPRUI.applyYamlConfig({ configUrl: configUrl }).catch(function (err) {
+          // eslint-disable-next-line no-console
+          console.error('[mpr-ui-config] Auto-orchestration failed:', err);
+        });
+      }
+    }
+  }
+
+  if (typeof document !== 'undefined') {
+    if (document.readyState === 'loading') {
+      document.addEventListener('DOMContentLoaded', autoOrchestrate);
+    } else {
+      autoOrchestrate();
+    }
+  }
 })(typeof window !== "undefined" ? window : globalThis);
