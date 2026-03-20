@@ -2780,6 +2780,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     function configureGoogleNonce(nonceToken) {
       pendingNonceToken = nonceToken;
       var clientIdValue = normalizeGoogleSiteId(options.googleClientId);
+      var currentLifecycleVersion = lifecycleVersion;
       if (!clientIdValue) {
         throw createGoogleSiteIdError();
       }
@@ -2787,6 +2788,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         clientId: clientIdValue,
         nonce: nonceToken,
         callback: function (payload) {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            return;
+          }
           handleCredential(payload);
         },
       });

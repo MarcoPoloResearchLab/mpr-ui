@@ -1449,6 +1449,112 @@ test('createAuthHeader ignores an in-flight credential exchange after auth optio
   );
 });
 
+test('createAuthHeader ignores stale GIS callbacks after auth options change', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const authenticatedProfile = {
+    display: 'Mary Jackson',
+    given_name: 'Mary',
+    avatar_url: 'https://cdn.example.com/mary.png',
+    user_email: 'mary@example.com',
+  };
+  const initializeCalls = [];
+  const exchangeTenantCalls = [];
+  let currentTenantId = null;
+  let nonceCounter = 0;
+  global.location = { origin: 'http://fallback-origin.test' };
+  global.google = {
+    accounts: {
+      id: {
+        initialize(config) {
+          initializeCalls.push(config);
+        },
+        renderButton() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.fetch = function fetch() {
+    nonceCounter += 1;
+    return Promise.resolve({
+      ok: true,
+      json: function json() {
+        return Promise.resolve({ nonce: 'nonce-token-' + String(nonceCounter) });
+      },
+    });
+  };
+  global.setAuthTenantId = function setAuthTenantId(tenantId) {
+    currentTenantId = tenantId;
+  };
+  global.exchangeGoogleCredential = function exchangeGoogleCredential() {
+    exchangeTenantCalls.push(currentTenantId);
+    return Promise.resolve(authenticatedProfile);
+  };
+
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(hostElement, {
+    googleClientId: 'gis-race-client',
+    tauthUrl: 'http://localhost:8080',
+    tauthLoginPath: '/auth/login',
+    tauthLogoutPath: '/auth/logout',
+    tauthNoncePath: '/auth/nonce',
+    tenantId: 'tenant-alpha',
+  });
+
+  await flushAsync();
+  await flushAsync();
+
+  assert.ok(initializeCalls.length >= 1, 'initial GIS callback registered');
+  const staleCallback = initializeCalls[0].callback;
+
+  authController.updateOptions(
+    Object.assign({}, authController.state.options, {
+      tenantId: 'tenant-beta',
+    }),
+  );
+  await flushAsync();
+  await flushAsync();
+
+  assert.ok(initializeCalls.length >= 2, 'updated GIS callback registered after auth options change');
+  const currentCallback = initializeCalls[initializeCalls.length - 1].callback;
+
+  staleCallback({ credential: 'stale-google-token' });
+  await flushAsync();
+  await flushAsync();
+
+  assert.deepEqual(
+    exchangeTenantCalls,
+    [],
+    'stale GIS callbacks do not start credential exchange after auth options change',
+  );
+  assert.equal(
+    authController.state.profile,
+    null,
+    'stale GIS callbacks do not authenticate the controller',
+  );
+
+  currentCallback({ credential: 'fresh-google-token' });
+  await flushAsync();
+  await flushAsync();
+
+  assert.deepEqual(
+    exchangeTenantCalls,
+    ['tenant-beta'],
+    'current GIS callback exchanges credentials against the updated tenant configuration',
+  );
+  assert.deepEqual(
+    authController.state.profile,
+    authenticatedProfile,
+    'current GIS callback still authenticates the controller after auth options change',
+  );
+});
+
 test('MU-432: mpr-header recovers authenticated state from the current session on first render', async () => {
   resetEnvironment();
   const recoveredProfile = {
