@@ -58,11 +58,11 @@ function normalizeAttributeValue(attributeValue) {
 }
 
 test('landing page loads mpr-ui from the local bundle', () => {
-  const scriptRegex = /<script[^>]+id="mpr-ui-bundle"[^>]+src="\.\/mpr-ui\.js"/;
+  const dynamicScriptRegex = /script\.src\s*=\s*['"]\.\/mpr-ui\.js['"]/;
   assert.match(
     landingHtml,
-    scriptRegex,
-    'Expected root index.html to reference the local bundle with id="mpr-ui-bundle"',
+    dynamicScriptRegex,
+    'Expected root index.html to dynamically load the local bundle',
   );
 });
 

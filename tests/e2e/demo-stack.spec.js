@@ -186,6 +186,24 @@ test('single demo stack serves every demo page from one origin', async ({ page }
   }
 });
 
+test('landing on root / does not redirect and shows landing page content', async ({ page }) => {
+  const baseUrl = new URL(activeBaseUrl);
+  
+  // Navigate to root /
+  await page.goto(baseUrl.toString(), { waitUntil: 'networkidle' });
+
+  // 1. Explicitly check that there was no redirect (URL stays as root or root/index.html)
+  await expect(page).toHaveURL(new RegExp(`${escapeRegExp(baseUrl.origin)}/(index\\.html)?$`));
+
+  // 2. Explicitly check for landing-page specific content
+  // The hub uses a Bootstrap hero section not present in other pages
+  await expect(page.locator('[data-layout-section="hero-title"]')).toBeVisible();
+  await expect(page.locator('[data-layout-section="hero-title"] h1')).toContainText('MPR-UI Demo');
+  
+  // 3. Confirm sub-demo pages are NOT being shown
+  await expect(page.locator('#entity-demo-layout')).toBeHidden();
+});
+
 test('every demo page links back to the root landing page', async ({ page }) => {
   const baseUrl = new URL(activeBaseUrl);
 
