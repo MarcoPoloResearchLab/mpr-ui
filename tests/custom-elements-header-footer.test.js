@@ -1127,6 +1127,163 @@ test('mpr-header tauth-url attribute configures auth endpoints', async () => {
   assert.equal(authOptions.tenantId, 'tenant-demo');
 });
 
+test('MU-432: mpr-header recovers authenticated state from the current session on first render', async () => {
+  resetEnvironment();
+  const recoveredProfile = {
+    display: 'Ada Lovelace',
+    given_name: 'Ada',
+    avatar_url: 'https://cdn.example.com/avatar.png',
+    user_email: 'ada@example.com',
+  };
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(recoveredProfile);
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+  headerElement.setAttribute('google-site-id', 'docker-demo-site');
+  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
+  headerElement.setAttribute('tauth-login-path', '/auth/google');
+  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
+  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
+  headerElement.setAttribute('tauth-tenant-id', 'tenant-demo');
+
+  headerElement.connectedCallback();
+  await flushAsync();
+  await flushAsync();
+
+  const controller = headerElement.__headerController;
+  assert.ok(controller, 'header controller initialized');
+  const authController =
+    controller && typeof controller.getAuthController === 'function'
+      ? controller.getAuthController()
+      : null;
+  assert.ok(authController, 'auth controller attached to header');
+  assert.deepEqual(
+    authController.state.profile,
+    recoveredProfile,
+    'auth controller state recovers the current profile',
+  );
+  assert.equal(
+    harness.root.classList.contains('mpr-header--authenticated'),
+    true,
+    'header root switches into the authenticated state after session recovery',
+  );
+
+  const authenticatedEvents = headerElement.__dispatchedEvents.filter(
+    (eventEntry) => eventEntry.type === 'mpr-ui:auth:authenticated',
+  );
+  assert.equal(
+    authenticatedEvents.length,
+    1,
+    'header emits exactly one authenticated event for recovered sessions',
+  );
+  assert.deepEqual(
+    authenticatedEvents[0].detail,
+    { profile: recoveredProfile },
+    'authenticated event includes the recovered profile payload',
+  );
+});
+
+test('MU-432: mpr-header ignores a recovered profile after an unauthenticated callback', async () => {
+  resetEnvironment();
+  const staleProfile = {
+    display: 'Grace Hopper',
+    given_name: 'Grace',
+    avatar_url: 'https://cdn.example.com/grace.png',
+    user_email: 'grace@example.com',
+  };
+  let authCallbacks = null;
+  let currentUserCallCount = 0;
+  let resolveRecoveredProfile;
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient(config) {
+    authCallbacks = config;
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    currentUserCallCount += 1;
+    return new Promise(function waitForProfile(resolve) {
+      resolveRecoveredProfile = resolve;
+    });
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+  headerElement.setAttribute('google-site-id', 'docker-demo-site');
+  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
+  headerElement.setAttribute('tauth-login-path', '/auth/google');
+  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
+  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
+  headerElement.setAttribute('tauth-tenant-id', 'tenant-demo');
+
+  headerElement.connectedCallback();
+  await flushAsync();
+
+  assert.ok(authCallbacks, 'auth callbacks registered with initAuthClient');
+  assert.equal(
+    currentUserCallCount,
+    1,
+    'bootstrap requested the current user before any auth callback resolved',
+  );
+
+  authCallbacks.onUnauthenticated();
+  resolveRecoveredProfile(staleProfile);
+  await flushAsync();
+  await flushAsync();
+
+  const controller = headerElement.__headerController;
+  assert.ok(controller, 'header controller initialized');
+  const authController =
+    controller && typeof controller.getAuthController === 'function'
+      ? controller.getAuthController()
+      : null;
+  assert.ok(authController, 'auth controller attached to header');
+  assert.equal(
+    authController.state.profile,
+    null,
+    'stale profile recovery does not overwrite an unauthenticated callback',
+  );
+  assert.equal(
+    harness.root.classList.contains('mpr-header--authenticated'),
+    false,
+    'header root stays unauthenticated after the auth watcher reports sign-out',
+  );
+
+  const authenticatedEvents = headerElement.__dispatchedEvents.filter(
+    (eventEntry) => eventEntry.type === 'mpr-ui:auth:authenticated',
+  );
+  assert.equal(
+    authenticatedEvents.length,
+    0,
+    'no authenticated event is emitted after an unauthenticated callback',
+  );
+});
+
 test('mpr-footer reflects attributes and slot content', () => {
   resetEnvironment();
   loadLibrary();

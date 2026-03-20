@@ -2622,6 +2622,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       );
     }
 
+    function requestCurrentProfile() {
+      if (typeof global.getCurrentUser !== "function") {
+        return Promise.resolve(null);
+      }
+      configureTenantId();
+      return Promise.resolve(global.getCurrentUser());
+    }
+
     function bootstrapSession() {
       if (typeof global.initAuthClient !== "function") {
         markUnauthenticated({ emit: false, prompt: false });
@@ -2629,11 +2637,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       configureTenantId();
       var resolvedBaseUrl = resolveAuthBaseUrl();
+      var bootstrapCallbackStatus = "none";
       return Promise.resolve(
         global.initAuthClient({
           baseUrl: resolvedBaseUrl,
           tenantId: options.tenantId,
           onAuthenticated: function (profile) {
+            bootstrapCallbackStatus = "authenticated";
             var resolvedProfile = profile || pendingProfile || null;
             if (profile && pendingProfile) {
               resolvedProfile = Object.assign({}, pendingProfile, profile);
@@ -2642,15 +2652,37 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             markAuthenticated(resolvedProfile);
           },
           onUnauthenticated: function () {
+            bootstrapCallbackStatus = "unauthenticated";
             pendingProfile = null;
             markUnauthenticated({ prompt: true });
           },
         }),
-      ).catch(function (error) {
-        emitError("mpr-ui.auth.bootstrap_failed", {
-          message: error && error.message ? error.message : String(error),
+      )
+        .then(function reconcileCurrentProfile() {
+          if (
+            bootstrapCallbackStatus !== "none" ||
+            state.status === "authenticated"
+          ) {
+            return null;
+          }
+          return requestCurrentProfile();
+        })
+        .then(function applyRecoveredProfile(profile) {
+          if (
+            bootstrapCallbackStatus !== "none" ||
+            state.status === "authenticated"
+          ) {
+            return;
+          }
+          if (profile) {
+            markAuthenticated(profile);
+          }
+        })
+        .catch(function (error) {
+          emitError("mpr-ui.auth.bootstrap_failed", {
+            message: error && error.message ? error.message : String(error),
+          });
         });
-      });
     }
 
     function exchangeCredentialWithFetch(credential, nonceToken) {

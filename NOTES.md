@@ -141,3 +141,8 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 
 - MU-427 / B050: validated footer `horizontal-links` inline layout in current sources (`mpr-ui.js` + `mpr-ui.css`), closed stale issue context in `ISSUES.md`, and re-ran Playwright coverage. Tests: `npx playwright test tests/e2e/horizontal-links.spec.js`.
 - MU-427 follow-up: added regression coverage in `tests/demo-page.test.js` to enforce footer `horizontal-links` examples in `demo/index.html`, `demo/local.html`, `demo/tauth-demo.html`, and `demo/standalone.html`. Tests: `node --test tests/demo-page.test.js`.
+
+## 2026-03-19
+
+- MU-432: reconciled `mpr-header` auth bootstrap from `getCurrentUser()` after `initAuthClient()` so existing-session recovery marks the header authenticated on first render and keeps `mpr-ui:auth:authenticated` in sync with the current session; added regression coverage in `tests/custom-elements-header-footer.test.js`. Tests: `node --test tests/custom-elements-header-footer.test.js`, `node --test tests/auth-credential-exchange.test.js`, `npx --yes --package typescript tsc --noEmit`, `npm test`.
+- MU-432 follow-up: prevented `getCurrentUser()` bootstrap recovery from overriding an explicit `initAuthClient()` unauthenticated callback, including the case where the profile lookup is still pending; added regression coverage in `tests/custom-elements-header-footer.test.js`. Tests: `node --test tests/custom-elements-header-footer.test.js`, `node --test tests/auth-credential-exchange.test.js`, `npx --yes --package typescript tsc --noEmit`.
