@@ -1350,6 +1350,105 @@ test('mpr-header keeps receiving auth callbacks after tauth-url rebinding when T
   );
 });
 
+test('createAuthHeader ignores an in-flight credential exchange after auth options change', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const authenticatedProfile = {
+    display: 'Dorothy Vaughan',
+    given_name: 'Dorothy',
+    avatar_url: 'https://cdn.example.com/dorothy.png',
+    user_email: 'dorothy@example.com',
+  };
+  const exchangeTenantCalls = [];
+  let currentTenantId = null;
+  let resolveExchangeProfile;
+  global.location = { origin: 'http://fallback-origin.test' };
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.setAuthTenantId = function setAuthTenantId(tenantId) {
+    currentTenantId = tenantId;
+  };
+  global.exchangeGoogleCredential = function exchangeGoogleCredential() {
+    exchangeTenantCalls.push(currentTenantId);
+    return new Promise(function waitForExchange(resolve) {
+      resolveExchangeProfile = resolve;
+    });
+  };
+
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(hostElement, {
+    googleClientId: 'credential-race-client',
+    tauthUrl: 'http://localhost:8080',
+    tauthLoginPath: '/auth/login',
+    tauthLogoutPath: '/auth/logout',
+    tauthNoncePath: '/auth/nonce',
+    tenantId: 'tenant-alpha',
+  });
+
+  await flushAsync();
+  await flushAsync();
+
+  const exchangePromise = authController.handleCredential({
+    credential: 'signed-id-token',
+  });
+  await flushAsync();
+
+  assert.deepEqual(
+    exchangeTenantCalls,
+    ['tenant-alpha'],
+    'credential exchange starts against the original tenant configuration',
+  );
+
+  authController.updateOptions(
+    Object.assign({}, authController.state.options, {
+      tenantId: 'tenant-beta',
+    }),
+  );
+  await flushAsync();
+  await flushAsync();
+
+  resolveExchangeProfile(authenticatedProfile);
+  await exchangePromise;
+  await flushAsync();
+
+  assert.equal(
+    authController.state.options.tenantId,
+    'tenant-beta',
+    'controller options switch to the updated tenant configuration',
+  );
+  assert.equal(
+    authController.state.profile,
+    null,
+    'stale credential exchanges do not authenticate the controller after auth options change',
+  );
+  assert.equal(
+    authController.state.status,
+    'unauthenticated',
+    'controller stays unauthenticated after discarding the stale exchange result',
+  );
+  const authenticatedEvents = hostElement.__dispatchedEvents.filter(
+    (eventEntry) => eventEntry.type === 'mpr-ui:auth:authenticated',
+  );
+  assert.equal(
+    authenticatedEvents.length,
+    0,
+    'stale credential exchange results do not emit authenticated events',
+  );
+});
+
 test('MU-432: mpr-header recovers authenticated state from the current session on first render', async () => {
   resetEnvironment();
   const recoveredProfile = {

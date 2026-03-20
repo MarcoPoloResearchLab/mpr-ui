@@ -3103,8 +3103,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         markUnauthenticated({ prompt: true });
         return Promise.resolve();
       }
+      var currentLifecycleVersion = lifecycleVersion;
       return exchangeCredential(credentialResponse.credential)
         .then(function (profile) {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            return null;
+          }
           // Always mark authenticated directly after successful credential exchange.
           // Previously relied on bootstrapSession() → initAuthClient() → onAuthenticated callback,
           // but TAuth may not call callbacks on subsequent initAuthClient invocations.
@@ -3112,6 +3116,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           return profile;
         })
         .catch(function (error) {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            return Promise.resolve();
+          }
           emitError("mpr-ui.auth.exchange_failed", {
             message: error && error.message ? error.message : String(error),
             status: error && error.status ? error.status : null,
