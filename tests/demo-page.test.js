@@ -385,8 +385,8 @@ test('entity workspace demo keeps auth header wiring when navigated from TAuth d
   );
   assert.match(
     entityWorkspaceHtml,
-    /<mpr-workspace-layout[^>]*id="entity-demo-layout"[^>]*collapsed[^>]*>/,
-    'Expected the entity workspace demo layout to stay collapsed when no sidebar slot is present',
+    /<mpr-sidebar-nav[^>]*id="entity-demo-sidebar"[^>]*slot="sidebar"[^>]*>/,
+    'Expected the entity workspace demo to include a sidebar navigation slot',
   );
 });
 

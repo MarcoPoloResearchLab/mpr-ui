@@ -74,7 +74,8 @@ const MPR_UI_SCRIPT_ID = 'entity-demo-mpr-ui-bundle';
  * }} DemoData
  * @typedef {{
  *   layout: HTMLElement & { toggleSidebar?: (force?: boolean) => void },
- *   shell: HTMLElement,
+ *   sidebar: HTMLElement,
+ *   sidebarItems: HTMLElement,
  *   rail: HTMLElement,
  *   railLeading: HTMLElement,
  *   railTrailing: HTMLElement,
@@ -87,10 +88,13 @@ const MPR_UI_SCRIPT_ID = 'entity-demo-mpr-ui-bundle';
  *   loadingNotice: HTMLElement,
  *   errorNotice: HTMLElement,
  *   protocolWarning: HTMLElement,
+ *   heroEyebrow: HTMLElement,
+ *   heroTitle: HTMLElement,
+ *   heroDescription: HTMLElement,
+ *   heroDetails: HTMLElement,
  *   sectionLabel: HTMLElement,
  *   playlistTitle: HTMLElement,
  *   playlistSummary: HTMLElement,
- *   playlistFacts: HTMLElement,
  *   toolbarCopy: HTMLElement,
  *   pagination: HTMLElement,
  *   selectionPill: HTMLElement,
@@ -101,7 +105,8 @@ const MPR_UI_SCRIPT_ID = 'entity-demo-mpr-ui-bundle';
  *   clearSelectionButton: HTMLButtonElement,
  *   openSelectedButton: HTMLButtonElement,
  *   openPlaylistButton: HTMLButtonElement,
- *   closeDrawerButton: HTMLButtonElement
+ *   closeDrawerButton: HTMLButtonElement,
+ *   toggleSidebarButton: HTMLButtonElement
  * }} ExampleElements
  * @typedef {{
  *   data: DemoData,
@@ -157,11 +162,11 @@ async function initializeEntityWorkspaceDemo() {
     const demoData = await loadDemoData();
     const exampleState = createExampleState(demoData, elements);
 
+    hydrateHero(exampleState);
     bindExampleEvents(exampleState);
-    await selectPlaylist(exampleState, exampleState.activePlaylistId, false);
+    await selectSection(exampleState, exampleState.activeSectionKey, false);
 
     elements.loadingNotice.hidden = true;
-    elements.shell.hidden = false;
   } catch (error) {
     elements.loadingNotice.hidden = true;
     showExampleError(
@@ -260,7 +265,8 @@ function getMprUiNamespace() {
 function resolveExampleElements(ownerDocument) {
   return {
     layout: requireElement(ownerDocument, 'entity-demo-layout'),
-    shell: requireElement(ownerDocument, 'entity-demo-shell'),
+    sidebar: requireElement(ownerDocument, 'entity-demo-sidebar'),
+    sidebarItems: requireElement(ownerDocument, 'entity-demo-sidebar-items'),
     rail: requireElement(ownerDocument, 'entity-demo-rail'),
     railLeading: requireElement(ownerDocument, 'entity-demo-rail-leading'),
     railTrailing: requireElement(ownerDocument, 'entity-demo-rail-trailing'),
@@ -273,10 +279,13 @@ function resolveExampleElements(ownerDocument) {
     loadingNotice: requireElement(ownerDocument, 'entity-demo-loading'),
     errorNotice: requireElement(ownerDocument, 'entity-demo-error'),
     protocolWarning: requireElement(ownerDocument, 'entity-demo-protocol-warning'),
+    heroEyebrow: requireElement(ownerDocument, 'entity-demo-hero-eyebrow'),
+    heroTitle: requireElement(ownerDocument, 'entity-demo-hero-title'),
+    heroDescription: requireElement(ownerDocument, 'entity-demo-hero-description'),
+    heroDetails: requireElement(ownerDocument, 'entity-demo-hero-details'),
     sectionLabel: requireElement(ownerDocument, 'entity-demo-section-label'),
     playlistTitle: requireElement(ownerDocument, 'entity-demo-playlist-title'),
     playlistSummary: requireElement(ownerDocument, 'entity-demo-playlist-summary'),
-    playlistFacts: requireElement(ownerDocument, 'entity-demo-playlist-facts'),
     toolbarCopy: requireElement(ownerDocument, 'entity-demo-toolbar-copy'),
     pagination: requireElement(ownerDocument, 'entity-demo-pagination'),
     selectionPill: requireElement(ownerDocument, 'entity-demo-selection-pill'),
@@ -288,7 +297,20 @@ function resolveExampleElements(ownerDocument) {
     openSelectedButton: /** @type {HTMLButtonElement} */ (requireElement(ownerDocument, 'entity-demo-open-selected')),
     openPlaylistButton: /** @type {HTMLButtonElement} */ (requireElement(ownerDocument, 'entity-demo-open-playlist')),
     closeDrawerButton: /** @type {HTMLButtonElement} */ (requireElement(ownerDocument, 'entity-demo-close-drawer')),
+    toggleSidebarButton: /** @type {HTMLButtonElement} */ (requireElement(ownerDocument, 'entity-demo-sidebar-toggle')),
   };
+}
+
+/**
+ * Applies the JSON hero copy to the page.
+ * @param {ExampleState} exampleState
+ * @returns {void}
+ */
+function hydrateHero(exampleState) {
+  exampleState.elements.heroEyebrow.textContent = exampleState.data.hero.eyebrow;
+  exampleState.elements.heroTitle.textContent = exampleState.data.hero.title;
+  exampleState.elements.heroDescription.textContent = exampleState.data.hero.description;
+  exampleState.elements.heroDetails.textContent = exampleState.data.hero.details;
 }
 
 /**
@@ -297,6 +319,15 @@ function resolveExampleElements(ownerDocument) {
  * @returns {void}
  */
 function bindExampleEvents(exampleState) {
+  exampleState.elements.sidebar.addEventListener('mpr-sidebar-nav:change', async (eventObject) => {
+    const sectionKey =
+      eventObject instanceof CustomEvent && eventObject.detail ? eventObject.detail.key : '';
+    if (!sectionKey) {
+      return;
+    }
+    await selectSection(exampleState, sectionKey, false);
+  });
+
   exampleState.elements.rail.addEventListener('click', async (eventObject) => {
     const targetElement = eventObject.target;
     if (!(targetElement instanceof Element)) {
@@ -379,6 +410,46 @@ function bindExampleEvents(exampleState) {
       exampleState.elements.drawer.hide();
     }
   });
+
+  exampleState.elements.toggleSidebarButton.addEventListener('click', () => {
+    if (typeof exampleState.elements.layout.toggleSidebar === 'function') {
+      exampleState.elements.layout.toggleSidebar();
+    }
+  });
+
+  exampleState.elements.layout.addEventListener('mpr-workspace-layout:sidebar-toggle', (eventObject) => {
+    const collapsed =
+      eventObject instanceof CustomEvent && eventObject.detail
+        ? Boolean(eventObject.detail.collapsed)
+        : false;
+    exampleState.elements.toggleSidebarButton.textContent = collapsed
+      ? 'Show library'
+      : 'Hide library';
+  });
+}
+
+/**
+ * Switches the active sidebar section.
+ * @param {ExampleState} exampleState
+ * @param {string} sectionKey
+ * @param {boolean} openDrawer
+ * @returns {Promise<void>}
+ */
+async function selectSection(exampleState, sectionKey, openDrawer) {
+  exampleState.activeSectionKey = sectionKey;
+
+  const visiblePlaylists = getVisiblePlaylists(exampleState);
+  if (visiblePlaylists.length === 0) {
+    throw new Error(`${DEMO_ERROR_CODES.invalidData}: section ${sectionKey}`);
+  }
+
+  if (!visiblePlaylists.some((playlist) => playlist.id === exampleState.activePlaylistId)) {
+    exampleState.activePlaylistId = visiblePlaylists[0].id;
+  }
+
+  renderSidebar(exampleState);
+  renderRail(exampleState);
+  await selectPlaylist(exampleState, exampleState.activePlaylistId, openDrawer);
 }
 
 /**
@@ -453,18 +524,55 @@ async function loadNextPage(exampleState) {
 }
 
 /**
+ * Renders the sidebar controls from JSON.
+ * @param {ExampleState} exampleState
+ * @returns {void}
+ */
+function renderSidebar(exampleState) {
+  const fragment = document.createDocumentFragment();
+
+  exampleState.data.sections.forEach((section) => {
+    const buttonElement = document.createElement('button');
+    buttonElement.type = 'button';
+    buttonElement.className = 'entity-demo__sidebar-button';
+    buttonElement.dataset.active = section.key === exampleState.activeSectionKey ? 'true' : 'false';
+    buttonElement.setAttribute('data-mpr-sidebar-key', section.key);
+
+    const labelElement = document.createElement('span');
+    labelElement.className = 'entity-demo__sidebar-label';
+    labelElement.textContent = section.label;
+
+    const descriptionElement = document.createElement('span');
+    descriptionElement.className = 'entity-demo__sidebar-description';
+    descriptionElement.textContent = section.description;
+
+    buttonElement.append(labelElement, descriptionElement);
+    fragment.appendChild(buttonElement);
+  });
+
+  exampleState.elements.sidebarItems.replaceChildren(fragment);
+  refreshCustomElement(exampleState.elements.sidebar);
+}
+
+/**
  * Renders the rail tiles for the active section.
  * @param {ExampleState} exampleState
  * @returns {void}
  */
 function renderRail(exampleState) {
+  const activeSection = requireSection(exampleState);
   const visiblePlaylists = getVisiblePlaylists(exampleState);
-  exampleState.elements.rail.setAttribute('label', 'Playlists');
+  exampleState.elements.rail.setAttribute('label', `${activeSection.label} playlists`);
 
   const leadingPill = document.createElement('span');
+  leadingPill.className = 'entity-demo__pill';
   leadingPill.textContent = `${visiblePlaylists.length} collections`;
   exampleState.elements.railLeading.replaceChildren(leadingPill);
-  exampleState.elements.railTrailing.replaceChildren();
+
+  const trailingCopy = document.createElement('span');
+  trailingCopy.className = 'entity-demo__pill';
+  trailingCopy.textContent = activeSection.description;
+  exampleState.elements.railTrailing.replaceChildren(trailingCopy);
 
   const fragment = document.createDocumentFragment();
   visiblePlaylists.forEach((playlist) => {
@@ -485,26 +593,15 @@ function renderWorkspace(exampleState) {
   const hasMorePages = exampleState.activePageIndex < playlistPages.length - 1;
   const selectionCount = exampleState.selectionState.count();
 
-  const matchingSection = exampleState.data.sections.find(
-    (section) => section.key === exampleState.activeSectionKey,
-  );
-  exampleState.elements.sectionLabel.textContent = matchingSection
-    ? `Section: ${matchingSection.label}`
-    : '';
+  exampleState.elements.sectionLabel.textContent = requireSection(exampleState).label;
   exampleState.elements.playlistTitle.textContent = activePlaylist.title;
   exampleState.elements.playlistSummary.textContent = activePlaylist.summary;
-  exampleState.elements.playlistFacts.textContent = [
-    activePlaylist.meta,
-    activePlaylist.visibility,
-    activePlaylist.updatedLabel,
-    activePlaylist.runtimeLabel,
-  ].join(' · ');
   exampleState.elements.toolbarCopy.textContent = exampleState.searchQuery
-    ? `Video list filtered to ${visibleVideos.length} of ${exampleState.loadedVideos.length} loaded rows.`
-    : `Video list showing ${exampleState.loadedVideos.length} of ${activePlaylist.videoCount} total rows.`;
-  exampleState.elements.pagination.textContent = `Pages loaded: ${exampleState.activePageIndex + 1} / ${playlistPages.length}`;
+    ? `Showing ${visibleVideos.length} of ${exampleState.loadedVideos.length} loaded videos from ${activePlaylist.title}.`
+    : `Loaded ${exampleState.loadedVideos.length} of ${activePlaylist.videoCount} videos from ${activePlaylist.title}.`;
+  exampleState.elements.pagination.textContent = `Page ${exampleState.activePageIndex + 1} of ${playlistPages.length}`;
   exampleState.elements.selectionPill.textContent =
-    selectionCount > 0 ? `Selection: ${selectionCount}` : 'Selection: none';
+    selectionCount > 0 ? `${selectionCount} selected` : 'No videos selected';
 
   if (visibleVideos.length === 0) {
     exampleState.elements.emptyTitle.textContent = 'No videos match this filter.';
@@ -582,7 +679,7 @@ function getAllVideosForPlaylist(exampleState, playlistId) {
 }
 
 /**
- * Returns the visible playlists for the current demo.
+ * Returns the visible playlists for the current sidebar section.
  * @param {ExampleState} exampleState
  * @returns {DemoPlaylist[]}
  */
@@ -609,6 +706,20 @@ function getVisibleVideos(exampleState) {
       .toLowerCase();
     return searchableValue.includes(normalizedQuery);
   });
+}
+
+/**
+ * @param {ExampleState} exampleState
+ * @returns {DemoSection}
+ */
+function requireSection(exampleState) {
+  const matchingSection = exampleState.data.sections.find(
+    (section) => section.key === exampleState.activeSectionKey,
+  );
+  if (!matchingSection) {
+    throw new Error(`${DEMO_ERROR_CODES.invalidData}: section ${exampleState.activeSectionKey}`);
+  }
+  return matchingSection;
 }
 
 /**
@@ -653,6 +764,7 @@ function findVideoById(videos, videoId) {
  */
 function createPlaylistTileElement(playlist, selected) {
   const tileElement = document.createElement('mpr-entity-tile');
+  tileElement.className = 'entity-demo__tile';
   tileElement.setAttribute('interactive', 'true');
   tileElement.setAttribute('data-playlist-id', playlist.id);
   if (selected) {
@@ -661,28 +773,48 @@ function createPlaylistTileElement(playlist, selected) {
 
   const badgeElement = document.createElement('span');
   badgeElement.slot = 'badge';
+  badgeElement.className = 'entity-demo__tag';
   badgeElement.textContent = playlist.badge;
 
-  const actionElement = document.createElement('button');
+  const actionElement = document.createElement('span');
   actionElement.slot = 'actions';
-  actionElement.type = 'button';
-  actionElement.textContent = 'Open';
+  actionElement.className = 'entity-demo__pill';
+  actionElement.textContent = playlist.runtimeLabel;
 
   const titleElement = document.createElement('div');
   titleElement.slot = 'title';
-  const titleNameElement = document.createElement('strong');
-  titleNameElement.textContent = playlist.title;
-  const titleSummaryElement = document.createElement('div');
-  titleSummaryElement.textContent = playlist.summary;
-  titleElement.append(titleNameElement, titleSummaryElement);
+  titleElement.className = 'entity-demo__tile-title';
 
-  const metaElement = document.createElement('div');
-  metaElement.slot = 'meta';
-  metaElement.textContent = [
-    playlist.meta,
-    playlist.updatedLabel,
-    `${playlist.videoCount} videos`,
-  ].join(' · ');
+  const swatchElement = document.createElement('div');
+  swatchElement.className = 'entity-demo__swatch';
+  swatchElement.style.setProperty('--demo-accent-start', playlist.accent);
+  swatchElement.style.setProperty('--demo-accent-end', playlist.accentAlt);
+
+  const swatchLabelElement = document.createElement('span');
+  swatchLabelElement.className = 'entity-demo__swatch-label';
+  swatchLabelElement.textContent = playlist.swatchLabel;
+  swatchElement.appendChild(swatchLabelElement);
+
+  const titleCopyElement = document.createElement('div');
+  titleCopyElement.className = 'entity-demo__tile-copy';
+
+  const nameElement = document.createElement('span');
+  nameElement.className = 'entity-demo__tile-name';
+  nameElement.textContent = playlist.title;
+
+  const subtitleElement = document.createElement('span');
+  subtitleElement.className = 'entity-demo__tile-subtitle';
+  subtitleElement.textContent = playlist.summary;
+
+  titleCopyElement.append(nameElement, subtitleElement);
+  titleElement.append(swatchElement, titleCopyElement);
+
+  const metaElement = document.createDocumentFragment();
+  playlist.tags.forEach((tag) => {
+    const tagEl = createTagElement(tag);
+    tagEl.slot = 'meta';
+    metaElement.appendChild(tagEl);
+  });
 
   tileElement.append(badgeElement, actionElement, titleElement, metaElement);
   return tileElement;
@@ -704,18 +836,22 @@ function createVideoCardElement(video, selected) {
 
   const selectLabel = document.createElement('label');
   selectLabel.slot = 'select';
+  selectLabel.className = 'entity-demo__checkbox';
   const checkboxElement = document.createElement('input');
   checkboxElement.type = 'checkbox';
   checkboxElement.checked = selected;
   checkboxElement.setAttribute('data-demo-video-select', video.id);
-  selectLabel.append(checkboxElement, document.createTextNode(' Select'));
+  selectLabel.appendChild(checkboxElement);
 
-  const mediaElement = document.createElement('img');
+  const mediaElement = document.createElement('div');
   mediaElement.slot = 'media';
-  mediaElement.width = 160;
-  mediaElement.height = 90;
-  mediaElement.alt = `Thumbnail for ${video.title}`;
-  mediaElement.src = buildVideoThumbnailDataUrl(video);
+  mediaElement.className = 'entity-demo__video-frame';
+  mediaElement.style.setProperty('--demo-accent-start', video.accent);
+  mediaElement.style.setProperty('--demo-accent-end', video.accentAlt);
+  const mediaLabel = document.createElement('span');
+  mediaLabel.className = 'entity-demo__video-frame-label';
+  mediaLabel.textContent = video.thumbnailLabel;
+  mediaElement.appendChild(mediaLabel);
 
   const titleElement = document.createElement('div');
   titleElement.slot = 'title';
@@ -723,20 +859,26 @@ function createVideoCardElement(video, selected) {
 
   const metaElement = document.createElement('div');
   metaElement.slot = 'meta';
-  metaElement.textContent = `${video.owner} · ${video.meta}`;
+  metaElement.className = 'entity-demo__video-meta';
+  metaElement.appendChild(createTagElement(video.meta));
+  metaElement.appendChild(createTagElement(video.status));
 
-  const summaryElement = document.createElement('div');
+  const summaryElement = document.createElement('p');
   summaryElement.slot = 'summary';
+  summaryElement.className = 'entity-demo__video-summary';
   summaryElement.textContent = video.summary;
 
   const metricElement = document.createElement('div');
   metricElement.slot = 'metric';
-  metricElement.textContent = `${video.metric} · Score ${video.watchScore}`;
+  metricElement.className = 'entity-demo__video-metric';
+  metricElement.textContent = video.metric;
 
   const actionsElement = document.createElement('div');
   actionsElement.slot = 'actions';
+  actionsElement.className = 'entity-demo__video-actions';
   const detailButton = document.createElement('button');
   detailButton.type = 'button';
+  detailButton.className = 'entity-demo__video-action';
   detailButton.setAttribute('data-demo-video-action', 'details');
   detailButton.setAttribute('data-video-id', video.id);
   detailButton.textContent = 'Details';
@@ -744,7 +886,16 @@ function createVideoCardElement(video, selected) {
 
   const footerElement = document.createElement('div');
   footerElement.slot = 'footer';
-  footerElement.textContent = `${video.status} · ${video.footer}`;
+  footerElement.className = 'entity-demo__video-footer';
+
+  const footerCopy = document.createElement('span');
+  footerCopy.textContent = video.footer;
+
+  const statusElement = document.createElement('span');
+  statusElement.className = 'entity-demo__video-status';
+  statusElement.textContent = video.watchScore;
+
+  footerElement.append(footerCopy, statusElement);
   cardElement.append(
     selectLabel,
     mediaElement,
@@ -766,49 +917,47 @@ function createVideoCardElement(video, selected) {
  */
 function createPlaylistDrawerBody(playlist, playlistVideos) {
   const wrapperElement = document.createElement('div');
-  const overviewHeading = document.createElement('h3');
-  overviewHeading.textContent = 'Playlist overview';
-  const overviewCopy = document.createElement('p');
-  overviewCopy.textContent = playlist.description;
-  const overviewFacts = document.createElement('p');
-  overviewFacts.textContent = [
-    playlist.meta,
-    playlist.owner,
-    playlist.visibility,
-    playlist.updatedLabel,
-    playlist.runtimeLabel,
-  ].join(' · ');
-  const tagCopy = document.createElement('p');
-  tagCopy.textContent = `Tags: ${playlist.tags.join(', ')}`;
+  wrapperElement.className = 'entity-demo__drawer-layout';
 
-  const statsHeading = document.createElement('h3');
-  statsHeading.textContent = 'Workflow snapshot';
-  const statsList = document.createElement('ul');
+  const summaryPanel = document.createElement('section');
+  summaryPanel.className = 'entity-demo__drawer-panel';
+
+  const copyElement = document.createElement('p');
+  copyElement.className = 'entity-demo__drawer-copy';
+  copyElement.textContent = playlist.description;
+  summaryPanel.appendChild(copyElement);
+
+  const tagRow = document.createElement('div');
+  tagRow.className = 'entity-demo__drawer-tags';
+  playlist.tags.forEach((tag) => tagRow.appendChild(createTagElement(tag)));
+  summaryPanel.appendChild(tagRow);
+
+  const statsPanel = document.createElement('section');
+  statsPanel.className = 'entity-demo__drawer-panel';
+  const statGrid = document.createElement('div');
+  statGrid.className = 'entity-demo__drawer-stat-grid';
   playlist.stats.forEach((stat) => {
-    statsList.appendChild(createListItem(`${stat.label}: ${stat.value}`));
+    statGrid.appendChild(createStatCardElement(stat.label, stat.value));
   });
-  statsList.appendChild(createListItem(`Owner: ${playlist.owner}`));
-  statsList.appendChild(createListItem(`Updated: ${playlist.updatedLabel}`));
+  statGrid.appendChild(createStatCardElement('Owner', playlist.owner));
+  statGrid.appendChild(createStatCardElement('Visibility', playlist.visibility));
+  statsPanel.appendChild(statGrid);
 
+  const videosPanel = document.createElement('section');
+  videosPanel.className = 'entity-demo__drawer-panel';
   const videosHeading = document.createElement('h3');
+  videosHeading.className = 'entity-demo__eyebrow';
   videosHeading.textContent = 'Videos in this playlist';
-  const videoListElement = document.createElement('ol');
+  const videosList = document.createElement('ol');
+  videosList.className = 'entity-demo__detail-list';
   playlistVideos.forEach((video) => {
-    videoListElement.appendChild(
-      createListItem(`${video.title} — ${video.metric} — ${video.status}`),
-    );
+    const li = document.createElement('li');
+    li.textContent = `${video.title} — ${video.metric} — ${video.status}`;
+    videosList.appendChild(li);
   });
+  videosPanel.append(videosHeading, videosList);
 
-  wrapperElement.append(
-    overviewHeading,
-    overviewCopy,
-    overviewFacts,
-    tagCopy,
-    statsHeading,
-    statsList,
-    videosHeading,
-    videoListElement,
-  );
+  wrapperElement.append(summaryPanel, statsPanel, videosPanel);
   return wrapperElement;
 }
 
@@ -819,37 +968,46 @@ function createPlaylistDrawerBody(playlist, playlistVideos) {
  */
 function createVideoDrawerBody(video) {
   const wrapperElement = document.createElement('div');
-  const summaryHeading = document.createElement('h3');
-  summaryHeading.textContent = 'Selected video';
+  wrapperElement.className = 'entity-demo__drawer-layout';
+
+  const summaryPanel = document.createElement('section');
+  summaryPanel.className = 'entity-demo__drawer-panel';
+
+  const headerRow = document.createElement('div');
+  headerRow.className = 'entity-demo__drawer-header-row';
+  const metricTag = createTagElement(video.metric);
+  const statusTag = createTagElement(video.status);
+  headerRow.append(metricTag, statusTag);
+  summaryPanel.appendChild(headerRow);
+
   const summaryCopy = document.createElement('p');
+  summaryCopy.className = 'entity-demo__drawer-copy';
   summaryCopy.textContent = video.summary;
+  summaryPanel.appendChild(summaryCopy);
 
-  const detailHeading = document.createElement('h3');
-  detailHeading.textContent = 'Details';
   const detailList = document.createElement('ul');
+  detailList.className = 'entity-demo__detail-list';
   video.details.forEach((detail) => {
-    detailList.appendChild(createListItem(detail));
+    const listItem = document.createElement('li');
+    listItem.textContent = detail;
+    detailList.appendChild(listItem);
   });
+  summaryPanel.appendChild(detailList);
 
-  const metadataHeading = document.createElement('h3');
-  metadataHeading.textContent = 'Metadata';
-  const metadataList = document.createElement('ul');
-  metadataList.appendChild(createListItem(`Owner: ${video.owner}`));
-  metadataList.appendChild(createListItem(`Meta: ${video.meta}`));
-  metadataList.appendChild(createListItem(`Views: ${video.metric}`));
-  metadataList.appendChild(createListItem(`Score: ${video.watchScore}`));
-  metadataList.appendChild(createListItem(`Status: ${video.status}`));
-  metadataList.appendChild(createListItem(`Tags: ${video.tags.join(', ')}`));
-  metadataList.appendChild(createListItem(`List note: ${video.footer}`));
+  const statsPanel = document.createElement('section');
+  statsPanel.className = 'entity-demo__drawer-panel';
+  const statGrid = document.createElement('div');
+  statGrid.className = 'entity-demo__drawer-stat-grid';
+  statGrid.appendChild(createStatCardElement('Owner', video.owner));
+  statGrid.appendChild(createStatCardElement('Meta', video.meta));
+  statGrid.appendChild(createStatCardElement('Score', video.watchScore));
+  statsPanel.appendChild(statGrid);
 
-  wrapperElement.append(
-    summaryHeading,
-    summaryCopy,
-    detailHeading,
-    detailList,
-    metadataHeading,
-    metadataList,
-  );
+  const tagRow = document.createDocumentFragment();
+  video.tags.forEach((tag) => tagRow.appendChild(createTagElement(tag)));
+  statsPanel.appendChild(tagRow);
+
+  wrapperElement.append(summaryPanel, statsPanel);
   return wrapperElement;
 }
 
@@ -858,57 +1016,43 @@ function createVideoDrawerBody(video) {
  * @returns {HTMLElement}
  */
 function createDrawerModeBadge(mode) {
-  const badgeElement = document.createElement('strong');
+  const badgeElement = document.createElement('span');
+  badgeElement.className = 'entity-demo__drawer-mode';
+  badgeElement.setAttribute('data-demo-drawer-mode', mode);
   badgeElement.textContent = mode === 'playlist' ? 'Playlist' : 'Video';
   return badgeElement;
-}
-
-/**
- * @param {DemoVideo} video
- * @returns {HTMLElement}
- */
-function buildVideoThumbnailDataUrl(video) {
-  const gradientStart = video.accent || '#0ea5e9';
-  const gradientEnd = video.accentAlt || '#22c55e';
-  const label = escapeSvgText(video.thumbnailLabel || 'Video');
-  const title = escapeSvgText(video.title);
-  const svgMarkup =
-    `<svg xmlns="http://www.w3.org/2000/svg" width="160" height="90" viewBox="0 0 160 90" role="img" aria-label="${title}">` +
-    '<defs>' +
-    '<linearGradient id="demoGradient" x1="0%" y1="0%" x2="100%" y2="100%">' +
-    `<stop offset="0%" stop-color="${gradientStart}"/>` +
-    `<stop offset="100%" stop-color="${gradientEnd}"/>` +
-    '</linearGradient>' +
-    '</defs>' +
-    '<rect width="160" height="90" rx="12" fill="url(#demoGradient)"/>' +
-    '<circle cx="80" cy="45" r="18" fill="rgba(15,23,42,0.25)"/>' +
-    '<polygon points="75,36 75,54 91,45" fill="#ffffff"/>' +
-    `<text x="80" y="78" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#ffffff">${label}</text>` +
-    '</svg>';
-  return `data:image/svg+xml;charset=UTF-8,${encodeURIComponent(svgMarkup)}`;
 }
 
 /**
  * @param {string} label
  * @returns {HTMLElement}
  */
-function createListItem(label) {
-  const listItem = document.createElement('li');
-  listItem.textContent = label;
-  return listItem;
+function createTagElement(label) {
+  const tagElement = document.createElement('span');
+  tagElement.className = 'entity-demo__tag';
+  tagElement.textContent = label;
+  return tagElement;
 }
 
 /**
+ * @param {string} label
  * @param {string} value
- * @returns {string}
+ * @returns {HTMLElement}
  */
-function escapeSvgText(value) {
-  return String(value)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+function createStatCardElement(label, value) {
+  const statElement = document.createElement('div');
+  statElement.className = 'entity-demo__drawer-stat';
+
+  const labelElement = document.createElement('span');
+  labelElement.className = 'entity-demo__drawer-stat-label';
+  labelElement.textContent = label;
+
+  const valueElement = document.createElement('span');
+  valueElement.className = 'entity-demo__drawer-stat-value';
+  valueElement.textContent = value;
+
+  statElement.append(labelElement, valueElement);
+  return statElement;
 }
 
 /**
@@ -948,7 +1092,7 @@ function activateDockerBlocker(elements, message) {
   elements.errorNotice.textContent = normalizedMessage;
   elements.errorNotice.hidden = false;
   elements.protocolWarning.hidden = true;
-  elements.shell.hidden = true;
+  elements.layout.hidden = true;
   elements.drawer.hidden = true;
 }
 
@@ -975,4 +1119,16 @@ function waitForFrame() {
       resolve();
     });
   });
+}
+
+/**
+ * Re-renders a custom element after host-owned slot content changes.
+ * @param {HTMLElement} element
+ * @returns {void}
+ */
+function refreshCustomElement(element) {
+  const refreshableElement = /** @type {HTMLElement & { update?: () => void }} */ (element);
+  if (typeof refreshableElement.update === 'function') {
+    refreshableElement.update();
+  }
 }
