@@ -19,58 +19,58 @@ const DEMO_BASE_URL = process.env.MP_UI_DEMO_BASE_URL;
 const FALLBACK_URL = 'https://localhost:4443';
 
 // Paths to look for in script src and link href
-const LOCAL_JS = '../mpr-ui.js';
-const LOCAL_CSS = '../mpr-ui.css';
+const JS_SUFFIX = '/mpr-ui.js';
+const CSS_SUFFIX = '/mpr-ui.css';
 const CDN_JS_PATTERN = /mpr-ui@(?:latest|[\d.]+)\/mpr-ui\.js/;
 const CDN_CSS_PATTERN = /mpr-ui@(?:latest|[\d.]+)\/mpr-ui\.css/;
 
 const DEMO_PAGES = Object.freeze([
   {
     path: '/',
-    expectedPath: '/demo/index.html',
+    expectedPath: '/',
     title: 'mpr-ui Demo',
     requiredScripts: ['/tauth.js'],
-    cdnJs: true,
-    cdnCss: true,
+    scriptPath: JS_SUFFIX,
+    stylePath: CSS_SUFFIX,
   },
   {
-    path: '/demo/index.html',
-    expectedPath: '/demo/index.html',
+    path: '/index.html',
+    expectedPath: '/(?:index\\.html)?$',
     title: 'mpr-ui Demo',
     requiredScripts: ['/tauth.js'],
-    cdnJs: true,
-    cdnCss: true,
+    scriptPath: JS_SUFFIX,
+    stylePath: CSS_SUFFIX,
   },
   {
     path: '/demo/local.html',
     expectedPath: '/demo/local.html',
     title: 'mpr-ui Demo (Local Bundle)',
-    scriptPath: LOCAL_JS,
-    stylePath: LOCAL_CSS,
+    scriptPath: JS_SUFFIX,
+    stylePath: CSS_SUFFIX,
     requiredScripts: ['/tauth.js'],
   },
   {
     path: '/demo/tauth-demo.html',
     expectedPath: '/demo/tauth-demo.html',
     title: 'TAuth + mpr-ui (Docker Compose)',
-    scriptPath: LOCAL_JS,
-    stylePath: LOCAL_CSS,
+    scriptPath: JS_SUFFIX,
+    stylePath: CSS_SUFFIX,
     requiredScripts: ['/tauth.js', '/mpr-ui-config.js'],
   },
   {
     path: '/demo/standalone.html',
     expectedPath: '/demo/standalone.html',
     title: 'Standalone Login Button + TAuth',
-    scriptPath: LOCAL_JS,
-    stylePath: LOCAL_CSS,
+    scriptPath: JS_SUFFIX,
+    stylePath: CSS_SUFFIX,
     requiredScripts: ['/tauth.js', '/mpr-ui-config.js'],
   },
   {
     path: '/demo/entity-workspace.html',
     expectedPath: '/demo/entity-workspace.html',
     title: 'Entity Workspace Demo',
-    scriptPath: LOCAL_JS,
-    stylePath: LOCAL_CSS,
+    scriptPath: JS_SUFFIX,
+    stylePath: CSS_SUFFIX,
     requiredScripts: ['/tauth.js'],
   },
 ]);
@@ -98,13 +98,7 @@ test.beforeAll(async () => {
   server = http.createServer((request, response) => {
     const requestUrl = new URL(request.url || '/', 'http://127.0.0.1');
 
-    if (requestUrl.pathname === '/') {
-      response.writeHead(302, { Location: '/demo/index.html' });
-      response.end();
-      return;
-    }
-
-    const filesystemPath = resolve(REPOSITORY_ROOT, `.${requestUrl.pathname}`);
+    const filesystemPath = resolve(REPOSITORY_ROOT, `.${requestUrl.pathname === '/' ? '/index.html' : requestUrl.pathname}`);
 
     if (!filesystemPath.startsWith(REPOSITORY_ROOT)) {
       response.writeHead(403);
@@ -158,7 +152,11 @@ test('single demo stack serves every demo page from one origin', async ({ page }
 
     await page.goto(targetUrl.toString(), { waitUntil: 'networkidle' });
     await expect(page).toHaveTitle(demoPage.title);
-    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(demoPage.expectedPath)}(\\?.*)?$`));
+    
+    const expectedPattern = demoPage.expectedPath.startsWith('/') && !demoPage.expectedPath.includes('(')
+      ? `${escapeRegExp(demoPage.expectedPath)}(\\?.*)?$`
+      : `${demoPage.expectedPath}(\\?.*)?$`;
+    await expect(page).toHaveURL(new RegExp(expectedPattern));
 
     const scriptUrls = await page.evaluate(() => Array.from(document.scripts).map((script) => script.src));
     const styleUrls = await page.evaluate(() => Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map((element) => element.href));
@@ -167,19 +165,16 @@ test('single demo stack serves every demo page from one origin', async ({ page }
       const foundCdnJs = scriptUrls.some(url => CDN_JS_PATTERN.test(url));
       expect(foundCdnJs, `Expected to find CDN JS on ${demoPage.path}`).toBe(true);
     } else if (demoPage.scriptPath) {
-      // Local check: ends with relative path or matches absolute path from baseUrl
-      const expectedUrlEnd = demoPage.scriptPath.replace(/^\.\./, '');
-      const foundLocalJs = scriptUrls.some(url => url.endsWith(expectedUrlEnd) && url.includes(baseUrl.host));
-      expect(foundLocalJs, `Expected to find local JS ${demoPage.scriptPath} on ${demoPage.path}. Found: ${scriptUrls.join(', ')}`).toBe(true);
+      const foundLocalJs = scriptUrls.some(url => url.endsWith(demoPage.scriptPath));
+      expect(foundLocalJs, `Expected to find local JS ending with ${demoPage.scriptPath} on ${demoPage.path}. Found: ${scriptUrls.join(', ')}`).toBe(true);
     }
 
     if (demoPage.cdnCss) {
       const foundCdnCss = styleUrls.some(url => CDN_CSS_PATTERN.test(url));
       expect(foundCdnCss, `Expected to find CDN CSS on ${demoPage.path}`).toBe(true);
     } else if (demoPage.stylePath) {
-      const expectedUrlEnd = demoPage.stylePath.replace(/^\.\./, '');
-      const foundLocalCss = styleUrls.some(url => url.endsWith(expectedUrlEnd) && url.includes(baseUrl.host));
-      expect(foundLocalCss, `Expected to find local CSS ${demoPage.stylePath} on ${demoPage.path}. Found: ${styleUrls.join(', ')}`).toBe(true);
+      const foundLocalCss = styleUrls.some(url => url.endsWith(demoPage.stylePath));
+      expect(foundLocalCss, `Expected to find local CSS ending with ${demoPage.stylePath} on ${demoPage.path}. Found: ${styleUrls.join(', ')}`).toBe(true);
     }
 
     if (demoPage.requiredScripts) {

@@ -58,7 +58,7 @@ test('MU-130: standalone demo uses the shared header navigation links', () => {
   );
 
   const expectedLinks = [
-    './index.html',
+    '../index.html',
     './tauth-demo.html',
     './entity-workspace.html?entity-demo-docker=2',
     './local.html',

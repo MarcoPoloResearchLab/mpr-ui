@@ -5,17 +5,24 @@ const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 
-const rootIndexHtml = readFileSync(join(__dirname, '..', 'index.html'), 'utf8');
+const repoRoot = join(__dirname, '..');
+const indexHtmlPath = join(repoRoot, 'index.html');
 
-test('root index redirects to the demo landing page', () => {
+test('root index.html contains the demo hub content', () => {
+  const indexHtml = readFileSync(indexHtmlPath, 'utf8');
   assert.match(
-    rootIndexHtml,
-    /content="0;\s*url=\/demo\/index\.html"/i,
-    'Expected the root index.html file to redirect to /demo/index.html',
+    indexHtml,
+    /<title>mpr-ui Demo<\/title>/i,
+    'Expected the root index.html to be the demo hub',
   );
   assert.match(
-    rootIndexHtml,
-    /window\.location\.replace\('\/demo\/index\.html'\)/,
-    'Expected the root index.html file to include a JavaScript redirect fallback',
+    indexHtml,
+    /<mpr-header[\s\S]*?id="demo-header"/i,
+    'Expected root index.html to include the mpr-header',
+  );
+  assert.doesNotMatch(
+    indexHtml,
+    /http-equiv="refresh"/i,
+    'Expected root index.html to stop using meta refresh redirect',
   );
 });
