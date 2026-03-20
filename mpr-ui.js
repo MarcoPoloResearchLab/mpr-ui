@@ -6198,6 +6198,107 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return slots;
   }
 
+  function initializeTrackedSlotMap(slotNames, defaultSlotName) {
+    var slots = {};
+    if (Array.isArray(slotNames)) {
+      slotNames.forEach(function initSlot(name) {
+        slots[name] = [];
+      });
+    }
+    if (
+      defaultSlotName &&
+      !Object.prototype.hasOwnProperty.call(slots, defaultSlotName)
+    ) {
+      slots[defaultSlotName] = [];
+    }
+    return slots;
+  }
+
+  function trackedSlotMapHasNode(slotMap, node) {
+    if (!slotMap || !node) {
+      return false;
+    }
+    return Object.keys(slotMap).some(function hasNode(slotName) {
+      return Array.isArray(slotMap[slotName]) && slotMap[slotName].indexOf(node) !== -1;
+    });
+  }
+
+  function resolveTrackedSlotName(node, slotMap, defaultSlotName) {
+    var slotName = null;
+    if (node && typeof node.getAttribute === "function") {
+      slotName = node.getAttribute("slot");
+    }
+    if (!slotName && node && typeof node.slot === "string") {
+      slotName = node.slot;
+    }
+    if (slotName && Object.prototype.hasOwnProperty.call(slotMap, slotName)) {
+      return slotName;
+    }
+    return defaultSlotName || null;
+  }
+
+  function getDirectHostChildNodes(hostElement) {
+    if (!hostElement) {
+      return [];
+    }
+    if (
+      hostElement.childNodes &&
+      typeof hostElement.childNodes.length === "number"
+    ) {
+      return Array.prototype.slice.call(hostElement.childNodes);
+    }
+    if (
+      hostElement.children &&
+      typeof hostElement.children.length === "number"
+    ) {
+      return Array.prototype.slice.call(hostElement.children);
+    }
+    return [];
+  }
+
+  function syncTrackedSlotsWithHost(
+    hostElement,
+    slotNames,
+    defaultSlotName,
+    currentSlots,
+    preservedRootNodes,
+  ) {
+    var nextSlots = initializeTrackedSlotMap(slotNames, defaultSlotName);
+    Object.keys(nextSlots).forEach(function copySlot(slotName) {
+      var nodes =
+        currentSlots && Array.isArray(currentSlots[slotName])
+          ? currentSlots[slotName]
+          : [];
+      nodes.forEach(function keepNode(node) {
+        if (!node || trackedSlotMapHasNode(nextSlots, node)) {
+          return;
+        }
+        nextSlots[slotName].push(node);
+      });
+    });
+    var preservedNodes = Array.isArray(preservedRootNodes)
+      ? preservedRootNodes.filter(Boolean)
+      : [];
+    getDirectHostChildNodes(hostElement).forEach(function captureNode(node) {
+      if (!node || preservedNodes.indexOf(node) !== -1) {
+        return;
+      }
+      if (hostElement && typeof hostElement.removeChild === "function") {
+        try {
+          hostElement.removeChild(node);
+        } catch (_error) {}
+      }
+      if (trackedSlotMapHasNode(nextSlots, node)) {
+        return;
+      }
+      var slotName = resolveTrackedSlotName(node, nextSlots, defaultSlotName);
+      if (slotName) {
+        nextSlots[slotName].push(node);
+      }
+    });
+    return nextSlots;
+  }
+
   function resolveOwnerWindow(hostElement) {
     if (
       hostElement &&
@@ -6898,7 +6999,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return (
       '<div class="' +
       ENTITY_RAIL_ROOT_CLASS +
-      '__header">' +
+      '__header" data-mpr-entity-rail="header">' +
       '<div class="' +
       ENTITY_RAIL_ROOT_CLASS +
       '__edge" data-mpr-entity-rail="leading"></div>' +
@@ -6942,6 +7043,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return {};
     }
     return {
+      header: hostElement.querySelector('[data-mpr-entity-rail="header"]'),
       leading: hostElement.querySelector('[data-mpr-entity-rail="leading"]'),
       trailing: hostElement.querySelector('[data-mpr-entity-rail="trailing"]'),
       nav: hostElement.querySelector('[data-mpr-entity-rail="nav"]'),
@@ -7249,7 +7351,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return (
       '<section class="' +
       ENTITY_WORKSPACE_ROOT_CLASS +
-      '__surface">' +
+      '__surface" data-mpr-entity-workspace="surface">' +
       '<div class="' +
       ENTITY_WORKSPACE_ROOT_CLASS +
       '__heading" data-mpr-entity-workspace="heading"></div>' +
@@ -7291,6 +7393,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return {};
     }
     return {
+      surface: hostElement.querySelector('[data-mpr-entity-workspace="surface"]'),
       heading: hostElement.querySelector('[data-mpr-entity-workspace="heading"]'),
       toolbar: hostElement.querySelector('[data-mpr-entity-workspace="toolbar"]'),
       filters: hostElement.querySelector('[data-mpr-entity-workspace="filters"]'),
@@ -11266,10 +11369,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__entityRailSlots = null;
           this.__entityRailSlotsCaptured = false;
           this.__entityRailElements = null;
+          this.__entityRailMutationObserver = null;
           this.__entityRailNavStep = ENTITY_RAIL_DEFAULTS.navStep;
           this.__boundEntityRailPreviousHandler = this.__handlePreviousClick.bind(this);
           this.__boundEntityRailNextHandler = this.__handleNextClick.bind(this);
           this.__boundEntityRailScrollHandler = this.__handleViewportScroll.bind(this);
+          this.__boundEntityRailMutationHandler = this.__handleEntityRailMutations.bind(this);
         }
         static get observedAttributes() {
           return ENTITY_RAIL_ATTRIBUTE_NAMES;
@@ -11283,6 +11388,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         }
         destroy() {
           this.__detachEntityRailEvents();
+          this.__detachEntityRailObserver();
           this.__entityRailSlots = null;
           this.__entityRailSlotsCaptured = false;
           this.__entityRailElements = null;
@@ -11304,6 +11410,19 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           );
           this.__entityRailSlotsCaptured = true;
         }
+        __syncEntityRailSlots() {
+          this.__entityRailSlots = syncTrackedSlotsWithHost(
+            this,
+            ENTITY_RAIL_SLOT_NAMES,
+            "default",
+            this.__entityRailSlots,
+            [
+              this.__entityRailElements && this.__entityRailElements.header,
+              this.__entityRailElements && this.__entityRailElements.viewport,
+              this.__entityRailElements && this.__entityRailElements.empty,
+            ],
+          );
+        }
         __renderEntityRail() {
           if (!this.__mprConnected) {
             return;
@@ -11315,6 +11434,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             null;
           ensureEntityRailStyles(documentObject);
           this.classList.add(ENTITY_RAIL_ROOT_CLASS);
+          this.__detachEntityRailObserver();
+          this.__captureEntityRailSlots();
+          this.__syncEntityRailSlots();
           var config = normalizeEntityRailOptions(
             buildEntityRailOptionsFromAttributes(this),
           );
@@ -11330,7 +11452,34 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
           this.__applyEntityRailState(config);
           this.__attachEntityRailEvents();
+          this.__attachEntityRailObserver();
           this.__updateEntityRailBoundaryState("render");
+        }
+        __attachEntityRailObserver() {
+          var ownerWindow = resolveOwnerWindow(this);
+          var MutationObserverCtor =
+            (ownerWindow && ownerWindow.MutationObserver) ||
+            global.MutationObserver ||
+            null;
+          if (!MutationObserverCtor) {
+            return;
+          }
+          if (!this.__entityRailMutationObserver) {
+            this.__entityRailMutationObserver = new MutationObserverCtor(
+              this.__boundEntityRailMutationHandler,
+            );
+          }
+          this.__entityRailMutationObserver.observe(this, {
+            childList: true,
+          });
+        }
+        __detachEntityRailObserver() {
+          if (
+            this.__entityRailMutationObserver &&
+            typeof this.__entityRailMutationObserver.disconnect === "function"
+          ) {
+            this.__entityRailMutationObserver.disconnect();
+          }
         }
         __attachEntityRailEvents() {
           if (
@@ -11516,6 +11665,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         __handleViewportScroll() {
           this.__updateEntityRailBoundaryState("scroll");
         }
+        __handleEntityRailMutations() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          this.__renderEntityRail();
+        }
       };
     });
   }
@@ -11603,8 +11758,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__entityWorkspaceSlots = null;
           this.__entityWorkspaceSlotsCaptured = false;
           this.__entityWorkspaceElements = null;
+          this.__entityWorkspaceMutationObserver = null;
           this.__boundEntityWorkspaceLoadMoreHandler =
             this.__handleLoadMoreClick.bind(this);
+          this.__boundEntityWorkspaceMutationHandler =
+            this.__handleEntityWorkspaceMutations.bind(this);
         }
         static get observedAttributes() {
           return ENTITY_WORKSPACE_ATTRIBUTE_NAMES;
@@ -11618,6 +11776,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         }
         destroy() {
           this.__detachEntityWorkspaceEvents();
+          this.__detachEntityWorkspaceObserver();
           this.__entityWorkspaceSlots = null;
           this.__entityWorkspaceSlotsCaptured = false;
           this.__entityWorkspaceElements = null;
@@ -11640,6 +11799,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           );
           this.__entityWorkspaceSlotsCaptured = true;
         }
+        __syncEntityWorkspaceSlots() {
+          this.__entityWorkspaceSlots = syncTrackedSlotsWithHost(
+            this,
+            ENTITY_WORKSPACE_SLOT_NAMES,
+            "list",
+            this.__entityWorkspaceSlots,
+            [
+              this.__entityWorkspaceElements && this.__entityWorkspaceElements.surface,
+            ],
+          );
+        }
         __renderEntityWorkspace() {
           if (!this.__mprConnected) {
             return;
@@ -11651,6 +11821,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             null;
           ensureEntityWorkspaceStyles(documentObject);
           this.classList.add(ENTITY_WORKSPACE_ROOT_CLASS);
+          this.__detachEntityWorkspaceObserver();
+          this.__captureEntityWorkspaceSlots();
+          this.__syncEntityWorkspaceSlots();
           var config = normalizeEntityWorkspaceOptions(
             buildEntityWorkspaceOptionsFromAttributes(this),
           );
@@ -11666,6 +11839,33 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__entityWorkspaceElements = resolveEntityWorkspaceElements(this);
           this.__applyEntityWorkspaceState(config);
           this.__attachEntityWorkspaceEvents();
+          this.__attachEntityWorkspaceObserver();
+        }
+        __attachEntityWorkspaceObserver() {
+          var ownerWindow = resolveOwnerWindow(this);
+          var MutationObserverCtor =
+            (ownerWindow && ownerWindow.MutationObserver) ||
+            global.MutationObserver ||
+            null;
+          if (!MutationObserverCtor) {
+            return;
+          }
+          if (!this.__entityWorkspaceMutationObserver) {
+            this.__entityWorkspaceMutationObserver = new MutationObserverCtor(
+              this.__boundEntityWorkspaceMutationHandler,
+            );
+          }
+          this.__entityWorkspaceMutationObserver.observe(this, {
+            childList: true,
+          });
+        }
+        __detachEntityWorkspaceObserver() {
+          if (
+            this.__entityWorkspaceMutationObserver &&
+            typeof this.__entityWorkspaceMutationObserver.disconnect === "function"
+          ) {
+            this.__entityWorkspaceMutationObserver.disconnect();
+          }
         }
         __attachEntityWorkspaceEvents() {
           if (
@@ -11745,6 +11945,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             selectionCount:
               parsePositiveInteger(this.getAttribute("selection-count"), 0),
           });
+        }
+        __handleEntityWorkspaceMutations() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          this.__renderEntityWorkspace();
         }
       };
     });

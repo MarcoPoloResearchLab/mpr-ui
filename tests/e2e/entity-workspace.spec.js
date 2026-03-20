@@ -60,4 +60,40 @@ test.describe('Entity workspace primitives', () => {
     );
     await expect(page.locator('[data-mpr-workspace-layout="sidebar"]')).toBeHidden();
   });
+
+  test('MU-429: rail and workspace absorb nodes appended after mount', async ({ page }) => {
+    await page.evaluate(() => {
+      const rail = document.getElementById('fixture-rail');
+      const workspace = document.getElementById('fixture-entity-workspace');
+      if (!rail || !workspace) {
+        throw new Error('fixture.entity_workspace.missing_root');
+      }
+
+      const lateTile = document.createElement('mpr-entity-tile');
+      lateTile.setAttribute('data-test-id', 'late-tile');
+      lateTile.setAttribute('interactive', 'true');
+      const tileTitle = document.createElement('div');
+      tileTitle.slot = 'title';
+      tileTitle.textContent = 'Late Playlist';
+      lateTile.appendChild(tileTitle);
+      rail.appendChild(lateTile);
+
+      const lateCard = document.createElement('mpr-entity-card');
+      lateCard.setAttribute('data-test-id', 'late-card');
+      const cardTitle = document.createElement('div');
+      cardTitle.slot = 'title';
+      cardTitle.textContent = 'Late Video';
+      lateCard.appendChild(cardTitle);
+      workspace.appendChild(lateCard);
+    });
+
+    await expect(
+      page.locator('[data-mpr-entity-rail="track"] mpr-entity-tile[data-test-id="late-tile"]'),
+    ).toBeVisible();
+    await expect(
+      page.locator(
+        '[data-mpr-entity-workspace="list"] mpr-entity-card[data-test-id="late-card"]',
+      ),
+    ).toBeVisible();
+  });
 });
