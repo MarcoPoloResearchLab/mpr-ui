@@ -148,6 +148,10 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - MU-429 docs follow-up: expanded `docs/custom-elements.md` and `README.md` with usage guidance for the entity-workspace primitives, including a YouTube playlists/videos example. Tests: not run (docs-only).
 - MU-429 demo follow-up: added a runnable JSON-backed entity-workspace demo in `demo/entity-workspace.html`, wired by `demo/entity-workspace.js` against `demo/entity-workspace.json`, and added Playwright smoke coverage for the example page. Tests: `npx --yes --package typescript tsc --noEmit --allowJs --checkJs --lib ES2020,DOM --module nodenext --moduleResolution nodenext --target ES2020 demo/entity-workspace.js`, `node --test tests/entity-workspace.test.js`, `npx playwright test tests/e2e/entity-workspace.spec.js`, `npx playwright test tests/e2e/entity-workspace-demo.spec.js`.
 
+## 2026-03-20
+
+- Auth bootstrap regression: updated the shared auth controller so `<mpr-header>` and `<mpr-login-button>` rebind TAuth endpoints when `tauth-url` changes after first render, taught nested `<mpr-user>` menus to inherit header config during bootstrap, and added regression coverage for both failure modes. Tests: `node --test tests/custom-elements-header-footer.test.js`, `node --test tests/auth-credential-exchange.test.js`, `npx --yes --package typescript tsc --noEmit`, `npm test`.
+
 ## 2026-03-19
 
 - MU-432: reconciled `mpr-header` auth bootstrap from `getCurrentUser()` after `initAuthClient()` so existing-session recovery marks the header authenticated on first render and keeps `mpr-ui:auth:authenticated` in sync with the current session; added regression coverage in `tests/custom-elements-header-footer.test.js`. Tests: `node --test tests/custom-elements-header-footer.test.js`, `node --test tests/auth-credential-exchange.test.js`, `npx --yes --package typescript tsc --noEmit`, `npm test`.
