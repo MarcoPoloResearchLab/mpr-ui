@@ -61,7 +61,6 @@ test('sub-demos provide consistent navigation and local asset loading', async ({
   const subDemos = [
     { path: '/demo/tauth-demo.html', title: 'TAuth + mpr-ui (Docker Compose)' },
     { path: '/demo/entity-workspace.html?entity-demo-docker=2', title: 'Entity Workspace Demo' },
-    { path: '/demo/local.html', title: 'mpr-ui Demo (Local Bundle)' },
     { path: '/demo/standalone.html', title: 'Standalone Login Button + TAuth' }
   ];
 

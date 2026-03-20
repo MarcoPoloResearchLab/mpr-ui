@@ -20,14 +20,12 @@ const entityWorkspaceCss = readFileSync(entityWorkspaceCssPath, 'utf8');
 const dockerCompose = readFileSync(dockerComposePath, 'utf8');
 
 const HEADER_HORIZONTAL_LINK_DEMO_FILES = Object.freeze([
-  'local.html',
   'tauth-demo.html',
   'entity-workspace.html',
   'standalone.html',
 ]);
 
 const FOOTER_HORIZONTAL_LINK_DEMO_FILES = Object.freeze([
-  'local.html',
   'tauth-demo.html',
   'entity-workspace.html',
   'standalone.html',
