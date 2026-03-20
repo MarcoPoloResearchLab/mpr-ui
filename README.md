@@ -212,7 +212,7 @@ This approach requires duplicating auth settings across components and doesn't b
 
 Looking for a step–by–step walkthrough? See [`docs/integration-guide.md`](docs/integration-guide.md), which covers prerequisites, exact script ordering, attribute mapping, and debugging tips for wiring `mpr-header` to TAuth in any project. The summary below focuses on the bundled Compose demo.
 
-Need a working authentication backend without wiring your own server? `demo/tauth-demo.html` pairs with `docker-compose.yml` to spin up [gHTTP](tools/ghttp) plus the published `ghcr.io/marcopoloresearchlab/tauth:latest` service. gHTTP serves the entire repository, so the page loads `mpr-ui.js` directly from your working tree—no extra copy step required.
+Need a working authentication backend without wiring your own server? `demo/index.html` pairs with `docker-compose.yml` to spin up [gHTTP](tools/ghttp) plus the published `ghcr.io/marcopoloresearchlab/tauth:latest` service. gHTTP serves the entire repository, so the Docker-backed pages load `mpr-ui.js` directly from your working tree—no extra copy step required.
 
 1. Configure TAuth:
 
@@ -241,7 +241,19 @@ Need a working authentication backend without wiring your own server? `demo/taut
    ./up.sh
    ```
 
-   The stack exposes one HTTPS origin on port 4443 (for example `https://computercat.tyemirov.net:4443/`). The root URL redirects to `/demo/index.html`, and the same frontend serves `/demo/index.html`, `/demo/local.html`, `/demo/tauth-demo.html`, `/demo/standalone.html`, and `/demo/entity-workspace.html`. TAuth still listens on [http://localhost:8080](http://localhost:8080) behind the proxy. Because the local demos load `/mpr-ui.js` and `/mpr-ui.css` from the repository root, any change you make to the library is immediately reflected after a hard reload.
+   - **`tauth`** (default): Full header demo with cross-origin TAuth calls.
+
+     ```bash
+     ./up.sh tauth
+     ```
+
+   - **`tauth-standalone`**: Standalone login button demo with gHTTP HTTPS reverse proxy to TAuth (same-origin operation, GIS-compatible).
+
+     ```bash
+     ./up.sh tauth-standalone
+     ```
+
+   Both profiles serve the index demo over HTTPS on port 4443 (for example, `https://localhost:4443`). The root page stays fixed at `demo/index.html`, and the shared header links to the TAuth demo, entity-workspace demo, local bundle preview, and standalone demo. TAuth listens on [http://localhost:8080](http://localhost:8080) in both cases. Because the bundle is loaded straight from `/mpr-ui.js`, any change you make to the library is immediately reflected in the Docker-backed pages. If you still see a stale bundle after restarting the stack, open DevTools, enable "Disable cache," and hard-reload the page.
 
 4. Sign in and inspect the session card.
 
@@ -376,7 +388,7 @@ Both `<mpr-header>` and `<mpr-footer>` also accept `size="normal"` (default) or 
 
 ### Band component
 
-`<mpr-band>` is a passive container that applies the bundled palette tokens and spacing without imposing any markup. Pick a `category` (`research`, `tools`, `platform`, `products`, or `custom`) to reuse a preset palette or pass a `theme` JSON object to set the background/panel/text/accent colours directly. Drop Bootstrap grids, hero copy, or `<mpr-card>` elements inside the band and it will isolate them visually without injecting headings, grids, or cards of its own.
+`<mpr-band>` is a passive container that applies the bundled palette tokens and spacing without imposing any markup. Pick a `category` (`research`, `tools`, `platform`, `products`, or `custom`) to reuse a palette or pass a `theme` JSON object to set the background/panel/text/accent colours directly. Drop Bootstrap grids, hero copy, or `<mpr-card>` elements inside the band and it will isolate them visually without injecting headings, grids, or cards of its own.
 
 Need sample card data? Call `MPRUI.getBandProjectCatalog()` and feed the results into `<mpr-card>` instances inside the band. Because the container no longer renders cards, it does not emit `mpr-band:*` events—the events now live on `<mpr-card>` where the flipping behaviour occurs. The old `layout` attribute is ignored; manual layout is always the default.
 
@@ -388,9 +400,9 @@ Need sample card data? Call `MPRUI.getBandProjectCatalog()` and feed the results
     "background": "var(--mpr-color-surface-primary, rgba(248, 250, 252, 0.95))",
     "panel": "var(--mpr-color-surface-elevated, rgba(255, 255, 255, 0.98))",
     "text": "var(--mpr-color-text-primary, #0f172a)",
-    "border": "var(--mpr-color-border, rgba(148,163,184,0.35))",
-    "lineTop": "var(--mpr-color-border, rgba(148,163,184,0.35))",
-    "lineBottom": "var(--mpr-color-border, rgba(148,163,184,0.35))"
+    "border": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+    "lineTop": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))",
+    "lineBottom": "var(--mpr-color-border, rgba(148, 163, 184, 0.35))"
   }'
 >
   <!-- Bootstrap grid or <mpr-card> instances -->
@@ -430,10 +442,10 @@ console.log(selectionState.getSelectedIds());
 
 ## Demo
 
-- Run `./up.sh` and open the printed HTTPS URL; the root path redirects to `demo/index.html`.
-- Need to test local bundle changes before publishing? Open `demo/local.html`, `demo/tauth-demo.html`, `demo/standalone.html`, or `demo/entity-workspace.html` from that same origin; they load `mpr-ui.js` and `mpr-ui.css` from your working tree.
-- Need a concrete entity-workspace example? Open `demo/entity-workspace.html`; it fetches `demo/entity-workspace.json` from the same server and wires the collection/detail primitives without app-specific API logic.
-- The auth demos rely on the real Google Identity Services script (`https://accounts.google.com/gsi/client`), so ensure you have network access when testing sign-in flows.
+- Open `demo/index.html` in a browser to use the shared demo header/footer and the CDN-backed preview.
+- Need to test local changes before publishing? Open `demo/local.html` instead; it loads `mpr-ui.js` and `mpr-ui.css` from your working tree but still fetches Google Identity Services from the official CDN.
+- Need a concrete entity-workspace example? Start `./up.sh tauth`, open `https://localhost:4443/`, and use the shared header to open `Entity workspace`; the page is intentionally wired to the Docker-mounted `demo/mpr-ui.js` bundle and blocks direct static serving.
+- Both demo variants rely on the real Google Identity Services script (`https://accounts.google.com/gsi/client`), so ensure you have network access when testing sign-in flows.
 
 ## Testing
 

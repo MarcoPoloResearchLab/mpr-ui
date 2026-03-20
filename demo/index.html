@@ -23,6 +23,7 @@
       defer
       src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
     ></script>
+    <script defer src="/tauth.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body class="theme-light" data-demo-palette="default">
@@ -37,10 +38,11 @@
       horizontal-links='{
         "alignment": "right",
         "links": [
-          { "label": "Entity workspace", "href": "./entity-workspace.html" },
+          { "label": "Index demo", "href": "./index.html" },
           { "label": "TAuth demo", "href": "./tauth-demo.html" },
-          { "label": "Standalone demo", "href": "./standalone.html" },
-          { "label": "Local bundle", "href": "./local.html" }
+          { "label": "Entity workspace", "href": "./entity-workspace.html?entity-demo-docker=2" },
+          { "label": "Local bundle", "href": "./local.html" },
+          { "label": "Standalone demo", "href": "./standalone.html" }
         ]
       }'
       google-site-id="991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
@@ -48,9 +50,17 @@
       tauth-login-path="/auth/google"
       tauth-logout-path="/auth/logout"
       tauth-nonce-path="/auth/nonce"
-      settings="true"
-      settings-label="Settings"
+      user-menu-display-mode="avatar"
+      logout-url="/"
+      sign-out-label="Log out"
     >
+      <mpr-user
+        slot="aux"
+        display-mode="avatar"
+        tauth-tenant-id="mpr-sites"
+        logout-url="/"
+        logout-label="Log out"
+      ></mpr-user>
     </mpr-header>
 
     <div class="container py-5" data-layout-section="hero-title">
@@ -59,8 +69,8 @@
           <p class="text-uppercase text-muted mb-2">Bootstrap hero</p>
           <h1 class="display-4 fw-semibold mb-3">MPR-UI Demo</h1>
           <p class="lead mb-0">
-            Sticky chrome from mpr-ui pairs with a Bootstrap hero. Bands below keep Bootstrap scoped
-            to their containers so the shared theme switcher remains conflict free.
+            Sticky chrome from mpr-ui pairs with a Bootstrap hero. Use the shared header to move
+            between demos while the footer and theme controls stay identical across every page.
           </p>
         </div>
       </div>

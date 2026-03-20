@@ -59,64 +59,20 @@ test.afterAll(async () => {
   await once(server, 'close');
 });
 
-test('MU-429: JSON-backed entity workspace demo loads and responds to interactions', async ({
+test('MU-429: entity workspace demo blocks direct static serving and requires Docker', async ({
   page,
 }) => {
   await page.goto(`${serverBaseUrl}/demo/entity-workspace.html`, {
     waitUntil: 'networkidle',
   });
 
-  await expect(page.locator('mpr-workspace-layout#entity-demo-layout')).toBeVisible();
-  await expect(page.locator('mpr-entity-tile[data-playlist-id="launch-queue"]')).toBeVisible();
-  await expect(page.locator('[data-demo-video-id="launch-briefing"]')).toBeVisible();
-
-  await page.locator('mpr-sidebar-nav [data-mpr-sidebar-key="research"]').click();
-  await expect(page.locator('#entity-demo-playlist-title')).toContainText('Field Notes');
-  await expect(page.locator('mpr-entity-tile[data-playlist-id="field-notes"]')).toBeVisible();
-
-  await page.locator('input[data-demo-video-select="field-notes-01"]').check();
-  await expect(page.locator('mpr-entity-workspace#entity-demo-workspace')).toHaveAttribute(
-    'data-mpr-entity-workspace-selection-count',
-    '1',
+  await expect(page.locator('#entity-demo-error')).toBeVisible();
+  await expect(page.locator('#entity-demo-error')).toContainText(
+    'This page is intentionally wired to the Docker-mounted demo bundle.',
   );
-
-  await page.locator('[data-mpr-entity-workspace="load-more-button"]').click();
-  await expect(page.locator('[data-demo-video-id="field-notes-04"]')).toBeVisible();
-
-  await page.locator('[data-demo-video-action="details"][data-video-id="field-notes-02"]').click();
-  await expect(page.locator('mpr-detail-drawer#entity-demo-drawer')).toHaveAttribute(
-    'data-mpr-detail-drawer-open',
-    'true',
+  await expect(page.locator('#entity-demo-error')).toContainText(
+    './up.sh tauth',
   );
-  await expect(page.locator('[data-demo-drawer-mode="video"]')).toBeVisible();
-});
-
-test('MU-429: JSON-backed entity workspace ignores concurrent load-more clicks', async ({
-  page,
-}) => {
-  const pageErrors = [];
-  page.on('pageerror', (error) => {
-    pageErrors.push(error.message);
-  });
-
-  await page.goto(`${serverBaseUrl}/demo/entity-workspace.html`, {
-    waitUntil: 'networkidle',
-  });
-
-  await page.locator('mpr-sidebar-nav [data-mpr-sidebar-key="research"]').click();
-  await expect(page.locator('#entity-demo-playlist-title')).toContainText('Field Notes');
-  await expect(page.locator('[data-mpr-entity-workspace="load-more-button"]')).toBeVisible();
-
-  await page.evaluate(() => {
-    const loadMoreButton = document.querySelector('[data-mpr-entity-workspace="load-more-button"]');
-    if (!(loadMoreButton instanceof HTMLButtonElement)) {
-      throw new Error('entity_workspace.demo.missing_load_more_button');
-    }
-    loadMoreButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-    loadMoreButton.dispatchEvent(new MouseEvent('click', { bubbles: true, cancelable: true }));
-  });
-
-  await expect(page.locator('#entity-demo-pagination')).toContainText('Page 2 of 2');
-  await expect(page.locator('[data-demo-video-id="field-notes-04"]')).toBeVisible();
-  expect(pageErrors).toEqual([]);
+  await expect(page.locator('#entity-demo-shell')).toBeHidden();
+  await expect(page.locator('#entity-demo-loading')).toBeHidden();
 });
