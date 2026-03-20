@@ -1,27 +1,26 @@
 #!/bin/bash
-set -e
+set -euo pipefail
 
-echo "Select a profile to run:"
-echo "  1) tauth           - TAuth demo with YAML config (HTTPS on port 4443)"
-echo "  2) tauth-standalone - Standalone login button demo (HTTPS on port 4443)"
-echo ""
-read -p "Enter choice [1-2]: " choice
+REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
+cd "$REPO_ROOT"
 
-case "$choice" in
-  1)
-    profile="tauth"
-    ;;
-  2)
-    profile="tauth-standalone"
-    ;;
-  *)
-    echo "Invalid choice. Exiting."
-    exit 1
-    ;;
-esac
+if [ ! -f demo/.env.ghttp ]; then
+  cp demo/.env.ghttp.example demo/.env.ghttp
+  echo "Seeded demo/.env.ghttp from demo/.env.ghttp.example"
+fi
+
+if [ ! -f demo/.env.tauth ]; then
+  cp .env.tauth.example demo/.env.tauth
+  echo "Seeded demo/.env.tauth from .env.tauth.example"
+fi
+
+ENTRY_URL="$(sed -n 's/^[[:space:]]*-[[:space:]]*"\(https:\/\/[^"]*\)".*/\1/p' demo/config.yaml | head -n 1)"
 
 echo ""
-echo "Starting profile: $profile"
+echo "Starting single demo stack"
+if [ -n "$ENTRY_URL" ]; then
+  echo "Entry URL: ${ENTRY_URL}/"
+fi
 echo ""
 
-docker compose --profile "$profile" up --build --remove-orphans --force-recreate
+docker compose up --build --remove-orphans --force-recreate

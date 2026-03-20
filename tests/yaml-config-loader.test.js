@@ -176,7 +176,7 @@ test('loadYamlConfig throws when tauthUrl is missing', async () => {
   );
 });
 
-test('loadYamlConfig throws when tauthUrl is empty string', async () => {
+test('loadYamlConfig accepts an empty tauthUrl for same-origin auth', async () => {
   resetEnvironment();
   global.location = { origin: 'https://example.com' };
   global.fetch = async () => ({
@@ -205,10 +205,95 @@ test('loadYamlConfig throws when tauthUrl is empty string', async () => {
   };
 
   require(loaderPath);
-  await assert.rejects(
-    global.MPRUI.loadYamlConfig({ configUrl: '/config.yaml' }),
-    {
-      message: 'config.yaml missing auth.tauthUrl',
+  const config = await global.MPRUI.loadYamlConfig({ configUrl: '/config.yaml' });
+
+  assert.equal(config.auth.tauthUrl, '');
+});
+
+test('applyYamlConfig removes tauth-url when config uses same-origin auth', async () => {
+  resetEnvironment();
+  global.location = { origin: 'https://example.com' };
+  global.fetch = async () => ({
+    ok: true,
+    status: 200,
+    text: async () => 'ignored',
+  });
+  global.jsyaml = {
+    load() {
+      return {
+        environments: [
+          {
+            origins: ['https://example.com'],
+            auth: {
+              tauthUrl: '',
+              googleClientId: 'example-client',
+              tenantId: 'example-tenant',
+              loginPath: '/auth/google',
+              logoutPath: '/auth/logout',
+              noncePath: '/auth/nonce',
+            },
+            authButton: {
+              text: 'signin_with',
+              size: 'large',
+              theme: 'outline',
+              shape: 'circle',
+            },
+          },
+        ],
+      };
     },
-  );
+  };
+
+  function createElement(initialAttributes) {
+    const attributes = Object.assign({}, initialAttributes);
+    return {
+      attributes,
+      setAttribute(name, value) {
+        attributes[name] = String(value);
+      },
+      removeAttribute(name) {
+        delete attributes[name];
+      },
+    };
+  }
+
+  const header = createElement({ 'tauth-url': 'https://stale.example.com' });
+  const loginButton = createElement({ 'tauth-url': 'https://stale.example.com' });
+  const userMenu = createElement({});
+
+  global.document = {
+    readyState: 'complete',
+    addEventListener() {},
+    querySelectorAll(selector) {
+      if (selector === 'mpr-header') {
+        return [header];
+      }
+      if (selector === 'mpr-login-button') {
+        return [loginButton];
+      }
+      if (selector === 'mpr-user') {
+        return [userMenu];
+      }
+      return [];
+    },
+  };
+
+  require(loaderPath);
+  await global.MPRUI.applyYamlConfig({ configUrl: '/demo/config.yaml' });
+
+  assert.equal(header.attributes['google-site-id'], 'example-client');
+  assert.equal(header.attributes['tauth-tenant-id'], 'example-tenant');
+  assert.equal(header.attributes['tauth-login-path'], '/auth/google');
+  assert.equal(header.attributes['tauth-logout-path'], '/auth/logout');
+  assert.equal(header.attributes['tauth-nonce-path'], '/auth/nonce');
+  assert.equal(header.attributes['tauth-url'], undefined);
+
+  assert.equal(loginButton.attributes['site-id'], 'example-client');
+  assert.equal(loginButton.attributes['button-text'], 'signin_with');
+  assert.equal(loginButton.attributes['button-size'], 'large');
+  assert.equal(loginButton.attributes['button-theme'], 'outline');
+  assert.equal(loginButton.attributes['button-shape'], 'circle');
+  assert.equal(loginButton.attributes['tauth-url'], undefined);
+
+  assert.equal(userMenu.attributes['tauth-tenant-id'], 'example-tenant');
 });

@@ -85,7 +85,7 @@ environments:
     origins:
       - "https://localhost:4443"
     auth:
-      tauthUrl: "https://localhost:4443"
+      tauthUrl: ""
       googleClientId: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
       tenantId: "my-tenant"
       loginPath: "/auth/google"
@@ -99,11 +99,12 @@ environments:
 
 ### Required fields
 
-All auth fields are required and must be non-empty:
+All auth fields are required. `tauthUrl` may be an empty string when the UI
+and TAuth share the same origin through a reverse proxy:
 
 | Field | Description |
 |-------|-------------|
-| `tauthUrl` | Full URL to TAuth service. Cannot be empty. |
+| `tauthUrl` | Full URL to TAuth service, or `""` for same-origin auth. |
 | `googleClientId` | Google OAuth Web client ID |
 | `tenantId` | TAuth tenant ID |
 | `loginPath` | Path for credential exchange (e.g., `/auth/google`) |
@@ -154,7 +155,7 @@ automatically from config.yaml.
 | Attribute | Applied from config | Set manually |
 |-----------|-------------------|--------------|
 | `google-site-id` | Yes (`googleClientId`) | |
-| `tauth-url` | Yes (`tauthUrl`) | |
+| `tauth-url` | Yes (`tauthUrl`) when non-empty | |
 | `tauth-tenant-id` | Yes (`tenantId`) | |
 | `tauth-login-path` | Yes (`loginPath`) | |
 | `tauth-logout-path` | Yes (`logoutPath`) | |
@@ -245,7 +246,7 @@ footer?.addEventListener('mpr-footer:theme-change', (event) => {
 
 | Error | Cause | Fix |
 |-------|-------|-----|
-| `config.yaml missing auth.tauthUrl` | `tauthUrl` not present or empty | Add `tauthUrl` with full URL |
+| `config.yaml missing auth.tauthUrl` | `tauthUrl` not present or not a string | Add `tauthUrl` as a string (`""` for same-origin is valid) |
 | `config.yaml has no environment for origin X` | No matching origin in config | Add your origin to an environment |
 | `config.yaml has multiple environments for origin X` | Origin appears in multiple environments | Each origin must be unique |
 

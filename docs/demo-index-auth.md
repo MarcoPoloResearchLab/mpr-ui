@@ -15,9 +15,9 @@ This document explains how `demo/index.html` wires Google Identity Services (GIS
 
 The Docker Compose demo (`demo/tauth-demo.html` via `docker-compose.yml`) is identical in terms of auth flow but additionally:
 
-- Serves the page from `http://localhost:8000`.
-- Talks to a TAuth instance on `http://localhost:8080`.
-- Loads TAuth’s `tauth.js` helper and sets `tauth-url="http://localhost:8080"`.
+- Serves the repository root over HTTPS on port 4443.
+- Talks to a TAuth instance on `http://localhost:8080` through gHTTP's same-origin proxy.
+- Loads TAuth’s `tauth.js` helper from `/tauth.js` and omits `tauth-url` so requests stay on the current origin.
 - Supplies `tauth-tenant-id` so the auth requests include `X-TAuth-Tenant`.
 
 ## 2. Required scripts and ordering
@@ -29,7 +29,7 @@ Every page that wants the same behavior as `demo/index.html` must include, in th
 3. `mpr-ui.js` – the web-components bundle.
 4. GIS SDK – `https://accounts.google.com/gsi/client`.
 
-The demo page uses CDN URLs for `mpr-ui.css` and `mpr-ui.js`. The Docker Compose setup mounts local copies of `mpr-ui.css` and `mpr-ui.js` into the container but keeps the same ordering.
+`demo/index.html` uses CDN URLs for `mpr-ui.css` and `mpr-ui.js`. The Compose auth demos load `../mpr-ui.css` and `../mpr-ui.js` from the repository root after `mpr-ui-config.js` applies `demo/config.yaml`.
 
 ## 3. `<mpr-header>` attributes and backend endpoints
 
@@ -127,7 +127,7 @@ Automated integrators must keep these concerns separate:
 
 When `tauth.js` is present (as in `demo/tauth-demo.html`):
 
-- `mpr-ui` calls `initAuthClient({ baseUrl: tauthUrl, tenantId, onAuthenticated, onUnauthenticated })` using the `tauth-url` attribute and uses `requestNonce`, `exchangeGoogleCredential`, and `logout` when those helpers are available.
+- `mpr-ui` calls `initAuthClient({ baseUrl, tenantId, onAuthenticated, onUnauthenticated })` using `tauth-url` when present, or the current origin when `tauthUrl` is empty, and uses `requestNonce`, `exchangeGoogleCredential`, and `logout` when those helpers are available.
 - The helper:
   - Polls `{tauth-url}/me` to hydrate the current profile.
   - Calls `{tauth-url}/auth/refresh` when `/me` returns 401.
