@@ -151,6 +151,7 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 ## 2026-03-20
 
 - Auth bootstrap regression: updated the shared auth controller so `<mpr-header>` and `<mpr-login-button>` rebind TAuth endpoints when `tauth-url` changes after first render, taught nested `<mpr-user>` menus to inherit header config during bootstrap, and added regression coverage for both failure modes. Tests: `node --test tests/custom-elements-header-footer.test.js`, `node --test tests/auth-credential-exchange.test.js`, `npx --yes --package typescript tsc --noEmit`, `npm test`.
+- Auth rebind follow-up: kept TAuth callback registrations stable across post-render `tauth-url` changes so retained `initAuthClient()` callbacks continue to drive `<mpr-header>` and `<mpr-login-button>`, while preserving the MU-432 stale-session recovery guard with a separate auth-signal version tracker. Tests: `node --test tests/custom-elements-header-footer.test.js tests/auth-credential-exchange.test.js`, `npx --yes --package typescript tsc --noEmit`, `npm test`.
 
 ## 2026-03-19
 

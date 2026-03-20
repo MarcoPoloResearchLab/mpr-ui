@@ -2677,6 +2677,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var lastAuthenticatedSignature = null;
     var pendingNonceToken = null;
     var nonceRequestPromise = null;
+    var authSignalVersion = 0;
     var lifecycleVersion = 0;
     var isDestroyed = false;
 
@@ -2893,6 +2894,28 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return Promise.resolve(global.getCurrentUser());
     }
 
+    function handleAuthenticatedCallback(profile) {
+      if (isDestroyed) {
+        return;
+      }
+      authSignalVersion += 1;
+      var resolvedProfile = profile || pendingProfile || null;
+      if (profile && pendingProfile) {
+        resolvedProfile = Object.assign({}, pendingProfile, profile);
+      }
+      pendingProfile = null;
+      markAuthenticated(resolvedProfile);
+    }
+
+    function handleUnauthenticatedCallback() {
+      if (isDestroyed) {
+        return;
+      }
+      authSignalVersion += 1;
+      pendingProfile = null;
+      markUnauthenticated({ prompt: true });
+    }
+
     function bootstrapSession() {
       if (isDestroyed) {
         return Promise.resolve();
@@ -2902,33 +2925,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         return Promise.resolve();
       }
       var currentLifecycleVersion = lifecycleVersion;
+      var bootstrapAuthSignalVersion = authSignalVersion;
       configureTenantId();
       var resolvedBaseUrl = resolveAuthBaseUrl();
-      var bootstrapCallbackStatus = "none";
       return Promise.resolve(
         global.initAuthClient({
           baseUrl: resolvedBaseUrl,
           tenantId: options.tenantId,
-          onAuthenticated: function (profile) {
-            if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
-              return;
-            }
-            bootstrapCallbackStatus = "authenticated";
-            var resolvedProfile = profile || pendingProfile || null;
-            if (profile && pendingProfile) {
-              resolvedProfile = Object.assign({}, pendingProfile, profile);
-            }
-            pendingProfile = null;
-            markAuthenticated(resolvedProfile);
-          },
-          onUnauthenticated: function () {
-            if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
-              return;
-            }
-            bootstrapCallbackStatus = "unauthenticated";
-            pendingProfile = null;
-            markUnauthenticated({ prompt: true });
-          },
+          onAuthenticated: handleAuthenticatedCallback,
+          onUnauthenticated: handleUnauthenticatedCallback,
         }),
       )
         .then(function reconcileCurrentProfile() {
@@ -2936,7 +2941,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             return null;
           }
           if (
-            bootstrapCallbackStatus !== "none" ||
+            authSignalVersion !== bootstrapAuthSignalVersion ||
             state.status === "authenticated"
           ) {
             return null;
@@ -2948,7 +2953,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             return;
           }
           if (
-            bootstrapCallbackStatus !== "none" ||
+            authSignalVersion !== bootstrapAuthSignalVersion ||
             state.status === "authenticated"
           ) {
             return;
