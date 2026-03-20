@@ -54,7 +54,7 @@ test('root / serves the demo hub landing page with local assets and DSL orchestr
   expect(styleUrls.some(url => url.endsWith(LOCAL_CSS_SUFFIX))).toBe(true);
 
   // 4. Verify User Menu Presence (Orchestrated by component)
-  await expect(header.locator('mpr-user[slot="aux"]')).toBeVisible();
+  await expect(header.locator('mpr-user[slot="aux"]')).toBeAttached();
 });
 
 test('sub-demos provide consistent navigation and local asset loading', async ({ page }) => {

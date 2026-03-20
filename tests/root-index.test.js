@@ -27,6 +27,11 @@ test('root index.html contains the demo hub content and NO redirects', () => {
     /<mpr-header[\s\S]*?id="demo-header"/i,
     'Expected root index.html to include the mpr-header',
   );
+  assert.match(
+    indexHtml,
+    /"label"\s*:\s*"Index demo"\s*,\s*"href"\s*:\s*"\.\/index\.html"/,
+    'Expected root hub to link to itself correctly',
+  );
 
   // 2. No Redirect Verification
   assert.doesNotMatch(

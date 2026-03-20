@@ -336,8 +336,8 @@
     return loadYamlConfigInternal(resolved).then(function applyConfig(runtimeConfig) {
       return ensureDocumentReady().then(function finalizeApply() {
         var result = applyConfigToDom(runtimeConfig, resolved);
-        if (typeof document !== 'undefined' && typeof document.dispatchEvent === 'function') {
-          document.dispatchEvent(new CustomEvent('mpr-ui:config:applied', { detail: { config: resolved } }));
+        if (typeof window !== 'undefined' && typeof window.CustomEvent === 'function') {
+          document.dispatchEvent(new window.CustomEvent('mpr-ui:config:applied', { detail: { config: resolved } }));
         }
         return result;
       });

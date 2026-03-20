@@ -18,24 +18,9 @@
     <script defer src="/tauth.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
-    <!-- Config loader -->
-    <script src="./mpr-ui-config.js"></script>
-    <script>
-      (function initWithConfig() {
-        function loadMprUi() {
-          var script = document.createElement('script');
-          script.src = './mpr-ui.js';
-          script.id = 'mpr-ui-bundle';
-          document.head.appendChild(script);
-        }
-
-        if (window.MPRUI && window.MPRUI.applyYamlConfig) {
-          window.MPRUI.applyYamlConfig({ configUrl: './demo/config.yaml' })
-            .then(loadMprUi)
-            .catch(function(err) { console.error('Config failed:', err); });
-        }
-      })();
-    </script>
+    <!-- MPR UI orchestration via Web Components DSL -->
+    <script src="./mpr-ui-config.js" defer></script>
+    <script id="mpr-ui-bundle" src="./mpr-ui.js" defer></script>
   </head>
   <body class="theme-light" data-demo-palette="default">
     <!-- MPR UI orchestration via Web Components DSL -->
@@ -57,6 +42,7 @@
           { "label": "Standalone demo", "href": "./demo/standalone.html" }
         ]
       }'
+      data-config-url="./demo/config.yaml"
       user-menu-display-mode="avatar"
       logout-url="/"
       sign-out-label="Log out"
