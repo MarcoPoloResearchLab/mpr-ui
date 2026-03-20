@@ -186,6 +186,29 @@ test('single demo stack serves every demo page from one origin', async ({ page }
   }
 });
 
+test('every demo page links back to the root landing page', async ({ page }) => {
+  const baseUrl = new URL(activeBaseUrl);
+
+  for (const demoPage of DEMO_PAGES) {
+    if (demoPage.path === '/' || demoPage.path === '/index.html') continue;
+
+    const separator = demoPage.path.includes('?') ? '&' : '?';
+    const targetUrl = new URL(`${demoPage.path}${demoPage.path.includes('entity-workspace') ? separator + 'entity-demo-docker=2' : ''}`, baseUrl);
+
+    await page.goto(targetUrl.toString(), { waitUntil: 'networkidle' });
+    
+    // Find the "Index demo" link in the header and click it
+    // We target the mpr-header explicitly to ensure we use the shared navigation link
+    const indexLink = page.locator('mpr-header a:has-text("Index demo")');
+    await expect(indexLink).toBeVisible();
+    await indexLink.click();
+
+    // Verify we landed on the root hub
+    await expect(page).toHaveTitle('mpr-ui Demo');
+    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(baseUrl.origin)}/(index\\.html)?$`));
+  }
+});
+
 /**
  * @param {string} url
  * @returns {Promise<boolean>}
