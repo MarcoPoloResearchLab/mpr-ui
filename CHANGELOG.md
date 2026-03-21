@@ -17,6 +17,29 @@
 ### Docs 📚
 - _No changes._
 
+## [v3.8.2] - 2026-03-20
+
+### Features ✨
+- Guard header nonce rendering after component disconnect to prevent stale updates.
+- Implement single-flight nonce preparation for Google bootstrap initialization to prevent multiple initializations.
+
+### Improvements ⚙️
+- Refactor Google Identity button initialization to reuse prepared nonce and ensure `initialize()` is called exactly once before rendering.
+- Add nonce-less fallback path when nonce preparation fails during Google sign-in button bootstrap.
+- Enhance header auth controller lifecycle and cleanup on component destruction.
+
+### Bug Fixes 🐛
+- Fix serialization and reuse of header Google bootstrap nonce token.
+- Suppress errors and nonce-related events after header disconnection to avoid race conditions.
+
+### Testing 🧪
+- Add tests verifying single initialization of Google Identity during header and login button renders.
+- Add tests ensuring pending nonce preparation is canceled properly after header disconnect.
+- Provide test fixture support for nonce token in e2e environment.
+
+### Docs 📚
+- _No changes._
+
 ## [v3.8.1] - 2026-03-20
 
 ### Features ✨
