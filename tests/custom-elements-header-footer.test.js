@@ -1350,7 +1350,7 @@ test('mpr-header keeps receiving auth callbacks after tauth-url rebinding when T
   );
 });
 
-test('createAuthHeader ignores an in-flight credential exchange after auth options change', async () => {
+test('createAuthHeader ignores an in-flight credential exchange after tauth-url change', async () => {
   resetEnvironment();
   const library = loadLibrary();
   const authenticatedProfile = {
@@ -1414,7 +1414,7 @@ test('createAuthHeader ignores an in-flight credential exchange after auth optio
 
   authController.updateOptions(
     Object.assign({}, authController.state.options, {
-      tenantId: 'tenant-beta',
+      tauthUrl: 'http://localhost:9090',
     }),
   );
   await flushAsync();
@@ -1425,9 +1425,9 @@ test('createAuthHeader ignores an in-flight credential exchange after auth optio
   await flushAsync();
 
   assert.equal(
-    authController.state.options.tenantId,
-    'tenant-beta',
-    'controller options switch to the updated tenant configuration',
+    authController.state.options.tauthUrl,
+    'http://localhost:9090',
+    'controller options switch to the updated tauth-url',
   );
   assert.equal(
     authController.state.profile,
@@ -1449,7 +1449,66 @@ test('createAuthHeader ignores an in-flight credential exchange after auth optio
   );
 });
 
-test('createAuthHeader ignores stale GIS callbacks after auth options change', async () => {
+test('createAuthHeader rejects tenant changes after initialization', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  global.location = { origin: 'http://fallback-origin.test' };
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(hostElement, {
+    googleClientId: 'tenant-lock-client',
+    tauthUrl: 'http://localhost:8080',
+    tauthLoginPath: '/auth/login',
+    tauthLogoutPath: '/auth/logout',
+    tauthNoncePath: '/auth/nonce',
+    tenantId: 'tenant-alpha',
+  });
+
+  await flushAsync();
+  await flushAsync();
+
+  assert.throws(
+    function rejectTenantChange() {
+      authController.updateOptions(
+        Object.assign({}, authController.state.options, {
+          tenantId: 'tenant-beta',
+        }),
+      );
+    },
+    function verifyTenantChangeError(error) {
+      assert.equal(error.code, 'mpr-ui.auth.tenant_id_change_unsupported');
+      assert.match(
+        error.message,
+        /Tenant ID cannot change after auth controller initialization/,
+      );
+      assert.match(error.message, /tenant-alpha/);
+      assert.match(error.message, /tenant-beta/);
+      return true;
+    },
+  );
+  assert.equal(
+    authController.state.options.tenantId,
+    'tenant-alpha',
+    'controller retains the initialized tenant after rejecting a change',
+  );
+});
+
+test('createAuthHeader ignores stale GIS callbacks after tauth-url change', async () => {
   resetEnvironment();
   const library = loadLibrary();
   const authenticatedProfile = {
@@ -1515,7 +1574,7 @@ test('createAuthHeader ignores stale GIS callbacks after auth options change', a
 
   authController.updateOptions(
     Object.assign({}, authController.state.options, {
-      tenantId: 'tenant-beta',
+      tauthUrl: 'http://localhost:9090',
     }),
   );
   await flushAsync();
@@ -1545,13 +1604,18 @@ test('createAuthHeader ignores stale GIS callbacks after auth options change', a
 
   assert.deepEqual(
     exchangeTenantCalls,
-    ['tenant-beta'],
-    'current GIS callback exchanges credentials against the updated tenant configuration',
+    ['tenant-alpha'],
+    'current GIS callback exchanges credentials against the initialized tenant configuration',
   );
   assert.deepEqual(
     authController.state.profile,
     authenticatedProfile,
     'current GIS callback still authenticates the controller after auth options change',
+  );
+  assert.equal(
+    authController.state.options.tauthUrl,
+    'http://localhost:9090',
+    'controller keeps the updated tauth-url after the supported rebind',
   );
 });
 
@@ -2364,6 +2428,66 @@ test('mpr-login-button reports missing tenant ID', async () => {
   const lastEvent = element.__dispatchedEvents[element.__dispatchedEvents.length - 1];
   assert.equal(lastEvent.type, 'mpr-login:error');
   assert.equal(lastEvent.detail.code, 'mpr-ui.tenant_id_required');
+});
+
+test('mpr-login-button rejects tauth-tenant-id changes after first render', async () => {
+  resetEnvironment();
+  const googleStub = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.google = googleStub;
+  global.location = { origin: 'http://fallback-origin.test' };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.fetch = function fetch() {
+    return Promise.resolve({
+      ok: true,
+      json: function json() {
+        return Promise.resolve({ nonce: 'tenant-lock-nonce' });
+      },
+    });
+  };
+
+  loadLibrary();
+  const { element } = createLoginButtonHarness(googleStub);
+  element.setAttribute('site-id', 'custom-site');
+  element.setAttribute('tauth-login-path', '/auth/login');
+  element.setAttribute('tauth-logout-path', '/auth/logout');
+  element.setAttribute('tauth-nonce-path', '/auth/nonce');
+  element.setAttribute('tauth-tenant-id', 'tenant-login');
+  element.connectedCallback();
+  await flushAsync();
+  await flushAsync();
+
+  assert.throws(
+    function rejectTenantMutation() {
+      element.setAttribute('tauth-tenant-id', 'tenant-next');
+    },
+    function verifyTenantMutationError(error) {
+      assert.equal(error.code, 'mpr-ui.auth.tenant_id_change_unsupported');
+      assert.match(error.message, /tenant-login/);
+      assert.match(error.message, /tenant-next/);
+      return true;
+    },
+  );
+
+  const authController = element.__authController;
+  assert.ok(authController, 'login button auth controller remains attached');
+  assert.equal(
+    authController.state.options.tenantId,
+    'tenant-login',
+    'login button auth controller keeps the original tenant after rejecting the change',
+  );
 });
 
 test('mpr-login-button calls GSI initialize before renderButton (MU-131)', async () => {

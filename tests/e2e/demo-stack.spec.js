@@ -1,106 +1,91 @@
 // @ts-check
 
-const https = require('node:https');
 const { test, expect } = require('@playwright/test');
 
-const DEMO_BASE_URL = process.env.MPR_UI_DEMO_BASE_URL || 'https://localhost:4443';
-const DEMO_PAGES = Object.freeze([
-  {
-    path: '/',
-    expectedPath: '/demo/index.html',
-    title: 'mpr-ui Demo',
-  },
-  {
-    path: '/demo/index.html',
-    expectedPath: '/demo/index.html',
-    title: 'mpr-ui Demo',
-  },
-  {
-    path: '/demo/local.html',
-    expectedPath: '/demo/local.html',
-    title: 'mpr-ui Demo (Local Bundle)',
-    scriptPath: '/mpr-ui.js',
-    stylePath: '/mpr-ui.css',
-  },
-  {
-    path: '/demo/tauth-demo.html',
-    expectedPath: '/demo/tauth-demo.html',
-    title: 'TAuth + mpr-ui (Docker Compose)',
-    scriptPath: '/mpr-ui.js',
-    stylePath: '/mpr-ui.css',
-    requiredScripts: ['/tauth.js', '/mpr-ui-config.js'],
-  },
-  {
-    path: '/demo/standalone.html',
-    expectedPath: '/demo/standalone.html',
-    title: 'Standalone Login Button + TAuth',
-    scriptPath: '/mpr-ui.js',
-    stylePath: '/mpr-ui.css',
-    requiredScripts: ['/tauth.js', '/mpr-ui-config.js'],
-  },
-  {
-    path: '/demo/entity-workspace.html',
-    expectedPath: '/demo/entity-workspace.html',
-    title: 'Entity Workspace Demo',
-    scriptPath: '/mpr-ui.js',
-    stylePath: '/mpr-ui.css',
-  },
-]);
+const BASE_URL = process.env.MPR_UI_DEMO_BASE_URL || 'https://localhost:4443';
+
+// Suffixes to identify local bundle loads
+const LOCAL_JS_SUFFIX = '/mpr-ui.js';
+const LOCAL_CSS_SUFFIX = '/mpr-ui.css';
 
 test.use({ ignoreHTTPSErrors: true });
 
-test('single demo stack serves every demo page from one origin', async ({ page }) => {
-  if (!(await isReachable(DEMO_BASE_URL))) {
-    test.skip(true, 'Start ./up.sh or set MPR_UI_DEMO_BASE_URL to run the demo stack smoke test.');
-  }
-
-  const baseUrl = new URL(DEMO_BASE_URL);
-
-  for (const demoPage of DEMO_PAGES) {
-    await page.goto(new URL(demoPage.path, baseUrl).toString(), { waitUntil: 'networkidle' });
-    await expect(page).toHaveTitle(demoPage.title);
-    await expect(page).toHaveURL(new RegExp(`${escapeRegExp(demoPage.expectedPath)}$`));
-
-    if (demoPage.scriptPath) {
-      await expect.poll(() => page.evaluate(() => Array.from(document.scripts).map((script) => script.src))).toContain(
-        new URL(demoPage.scriptPath, baseUrl).toString(),
-      );
-    }
-
-    if (demoPage.stylePath) {
-      await expect.poll(() => page.evaluate(() => Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map((element) => element.href))).toContain(
-        new URL(demoPage.stylePath, baseUrl).toString(),
-      );
-    }
-
-    if (demoPage.requiredScripts) {
-      const scriptUrls = await page.evaluate(() => Array.from(document.scripts).map((script) => script.src));
-      demoPage.requiredScripts.forEach((requiredScriptPath) => {
-        expect(scriptUrls).toContain(new URL(requiredScriptPath, baseUrl).toString());
-      });
-    }
-  }
-});
-
 /**
- * @param {string} url
- * @returns {Promise<boolean>}
+ * Waits for the semantic orchestration-ready event before proceeding.
+ * @param {import('@playwright/test').Page} page
  */
-function isReachable(url) {
-  return new Promise((resolve) => {
-    const request = https.request(url, { method: 'GET', rejectUnauthorized: false }, (response) => {
-      resolve(Boolean(response.statusCode) && response.statusCode < 500);
-      response.resume();
+async function waitForOrchestration(page) {
+  await page.evaluate(() => {
+    return new Promise((resolve) => {
+      if (window['MPRUI_ORCHESTRATION_READY']) {
+        resolve(true);
+        return;
+      }
+      document.addEventListener('mpr-ui:orchestration:ready', () => resolve(true), { once: true });
     });
-    request.on('error', () => resolve(false));
-    request.end();
   });
 }
 
-/**
- * @param {string} value
- * @returns {string}
- */
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
+test('root / serves the demo hub landing page with local assets and DSL orchestration', async ({ page }) => {
+  // We need to inject a listener before the event might fire
+  await page.addInitScript(() => {
+    window['MPRUI_ORCHESTRATION_READY'] = false;
+    document.addEventListener('mpr-ui:orchestration:ready', () => {
+      window['MPRUI_ORCHESTRATION_READY'] = true;
+    }, { once: true });
+  });
+
+  await page.goto(BASE_URL, { waitUntil: 'networkidle' });
+  await waitForOrchestration(page);
+
+  // 1. Verify Hub Identity
+  await expect(page).toHaveTitle('mpr-ui Demo');
+  await expect(page.locator('[data-layout-section="hero-title"] h1')).toContainText('MPR-UI Demo');
+
+  // 2. Verify DSL Orchestration (no manual config scripts)
+  const header = page.locator('mpr-header#demo-header');
+  await expect(header).toHaveAttribute('data-config-url', './demo/config.yaml');
+
+  // 3. Verify Local Assets
+  const scriptUrls = await page.evaluate(() => Array.from(document.scripts).map((script) => script.src));
+  const styleUrls = await page.evaluate(() => Array.from(document.querySelectorAll('link[rel="stylesheet"]')).map((element) => element.href));
+  
+  expect(scriptUrls.some(url => url.endsWith(LOCAL_JS_SUFFIX))).toBe(true);
+  expect(styleUrls.some(url => url.endsWith(LOCAL_CSS_SUFFIX))).toBe(true);
+
+  // 4. Verify User Menu Presence (Orchestrated by component)
+  await expect(header.locator('mpr-user[slot="aux"]')).toBeAttached();
+});
+
+test('sub-demos provide consistent navigation and local asset loading', async ({ page }) => {
+  const subDemos = [
+    { path: '/demo/tauth-demo.html', title: 'TAuth + mpr-ui (Docker Compose)' },
+    { path: '/demo/entity-workspace.html?entity-demo-docker=2', title: 'Entity Workspace Demo' },
+    { path: '/demo/standalone.html', title: 'Standalone Login Button + TAuth' }
+  ];
+
+  for (const demo of subDemos) {
+    await page.addInitScript(() => {
+      window['MPRUI_ORCHESTRATION_READY'] = false;
+      document.addEventListener('mpr-ui:orchestration:ready', () => {
+        window['MPRUI_ORCHESTRATION_READY'] = true;
+      }, { once: true });
+    });
+
+    await page.goto(`${BASE_URL.replace(/\/$/, '')}${demo.path}`, { waitUntil: 'networkidle' });
+    await waitForOrchestration(page);
+    
+    await expect(page).toHaveTitle(demo.title);
+    
+    const header = page.locator('mpr-header');
+    await expect(header).toHaveAttribute('data-config-url', './config.yaml');
+
+    // Navigation back to root landing page
+    const indexLink = header.locator('a:has-text("Index demo")');
+    await expect(indexLink).toBeVisible();
+    await indexLink.click();
+    
+    await expect(page).toHaveURL(new RegExp(`${BASE_URL.replace(/\/$/, '')}/$`));
+    await expect(page.locator('[data-layout-section="hero-title"]')).toBeVisible();
+  }
+});

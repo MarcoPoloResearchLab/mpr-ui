@@ -10,7 +10,7 @@ services:
     ports:
       - "4443:8443"
     volumes:
-      - ./:/app:ro
+      - ./:/app/www:ro
       - /media/share/Drive/exchange/certs/computercat/computercat-cert.pem:/certs/cert.pem:ro
       - /media/share/Drive/exchange/certs/computercat/computercat-key.pem:/certs/key.pem:ro
     restart: unless-stopped

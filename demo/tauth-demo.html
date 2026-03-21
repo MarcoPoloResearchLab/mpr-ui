@@ -17,54 +17,10 @@
     <!-- TAuth helper proxied through gHTTP for same-origin auth -->
     <script defer src="/tauth.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
-    <!-- Load config first, then mpr-ui.js after config is applied -->
-    <script src="../mpr-ui-config.js"></script>
-    <script>
-      (function initWithConfig() {
-        var CONFIG_TIMEOUT_MS = 5000;
-        var mprUiLoaded = false;
-
-        function loadMprUi() {
-          if (mprUiLoaded) return;
-          mprUiLoaded = true;
-          var script = document.createElement('script');
-          script.src = '../mpr-ui.js';
-          script.id = 'mpr-ui-bundle';
-          document.head.appendChild(script);
-        }
-
-        function applyConfigAndLoad() {
-          if (!window.MPRUI || !window.MPRUI.applyYamlConfig) {
-            // eslint-disable-next-line no-console
-            console.error('mpr-ui-config.js not available, cannot proceed without config');
-            return;
-          }
-
-          // Set timeout fallback
-          var timeoutId = setTimeout(function handleTimeout() {
-            // eslint-disable-next-line no-console
-            console.error('YAML config timed out after ' + CONFIG_TIMEOUT_MS + 'ms');
-          }, CONFIG_TIMEOUT_MS);
-
-          window.MPRUI.applyYamlConfig({ configUrl: './config.yaml' })
-            .then(function handleSuccess() {
-              clearTimeout(timeoutId);
-              loadMprUi();
-            })
-            .catch(function handleError(error) {
-              clearTimeout(timeoutId);
-              // eslint-disable-next-line no-console
-              console.error('Failed to apply YAML config:', error);
-            });
-        }
-
-        if (document.readyState === 'loading') {
-          document.addEventListener('DOMContentLoaded', applyConfigAndLoad);
-        } else {
-          applyConfigAndLoad();
-        }
-      })();
-    </script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <!-- Load config first; mpr-ui-config.js injects the bundle after config is applied -->
+    <script src="../mpr-ui-config.js" defer></script>
+    <script id="mpr-ui-bundle" type="application/json" data-mpr-ui-bundle-src="../mpr-ui.js"></script>
     <style>
       :root {
         --card-background: rgba(255, 255, 255, 0.9);
@@ -188,7 +144,7 @@
     </style>
   </head>
   <body class="theme-light" data-demo-palette="default">
-    <!-- Auth attributes (google-site-id, tauth-tenant-id, tauth-*-path) applied by mpr-ui-config.js -->
+    <!-- MPR UI orchestration via Web Components DSL -->
     <mpr-header
       id="demo-header"
       brand-label="Marco Polo Research Lab"
@@ -200,17 +156,16 @@
       horizontal-links='{
         "alignment": "right",
         "links": [
-          { "label": "Index demo", "href": "./index.html" },
+          { "label": "Index demo", "href": "../index.html" },
           { "label": "TAuth demo", "href": "./tauth-demo.html" },
           { "label": "Entity workspace", "href": "./entity-workspace.html?entity-demo-docker=2" },
-          { "label": "Local bundle", "href": "./local.html" },
           { "label": "Standalone demo", "href": "./standalone.html" }
         ]
       }'
+      data-config-url="./config.yaml"
       logout-url="/"
       sign-out-label="Log out"
     >
-      <!-- tauth-tenant-id applied by mpr-ui-config.js -->
       <mpr-user
         slot="aux"
         display-mode="avatar"

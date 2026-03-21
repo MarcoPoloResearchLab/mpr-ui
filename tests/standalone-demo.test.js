@@ -9,67 +9,37 @@ const { join } = require('node:path');
 const demoDir = join(__dirname, '..', 'demo');
 const standaloneHtmlPath = join(demoDir, 'standalone.html');
 const standaloneHtml = readFileSync(standaloneHtmlPath, 'utf8');
-const LOCAL_MPR_UI_CSS_PATTERN = /\bhref="\.\.\/mpr-ui\.css(?:\?[^"]*)?"/i;
-const CONFIG_LOADER_PATTERN = /\bsrc="\.\.\/mpr-ui-config\.js(?:\?[^"]*)?"/i;
-const APPLY_YAML_CONFIG_PATTERN = /applyYamlConfig\s*\(/i;
-const DYNAMIC_MPR_UI_SCRIPT_PATTERN = /script\.src\s*=\s*['"]\.\.\/mpr-ui\.js['"]/i;
 
-test('MU-130: standalone demo loads tauth.js from same-origin proxy', () => {
+test('standalone demo loads local mpr-ui assets', () => {
   assert.match(
     standaloneHtml,
-    /<script\b[^>]*\bsrc="\/tauth\.js"[^>]*><\/script>/i,
-    'Expected standalone.html to load tauth.js from /tauth.js (gHTTP proxy)',
-  );
-});
-
-test('standalone demo loads YAML config before the local bundle', () => {
-  assert.match(
-    standaloneHtml,
-    LOCAL_MPR_UI_CSS_PATTERN,
-    'Expected standalone.html to load mpr-ui.css from the repository root',
-  );
-  assert.match(
-    standaloneHtml,
-    CONFIG_LOADER_PATTERN,
-    'Expected standalone.html to load mpr-ui-config.js from the repository root',
-  );
-  assert.match(
-    standaloneHtml,
-    APPLY_YAML_CONFIG_PATTERN,
-    'Expected standalone.html to call applyYamlConfig()',
-  );
-  assert.match(
-    standaloneHtml,
-    DYNAMIC_MPR_UI_SCRIPT_PATTERN,
-    'Expected standalone.html to dynamically load mpr-ui.js from the repository root',
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\sdata-mpr-ui-bundle-src="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected standalone.html to declare the local bundle marker',
   );
   assert.doesNotMatch(
     standaloneHtml,
-    /\bsite-id="[^"]+"/i,
-    'Expected standalone.html to rely on YAML config for the GIS client ID',
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\ssrc="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected standalone.html to avoid loading the bundle before config orchestration completes',
+  );
+  assert.match(
+    standaloneHtml,
+    /<link[^>]+href="\.\.\/mpr-ui\.css"/,
+    'Expected standalone.html to reference the local stylesheet',
   );
 });
 
-test('MU-130: standalone demo uses the shared header navigation links', () => {
-  assert.doesNotMatch(
+test('standalone demo uses Web Component orchestration', () => {
+  assert.match(
     standaloneHtml,
-    /"url"\s*:\s*"\/?demo\//i,
-    'Expected standalone.html links-collection URLs to avoid a /demo/ prefix when served from demo as web root',
+    /data-config-url="\.?\/config\.yaml"/,
+    'Expected standalone.html to use data-config-url',
   );
+});
 
-  const expectedLinks = [
-    './index.html',
-    './tauth-demo.html',
-    './entity-workspace.html?entity-demo-docker=2',
-    './local.html',
-    './standalone.html',
-  ];
-  expectedLinks.forEach((href) => {
-    const escapedHref = href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    assert.match(
-      standaloneHtml,
-      new RegExp(`\"href\"\\s*:\\s*\"${escapedHref}\"`),
-      `Expected standalone.html to include header link ${href}`,
-    );
-  });
+test('standalone demo links back to the landing hub', () => {
+  assert.match(
+    standaloneHtml,
+    /"label"\s*:\s*"Index demo"\s*,\s*"href"\s*:\s*"\.\.\/index\.html"/,
+    'Expected standalone.html to link back to the root hub',
+  );
 });

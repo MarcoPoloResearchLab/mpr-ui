@@ -47,6 +47,7 @@ Rules for an automated integrator:
 
 - When the auth backend shares the page origin, omit `tauth-url`. The header will call `/auth/*` on the current origin and `mpr-ui` will pass the page origin into `tauth.js` when bootstrapping sessions.
 - When using a dedicated TAuth origin (e.g. `https://tauth.mprlab.com` or `http://localhost:8080`), set `tauth-url` to that origin so all `/auth/*` requests go there.
+- Treat `tauth-tenant-id` as immutable after the component initializes. If the app must bind to a different tenant, destroy the current auth-bearing component and create a new one.
 - The backend must expose:
   - `POST {tauth-url}/auth/nonce`
   - `POST {tauth-url}/auth/google`
@@ -133,6 +134,7 @@ When `tauth.js` is present (as in `demo/tauth-demo.html`):
   - Calls `{tauth-url}/auth/refresh` when `/me` returns 401.
   - Exposes `getCurrentUser()` and `logout()` on `window`.
 - `mpr-ui` treats `initAuthClient` as the source of truth for ongoing session state (after the initial credential exchange).
+- `mpr-ui` supports post-render `tauth-url` rebinding, but post-render `tauth-tenant-id` changes are rejected as configuration errors.
 
 `demo/status-panel.js` uses these hooks to render the session card:
 
@@ -165,5 +167,6 @@ To reproduce the `demo/index.html` + TAuth integration in another project:
 6. For tauth-tenant-id failures:
    - Ensure `tauth-tenant-id` matches a configured tenant in TAuth (for the demo container this is `mpr-sites`).
    - Missing tenant ID raises `mpr-ui.tenant_id_required` and sets `data-mpr-google-error="missing-tauth-tenant-id"` on `<mpr-login-button>`.
+   - Changing `tauth-tenant-id` after first render raises `mpr-ui.auth.tenant_id_change_unsupported`; recreate the auth component instead of mutating the tenant in place.
 
 For deeper background on TAuth’s expectations, see `tools/TAuth/README.md` (section “Google nonce handling”) and `docs/integration-guide.md` for the broader integration walkthrough.
