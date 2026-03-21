@@ -15,11 +15,13 @@ Before integrating mpr-ui, ensure you have:
 
 Load scripts in this order to ensure proper initialization:
 
+For production deployments, pin the jsDelivr version instead of using `@latest` so browser and CDN caches stay predictable. The examples below use `v3.8.1`.
+
 ```html
 <!-- 1. Styles first -->
 <link
   rel="stylesheet"
-  href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+  href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.8.1/mpr-ui.css"
 />
 
 <!-- 2. TAuth helper from CDN -->
@@ -29,14 +31,14 @@ Load scripts in this order to ensure proper initialization:
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 
 <!-- 4. Config loader (must run before mpr-ui.js) -->
-<script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.8.1/mpr-ui-config.js"></script>
 
 <!-- 5. Load config, then mpr-ui.js -->
 <script>
   (function() {
     function loadMprUi() {
       var script = document.createElement('script');
-      script.src = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js';
+      script.src = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.8.1/mpr-ui.js';
       document.head.appendChild(script);
     }
 
