@@ -1190,6 +1190,134 @@ test('mpr-header tauth-url attribute configures auth endpoints', async () => {
   assert.equal(authOptions.tenantId, 'tenant-demo');
 });
 
+test('mpr-header calls GSI initialize once before renderButton on initial render', async () => {
+  resetEnvironment();
+  const callOrder = [];
+  let initializeCallCount = 0;
+  global.google = {
+    accounts: {
+      id: {
+        initialize() {
+          initializeCallCount += 1;
+          callOrder.push('initialize');
+        },
+        renderButton() {
+          callOrder.push('renderButton');
+        },
+        prompt() {},
+      },
+    },
+  };
+
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+  headerElement.setAttribute('google-site-id', 'header-race-site');
+  headerElement.setAttribute('tauth-login-path', '/auth/login');
+  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
+  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
+  headerElement.setAttribute('tauth-tenant-id', 'tenant-race');
+
+  headerElement.connectedCallback();
+  await flushAsync();
+  await flushAsync();
+
+  const initializeIndex = callOrder.indexOf('initialize');
+  const renderButtonIndex = callOrder.indexOf('renderButton');
+  assert.equal(
+    initializeCallCount,
+    1,
+    'header should initialize Google Identity exactly once during initial render',
+  );
+  assert.ok(
+    initializeIndex !== -1,
+    'header should initialize Google Identity before rendering the button',
+  );
+  assert.ok(
+    renderButtonIndex !== -1,
+    'header should render the Google button',
+  );
+  assert.ok(
+    initializeIndex < renderButtonIndex,
+    'header must call GSI initialize before renderButton',
+  );
+});
+
+test('mpr-header cancels pending nonce work after disconnect', async () => {
+  const settleModes = ['resolve', 'reject'];
+
+  for (const settleMode of settleModes) {
+    resetEnvironment();
+    const callOrder = [];
+    let settleNonce = null;
+    global.google = {
+      accounts: {
+        id: {
+          initialize() {
+            callOrder.push('initialize');
+          },
+          renderButton() {
+            callOrder.push('renderButton');
+          },
+          prompt() {},
+        },
+      },
+    };
+    global.requestNonce = function requestNonce() {
+      return new Promise(function pendingNonce(resolve, reject) {
+        settleNonce = function settlePendingNonce() {
+          if (settleMode === 'resolve') {
+            resolve('disconnect-race-nonce');
+            return;
+          }
+          reject(new Error('disconnect-race-nonce-failed'));
+        };
+      });
+    };
+
+    try {
+      loadLibrary();
+      const harness = createHeaderElementHarness();
+      const headerElement = harness.element;
+      headerElement.setAttribute('google-site-id', 'header-race-site');
+      headerElement.setAttribute('tauth-login-path', '/auth/login');
+      headerElement.setAttribute('tauth-logout-path', '/auth/logout');
+      headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
+      headerElement.setAttribute('tauth-tenant-id', 'tenant-race');
+
+      headerElement.connectedCallback();
+      await flushAsync();
+      assert.equal(
+        typeof settleNonce,
+        'function',
+        'nonce request should still be pending after the first async turn',
+      );
+      headerElement.disconnectedCallback();
+      settleNonce();
+      await flushAsync();
+      await flushAsync();
+
+      const headerErrorEvents = headerElement.__dispatchedEvents.filter(
+        function filterHeaderError(entry) {
+          return entry.type === 'mpr-ui:header:error';
+        },
+      );
+      assert.deepEqual(
+        callOrder,
+        [],
+        `stale nonce work should not render after disconnect (${settleMode})`,
+      );
+      assert.equal(
+        headerErrorEvents.length,
+        0,
+        `disconnect should suppress header nonce errors (${settleMode})`,
+      );
+    } finally {
+      delete global.requestNonce;
+    }
+  }
+});
+
 test('mpr-header rebinds auth endpoints when tauth-url changes after first render', async () => {
   resetEnvironment();
   const initAuthCalls = [];
@@ -2493,6 +2621,7 @@ test('mpr-login-button rejects tauth-tenant-id changes after first render', asyn
 test('mpr-login-button calls GSI initialize before renderButton (MU-131)', async () => {
   resetEnvironment();
   const callOrder = [];
+  let initializeCallCount = 0;
   const googleStub = {
     accounts: {
       id: {
@@ -2506,6 +2635,7 @@ test('mpr-login-button calls GSI initialize before renderButton (MU-131)', async
   loadLibrary();
   const { element, buttonHost } = createLoginButtonHarness(googleStub);
   googleStub.accounts.id.initialize = function initialize() {
+    initializeCallCount += 1;
     callOrder.push('initialize');
   };
   googleStub.accounts.id.renderButton = function renderButton() {
@@ -2523,6 +2653,11 @@ test('mpr-login-button calls GSI initialize before renderButton (MU-131)', async
   assert.ok(
     initializeIndex !== -1,
     'GSI initialize should be called',
+  );
+  assert.equal(
+    initializeCallCount,
+    1,
+    'GSI initialize should only run once during initial login-button render',
   );
   assert.ok(
     renderButtonIndex !== -1,

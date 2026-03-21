@@ -105,6 +105,8 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
   - Document and expose a canonical runtime API for header/footer theme mode updates (beyond static `theme-config.initialMode`), or provide a compatibility adapter that maps runtime `theme-mode` updates to supported theme config/state.
   - Keep strict deprecation logging, but include migration guidance in docs/examples so consumers avoid trial-and-error.
   Status 2026-02-17: logged from ProductScanner billing/settings integration cleanup.
+- [x] [MU-433] `<mpr-header>` can call `google.accounts.id.initialize()` multiple times during initial Google button bootstrap.
+  Resolved 2026-03-20: made Google nonce preparation single-flight inside the shared auth controller, created the controller before mounting the header Google button so the button reuses that nonce/bootstrap path, kept a nonce-less fallback when nonce preparation fails, and added regression coverage plus fixture nonce support so the workbench suite continues to render the button without a live backend. Tests: `node --test tests/custom-elements-header-footer.test.js tests/auth-credential-exchange.test.js`; `npx --yes --package typescript tsc --noEmit`; `npm test`.
 
 ## Maintenance (419–499)
 
