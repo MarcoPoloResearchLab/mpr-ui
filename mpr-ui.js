@@ -4556,6 +4556,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var googleButtonCleanup = null;
     var googleButtonRenderSequence = 0;
     var fallbackSigninTarget = null;
+    var isDestroyed = false;
     var googleSiteId = normalizeGoogleSiteId(options.siteId);
     if (googleSiteId) {
       hostElement.setAttribute("data-mpr-google-site-id", googleSiteId);
@@ -4685,6 +4686,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         return;
       }
       function renderMountedGoogleButton() {
+        if (isDestroyed || renderSequenceNumber !== googleButtonRenderSequence) {
+          return;
+        }
         googleButtonCleanup = renderGoogleButton(
           elements.googleSignin,
           googleSiteId,
@@ -4721,6 +4725,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             code: "mpr-ui.header.google_nonce_failed",
             message: error && error.message ? String(error.message) : "google nonce failed",
           });
+          if (isDestroyed || renderSequenceNumber !== googleButtonRenderSequence) {
+            return;
+          }
           enqueueGoogleInitialize({
             clientId: googleSiteId,
             callback: function handleGoogleCredential(payload) {
@@ -4912,6 +4919,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         }
       },
       destroy: function destroy() {
+        isDestroyed = true;
+        googleButtonRenderSequence += 1;
         cleanupHandlers.forEach(function invoke(handler) {
           if (typeof handler === "function") {
             handler();

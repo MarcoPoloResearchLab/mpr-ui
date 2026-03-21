@@ -1243,6 +1243,81 @@ test('mpr-header calls GSI initialize once before renderButton on initial render
   );
 });
 
+test('mpr-header cancels pending nonce work after disconnect', async () => {
+  const settleModes = ['resolve', 'reject'];
+
+  for (const settleMode of settleModes) {
+    resetEnvironment();
+    const callOrder = [];
+    let settleNonce = null;
+    global.google = {
+      accounts: {
+        id: {
+          initialize() {
+            callOrder.push('initialize');
+          },
+          renderButton() {
+            callOrder.push('renderButton');
+          },
+          prompt() {},
+        },
+      },
+    };
+    global.requestNonce = function requestNonce() {
+      return new Promise(function pendingNonce(resolve, reject) {
+        settleNonce = function settlePendingNonce() {
+          if (settleMode === 'resolve') {
+            resolve('disconnect-race-nonce');
+            return;
+          }
+          reject(new Error('disconnect-race-nonce-failed'));
+        };
+      });
+    };
+
+    try {
+      loadLibrary();
+      const harness = createHeaderElementHarness();
+      const headerElement = harness.element;
+      headerElement.setAttribute('google-site-id', 'header-race-site');
+      headerElement.setAttribute('tauth-login-path', '/auth/login');
+      headerElement.setAttribute('tauth-logout-path', '/auth/logout');
+      headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
+      headerElement.setAttribute('tauth-tenant-id', 'tenant-race');
+
+      headerElement.connectedCallback();
+      await flushAsync();
+      assert.equal(
+        typeof settleNonce,
+        'function',
+        'nonce request should still be pending after the first async turn',
+      );
+      headerElement.disconnectedCallback();
+      settleNonce();
+      await flushAsync();
+      await flushAsync();
+
+      const headerErrorEvents = headerElement.__dispatchedEvents.filter(
+        function filterHeaderError(entry) {
+          return entry.type === 'mpr-ui:header:error';
+        },
+      );
+      assert.deepEqual(
+        callOrder,
+        [],
+        `stale nonce work should not render after disconnect (${settleMode})`,
+      );
+      assert.equal(
+        headerErrorEvents.length,
+        0,
+        `disconnect should suppress header nonce errors (${settleMode})`,
+      );
+    } finally {
+      delete global.requestNonce;
+    }
+  }
+});
+
 test('mpr-header rebinds auth endpoints when tauth-url changes after first render', async () => {
   resetEnvironment();
   const initAuthCalls = [];
