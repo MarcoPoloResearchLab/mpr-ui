@@ -17,6 +17,41 @@
 ### Docs 📚
 - _No changes._
 
+## [v3.8.0] - 2026-03-20
+
+### Features ✨
+- Promote landing page to repository root for simplified demo startup.
+- Add JSON-backed runnable entity-workspace demo with Playwright smoke coverage.
+
+### Improvements ⚙️
+- Refactor demo stack to a single HTTPS root with same-origin auth proxy, consolidating profiles.
+- Restore config-first orchestration in `mpr-ui-config.js` with delayed bundle load and `MPRUI.whenAutoOrchestrationReady()`.
+- Unify Chrome browser consistency and stabilize entity workspace behaviors.
+- Enhance auth callback lifecycle management for consistent rebind handling post-render.
+- Update documentation and README to clarify immutability of tenant ID and same-origin `tauth.js` loading.
+- Opt-in E2E Docker-backed demo stack tests to avoid failures in default CI runs without live stack.
+
+### Bug Fixes 🐛
+- Disallow tenant ID changes after auth initialization with explicit error and rejection in components.
+- Ignore stale GIS and credential exchange callbacks during auth config rebinding to prevent old state pollution.
+- Fix stale auth callback races affecting `<mpr-header>` and `<mpr-login-button>`.
+- Restore `.entity-demo__drawer-tags` wrapper for proper flex styling in entity-workspace video drawer.
+- Resolve landing page regex mismatch and enforce deterministic E2E test paths and sequences.
+- Enable demo-stack smoke tests in CI with local fallback server; fix stack binary conflicts in demo tests.
+- Prevent manual JS orchestration in demo, enforcing pure Web Component orchestration and deterministic tests.
+
+### Testing 🧪
+- Add extensive regression coverage for auth rebind lifecycle, stale callback ignore logic, and tenant invariance.
+- Cover entity-workspace demo sources and E2E specs with new Playwright tests.
+- Smoke coverage and integration tests for demo stack root landing page and local fallback server.
+- Validate config orchestration readiness with unit and demo page tests.
+
+### Docs 📚
+- Upgrade demo and integration docs to match new single HTTPS root demo stack flow and config-first orchestration.
+- Clarify tenant ID is immutable post-init and `tauth-url` can be empty for same-origin proxy mode.
+- Expand entity-workspace primitives usage with example YouTube playlists/videos.
+- Update README to reflect changes in demo entry points and auth script loading order.
+
 ## [v3.7.0] - 2026-03-19
 
 ### Features ✨
