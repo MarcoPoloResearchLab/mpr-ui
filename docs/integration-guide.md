@@ -106,7 +106,7 @@ and TAuth share the same origin through a reverse proxy:
 |-------|-------------|
 | `tauthUrl` | Full URL to TAuth service, or `""` for same-origin auth. |
 | `googleClientId` | Google OAuth Web client ID |
-| `tenantId` | TAuth tenant ID |
+| `tenantId` | TAuth tenant ID; fixed for the component lifetime |
 | `loginPath` | Path for credential exchange (e.g., `/auth/google`) |
 | `logoutPath` | Path for logout (e.g., `/auth/logout`) |
 | `noncePath` | Path for nonce generation (e.g., `/auth/nonce`) |
@@ -168,6 +168,8 @@ automatically from config.yaml.
 | `sign-in-label` | | Yes |
 | `sign-out-label` | | Yes |
 | `sticky` | | Yes |
+
+`tauth-tenant-id` is immutable after the auth controller initializes. If a page needs a different tenant, recreate the `<mpr-header>` / `<mpr-login-button>` instance instead of mutating the existing element.
 
 ## Horizontal links (optional)
 

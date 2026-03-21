@@ -13,8 +13,13 @@ const tauthDemoHtml = readFileSync(tauthDemoHtmlPath, 'utf8');
 test('tauth demo loads local mpr-ui assets', () => {
   assert.match(
     tauthDemoHtml,
-    /<script[^>]+id="mpr-ui-bundle"[^>]+src="\.\.\/mpr-ui\.js"/,
-    'Expected tauth-demo.html to reference the local bundle',
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\sdata-mpr-ui-bundle-src="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected tauth-demo.html to declare the local bundle marker',
+  );
+  assert.doesNotMatch(
+    tauthDemoHtml,
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\ssrc="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected tauth-demo.html to avoid loading the bundle before config orchestration completes',
   );
   assert.match(
     tauthDemoHtml,

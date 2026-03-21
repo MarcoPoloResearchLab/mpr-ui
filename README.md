@@ -126,9 +126,11 @@ Need a single source of truth for the shutdown plan? See [`docs/deprecation-road
 5. **Create config.yaml** — define environments with required auth fields:
    - `tauthUrl` — TAuth origin override (required string; use `""` for same-origin proxy mode)
    - `googleClientId` — OAuth Web client ID (required)
-   - `tenantId` — tenant configured in TAuth (required)
+   - `tenantId` — tenant configured in TAuth (required; fixed for the component lifetime)
    - `loginPath`, `logoutPath`, `noncePath` — auth endpoint paths (required)
 6. **Set component attributes** — `<mpr-user>` requires `display-mode`, `logout-url`, and `logout-label`. Auth attributes (`tauth-tenant-id`, etc.) are applied automatically from config.
+
+`tenantId` / `tauth-tenant-id` is immutable after the auth controller initializes. To switch tenants, destroy the current `<mpr-header>` / `<mpr-login-button>` instance and create a new one instead of mutating the existing element.
 
 See [`docs/integration-guide.md`](docs/integration-guide.md) for the complete walkthrough plus troubleshooting guidance. For a deep dive into how the demo page wires GIS, `mpr-ui`, and TAuth (including nonce handling), see [`docs/demo-index-auth.md`](docs/demo-index-auth.md).
 
@@ -374,6 +376,8 @@ The tags above replace the retired imperative helpers. See the example below for
 | `<mpr-band>` | `category`, `theme` (JSON) | — | — |
 | `<mpr-card>` | `card` (JSON with `{ id, title, description, status, url, icon, subscribe }`), `theme` (JSON) | — | `mpr-card:card-toggle`, `mpr-card:subscribe-ready` |
 
+Auth components allow live `tauth-url` rebinding but do not support live `tauth-tenant-id` changes. Recreate the component if the app must bind to a different tenant.
+
 Slots let you inject custom markup without leaving declarative mode:
 
 - Header slots: `brand`, `nav-left`, `nav-right`, `aux`
@@ -451,7 +455,8 @@ console.log(selectionState.getSelectedIds());
 
 - `npm run test:unit` executes the Node-based regression suite (`node --test`) that guards the DOM helpers, custom elements, and shared utilities.
 - `npm run test:e2e` runs Playwright headlessly against the fixture HTML in `tests/e2e/fixtures`. The harness routes CDN requests for `mpr-ui.js`/`mpr-ui.css` to the local bundle and stubs GIS where needed, so coverage does not depend on the demo pages.
-- `MPR_UI_DEMO_BASE_URL=https://localhost:4443 npx playwright test tests/e2e/demo-stack.spec.js` runs the optional browser smoke test against a live demo stack started by `./up.sh`.
+- `npm run test:e2e` excludes the live demo smoke specs by default; set `MPR_UI_DEMO_BASE_URL` when you want Playwright to include the Docker-backed demo pages.
+- `MPR_UI_DEMO_BASE_URL=https://localhost:4443 npx playwright test tests/e2e/demo-stack.spec.js tests/e2e/entity-workspace-demo.spec.js` runs the optional browser smoke tests against a live demo stack started by `./up.sh`.
 - Run `npx playwright install --with-deps` (or `npx playwright install chromium`) once per machine if the browsers are missing; the command is a no-op when the binaries already exist. Because the tests no longer stub network calls, ensure the environment has outbound access to the CDN and GIS endpoints.
 - `make test` runs the full suite with the repository-standard timeouts; `make test-unit` and `make test-e2e` target the individual phases if you need to isolate failures.
 

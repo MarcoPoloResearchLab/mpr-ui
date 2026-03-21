@@ -58,8 +58,13 @@ function normalizeAttributeValue(attributeValue) {
 test('landing page loads local mpr-ui assets', () => {
   assert.match(
     landingHtml,
-    /<script[^>]+id="mpr-ui-bundle"[^>]+src="\.\/mpr-ui\.js"/,
-    'Expected root index.html to reference the local bundle',
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\sdata-mpr-ui-bundle-src="\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected root index.html to declare the local bundle marker',
+  );
+  assert.doesNotMatch(
+    landingHtml,
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\ssrc="\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected root index.html to avoid loading the bundle before config orchestration completes',
   );
   assert.match(
     landingHtml,
@@ -206,6 +211,16 @@ test('entity workspace demo uses Web Component orchestration', () => {
     /data-config-url="\.?\/config\.yaml"/,
     'Expected entity workspace to use data-config-url',
   );
+  assert.match(
+    html,
+    /<script\b[^>]*\bid="entity-demo-mpr-ui-bundle"[^>]*\sdata-mpr-ui-bundle-src="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected entity workspace to use the config-first local bundle marker',
+  );
+  assert.doesNotMatch(
+    html,
+    /<script\b[^>]*\bid="entity-demo-mpr-ui-bundle"[^>]*\ssrc="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected entity workspace to avoid loading the bundle before config orchestration completes',
+  );
 });
 
 test('standalone demo uses Web Component orchestration', () => {
@@ -214,5 +229,15 @@ test('standalone demo uses Web Component orchestration', () => {
     html,
     /data-config-url="\.?\/config\.yaml"/,
     'Expected standalone demo to use data-config-url',
+  );
+  assert.match(
+    html,
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\sdata-mpr-ui-bundle-src="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected standalone demo to use the config-first local bundle marker',
+  );
+  assert.doesNotMatch(
+    html,
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\ssrc="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected standalone demo to avoid loading the bundle before config orchestration completes',
   );
 });

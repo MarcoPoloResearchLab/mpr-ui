@@ -13,8 +13,14 @@
   var SECTION_AUTH = "auth";
   var SECTION_AUTH_BUTTON = "authButton";
   var SECTION_ORIGINS = "origins";
+  var BUNDLE_MARKER_SELECTOR = "script[data-mpr-ui-bundle-src]";
+  var EVENT_CONFIG_APPLIED = "mpr-ui:config:applied";
+  var EVENT_BUNDLE_LOADED = "mpr-ui:bundle:loaded";
+  var EVENT_ORCHESTRATION_READY = "mpr-ui:orchestration:ready";
 
   var yamlParserPromise = null;
+  var bundleLoadPromise = null;
+  var autoOrchestrationPromise = null;
 
   function ensureNamespace(target) {
     if (!target.MPRUI) {
@@ -252,6 +258,16 @@
     });
   }
 
+  function dispatchDocumentEvent(eventName, detail) {
+    if (!global.document || typeof global.document.dispatchEvent !== "function") {
+      return;
+    }
+    if (typeof global.CustomEvent !== "function") {
+      return;
+    }
+    global.document.dispatchEvent(new global.CustomEvent(eventName, { detail: detail }));
+  }
+
   function setAttributeValue(targetElement, attributeName, attributeValue) {
     if (!targetElement || typeof targetElement.setAttribute !== "function") {
       return;
@@ -326,6 +342,32 @@
     return runtimeConfig;
   }
 
+  function readBundleMarkerSource(bundleMarker) {
+    if (!bundleMarker || typeof bundleMarker.getAttribute !== "function") {
+      return "";
+    }
+    var bundleSource = bundleMarker.getAttribute("data-mpr-ui-bundle-src");
+    if (typeof bundleSource !== "string" || bundleSource.trim().length === 0) {
+      throw new Error("mpr-ui auto-orchestration requires data-mpr-ui-bundle-src");
+    }
+    return bundleSource.trim();
+  }
+
+  function loadBundleFromMarker(bundleMarker) {
+    if (!bundleMarker) {
+      return Promise.resolve(null);
+    }
+    if (bundleLoadPromise) {
+      return bundleLoadPromise;
+    }
+    var bundleSource = readBundleMarkerSource(bundleMarker);
+    bundleLoadPromise = loadScript(bundleSource).then(function resolveBundleLoad() {
+      dispatchDocumentEvent(EVENT_BUNDLE_LOADED, { src: bundleSource });
+      return bundleSource;
+    });
+    return bundleLoadPromise;
+  }
+
   var namespace = ensureNamespace(global);
   namespace.loadYamlConfig = function loadYamlConfig(options) {
     var resolved = normalizeOptions(options);
@@ -336,29 +378,46 @@
     return loadYamlConfigInternal(resolved).then(function applyConfig(runtimeConfig) {
       return ensureDocumentReady().then(function finalizeApply() {
         var result = applyConfigToDom(runtimeConfig, resolved);
-        if (typeof window !== 'undefined' && typeof window.CustomEvent === 'function') {
-          document.dispatchEvent(new window.CustomEvent('mpr-ui:config:applied', { detail: { config: resolved } }));
-        }
+        dispatchDocumentEvent(EVENT_CONFIG_APPLIED, { config: resolved, runtimeConfig: result });
         return result;
       });
     });
+  };
+  namespace.whenAutoOrchestrationReady = function whenAutoOrchestrationReady() {
+    if (autoOrchestrationPromise) {
+      return autoOrchestrationPromise;
+    }
+    return Promise.resolve();
   };
 
   // MU-130: Automatic orchestration for components with data-config-url
   function autoOrchestrate() {
     if (typeof document === 'undefined' || typeof document.querySelector !== 'function') {
-      return;
+      return Promise.resolve();
+    }
+    if (autoOrchestrationPromise) {
+      return autoOrchestrationPromise;
     }
     var header = document.querySelector('mpr-header[data-config-url]');
     if (header) {
       var configUrl = header.getAttribute('data-config-url');
       if (configUrl) {
-        global.MPRUI.applyYamlConfig({ configUrl: configUrl }).catch(function (err) {
+        var bundleMarker = document.querySelector(BUNDLE_MARKER_SELECTOR);
+        autoOrchestrationPromise = global.MPRUI.applyYamlConfig({ configUrl: configUrl })
+          .then(function handleConfigApplied() {
+            return loadBundleFromMarker(bundleMarker);
+          })
+          .then(function finalizeOrchestration() {
+            dispatchDocumentEvent(EVENT_ORCHESTRATION_READY, { configUrl: configUrl });
+          });
+        autoOrchestrationPromise.catch(function handleOrchestrationError(err) {
           // eslint-disable-next-line no-console
           console.error('[mpr-ui-config] Auto-orchestration failed:', err);
         });
+        return autoOrchestrationPromise;
       }
     }
+    return Promise.resolve();
   }
 
   if (typeof document !== 'undefined') {

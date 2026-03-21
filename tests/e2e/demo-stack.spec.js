@@ -11,17 +11,17 @@ const LOCAL_CSS_SUFFIX = '/mpr-ui.css';
 test.use({ ignoreHTTPSErrors: true });
 
 /**
- * Waits for the semantic config-applied event before proceeding.
+ * Waits for the semantic orchestration-ready event before proceeding.
  * @param {import('@playwright/test').Page} page
  */
-async function waitForConfig(page) {
+async function waitForOrchestration(page) {
   await page.evaluate(() => {
     return new Promise((resolve) => {
-      if (window['MPRUI_CONFIG_APPLIED']) {
+      if (window['MPRUI_ORCHESTRATION_READY']) {
         resolve(true);
         return;
       }
-      document.addEventListener('mpr-ui:config:applied', () => resolve(true), { once: true });
+      document.addEventListener('mpr-ui:orchestration:ready', () => resolve(true), { once: true });
     });
   });
 }
@@ -29,14 +29,14 @@ async function waitForConfig(page) {
 test('root / serves the demo hub landing page with local assets and DSL orchestration', async ({ page }) => {
   // We need to inject a listener before the event might fire
   await page.addInitScript(() => {
-    window['MPRUI_CONFIG_APPLIED'] = false;
-    document.addEventListener('mpr-ui:config:applied', () => {
-      window['MPRUI_CONFIG_APPLIED'] = true;
+    window['MPRUI_ORCHESTRATION_READY'] = false;
+    document.addEventListener('mpr-ui:orchestration:ready', () => {
+      window['MPRUI_ORCHESTRATION_READY'] = true;
     }, { once: true });
   });
 
   await page.goto(BASE_URL, { waitUntil: 'networkidle' });
-  await waitForConfig(page);
+  await waitForOrchestration(page);
 
   // 1. Verify Hub Identity
   await expect(page).toHaveTitle('mpr-ui Demo');
@@ -66,14 +66,14 @@ test('sub-demos provide consistent navigation and local asset loading', async ({
 
   for (const demo of subDemos) {
     await page.addInitScript(() => {
-      window['MPRUI_CONFIG_APPLIED'] = false;
-      document.addEventListener('mpr-ui:config:applied', () => {
-        window['MPRUI_CONFIG_APPLIED'] = true;
+      window['MPRUI_ORCHESTRATION_READY'] = false;
+      document.addEventListener('mpr-ui:orchestration:ready', () => {
+        window['MPRUI_ORCHESTRATION_READY'] = true;
       }, { once: true });
     });
 
     await page.goto(`${BASE_URL.replace(/\/$/, '')}${demo.path}`, { waitUntil: 'networkidle' });
-    await waitForConfig(page);
+    await waitForOrchestration(page);
     
     await expect(page).toHaveTitle(demo.title);
     

@@ -55,6 +55,8 @@
   var GOOGLE_IDENTITY_SCRIPT_URL = "https://accounts.google.com/gsi/client";
   var GOOGLE_SITE_ID_ERROR_CODE = "mpr-ui.google_site_id_required";
   var TENANT_ID_ERROR_CODE = "mpr-ui.tenant_id_required";
+  var AUTH_TENANT_ID_CHANGE_ERROR_CODE =
+    "mpr-ui.auth.tenant_id_change_unsupported";
   var googleIdentityPromise = null;
 
   function normalizeGoogleSiteId(value) {
@@ -109,6 +111,28 @@
       throw createTenantIdError();
     }
     return normalized;
+  }
+
+  /**
+   * @param {string} currentTenantId
+   * @param {string|null} nextTenantId
+   * @returns {MprUiError}
+   */
+  function createAuthTenantIdChangeError(currentTenantId, nextTenantId) {
+    var nextTenantLabel =
+      typeof nextTenantId === "string" && nextTenantId.trim()
+        ? nextTenantId
+        : "<missing>";
+    /** @type {MprUiError} */
+    var error = new Error(
+      "Tenant ID cannot change after auth controller initialization (" +
+        currentTenantId +
+        " -> " +
+        nextTenantLabel +
+        ")",
+    );
+    error.code = AUTH_TENANT_ID_CHANGE_ERROR_CODE;
+    return error;
   }
 
   function ensureNamespace(target) {
@@ -2685,6 +2709,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return candidateVersion === lifecycleVersion;
     }
 
+    function assertStableTenantId(nextOptions) {
+      if (nextOptions.tenantId === options.tenantId) {
+        return;
+      }
+      throw createAuthTenantIdChangeError(options.tenantId, nextOptions.tenantId);
+    }
+
     function configureTenantId() {
       if (typeof global.setAuthTenantId === "function") {
         global.setAuthTenantId(options.tenantId);
@@ -3054,6 +3085,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         return;
       }
       var nextOptions = normalizeAuthControllerOptions(rawNextOptions);
+      assertStableTenantId(nextOptions);
       if (authControllerOptionsMatch(options, nextOptions)) {
         options = nextOptions;
         state.options = options;
@@ -4777,6 +4809,18 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           latestExternalOptions,
         );
         options = normalizeHeaderOptions(updatedCombined);
+        if (
+          options.auth &&
+          authController &&
+          authController.state &&
+          authController.state.options &&
+          authController.state.options.tenantId !== options.auth.tenantId
+        ) {
+          throw createAuthTenantIdChangeError(
+            authController.state.options.tenantId,
+            options.auth.tenantId,
+          );
+        }
         headerThemeConfig = options.themeToggle;
         googleSiteId = normalizeGoogleSiteId(options.siteId);
         if (googleSiteId) {
@@ -10266,6 +10310,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           var authOptions = buildLoginAuthOptionsFromAttributes(this);
           var siteId = normalizeGoogleSiteId(authOptions.googleClientId);
           var tenantId = normalizeTenantId(authOptions.tenantId);
+          var currentTenantId =
+            this.__authController &&
+            this.__authController.state &&
+            this.__authController.state.options
+              ? normalizeTenantId(this.__authController.state.options.tenantId)
+              : null;
+          if (currentTenantId && currentTenantId !== tenantId) {
+            throw createAuthTenantIdChangeError(currentTenantId, tenantId);
+          }
           if (!siteId || !tenantId) {
             if (
               this.__authController &&

@@ -18,9 +18,9 @@
     <script defer src="/tauth.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
-    <!-- Load config loader and bundle directly -->
+    <!-- Load config first; mpr-ui-config.js injects the bundle after config is applied -->
     <script src="../mpr-ui-config.js" defer></script>
-    <script id="mpr-ui-bundle" src="../mpr-ui.js" defer></script>
+    <script id="mpr-ui-bundle" type="application/json" data-mpr-ui-bundle-src="../mpr-ui.js"></script>
     <style>
       :root {
         --card-background: rgba(255, 255, 255, 0.9);

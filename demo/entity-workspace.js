@@ -13,7 +13,6 @@ const DEMO_ERROR_CODES = Object.freeze({
 
 const DOCKER_START_COMMAND = './up.sh tauth';
 const DOCKER_DEMO_URL = 'https://localhost:4443/';
-const MPR_UI_SCRIPT_ID = 'entity-demo-mpr-ui-bundle';
 
 /**
  * @typedef {{ label: string, value: string }} DemoStat
@@ -149,18 +148,10 @@ async function initializeEntityWorkspaceDemo() {
     return;
   }
 
-  // Ensure mpr-ui.js is loaded (it might be missing if YAML config failed or was skipped)
-  if (!document.getElementById(MPR_UI_SCRIPT_ID)) {
-    const isLocalDemo = window.location.pathname.includes('/demo/');
-    const script = document.createElement('script');
-    script.id = MPR_UI_SCRIPT_ID;
-    script.src = isLocalDemo ? '../mpr-ui.js' : '/mpr-ui.js';
-    document.head.appendChild(script);
-  }
-
   try {
     const demoData = await loadDemoData();
-    const exampleState = createExampleState(demoData, elements);
+    const mprUiNamespace = await waitForMprUiNamespace();
+    const exampleState = createExampleState(demoData, elements, mprUiNamespace);
 
     hydrateHero(exampleState);
     bindExampleEvents(exampleState);
@@ -211,10 +202,10 @@ async function loadDemoData() {
  * Creates the host-owned state container for the example.
  * @param {DemoData} demoData
  * @param {ExampleElements} elements
+ * @param {DemoMprUiNamespace} mprUiNamespace
  * @returns {ExampleState}
  */
-function createExampleState(demoData, elements) {
-  const mprUiNamespace = getMprUiNamespace();
+function createExampleState(demoData, elements, mprUiNamespace) {
   const playlistById = new Map(
     demoData.playlists.map((playlist) => [playlist.id, playlist]),
   );
@@ -255,6 +246,26 @@ function getMprUiNamespace() {
     throw new Error(DEMO_ERROR_CODES.missingSelectionState);
   }
   return demoWindow.MPRUI;
+}
+
+/**
+ * @returns {Promise<DemoMprUiNamespace>}
+ */
+async function waitForMprUiNamespace() {
+  const demoWindow =
+    /** @type {Window & typeof globalThis & { MPRUI?: DemoMprUiNamespace & { whenAutoOrchestrationReady?: () => Promise<void> } }} */ (
+      window
+    );
+  if (demoWindow.MPRUI && typeof demoWindow.MPRUI.createSelectionState === 'function') {
+    return demoWindow.MPRUI;
+  }
+  if (
+    demoWindow.MPRUI &&
+    typeof demoWindow.MPRUI.whenAutoOrchestrationReady === 'function'
+  ) {
+    await demoWindow.MPRUI.whenAutoOrchestrationReady();
+  }
+  return getMprUiNamespace();
 }
 
 /**
@@ -1003,7 +1014,8 @@ function createVideoDrawerBody(video) {
   statGrid.appendChild(createStatCardElement('Score', video.watchScore));
   statsPanel.appendChild(statGrid);
 
-  const tagRow = document.createDocumentFragment();
+  const tagRow = document.createElement('div');
+  tagRow.className = 'entity-demo__drawer-tags';
   video.tags.forEach((tag) => tagRow.appendChild(createTagElement(tag)));
   statsPanel.appendChild(tagRow);
 

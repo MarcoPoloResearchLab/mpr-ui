@@ -13,8 +13,13 @@ const standaloneHtml = readFileSync(standaloneHtmlPath, 'utf8');
 test('standalone demo loads local mpr-ui assets', () => {
   assert.match(
     standaloneHtml,
-    /<script[^>]+id="mpr-ui-bundle"[^>]+src="\.\.\/mpr-ui\.js"/,
-    'Expected standalone.html to reference the local bundle',
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\sdata-mpr-ui-bundle-src="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected standalone.html to declare the local bundle marker',
+  );
+  assert.doesNotMatch(
+    standaloneHtml,
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\ssrc="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected standalone.html to avoid loading the bundle before config orchestration completes',
   );
   assert.match(
     standaloneHtml,
