@@ -17,6 +17,24 @@
 ### Docs 📚
 - _No changes._
 
+## [v3.8.1] - 2026-03-20
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- Pin production CDN URLs to the released version `v3.8.1` for deterministic rollouts and predictable caching.
+- Update `README.md` and `docs/integration-guide.md` examples to use versioned jsDelivr URLs instead of `@latest`.
+
+### Bug Fixes 🐛
+- _No changes._
+
+### Testing 🧪
+- _No changes._
+
+### Docs 📚
+- Update `README.md` and `docs/integration-guide.md` to recommend version pinning of CDN resources.
+
 ## [v3.8.0] - 2026-03-20
 
 ### Features ✨
