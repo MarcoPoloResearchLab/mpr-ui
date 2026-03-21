@@ -55,6 +55,12 @@ const GOOGLE_IDENTITY_STUB = String.raw`
   };
 
   identityNamespace.prompt = function promptIdentity() {};
+
+  if (typeof globalObject.requestNonce !== 'function') {
+    globalObject.requestNonce = function requestNonce() {
+      return Promise.resolve('fixture-google-nonce');
+    };
+  }
 })();
 `;
 const REPOSITORY_ROOT = join(__dirname, '../../..');

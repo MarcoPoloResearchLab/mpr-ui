@@ -2701,6 +2701,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var lastAuthenticatedSignature = null;
     var pendingNonceToken = null;
     var nonceRequestPromise = null;
+    var noncePreparationPromise = null;
     var authSignalVersion = 0;
     var lifecycleVersion = 0;
     var isDestroyed = false;
@@ -2833,20 +2834,27 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function prepareGooglePromptNonce() {
-      var currentLifecycleVersion = lifecycleVersion;
-      var sourcePromise;
       if (pendingNonceToken) {
-        sourcePromise = Promise.resolve(pendingNonceToken);
-      } else {
-        sourcePromise = requestNonceToken();
+        return Promise.resolve(pendingNonceToken);
       }
-      return sourcePromise.then(function (nonceToken) {
-        if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
-          throw new Error("mpr-ui.auth.stale_nonce");
-        }
-        configureGoogleNonce(nonceToken);
-        return nonceToken;
-      });
+      if (noncePreparationPromise) {
+        return noncePreparationPromise;
+      }
+      var currentLifecycleVersion = lifecycleVersion;
+      noncePreparationPromise = requestNonceToken()
+        .then(function (nonceToken) {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            throw new Error("mpr-ui.auth.stale_nonce");
+          }
+          configureGoogleNonce(nonceToken);
+          return nonceToken;
+        })
+        .finally(function () {
+          if (isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            noncePreparationPromise = null;
+          }
+        });
+      return noncePreparationPromise;
     }
 
     function prepareGoogleNonce() {
@@ -3097,6 +3105,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       pendingProfile = null;
       pendingNonceToken = null;
       nonceRequestPromise = null;
+      noncePreparationPromise = null;
       markUnauthenticated({ emit: false, prompt: false });
       bootstrapSession();
       primeGoogleNonce();
@@ -3108,6 +3117,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       pendingProfile = null;
       pendingNonceToken = null;
       nonceRequestPromise = null;
+      noncePreparationPromise = null;
     }
 
     function performLogoutWithFetch() {
@@ -4544,6 +4554,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var authController = null;
     var authListenersAttached = false;
     var googleButtonCleanup = null;
+    var googleButtonRenderSequence = 0;
     var fallbackSigninTarget = null;
     var googleSiteId = normalizeGoogleSiteId(options.siteId);
     if (googleSiteId) {
@@ -4650,6 +4661,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     function mountGoogleSignInButton() {
       destroyGoogleButton();
+      googleButtonRenderSequence += 1;
+      var renderSequenceNumber = googleButtonRenderSequence;
       if (!elements.googleSignin) {
         return;
       }
@@ -4667,33 +4680,63 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       elements.googleSignin.setAttribute("data-mpr-google-site-id", googleSiteId);
       elements.googleSignin.removeAttribute("data-mpr-google-error");
-      enqueueGoogleInitialize({
-        clientId: googleSiteId,
-        callback: function handleGoogleCredential(payload) {
-          if (authController && typeof authController.handleCredential === "function") {
-            authController.handleCredential(payload);
+      if (!authController || typeof authController.prepareGoogleNonce !== "function") {
+        mountFallbackSigninButton("disabled");
+        return;
+      }
+      function renderMountedGoogleButton() {
+        googleButtonCleanup = renderGoogleButton(
+          elements.googleSignin,
+          googleSiteId,
+          { theme: "outline", size: "large", text: "signin_with" },
+          function handleGoogleError(detail) {
+            var incomingCode = detail && detail.code ? detail.code : "";
+            var codeMap = {
+              "mpr-ui.google_unavailable": "mpr-ui.header.google_unavailable",
+              "mpr-ui.google_render_failed": "mpr-ui.header.google_render_failed",
+              "mpr-ui.google_script_failed": "mpr-ui.header.google_script_failed",
+            };
+            var mappedCode = codeMap[incomingCode] || "mpr-ui.header.google_error";
+            destroyGoogleButton("error", { code: mappedCode });
+            dispatchHeaderEvent("mpr-ui:header:error", {
+              code: mappedCode,
+              message: detail && detail.message ? detail.message : undefined,
+            });
+          },
+        );
+      }
+      authController
+        .prepareGoogleNonce()
+        .then(function handleNoncePrepared() {
+          if (renderSequenceNumber !== googleButtonRenderSequence) {
+            return;
           }
-        },
-      });
-      googleButtonCleanup = renderGoogleButton(
-        elements.googleSignin,
-        googleSiteId,
-        { theme: "outline", size: "large", text: "signin_with" },
-        function handleGoogleError(detail) {
-          var incomingCode = detail && detail.code ? detail.code : "";
-          var codeMap = {
-            "mpr-ui.google_unavailable": "mpr-ui.header.google_unavailable",
-            "mpr-ui.google_render_failed": "mpr-ui.header.google_render_failed",
-            "mpr-ui.google_script_failed": "mpr-ui.header.google_script_failed",
-          };
-          var mappedCode = codeMap[incomingCode] || "mpr-ui.header.google_error";
-          destroyGoogleButton("error", { code: mappedCode });
+          renderMountedGoogleButton();
+        })
+        .catch(function handleNonceFailure(error) {
+          if (renderSequenceNumber !== googleButtonRenderSequence) {
+            return;
+          }
           dispatchHeaderEvent("mpr-ui:header:error", {
-            code: mappedCode,
-            message: detail && detail.message ? detail.message : undefined,
+            code: "mpr-ui.header.google_nonce_failed",
+            message: error && error.message ? String(error.message) : "google nonce failed",
           });
-        },
-      );
+          enqueueGoogleInitialize({
+            clientId: googleSiteId,
+            callback: function handleGoogleCredential(payload) {
+              if (authController && typeof authController.handleCredential === "function") {
+                authController.handleCredential(payload);
+              }
+            },
+          });
+          renderMountedGoogleButton();
+        });
+    }
+
+    if (options.auth) {
+      authController = createAuthHeader(hostElement, options.auth);
+    } else if (elements.root) {
+      elements.root.classList.add(HEADER_ROOT_CLASS + "--no-auth");
     }
 
     if (
@@ -4751,12 +4794,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         handleUnauthenticatedEvent,
       );
       authListenersAttached = true;
-    }
-
-    if (options.auth) {
-      authController = createAuthHeader(hostElement, options.auth);
-    } else if (elements.root) {
-      elements.root.classList.add(HEADER_ROOT_CLASS + "--no-auth");
     }
 
     if (
@@ -4846,6 +4883,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         ) {
           themeManager.setMode(headerThemeConfig.initialMode, "header:update");
         }
+        if (options.auth && !authController) {
+          authController = createAuthHeader(hostElement, options.auth);
+        }
         if (options.auth && authController && typeof authController.updateOptions === "function") {
           authController.updateOptions(options.auth);
         }
@@ -4853,9 +4893,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         updateThemeHost(themeManager.getMode());
         if (options.auth && elements.root) {
           elements.root.classList.remove(HEADER_ROOT_CLASS + "--no-auth");
-        }
-        if (options.auth && !authController) {
-          authController = createAuthHeader(hostElement, options.auth);
         }
         if (options.auth) {
           ensureAuthEventListeners();
