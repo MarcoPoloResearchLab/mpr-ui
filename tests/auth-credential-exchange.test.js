@@ -25,9 +25,9 @@ test('MU-132: handleCredential calls markAuthenticated directly after exchangeCr
   const bundlePath = path.join(__dirname, '..', 'mpr-ui.js');
   const bundleSource = fs.readFileSync(bundlePath, 'utf8');
 
-  // Verify the fix is in place: after exchangeCredential().then(),
-  // markAuthenticated should be called directly
-  const fixedPattern = /return exchangeCredential\(credentialResponse\.credential\)\s*\.then\(function\s*\(profile\)\s*\{[^}]*markAuthenticated\(profile\)/s;
+  // Verify the fix is in place: the successful exchange path still marks
+  // the controller authenticated directly rather than delegating to bootstrapSession().
+  const fixedPattern = /return exchangeCredential\(credentialResponse\.credential\)\s*\.then\(function\s*\(profile\)\s*\{[\s\S]*?markAuthenticated\(profile\)/s;
 
   assert.ok(
     fixedPattern.test(bundleSource),

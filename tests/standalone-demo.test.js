@@ -10,28 +10,36 @@ const demoDir = join(__dirname, '..', 'demo');
 const standaloneHtmlPath = join(demoDir, 'standalone.html');
 const standaloneHtml = readFileSync(standaloneHtmlPath, 'utf8');
 
-test('MU-130: standalone demo loads tauth.js from same-origin proxy', () => {
+test('standalone demo loads local mpr-ui assets', () => {
   assert.match(
     standaloneHtml,
-    /<script\b[^>]*\bsrc="\/tauth\.js"[^>]*><\/script>/i,
-    'Expected standalone.html to load tauth.js from /tauth.js (gHTTP proxy)',
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\sdata-mpr-ui-bundle-src="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected standalone.html to declare the local bundle marker',
+  );
+  assert.doesNotMatch(
+    standaloneHtml,
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\ssrc="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected standalone.html to avoid loading the bundle before config orchestration completes',
+  );
+  assert.match(
+    standaloneHtml,
+    /<link[^>]+href="\.\.\/mpr-ui\.css"/,
+    'Expected standalone.html to reference the local stylesheet',
   );
 });
 
-test('MU-130: standalone demo uses relative demo navigation links', () => {
-  assert.doesNotMatch(
+test('standalone demo uses Web Component orchestration', () => {
+  assert.match(
     standaloneHtml,
-    /"url"\s*:\s*"\/?demo\//i,
-    'Expected standalone.html links-collection URLs to avoid a /demo/ prefix when served from demo as web root',
+    /data-config-url="\.?\/config\.yaml"/,
+    'Expected standalone.html to use data-config-url',
   );
+});
 
-  const expectedLinks = ['./tauth-demo.html', './local.html', './index.html'];
-  expectedLinks.forEach((href) => {
-    const escapedHref = href.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    assert.match(
-      standaloneHtml,
-      new RegExp(`\"url\"\\s*:\\s*\"${escapedHref}\"`),
-      `Expected standalone.html to include link url ${href}`,
-    );
-  });
+test('standalone demo links back to the landing hub', () => {
+  assert.match(
+    standaloneHtml,
+    /"label"\s*:\s*"Index demo"\s*,\s*"href"\s*:\s*"\.\.\/index\.html"/,
+    'Expected standalone.html to link back to the root hub',
+  );
 });

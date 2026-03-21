@@ -15,9 +15,9 @@ This document explains how `demo/index.html` wires Google Identity Services (GIS
 
 The Docker Compose demo (`demo/tauth-demo.html` via `docker-compose.yml`) is identical in terms of auth flow but additionally:
 
-- Serves the page from `http://localhost:8000`.
-- Talks to a TAuth instance on `http://localhost:8080`.
-- Loads TAuth’s `tauth.js` helper and sets `tauth-url="http://localhost:8080"`.
+- Serves the repository root over HTTPS on port 4443.
+- Talks to a TAuth instance on `http://localhost:8080` through gHTTP's same-origin proxy.
+- Loads TAuth’s `tauth.js` helper from `/tauth.js` and omits `tauth-url` so requests stay on the current origin.
 - Supplies `tauth-tenant-id` so the auth requests include `X-TAuth-Tenant`.
 
 ## 2. Required scripts and ordering
@@ -29,7 +29,7 @@ Every page that wants the same behavior as `demo/index.html` must include, in th
 3. `mpr-ui.js` – the web-components bundle.
 4. GIS SDK – `https://accounts.google.com/gsi/client`.
 
-The demo page uses CDN URLs for `mpr-ui.css` and `mpr-ui.js`. The Docker Compose setup mounts local copies of `mpr-ui.css` and `mpr-ui.js` into the container but keeps the same ordering.
+`demo/index.html` uses CDN URLs for `mpr-ui.css` and `mpr-ui.js`. The Compose auth demos load `../mpr-ui.css` and `../mpr-ui.js` from the repository root after `mpr-ui-config.js` applies `demo/config.yaml`.
 
 ## 3. `<mpr-header>` attributes and backend endpoints
 
@@ -47,6 +47,7 @@ Rules for an automated integrator:
 
 - When the auth backend shares the page origin, omit `tauth-url`. The header will call `/auth/*` on the current origin and `mpr-ui` will pass the page origin into `tauth.js` when bootstrapping sessions.
 - When using a dedicated TAuth origin (e.g. `https://tauth.mprlab.com` or `http://localhost:8080`), set `tauth-url` to that origin so all `/auth/*` requests go there.
+- Treat `tauth-tenant-id` as immutable after the component initializes. If the app must bind to a different tenant, destroy the current auth-bearing component and create a new one.
 - The backend must expose:
   - `POST {tauth-url}/auth/nonce`
   - `POST {tauth-url}/auth/google`
@@ -127,12 +128,13 @@ Automated integrators must keep these concerns separate:
 
 When `tauth.js` is present (as in `demo/tauth-demo.html`):
 
-- `mpr-ui` calls `initAuthClient({ baseUrl: tauthUrl, tenantId, onAuthenticated, onUnauthenticated })` using the `tauth-url` attribute and uses `requestNonce`, `exchangeGoogleCredential`, and `logout` when those helpers are available.
+- `mpr-ui` calls `initAuthClient({ baseUrl, tenantId, onAuthenticated, onUnauthenticated })` using `tauth-url` when present, or the current origin when `tauthUrl` is empty, and uses `requestNonce`, `exchangeGoogleCredential`, and `logout` when those helpers are available.
 - The helper:
   - Polls `{tauth-url}/me` to hydrate the current profile.
   - Calls `{tauth-url}/auth/refresh` when `/me` returns 401.
   - Exposes `getCurrentUser()` and `logout()` on `window`.
 - `mpr-ui` treats `initAuthClient` as the source of truth for ongoing session state (after the initial credential exchange).
+- `mpr-ui` supports post-render `tauth-url` rebinding, but post-render `tauth-tenant-id` changes are rejected as configuration errors.
 
 `demo/status-panel.js` uses these hooks to render the session card:
 
@@ -165,5 +167,6 @@ To reproduce the `demo/index.html` + TAuth integration in another project:
 6. For tauth-tenant-id failures:
    - Ensure `tauth-tenant-id` matches a configured tenant in TAuth (for the demo container this is `mpr-sites`).
    - Missing tenant ID raises `mpr-ui.tenant_id_required` and sets `data-mpr-google-error="missing-tauth-tenant-id"` on `<mpr-login-button>`.
+   - Changing `tauth-tenant-id` after first render raises `mpr-ui.auth.tenant_id_change_unsupported`; recreate the auth component instead of mutating the tenant in place.
 
 For deeper background on TAuth’s expectations, see `tools/TAuth/README.md` (section “Google nonce handling”) and `docs/integration-guide.md` for the broader integration walkthrough.

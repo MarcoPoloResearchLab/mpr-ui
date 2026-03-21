@@ -5,70 +5,92 @@ const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 
-const demoDir = join(__dirname, '..', 'demo');
-const demoHtmlPath = join(demoDir, 'index.html');
-const sharedCssPath = join(__dirname, '..', 'mpr-ui.css');
+const repoRoot = join(__dirname, '..');
+const demoDir = join(repoRoot, 'demo');
+const landingHtmlPath = join(repoRoot, 'index.html');
+const sharedCssPath = join(repoRoot, 'mpr-ui.css');
 const demoCssPath = join(demoDir, 'demo.css');
-const demoHtml = readFileSync(demoHtmlPath, 'utf8');
+const entityWorkspaceCssPath = join(demoDir, 'entity-workspace.css');
+const dockerComposePath = join(repoRoot, 'docker-compose.yml');
+
+const landingHtml = readFileSync(landingHtmlPath, 'utf8');
 const sharedCss = readFileSync(sharedCssPath, 'utf8');
 const demoCss = readFileSync(demoCssPath, 'utf8');
-const FOOTER_HORIZONTAL_LINK_DEMO_FILES = Object.freeze([
-  'index.html',
-  'local.html',
+const entityWorkspaceCss = readFileSync(entityWorkspaceCssPath, 'utf8');
+const dockerCompose = readFileSync(dockerComposePath, 'utf8');
+
+const HEADER_HORIZONTAL_LINK_DEMO_FILES = Object.freeze([
   'tauth-demo.html',
+  'entity-workspace.html',
   'standalone.html',
 ]);
 
-const CDN_VERSION_PATTERN = '(?:latest|0\\.1\\.0|0\\.0\\.8)';
+const FOOTER_HORIZONTAL_LINK_DEMO_FILES = Object.freeze([
+  'tauth-demo.html',
+  'entity-workspace.html',
+  'standalone.html',
+]);
 
-test('demo loads mpr-ui from the CDN bundle', () => {
-  const scriptRegex = new RegExp(
-    `<script[^>]+id="mpr-ui-bundle"[^>]+src="https:\\/?\\/?cdn\\.jsdelivr\\.net/gh/MarcoPoloResearchLab/mpr-ui@${CDN_VERSION_PATTERN}/mpr-ui\\.js"`,
+function readDemoFile(demoFileName) {
+  return readFileSync(join(demoDir, demoFileName), 'utf8');
+}
+
+function extractSingleQuotedAttribute(html, tagName, attributeName) {
+  const match = html.match(
+    new RegExp(`<${tagName}[\\s\\S]*?\\s${attributeName}='([\\s\\S]*?)'`, 'i'),
+  );
+  assert.ok(match, `Expected <${tagName}> to define ${attributeName}`);
+  return match[1];
+}
+
+function extractDoubleQuotedAttribute(html, tagName, attributeName) {
+  const match = html.match(
+    new RegExp(`<${tagName}[\\s\\S]*?\\s${attributeName}="([\\s\\S]*?)"`, 'i'),
+  );
+  assert.ok(match, `Expected <${tagName}> to define ${attributeName}`);
+  return match[1];
+}
+
+function normalizeAttributeValue(attributeValue) {
+  return attributeValue.replace(/\s+/g, ' ').trim();
+}
+
+test('landing page loads local mpr-ui assets', () => {
+  assert.match(
+    landingHtml,
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\sdata-mpr-ui-bundle-src="\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected root index.html to declare the local bundle marker',
+  );
+  assert.doesNotMatch(
+    landingHtml,
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\ssrc="\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected root index.html to avoid loading the bundle before config orchestration completes',
   );
   assert.match(
-    demoHtml,
-    scriptRegex,
-    'Expected demo index.html to reference the CDN bundle with id="mpr-ui-bundle"',
+    landingHtml,
+    /<link[^>]+href="\.\/mpr-ui\.css"/,
+    'Expected root index.html to reference the local stylesheet',
   );
 });
 
-test('demo loads the shared stylesheet from the CDN', () => {
-  const cssRegex = new RegExp(
-    `<link[^>]+href="https:\\/?\\/?cdn\\.jsdelivr\\.net/gh/MarcoPoloResearchLab/mpr-ui@${CDN_VERSION_PATTERN}/mpr-ui\\.css"`,
-  );
+test('landing page uses Web Component orchestration for config', () => {
   assert.match(
-    demoHtml,
-    cssRegex,
-    'Expected demo index.html to reference the packaged stylesheet on the CDN',
+    landingHtml,
+    /data-config-url="\.\/demo\/config\.yaml"/,
+    'Expected landing page to use data-config-url for automatic orchestration',
   );
 });
 
-test('demo loads only the local event log helper script', () => {
-  const localScripts = Array.from(
-    demoHtml.matchAll(/<script[^>]+src="(\.\/[^"]+)"[^>]*><\/script>/gi),
-  ).map((match) => match[1]);
-  assert.deepStrictEqual(
-    localScripts,
-    ['./demo.js'],
-    'Demo page should only include the event log helper as a local script',
-  );
-});
-
-test('demo pulls Bootstrap assets for the layout showcase', () => {
+test('landing page pulls Bootstrap assets for the layout showcase', () => {
   assert.match(
-    demoHtml,
+    landingHtml,
     /<link[^>]+href="https:\/\/cdn\.jsdelivr\.net\/npm\/bootstrap@[^/]+\/dist\/css\/bootstrap\.min\.css"/i,
-    'Expected the demo to load Bootstrap CSS for the grid layout',
+    'Expected the landing page to load Bootstrap CSS for the grid layout',
   );
   assert.match(
-    demoHtml,
+    landingHtml,
     /<script[^>]+src="https:\/\/cdn\.jsdelivr\.net\/npm\/bootstrap@[^/]+\/dist\/js\/bootstrap\.bundle\.min\.js"/i,
-    'Expected the demo to load the Bootstrap bundle so the namespace exists',
-  );
-  assert.match(
-    demoHtml,
-    /data-test="bootstrap-grid"/i,
-    'Expected the demo HTML to expose a Bootstrap grid container for testing',
+    'Expected the landing page to load the Bootstrap bundle',
   );
 });
 
@@ -113,13 +135,109 @@ test('palette-specific overrides live in the demo stylesheet only', () => {
 });
 
 test('all demo footers include horizontal-links DSL examples', () => {
+  assert.match(landingHtml, /<mpr-footer[\s\S]*?horizontal-links='/i, 'Expected landing page to include a footer horizontal-links example');
   FOOTER_HORIZONTAL_LINK_DEMO_FILES.forEach((demoFileName) => {
-    const demoFilePath = join(demoDir, demoFileName);
-    const demoFileHtml = readFileSync(demoFilePath, 'utf8');
+    const demoFileHtml = readDemoFile(demoFileName);
     assert.match(
       demoFileHtml,
       /<mpr-footer[\s\S]*?horizontal-links='/i,
       `Expected ${demoFileName} to include a footer horizontal-links example`,
     );
   });
+});
+
+test('demo pages share the same header navigation links', () => {
+  const canonicalNavLinks = extractSingleQuotedAttribute(
+    landingHtml,
+    'mpr-header',
+    'nav-links',
+  );
+  const canonicalHeaderLinks = extractSingleQuotedAttribute(
+    landingHtml,
+    'mpr-header',
+    'horizontal-links',
+  );
+
+  HEADER_HORIZONTAL_LINK_DEMO_FILES.forEach((demoFileName) => {
+    const demoHtmlFile = readDemoFile(demoFileName);
+    const demoHeaderLinks = extractSingleQuotedAttribute(
+      demoHtmlFile,
+      'mpr-header',
+      'horizontal-links',
+    );
+
+    assert.strictEqual(
+      normalizeAttributeValue(extractSingleQuotedAttribute(demoHtmlFile, 'mpr-header', 'nav-links')),
+      normalizeAttributeValue(canonicalNavLinks),
+      `Expected ${demoFileName} to keep the shared demo nav links`,
+    );
+    assert.strictEqual(
+      normalizeAttributeValue(demoHeaderLinks),
+      normalizeAttributeValue(canonicalHeaderLinks.replace(/\.\/index\.html/g, '../index.html').replace(/\.\/demo\//g, './')),
+      `Expected ${demoFileName} to keep the shared demo header navigation`,
+    );
+  });
+});
+
+test('demo pages keep the shared slotted avatar control in the header', () => {
+  assert.match(
+    landingHtml,
+    /<mpr-user[\s\S]*slot="aux"[\s\S]*display-mode="avatar"[\s\S]*logout-url="\/"[\s\S]*logout-label="Log out"[\s\S]*><\/mpr-user>/,
+    'Expected landing page to keep the shared slotted avatar control',
+  );
+  HEADER_HORIZONTAL_LINK_DEMO_FILES.forEach((demoFileName) => {
+    const demoHtmlFile = readDemoFile(demoFileName);
+
+    assert.match(
+      demoHtmlFile,
+      /<mpr-user[\s\S]*slot="aux"[\s\S]*display-mode="avatar"[\s\S]*logout-url="\/"[\s\S]*logout-label="Log out"[\s\S]*><\/mpr-user>/,
+      `Expected ${demoFileName} to keep the shared slotted avatar control`,
+    );
+  });
+});
+
+test('docker compose keeps the index demo as the single root entrypoint', () => {
+  assert.match(
+    dockerCompose,
+    /- \.\/:[^\s]*\/app\/www/,
+    'Expected docker-compose.yml to mount the repository as the app root',
+  );
+});
+
+test('entity workspace demo uses Web Component orchestration', () => {
+  const html = readDemoFile('entity-workspace.html');
+  assert.match(
+    html,
+    /data-config-url="\.?\/config\.yaml"/,
+    'Expected entity workspace to use data-config-url',
+  );
+  assert.match(
+    html,
+    /<script\b[^>]*\bid="entity-demo-mpr-ui-bundle"[^>]*\sdata-mpr-ui-bundle-src="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected entity workspace to use the config-first local bundle marker',
+  );
+  assert.doesNotMatch(
+    html,
+    /<script\b[^>]*\bid="entity-demo-mpr-ui-bundle"[^>]*\ssrc="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected entity workspace to avoid loading the bundle before config orchestration completes',
+  );
+});
+
+test('standalone demo uses Web Component orchestration', () => {
+  const html = readDemoFile('standalone.html');
+  assert.match(
+    html,
+    /data-config-url="\.?\/config\.yaml"/,
+    'Expected standalone demo to use data-config-url',
+  );
+  assert.match(
+    html,
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\sdata-mpr-ui-bundle-src="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected standalone demo to use the config-first local bundle marker',
+  );
+  assert.doesNotMatch(
+    html,
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\ssrc="\.\.\/mpr-ui\.js"[^>]*>/i,
+    'Expected standalone demo to avoid loading the bundle before config orchestration completes',
+  );
 });

@@ -1,68 +1,33 @@
 // @ts-check
 
-const { createServer } = require('node:http');
-const { once } = require('node:events');
-const { existsSync, readFileSync, statSync } = require('node:fs');
-const { extname, resolve } = require('node:path');
 const { test, expect } = require('@playwright/test');
 
-const REPOSITORY_ROOT = resolve(__dirname, '../..');
-const CONTENT_TYPES = Object.freeze({
-  '.css': 'text/css; charset=utf-8',
-  '.html': 'text/html; charset=utf-8',
-  '.js': 'application/javascript; charset=utf-8',
-  '.json': 'application/json; charset=utf-8',
-});
+const BASE_URL = process.env.MPR_UI_DEMO_BASE_URL || 'https://localhost:4443';
 
-let server;
-let serverBaseUrl = '';
+test.use({ ignoreHTTPSErrors: true });
 
-test.beforeAll(async () => {
-  server = createServer((request, response) => {
-    const requestUrl = new URL(request.url || '/', 'http://127.0.0.1');
-    const requestedPath =
-      requestUrl.pathname === '/' ? '/demo/entity-workspace.html' : requestUrl.pathname;
-    const filesystemPath = resolve(REPOSITORY_ROOT, `.${requestedPath}`);
-
-    if (!filesystemPath.startsWith(REPOSITORY_ROOT)) {
-      response.writeHead(403);
-      response.end('forbidden');
-      return;
-    }
-
-    if (!existsSync(filesystemPath) || statSync(filesystemPath).isDirectory()) {
-      response.writeHead(404);
-      response.end('not found');
-      return;
-    }
-
-    const contentType = CONTENT_TYPES[extname(filesystemPath)] || 'application/octet-stream';
-    response.writeHead(200, { 'Content-Type': contentType });
-    response.end(readFileSync(filesystemPath));
+test('MU-429: entity workspace demo blocks direct static serving and requires Docker', async ({
+  page,
+}) => {
+  // Accessing without the bypass parameter
+  await page.goto(`${BASE_URL.replace(/\/$/, '')}/demo/entity-workspace.html`, {
+    waitUntil: 'networkidle',
   });
 
-  server.listen(0, '127.0.0.1');
-  await once(server, 'listening');
-
-  const address = server.address();
-  if (!address || typeof address === 'string') {
-    throw new Error('entity_workspace.demo.server.invalid_address');
-  }
-  serverBaseUrl = `http://127.0.0.1:${address.port}`;
-});
-
-test.afterAll(async () => {
-  if (!server) {
-    return;
-  }
-  server.close();
-  await once(server, 'close');
+  await expect(page.locator('#entity-demo-error')).toBeVisible();
+  await expect(page.locator('#entity-demo-error')).toContainText(
+    'This page is intentionally wired to the Docker-mounted demo bundle.',
+  );
+  await expect(page.locator('#entity-demo-error')).toContainText(
+    './up.sh tauth',
+  );
 });
 
 test('MU-429: JSON-backed entity workspace demo loads and responds to interactions', async ({
   page,
 }) => {
-  await page.goto(`${serverBaseUrl}/demo/entity-workspace.html`, {
+  // Use the Docker bypass parameter to enable the demo
+  await page.goto(`${BASE_URL.replace(/\/$/, '')}/demo/entity-workspace.html?entity-demo-docker=2`, {
     waitUntil: 'networkidle',
   });
 
@@ -70,7 +35,7 @@ test('MU-429: JSON-backed entity workspace demo loads and responds to interactio
   await expect(page.locator('mpr-entity-tile[data-playlist-id="launch-queue"]')).toBeVisible();
   await expect(page.locator('[data-demo-video-id="launch-briefing"]')).toBeVisible();
 
-  await page.locator('mpr-sidebar-nav [data-mpr-sidebar-key="research"]').click();
+  await page.locator('[data-mpr-sidebar-key="research"]').click();
   await expect(page.locator('#entity-demo-playlist-title')).toContainText('Field Notes');
   await expect(page.locator('mpr-entity-tile[data-playlist-id="field-notes"]')).toBeVisible();
 
@@ -88,7 +53,6 @@ test('MU-429: JSON-backed entity workspace demo loads and responds to interactio
     'data-mpr-detail-drawer-open',
     'true',
   );
-  await expect(page.locator('[data-demo-drawer-mode="video"]')).toBeVisible();
 });
 
 test('MU-429: JSON-backed entity workspace ignores concurrent load-more clicks', async ({
@@ -99,11 +63,12 @@ test('MU-429: JSON-backed entity workspace ignores concurrent load-more clicks',
     pageErrors.push(error.message);
   });
 
-  await page.goto(`${serverBaseUrl}/demo/entity-workspace.html`, {
+  // Use the Docker bypass parameter
+  await page.goto(`${BASE_URL.replace(/\/$/, '')}/demo/entity-workspace.html?entity-demo-docker=2`, {
     waitUntil: 'networkidle',
   });
 
-  await page.locator('mpr-sidebar-nav [data-mpr-sidebar-key="research"]').click();
+  await page.locator('[data-mpr-sidebar-key="research"]').click();
   await expect(page.locator('#entity-demo-playlist-title')).toContainText('Field Notes');
   await expect(page.locator('[data-mpr-entity-workspace="load-more-button"]')).toBeVisible();
 

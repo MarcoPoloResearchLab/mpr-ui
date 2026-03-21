@@ -8,7 +8,11 @@ const DEMO_ERROR_CODES = Object.freeze({
   invalidData: 'entity_workspace.demo.invalid_data',
   missingElement: 'entity_workspace.demo.missing_element',
   missingSelectionState: 'entity_workspace.demo.missing_selection_state',
+  dockerRequired: 'entity_workspace.demo.docker_required',
 });
+
+const DOCKER_START_COMMAND = './up.sh tauth';
+const DOCKER_DEMO_URL = 'https://localhost:4443/';
 
 /**
  * @typedef {{ label: string, value: string }} DemoStat
@@ -119,7 +123,8 @@ const DEMO_ERROR_CODES = Object.freeze({
 
 document.addEventListener('DOMContentLoaded', () => {
   initializeEntityWorkspaceDemo().catch((error) => {
-    throw error;
+    // eslint-disable-next-line no-console
+    console.error('Demo initialization failed:', error);
   });
 });
 
@@ -136,9 +141,17 @@ async function initializeEntityWorkspaceDemo() {
     return;
   }
 
+  // Block the demo if not navigated from the Docker entry or standalone page
+  const isDockerMode = window.location.search.includes('entity-demo-docker=2');
+  if (!isDockerMode) {
+    activateDockerBlocker(elements, buildDockerRequiredMessage());
+    return;
+  }
+
   try {
     const demoData = await loadDemoData();
-    const exampleState = createExampleState(demoData, elements);
+    const mprUiNamespace = await waitForMprUiNamespace();
+    const exampleState = createExampleState(demoData, elements, mprUiNamespace);
 
     hydrateHero(exampleState);
     bindExampleEvents(exampleState);
@@ -162,7 +175,7 @@ async function initializeEntityWorkspaceDemo() {
 async function loadDemoData() {
   const response = await fetch(DEMO_DATA_URL, { credentials: 'same-origin' });
   if (!response.ok) {
-    throw new Error(`${DEMO_ERROR_CODES.invalidData}: ${response.status}`);
+    throw new Error(buildDockerRequiredMessage(`JSON fetch failed with status ${response.status}`));
   }
 
   /** @type {unknown} */
@@ -189,10 +202,10 @@ async function loadDemoData() {
  * Creates the host-owned state container for the example.
  * @param {DemoData} demoData
  * @param {ExampleElements} elements
+ * @param {DemoMprUiNamespace} mprUiNamespace
  * @returns {ExampleState}
  */
-function createExampleState(demoData, elements) {
-  const mprUiNamespace = getMprUiNamespace();
+function createExampleState(demoData, elements, mprUiNamespace) {
   const playlistById = new Map(
     demoData.playlists.map((playlist) => [playlist.id, playlist]),
   );
@@ -233,6 +246,26 @@ function getMprUiNamespace() {
     throw new Error(DEMO_ERROR_CODES.missingSelectionState);
   }
   return demoWindow.MPRUI;
+}
+
+/**
+ * @returns {Promise<DemoMprUiNamespace>}
+ */
+async function waitForMprUiNamespace() {
+  const demoWindow =
+    /** @type {Window & typeof globalThis & { MPRUI?: DemoMprUiNamespace & { whenAutoOrchestrationReady?: () => Promise<void> } }} */ (
+      window
+    );
+  if (demoWindow.MPRUI && typeof demoWindow.MPRUI.createSelectionState === 'function') {
+    return demoWindow.MPRUI;
+  }
+  if (
+    demoWindow.MPRUI &&
+    typeof demoWindow.MPRUI.whenAutoOrchestrationReady === 'function'
+  ) {
+    await demoWindow.MPRUI.whenAutoOrchestrationReady();
+  }
+  return getMprUiNamespace();
 }
 
 /**
@@ -618,7 +651,8 @@ function openPlaylistDrawer(exampleState, playlist) {
   exampleState.elements.drawerActions.replaceChildren(
     createDrawerModeBadge('playlist'),
   );
-  exampleState.elements.drawerBody.replaceChildren(createPlaylistDrawerBody(playlist));
+  const playlistVideos = getAllVideosForPlaylist(exampleState, playlist.id);
+  exampleState.elements.drawerBody.replaceChildren(createPlaylistDrawerBody(playlist, playlistVideos));
 
   if (typeof exampleState.elements.drawer.show === 'function') {
     exampleState.elements.drawer.show();
@@ -642,6 +676,17 @@ function openVideoDrawer(exampleState, video) {
   if (typeof exampleState.elements.drawer.show === 'function') {
     exampleState.elements.drawer.show();
   }
+}
+
+/**
+ * @param {ExampleState} exampleState
+ * @param {string} playlistId
+ * @returns {DemoVideo[]}
+ */
+function getAllVideosForPlaylist(exampleState, playlistId) {
+  return requireVideoPages(exampleState, playlistId).reduce((allVideos, page) => {
+    return allVideos.concat(page.items);
+  }, /** @type {DemoVideo[]} */ ([]));
 }
 
 /**
@@ -775,11 +820,11 @@ function createPlaylistTileElement(playlist, selected) {
   titleCopyElement.append(nameElement, subtitleElement);
   titleElement.append(swatchElement, titleCopyElement);
 
-  const metaElement = document.createElement('div');
-  metaElement.slot = 'meta';
-  metaElement.className = 'entity-demo__tag-row';
+  const metaElement = document.createDocumentFragment();
   playlist.tags.forEach((tag) => {
-    metaElement.appendChild(createTagElement(tag));
+    const tagEl = createTagElement(tag);
+    tagEl.slot = 'meta';
+    metaElement.appendChild(tagEl);
   });
 
   tileElement.append(badgeElement, actionElement, titleElement, metaElement);
@@ -878,9 +923,10 @@ function createVideoCardElement(video, selected) {
 /**
  * Builds the playlist drawer body.
  * @param {DemoPlaylist} playlist
+ * @param {DemoVideo[]} playlistVideos
  * @returns {HTMLElement}
  */
-function createPlaylistDrawerBody(playlist) {
+function createPlaylistDrawerBody(playlist, playlistVideos) {
   const wrapperElement = document.createElement('div');
   wrapperElement.className = 'entity-demo__drawer-layout';
 
@@ -908,7 +954,21 @@ function createPlaylistDrawerBody(playlist) {
   statGrid.appendChild(createStatCardElement('Visibility', playlist.visibility));
   statsPanel.appendChild(statGrid);
 
-  wrapperElement.append(summaryPanel, statsPanel);
+  const videosPanel = document.createElement('section');
+  videosPanel.className = 'entity-demo__drawer-panel';
+  const videosHeading = document.createElement('h3');
+  videosHeading.className = 'entity-demo__eyebrow';
+  videosHeading.textContent = 'Videos in this playlist';
+  const videosList = document.createElement('ol');
+  videosList.className = 'entity-demo__detail-list';
+  playlistVideos.forEach((video) => {
+    const li = document.createElement('li');
+    li.textContent = `${video.title} — ${video.metric} — ${video.status}`;
+    videosList.appendChild(li);
+  });
+  videosPanel.append(videosHeading, videosList);
+
+  wrapperElement.append(summaryPanel, statsPanel, videosPanel);
   return wrapperElement;
 }
 
@@ -1028,6 +1088,38 @@ function requireElement(ownerDocument, elementId) {
 function showExampleError(elements, message) {
   elements.errorNotice.textContent = message;
   elements.errorNotice.hidden = false;
+}
+
+/**
+ * @param {ExampleElements} elements
+ * @param {string} message
+ * @returns {void}
+ */
+function activateDockerBlocker(elements, message) {
+  const normalizedMessage = message.indexOf(`${DEMO_ERROR_CODES.dockerRequired}: `) === 0
+    ? message.slice(`${DEMO_ERROR_CODES.dockerRequired}: `.length)
+    : message;
+  document.body.setAttribute('data-entity-demo-mode', 'blocked');
+  elements.loadingNotice.hidden = true;
+  elements.errorNotice.textContent = normalizedMessage;
+  elements.errorNotice.hidden = false;
+  elements.protocolWarning.hidden = true;
+  elements.layout.hidden = true;
+  elements.drawer.hidden = true;
+}
+
+/**
+ * @param {string=} detail
+ * @returns {string}
+ */
+function buildDockerRequiredMessage(detail) {
+  const baseMessage =
+    `This page is intentionally wired to the Docker-mounted demo bundle. Start ` +
+    `${DOCKER_START_COMMAND} and open ${DOCKER_DEMO_URL}. Then use the shared header to open Entity workspace.`;
+  if (!detail) {
+    return `${baseMessage} Direct static serving is blocked on purpose.`;
+  }
+  return `${baseMessage} Direct static serving is blocked on purpose because ${detail}.`;
 }
 
 /**

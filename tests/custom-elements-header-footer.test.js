@@ -888,6 +888,69 @@ test('mpr-header uses a slotted mpr-user element for header menu wiring', () => 
   );
 });
 
+test('mpr-user nested in mpr-header does not error before header wiring applies user attributes', () => {
+  resetEnvironment();
+  const capture = captureConsoleErrors();
+  try {
+    loadLibrary();
+    global.getCurrentUser = function getCurrentUser() {
+      return null;
+    };
+    global.logout = function logout() {
+      return Promise.resolve();
+    };
+    global.setAuthTenantId = function setAuthTenantId() {};
+
+    const headerHarness = createHeaderElementHarness({ includeInternalUserMenu: false });
+    const headerElement = headerHarness.element;
+    headerElement.tagName = 'MPR-HEADER';
+    headerElement.setAttribute('brand-href', '/app');
+    headerElement.setAttribute('google-site-id', 'example-site');
+    headerElement.setAttribute('tauth-tenant-id', 'tenant-alpha');
+    headerElement.setAttribute('logout-url', '/logout');
+    headerElement.setAttribute('sign-out-label', 'Log out');
+    headerElement.setAttribute('user-menu-display-mode', 'avatar');
+
+    const userHarness = createUserElementHarness();
+    const userElement = userHarness.element;
+    userElement.tagName = 'MPR-USER';
+    userElement.parentElement = headerElement;
+    userElement.parentNode = headerElement;
+    headerElement.__setSlotNodes({ aux: [userElement] });
+
+    userElement.connectedCallback();
+
+    assert.equal(
+      userElement.getAttribute('data-mpr-user-error'),
+      null,
+      'nested user menu does not emit a startup configuration error before header wiring runs',
+    );
+    assert.equal(
+      userElement.getAttribute('data-mpr-user-status'),
+      'unauthenticated',
+      'nested user menu renders in the unauthenticated state from inherited header config',
+    );
+
+    headerElement.connectedCallback();
+
+    assert.equal(
+      userElement.getAttribute('tauth-tenant-id'),
+      'tenant-alpha',
+      'header still forwards the resolved tenant id onto the slotted user menu',
+    );
+    const tenantErrors = capture.messages.filter((message) =>
+      message.indexOf('mpr-ui.tenant_id_required') !== -1,
+    );
+    assert.equal(
+      tenantErrors.length,
+      0,
+      'no tenant bootstrap errors are logged while the nested user menu waits for header wiring',
+    );
+  } finally {
+    capture.restore();
+  }
+});
+
 test('mpr-header enables settings button when settings attribute true', () => {
   resetEnvironment();
   loadLibrary();
@@ -1125,6 +1188,435 @@ test('mpr-header tauth-url attribute configures auth endpoints', async () => {
   assert.equal(authOptions.tauthLogoutPath, '/auth/logout');
   assert.equal(authOptions.tauthNoncePath, '/auth/nonce');
   assert.equal(authOptions.tenantId, 'tenant-demo');
+});
+
+test('mpr-header rebinds auth endpoints when tauth-url changes after first render', async () => {
+  resetEnvironment();
+  const initAuthCalls = [];
+  const fetchCalls = [];
+  global.location = { origin: 'http://fallback-origin.test' };
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient(config) {
+    initAuthCalls.push(config);
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.fetch = function fetch(url) {
+    fetchCalls.push(String(url));
+    return Promise.resolve({
+      ok: true,
+      json: function json() {
+        return Promise.resolve({ nonce: 'updated-nonce-token' });
+      },
+    });
+  };
+
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+  headerElement.setAttribute('google-site-id', 'docker-demo-site');
+  headerElement.setAttribute('tauth-login-path', '/auth/google');
+  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
+  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
+  headerElement.setAttribute('tauth-tenant-id', 'tenant-demo');
+
+  headerElement.connectedCallback();
+  await flushAsync();
+  await flushAsync();
+
+  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
+  await flushAsync();
+  await flushAsync();
+
+  const controller = headerElement.__headerController;
+  assert.ok(controller, 'header controller initialized');
+  const authController =
+    controller && typeof controller.getAuthController === 'function'
+      ? controller.getAuthController()
+      : null;
+  assert.ok(authController, 'auth controller attached to header');
+  const authOptions = authController && authController.state && authController.state.options;
+  assert.ok(authOptions, 'auth options available on controller state');
+  assert.equal(
+    authOptions.tauthUrl,
+    'http://localhost:8080',
+    'updated tauth-url replaces the initial fallback base URL',
+  );
+  assert.equal(
+    initAuthCalls[initAuthCalls.length - 1] && initAuthCalls[initAuthCalls.length - 1].baseUrl,
+    'http://localhost:8080',
+    'initAuthClient reboots with the updated base URL',
+  );
+  assert.equal(
+    fetchCalls[fetchCalls.length - 1],
+    'http://localhost:8080/auth/nonce',
+    'nonce requests switch to the updated tauth-url after the attribute changes',
+  );
+});
+
+test('mpr-header keeps receiving auth callbacks after tauth-url rebinding when TAuth retains the original callbacks', async () => {
+  resetEnvironment();
+  const authenticatedProfile = {
+    display: 'Ada Lovelace',
+    given_name: 'Ada',
+    avatar_url: 'https://cdn.example.com/ada.png',
+    user_email: 'ada@example.com',
+  };
+  let retainedCallbacks = null;
+  global.location = { origin: 'http://fallback-origin.test' };
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient(config) {
+    if (!retainedCallbacks) {
+      retainedCallbacks = config;
+    }
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.fetch = function fetch() {
+    return Promise.resolve({
+      ok: true,
+      json: function json() {
+        return Promise.resolve({ nonce: 'updated-nonce-token' });
+      },
+    });
+  };
+
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+  headerElement.setAttribute('google-site-id', 'docker-demo-site');
+  headerElement.setAttribute('tauth-login-path', '/auth/google');
+  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
+  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
+  headerElement.setAttribute('tauth-tenant-id', 'tenant-demo');
+
+  headerElement.connectedCallback();
+  await flushAsync();
+  await flushAsync();
+
+  assert.ok(retainedCallbacks, 'initial auth callbacks registered with initAuthClient');
+
+  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
+  await flushAsync();
+  await flushAsync();
+
+  retainedCallbacks.onAuthenticated(authenticatedProfile);
+  await flushAsync();
+
+  const controller = headerElement.__headerController;
+  assert.ok(controller, 'header controller initialized');
+  const authController =
+    controller && typeof controller.getAuthController === 'function'
+      ? controller.getAuthController()
+      : null;
+  assert.ok(authController, 'auth controller attached to header');
+  assert.deepEqual(
+    authController.state.profile,
+    authenticatedProfile,
+    'existing TAuth callbacks still authenticate the header after tauth-url rebinding',
+  );
+  assert.equal(
+    harness.root.classList.contains('mpr-header--authenticated'),
+    true,
+    'header view refreshes when the retained TAuth callback reports authentication',
+  );
+  const authenticatedEvents = headerElement.__dispatchedEvents.filter(
+    (eventEntry) => eventEntry.type === 'mpr-ui:auth:authenticated',
+  );
+  assert.equal(
+    authenticatedEvents.length,
+    1,
+    'header emits an authenticated event when the retained callback reports authentication',
+  );
+});
+
+test('createAuthHeader ignores an in-flight credential exchange after tauth-url change', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const authenticatedProfile = {
+    display: 'Dorothy Vaughan',
+    given_name: 'Dorothy',
+    avatar_url: 'https://cdn.example.com/dorothy.png',
+    user_email: 'dorothy@example.com',
+  };
+  const exchangeTenantCalls = [];
+  let currentTenantId = null;
+  let resolveExchangeProfile;
+  global.location = { origin: 'http://fallback-origin.test' };
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.setAuthTenantId = function setAuthTenantId(tenantId) {
+    currentTenantId = tenantId;
+  };
+  global.exchangeGoogleCredential = function exchangeGoogleCredential() {
+    exchangeTenantCalls.push(currentTenantId);
+    return new Promise(function waitForExchange(resolve) {
+      resolveExchangeProfile = resolve;
+    });
+  };
+
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(hostElement, {
+    googleClientId: 'credential-race-client',
+    tauthUrl: 'http://localhost:8080',
+    tauthLoginPath: '/auth/login',
+    tauthLogoutPath: '/auth/logout',
+    tauthNoncePath: '/auth/nonce',
+    tenantId: 'tenant-alpha',
+  });
+
+  await flushAsync();
+  await flushAsync();
+
+  const exchangePromise = authController.handleCredential({
+    credential: 'signed-id-token',
+  });
+  await flushAsync();
+
+  assert.deepEqual(
+    exchangeTenantCalls,
+    ['tenant-alpha'],
+    'credential exchange starts against the original tenant configuration',
+  );
+
+  authController.updateOptions(
+    Object.assign({}, authController.state.options, {
+      tauthUrl: 'http://localhost:9090',
+    }),
+  );
+  await flushAsync();
+  await flushAsync();
+
+  resolveExchangeProfile(authenticatedProfile);
+  await exchangePromise;
+  await flushAsync();
+
+  assert.equal(
+    authController.state.options.tauthUrl,
+    'http://localhost:9090',
+    'controller options switch to the updated tauth-url',
+  );
+  assert.equal(
+    authController.state.profile,
+    null,
+    'stale credential exchanges do not authenticate the controller after auth options change',
+  );
+  assert.equal(
+    authController.state.status,
+    'unauthenticated',
+    'controller stays unauthenticated after discarding the stale exchange result',
+  );
+  const authenticatedEvents = hostElement.__dispatchedEvents.filter(
+    (eventEntry) => eventEntry.type === 'mpr-ui:auth:authenticated',
+  );
+  assert.equal(
+    authenticatedEvents.length,
+    0,
+    'stale credential exchange results do not emit authenticated events',
+  );
+});
+
+test('createAuthHeader rejects tenant changes after initialization', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  global.location = { origin: 'http://fallback-origin.test' };
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(hostElement, {
+    googleClientId: 'tenant-lock-client',
+    tauthUrl: 'http://localhost:8080',
+    tauthLoginPath: '/auth/login',
+    tauthLogoutPath: '/auth/logout',
+    tauthNoncePath: '/auth/nonce',
+    tenantId: 'tenant-alpha',
+  });
+
+  await flushAsync();
+  await flushAsync();
+
+  assert.throws(
+    function rejectTenantChange() {
+      authController.updateOptions(
+        Object.assign({}, authController.state.options, {
+          tenantId: 'tenant-beta',
+        }),
+      );
+    },
+    function verifyTenantChangeError(error) {
+      assert.equal(error.code, 'mpr-ui.auth.tenant_id_change_unsupported');
+      assert.match(
+        error.message,
+        /Tenant ID cannot change after auth controller initialization/,
+      );
+      assert.match(error.message, /tenant-alpha/);
+      assert.match(error.message, /tenant-beta/);
+      return true;
+    },
+  );
+  assert.equal(
+    authController.state.options.tenantId,
+    'tenant-alpha',
+    'controller retains the initialized tenant after rejecting a change',
+  );
+});
+
+test('createAuthHeader ignores stale GIS callbacks after tauth-url change', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const authenticatedProfile = {
+    display: 'Mary Jackson',
+    given_name: 'Mary',
+    avatar_url: 'https://cdn.example.com/mary.png',
+    user_email: 'mary@example.com',
+  };
+  const initializeCalls = [];
+  const exchangeTenantCalls = [];
+  let currentTenantId = null;
+  let nonceCounter = 0;
+  global.location = { origin: 'http://fallback-origin.test' };
+  global.google = {
+    accounts: {
+      id: {
+        initialize(config) {
+          initializeCalls.push(config);
+        },
+        renderButton() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.fetch = function fetch() {
+    nonceCounter += 1;
+    return Promise.resolve({
+      ok: true,
+      json: function json() {
+        return Promise.resolve({ nonce: 'nonce-token-' + String(nonceCounter) });
+      },
+    });
+  };
+  global.setAuthTenantId = function setAuthTenantId(tenantId) {
+    currentTenantId = tenantId;
+  };
+  global.exchangeGoogleCredential = function exchangeGoogleCredential() {
+    exchangeTenantCalls.push(currentTenantId);
+    return Promise.resolve(authenticatedProfile);
+  };
+
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(hostElement, {
+    googleClientId: 'gis-race-client',
+    tauthUrl: 'http://localhost:8080',
+    tauthLoginPath: '/auth/login',
+    tauthLogoutPath: '/auth/logout',
+    tauthNoncePath: '/auth/nonce',
+    tenantId: 'tenant-alpha',
+  });
+
+  await flushAsync();
+  await flushAsync();
+
+  assert.ok(initializeCalls.length >= 1, 'initial GIS callback registered');
+  const staleCallback = initializeCalls[0].callback;
+
+  authController.updateOptions(
+    Object.assign({}, authController.state.options, {
+      tauthUrl: 'http://localhost:9090',
+    }),
+  );
+  await flushAsync();
+  await flushAsync();
+
+  assert.ok(initializeCalls.length >= 2, 'updated GIS callback registered after auth options change');
+  const currentCallback = initializeCalls[initializeCalls.length - 1].callback;
+
+  staleCallback({ credential: 'stale-google-token' });
+  await flushAsync();
+  await flushAsync();
+
+  assert.deepEqual(
+    exchangeTenantCalls,
+    [],
+    'stale GIS callbacks do not start credential exchange after auth options change',
+  );
+  assert.equal(
+    authController.state.profile,
+    null,
+    'stale GIS callbacks do not authenticate the controller',
+  );
+
+  currentCallback({ credential: 'fresh-google-token' });
+  await flushAsync();
+  await flushAsync();
+
+  assert.deepEqual(
+    exchangeTenantCalls,
+    ['tenant-alpha'],
+    'current GIS callback exchanges credentials against the initialized tenant configuration',
+  );
+  assert.deepEqual(
+    authController.state.profile,
+    authenticatedProfile,
+    'current GIS callback still authenticates the controller after auth options change',
+  );
+  assert.equal(
+    authController.state.options.tauthUrl,
+    'http://localhost:9090',
+    'controller keeps the updated tauth-url after the supported rebind',
+  );
 });
 
 test('MU-432: mpr-header recovers authenticated state from the current session on first render', async () => {
@@ -1765,6 +2257,148 @@ test('mpr-login-button renders the Google button with provided site ID', async (
   );
 });
 
+test('mpr-login-button rebinds auth endpoints when tauth-url changes after first render', async () => {
+  resetEnvironment();
+  const initAuthCalls = [];
+  const fetchCalls = [];
+  global.location = { origin: 'http://fallback-origin.test' };
+  const googleStub = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.google = googleStub;
+  global.initAuthClient = function initAuthClient(config) {
+    initAuthCalls.push(config);
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.fetch = function fetch(url) {
+    fetchCalls.push(String(url));
+    return Promise.resolve({
+      ok: true,
+      json: function json() {
+        return Promise.resolve({ nonce: 'updated-login-nonce' });
+      },
+    });
+  };
+
+  loadLibrary();
+  const { element } = createLoginButtonHarness(googleStub);
+  element.setAttribute('site-id', 'custom-site');
+  element.setAttribute('tauth-login-path', '/auth/login');
+  element.setAttribute('tauth-logout-path', '/auth/logout');
+  element.setAttribute('tauth-nonce-path', '/auth/nonce');
+  element.setAttribute('tauth-tenant-id', 'tenant-login');
+  element.connectedCallback();
+  await flushAsync();
+  await flushAsync();
+
+  element.setAttribute('tauth-url', 'http://localhost:8080');
+  await flushAsync();
+  await flushAsync();
+
+  const authController = element.__authController;
+  const authOptions = authController && authController.state && authController.state.options;
+  assert.ok(authOptions, 'auth controller options available after login button rerender');
+  assert.equal(
+    authOptions.tauthUrl,
+    'http://localhost:8080',
+    'login button auth controller adopts the updated tauth-url',
+  );
+  assert.equal(
+    initAuthCalls[initAuthCalls.length - 1] && initAuthCalls[initAuthCalls.length - 1].baseUrl,
+    'http://localhost:8080',
+    'login button restarts initAuthClient with the updated base URL',
+  );
+  assert.equal(
+    fetchCalls[fetchCalls.length - 1],
+    'http://localhost:8080/auth/nonce',
+    'login button nonce requests switch to the updated tauth-url',
+  );
+});
+
+test('mpr-login-button keeps receiving auth callbacks after tauth-url rebinding when TAuth retains the original callbacks', async () => {
+  resetEnvironment();
+  const authenticatedProfile = {
+    display: 'Katherine Johnson',
+    given_name: 'Katherine',
+    avatar_url: 'https://cdn.example.com/katherine.png',
+    user_email: 'katherine@example.com',
+  };
+  let retainedCallbacks = null;
+  global.location = { origin: 'http://fallback-origin.test' };
+  const googleStub = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.google = googleStub;
+  global.initAuthClient = function initAuthClient(config) {
+    if (!retainedCallbacks) {
+      retainedCallbacks = config;
+    }
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.fetch = function fetch() {
+    return Promise.resolve({
+      ok: true,
+      json: function json() {
+        return Promise.resolve({ nonce: 'updated-login-nonce' });
+      },
+    });
+  };
+
+  loadLibrary();
+  const { element } = createLoginButtonHarness(googleStub);
+  element.setAttribute('site-id', 'custom-site');
+  element.setAttribute('tauth-login-path', '/auth/login');
+  element.setAttribute('tauth-logout-path', '/auth/logout');
+  element.setAttribute('tauth-nonce-path', '/auth/nonce');
+  element.setAttribute('tauth-tenant-id', 'tenant-login');
+  element.connectedCallback();
+  await flushAsync();
+  await flushAsync();
+
+  assert.ok(retainedCallbacks, 'initial login button auth callbacks registered');
+
+  element.setAttribute('tauth-url', 'http://localhost:8080');
+  await flushAsync();
+  await flushAsync();
+
+  retainedCallbacks.onAuthenticated(authenticatedProfile);
+  await flushAsync();
+
+  const authController = element.__authController;
+  assert.ok(authController, 'login button auth controller initialized');
+  assert.deepEqual(
+    authController.state.profile,
+    authenticatedProfile,
+    'existing TAuth callbacks still authenticate the login button after tauth-url rebinding',
+  );
+  const authenticatedEvents = element.__dispatchedEvents.filter(
+    (eventEntry) => eventEntry.type === 'mpr-ui:auth:authenticated',
+  );
+  assert.equal(
+    authenticatedEvents.length,
+    1,
+    'login button emits an authenticated event when the retained callback reports authentication',
+  );
+});
+
 test('mpr-login-button reports missing tenant ID', async () => {
   resetEnvironment();
   const googleStub = {
@@ -1794,6 +2428,66 @@ test('mpr-login-button reports missing tenant ID', async () => {
   const lastEvent = element.__dispatchedEvents[element.__dispatchedEvents.length - 1];
   assert.equal(lastEvent.type, 'mpr-login:error');
   assert.equal(lastEvent.detail.code, 'mpr-ui.tenant_id_required');
+});
+
+test('mpr-login-button rejects tauth-tenant-id changes after first render', async () => {
+  resetEnvironment();
+  const googleStub = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.google = googleStub;
+  global.location = { origin: 'http://fallback-origin.test' };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.fetch = function fetch() {
+    return Promise.resolve({
+      ok: true,
+      json: function json() {
+        return Promise.resolve({ nonce: 'tenant-lock-nonce' });
+      },
+    });
+  };
+
+  loadLibrary();
+  const { element } = createLoginButtonHarness(googleStub);
+  element.setAttribute('site-id', 'custom-site');
+  element.setAttribute('tauth-login-path', '/auth/login');
+  element.setAttribute('tauth-logout-path', '/auth/logout');
+  element.setAttribute('tauth-nonce-path', '/auth/nonce');
+  element.setAttribute('tauth-tenant-id', 'tenant-login');
+  element.connectedCallback();
+  await flushAsync();
+  await flushAsync();
+
+  assert.throws(
+    function rejectTenantMutation() {
+      element.setAttribute('tauth-tenant-id', 'tenant-next');
+    },
+    function verifyTenantMutationError(error) {
+      assert.equal(error.code, 'mpr-ui.auth.tenant_id_change_unsupported');
+      assert.match(error.message, /tenant-login/);
+      assert.match(error.message, /tenant-next/);
+      return true;
+    },
+  );
+
+  const authController = element.__authController;
+  assert.ok(authController, 'login button auth controller remains attached');
+  assert.equal(
+    authController.state.options.tenantId,
+    'tenant-login',
+    'login button auth controller keeps the original tenant after rejecting the change',
+  );
 });
 
 test('mpr-login-button calls GSI initialize before renderButton (MU-131)', async () => {

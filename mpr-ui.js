@@ -55,6 +55,8 @@
   var GOOGLE_IDENTITY_SCRIPT_URL = "https://accounts.google.com/gsi/client";
   var GOOGLE_SITE_ID_ERROR_CODE = "mpr-ui.google_site_id_required";
   var TENANT_ID_ERROR_CODE = "mpr-ui.tenant_id_required";
+  var AUTH_TENANT_ID_CHANGE_ERROR_CODE =
+    "mpr-ui.auth.tenant_id_change_unsupported";
   var googleIdentityPromise = null;
 
   function normalizeGoogleSiteId(value) {
@@ -111,6 +113,28 @@
     return normalized;
   }
 
+  /**
+   * @param {string} currentTenantId
+   * @param {string|null} nextTenantId
+   * @returns {MprUiError}
+   */
+  function createAuthTenantIdChangeError(currentTenantId, nextTenantId) {
+    var nextTenantLabel =
+      typeof nextTenantId === "string" && nextTenantId.trim()
+        ? nextTenantId
+        : "<missing>";
+    /** @type {MprUiError} */
+    var error = new Error(
+      "Tenant ID cannot change after auth controller initialization (" +
+        currentTenantId +
+        " -> " +
+        nextTenantLabel +
+        ")",
+    );
+    error.code = AUTH_TENANT_ID_CHANGE_ERROR_CODE;
+    return error;
+  }
+
   function ensureNamespace(target) {
     if (!target.MPRUI) {
       target.MPRUI = {};
@@ -132,6 +156,38 @@
       return tauthUrl + "/" + path;
     }
     return tauthUrl + path;
+  }
+
+  function matchesTagName(node, tagNames) {
+    if (!node || !tagNames || !tagNames.length) {
+      return false;
+    }
+    var nodeTagName = node.tagName || node.nodeName;
+    if (typeof nodeTagName !== "string") {
+      return false;
+    }
+    return tagNames.indexOf(nodeTagName.toLowerCase()) !== -1;
+  }
+
+  function findClosestHostByTagName(node, tagNames) {
+    if (!node || !tagNames || !tagNames.length) {
+      return null;
+    }
+    if (typeof node.closest === "function") {
+      var selector = tagNames.join(", ");
+      var matchedNode = node.closest(selector);
+      if (matchedNode) {
+        return matchedNode;
+      }
+    }
+    var currentNode = node.parentElement || node.parentNode || null;
+    while (currentNode) {
+      if (matchesTagName(currentNode, tagNames)) {
+        return currentNode;
+      }
+      currentNode = currentNode.parentElement || currentNode.parentNode || null;
+    }
+    return null;
   }
 
   function toStringOrNull(value) {
@@ -2611,9 +2667,30 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       throw new Error("MPRUI.createAuthHeader requires a DOM element");
     }
 
-    var options = Object.assign({}, DEFAULT_OPTIONS, rawOptions || {});
-    options.googleClientId = requireGoogleSiteId(options.googleClientId);
-    options.tenantId = requireTenantId(options.tenantId);
+    function normalizeAuthControllerOptions(optionsInput) {
+      var normalizedOptions = Object.assign({}, DEFAULT_OPTIONS, optionsInput || {});
+      normalizedOptions.googleClientId = requireGoogleSiteId(
+        normalizedOptions.googleClientId,
+      );
+      normalizedOptions.tenantId = requireTenantId(normalizedOptions.tenantId);
+      return normalizedOptions;
+    }
+
+    function authControllerOptionsMatch(leftOptions, rightOptions) {
+      if (!leftOptions || !rightOptions) {
+        return false;
+      }
+      return (
+        leftOptions.tauthUrl === rightOptions.tauthUrl &&
+        leftOptions.tauthLoginPath === rightOptions.tauthLoginPath &&
+        leftOptions.tauthLogoutPath === rightOptions.tauthLogoutPath &&
+        leftOptions.tauthNoncePath === rightOptions.tauthNoncePath &&
+        leftOptions.googleClientId === rightOptions.googleClientId &&
+        leftOptions.tenantId === rightOptions.tenantId
+      );
+    }
+
+    var options = normalizeAuthControllerOptions(rawOptions);
     var state = {
       status: "unauthenticated",
       profile: null,
@@ -2624,6 +2701,20 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var lastAuthenticatedSignature = null;
     var pendingNonceToken = null;
     var nonceRequestPromise = null;
+    var authSignalVersion = 0;
+    var lifecycleVersion = 0;
+    var isDestroyed = false;
+
+    function isCurrentLifecycleVersion(candidateVersion) {
+      return candidateVersion === lifecycleVersion;
+    }
+
+    function assertStableTenantId(nextOptions) {
+      if (nextOptions.tenantId === options.tenantId) {
+        return;
+      }
+      throw createAuthTenantIdChangeError(options.tenantId, nextOptions.tenantId);
+    }
 
     function configureTenantId() {
       if (typeof global.setAuthTenantId === "function") {
@@ -2720,6 +2811,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     function configureGoogleNonce(nonceToken) {
       pendingNonceToken = nonceToken;
       var clientIdValue = normalizeGoogleSiteId(options.googleClientId);
+      var currentLifecycleVersion = lifecycleVersion;
       if (!clientIdValue) {
         throw createGoogleSiteIdError();
       }
@@ -2727,6 +2819,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         clientId: clientIdValue,
         nonce: nonceToken,
         callback: function (payload) {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            return;
+          }
           handleCredential(payload);
         },
       });
@@ -2738,6 +2833,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function prepareGooglePromptNonce() {
+      var currentLifecycleVersion = lifecycleVersion;
       var sourcePromise;
       if (pendingNonceToken) {
         sourcePromise = Promise.resolve(pendingNonceToken);
@@ -2745,6 +2841,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         sourcePromise = requestNonceToken();
       }
       return sourcePromise.then(function (nonceToken) {
+        if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+          throw new Error("mpr-ui.auth.stale_nonce");
+        }
         configureGoogleNonce(nonceToken);
         return nonceToken;
       });
@@ -2830,37 +2929,54 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return Promise.resolve(global.getCurrentUser());
     }
 
+    function handleAuthenticatedCallback(profile) {
+      if (isDestroyed) {
+        return;
+      }
+      authSignalVersion += 1;
+      var resolvedProfile = profile || pendingProfile || null;
+      if (profile && pendingProfile) {
+        resolvedProfile = Object.assign({}, pendingProfile, profile);
+      }
+      pendingProfile = null;
+      markAuthenticated(resolvedProfile);
+    }
+
+    function handleUnauthenticatedCallback() {
+      if (isDestroyed) {
+        return;
+      }
+      authSignalVersion += 1;
+      pendingProfile = null;
+      markUnauthenticated({ prompt: true });
+    }
+
     function bootstrapSession() {
+      if (isDestroyed) {
+        return Promise.resolve();
+      }
       if (typeof global.initAuthClient !== "function") {
         markUnauthenticated({ emit: false, prompt: false });
         return Promise.resolve();
       }
+      var currentLifecycleVersion = lifecycleVersion;
+      var bootstrapAuthSignalVersion = authSignalVersion;
       configureTenantId();
       var resolvedBaseUrl = resolveAuthBaseUrl();
-      var bootstrapCallbackStatus = "none";
       return Promise.resolve(
         global.initAuthClient({
           baseUrl: resolvedBaseUrl,
           tenantId: options.tenantId,
-          onAuthenticated: function (profile) {
-            bootstrapCallbackStatus = "authenticated";
-            var resolvedProfile = profile || pendingProfile || null;
-            if (profile && pendingProfile) {
-              resolvedProfile = Object.assign({}, pendingProfile, profile);
-            }
-            pendingProfile = null;
-            markAuthenticated(resolvedProfile);
-          },
-          onUnauthenticated: function () {
-            bootstrapCallbackStatus = "unauthenticated";
-            pendingProfile = null;
-            markUnauthenticated({ prompt: true });
-          },
+          onAuthenticated: handleAuthenticatedCallback,
+          onUnauthenticated: handleUnauthenticatedCallback,
         }),
       )
         .then(function reconcileCurrentProfile() {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            return null;
+          }
           if (
-            bootstrapCallbackStatus !== "none" ||
+            authSignalVersion !== bootstrapAuthSignalVersion ||
             state.status === "authenticated"
           ) {
             return null;
@@ -2868,8 +2984,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           return requestCurrentProfile();
         })
         .then(function applyRecoveredProfile(profile) {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            return;
+          }
           if (
-            bootstrapCallbackStatus !== "none" ||
+            authSignalVersion !== bootstrapAuthSignalVersion ||
             state.status === "authenticated"
           ) {
             return;
@@ -2879,6 +2998,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
         })
         .catch(function (error) {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            return;
+          }
           emitError("mpr-ui.auth.bootstrap_failed", {
             message: error && error.message ? error.message : String(error),
           });
@@ -2943,12 +3065,49 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function primeGoogleNonce() {
+      if (isDestroyed) {
+        return;
+      }
+      var currentLifecycleVersion = lifecycleVersion;
       prepareGooglePromptNonce().catch(function (error) {
+        if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+          return;
+        }
         emitError("mpr-ui.auth.nonce_failed", {
           message: error && error.message ? error.message : String(error),
           status: error && error.status ? error.status : null,
         });
       });
+    }
+
+    function updateOptions(rawNextOptions) {
+      if (isDestroyed) {
+        return;
+      }
+      var nextOptions = normalizeAuthControllerOptions(rawNextOptions);
+      assertStableTenantId(nextOptions);
+      if (authControllerOptionsMatch(options, nextOptions)) {
+        options = nextOptions;
+        state.options = options;
+        return;
+      }
+      lifecycleVersion += 1;
+      options = nextOptions;
+      state.options = options;
+      pendingProfile = null;
+      pendingNonceToken = null;
+      nonceRequestPromise = null;
+      markUnauthenticated({ emit: false, prompt: false });
+      bootstrapSession();
+      primeGoogleNonce();
+    }
+
+    function destroy() {
+      isDestroyed = true;
+      lifecycleVersion += 1;
+      pendingProfile = null;
+      pendingNonceToken = null;
+      nonceRequestPromise = null;
     }
 
     function performLogoutWithFetch() {
@@ -2980,8 +3139,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         markUnauthenticated({ prompt: true });
         return Promise.resolve();
       }
+      var currentLifecycleVersion = lifecycleVersion;
       return exchangeCredential(credentialResponse.credential)
         .then(function (profile) {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            return null;
+          }
           // Always mark authenticated directly after successful credential exchange.
           // Previously relied on bootstrapSession() → initAuthClient() → onAuthenticated callback,
           // but TAuth may not call callbacks on subsequent initAuthClient invocations.
@@ -2989,6 +3152,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           return profile;
         })
         .catch(function (error) {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            return Promise.resolve();
+          }
           emitError("mpr-ui.auth.exchange_failed", {
             message: error && error.message ? error.message : String(error),
             status: error && error.status ? error.status : null,
@@ -3019,6 +3185,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       prepareGoogleNonce: prepareGoogleNonce,
       handleCredential: handleCredential,
       signOut: signOut,
+      updateOptions: updateOptions,
+      destroy: destroy,
       restartSessionWatcher: bootstrapSession,
     };
   }
@@ -4641,6 +4809,18 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           latestExternalOptions,
         );
         options = normalizeHeaderOptions(updatedCombined);
+        if (
+          options.auth &&
+          authController &&
+          authController.state &&
+          authController.state.options &&
+          authController.state.options.tenantId !== options.auth.tenantId
+        ) {
+          throw createAuthTenantIdChangeError(
+            authController.state.options.tenantId,
+            options.auth.tenantId,
+          );
+        }
         headerThemeConfig = options.themeToggle;
         googleSiteId = normalizeGoogleSiteId(options.siteId);
         if (googleSiteId) {
@@ -4666,6 +4846,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         ) {
           themeManager.setMode(headerThemeConfig.initialMode, "header:update");
         }
+        if (options.auth && authController && typeof authController.updateOptions === "function") {
+          authController.updateOptions(options.auth);
+        }
         mountGoogleSignInButton();
         updateThemeHost(themeManager.getMode());
         if (options.auth && elements.root) {
@@ -4682,6 +4865,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           refreshAuthState();
         }
         if (!options.auth && authController) {
+          if (typeof authController.destroy === "function") {
+            authController.destroy();
+          }
           authController = null;
         }
         if (!options.auth && elements.root) {
@@ -4695,6 +4881,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
         });
         cleanupHandlers = [];
+        if (authController && typeof authController.destroy === "function") {
+          authController.destroy();
+        }
+        authController = null;
         hostElement.innerHTML = "";
       },
       getAuthController: function getAuthController() {
@@ -4848,7 +5038,83 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (menuItems !== null) {
       options.menuItems = menuItems;
     }
+    var inheritedOptions = readInheritedHeaderUserMenuOptions(hostElement);
+    if (inheritedOptions) {
+      if (!Object.prototype.hasOwnProperty.call(options, "displayMode")) {
+        options.displayMode = inheritedOptions.displayMode;
+      }
+      if (!Object.prototype.hasOwnProperty.call(options, "logoutUrl")) {
+        options.logoutUrl = inheritedOptions.logoutUrl;
+      }
+      if (!Object.prototype.hasOwnProperty.call(options, "logoutLabel")) {
+        options.logoutLabel = inheritedOptions.logoutLabel;
+      }
+      if (!Object.prototype.hasOwnProperty.call(options, "tenantId")) {
+        options.tenantId = inheritedOptions.tenantId;
+      }
+      if (!Object.prototype.hasOwnProperty.call(options, "avatarUrl")) {
+        options.avatarUrl = inheritedOptions.avatarUrl;
+      }
+      if (!Object.prototype.hasOwnProperty.call(options, "avatarLabel")) {
+        options.avatarLabel = inheritedOptions.avatarLabel;
+      }
+    }
     return options;
+  }
+
+  function readInheritedHeaderUserMenuOptions(hostElement) {
+    var headerElement = findClosestHostByTagName(hostElement, ["mpr-header"]);
+    if (!headerElement || typeof headerElement.getAttribute !== "function") {
+      return null;
+    }
+    var headerDataset =
+      headerElement.dataset && typeof headerElement.dataset === "object"
+        ? headerElement.dataset
+        : {};
+    var brandHref = headerElement.getAttribute("brand-href");
+    if (brandHref === null && headerDataset.brandHref) {
+      brandHref = headerDataset.brandHref;
+    }
+    var displayMode = headerElement.getAttribute("user-menu-display-mode");
+    if (displayMode === null && headerDataset.userMenuDisplayMode) {
+      displayMode = headerDataset.userMenuDisplayMode;
+    }
+    var logoutUrl = headerElement.getAttribute("logout-url");
+    if (logoutUrl === null && headerDataset.logoutUrl) {
+      logoutUrl = headerDataset.logoutUrl;
+    }
+    var logoutLabel = headerElement.getAttribute("sign-out-label");
+    if (logoutLabel === null && headerDataset.signOutLabel) {
+      logoutLabel = headerDataset.signOutLabel;
+    }
+    var tenantId = headerElement.getAttribute("tauth-tenant-id");
+    if (tenantId === null && headerDataset.tenantId) {
+      tenantId = headerDataset.tenantId;
+    }
+    var avatarUrl = headerElement.getAttribute("user-menu-avatar-url");
+    if (avatarUrl === null && headerDataset.userMenuAvatarUrl) {
+      avatarUrl = headerDataset.userMenuAvatarUrl;
+    }
+    var avatarLabel = headerElement.getAttribute("user-menu-avatar-label");
+    if (avatarLabel === null && headerDataset.userMenuAvatarLabel) {
+      avatarLabel = headerDataset.userMenuAvatarLabel;
+    }
+    return {
+      displayMode: normalizeHeaderUserMenuDisplayMode(displayMode),
+      logoutUrl: normalizeHeaderUserMenuLogoutUrl(
+        logoutUrl,
+        typeof brandHref === "string" && brandHref.trim()
+          ? brandHref.trim()
+          : HEADER_DEFAULTS.brand.href,
+      ),
+      logoutLabel:
+        typeof logoutLabel === "string" && logoutLabel.trim()
+          ? logoutLabel.trim()
+          : HEADER_DEFAULTS.signOutLabel,
+      tenantId: tenantId,
+      avatarUrl: normalizeHeaderUserMenuOptionalValue(avatarUrl),
+      avatarLabel: normalizeHeaderUserMenuOptionalValue(avatarLabel),
+    };
   }
 
   /**
@@ -5282,11 +5548,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (!hostElement) {
       return null;
     }
-    if (typeof hostElement.closest === "function") {
-      var scopedHost = hostElement.closest("mpr-header, mpr-login-button");
-      if (scopedHost && typeof scopedHost.addEventListener === "function") {
-        return scopedHost;
-      }
+    var scopedHost = findClosestHostByTagName(hostElement, [
+      "mpr-header",
+      "mpr-login-button",
+    ]);
+    if (scopedHost && typeof scopedHost.addEventListener === "function") {
+      return scopedHost;
     }
     var documentObject =
       hostElement.ownerDocument ||
@@ -10025,6 +10292,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             this.__googleCleanup();
             this.__googleCleanup = null;
           }
+          if (this.__authController && typeof this.__authController.destroy === "function") {
+            this.__authController.destroy();
+          }
           this.__authController = null;
           this.__googleHost = null;
         }
@@ -10040,12 +10310,24 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           var authOptions = buildLoginAuthOptionsFromAttributes(this);
           var siteId = normalizeGoogleSiteId(authOptions.googleClientId);
           var tenantId = normalizeTenantId(authOptions.tenantId);
+          var currentTenantId =
+            this.__authController &&
+            this.__authController.state &&
+            this.__authController.state.options
+              ? normalizeTenantId(this.__authController.state.options.tenantId)
+              : null;
+          if (currentTenantId && currentTenantId !== tenantId) {
+            throw createAuthTenantIdChangeError(currentTenantId, tenantId);
+          }
           if (!siteId || !tenantId) {
             if (
               this.__authController &&
               typeof this.__authController.signOut === "function"
             ) {
               this.__authController.signOut();
+            }
+            if (this.__authController && typeof this.__authController.destroy === "function") {
+              this.__authController.destroy();
             }
             this.__authController = null;
             if (this.__googleCleanup) {
@@ -10072,7 +10354,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           authOptions.googleClientId = siteId;
           authOptions.tenantId = tenantId;
           this.setAttribute("data-mpr-google-site-id", siteId);
-          if (!this.__authController) {
+          if (this.__authController && typeof this.__authController.updateOptions === "function") {
+            this.__authController.updateOptions(authOptions);
+          } else if (!this.__authController) {
             this.__authController = createAuthHeader(this, authOptions);
           }
           if (this.__googleCleanup) {

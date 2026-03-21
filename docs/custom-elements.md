@@ -62,6 +62,12 @@ The header updates these attributes when authenticated:
   sign-out-label="Sign out"
 >
   <span slot="brand">LoopAware</span>
+  <mpr-user
+    slot="aux"
+    display-mode="avatar"
+    logout-url="/"
+    logout-label="Log out"
+  ></mpr-user>
 </mpr-header>
 ```
 
@@ -386,7 +392,7 @@ The common pattern is:
 - each video rendered as `<mpr-entity-card>`
 - selected video ids tracked by `MPRUI.createSelectionState()`
 
-A runnable companion lives in `demo/entity-workspace.html`. It fetches `demo/entity-workspace.json`, so serve the repo over HTTP instead of opening the HTML file directly.
+A runnable companion lives in `demo/entity-workspace.html`. It is intentionally Docker-gated: start `./up.sh tauth`, open `https://localhost:4443/`, and use the shared header to open `Entity workspace`.
 
 ### Markup skeleton
 
