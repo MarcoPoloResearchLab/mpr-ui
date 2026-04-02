@@ -1,0 +1,23 @@
+name: Purge jsDelivr Aliases
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+jobs:
+  purge:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Purge jsDelivr version aliases
+        run: |
+          set -euo pipefail
+
+          for alias in latest 3; do
+            for asset in mpr-ui.js mpr-ui.css mpr-ui-config.js; do
+              curl --fail --silent --show-error \
+                "https://purge.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@${alias}/${asset}"
+            done
+          done

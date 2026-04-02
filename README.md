@@ -13,22 +13,22 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 1. **Load the bundle + prerequisites** — add the packaged stylesheet, the config loader, the `mpr-ui` bundle, TAuth helper, and Google Identity Services:
 
-   For production deployments, prefer a version-pinned jsDelivr URL instead of `@latest` so rollouts stay deterministic. The examples below use `v3.8.1`.
+   For production deployments, prefer a version-pinned jsDelivr URL instead of `@latest` so rollouts stay deterministic. The examples below use `v3.8.2`.
 
    ```html
    <link
      rel="stylesheet"
-     href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.8.1/mpr-ui.css"
+     href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.8.2/mpr-ui.css"
    />
    <script defer src="https://tauth.mprlab.com/tauth.js"></script>
    <script src="https://accounts.google.com/gsi/client" async defer></script>
-   <script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.8.1/mpr-ui-config.js"></script>
+   <script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.8.2/mpr-ui-config.js"></script>
    <script>
      // Load config, then dynamically load mpr-ui.js after config is applied
      (function() {
        function loadMprUi() {
          var script = document.createElement('script');
-         script.src = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.8.1/mpr-ui.js';
+         script.src = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.8.2/mpr-ui.js';
          document.head.appendChild(script);
        }
        if (document.readyState === 'loading') {
@@ -182,7 +182,7 @@ If you prefer not to use YAML config, you can set auth attributes directly on co
 ```html
 <script defer src="https://tauth.mprlab.com/tauth.js"></script>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.8.1/mpr-ui.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.8.2/mpr-ui.js"></script>
 
 <mpr-header
   google-site-id="YOUR_GOOGLE_CLIENT_ID"

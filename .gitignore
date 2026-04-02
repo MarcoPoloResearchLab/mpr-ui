@@ -158,3 +158,6 @@ bin/
 docs/demo
 node_modules/
 .github/
+!.github/
+!.github/workflows/
+!.github/workflows/*.yml
