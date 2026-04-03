@@ -79,7 +79,7 @@ footer.mpr-footer[data-mpr-sticky='false'] {
   bottom: auto;
 }
 
-.mpr-footer.mpr-footer--small {
+footer.mpr-footer.mpr-footer--small {
   --mpr-footer-scale: 0.7;
   --mpr-footer-toggle-scale: 0.7;
 }

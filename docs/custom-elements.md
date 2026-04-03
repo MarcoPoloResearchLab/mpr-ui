@@ -85,6 +85,7 @@ The footer renders product links, privacy links, and an optional theme switch.
 - `privacy-link-label`: Label for the privacy link.
 - `theme-switcher`: `toggle` to enable the theme switch.
 - `theme-config`: JSON with `attribute`, `modes`, and `initialMode`.
+- `base-class`: Optional space-separated classes mirrored to the `<mpr-footer>` host and internal footer root; use it for host-level utilities like `mt-auto` when `sticky="false"`.
 - `sticky`: `true` or `false`.
 - `size`: Optional size preset used by some layouts.
 

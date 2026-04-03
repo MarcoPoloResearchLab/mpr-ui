@@ -2048,6 +2048,38 @@ test('mpr-footer reflects attributes and slot content', () => {
   );
 });
 
+test('MU-372: mpr-footer mirrors base-class utilities onto the host without dropping internal footer chrome classes', () => {
+  resetEnvironment();
+  loadLibrary();
+  const harness = createFooterElementHarness();
+  const footerElement = harness.element;
+
+  footerElement.setAttribute('base-class', 'mpr-footer mt-auto footer-shell');
+  footerElement.setAttribute('size', 'small');
+  footerElement.connectedCallback();
+
+  assert.equal(
+    footerElement.dataset.baseClass,
+    'mpr-footer mt-auto footer-shell',
+    'base-class attribute reflects onto the host dataset',
+  );
+  assert.equal(
+    footerElement.classList.contains('mt-auto'),
+    true,
+    'host receives flex utility classes from base-class',
+  );
+  assert.equal(
+    footerElement.classList.contains('footer-shell'),
+    true,
+    'host receives additional user classes from base-class',
+  );
+  assert.equal(
+    harness.root.className,
+    'mpr-footer mt-auto footer-shell mpr-footer--small',
+    'internal footer root preserves chrome and size classes',
+  );
+});
+
 test('MU-133: mpr-footer suppresses privacy link markup when privacy-link-hidden is true', () => {
   resetEnvironment();
   loadLibrary();
