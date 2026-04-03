@@ -9291,8 +9291,21 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
   }
 
+  function elementHasClassToken(element, token) {
+    if (!element || !token) {
+      return false;
+    }
+    if (
+      element.classList &&
+      typeof element.classList.contains === "function"
+    ) {
+      return element.classList.contains(token);
+    }
+    return normalizeClassTokens(readElementClassName(element)).indexOf(token) !== -1;
+  }
+
   function updateManagedClassTokens(element, nextTokens, previousTokens) {
-    var previous = Array.isArray(previousTokens) ? previousTokens : [];
+    var previous = dedupeClassTokens(Array.isArray(previousTokens) ? previousTokens : []);
     var next = dedupeClassTokens(Array.isArray(nextTokens) ? nextTokens : []);
     if (!element) {
       return next;
@@ -9307,23 +9320,36 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           element.classList.remove(token);
         }
       });
+      var managedTokens = [];
       next.forEach(function addClassToken(token) {
-        if (previous.indexOf(token) === -1) {
-          element.classList.add(token);
+        if (previous.indexOf(token) !== -1) {
+          if (!elementHasClassToken(element, token)) {
+            element.classList.add(token);
+          }
+          managedTokens.push(token);
+          return;
         }
+        if (elementHasClassToken(element, token)) {
+          return;
+        }
+        element.classList.add(token);
+        managedTokens.push(token);
       });
-      return next;
+      return managedTokens;
     }
     var retainedTokens = normalizeClassTokens(readElementClassName(element)).filter(
       function keepExistingClass(token) {
         return previous.indexOf(token) === -1;
       },
     );
+    var managedTokens = next.filter(function keepManagedToken(token) {
+      return retainedTokens.indexOf(token) === -1;
+    });
     writeElementClassName(
       element,
       dedupeClassTokens(retainedTokens.concat(next)).join(" "),
     );
-    return next;
+    return dedupeClassTokens(managedTokens);
   }
 
   function buildFooterClassNames(config) {
@@ -9342,7 +9368,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       rootTokens.push(FOOTER_SMALL_CLASS);
     }
     return {
-      hostTokens: dedupeClassTokens(sharedTokens),
+      hostTokens: config && config.sticky === false ? dedupeClassTokens(sharedTokens) : [],
       rootClassName: dedupeClassTokens(rootTokens).join(" "),
     };
   }

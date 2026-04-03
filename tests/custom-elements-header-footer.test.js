@@ -2048,13 +2048,14 @@ test('mpr-footer reflects attributes and slot content', () => {
   );
 });
 
-test('MU-372: mpr-footer mirrors base-class utilities onto the host without dropping internal footer chrome classes', () => {
+test('MU-372: mpr-footer mirrors base-class utilities onto the host for non-sticky layouts without dropping internal footer chrome classes', () => {
   resetEnvironment();
   loadLibrary();
   const harness = createFooterElementHarness();
   const footerElement = harness.element;
 
   footerElement.setAttribute('base-class', 'mpr-footer mt-auto footer-shell');
+  footerElement.setAttribute('sticky', 'false');
   footerElement.setAttribute('size', 'small');
   footerElement.connectedCallback();
 
@@ -2077,6 +2078,76 @@ test('MU-372: mpr-footer mirrors base-class utilities onto the host without drop
     harness.root.className,
     'mpr-footer mt-auto footer-shell mpr-footer--small',
     'internal footer root preserves chrome and size classes',
+  );
+});
+
+test('MU-372 follow-up: sticky footers keep base-class utilities off the host element', () => {
+  resetEnvironment();
+  loadLibrary();
+  const harness = createFooterElementHarness();
+  const footerElement = harness.element;
+
+  footerElement.setAttribute('base-class', 'mpr-footer mt-auto footer-shell');
+  footerElement.connectedCallback();
+
+  assert.equal(
+    footerElement.classList.contains('mt-auto'),
+    false,
+    'sticky footer host does not receive layout utility classes from base-class',
+  );
+  assert.equal(
+    footerElement.classList.contains('footer-shell'),
+    false,
+    'sticky footer host does not receive extra root styling classes from base-class',
+  );
+  assert.equal(
+    harness.root.className,
+    'mpr-footer mt-auto footer-shell',
+    'rendered footer root still receives base-class styling',
+  );
+});
+
+test('MU-372 follow-up: mpr-footer cleanup keeps caller-owned host classes when base-class changes', () => {
+  resetEnvironment();
+  loadLibrary();
+  const harness = createFooterElementHarness();
+  const footerElement = harness.element;
+
+  footerElement.classList.add('footer-shell');
+  footerElement.setAttribute('sticky', 'false');
+  footerElement.setAttribute('base-class', 'mpr-footer footer-shell mt-auto');
+  footerElement.connectedCallback();
+
+  assert.equal(
+    footerElement.classList.contains('footer-shell'),
+    true,
+    'pre-existing host class remains present after footer render',
+  );
+  assert.equal(
+    footerElement.classList.contains('mt-auto'),
+    true,
+    'component-managed host utility class is applied during render',
+  );
+
+  footerElement.setAttribute('base-class', 'mpr-footer footer-shell');
+
+  assert.equal(
+    footerElement.classList.contains('footer-shell'),
+    true,
+    'caller-owned host class survives base-class updates',
+  );
+  assert.equal(
+    footerElement.classList.contains('mt-auto'),
+    false,
+    'component-managed host class is removed when no longer requested',
+  );
+
+  footerElement.disconnectedCallback();
+
+  assert.equal(
+    footerElement.classList.contains('footer-shell'),
+    true,
+    'caller-owned host class survives footer teardown',
   );
 });
 

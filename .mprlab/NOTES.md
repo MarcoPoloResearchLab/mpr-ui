@@ -172,3 +172,4 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 ## 2026-04-02
 
 - MU-372: mirrored non-chrome `<mpr-footer base-class>` tokens onto the host element so flex utilities such as `mt-auto` work when `sticky="false"`, kept the rendered `<footer>` on its built-in `mpr-footer` chrome class, aligned injected footer CSS selectors with `mpr-ui.css`, and updated docs plus unit/Playwright regression coverage. Tests: `npm test`.
+- MU-372 follow-up: restricted host class mirroring to non-sticky footers and tracked only component-added host tokens so sticky layouts keep root-only spacing classes off the wrapper and teardown no longer removes caller-owned host classes; added focused unit regressions and reran the footer Playwright layout spec. Tests: `node --test tests/custom-elements-header-footer.test.js`, `npx playwright test tests/e2e/footer-layout.spec.js`.
