@@ -9,13 +9,33 @@
 - _No changes._
 
 ### Bug Fixes 🐛
-- Mirror `<mpr-footer base-class>` utility classes onto the host element when `sticky="false"` while preserving the internal `mpr-footer` chrome class on the rendered `<footer>`.
+- _No changes._
 
 ### Testing 🧪
-- Add regression coverage for host-level footer flex utilities in custom element and Playwright layout tests.
+- _No changes._
 
 ### Docs 📚
-- Document that `<mpr-footer base-class>` now applies host-aware layout utilities while the internal footer root retains the built-in chrome class.
+- _No changes._
+
+## [v3.8.3] - 2026-04-02
+
+### Features ✨
+- Add new `<mpr-user>` element with avatar modes, menu, and TAuth integration.
+
+### Improvements ⚙️
+- Restrict mirroring of `<mpr-footer base-class>` tokens to only non-sticky layouts.
+- Preserve caller-owned classes on `<mpr-footer>` host when updating or tearing down.
+- Add CI workflow to purge jsDelivr aliases on new tags.
+
+### Bug Fixes 🐛
+- Fix `<mpr-footer>` to mirror base-class tokens only for non-sticky layouts and preserve caller classes ensuring layout utilities like `mt-auto` work in flexbox.
+
+### Testing 🧪
+- Add unit and Playwright regression tests covering footer host-class mirroring and flexbox layout behavior.
+
+### Docs 📚
+- Document `<mpr-footer base-class>` applies to the host element only when `sticky="false"`.
+- Update integration and usage guides to reflect changes in footer base-class behavior and new user element.
 
 ## [v3.8.2] - 2026-03-20
 
