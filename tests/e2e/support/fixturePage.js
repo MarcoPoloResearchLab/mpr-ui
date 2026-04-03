@@ -76,6 +76,9 @@ const FOOTER_TEXT_FIXTURE_URL = pathToFileURL(
 const FOOTER_PRIVACY_HIDDEN_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-privacy-hidden.html'),
 ).href;
+const FOOTER_FLEX_UTILITY_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-flex-utility.html'),
+).href;
 const FOOTER_MULTIMODE_TOGGLE_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/footer-multimode-toggle.html'),
 ).href;
@@ -215,6 +218,20 @@ async function visitFooterPrivacyHiddenFixturePage(page) {
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
   ]);
   await page.goto(FOOTER_PRIVACY_HIDDEN_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Opens the footer fixture that relies on a host-level flex utility class.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitFooterFlexUtilityFixture(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(FOOTER_FLEX_UTILITY_FIXTURE_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
 }
 
@@ -531,6 +548,7 @@ module.exports = {
   visitThemeFixturePage,
   visitFooterTextFixturePage,
   visitFooterPrivacyHiddenFixturePage,
+  visitFooterFlexUtilityFixture,
   visitFooterMultimodeToggleFixture,
   visitFooterMultimodeSquareFixture,
   visitFooterMultimodeConflictFixture,

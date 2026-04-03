@@ -9,13 +9,13 @@
 - _No changes._
 
 ### Bug Fixes 🐛
-- _No changes._
+- Mirror `<mpr-footer base-class>` utility classes onto the host element when `sticky="false"` while preserving the internal `mpr-footer` chrome class on the rendered `<footer>`.
 
 ### Testing 🧪
-- _No changes._
+- Add regression coverage for host-level footer flex utilities in custom element and Playwright layout tests.
 
 ### Docs 📚
-- _No changes._
+- Document that `<mpr-footer base-class>` now applies host-aware layout utilities while the internal footer root retains the built-in chrome class.
 
 ## [v3.8.2] - 2026-03-20
 

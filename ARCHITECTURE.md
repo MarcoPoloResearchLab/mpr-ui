@@ -178,7 +178,7 @@ The footer controller bundles the dropdown/theme implementation, injects styles 
 | Option                     | Type                                   | Description                                                                   |
 | -------------------------- | -------------------------------------- | ----------------------------------------------------------------------------- |
 | `elementId`                | `string`                               | Optional `id` applied to the `<footer>` root.                                 |
-| `baseClass`                | `string`                               | Root class name (defaults to `mpr-footer`).                                   |
+| `baseClass`                | `string`                               | Extra classes applied to the internal `<footer>` root and mirrored to the `<mpr-footer>` host only when `sticky` is `false`; the component always retains its `mpr-footer` chrome class. |
 | `size`                     | `"normal" \| "small"`                  | Controls the footer scale; `small` is about 70% of the normal footprint.     |
 | `sticky`                   | `boolean`                              | Controls sticky positioning for the footer; `true` (default) pins it, `false` renders it in-flow. |
 | `innerClass`               | `string`                               | Wrapper class for the inner flex container.                                   |

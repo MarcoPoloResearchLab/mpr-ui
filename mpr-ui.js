@@ -6067,18 +6067,18 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "mpr-footer{display:block;width:100%;flex-shrink:0;position:relative}" +
     'mpr-footer[data-mpr-sticky="false"]{position:relative}' +
     'mpr-footer [data-mpr-footer="sticky-spacer"]{display:block;width:100%;height:0}' +
-    '.mpr-footer{position:fixed;left:0;right:0;bottom:0;width:100%;z-index:1200;padding:calc(24px * var(--mpr-footer-scale,1)) 0;background:var(--mpr-color-surface-primary,rgba(15,23,42,0.92));color:var(--mpr-color-text-primary,#e2e8f0);border-top:1px solid var(--mpr-color-border,rgba(148,163,184,0.25));backdrop-filter:blur(10px);--mpr-footer-scale:1;--mpr-footer-toggle-scale:1}' +
-    '.mpr-footer[data-mpr-sticky="false"]{position:static;left:auto;right:auto;bottom:auto}' +
-    '.mpr-footer__inner{max-width:1080px;margin:0 auto;padding:0 calc(1.5rem * var(--mpr-footer-scale,1));display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:calc(1.5rem * var(--mpr-footer-scale,1));overflow:visible}' +
-    '.mpr-footer__layout{display:flex;flex-wrap:nowrap;align-items:center;gap:calc(1.25rem * var(--mpr-footer-scale,1));width:100%;white-space:nowrap}' +
-    '.mpr-footer__horizontal-links{display:flex;flex:1 0 auto;min-width:0;flex-wrap:nowrap;align-items:center;justify-content:center;gap:calc(0.75rem * var(--mpr-footer-scale,1));font-size:calc(0.85rem * var(--mpr-footer-scale,1));color:var(--mpr-color-text-muted,#cbd5f5);white-space:nowrap}' +
-    '.mpr-footer__horizontal-links[data-mpr-align="left"]{justify-content:flex-start}' +
-    '.mpr-footer__horizontal-links[data-mpr-align="right"]{justify-content:flex-end}' +
-    ".mpr-footer__horizontal-links a{color:inherit;text-decoration:none;font-weight:500}" +
-    ".mpr-footer__horizontal-links a:hover{text-decoration:underline}" +
-    ".mpr-footer__horizontal-links:empty{display:none}" +
+    'footer.mpr-footer{position:fixed;left:0;right:0;bottom:0;width:100%;z-index:1200;padding:calc(24px * var(--mpr-footer-scale,1)) 0;background:var(--mpr-color-surface-primary,rgba(15,23,42,0.92));color:var(--mpr-color-text-primary,#e2e8f0);border-top:1px solid var(--mpr-color-border,rgba(148,163,184,0.25));backdrop-filter:blur(10px);--mpr-footer-scale:1;--mpr-footer-toggle-scale:1}' +
+    'footer.mpr-footer[data-mpr-sticky="false"]{position:static;left:auto;right:auto;bottom:auto}' +
+    'footer.mpr-footer [data-mpr-footer="inner"]{max-width:1080px;margin:0 auto;padding:0 calc(1.5rem * var(--mpr-footer-scale,1));display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:calc(1.5rem * var(--mpr-footer-scale,1));overflow:visible}' +
+    'footer.mpr-footer [data-mpr-footer="layout"]{display:flex;flex-wrap:nowrap;align-items:center;gap:calc(1.25rem * var(--mpr-footer-scale,1));width:100%;white-space:nowrap}' +
+    'footer.mpr-footer .mpr-footer__horizontal-links{display:flex;flex:1 0 auto;min-width:0;flex-wrap:nowrap;align-items:center;justify-content:center;gap:calc(0.75rem * var(--mpr-footer-scale,1));font-size:calc(0.85rem * var(--mpr-footer-scale,1));color:var(--mpr-color-text-muted,#cbd5f5);white-space:nowrap}' +
+    'footer.mpr-footer .mpr-footer__horizontal-links[data-mpr-align="left"]{justify-content:flex-start}' +
+    'footer.mpr-footer .mpr-footer__horizontal-links[data-mpr-align="right"]{justify-content:flex-end}' +
+    "footer.mpr-footer .mpr-footer__horizontal-links a{color:inherit;text-decoration:none;font-weight:500}" +
+    "footer.mpr-footer .mpr-footer__horizontal-links a:hover{text-decoration:underline}" +
+    "footer.mpr-footer .mpr-footer__horizontal-links:empty{display:none}" +
     '.mpr-footer__spacer{display:block;flex:1 1 auto;min-width:1px}' +
-    '.mpr-footer__brand{display:flex;flex-wrap:nowrap;align-items:center;gap:calc(0.75rem * var(--mpr-footer-scale,1));font-size:calc(0.95rem * var(--mpr-footer-scale,1));margin-left:auto;white-space:nowrap}' +
+    'footer.mpr-footer [data-mpr-footer="brand"]{display:flex;flex-wrap:nowrap;align-items:center;gap:calc(0.75rem * var(--mpr-footer-scale,1));font-size:calc(0.95rem * var(--mpr-footer-scale,1));margin-left:auto;white-space:nowrap}' +
     '.mpr-footer__prefix{font-weight:600;color:var(--mpr-color-accent,#38bdf8)}' +
     '.mpr-footer__menu-wrapper{position:relative}' +
     '.mpr-footer__menu-button{background:var(--mpr-chip-bg,rgba(148,163,184,0.18));color:var(--mpr-color-text-primary,#e2e8f0);border:none;border-radius:999px;padding:calc(0.35rem * var(--mpr-footer-scale,1)) calc(0.85rem * var(--mpr-footer-scale,1));font-weight:600;font-size:calc(0.85rem * var(--mpr-footer-scale,1));cursor:pointer}' +
@@ -6089,12 +6089,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     '.mpr-footer__menu-item:hover{background:var(--mpr-menu-hover-bg,rgba(148,163,184,0.25))}' +
     '.mpr-footer__privacy{color:var(--mpr-color-text-muted,#cbd5f5);text-decoration:none;font-size:calc(0.85rem * var(--mpr-footer-scale,1))}' +
     '.mpr-footer__privacy:hover{text-decoration:underline}' +
-    '.mpr-footer__theme-toggle{display:inline-flex;align-items:center;gap:calc(0.6rem * var(--mpr-footer-scale,1));background:transparent;border-radius:0;padding:0;color:var(--mpr-color-text-primary,#e2e8f0);font-size:calc(0.85rem * var(--mpr-footer-scale,1));cursor:pointer;box-shadow:none;border:none}' +
-    '.mpr-footer input.mpr-footer__theme-checkbox[data-mpr-theme-toggle="control"]{--mpr-theme-toggle-track-width:calc(42px * var(--mpr-footer-toggle-scale,1));--mpr-theme-toggle-track-height:calc(22px * var(--mpr-footer-toggle-scale,1));--mpr-theme-toggle-knob-size:calc(18px * var(--mpr-footer-toggle-scale,1));--mpr-theme-toggle-offset:calc(3px * var(--mpr-footer-toggle-scale,1))}' +
-    '.mpr-footer__theme-toggle[data-mpr-theme-toggle-variant="square"]{background:transparent;padding:0;border-radius:0;box-shadow:none;gap:calc(0.75rem * var(--mpr-footer-scale,1))}' +
-    '.mpr-footer input.mpr-footer__theme-checkbox[data-variant="square"]{width:auto;height:auto;display:inline-flex;align-items:center;gap:calc(0.75rem * var(--mpr-footer-scale,1));border-radius:0;background:transparent;border:none;padding:0;box-shadow:none}' +
-    ".mpr-footer [data-mpr-theme-toggle='control'][data-variant='square']{--mpr-theme-square-size:calc(28px * var(--mpr-footer-scale,1));--mpr-theme-square-dot-size:calc(6px * var(--mpr-footer-scale,1))}" +
-    ".mpr-footer.mpr-footer--small{--mpr-footer-scale:0.7;--mpr-footer-toggle-scale:0.7}";
+    'footer.mpr-footer [data-mpr-footer="theme-toggle"]{display:inline-flex;align-items:center;gap:calc(0.6rem * var(--mpr-footer-scale,1));background:transparent;border-radius:0;padding:0;color:var(--mpr-color-text-primary,#e2e8f0);font-size:calc(0.85rem * var(--mpr-footer-scale,1));cursor:pointer;box-shadow:none;border:none}' +
+    'footer.mpr-footer input.mpr-footer__theme-checkbox[data-mpr-theme-toggle="control"]{--mpr-theme-toggle-track-width:calc(42px * var(--mpr-footer-toggle-scale,1));--mpr-theme-toggle-track-height:calc(22px * var(--mpr-footer-toggle-scale,1));--mpr-theme-toggle-knob-size:calc(18px * var(--mpr-footer-toggle-scale,1));--mpr-theme-toggle-offset:calc(3px * var(--mpr-footer-toggle-scale,1))}' +
+    '[data-mpr-footer="theme-toggle"][data-mpr-theme-toggle-variant="square"]{background:transparent;padding:0;border-radius:0;box-shadow:none;gap:calc(0.75rem * var(--mpr-footer-scale,1))}' +
+    '.mpr-footer__theme-checkbox[data-variant="square"]{width:auto;height:auto;display:inline-flex;align-items:center;gap:calc(0.75rem * var(--mpr-footer-scale,1));border-radius:0;background:transparent;border:none;padding:0;box-shadow:none}' +
+    "footer.mpr-footer [data-mpr-theme-toggle='control'][data-variant='square']{--mpr-theme-square-size:calc(28px * var(--mpr-footer-scale,1));--mpr-theme-square-dot-size:calc(6px * var(--mpr-footer-scale,1))}" +
+    "footer.mpr-footer.mpr-footer--small{--mpr-footer-scale:0.7;--mpr-footer-toggle-scale:0.7}";
 
   var FOOTER_LINK_CATALOG = Object.freeze([
     Object.freeze({ label: "Marco Polo Research Lab", url: "https://mprlab.com" }),
@@ -8802,10 +8802,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   }
 
   var FOOTER_THEME_SWITCHER_ERROR_CODE = "mpr-ui.footer.theme-switcher";
+  var FOOTER_ROOT_CLASS = "mpr-footer";
+  var FOOTER_SMALL_CLASS = FOOTER_ROOT_CLASS + "--small";
 
   var FOOTER_DEFAULTS = Object.freeze({
     elementId: "",
-    baseClass: "mpr-footer",
+    baseClass: FOOTER_ROOT_CLASS,
     innerElementId: "",
     innerClass: "mpr-footer__inner",
     wrapperClass: "mpr-footer__layout",
@@ -9233,6 +9235,142 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return;
     }
     targetElement.className = className;
+  }
+
+  function normalizeClassTokens(className) {
+    if (typeof className !== "string" || !className.trim()) {
+      return [];
+    }
+    return className
+      .split(/\s+/)
+      .map(function trimClassToken(token) {
+        return token.trim();
+      })
+      .filter(Boolean);
+  }
+
+  function dedupeClassTokens(tokens) {
+    var seen = Object.create(null);
+    var deduped = [];
+    (tokens || []).forEach(function addClassToken(token) {
+      if (!token || seen[token]) {
+        return;
+      }
+      seen[token] = true;
+      deduped.push(token);
+    });
+    return deduped;
+  }
+
+  function readElementClassName(element) {
+    if (!element) {
+      return "";
+    }
+    if (typeof element.className === "string") {
+      return element.className;
+    }
+    if (typeof element.getAttribute === "function") {
+      return element.getAttribute("class") || "";
+    }
+    return "";
+  }
+
+  function writeElementClassName(element, className) {
+    if (!element) {
+      return;
+    }
+    if (typeof element.className === "string" || typeof element.className === "undefined") {
+      element.className = className;
+    }
+    if (typeof element.setAttribute === "function") {
+      if (className) {
+        element.setAttribute("class", className);
+      } else if (typeof element.removeAttribute === "function") {
+        element.removeAttribute("class");
+      }
+    }
+  }
+
+  function elementHasClassToken(element, token) {
+    if (!element || !token) {
+      return false;
+    }
+    if (
+      element.classList &&
+      typeof element.classList.contains === "function"
+    ) {
+      return element.classList.contains(token);
+    }
+    return normalizeClassTokens(readElementClassName(element)).indexOf(token) !== -1;
+  }
+
+  function updateManagedClassTokens(element, nextTokens, previousTokens) {
+    var previous = dedupeClassTokens(Array.isArray(previousTokens) ? previousTokens : []);
+    var next = dedupeClassTokens(Array.isArray(nextTokens) ? nextTokens : []);
+    if (!element) {
+      return next;
+    }
+    if (
+      element.classList &&
+      typeof element.classList.add === "function" &&
+      typeof element.classList.remove === "function"
+    ) {
+      previous.forEach(function removeClassToken(token) {
+        if (next.indexOf(token) === -1) {
+          element.classList.remove(token);
+        }
+      });
+      var managedTokens = [];
+      next.forEach(function addClassToken(token) {
+        if (previous.indexOf(token) !== -1) {
+          if (!elementHasClassToken(element, token)) {
+            element.classList.add(token);
+          }
+          managedTokens.push(token);
+          return;
+        }
+        if (elementHasClassToken(element, token)) {
+          return;
+        }
+        element.classList.add(token);
+        managedTokens.push(token);
+      });
+      return managedTokens;
+    }
+    var retainedTokens = normalizeClassTokens(readElementClassName(element)).filter(
+      function keepExistingClass(token) {
+        return previous.indexOf(token) === -1;
+      },
+    );
+    var managedTokens = next.filter(function keepManagedToken(token) {
+      return retainedTokens.indexOf(token) === -1;
+    });
+    writeElementClassName(
+      element,
+      dedupeClassTokens(retainedTokens.concat(next)).join(" "),
+    );
+    return dedupeClassTokens(managedTokens);
+  }
+
+  function buildFooterClassNames(config) {
+    var baseTokens = normalizeClassTokens(
+      config && typeof config.baseClass === "string" ? config.baseClass : "",
+    );
+    var sharedTokens = [];
+    baseTokens.forEach(function collectSharedToken(token) {
+      if (token === FOOTER_ROOT_CLASS || token === FOOTER_SMALL_CLASS) {
+        return;
+      }
+      sharedTokens.push(token);
+    });
+    var rootTokens = [FOOTER_ROOT_CLASS].concat(sharedTokens);
+    if (config && config.size === "small") {
+      rootTokens.push(FOOTER_SMALL_CLASS);
+    }
+    return {
+      hostTokens: config && config.sticky === false ? dedupeClassTokens(sharedTokens) : [],
+      rootClassName: dedupeClassTokens(rootTokens).join(" "),
+    };
   }
 
   function buildFooterMarkup(config) {
@@ -9971,6 +10109,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       config: normalizeFooterConfig(startingOptions),
       $el: null,
       cleanupHandlers: [],
+      hostBaseClassTokens: [],
       $dispatch: null,
       init: function init(userOptions) {
         var datasetOptions = this.$el ? readFooterOptionsFromDataset(this.$el) : {};
@@ -10010,12 +10149,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         if (this.config.elementId) {
           footerRoot.id = this.config.elementId;
         }
-        if (this.config.baseClass) {
-          var finalClass = this.config.baseClass;
-          if (this.config.size === "small") {
-            finalClass += " mpr-footer--small";
-          }
-          setFooterClass(footerRoot, finalClass);
+        var footerClassNames = buildFooterClassNames(this.config);
+        setFooterClass(footerRoot, footerClassNames.rootClassName);
+        if (this.$el) {
+          this.hostBaseClassTokens = updateManagedClassTokens(
+            this.$el,
+            footerClassNames.hostTokens,
+            this.hostBaseClassTokens,
+          );
         }
 
         var self = this;
@@ -10087,6 +10228,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
         });
         this.cleanupHandlers = [];
+        this.hostBaseClassTokens = updateManagedClassTokens(
+          this.$el,
+          [],
+          this.hostBaseClassTokens,
+        );
         if (this.$el) {
           this.$el.innerHTML = "";
         }
