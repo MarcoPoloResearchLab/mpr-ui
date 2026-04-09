@@ -6,16 +6,33 @@
 - _No changes._
 
 ### Improvements ⚙️
-- Standardize the primary auth integration on `/config-ui.yaml` plus `data-config-url`, with config-first bootstrap and same-origin browser auth routes as the canonical path.
+- _No changes._
 
 ### Bug Fixes 🐛
-- Allow the primary auth flow to bootstrap shell state from `/me` and `/auth/refresh` without direct `tauth.js` helper loading, and auto-apply auth attributes to `<mpr-user>` alongside `<mpr-header>` and `<mpr-login-button>`.
+- _No changes._
 
 ### Testing 🧪
-- Add regression coverage for config-first orchestration, renamed `config-ui.yaml` demo assets, and demo pages that must not load `/tauth.js`.
+- _No changes._
 
 ### Docs 📚
-- Rewrite README and integration/demo guides around the single config-driven DSL path, and mark manual auth wiring as advanced compatibility-only behavior.
+- _No changes._
+
+## [v3.8.4] - 2026-04-08
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- Standardize the primary auth integration on `/config-ui.yaml` with `data-config-url`, enabling config-first bootstrap and same-origin browser auth routes as the canonical path.
+
+### Bug Fixes 🐛
+- Allow primary auth flow to bootstrap shell state from `/me` and `/auth/refresh` without direct `tauth.js` helper loading; auto-apply auth attributes to `<mpr-user>`, `<mpr-header>`, and `<mpr-login-button>`.
+
+### Testing 🧪
+- Add regression coverage for config-first orchestration, renamed `config-ui.yaml` demo assets, and demo pages that must avoid loading `/tauth.js`.
+
+### Docs 📚
+- Rewrite README and integration/demo guides around the single config-driven DSL path; mark manual auth wiring as advanced compatibility-only behavior.
 
 ## [v3.8.3] - 2026-04-02
 
