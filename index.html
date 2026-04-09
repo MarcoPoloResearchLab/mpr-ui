@@ -15,7 +15,6 @@
       src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
       type="module"
     ></script>
-    <script defer src="/tauth.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
     <!-- MPR UI orchestration via Web Components DSL -->
@@ -41,7 +40,7 @@
           { "label": "Standalone demo", "href": "./demo/standalone.html" }
         ]
       }'
-      data-config-url="./demo/config.yaml"
+      data-config-url="./demo/config-ui.yaml"
       user-menu-display-mode="avatar"
       logout-url="/"
       sign-out-label="Log out"
@@ -124,7 +123,7 @@
               card='{
                 "id": "integration-reference",
                 "title": "Integration Reference",
-                "description": "Step-by-step walkthrough for wiring GIS, TAuth, and the bundled demo helpers without Bootstrap clashes.",
+                "description": "Step-by-step walkthrough for wiring GIS, TAuth, and the single config-driven integration path without Bootstrap clashes.",
                 "status": "production",
                 "url": "./docs/demo-index-auth.md"
               }'

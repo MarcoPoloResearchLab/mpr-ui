@@ -6,16 +6,16 @@
 - _No changes._
 
 ### Improvements ⚙️
-- _No changes._
+- Standardize the primary auth integration on `/config-ui.yaml` plus `data-config-url`, with config-first bootstrap and same-origin browser auth routes as the canonical path.
 
 ### Bug Fixes 🐛
-- _No changes._
+- Allow the primary auth flow to bootstrap shell state from `/me` and `/auth/refresh` without direct `tauth.js` helper loading, and auto-apply auth attributes to `<mpr-user>` alongside `<mpr-header>` and `<mpr-login-button>`.
 
 ### Testing 🧪
-- _No changes._
+- Add regression coverage for config-first orchestration, renamed `config-ui.yaml` demo assets, and demo pages that must not load `/tauth.js`.
 
 ### Docs 📚
-- _No changes._
+- Rewrite README and integration/demo guides around the single config-driven DSL path, and mark manual auth wiring as advanced compatibility-only behavior.
 
 ## [v3.8.3] - 2026-04-02
 

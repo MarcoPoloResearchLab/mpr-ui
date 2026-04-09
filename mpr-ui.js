@@ -14,6 +14,9 @@
     siteName: "",
     siteLink: "",
   };
+  var DEFAULT_TAUTH_PROFILE_PATH = "/me";
+  var DEFAULT_TAUTH_REFRESH_PATH = "/auth/refresh";
+  var REQUESTED_WITH_HEADER = "XMLHttpRequest";
 
   /**
    * @typedef {{ code?: string, status?: number }} MprUiErrorMetadata
@@ -156,6 +159,184 @@
       return tauthUrl + "/" + path;
     }
     return tauthUrl + path;
+  }
+
+  function shouldFallbackToFetch(error) {
+    if (!error || typeof error.message !== "string") {
+      return false;
+    }
+    return error.message.indexOf("tauth.missing_base_url") !== -1;
+  }
+
+  function withTenantHeaderValue(tenantId, headers) {
+    var combined = Object.assign({}, headers || {});
+    var normalizedTenantId = normalizeTenantId(tenantId);
+    if (normalizedTenantId) {
+      combined["X-TAuth-Tenant"] = normalizedTenantId;
+    }
+    return combined;
+  }
+
+  /**
+   * @param {string} message
+   * @param {{ status?: number } | null | undefined} response
+   * @returns {MprUiError}
+   */
+  function createStatusError(message, response) {
+    /** @type {MprUiError} */
+    var error = new Error(message);
+    if (response && typeof response.status === "number") {
+      error.status = response.status;
+    }
+    return error;
+  }
+
+  function runSessionRefreshRequest(authOptions, method) {
+    return global.fetch(joinUrl(authOptions.tauthUrl, DEFAULT_TAUTH_REFRESH_PATH), {
+      method: method,
+      credentials: "include",
+      headers: withTenantHeaderValue(authOptions.tenantId, {
+        "X-Requested-With": REQUESTED_WITH_HEADER,
+      }),
+    });
+  }
+
+  function refreshSessionWithFetch(authOptions) {
+    if (!global.fetch) {
+      return Promise.reject(new Error("fetch is required to refresh auth session"));
+    }
+    function handleRefreshResponse(response, allowFallback) {
+      if (!response) {
+        throw new Error("invalid response from refresh endpoint");
+      }
+      if (response.ok) {
+        return true;
+      }
+      if (
+        allowFallback &&
+        (response.status === 404 ||
+          response.status === 405 ||
+          response.status === 501)
+      ) {
+        return runSessionRefreshRequest(authOptions, "GET").then(function (
+          fallbackResponse,
+        ) {
+          return handleRefreshResponse(fallbackResponse, false);
+        });
+      }
+      if (response.status === 401) {
+        return false;
+      }
+      throw createStatusError("auth session refresh failed", response);
+    }
+
+    return runSessionRefreshRequest(authOptions, "POST").then(function (response) {
+      return handleRefreshResponse(response, true);
+    });
+  }
+
+  function requestCurrentProfileWithFetch(authOptions) {
+    if (!global.fetch) {
+      return Promise.reject(new Error("fetch is required to load auth profile"));
+    }
+    function fetchProfile(allowRefresh) {
+      return global
+        .fetch(joinUrl(authOptions.tauthUrl, DEFAULT_TAUTH_PROFILE_PATH), {
+          method: "GET",
+          credentials: "include",
+          headers: withTenantHeaderValue(authOptions.tenantId, {
+            "X-Requested-With": REQUESTED_WITH_HEADER,
+          }),
+        })
+        .then(function (response) {
+          if (!response) {
+            throw new Error("invalid response from profile endpoint");
+          }
+          if (response.status === 204) {
+            return null;
+          }
+          if (response.status === 401) {
+            if (!allowRefresh) {
+              return null;
+            }
+            return refreshSessionWithFetch(authOptions).then(function (refreshed) {
+              if (!refreshed) {
+                return null;
+              }
+              return fetchProfile(false);
+            });
+          }
+          if (!response.ok) {
+            throw createStatusError("auth profile request failed", response);
+          }
+          if (typeof response.json !== "function") {
+            throw new Error("invalid response from profile endpoint");
+          }
+          return response.json().then(function (payload) {
+            if (!payload || typeof payload !== "object") {
+              return null;
+            }
+            return payload;
+          });
+        });
+    }
+
+    return fetchProfile(true);
+  }
+
+  function requestCurrentProfileFromRuntime(authOptions) {
+    if (typeof global.getCurrentUser === "function") {
+      var helperResult = global.getCurrentUser();
+      if (helperResult && typeof helperResult.then === "function") {
+        return helperResult.catch(function (error) {
+          if (shouldFallbackToFetch(error)) {
+            return requestCurrentProfileWithFetch(authOptions);
+          }
+          throw error;
+        });
+      }
+      return helperResult;
+    }
+    return requestCurrentProfileWithFetch(authOptions);
+  }
+
+  function performLogoutRequestWithFetch(authOptions) {
+    if (!global.fetch) {
+      return Promise.reject(new Error("fetch is required to log out"));
+    }
+    return global
+      .fetch(joinUrl(authOptions.tauthUrl, authOptions.tauthLogoutPath), {
+        method: "POST",
+        credentials: "include",
+        headers: withTenantHeaderValue(authOptions.tenantId, {
+          "X-Requested-With": REQUESTED_WITH_HEADER,
+        }),
+      })
+      .then(function (response) {
+        if (!response) {
+          throw new Error("invalid response from logout endpoint");
+        }
+        if (!response.ok) {
+          throw createStatusError("logout failed", response);
+        }
+        return null;
+      });
+  }
+
+  function performLogoutFromRuntime(authOptions) {
+    if (typeof global.logout === "function") {
+      var helperResult = global.logout();
+      if (helperResult && typeof helperResult.then === "function") {
+        return helperResult.catch(function (error) {
+          if (shouldFallbackToFetch(error)) {
+            return performLogoutRequestWithFetch(authOptions);
+          }
+          throw error;
+        });
+      }
+      return helperResult;
+    }
+    return performLogoutRequestWithFetch(authOptions);
   }
 
   function matchesTagName(node, tagNames) {
@@ -492,6 +673,8 @@
     "logout-url",
     "logout-label",
     "tauth-tenant-id",
+    "tauth-url",
+    "tauth-logout-path",
     "avatar-url",
     "avatar-label",
     "menu-items",
@@ -2705,6 +2888,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var authSignalVersion = 0;
     var lifecycleVersion = 0;
     var isDestroyed = false;
+    var sessionSyncWindowTarget = null;
+    var sessionSyncDocumentTarget = null;
 
     function isCurrentLifecycleVersion(candidateVersion) {
       return candidateVersion === lifecycleVersion;
@@ -2741,17 +2926,74 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return "";
     }
 
-    function shouldFallbackToFetch(error) {
-      if (!error || typeof error.message !== "string") {
-        return false;
-      }
-      return error.message.indexOf("tauth.missing_base_url") !== -1;
+    function withTenantHeader(headers) {
+      return withTenantHeaderValue(options.tenantId, headers);
     }
 
-    function withTenantHeader(headers) {
-      var combined = Object.assign({}, headers || {});
-      combined["X-TAuth-Tenant"] = options.tenantId;
-      return combined;
+    function handleSessionFocus() {
+      if (isDestroyed) {
+        return;
+      }
+      bootstrapSession();
+    }
+
+    function handleSessionVisibilityChange() {
+      if (isDestroyed) {
+        return;
+      }
+      if (
+        sessionSyncDocumentTarget &&
+        typeof sessionSyncDocumentTarget.hidden === "boolean" &&
+        sessionSyncDocumentTarget.hidden
+      ) {
+        return;
+      }
+      bootstrapSession();
+    }
+
+    function attachSessionSyncListeners() {
+      if (typeof global.initAuthClient === "function") {
+        return;
+      }
+      if (
+        !sessionSyncWindowTarget &&
+        global.window &&
+        typeof global.window.addEventListener === "function"
+      ) {
+        sessionSyncWindowTarget = global.window;
+        sessionSyncWindowTarget.addEventListener("focus", handleSessionFocus);
+      }
+      if (
+        !sessionSyncDocumentTarget &&
+        global.document &&
+        typeof global.document.addEventListener === "function"
+      ) {
+        sessionSyncDocumentTarget = global.document;
+        sessionSyncDocumentTarget.addEventListener(
+          "visibilitychange",
+          handleSessionVisibilityChange,
+        );
+      }
+    }
+
+    function detachSessionSyncListeners() {
+      if (
+        sessionSyncWindowTarget &&
+        typeof sessionSyncWindowTarget.removeEventListener === "function"
+      ) {
+        sessionSyncWindowTarget.removeEventListener("focus", handleSessionFocus);
+      }
+      if (
+        sessionSyncDocumentTarget &&
+        typeof sessionSyncDocumentTarget.removeEventListener === "function"
+      ) {
+        sessionSyncDocumentTarget.removeEventListener(
+          "visibilitychange",
+          handleSessionVisibilityChange,
+        );
+      }
+      sessionSyncWindowTarget = null;
+      sessionSyncDocumentTarget = null;
     }
 
     function requestNonceTokenWithFetch() {
@@ -2930,11 +3172,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function requestCurrentProfile() {
-      if (typeof global.getCurrentUser !== "function") {
-        return Promise.resolve(null);
-      }
       configureTenantId();
-      return Promise.resolve(global.getCurrentUser());
+      return requestCurrentProfileFromRuntime(options);
     }
 
     function handleAuthenticatedCallback(profile) {
@@ -2963,22 +3202,23 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       if (isDestroyed) {
         return Promise.resolve();
       }
-      if (typeof global.initAuthClient !== "function") {
-        markUnauthenticated({ emit: false, prompt: false });
-        return Promise.resolve();
-      }
       var currentLifecycleVersion = lifecycleVersion;
       var bootstrapAuthSignalVersion = authSignalVersion;
       configureTenantId();
-      var resolvedBaseUrl = resolveAuthBaseUrl();
-      return Promise.resolve(
-        global.initAuthClient({
-          baseUrl: resolvedBaseUrl,
-          tenantId: options.tenantId,
-          onAuthenticated: handleAuthenticatedCallback,
-          onUnauthenticated: handleUnauthenticatedCallback,
-        }),
-      )
+      attachSessionSyncListeners();
+      var bootstrapPromise = Promise.resolve();
+      if (typeof global.initAuthClient === "function") {
+        var resolvedBaseUrl = resolveAuthBaseUrl();
+        bootstrapPromise = Promise.resolve(
+          global.initAuthClient({
+            baseUrl: resolvedBaseUrl,
+            tenantId: options.tenantId,
+            onAuthenticated: handleAuthenticatedCallback,
+            onUnauthenticated: handleUnauthenticatedCallback,
+          }),
+        );
+      }
+      return bootstrapPromise
         .then(function reconcileCurrentProfile() {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
             return null;
@@ -3003,12 +3243,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
           if (profile) {
             markAuthenticated(profile);
+            return;
           }
+          markUnauthenticated({ emit: false, prompt: false });
         })
         .catch(function (error) {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
             return;
           }
+          markUnauthenticated({ emit: false, prompt: false });
           emitError("mpr-ui.auth.bootstrap_failed", {
             message: error && error.message ? error.message : String(error),
           });
@@ -3118,27 +3361,16 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       pendingNonceToken = null;
       nonceRequestPromise = null;
       noncePreparationPromise = null;
+      detachSessionSyncListeners();
     }
 
     function performLogoutWithFetch() {
-      return global.fetch(joinUrl(options.tauthUrl, options.tauthLogoutPath), {
-        method: "POST",
-        credentials: "include",
-        headers: withTenantHeader({ "X-Requested-With": "XMLHttpRequest" }),
-      });
+      return performLogoutRequestWithFetch(options);
     }
 
     function performLogout() {
       configureTenantId();
-      if (typeof global.logout === "function") {
-        return Promise.resolve(global.logout()).catch(function (error) {
-          if (shouldFallbackToFetch(error)) {
-            return performLogoutWithFetch();
-          }
-          return null;
-        });
-      }
-      return performLogoutWithFetch().catch(function () {
+      return performLogoutFromRuntime(options).catch(function () {
         return null;
       });
     }
@@ -5072,6 +5304,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (tenantId !== null) {
       options.tenantId = tenantId;
     }
+    var tauthUrl = hostElement.getAttribute("tauth-url");
+    if (tauthUrl !== null) {
+      options.tauthUrl = tauthUrl;
+    }
+    var tauthLogoutPath = hostElement.getAttribute("tauth-logout-path");
+    if (tauthLogoutPath !== null) {
+      options.tauthLogoutPath = tauthLogoutPath;
+    }
     var avatarUrl = hostElement.getAttribute("avatar-url");
     if (avatarUrl !== null) {
       options.avatarUrl = avatarUrl;
@@ -5097,6 +5337,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       if (!Object.prototype.hasOwnProperty.call(options, "tenantId")) {
         options.tenantId = inheritedOptions.tenantId;
+      }
+      if (!Object.prototype.hasOwnProperty.call(options, "tauthUrl")) {
+        options.tauthUrl = inheritedOptions.tauthUrl;
+      }
+      if (!Object.prototype.hasOwnProperty.call(options, "tauthLogoutPath")) {
+        options.tauthLogoutPath = inheritedOptions.tauthLogoutPath;
       }
       if (!Object.prototype.hasOwnProperty.call(options, "avatarUrl")) {
         options.avatarUrl = inheritedOptions.avatarUrl;
@@ -5137,6 +5383,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (tenantId === null && headerDataset.tenantId) {
       tenantId = headerDataset.tenantId;
     }
+    var tauthUrl = headerElement.getAttribute("tauth-url");
+    var tauthLogoutPath = headerElement.getAttribute("tauth-logout-path");
     var avatarUrl = headerElement.getAttribute("user-menu-avatar-url");
     if (avatarUrl === null && headerDataset.userMenuAvatarUrl) {
       avatarUrl = headerDataset.userMenuAvatarUrl;
@@ -5158,6 +5406,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           ? logoutLabel.trim()
           : HEADER_DEFAULTS.signOutLabel,
       tenantId: tenantId,
+      tauthUrl: tauthUrl,
+      tauthLogoutPath: tauthLogoutPath,
       avatarUrl: normalizeHeaderUserMenuOptionalValue(avatarUrl),
       avatarLabel: normalizeHeaderUserMenuOptionalValue(avatarLabel),
     };
@@ -5357,6 +5607,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (!tenantId) {
       throw createTenantIdError();
     }
+    var tauthUrl =
+      typeof options.tauthUrl === "string" ? options.tauthUrl.trim() : "";
+    var tauthLogoutPath =
+      typeof options.tauthLogoutPath === "string" && options.tauthLogoutPath.trim()
+        ? options.tauthLogoutPath.trim()
+        : DEFAULT_OPTIONS.tauthLogoutPath;
     var logoutUrl = normalizeUserMenuLogoutUrl(options.logoutUrl);
     var logoutLabel = normalizeUserMenuLabel(options.logoutLabel);
     var avatarUrl = null;
@@ -5375,6 +5631,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return {
       displayMode: displayMode,
       tenantId: tenantId,
+      tauthUrl: tauthUrl,
+      tauthLogoutPath: tauthLogoutPath,
       logoutUrl: logoutUrl,
       logoutLabel: logoutLabel,
       avatarUrl: avatarUrl,
@@ -5655,24 +5913,24 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return null;
   }
 
-  function requestTauthProfile() {
-    if (typeof global.getCurrentUser !== "function") {
+  function requestTauthProfile(config) {
+    if (!config) {
       throw createUserMenuError(
         USER_MENU_TAUTH_MISSING_ERROR_CODE,
-        "TAuth helper getCurrentUser is required",
+        "User menu auth configuration is required",
       );
     }
-    return global.getCurrentUser();
+    return requestCurrentProfileFromRuntime(config);
   }
 
-  function requestTauthLogout() {
-    if (typeof global.logout !== "function") {
+  function requestTauthLogout(config) {
+    if (!config) {
       throw createUserMenuError(
         USER_MENU_TAUTH_MISSING_ERROR_CODE,
-        "TAuth helper logout is required",
+        "User menu auth configuration is required",
       );
     }
-    return global.logout();
+    return performLogoutFromRuntime(config);
   }
 
   function configureAuthTenant(tenantId) {
@@ -10835,7 +11093,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           configureAuthTenant(currentConfig.tenantId);
           var profileResult;
           try {
-            profileResult = requestTauthProfile();
+            profileResult = requestTauthProfile(currentConfig);
           } catch (error) {
             reportUserMenuError(this, error);
             return;
@@ -11004,7 +11262,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__setMenuOpen(false, "logout");
           var logoutResult;
           try {
-            logoutResult = requestTauthLogout();
+            logoutResult = requestTauthLogout(config);
           } catch (error) {
             reportUserMenuError(this, error);
             return;

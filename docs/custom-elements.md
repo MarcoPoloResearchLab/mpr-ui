@@ -8,7 +8,11 @@ The header/footer sections below reflect current LoopAware usage. The entity-wor
 
 The header integrates Google Identity Services with TAuth and emits auth events used by LoopAware.
 
-### Required attributes for auth
+### Primary integration path
+
+Serve `/config-ui.yaml`, render `<mpr-header data-config-url="/config-ui.yaml">`, and let `mpr-ui-config.js` apply auth attributes before it loads the bundle. New integrations should not wire `tauth-*` attributes manually.
+
+### Auth attributes owned by the config loader
 - `google-site-id`: Google OAuth web client ID.
 - `tauth-tenant-id`: TAuth tenant identifier.
 - `tauth-login-path`: TAuth login endpoint, typically `/auth/google`.
@@ -45,12 +49,7 @@ The header updates these attributes when authenticated:
 ```html
 <mpr-header
   class="landing-header"
-  google-site-id="YOUR_GOOGLE_CLIENT_ID"
-  tauth-tenant-id="YOUR_TENANT"
-  tauth-url="https://auth.example.com"
-  tauth-login-path="/auth/google"
-  tauth-logout-path="/auth/logout"
-  tauth-nonce-path="/auth/nonce"
+  data-config-url="/config-ui.yaml"
   horizontal-links='{
     "alignment": "right",
     "links": [
@@ -72,7 +71,7 @@ The header updates these attributes when authenticated:
 ```
 
 ### Script order
-LoopAware loads `tauth.js` before the mpr-ui bundle so the header can use `initAuthClient`, `requestNonce`, and `exchangeGoogleCredential`. The Google Identity Services script can load asynchronously.
+Load `mpr-ui.css`, GIS, `js-yaml`, and `mpr-ui-config.js`, then expose the bundle through `data-mpr-ui-bundle-src`. The config loader applies `/config-ui.yaml` first and then loads `mpr-ui.js`.
 
 ## mpr-footer
 

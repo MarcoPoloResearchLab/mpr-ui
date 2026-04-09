@@ -31,15 +31,15 @@ test('tauth demo loads local mpr-ui assets', () => {
 test('tauth demo uses Web Component orchestration', () => {
   assert.match(
     tauthDemoHtml,
-    /data-config-url="\.?\/config\.yaml"/,
+    /data-config-url="\.?\/config-ui\.yaml"/,
     'Expected tauth-demo.html to use data-config-url for automatic orchestration',
   );
 });
 
-test('tauth demo loads tauth.js from proxy', () => {
-  assert.match(
+test('tauth demo does not load the legacy tauth.js helper', () => {
+  assert.doesNotMatch(
     tauthDemoHtml,
     /<script\b[^>]*\bsrc="\/tauth\.js"[^>]*><\/script>/i,
-    'Expected tauth-demo.html to load tauth.js from same-origin proxy',
+    'Expected tauth-demo.html to avoid the legacy tauth.js helper',
   );
 });

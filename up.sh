@@ -14,7 +14,7 @@ if [ ! -f demo/.env.tauth ]; then
   echo "Seeded demo/.env.tauth from .env.tauth.example"
 fi
 
-ENTRY_URL="$(sed -n 's/^[[:space:]]*-[[:space:]]*"\(https:\/\/[^"]*\)".*/\1/p' demo/config.yaml | head -n 1)"
+ENTRY_URL="$(sed -n 's/^[[:space:]]*-[[:space:]]*"\(https:\/\/[^"]*\)".*/\1/p' demo/config-ui.yaml | head -n 1)"
 
 echo ""
 echo "Starting single demo stack"

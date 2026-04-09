@@ -2,6 +2,18 @@
 'use strict';
 
 const STATUS_HOST_SELECTOR = '[data-demo-auth-status]';
+const AUTH_PROFILE_SOURCE_SELECTORS = Object.freeze([
+  'mpr-user[data-mpr-user-status="authenticated"]',
+  'mpr-header[data-user-display]',
+  'mpr-user[data-user-display]',
+  'mpr-login-button[data-user-display]',
+]);
+const AUTH_PROFILE_ATTRIBUTE_MAP = Object.freeze({
+  display: 'data-user-display',
+  user_email: 'data-user-email',
+  avatar_url: 'data-user-avatar-url',
+});
+const globalObject = typeof window !== 'undefined' ? window : globalThis;
 
 /**
  * @typedef {object} AuthProfile
@@ -11,6 +23,71 @@ const STATUS_HOST_SELECTOR = '[data-demo-auth-status]';
  * @property {string} [expires]
  * @property {string[]} [roles]
  */
+
+/**
+ * @param {Element | null | undefined} sourceElement
+ * @param {string} attributeName
+ * @returns {string}
+ */
+function readProfileAttribute(sourceElement, attributeName) {
+  if (!sourceElement || typeof sourceElement.getAttribute !== 'function') {
+    return '';
+  }
+  const attributeValue = sourceElement.getAttribute(attributeName);
+  if (typeof attributeValue !== 'string') {
+    return '';
+  }
+  return attributeValue.trim();
+}
+
+/**
+ * @param {Element | null | undefined} sourceElement
+ * @returns {AuthProfile | null}
+ */
+function buildProfileSnapshot(sourceElement) {
+  const display = readProfileAttribute(
+    sourceElement,
+    AUTH_PROFILE_ATTRIBUTE_MAP.display,
+  );
+  const userEmail = readProfileAttribute(
+    sourceElement,
+    AUTH_PROFILE_ATTRIBUTE_MAP.user_email,
+  );
+  const avatarUrl = readProfileAttribute(
+    sourceElement,
+    AUTH_PROFILE_ATTRIBUTE_MAP.avatar_url,
+  );
+  if (!display && !userEmail && !avatarUrl) {
+    return null;
+  }
+  return {
+    display: display || undefined,
+    user_email: userEmail || undefined,
+    avatar_url: avatarUrl || undefined,
+  };
+}
+
+/**
+ * @returns {AuthProfile | null}
+ */
+function resolveInitialProfileSnapshot() {
+  if (typeof document === 'undefined' || typeof document.querySelector !== 'function') {
+    return null;
+  }
+  for (let index = 0; index < AUTH_PROFILE_SOURCE_SELECTORS.length; index += 1) {
+    const selector = AUTH_PROFILE_SOURCE_SELECTORS[index];
+    const sourceElement = document.querySelector(selector);
+    const snapshot = buildProfileSnapshot(sourceElement);
+    if (snapshot) {
+      return snapshot;
+    }
+  }
+  return null;
+}
+
+globalObject.MprDemoAuth = Object.assign({}, globalObject.MprDemoAuth, {
+  resolveInitialProfileSnapshot,
+});
 
 /**
  * Renders the session snapshot with the provided profile.
@@ -71,17 +148,17 @@ function renderSession(profile) {
     );
   } else {
     expiryParagraph.textContent =
-      'Session cookie expiry unavailable (auto-refresh will keep you signed in until you sign out).';
+      'Session cookie expiry unavailable. mpr-ui will re-check the session using the same-origin auth endpoints.';
   }
   const refreshParagraph = document.createElement('p');
   refreshParagraph.classList.add('session-card__expires');
   refreshParagraph.textContent =
-    'The refresh token keeps renewing this session in the background until you click Sign out or stop the stack.';
+    'mpr-ui treats the backend cookie as the source of truth and reconciles the shell through /me and /auth/refresh.';
   host.append(profileContainer, expiryParagraph, refreshParagraph);
 }
 
 function initSessionPanel() {
-  renderSession(typeof window.getCurrentUser === 'function' ? window.getCurrentUser() : null);
+  renderSession(resolveInitialProfileSnapshot());
   document.addEventListener('mpr-ui:auth:authenticated', (event) => {
     renderSession(event?.detail?.profile ?? null);
   });

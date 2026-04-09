@@ -7,6 +7,7 @@ const BASE_URL = process.env.MPR_UI_DEMO_BASE_URL || 'https://localhost:4443';
 // Suffixes to identify local bundle loads
 const LOCAL_JS_SUFFIX = '/mpr-ui.js';
 const LOCAL_CSS_SUFFIX = '/mpr-ui.css';
+const LEGACY_TAUTH_HELPER_SUFFIX = '/tauth.js';
 
 test.use({ ignoreHTTPSErrors: true });
 
@@ -44,7 +45,7 @@ test('root / serves the demo hub landing page with local assets and DSL orchestr
 
   // 2. Verify DSL Orchestration (no manual config scripts)
   const header = page.locator('mpr-header#demo-header');
-  await expect(header).toHaveAttribute('data-config-url', './demo/config.yaml');
+  await expect(header).toHaveAttribute('data-config-url', './demo/config-ui.yaml');
 
   // 3. Verify Local Assets
   const scriptUrls = await page.evaluate(() => Array.from(document.scripts).map((script) => script.src));
@@ -52,6 +53,7 @@ test('root / serves the demo hub landing page with local assets and DSL orchestr
   
   expect(scriptUrls.some(url => url.endsWith(LOCAL_JS_SUFFIX))).toBe(true);
   expect(styleUrls.some(url => url.endsWith(LOCAL_CSS_SUFFIX))).toBe(true);
+  expect(scriptUrls.some(url => url.endsWith(LEGACY_TAUTH_HELPER_SUFFIX))).toBe(false);
 
   // 4. Verify User Menu Presence (Orchestrated by component)
   await expect(header.locator('mpr-user[slot="aux"]')).toBeAttached();
@@ -78,7 +80,10 @@ test('sub-demos provide consistent navigation and local asset loading', async ({
     await expect(page).toHaveTitle(demo.title);
     
     const header = page.locator('mpr-header');
-    await expect(header).toHaveAttribute('data-config-url', './config.yaml');
+    await expect(header).toHaveAttribute('data-config-url', './config-ui.yaml');
+
+    const scriptUrls = await page.evaluate(() => Array.from(document.scripts).map((script) => script.src));
+    expect(scriptUrls.some((url) => url.endsWith(LEGACY_TAUTH_HELPER_SUFFIX))).toBe(false);
 
     // Navigation back to root landing page
     const indexLink = header.locator('a:has-text("Index demo")');

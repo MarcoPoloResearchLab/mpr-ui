@@ -31,8 +31,13 @@ test('standalone demo loads local mpr-ui assets', () => {
 test('standalone demo uses Web Component orchestration', () => {
   assert.match(
     standaloneHtml,
-    /data-config-url="\.?\/config\.yaml"/,
+    /data-config-url="\.?\/config-ui\.yaml"/,
     'Expected standalone.html to use data-config-url',
+  );
+  assert.doesNotMatch(
+    standaloneHtml,
+    /<script\b[^>]*\bsrc="\/tauth\.js"[^>]*><\/script>/i,
+    'Expected standalone.html to avoid the legacy tauth.js helper',
   );
 });
 

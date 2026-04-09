@@ -76,8 +76,13 @@ test('landing page loads local mpr-ui assets', () => {
 test('landing page uses Web Component orchestration for config', () => {
   assert.match(
     landingHtml,
-    /data-config-url="\.\/demo\/config\.yaml"/,
+    /data-config-url="\.\/demo\/config-ui\.yaml"/,
     'Expected landing page to use data-config-url for automatic orchestration',
+  );
+  assert.doesNotMatch(
+    landingHtml,
+    /<script\b[^>]*\bsrc="\/tauth\.js"[^>]*><\/script>/i,
+    'Expected landing page to avoid the legacy tauth.js helper',
   );
 });
 
@@ -208,8 +213,13 @@ test('entity workspace demo uses Web Component orchestration', () => {
   const html = readDemoFile('entity-workspace.html');
   assert.match(
     html,
-    /data-config-url="\.?\/config\.yaml"/,
+    /data-config-url="\.?\/config-ui\.yaml"/,
     'Expected entity workspace to use data-config-url',
+  );
+  assert.doesNotMatch(
+    html,
+    /<script\b[^>]*\bsrc="\/tauth\.js"[^>]*><\/script>/i,
+    'Expected entity workspace to avoid the legacy tauth.js helper',
   );
   assert.match(
     html,
@@ -227,8 +237,13 @@ test('standalone demo uses Web Component orchestration', () => {
   const html = readDemoFile('standalone.html');
   assert.match(
     html,
-    /data-config-url="\.?\/config\.yaml"/,
+    /data-config-url="\.?\/config-ui\.yaml"/,
     'Expected standalone demo to use data-config-url',
+  );
+  assert.doesNotMatch(
+    html,
+    /<script\b[^>]*\bsrc="\/tauth\.js"[^>]*><\/script>/i,
+    'Expected standalone demo to avoid the legacy tauth.js helper',
   );
   assert.match(
     html,

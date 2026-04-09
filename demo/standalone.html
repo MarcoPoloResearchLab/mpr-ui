@@ -11,8 +11,6 @@
       src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
       type="module"
     ></script>
-    <!-- TAuth helper proxied through ghttp for same-origin operation -->
-    <script defer src="/tauth.js"></script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
     <!-- MPR UI orchestration via Web Components DSL -->
@@ -214,7 +212,7 @@
           { "label": "Standalone demo", "href": "./standalone.html" }
         ]
       }'
-      data-config-url="./config.yaml"
+      data-config-url="./config-ui.yaml"
       user-menu-display-mode="avatar"
       logout-url="/"
       sign-out-label="Log out"
@@ -294,14 +292,15 @@
               stay in sync with the session state.
             </li>
             <li>
-              YAML config from <code>./config.yaml</code> applies the tenant,
+              YAML config from <code>./config-ui.yaml</code> applies the tenant,
               GIS client ID, auth paths, and shared button styling before
               <code>mpr-ui.js</code> initializes the custom elements.
             </li>
             <li>
               TAuth endpoints (<code>/auth/nonce</code>, <code>/auth/google</code>,
-              <code>/auth/logout</code>) are proxied through the same origin,
-              and <code>/tauth.js</code> keeps the session state synchronized.
+              <code>/auth/logout</code>, <code>/auth/refresh</code>, and
+              <code>/me</code>) are proxied through the same origin, and
+              <code>mpr-ui</code> keeps the session state synchronized.
             </li>
             <li>
               This pattern is useful for login pages, sidebars, or anywhere you
@@ -356,7 +355,7 @@
       ></mpr-footer>
     </div>
 
-    <script defer src="./status-panel.js"></script>
+    <script src="./status-panel.js"></script>
     <script>
       (function() {
         function updateSessionDisplay(profile) {
@@ -382,9 +381,19 @@
           }
         }
 
+        function resolveInitialProfile() {
+          if (
+            window.MprDemoAuth &&
+            typeof window.MprDemoAuth.resolveInitialProfileSnapshot === 'function'
+          ) {
+            return window.MprDemoAuth.resolveInitialProfileSnapshot();
+          }
+          return null;
+        }
+
         function init() {
-          var currentUser = typeof window.getCurrentUser === 'function' ? window.getCurrentUser() : null;
-          updateAuthVisibility(Boolean(currentUser), currentUser);
+          var initialProfile = resolveInitialProfile();
+          updateAuthVisibility(Boolean(initialProfile), initialProfile);
 
           document.addEventListener('mpr-ui:auth:authenticated', function(event) {
             var profile = event.detail && event.detail.profile;

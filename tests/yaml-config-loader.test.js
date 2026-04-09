@@ -69,7 +69,7 @@ test('loadYamlConfig selects matching environment by origin', async () => {
   };
 
   require(loaderPath);
-  const config = await global.MPRUI.loadYamlConfig({ configUrl: '/config.yaml' });
+  const config = await global.MPRUI.loadYamlConfig({ configUrl: '/config-ui.yaml' });
 
   assert.equal(config.auth.tenantId, 'example-tenant');
   assert.equal(config.auth.googleClientId, 'example-client');
@@ -106,9 +106,9 @@ test('loadYamlConfig throws when no environment matches origin', async () => {
 
   require(loaderPath);
   await assert.rejects(
-    global.MPRUI.loadYamlConfig({ configUrl: '/config.yaml' }),
+    global.MPRUI.loadYamlConfig({ configUrl: '/config-ui.yaml' }),
     {
-      message: 'config.yaml has no environment for origin https://unknown-origin.com',
+      message: 'config-ui.yaml has no environment for origin https://unknown-origin.com',
     },
   );
 });
@@ -154,9 +154,9 @@ test('loadYamlConfig throws when multiple environments match origin', async () =
 
   require(loaderPath);
   await assert.rejects(
-    global.MPRUI.loadYamlConfig({ configUrl: '/config.yaml' }),
+    global.MPRUI.loadYamlConfig({ configUrl: '/config-ui.yaml' }),
     {
-      message: 'config.yaml has multiple environments for origin https://example.com',
+      message: 'config-ui.yaml has multiple environments for origin https://example.com',
     },
   );
 });
@@ -190,9 +190,9 @@ test('loadYamlConfig throws when tauthUrl is missing', async () => {
 
   require(loaderPath);
   await assert.rejects(
-    global.MPRUI.loadYamlConfig({ configUrl: '/config.yaml' }),
+    global.MPRUI.loadYamlConfig({ configUrl: '/config-ui.yaml' }),
     {
-      message: 'config.yaml missing auth.tauthUrl',
+      message: 'config-ui.yaml missing auth.tauthUrl',
     },
   );
 });
@@ -226,7 +226,7 @@ test('loadYamlConfig accepts an empty tauthUrl for same-origin auth', async () =
   };
 
   require(loaderPath);
-  const config = await global.MPRUI.loadYamlConfig({ configUrl: '/config.yaml' });
+  const config = await global.MPRUI.loadYamlConfig({ configUrl: '/config-ui.yaml' });
 
   assert.equal(config.auth.tauthUrl, '');
 });
@@ -287,7 +287,7 @@ test('applyYamlConfig removes tauth-url when config uses same-origin auth', asyn
   };
 
   require(loaderPath);
-  await global.MPRUI.applyYamlConfig({ configUrl: '/demo/config.yaml' });
+  await global.MPRUI.applyYamlConfig({ configUrl: '/demo/config-ui.yaml' });
 
   assert.equal(header.attributes['google-site-id'], 'example-client');
   assert.equal(header.attributes['tauth-tenant-id'], 'example-tenant');
@@ -304,6 +304,9 @@ test('applyYamlConfig removes tauth-url when config uses same-origin auth', asyn
   assert.equal(loginButton.attributes['tauth-url'], undefined);
 
   assert.equal(userMenu.attributes['tauth-tenant-id'], 'example-tenant');
+  assert.equal(userMenu.attributes['tauth-login-path'], '/auth/google');
+  assert.equal(userMenu.attributes['tauth-logout-path'], '/auth/logout');
+  assert.equal(userMenu.attributes['tauth-nonce-path'], '/auth/nonce');
 });
 
 test('autoOrchestrate loads the bundle only after config attributes are applied', async () => {
@@ -339,7 +342,7 @@ test('autoOrchestrate loads the bundle only after config attributes are applied'
     },
   };
 
-  const header = createElement({ 'data-config-url': '/config.yaml' });
+  const header = createElement({ 'data-config-url': '/config-ui.yaml' });
   const loginButton = createElement({});
   const userMenu = createElement({});
   const appendedScripts = [];
