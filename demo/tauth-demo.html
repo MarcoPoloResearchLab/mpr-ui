@@ -160,6 +160,11 @@
           { "label": "Standalone demo", "href": "./standalone.html" }
         ]
       }'
+      auth-transition='{
+        "title": "Opening TAuth demo",
+        "message": "Loading your authenticated session snapshot.",
+        "completionEvent": "demo:tauth-ready"
+      }'
       data-config-url="./config-ui.yaml"
       logout-url="/"
       sign-out-label="Log out"
@@ -314,5 +319,65 @@
     ></mpr-footer>
     <script defer src="./tauth-settings-modal.js"></script>
     <script defer src="./status-panel.js"></script>
+    <script>
+      (function() {
+        var READY_EVENT_NAME = 'demo:tauth-ready';
+
+        function resolveInitialProfile() {
+          if (
+            window.MprDemoAuth &&
+            typeof window.MprDemoAuth.resolveInitialProfileSnapshot === 'function'
+          ) {
+            return window.MprDemoAuth.resolveInitialProfileSnapshot();
+          }
+          return null;
+        }
+
+        function dispatchReadyEvent() {
+          document.dispatchEvent(new CustomEvent(READY_EVENT_NAME));
+        }
+
+        function dispatchReadyEventOnNextFrame() {
+          if (typeof window.requestAnimationFrame === 'function') {
+            window.requestAnimationFrame(dispatchReadyEvent);
+            return;
+          }
+          window.setTimeout(dispatchReadyEvent, 0);
+        }
+
+        function waitForAutoOrchestrationReady() {
+          if (
+            window.MPRUI &&
+            typeof window.MPRUI.whenAutoOrchestrationReady === 'function'
+          ) {
+            return window.MPRUI.whenAutoOrchestrationReady();
+          }
+          return Promise.resolve();
+        }
+
+        function dispatchReadyEventWhenSurfaceReady() {
+          waitForAutoOrchestrationReady()
+            .catch(function ignoreOrchestrationError() {
+              return null;
+            })
+            .then(dispatchReadyEventOnNextFrame);
+        }
+
+        function init() {
+          if (resolveInitialProfile()) {
+            dispatchReadyEventWhenSurfaceReady();
+          }
+          document.addEventListener('mpr-ui:auth:authenticated', function() {
+            dispatchReadyEventWhenSurfaceReady();
+          });
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+      })();
+    </script>
   </body>
 </html>

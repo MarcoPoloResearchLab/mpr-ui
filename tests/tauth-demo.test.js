@@ -34,6 +34,21 @@ test('tauth demo uses Web Component orchestration', () => {
     /data-config-url="\.?\/config-ui\.yaml"/,
     'Expected tauth-demo.html to use data-config-url for automatic orchestration',
   );
+  assert.match(
+    tauthDemoHtml,
+    /auth-transition='[\s\S]*"completionEvent"\s*:\s*"demo:tauth-ready"[\s\S]*'/,
+    'Expected tauth-demo.html to configure the auth transition screen',
+  );
+  assert.match(
+    tauthDemoHtml,
+    /function waitForAutoOrchestrationReady\(\)/,
+    'Expected tauth-demo.html to define an auto-orchestration readiness helper',
+  );
+  assert.match(
+    tauthDemoHtml,
+    /waitForAutoOrchestrationReady\(\)[\s\S]*dispatchReadyEventOnNextFrame/,
+    'Expected tauth-demo.html to release the transition screen only after auto-orchestration is ready',
+  );
 });
 
 test('tauth demo does not load the legacy tauth.js helper', () => {

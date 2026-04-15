@@ -22,6 +22,7 @@ Serve `/config-ui.yaml`, render `<mpr-header data-config-url="/config-ui.yaml">`
 ### Optional attributes
 - `tauth-url`: Base URL of the TAuth service. When omitted, the current origin is used.
 - `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders an inline utility link list inside the same row as the other header controls.
+- `auth-transition`: JSON string `{ title, message, completionEvent }` that enables the built-in full-screen auth transition surface. The screen appears during auth bootstrap and credential exchange. If `completionEvent` is non-empty, the screen stays visible after authentication until that event is dispatched on `document`.
 - `sign-in-label`: Text for the fallback sign-in button.
 - `sign-out-label`: Text for the sign-out button.
 - `sticky`: `true` or `false` to toggle sticky positioning.
@@ -37,9 +38,16 @@ The header updates these attributes when authenticated:
 - `data-user-display`
 - `data-user-avatar-url`
 
+The auth controller also reflects the current auth phase on the host as `data-mpr-auth-status` with one of:
+- `bootstrapping`
+- `authenticating`
+- `authenticated`
+- `unauthenticated`
+
 ### Events
 - `mpr-ui:auth:authenticated` (detail includes `profile`).
 - `mpr-ui:auth:unauthenticated`.
+- `mpr-ui:auth:status-change` (detail includes `status`, `previousStatus`, and `profile`).
 - `mpr-ui:auth:error` (detail includes `code`, optional `message`).
 - `mpr-ui:header:error` (header or Google Sign-In render failures).
 - `mpr-ui:header:signin-click` (fallback sign-in button clicked).
@@ -50,6 +58,11 @@ The header updates these attributes when authenticated:
 <mpr-header
   class="landing-header"
   data-config-url="/config-ui.yaml"
+  auth-transition='{
+    "title": "Opening LoopAware",
+    "message": "Loading your authenticated workspace.",
+    "completionEvent": "loopaware:ready"
+  }'
   horizontal-links='{
     "alignment": "right",
     "links": [
@@ -68,6 +81,15 @@ The header updates these attributes when authenticated:
     logout-label="Log out"
   ></mpr-user>
 </mpr-header>
+```
+
+When `auth-transition.completionEvent` is set, release the transition surface once the authenticated UI is ready:
+
+```js
+document.addEventListener('mpr-ui:auth:authenticated', function () {
+  // After your authenticated app surface has finished loading:
+  document.dispatchEvent(new CustomEvent('loopaware:ready'));
+});
 ```
 
 ### Script order

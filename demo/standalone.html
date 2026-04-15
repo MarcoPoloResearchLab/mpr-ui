@@ -212,6 +212,11 @@
           { "label": "Standalone demo", "href": "./standalone.html" }
         ]
       }'
+      auth-transition='{
+        "title": "Opening standalone auth demo",
+        "message": "Loading the authenticated login surface.",
+        "completionEvent": "demo:standalone-ready"
+      }'
       data-config-url="./config-ui.yaml"
       user-menu-display-mode="avatar"
       logout-url="/"
@@ -358,6 +363,8 @@
     <script src="./status-panel.js"></script>
     <script>
       (function() {
+        var READY_EVENT_NAME = 'demo:standalone-ready';
+
         function updateSessionDisplay(profile) {
           var avatar = document.getElementById('session-avatar');
           var name = document.getElementById('session-name');
@@ -381,6 +388,36 @@
           }
         }
 
+        function dispatchReadyEvent() {
+          document.dispatchEvent(new CustomEvent(READY_EVENT_NAME));
+        }
+
+        function dispatchReadyEventOnNextFrame() {
+          if (typeof window.requestAnimationFrame === 'function') {
+            window.requestAnimationFrame(dispatchReadyEvent);
+            return;
+          }
+          window.setTimeout(dispatchReadyEvent, 0);
+        }
+
+        function waitForAutoOrchestrationReady() {
+          if (
+            window.MPRUI &&
+            typeof window.MPRUI.whenAutoOrchestrationReady === 'function'
+          ) {
+            return window.MPRUI.whenAutoOrchestrationReady();
+          }
+          return Promise.resolve();
+        }
+
+        function dispatchReadyEventWhenSurfaceReady() {
+          waitForAutoOrchestrationReady()
+            .catch(function ignoreOrchestrationError() {
+              return null;
+            })
+            .then(dispatchReadyEventOnNextFrame);
+        }
+
         function resolveInitialProfile() {
           if (
             window.MprDemoAuth &&
@@ -394,10 +431,14 @@
         function init() {
           var initialProfile = resolveInitialProfile();
           updateAuthVisibility(Boolean(initialProfile), initialProfile);
+          if (initialProfile) {
+            dispatchReadyEventWhenSurfaceReady();
+          }
 
           document.addEventListener('mpr-ui:auth:authenticated', function(event) {
             var profile = event.detail && event.detail.profile;
             updateAuthVisibility(true, profile);
+            dispatchReadyEventWhenSurfaceReady();
           });
           document.addEventListener('mpr-ui:auth:unauthenticated', function() {
             updateAuthVisibility(false, null);

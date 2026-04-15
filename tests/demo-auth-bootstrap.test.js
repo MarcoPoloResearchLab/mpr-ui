@@ -8,6 +8,7 @@ const assert = require('node:assert/strict');
 
 const statusPanelPath = path.join(__dirname, '..', 'demo', 'status-panel.js');
 const standaloneHtmlPath = path.join(__dirname, '..', 'demo', 'standalone.html');
+const tauthDemoHtmlPath = path.join(__dirname, '..', 'demo', 'tauth-demo.html');
 
 function createElement(tagName) {
   const attributes = {};
@@ -56,7 +57,9 @@ function createElement(tagName) {
 
 function createDocumentStub(config) {
   const listeners = {};
+  const dispatchedEvents = [];
   return {
+    dispatchedEvents,
     readyState: config.readyState || 'complete',
     createElement,
     createTextNode(textContent) {
@@ -81,7 +84,22 @@ function createDocumentStub(config) {
       return null;
     },
     addEventListener(type, handler) {
-      listeners[type] = handler;
+      const eventType = String(type);
+      if (!listeners[eventType]) {
+        listeners[eventType] = [];
+      }
+      listeners[eventType].push(handler);
+    },
+    dispatchEvent(eventObject) {
+      if (!eventObject || !eventObject.type) {
+        return false;
+      }
+      dispatchedEvents.push(eventObject);
+      const handlers = listeners[eventObject.type] ? listeners[eventObject.type].slice() : [];
+      handlers.forEach((handler) => {
+        handler.call(this, eventObject);
+      });
+      return handlers.length > 0;
     },
   };
 }
@@ -93,6 +111,17 @@ function createSandbox(documentStub, extraGlobals) {
       document: documentStub,
       setTimeout,
       clearTimeout,
+      requestAnimationFrame(callback) {
+        if (typeof callback === 'function') {
+          callback();
+        }
+        return 1;
+      },
+      cancelAnimationFrame() {},
+      CustomEvent: function CustomEvent(type, init) {
+        this.type = type;
+        this.detail = init && init.detail;
+      },
     },
     extraGlobals || {},
   );
@@ -102,11 +131,27 @@ function createSandbox(documentStub, extraGlobals) {
   return sandbox;
 }
 
-function loadStandaloneInlineScript() {
-  const html = fs.readFileSync(standaloneHtmlPath, 'utf8');
+function loadInlineBootstrapScript(htmlPath, description) {
+  const html = fs.readFileSync(htmlPath, 'utf8');
   const scriptMatches = Array.from(html.matchAll(/<script>([\s\S]*?)<\/script>/g));
-  assert.ok(scriptMatches.length > 0, 'Expected standalone demo to contain an inline bootstrap script');
+  assert.ok(scriptMatches.length > 0, `Expected ${description} to contain an inline bootstrap script`);
   return scriptMatches[scriptMatches.length - 1][1];
+}
+
+function createDeferred() {
+  let resolvePromise;
+  const promise = new Promise((resolve) => {
+    resolvePromise = resolve;
+  });
+  return {
+    promise,
+    resolve: resolvePromise,
+  };
+}
+
+async function flushMicrotasks() {
+  await Promise.resolve();
+  await Promise.resolve();
 }
 
 test('status panel boots from the existing auth dataset on reload', () => {
@@ -171,7 +216,7 @@ test('standalone demo boots the auth card from the shared initial profile snapsh
     },
   });
 
-  vm.runInNewContext(loadStandaloneInlineScript(), sandbox, {
+  vm.runInNewContext(loadInlineBootstrapScript(standaloneHtmlPath, 'standalone demo'), sandbox, {
     filename: 'demo/standalone-inline.js',
   });
 
@@ -180,4 +225,72 @@ test('standalone demo boots the auth card from the shared initial profile snapsh
   assert.equal(avatar.src, 'https://cdn.example.com/avatar.png');
   assert.equal(name.textContent, 'Ada Lovelace');
   assert.equal(email.textContent, 'ada@example.com');
+});
+
+[
+  {
+    htmlPath: standaloneHtmlPath,
+    readyEventName: 'demo:standalone-ready',
+    scriptName: 'demo/standalone-inline.js',
+    description: 'standalone demo',
+  },
+  {
+    htmlPath: tauthDemoHtmlPath,
+    readyEventName: 'demo:tauth-ready',
+    scriptName: 'demo/tauth-inline.js',
+    description: 'tauth demo',
+  },
+].forEach((testCase) => {
+  test(`${testCase.description} waits for auto-orchestration readiness before dispatching its ready event`, async () => {
+    const readyBarrier = createDeferred();
+    const documentStub = createDocumentStub({
+      idMap: {
+        'signin-content': createElement('div'),
+        'session-content': createElement('div'),
+        'session-avatar': createElement('img'),
+        'session-name': createElement('p'),
+        'session-email': createElement('p'),
+      },
+    });
+    const sandbox = createSandbox(documentStub, {
+      alert() {},
+      MPRUI: {
+        whenAutoOrchestrationReady() {
+          return readyBarrier.promise;
+        },
+      },
+      MprDemoAuth: {
+        resolveInitialProfileSnapshot() {
+          return {
+            display: 'Ada Lovelace',
+            user_email: 'ada@example.com',
+            avatar_url: 'https://cdn.example.com/avatar.png',
+          };
+        },
+      },
+    });
+
+    vm.runInNewContext(
+      loadInlineBootstrapScript(testCase.htmlPath, testCase.description),
+      sandbox,
+      { filename: testCase.scriptName },
+    );
+    await flushMicrotasks();
+
+    assert.equal(
+      documentStub.dispatchedEvents.some((eventObject) => eventObject.type === testCase.readyEventName),
+      false,
+      `Expected ${testCase.description} to wait until orchestration is ready before dispatching ${testCase.readyEventName}`,
+    );
+
+    readyBarrier.resolve();
+    await readyBarrier.promise;
+    await flushMicrotasks();
+
+    assert.equal(
+      documentStub.dispatchedEvents.some((eventObject) => eventObject.type === testCase.readyEventName),
+      true,
+      `Expected ${testCase.description} to dispatch ${testCase.readyEventName} after orchestration is ready`,
+    );
+  });
 });

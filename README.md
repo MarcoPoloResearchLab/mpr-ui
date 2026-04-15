@@ -72,6 +72,11 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
      brand-label="Marco Polo Research Lab"
      brand-href="/"
      nav-links='[{ "label": "Docs", "href": "#docs" }]'
+     auth-transition='{
+       "title": "Opening workspace",
+       "message": "Loading your authenticated app surface.",
+       "completionEvent": "my-app:ready"
+     }'
      horizontal-links='{
        "alignment": "right",
        "links": [
@@ -107,6 +112,8 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
    `mpr-ui-config.js` sees `mpr-header[data-config-url]`, loads `/config-ui.yaml`, applies auth attributes, and then loads the bundle from `data-mpr-ui-bundle-src`.
 
+   `auth-transition` is optional. When present, `<mpr-header>` shows a built-in full-screen transition surface while auth is bootstrapping or exchanging credentials. If `completionEvent` is set, the transition surface stays visible after authentication until your app dispatches that event on `document`.
+
 ## Integration Checklist
 
 1. Load `mpr-ui.css` before any `mpr-ui` scripts.
@@ -116,6 +123,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 5. Render `<mpr-header data-config-url="/config-ui.yaml">`.
 6. Express shell composition through the DSL, not host CSS overrides into `mpr-ui` internals.
 7. Listen for `mpr-ui:auth:authenticated` and `mpr-ui:auth:unauthenticated` in app code.
+8. If you opt into `auth-transition.completionEvent`, dispatch that event after the authenticated app surface is ready.
 
 `tenantId` / `tauth-tenant-id` is immutable after the auth controller initializes. To switch tenants, destroy the current `<mpr-header>` / `<mpr-login-button>` instance and create a new one instead of mutating the existing element.
 
@@ -181,7 +189,7 @@ Stop the stack with `./down.sh` (or `docker compose down -v` if you want to recl
 
 Every UI surface is a custom element. The list below maps directly to the `<mpr-*>` tags you can use declaratively:
 
-- `<mpr-header>` — sticky banner with brand, nav, GIS auth, settings trigger, and shared theme configuration hooks (no built-in toggle).
+- `<mpr-header>` — sticky banner with brand, nav, GIS auth, settings trigger, shared theme configuration hooks, and an optional auth transition screen (no built-in theme toggle).
 - `<mpr-footer>` — marketing footer with prefix dropdown menu, privacy link, and theme toggle that now uses internal dropdown listeners so it no longer collides with Bootstrap classes or `data-bs-*` hooks.
 - `<mpr-theme-toggle>` — shared switch/button that talks to the global theme manager.
 - `<mpr-login-button>` — GIS-only control for contexts that do not need the full header.
@@ -266,7 +274,7 @@ The tags above replace the retired imperative helpers. See the example below for
 
 | Element | Primary attributes | Slots | Key events |
 | --- | --- | --- | --- |
-| `<mpr-header>` | `brand-label`, `nav-links`, `horizontal-links` (JSON object with `{ alignment, links }`), `google-site-id`, `tauth-tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `logout-url`, `user-menu-display-mode`, `user-menu-avatar-url`, `user-menu-avatar-label`, `theme-config`, `settings-label`, `settings`, `sign-in-label`, `sign-out-label`, `size`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
+| `<mpr-header>` | `brand-label`, `nav-links`, `horizontal-links` (JSON object with `{ alignment, links }`), `auth-transition` (JSON object with `{ title, message, completionEvent }`), `google-site-id`, `tauth-tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `logout-url`, `user-menu-display-mode`, `user-menu-avatar-url`, `user-menu-avatar-label`, `theme-config`, `settings-label`, `settings`, `sign-in-label`, `sign-out-label`, `size`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:auth:status-change`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
 | `<mpr-footer>` | `prefix-text`, `horizontal-links` (JSON object with `{ alignment, links }`), `links-collection` (JSON with `{ style, text, links }`), `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-switcher`, `theme-config`, `size`, `sticky`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
 | `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config` | — | `mpr-ui:theme-change` |
 | `<mpr-login-button>` | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
@@ -294,6 +302,8 @@ Slots let you inject custom markup without leaving declarative mode:
 - Login button inherits the global `mpr-ui:auth:*` events dispatched by `createAuthHeader` and emits `mpr-login:error` when GIS cannot load, so you can listen for authentication without writing any extra glue.
 
 Custom elements dispatch the same `mpr-ui:*` events that the deprecated helpers emitted, so event listeners continue working after migrating. See [`docs/custom-elements.md`](docs/custom-elements.md) for a deep-dive covering attribute shapes, events, migration tips, and a concrete YouTube playlists/videos workspace example built from the entity-workspace primitives. For a runnable JSON-backed version of that flow, use [`demo/entity-workspace.html`](demo/entity-workspace.html).
+
+`createAuthHeader()` now reflects `data-mpr-auth-status="bootstrapping"|"authenticating"|"authenticated"|"unauthenticated"` onto auth-bearing hosts. Use that state only for integration wiring and analytics; the preferred UX surface is the declarative `auth-transition` screen on `<mpr-header>`.
 
 > Both `<mpr-header>` and `<mpr-footer>` are sticky by default. Add `sticky="false"` (or pass the equivalent option) if you want them to render in-flow; setting `sticky="true"` is redundant because `true` is the default. The attribute values are case-insensitive (`sticky="FALSE"` works), and the components manage stickiness internally so no host-level CSS overrides are required. In sticky mode the footer renders a spacer + viewport-fixed footer so it stays visible even when the page is scrolled to the top.
 

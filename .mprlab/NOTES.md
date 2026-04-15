@@ -173,3 +173,12 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 
 - MU-372: mirrored non-chrome `<mpr-footer base-class>` tokens onto the host element so flex utilities such as `mt-auto` work when `sticky="false"`, kept the rendered `<footer>` on its built-in `mpr-footer` chrome class, aligned injected footer CSS selectors with `mpr-ui.css`, and updated docs plus unit/Playwright regression coverage. Tests: `npm test`.
 - MU-372 follow-up: restricted host class mirroring to non-sticky footers and tracked only component-added host tokens so sticky layouts keep root-only spacing classes off the wrapper and teardown no longer removes caller-owned host classes; added focused unit regressions and reran the footer Playwright layout spec. Tests: `node --test tests/custom-elements-header-footer.test.js`, `npx playwright test tests/e2e/footer-layout.spec.js`.
+
+## 2026-04-12
+
+- MU-434: added an optional `<mpr-header auth-transition>` screen backed by new shared auth lifecycle states (`bootstrapping`, `authenticating`, `authenticated`, `unauthenticated`), documented the optional completion event contract, and verified with unit, Playwright, and TypeScript checks. Tests: `npm run test:unit`, `npx playwright test tests/e2e/auth-transition.spec.js`, `npx --yes --package typescript@5.9.2 tsc --noEmit`.
+- MU-434 demo follow-up: enabled the auth transition screen in `demo/tauth-demo.html` and `demo/standalone.html`, added per-demo ready-event dispatch after their authenticated surfaces render, and updated demo bootstrap/static HTML tests. Tests: `npm run test:unit`.
+
+## 2026-04-15
+
+- MU-434 follow-up: kept `auth-transition` completion latched across ordinary header updates and made the standalone/TAuth demos wait for `MPRUI.whenAutoOrchestrationReady()` before dispatching their ready events, closing the post-login overlay regression and the authenticated-reload race. Tests: `npm run test:unit`.

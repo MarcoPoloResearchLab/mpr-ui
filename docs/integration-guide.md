@@ -102,6 +102,11 @@ Render the shell declaratively:
   brand-label="My Application"
   brand-href="/"
   nav-links='[{ "label": "Docs", "href": "/docs" }]'
+  auth-transition='{
+    "title": "Opening workspace",
+    "message": "Loading your authenticated app surface.",
+    "completionEvent": "my-app:ready"
+  }'
   horizontal-links='{
     "alignment": "right",
     "links": [
@@ -149,6 +154,7 @@ What your template still owns:
 - footer structure
 - `logout-url`
 - slots and theme config
+- optional `auth-transition` UX copy and completion event name
 
 ## App event handling
 
@@ -159,10 +165,17 @@ document.addEventListener('mpr-ui:auth:authenticated', function (event) {
   var profile = event.detail ? event.detail.profile : null;
   // fetch authenticated app data or reveal protected UI
   void profile;
+  // After the authenticated app surface is actually ready:
+  document.dispatchEvent(new CustomEvent('my-app:ready'));
 });
 
 document.addEventListener('mpr-ui:auth:unauthenticated', function () {
   // clear authenticated state
+});
+
+document.addEventListener('mpr-ui:auth:status-change', function (event) {
+  // inspect event.detail.status when you need the raw auth phase
+  void event;
 });
 
 document.addEventListener('mpr-ui:auth:error', function (event) {
@@ -170,6 +183,8 @@ document.addEventListener('mpr-ui:auth:error', function (event) {
   void event;
 });
 ```
+
+If you do not need the transition screen to wait for app hydration, omit `completionEvent` and the built-in screen will hide as soon as auth settles.
 
 ## What not to do
 

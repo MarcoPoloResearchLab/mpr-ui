@@ -6,16 +6,18 @@
 - _No changes._
 
 ### Improvements ⚙️
-- _No changes._
+- Add an optional `<mpr-header auth-transition>` screen that covers auth bootstrap and credential exchange with shared loading copy and spinner.
+- Reflect shared auth lifecycle as `data-mpr-auth-status` / `mpr-ui:auth:status-change` so apps can track `bootstrapping`, `authenticating`, `authenticated`, and `unauthenticated`.
 
 ### Bug Fixes 🐛
-- _No changes._
+- Keep completed auth-transition screens hidden across ordinary `<mpr-header>` updates instead of re-blocking authenticated app surfaces.
+- Delay auth-demo ready events until `mpr-ui-config.js` auto-orchestration is ready so the transition screen cannot miss the first completion event on authenticated reloads.
 
 ### Testing 🧪
-- _No changes._
+- Add header/auth controller regression coverage for pending auth statuses and transition-screen completion events.
 
 ### Docs 📚
-- _No changes._
+- Document the `auth-transition` header option plus the optional app-ready completion event contract.
 
 ## [v3.8.4] - 2026-04-08
 
