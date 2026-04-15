@@ -8,6 +8,8 @@
 ### Improvements ⚙️
 - Add an optional `<mpr-header auth-transition>` screen that covers auth bootstrap and credential exchange with shared loading copy and spinner.
 - Reflect shared auth lifecycle as `data-mpr-auth-status` / `mpr-ui:auth:status-change` so apps can track `bootstrapping`, `authenticating`, `authenticated`, and `unauthenticated`.
+- Route `make ci` and the hosted GitHub Actions workflow through a hard 100% Node coverage gate for `mpr-ui-config.js`, the browser bootstrap source the unit runner measures completely today.
+- Add Playwright/V8 browser coverage reporting for `mpr-ui.js` and fold it into `npm run test:coverage` so the bundle now has a real source-level browser report alongside the Node gate.
 
 ### Bug Fixes 🐛
 - Keep completed auth-transition screens hidden across ordinary `<mpr-header>` updates instead of re-blocking authenticated app surfaces.
@@ -15,6 +17,9 @@
 
 ### Testing 🧪
 - Add header/auth controller regression coverage for pending auth statuses and transition-screen completion events.
+- Add static regressions that lock the `test:coverage` script, 100% thresholds, and `make ci`/workflow wiring in place.
+- Expand `mpr-ui-config.js` loader coverage across parser/bootstrap/error branches so the honest Node coverage gate stays green.
+- Collect browser-side V8 coverage during the Playwright suite and write a merged summary to `coverage/browser-summary.json`.
 
 ### Docs 📚
 - Document the `auth-transition` header option plus the optional app-ready completion event contract.

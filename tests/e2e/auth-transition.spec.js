@@ -1,6 +1,6 @@
 // @ts-check
 
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./support/browserCoverage');
 const { visitAuthTransitionFixture } = require('./support/fixturePage');
 
 test.describe('Header auth transition screen', () => {
