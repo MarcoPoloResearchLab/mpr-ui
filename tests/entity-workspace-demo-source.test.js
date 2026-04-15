@@ -55,7 +55,7 @@ function loadEntityWorkspaceHooks() {
   };
   sandbox.global = sandbox;
   sandbox.globalThis = sandbox;
-  vm.runInNewContext(instrumented, sandbox, { filename: 'demo/entity-workspace.js' });
+  vm.runInNewContext(instrumented, sandbox, { filename: modulePath });
   return sandbox.__TEST_HOOKS__;
 }
 

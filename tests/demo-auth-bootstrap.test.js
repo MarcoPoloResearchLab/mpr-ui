@@ -173,7 +173,7 @@ test('status panel boots from the existing auth dataset on reload', () => {
   const sandbox = createSandbox(documentStub);
   const source = fs.readFileSync(statusPanelPath, 'utf8');
 
-  vm.runInNewContext(source, sandbox, { filename: 'demo/status-panel.js' });
+  vm.runInNewContext(source, sandbox, { filename: statusPanelPath });
 
   assert.equal(statusHost.children[0].classList.contains('session-card__profile'), true);
   assert.equal(statusHost.children[0].children[0].src, 'https://cdn.example.com/avatar.png');
