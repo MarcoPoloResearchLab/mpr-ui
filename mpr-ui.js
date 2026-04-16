@@ -17,6 +17,12 @@
   var DEFAULT_TAUTH_PROFILE_PATH = "/me";
   var DEFAULT_TAUTH_REFRESH_PATH = "/auth/refresh";
   var REQUESTED_WITH_HEADER = "XMLHttpRequest";
+  var AUTH_CONTROLLER_STATUS = Object.freeze({
+    BOOTSTRAPPING: "bootstrapping",
+    AUTHENTICATING: "authenticating",
+    AUTHENTICATED: "authenticated",
+    UNAUTHENTICATED: "unauthenticated",
+  });
 
   /**
    * @typedef {{ code?: string, status?: number }} MprUiErrorMetadata
@@ -583,11 +589,39 @@
     }
   }
 
+  function parseHeaderAuthTransitionValue(rawValue) {
+    if (rawValue === null || rawValue === undefined) {
+      return null;
+    }
+    if (typeof rawValue === "boolean") {
+      return { enabled: rawValue };
+    }
+    if (rawValue && typeof rawValue === "object" && !Array.isArray(rawValue)) {
+      return rawValue;
+    }
+    if (typeof rawValue !== "string") {
+      return null;
+    }
+    var trimmed = rawValue.trim();
+    if (!trimmed || trimmed.toLowerCase() === "true") {
+      return { enabled: true };
+    }
+    if (trimmed.toLowerCase() === "false") {
+      return { enabled: false };
+    }
+    var parsed = parseJsonValue(trimmed, null);
+    if (parsed && typeof parsed === "object" && !Array.isArray(parsed)) {
+      return parsed;
+    }
+    return null;
+  }
+
   var HEADER_ATTRIBUTE_DATASET_MAP = Object.freeze({
     "brand-label": "brandLabel",
     "brand-href": "brandHref",
     "nav-links": "navLinks",
     "horizontal-links": "horizontalLinks",
+    "auth-transition": "authTransition",
     "settings-label": "settingsLabel",
     "settings": "settingsEnabled",
     "google-site-id": "siteId",
@@ -2551,6 +2585,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (dataset.horizontalLinks) {
       options.horizontalLinks = parseJsonValue(dataset.horizontalLinks, {});
     }
+    if (dataset.authTransition !== undefined) {
+      options.authTransition = parseHeaderAuthTransitionValue(
+        dataset.authTransition,
+      );
+    }
     var datasetSettingsFlag = undefined;
     if (dataset.settingsEnabled !== undefined) {
       datasetSettingsFlag = dataset.settingsEnabled;
@@ -2874,8 +2913,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     var options = normalizeAuthControllerOptions(rawOptions);
+    /** @type {{ status: string, profile: object | null, options: AuthOptions }} */
     var state = {
-      status: "unauthenticated",
+      status: AUTH_CONTROLLER_STATUS.UNAUTHENTICATED,
       profile: null,
       options: options,
     };
@@ -2888,6 +2928,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var authSignalVersion = 0;
     var lifecycleVersion = 0;
     var isDestroyed = false;
+    var hasCompletedInitialBootstrap = false;
     var sessionSyncWindowTarget = null;
     var sessionSyncDocumentTarget = null;
 
@@ -3114,6 +3155,23 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       });
     }
 
+    function updateAuthStatus(nextStatus) {
+      if (typeof nextStatus !== "string" || !nextStatus) {
+        return;
+      }
+      var previousStatus = state.status;
+      state.status = nextStatus;
+      setAttributeOrRemove(rootElement, "data-mpr-auth-status", nextStatus);
+      if (previousStatus === nextStatus) {
+        return;
+      }
+      dispatchEvent(rootElement, "mpr-ui:auth:status-change", {
+        status: nextStatus,
+        previousStatus: previousStatus,
+        profile: state.profile,
+      });
+    }
+
     function markAuthenticated(profile) {
       if (!profile || typeof profile !== "object") {
         emitError("mpr-ui.auth.invalid_profile", {
@@ -3124,14 +3182,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       var signature = JSON.stringify(profile);
       var shouldEmit =
-        state.status !== "authenticated" ||
+        state.status !== AUTH_CONTROLLER_STATUS.AUTHENTICATED ||
         lastAuthenticatedSignature !== signature;
-      state.status = "authenticated";
       state.profile = profile;
       lastAuthenticatedSignature = signature;
       hasEmittedUnauthenticated = false;
       pendingNonceToken = null;
       updateDatasetFromProfile(profile);
+      updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATED);
       if (shouldEmit) {
         dispatchEvent(rootElement, "mpr-ui:auth:authenticated", {
           profile: profile,
@@ -3146,13 +3204,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       pendingNonceToken = null;
       var shouldEmit =
         emit &&
-        (state.status !== "unauthenticated" ||
+        (state.status !== AUTH_CONTROLLER_STATUS.UNAUTHENTICATED ||
           state.profile !== null ||
           !hasEmittedUnauthenticated);
-      state.status = "unauthenticated";
       state.profile = null;
       lastAuthenticatedSignature = null;
       updateDatasetFromProfile(null);
+      updateAuthStatus(AUTH_CONTROLLER_STATUS.UNAUTHENTICATED);
       if (shouldEmit) {
         dispatchEvent(rootElement, "mpr-ui:auth:unauthenticated", {
           profile: null,
@@ -3204,6 +3262,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       var currentLifecycleVersion = lifecycleVersion;
       var bootstrapAuthSignalVersion = authSignalVersion;
+      if (
+        !hasCompletedInitialBootstrap &&
+        state.status !== AUTH_CONTROLLER_STATUS.AUTHENTICATED
+      ) {
+        updateAuthStatus(AUTH_CONTROLLER_STATUS.BOOTSTRAPPING);
+      }
       configureTenantId();
       attachSessionSyncListeners();
       var bootstrapPromise = Promise.resolve();
@@ -3225,7 +3289,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
           if (
             authSignalVersion !== bootstrapAuthSignalVersion ||
-            state.status === "authenticated"
+            state.status === AUTH_CONTROLLER_STATUS.AUTHENTICATED
           ) {
             return null;
           }
@@ -3237,7 +3301,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
           if (
             authSignalVersion !== bootstrapAuthSignalVersion ||
-            state.status === "authenticated"
+            state.status === AUTH_CONTROLLER_STATUS.AUTHENTICATED
           ) {
             return;
           }
@@ -3255,6 +3319,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           emitError("mpr-ui.auth.bootstrap_failed", {
             message: error && error.message ? error.message : String(error),
           });
+        })
+        .finally(function finalizeBootstrapSession() {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            return;
+          }
+          hasCompletedInitialBootstrap = true;
         });
     }
 
@@ -3349,6 +3419,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       pendingNonceToken = null;
       nonceRequestPromise = null;
       noncePreparationPromise = null;
+      hasCompletedInitialBootstrap = false;
       markUnauthenticated({ emit: false, prompt: false });
       bootstrapSession();
       primeGoogleNonce();
@@ -3362,6 +3433,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       nonceRequestPromise = null;
       noncePreparationPromise = null;
       detachSessionSyncListeners();
+      setAttributeOrRemove(rootElement, "data-mpr-auth-status", null);
     }
 
     function performLogoutWithFetch() {
@@ -3382,6 +3454,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         return Promise.resolve();
       }
       var currentLifecycleVersion = lifecycleVersion;
+      updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATING);
       return exchangeCredential(credentialResponse.credential)
         .then(function (profile) {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
@@ -3496,6 +3569,27 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "__actions{display:flex;gap:calc(0.75rem * var(--mpr-header-scale,1));align-items:center;flex-shrink:0;white-space:nowrap}" +
     "." +
     HEADER_ROOT_CLASS +
+    "__auth-transition{position:fixed;inset:0;z-index:1900;display:none;align-items:center;justify-content:center;padding:1.5rem;background:rgba(15,23,42,0.78);backdrop-filter:blur(10px)}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    '__auth-transition[data-mpr-visible="true"]{display:flex}' +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__auth-transition-panel{width:min(28rem,92vw);display:flex;flex-direction:column;align-items:center;gap:0.85rem;padding:2rem 1.75rem;border-radius:1.25rem;border:1px solid var(--mpr-color-border,rgba(148,163,184,0.25));background:var(--mpr-color-surface-elevated,rgba(15,23,42,0.96));box-shadow:var(--mpr-shadow-flyout,0 16px 32px rgba(15,23,42,0.28));text-align:center}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__auth-transition-spinner{width:calc(2.5rem * var(--mpr-header-scale,1));height:calc(2.5rem * var(--mpr-header-scale,1));border-radius:50%;border:3px solid rgba(148,163,184,0.24);border-top-color:var(--mpr-color-accent,#38bdf8);animation:mpr-header-auth-transition-spin 0.9s linear infinite}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__auth-transition-title{margin:0;font-size:calc(1.15rem * var(--mpr-header-scale,1));font-weight:700;color:var(--mpr-color-text-primary,#e2e8f0)}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__auth-transition-message{margin:0;line-height:1.5;font-size:calc(0.95rem * var(--mpr-header-scale,1));color:var(--mpr-color-text-muted,#cbd5f5)}" +
+    "." +
+    HEADER_ROOT_CLASS +
+    "__auth-transition-message:empty{display:none}" +
+    "." +
+    HEADER_ROOT_CLASS +
     "__google{display:none;align-items:center}" +
     "." +
     HEADER_ROOT_CLASS +
@@ -3537,7 +3631,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     HEADER_ROOT_CLASS +
     "__horizontal-links:empty{display:none}" +
     ".mpr-header__google .g_id_signin iframe{transform:scale(var(--mpr-header-google-scale,1));transform-origin:right center}" +
-    ".mpr-header--small{--mpr-header-scale:0.6;--mpr-header-google-scale:0.6}";
+    ".mpr-header--small{--mpr-header-scale:0.6;--mpr-header-google-scale:0.6}" +
+    "@keyframes mpr-header-auth-transition-spin{to{transform:rotate(360deg)}}";
 
   var HEADER_SETTINGS_PLACEHOLDER_MARKUP =
     '<div data-mpr-header="settings-modal-placeholder">' +
@@ -3567,6 +3662,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     horizontalLinks: Object.freeze({
       alignment: "center",
       links: Object.freeze([]),
+    }),
+    authTransition: Object.freeze({
+      enabled: false,
+      title: "Opening your workspace…",
+      message: "Preparing the authenticated app surface.",
+      completionEvent: "",
     }),
     settings: Object.freeze({
       enabled: false,
@@ -3622,6 +3723,44 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     var trimmed = value.trim();
     return trimmed ? trimmed : "";
+  }
+
+  function normalizeHeaderAuthTransitionOptionalValue(value, fallbackValue) {
+    if (typeof value !== "string") {
+      return fallbackValue;
+    }
+    var trimmed = value.trim();
+    return trimmed ? trimmed : fallbackValue;
+  }
+
+  function normalizeHeaderAuthTransitionCompletionEvent(value) {
+    if (typeof value !== "string") {
+      return "";
+    }
+    var trimmed = value.trim();
+    return trimmed ? trimmed : "";
+  }
+
+  function normalizeHeaderAuthTransition(rawValue) {
+    var parsedValue = parseHeaderAuthTransitionValue(rawValue);
+    if (!parsedValue) {
+      return deepMergeOptions({}, HEADER_DEFAULTS.authTransition);
+    }
+    var normalized = {
+      enabled: normalizeBooleanAttribute(parsedValue.enabled, true),
+      title: normalizeHeaderAuthTransitionOptionalValue(
+        parsedValue.title,
+        HEADER_DEFAULTS.authTransition.title,
+      ),
+      message: normalizeHeaderAuthTransitionOptionalValue(
+        parsedValue.message,
+        HEADER_DEFAULTS.authTransition.message,
+      ),
+      completionEvent: normalizeHeaderAuthTransitionCompletionEvent(
+        parsedValue.completionEvent,
+      ),
+    };
+    return normalized;
   }
 
   function captureHeaderUserMenuOverrides(userMenuElement) {
@@ -3780,6 +3919,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       options.horizontalLinks,
       HEADER_DEFAULTS.horizontalLinks,
     );
+    var authTransition = normalizeHeaderAuthTransition(options.authTransition);
 
     var authOptions =
       options.auth && typeof options.auth === "object" ? options.auth : null;
@@ -3867,6 +4007,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       },
       navLinks: navLinks,
       horizontalLinks: horizontalLinks,
+      authTransition: authTransition,
       settings: {
         enabled: Boolean(settingsSource.enabled),
         label:
@@ -4005,6 +4146,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       userMenuMarkup = "<mpr-user" + userMenuAttributes + "></mpr-user>";
     }
+    var authTransitionMarkup = buildHeaderAuthTransitionMarkup(
+      options.authTransition,
+    );
 
     return (
       '<header class="' +
@@ -4051,7 +4195,50 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       "</div>" +
       "</div>" +
       "</header>" +
+      authTransitionMarkup +
       buildHeaderSettingsModalMarkup(options.settings.label)
+    );
+  }
+
+  function buildHeaderAuthTransitionMarkup(authTransition) {
+    var config =
+      authTransition && typeof authTransition === "object"
+        ? authTransition
+        : HEADER_DEFAULTS.authTransition;
+    var title = escapeHtml(
+      normalizeHeaderAuthTransitionOptionalValue(
+        config.title,
+        HEADER_DEFAULTS.authTransition.title,
+      ),
+    );
+    var message = escapeHtml(
+      normalizeHeaderAuthTransitionOptionalValue(
+        config.message,
+        HEADER_DEFAULTS.authTransition.message,
+      ),
+    );
+    return (
+      '<div data-mpr-header="auth-transition" class="' +
+      HEADER_ROOT_CLASS +
+      '__auth-transition" aria-hidden="true" data-mpr-visible="false">' +
+      '<div class="' +
+      HEADER_ROOT_CLASS +
+      '__auth-transition-panel" role="status" aria-live="polite">' +
+      '<div class="' +
+      HEADER_ROOT_CLASS +
+      '__auth-transition-spinner" data-mpr-header="auth-transition-spinner" aria-hidden="true"></div>' +
+      '<p class="' +
+      HEADER_ROOT_CLASS +
+      '__auth-transition-title" data-mpr-header="auth-transition-title">' +
+      title +
+      "</p>" +
+      '<p class="' +
+      HEADER_ROOT_CLASS +
+      '__auth-transition-message" data-mpr-header="auth-transition-message">' +
+      message +
+      "</p>" +
+      "</div>" +
+      "</div>"
     );
   }
 
@@ -4087,6 +4274,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       ),
       settingsButton: hostElement.querySelector(
         '[data-mpr-header="settings-button"]',
+      ),
+      authTransition: hostElement.querySelector(
+        '[data-mpr-header="auth-transition"]',
+      ),
+      authTransitionTitle: hostElement.querySelector(
+        '[data-mpr-header="auth-transition-title"]',
+      ),
+      authTransitionMessage: hostElement.querySelector(
+        '[data-mpr-header="auth-transition-message"]',
       ),
       userMenu: hostElement.querySelector(
         '[data-mpr-header="user-menu"]',
@@ -4633,9 +4829,62 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       .join("");
   }
 
-  function updateHeaderAuthView(hostElement, elements, options, state) {
+  function shouldShowHeaderAuthTransition(authTransition, status, isReady) {
+    if (!authTransition || authTransition.enabled !== true) {
+      return false;
+    }
+    if (
+      status === AUTH_CONTROLLER_STATUS.BOOTSTRAPPING ||
+      status === AUTH_CONTROLLER_STATUS.AUTHENTICATING
+    ) {
+      return true;
+    }
+    if (
+      status === AUTH_CONTROLLER_STATUS.AUTHENTICATED &&
+      authTransition.completionEvent &&
+      !isReady
+    ) {
+      return true;
+    }
+    return false;
+  }
+
+  function updateHeaderAuthView(
+    hostElement,
+    elements,
+    options,
+    state,
+    authTransitionReady,
+  ) {
     if (!elements.root) {
       return;
+    }
+    var authStatus =
+      state && typeof state.status === "string"
+        ? state.status
+        : AUTH_CONTROLLER_STATUS.UNAUTHENTICATED;
+    elements.root.setAttribute("data-mpr-auth-status", authStatus);
+    if (hostElement && typeof hostElement.setAttribute === "function") {
+      hostElement.setAttribute("data-mpr-auth-status", authStatus);
+    }
+    var authTransitionVisible = shouldShowHeaderAuthTransition(
+      options.authTransition,
+      authStatus,
+      authTransitionReady,
+    );
+    elements.root.classList.toggle(
+      HEADER_ROOT_CLASS + "--auth-transition-active",
+      authTransitionVisible,
+    );
+    if (elements.authTransition) {
+      elements.authTransition.setAttribute(
+        "data-mpr-visible",
+        authTransitionVisible ? "true" : "false",
+      );
+      elements.authTransition.setAttribute(
+        "aria-hidden",
+        authTransitionVisible ? "false" : "true",
+      );
     }
     if (!state || !state.profile) {
       elements.root.classList.remove(
@@ -4744,6 +4993,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (elements.settingsButton) {
       elements.settingsButton.textContent = options.settings.label;
     }
+    if (elements.authTransitionTitle) {
+      elements.authTransitionTitle.textContent = options.authTransition.title;
+    }
+    if (elements.authTransitionMessage) {
+      elements.authTransitionMessage.textContent = options.authTransition.message;
+    }
     if (elements.userMenu) {
       applyHeaderUserMenuAttributes(elements.userMenu, options);
     }
@@ -4785,6 +5040,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     );
     var authController = null;
     var authListenersAttached = false;
+    var authTransitionReady = false;
+    var authTransitionEventTarget = null;
+    var authTransitionEventName = "";
     var googleButtonCleanup = null;
     var googleButtonRenderSequence = 0;
     var fallbackSigninTarget = null;
@@ -4850,6 +5108,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         settingsModalController.destroy();
         settingsModalController = null;
       }
+    });
+    cleanupHandlers.push(function destroyAuthTransitionListener() {
+      detachAuthTransitionCompletionListener();
     });
 
     function dispatchSigninFallback(reason, extraDetail) {
@@ -5001,14 +5262,101 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       dispatchEvent(hostElement, type, detail || {});
     }
 
+    function detachAuthTransitionCompletionListener() {
+      if (
+        authTransitionEventTarget &&
+        authTransitionEventName &&
+        typeof authTransitionEventTarget.removeEventListener === "function"
+      ) {
+        authTransitionEventTarget.removeEventListener(
+          authTransitionEventName,
+          handleAuthTransitionCompletionEvent,
+        );
+      }
+      authTransitionEventTarget = null;
+      authTransitionEventName = "";
+    }
+
+    function handleAuthTransitionCompletionEvent() {
+      authTransitionReady = true;
+      refreshAuthState();
+    }
+
+    function resolveAuthTransitionCompletionEvent() {
+      var transitionEnabled =
+        options.authTransition && options.authTransition.enabled === true;
+      if (
+        !transitionEnabled ||
+        !options.authTransition ||
+        !options.authTransition.completionEvent
+      ) {
+        return "";
+      }
+      return options.authTransition.completionEvent;
+    }
+
+    function ensureAuthTransitionCompletionListener() {
+      var completionEvent = resolveAuthTransitionCompletionEvent();
+      if (
+        authTransitionEventTarget &&
+        authTransitionEventName === completionEvent
+      ) {
+        return;
+      }
+      detachAuthTransitionCompletionListener();
+      if (!completionEvent) {
+        return;
+      }
+      var documentTarget =
+        hostElement.ownerDocument ||
+        global.document ||
+        (global.window && global.window.document) ||
+        null;
+      if (
+        !documentTarget ||
+        typeof documentTarget.addEventListener !== "function"
+      ) {
+        return;
+      }
+      authTransitionEventTarget = documentTarget;
+      authTransitionEventName = completionEvent;
+      authTransitionEventTarget.addEventListener(
+        authTransitionEventName,
+        handleAuthTransitionCompletionEvent,
+      );
+    }
+
     function refreshAuthState() {
       if (!authController) {
         return;
       }
-      updateHeaderAuthView(hostElement, elements, options, authController.state);
+      updateHeaderAuthView(
+        hostElement,
+        elements,
+        options,
+        authController.state,
+        authTransitionReady,
+      );
     }
 
     function handleAuthenticatedEvent() {
+      refreshAuthState();
+    }
+
+    function handleAuthStatusChangeEvent(eventObject) {
+      var nextStatus =
+        eventObject &&
+        eventObject.detail &&
+        typeof eventObject.detail.status === "string"
+          ? eventObject.detail.status
+          : "";
+      if (
+        nextStatus === AUTH_CONTROLLER_STATUS.BOOTSTRAPPING ||
+        nextStatus === AUTH_CONTROLLER_STATUS.AUTHENTICATING ||
+        nextStatus === AUTH_CONTROLLER_STATUS.UNAUTHENTICATED
+      ) {
+        authTransitionReady = false;
+      }
       refreshAuthState();
     }
 
@@ -5031,6 +5379,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       hostElement.addEventListener(
         "mpr-ui:auth:unauthenticated",
         handleUnauthenticatedEvent,
+      );
+      hostElement.addEventListener(
+        "mpr-ui:auth:status-change",
+        handleAuthStatusChangeEvent,
       );
       authListenersAttached = true;
     }
@@ -5067,6 +5419,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     if (authController) {
+      ensureAuthTransitionCompletionListener();
       ensureAuthEventListeners();
       refreshAuthState();
     }
@@ -5128,6 +5481,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         if (options.auth && authController && typeof authController.updateOptions === "function") {
           authController.updateOptions(options.auth);
         }
+        if (
+          resolveAuthTransitionCompletionEvent() &&
+          authTransitionEventName !== resolveAuthTransitionCompletionEvent()
+        ) {
+          authTransitionReady = false;
+        }
+        ensureAuthTransitionCompletionListener();
         mountGoogleSignInButton();
         updateThemeHost(themeManager.getMode());
         if (options.auth && elements.root) {
@@ -5145,6 +5505,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             authController.destroy();
           }
           authController = null;
+          authTransitionReady = false;
+          detachAuthTransitionCompletionListener();
         }
         if (!options.auth && elements.root) {
           elements.root.classList.add(HEADER_ROOT_CLASS + "--no-auth");

@@ -1,6 +1,6 @@
 // @ts-check
 
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./support/browserCoverage');
 
 const BASE_URL = process.env.MPR_UI_DEMO_BASE_URL || 'https://localhost:4443';
 

@@ -34,6 +34,21 @@ test('standalone demo uses Web Component orchestration', () => {
     /data-config-url="\.?\/config-ui\.yaml"/,
     'Expected standalone.html to use data-config-url',
   );
+  assert.match(
+    standaloneHtml,
+    /auth-transition='[\s\S]*"completionEvent"\s*:\s*"demo:standalone-ready"[\s\S]*'/,
+    'Expected standalone.html to configure the auth transition screen',
+  );
+  assert.match(
+    standaloneHtml,
+    /function waitForAutoOrchestrationReady\(\)/,
+    'Expected standalone.html to define an auto-orchestration readiness helper',
+  );
+  assert.match(
+    standaloneHtml,
+    /waitForAutoOrchestrationReady\(\)[\s\S]*dispatchReadyEventOnNextFrame/,
+    'Expected standalone.html to release the transition screen only after auto-orchestration is ready',
+  );
   assert.doesNotMatch(
     standaloneHtml,
     /<script\b[^>]*\bsrc="\/tauth\.js"[^>]*><\/script>/i,

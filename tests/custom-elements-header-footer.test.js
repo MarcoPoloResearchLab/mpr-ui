@@ -470,6 +470,9 @@ function createHeaderElementHarness(options) {
   const googleHost = createStubNode({ attributes: true, classList: true, supportsEvents: true });
   const settingsButton = createStubNode({ attributes: true, supportsEvents: true });
   const userMenu = createStubNode({ attributes: true, supportsEvents: true });
+  const authTransition = createStubNode({ attributes: true });
+  const authTransitionTitle = createStubNode({});
+  const authTransitionMessage = createStubNode({});
 
   const selectorMap = new Map([
     ['header.mpr-header', root],
@@ -479,6 +482,9 @@ function createHeaderElementHarness(options) {
     ['[data-mpr-header="horizontal-links"]', horizontalLinks],
     ['[data-mpr-header="google-signin"]', googleHost],
     ['[data-mpr-header="settings-button"]', settingsButton],
+    ['[data-mpr-header="auth-transition"]', authTransition],
+    ['[data-mpr-header="auth-transition-title"]', authTransitionTitle],
+    ['[data-mpr-header="auth-transition-message"]', authTransitionMessage],
     ['.mpr-header__actions', actions],
   ]);
   if (settings.includeInternalUserMenu) {
@@ -497,6 +503,9 @@ function createHeaderElementHarness(options) {
     horizontalLinks,
     actions,
     userMenu,
+    authTransition,
+    authTransitionTitle,
+    authTransitionMessage,
     selectorMap,
   };
 }
@@ -1901,6 +1910,234 @@ test('MU-432: mpr-header ignores a recovered profile after an unauthenticated ca
     authenticatedEvents.length,
     0,
     'no authenticated event is emitted after an unauthenticated callback',
+  );
+});
+
+test('MU-434: createAuthHeader reflects pending auth states on the host element', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const authenticatedProfile = {
+    display: 'Katherine Johnson',
+    given_name: 'Katherine',
+    avatar_url: 'https://cdn.example.com/katherine.png',
+    user_email: 'katherine@example.com',
+  };
+  let resolveBootstrapInit;
+  let resolveCredentialExchange;
+  global.location = { origin: 'http://fallback-origin.test' };
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient() {
+    return new Promise(function waitForBootstrap(resolve) {
+      resolveBootstrapInit = resolve;
+    });
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+  global.exchangeGoogleCredential = function exchangeGoogleCredential() {
+    return new Promise(function waitForExchange(resolve) {
+      resolveCredentialExchange = resolve;
+    });
+  };
+
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(hostElement, {
+    googleClientId: 'transition-site',
+    tauthUrl: 'http://localhost:8080',
+    tauthLoginPath: '/auth/login',
+    tauthLogoutPath: '/auth/logout',
+    tauthNoncePath: '/auth/nonce',
+    tenantId: 'tenant-transition',
+  });
+
+  assert.equal(
+    authController.state.status,
+    'bootstrapping',
+    'controller starts in the bootstrapping state while initAuthClient is unresolved',
+  );
+  assert.equal(
+    hostElement.getAttribute('data-mpr-auth-status'),
+    'bootstrapping',
+    'host element reflects the bootstrapping status',
+  );
+
+  resolveBootstrapInit();
+  await flushAsync();
+  await flushAsync();
+
+  assert.equal(
+    authController.state.status,
+    'unauthenticated',
+    'controller settles to unauthenticated after bootstrap resolves without a session',
+  );
+  assert.equal(
+    hostElement.getAttribute('data-mpr-auth-status'),
+    'unauthenticated',
+    'host element reflects the settled unauthenticated status',
+  );
+
+  const exchangePromise = authController.handleCredential({
+    credential: 'signed-id-token',
+  });
+  await flushAsync();
+
+  assert.equal(
+    authController.state.status,
+    'authenticating',
+    'controller enters authenticating while the credential exchange is in flight',
+  );
+  assert.equal(
+    hostElement.getAttribute('data-mpr-auth-status'),
+    'authenticating',
+    'host element reflects the authenticating status',
+  );
+
+  resolveCredentialExchange(authenticatedProfile);
+  await exchangePromise;
+  await flushAsync();
+
+  assert.equal(
+    authController.state.status,
+    'authenticated',
+    'controller settles to authenticated after the credential exchange succeeds',
+  );
+  assert.equal(
+    hostElement.getAttribute('data-mpr-auth-status'),
+    'authenticated',
+    'host element reflects the authenticated status',
+  );
+});
+
+test('MU-434: mpr-header holds the auth transition screen until the configured app-ready event arrives', async () => {
+  resetEnvironment();
+  const authenticatedProfile = {
+    display: 'Annie Easley',
+    given_name: 'Annie',
+    avatar_url: 'https://cdn.example.com/annie.png',
+    user_email: 'annie@example.com',
+  };
+  let resolveCredentialExchange;
+  global.location = { origin: 'http://fallback-origin.test' };
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+  global.exchangeGoogleCredential = function exchangeGoogleCredential() {
+    return new Promise(function waitForExchange(resolve) {
+      resolveCredentialExchange = resolve;
+    });
+  };
+
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+  headerElement.setAttribute('google-site-id', 'transition-site');
+  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
+  headerElement.setAttribute('tauth-login-path', '/auth/google');
+  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
+  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
+  headerElement.setAttribute('tauth-tenant-id', 'tenant-transition');
+  headerElement.setAttribute(
+    'auth-transition',
+    JSON.stringify({
+      title: 'Opening workspace',
+      message: 'Loading your authenticated app surface.',
+      completionEvent: 'demo:app-ready',
+    }),
+  );
+
+  headerElement.connectedCallback();
+  await flushAsync();
+  await flushAsync();
+
+  const controller = headerElement.__headerController;
+  assert.ok(controller, 'header controller initialized');
+  const authController =
+    controller && typeof controller.getAuthController === 'function'
+      ? controller.getAuthController()
+      : null;
+  assert.ok(authController, 'auth controller attached to the header');
+
+  const exchangePromise = authController.handleCredential({
+    credential: 'signed-id-token',
+  });
+  await flushAsync();
+
+  resolveCredentialExchange(authenticatedProfile);
+  await exchangePromise;
+  await flushAsync();
+  await flushAsync();
+
+  assert.equal(
+    harness.authTransitionTitle.textContent,
+    'Opening workspace',
+    'transition screen renders the configured title',
+  );
+  assert.equal(
+    harness.authTransitionMessage.textContent,
+    'Loading your authenticated app surface.',
+    'transition screen renders the configured message',
+  );
+  assert.equal(
+    harness.authTransition.getAttribute('data-mpr-visible'),
+    'true',
+    'transition screen stays visible after authentication while the app-ready event has not fired',
+  );
+  assert.equal(
+    harness.root.classList.contains('mpr-header--auth-transition-active'),
+    true,
+    'header root enters the auth-transition-active state while waiting for the app-ready event',
+  );
+
+  global.document.dispatchEvent(
+    new global.CustomEvent('demo:app-ready', { detail: { source: 'test' } }),
+  );
+  await flushAsync();
+
+  assert.equal(
+    harness.authTransition.getAttribute('data-mpr-visible'),
+    'false',
+    'transition screen hides after the configured app-ready event fires',
+  );
+  assert.equal(
+    harness.root.classList.contains('mpr-header--auth-transition-active'),
+    false,
+    'header root clears the auth-transition-active state after the app-ready event',
+  );
+
+  headerElement.setAttribute('brand-label', 'Workspace');
+  await flushAsync();
+
+  assert.equal(
+    harness.authTransition.getAttribute('data-mpr-visible'),
+    'false',
+    'transition screen stays hidden after ordinary header updates once the completion event already fired',
+  );
+  assert.equal(
+    harness.root.classList.contains('mpr-header--auth-transition-active'),
+    false,
+    'header root stays out of the auth-transition-active state after ordinary header updates',
   );
 });
 

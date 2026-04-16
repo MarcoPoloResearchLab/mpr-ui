@@ -1,6 +1,6 @@
 // @ts-check
 
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./support/browserCoverage');
 const { visitFooterPrivacyHiddenFixturePage } = require('./support/fixturePage');
 
 test('MU-133: privacy link can be hidden on <mpr-footer>', async ({ page }) => {

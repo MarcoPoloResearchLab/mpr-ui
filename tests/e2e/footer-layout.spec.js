@@ -1,6 +1,6 @@
 // @ts-check
 
-const { test, expect } = require('@playwright/test');
+const { test, expect } = require('./support/browserCoverage');
 const { visitFooterFlexUtilityFixture } = require('./support/fixturePage');
 
 test('MU-372: base-class utilities reach the mpr-footer host in non-sticky flex layouts', async ({
