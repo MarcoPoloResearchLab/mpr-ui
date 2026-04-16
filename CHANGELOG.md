@@ -10,6 +10,7 @@
 - Reflect shared auth lifecycle as `data-mpr-auth-status` / `mpr-ui:auth:status-change` so apps can track `bootstrapping`, `authenticating`, `authenticated`, and `unauthenticated`.
 - Route `make ci` and the hosted GitHub Actions workflow through a hard 100% Node coverage gate for `mpr-ui-config.js`, the browser bootstrap source the unit runner measures completely today.
 - Add Playwright/V8 browser coverage reporting for `mpr-ui.js` and fold it into `npm run test:coverage` so the bundle now has a real source-level browser report alongside the Node gate.
+- Make the Node coverage gate compatible with the GitHub Actions Node 20 runner by enforcing the `mpr-ui-config.js` thresholds through `c8`.
 
 ### Bug Fixes 🐛
 - Keep completed auth-transition screens hidden across ordinary `<mpr-header>` updates instead of re-blocking authenticated app surfaces.

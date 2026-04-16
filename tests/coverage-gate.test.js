@@ -42,27 +42,32 @@ test('MU-435: package.json defines combined Node and browser coverage scripts', 
   );
   assert.match(
     nodeCoverageScript,
-    /--experimental-test-coverage/,
-    'Expected test:coverage:node to enable the Node test runner coverage report',
+    /\bc8\b/,
+    'Expected test:coverage:node to use c8 so the coverage gate works on the GitHub Actions Node 20 runner',
   );
   assert.match(
     nodeCoverageScript,
-    /--test-coverage-lines=100/,
+    /--check-coverage/,
+    'Expected test:coverage:node to enable coverage threshold enforcement',
+  );
+  assert.match(
+    nodeCoverageScript,
+    /--lines 100/,
     'Expected test:coverage:node to enforce 100% line coverage',
   );
   assert.match(
     nodeCoverageScript,
-    /--test-coverage-functions=100/,
+    /--functions 100/,
     'Expected test:coverage:node to enforce 100% function coverage',
   );
   assert.match(
     nodeCoverageScript,
-    /--test-coverage-branches=100/,
+    /--branches 100/,
     'Expected test:coverage:node to enforce 100% branch coverage',
   );
   assert.match(
     nodeCoverageScript,
-    /--test-coverage-include=mpr-ui-config\.js/,
+    /--include=mpr-ui-config\.js/,
     'Expected test:coverage:node to include mpr-ui-config.js',
   );
   [
