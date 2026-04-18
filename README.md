@@ -22,23 +22,23 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 1. **Load styles, GIS, config loader, and bundle marker**.
 
-   For production deployments, prefer a version-pinned jsDelivr URL instead of `@latest` so rollouts stay deterministic. The examples below use `v3.8.2`.
+   For production deployments, prefer a version-pinned jsDelivr URL instead of `@latest` so rollouts stay deterministic. The examples below use `v3.9.0`.
 
    ```html
    <link
      rel="stylesheet"
-     href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.8.2/mpr-ui.css"
+     href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.0/mpr-ui.css"
    />
    <script src="https://accounts.google.com/gsi/client" async defer></script>
    <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
    <script
      defer
-     src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.8.2/mpr-ui-config.js"
+     src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.0/mpr-ui-config.js"
    ></script>
    <script
      id="mpr-ui-bundle"
      type="application/json"
-     data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.8.2/mpr-ui.js"
+     data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.0/mpr-ui.js"
    ></script>
    ```
 

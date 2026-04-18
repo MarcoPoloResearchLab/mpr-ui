@@ -10,11 +10,23 @@ const repoRoot = join(__dirname, '..');
 const packageJson = JSON.parse(
   readFileSync(join(repoRoot, 'package.json'), 'utf8'),
 );
+const packageLockJson = JSON.parse(
+  readFileSync(join(repoRoot, 'package-lock.json'), 'utf8'),
+);
 const makefile = readFileSync(join(repoRoot, 'Makefile'), 'utf8');
 const workflow = readFileSync(
   join(repoRoot, '.github', 'workflows', 'ci.yml'),
   'utf8',
 );
+const readme = readFileSync(join(repoRoot, 'README.md'), 'utf8');
+const integrationGuide = readFileSync(
+  join(repoRoot, 'docs', 'integration-guide.md'),
+  'utf8',
+);
+
+function escapeRegex(value) {
+  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
 
 test('MU-435: package.json defines combined Node and browser coverage scripts', () => {
   const coverageScript = packageJson.scripts && packageJson.scripts['test:coverage'];
@@ -124,4 +136,38 @@ test('MU-435: GitHub workflow routes CI through make ci', () => {
     /run:\s+npm run test:e2e/,
     'Expected the GitHub Actions workflow to stop bypassing make ci for e2e tests',
   );
+});
+
+test('MU-436: release metadata and pinned docs stay aligned', () => {
+  const packageVersion = packageJson.version;
+  const versionTag = `v${packageVersion}`;
+
+  assert.match(
+    packageVersion,
+    /^\d+\.\d+\.\d+$/,
+    'Expected package.json version to stay on plain semver so release tags can prepend v consistently',
+  );
+  assert.equal(
+    packageLockJson.version,
+    packageVersion,
+    'Expected package-lock.json top-level version to match package.json',
+  );
+  assert.equal(
+    packageLockJson.packages[''].version,
+    packageVersion,
+    'Expected package-lock.json root package version to match package.json',
+  );
+  [readme, integrationGuide].forEach((documentText, index) => {
+    const documentLabel = index === 0 ? 'README.md' : 'docs/integration-guide.md';
+    assert.match(
+      documentText,
+      new RegExp(escapeRegex(`The examples below use \`${versionTag}\``)),
+      `Expected ${documentLabel} to advertise the current pinned CDN version`,
+    );
+    assert.match(
+      documentText,
+      new RegExp(escapeRegex(`@${versionTag}/`)),
+      `Expected ${documentLabel} to pin example asset URLs to ${versionTag}`,
+    );
+  });
 });
