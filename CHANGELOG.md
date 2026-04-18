@@ -17,6 +17,24 @@
 ### Docs 📚
 - _No changes._
 
+## [v3.9.1] - 2026-04-17
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- Aligned release package metadata and pinned CDN example docs to version `v3.9.0`.
+- Added static unit test to enforce consistency of version metadata across package files and docs.
+
+### Bug Fixes 🐛
+- _No changes._
+
+### Testing 🧪
+- Added coverage gate test to verify package.json, package-lock.json, README.md, and integration-guide.md all reference the same release version.
+
+### Docs 📚
+- Updated pinned jsDelivr examples in README.md and integration-guide.md to `v3.9.0`.
+
 ## [v3.9.0] - 2026-04-17
 
 ### Features ✨
