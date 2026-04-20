@@ -6,7 +6,6 @@ const vm = require('node:vm');
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
 
-const statusPanelPath = path.join(__dirname, '..', 'demo', 'status-panel.js');
 const standaloneHtmlPath = path.join(__dirname, '..', 'demo', 'standalone.html');
 const tauthDemoHtmlPath = path.join(__dirname, '..', 'demo', 'tauth-demo.html');
 
@@ -69,9 +68,6 @@ function createDocumentStub(config) {
       };
     },
     querySelector(selector) {
-      if (selector === '[data-demo-auth-status]') {
-        return config.statusHost || null;
-      }
       if (config.selectorMap && Object.prototype.hasOwnProperty.call(config.selectorMap, selector)) {
         return config.selectorMap[selector];
       }
@@ -154,40 +150,7 @@ async function flushMicrotasks() {
   await Promise.resolve();
 }
 
-test('status panel boots from the existing auth dataset on reload', () => {
-  const statusHost = createElement('div');
-  const sourceElement = createElement('mpr-header');
-  sourceElement.setAttribute('data-user-display', 'Ada Lovelace');
-  sourceElement.setAttribute('data-user-email', 'ada@example.com');
-  sourceElement.setAttribute('data-user-avatar-url', 'https://cdn.example.com/avatar.png');
-
-  const documentStub = createDocumentStub({
-    statusHost,
-    selectorMap: {
-      'mpr-user[data-mpr-user-status="authenticated"]': null,
-      'mpr-header[data-user-display]': sourceElement,
-      'mpr-user[data-user-display]': null,
-      'mpr-login-button[data-user-display]': null,
-    },
-  });
-  const sandbox = createSandbox(documentStub);
-  const source = fs.readFileSync(statusPanelPath, 'utf8');
-
-  vm.runInNewContext(source, sandbox, { filename: statusPanelPath });
-
-  assert.equal(statusHost.children[0].classList.contains('session-card__profile'), true);
-  assert.equal(statusHost.children[0].children[0].src, 'https://cdn.example.com/avatar.png');
-  assert.equal(
-    statusHost.children[0].children[1].children[0].children[1].textContent,
-    ' Ada Lovelace',
-  );
-  assert.equal(
-    statusHost.children[0].children[1].children[1].children[1].textContent,
-    ' ada@example.com',
-  );
-});
-
-test('standalone demo boots the auth card from the shared initial profile snapshot', () => {
+test('standalone demo boots the auth card from MPRUI.resolveAuthProfileSnapshot', () => {
   const signinContent = createElement('div');
   const sessionContent = createElement('div');
   sessionContent.hidden = true;
@@ -205,8 +168,8 @@ test('standalone demo boots the auth card from the shared initial profile snapsh
   });
   const sandbox = createSandbox(documentStub, {
     alert() {},
-    MprDemoAuth: {
-      resolveInitialProfileSnapshot() {
+    MPRUI: {
+      resolveAuthProfileSnapshot() {
         return {
           display: 'Ada Lovelace',
           user_email: 'ada@example.com',
@@ -258,9 +221,7 @@ test('standalone demo boots the auth card from the shared initial profile snapsh
         whenAutoOrchestrationReady() {
           return readyBarrier.promise;
         },
-      },
-      MprDemoAuth: {
-        resolveInitialProfileSnapshot() {
+        resolveAuthProfileSnapshot() {
           return {
             display: 'Ada Lovelace',
             user_email: 'ada@example.com',

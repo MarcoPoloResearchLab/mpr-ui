@@ -49,6 +49,16 @@ test('tauth demo uses Web Component orchestration', () => {
     /waitForAutoOrchestrationReady\(\)[\s\S]*dispatchReadyEventOnNextFrame/,
     'Expected tauth-demo.html to release the transition screen only after auto-orchestration is ready',
   );
+  assert.match(
+    tauthDemoHtml,
+    /<mpr-auth-diagnostics[\s\S]*auth-target="#demo-header"/,
+    'Expected tauth-demo.html to use the shipped auth diagnostics surface',
+  );
+  assert.match(
+    tauthDemoHtml,
+    /window\.MPRUI[\s\S]*resolveAuthProfileSnapshot\('#demo-header'\)/,
+    'Expected tauth-demo.html to use MPRUI.resolveAuthProfileSnapshot for the initial auth snapshot',
+  );
 });
 
 test('tauth demo does not load the legacy tauth.js helper', () => {
@@ -56,5 +66,10 @@ test('tauth demo does not load the legacy tauth.js helper', () => {
     tauthDemoHtml,
     /<script\b[^>]*\bsrc="\/tauth\.js"[^>]*><\/script>/i,
     'Expected tauth-demo.html to avoid the legacy tauth.js helper',
+  );
+  assert.doesNotMatch(
+    tauthDemoHtml,
+    /status-panel\.js/,
+    'Expected tauth-demo.html to avoid the old demo-only status panel script',
   );
 });

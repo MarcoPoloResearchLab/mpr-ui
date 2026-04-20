@@ -3580,3 +3580,121 @@ test('mpr-user validates required attributes', () => {
     );
   });
 });
+
+test('resolveAuthProfileSnapshot requires an explicit target when multiple auth hosts exist', () => {
+  resetEnvironment();
+  loadLibrary();
+
+  const headerHost = createStubNode({ attributes: true });
+  const loginHost = createStubNode({ attributes: true });
+  loginHost.setAttribute('data-user-display', 'Ada Lovelace');
+  loginHost.setAttribute('data-user-email', 'ada@example.com');
+
+  global.document.querySelectorAll = function querySelectorAll(selector) {
+    if (selector === 'mpr-header, mpr-login-button') {
+      return [headerHost, loginHost];
+    }
+    return [];
+  };
+  global.document.querySelector = function querySelector(selector) {
+    if (selector === '#fixture-login') {
+      return loginHost;
+    }
+    return null;
+  };
+
+  assert.equal(
+    global.MPRUI.resolveAuthProfileSnapshot(),
+    null,
+    'ambiguous auth hosts should require an explicit target',
+  );
+  assert.deepEqual(global.MPRUI.resolveAuthProfileSnapshot('#fixture-login'), {
+    display: 'Ada Lovelace',
+    user_email: 'ada@example.com',
+  });
+});
+
+test('mpr-auth-diagnostics renders the targeted auth state and follows auth events', () => {
+  resetEnvironment();
+  loadLibrary();
+
+  const DiagnosticsElement = global.customElements.get('mpr-auth-diagnostics');
+  assert.ok(DiagnosticsElement, 'mpr-auth-diagnostics is defined');
+
+  const target = createStubNode({ attributes: true, supportsEvents: true });
+  target.setAttribute('data-mpr-auth-status', 'unauthenticated');
+  target.setAttribute('data-mpr-google-ready', 'true');
+
+  global.document.querySelector = function querySelector(selector) {
+    if (selector === '#fixture-login') {
+      return target;
+    }
+    return null;
+  };
+  global.document.querySelectorAll = function querySelectorAll() {
+    return [];
+  };
+
+  const statusBadge = createStubNode({ attributes: true });
+  const targetLabel = createStubNode({});
+  const eventLabel = createStubNode({});
+  const googleState = createStubNode({});
+  const error = createStubNode({});
+  const empty = createStubNode({});
+  const profile = createStubNode({});
+  const selectorMap = new Map([
+    ['[data-mpr-auth-diagnostics="status-badge"]', statusBadge],
+    ['[data-mpr-auth-diagnostics="target-label"]', targetLabel],
+    ['[data-mpr-auth-diagnostics="event-label"]', eventLabel],
+    ['[data-mpr-auth-diagnostics="google-state"]', googleState],
+    ['[data-mpr-auth-diagnostics="error"]', error],
+    ['[data-mpr-auth-diagnostics="empty"]', empty],
+    ['[data-mpr-auth-diagnostics="profile"]', profile],
+  ]);
+  const element = attachHostApi(new DiagnosticsElement(), selectorMap);
+  element.ownerDocument = global.document;
+  element.setAttribute('auth-target', '#fixture-login');
+
+  element.connectedCallback();
+
+  assert.equal(statusBadge.textContent, 'Unauthenticated');
+  assert.equal(targetLabel.textContent, '#fixture-login');
+  assert.equal(eventLabel.textContent, 'initial-snapshot');
+  assert.equal(googleState.textContent, 'ready');
+  assert.equal(element.getAttribute('data-mpr-auth-diagnostics-status'), 'unauthenticated');
+  assert.equal(empty.hidden, false);
+  assert.equal(profile.hidden, true);
+
+  target.setAttribute('data-mpr-auth-status', 'authenticated');
+  target.setAttribute('data-user-display', 'Ada Lovelace');
+  target.setAttribute('data-user-email', 'ada@example.com');
+  target.dispatchEvent({
+    type: 'mpr-ui:auth:authenticated',
+    detail: {
+      profile: {
+        display: 'Ada Lovelace',
+        user_email: 'ada@example.com',
+        roles: ['operator'],
+      },
+    },
+  });
+
+  assert.equal(statusBadge.textContent, 'Authenticated');
+  assert.equal(eventLabel.textContent, 'mpr-ui:auth:authenticated');
+  assert.equal(element.getAttribute('data-mpr-auth-diagnostics-status'), 'authenticated');
+  assert.equal(element.getAttribute('data-user-display'), 'Ada Lovelace');
+  assert.equal(profile.hidden, false);
+  assert.match(profile.textContent, /ada@example\.com/);
+  assert.match(profile.textContent, /operator/);
+
+  target.dispatchEvent({
+    type: 'mpr-login:error',
+    detail: {
+      message: 'Nonce request failed',
+    },
+  });
+
+  assert.equal(error.hidden, false);
+  assert.equal(error.textContent, 'Nonce request failed');
+  assert.equal(element.getAttribute('data-mpr-auth-diagnostics-error'), 'Nonce request failed');
+});

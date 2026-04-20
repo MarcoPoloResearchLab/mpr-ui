@@ -109,6 +109,9 @@ const HORIZONTAL_LINKS_FIXTURE_URL = pathToFileURL(
 const USER_MENU_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/user-menu.html'),
 ).href;
+const AUTH_DIAGNOSTICS_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/auth-diagnostics.html'),
+).href;
 const AUTH_TRANSITION_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/auth-transition.html'),
 ).href;
@@ -351,6 +354,20 @@ async function visitUserMenuFixture(page) {
 }
 
 /**
+ * Opens the auth-diagnostics fixture with local assets.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitAuthDiagnosticsFixture(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(AUTH_DIAGNOSTICS_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
  * Opens the auth-transition fixture with local assets.
  * @param {import('@playwright/test').Page} page
  * @returns {Promise<void>}
@@ -575,6 +592,7 @@ module.exports = {
   visitCardFixturePage,
   visitEntityWorkspaceFixture,
   visitUserMenuFixture,
+  visitAuthDiagnosticsFixture,
   visitAuthTransitionFixture,
   visitHeaderUserMenuOverflowFixture,
   captureToggleSnapshot,

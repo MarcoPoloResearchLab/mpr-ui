@@ -186,6 +186,17 @@ document.addEventListener('mpr-ui:auth:error', function (event) {
 
 If you do not need the transition screen to wait for app hydration, omit `completionEvent` and the built-in screen will hide as soon as auth settles.
 
+## Optional verification scaffold
+
+If the integration task needs a visible login verifier, add the shipped diagnostics surface to a non-production page:
+
+```html
+<mpr-header id="app-header" data-config-url="/config-ui.yaml"></mpr-header>
+<mpr-auth-diagnostics auth-target="#app-header"></mpr-auth-diagnostics>
+```
+
+`<mpr-auth-diagnostics>` shows the current auth phase, last auth event, Google surface readiness, and the mirrored profile snapshot. If the page contains exactly one auth surface you may omit `auth-target`; otherwise set it explicitly so the verifier targets the right surface.
+
 ## What not to do
 
 - do not load `tauth.js`
@@ -202,7 +213,8 @@ If you do not need the transition screen to wait for app hydration, omit `comple
 4. Confirm `POST /auth/nonce` runs before GIS credential exchange.
 5. Confirm `POST /auth/google` succeeds and sets the cookie.
 6. Confirm `mpr-ui:auth:authenticated` fires and your app reacts.
-7. Confirm logout calls `/auth/logout` and `mpr-ui:auth:unauthenticated` fires.
+7. If you render `<mpr-auth-diagnostics>`, confirm it flips to `Authenticated` with the expected profile snapshot.
+8. Confirm logout calls `/auth/logout` and `mpr-ui:auth:unauthenticated` fires.
 
 ## Troubleshooting
 

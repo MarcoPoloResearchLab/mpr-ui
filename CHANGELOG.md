@@ -3,7 +3,7 @@
 ## [Unreleased]
 
 ### Features ✨
-- _No changes._
+- Added `<mpr-auth-diagnostics>`, a shipped login-verification surface for integration pages that need observable auth state, profile snapshots, and login errors without page-specific glue.
 
 ### Improvements ⚙️
 - _No changes._
@@ -12,10 +12,10 @@
 - _No changes._
 
 ### Testing 🧪
-- _No changes._
+- Added unit and Playwright coverage for the new auth diagnostics surface and updated demo bootstrap tests to rely on `MPRUI.resolveAuthProfileSnapshot()`.
 
 ### Docs 📚
-- _No changes._
+- Documented `<mpr-auth-diagnostics>` and the new `MPRUI.resolveAuthProfileSnapshot()` helper across README, architecture notes, integration guidance, and demo auth docs.
 
 ## [v3.9.1] - 2026-04-17
 

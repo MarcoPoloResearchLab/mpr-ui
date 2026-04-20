@@ -60,6 +60,13 @@
     display: "data-user-display",
     avatar_url: "data-user-avatar-url",
   };
+  var AUTH_PROFILE_SOURCE_SELECTORS = Object.freeze([
+    'mpr-user[data-mpr-user-status="authenticated"]',
+    "mpr-header[data-user-display]",
+    "mpr-user[data-user-display]",
+    "mpr-login-button[data-user-display]",
+  ]);
+  var AUTH_HOST_SELECTOR = "mpr-header, mpr-login-button";
 
   var GOOGLE_IDENTITY_SCRIPT_URL = "https://accounts.google.com/gsi/client";
   var GOOGLE_SITE_ID_ERROR_CODE = "mpr-ui.google_site_id_required";
@@ -614,6 +621,97 @@
       return parsed;
     }
     return null;
+  }
+
+  function readElementAttributeValue(element, attributeName) {
+    if (!element || typeof element.getAttribute !== "function") {
+      return "";
+    }
+    var attributeValue = element.getAttribute(attributeName);
+    if (typeof attributeValue !== "string") {
+      return "";
+    }
+    return attributeValue.trim();
+  }
+
+  function buildAuthProfileSnapshot(sourceElement) {
+    if (!sourceElement) {
+      return null;
+    }
+    var profile = {};
+    Object.keys(ATTRIBUTE_MAP).forEach(function assignProfileValue(key) {
+      var attributeName = ATTRIBUTE_MAP[key];
+      var attributeValue = readElementAttributeValue(sourceElement, attributeName);
+      if (attributeValue) {
+        profile[key] = attributeValue;
+      }
+    });
+    return Object.keys(profile).length ? profile : null;
+  }
+
+  function resolveAuthProfileSource(queryRoot) {
+    if (!queryRoot || typeof queryRoot.querySelector !== "function") {
+      return null;
+    }
+    for (
+      var selectorIndex = 0;
+      selectorIndex < AUTH_PROFILE_SOURCE_SELECTORS.length;
+      selectorIndex += 1
+    ) {
+      var selector = AUTH_PROFILE_SOURCE_SELECTORS[selectorIndex];
+      var candidate = queryRoot.querySelector(selector);
+      if (buildAuthProfileSnapshot(candidate)) {
+        return candidate;
+      }
+    }
+    return null;
+  }
+
+  function resolveSingleAuthHost(documentObject) {
+    if (
+      !documentObject ||
+      typeof documentObject.querySelectorAll !== "function"
+    ) {
+      return null;
+    }
+    var authHosts = Array.from(documentObject.querySelectorAll(AUTH_HOST_SELECTOR));
+    if (authHosts.length !== 1) {
+      return null;
+    }
+    return authHosts[0];
+  }
+
+  /**
+   * @param {string|Element=} target
+   * @returns {Record<string, string>|null}
+   */
+  function resolveAuthProfileSnapshot(target) {
+    var documentObject =
+      global.document || (global.window && global.window.document) || null;
+    var queryRoot = null;
+    if (typeof target === "string") {
+      if (!documentObject || typeof documentObject.querySelector !== "function") {
+        return null;
+      }
+      try {
+        queryRoot = documentObject.querySelector(target);
+      } catch (_error) {
+        return null;
+      }
+    } else if (target && typeof target === "object") {
+      queryRoot = target;
+    } else {
+      queryRoot = resolveSingleAuthHost(documentObject);
+    }
+    if (!queryRoot) {
+      return null;
+    }
+    var directSnapshot = buildAuthProfileSnapshot(queryRoot);
+    if (directSnapshot) {
+      return directSnapshot;
+    }
+    var nestedSource = resolveAuthProfileSource(queryRoot);
+    return nestedSource ? buildAuthProfileSnapshot(nestedSource) : null;
   }
 
   var HEADER_ATTRIBUTE_DATASET_MAP = Object.freeze({
@@ -6382,6 +6480,431 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
   }
 
+  var AUTH_DIAGNOSTICS_ROOT_CLASS = "mpr-auth-diagnostics";
+  var AUTH_DIAGNOSTICS_STYLE_ID = "mpr-ui-auth-diagnostics-styles";
+  var AUTH_DIAGNOSTICS_UNAVAILABLE_STATUS = "unavailable";
+  var AUTH_DIAGNOSTICS_ATTRIBUTE_NAMES = Object.freeze(["auth-target"]);
+  var AUTH_DIAGNOSTICS_DEFAULTS = Object.freeze({
+    eyebrow: "Integration scaffold",
+    title: "Auth diagnostics",
+    subtitle: "Verify mpr-ui login wiring against a concrete auth surface.",
+    emptyProfile:
+      "No authenticated profile yet. Complete the Google Sign-In flow to verify the session.",
+  });
+  var AUTH_DIAGNOSTICS_STYLE_MARKUP =
+    ".mpr-auth-diagnostics-host{display:block}" +
+    ".mpr-auth-diagnostics{display:flex;flex-direction:column;gap:1rem;padding:1.25rem;border:1px solid var(--mpr-color-border,rgba(148,163,184,0.28));border-radius:1rem;background:var(--mpr-color-surface-elevated,rgba(15,23,42,0.92));color:var(--mpr-color-text-primary,#e2e8f0);box-shadow:var(--mpr-shadow-elevated,0 10px 24px rgba(15,23,42,0.2))}" +
+    ".mpr-auth-diagnostics__header{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;flex-wrap:wrap}" +
+    ".mpr-auth-diagnostics__eyebrow{margin:0 0 0.35rem;font-size:0.72rem;letter-spacing:0.12em;text-transform:uppercase;color:var(--mpr-color-text-muted,#94a3b8)}" +
+    ".mpr-auth-diagnostics__title{margin:0;font-size:1.1rem;font-weight:700}" +
+    ".mpr-auth-diagnostics__subtitle{margin:0.4rem 0 0;color:var(--mpr-color-text-muted,#cbd5f5);line-height:1.5;max-width:42rem}" +
+    ".mpr-auth-diagnostics__badge{display:inline-flex;align-items:center;justify-content:center;min-height:2rem;padding:0.35rem 0.8rem;border-radius:999px;border:1px solid var(--mpr-color-border,rgba(148,163,184,0.28));background:rgba(148,163,184,0.12);font-size:0.85rem;font-weight:700;white-space:nowrap}" +
+    '.mpr-auth-diagnostics__badge[data-status="authenticated"]{background:rgba(34,197,94,0.16);border-color:rgba(34,197,94,0.38);color:#86efac}' +
+    '.mpr-auth-diagnostics__badge[data-status="authenticating"],.mpr-auth-diagnostics__badge[data-status="bootstrapping"]{background:rgba(56,189,248,0.16);border-color:rgba(56,189,248,0.38);color:#7dd3fc}' +
+    '.mpr-auth-diagnostics__badge[data-status="unauthenticated"]{background:rgba(148,163,184,0.16);border-color:rgba(148,163,184,0.32);color:#e2e8f0}' +
+    '.mpr-auth-diagnostics__badge[data-status="unavailable"]{background:rgba(248,113,113,0.14);border-color:rgba(248,113,113,0.32);color:#fda4af}' +
+    ".mpr-auth-diagnostics__grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(11rem,1fr));gap:0.75rem}" +
+    ".mpr-auth-diagnostics__card{padding:0.85rem 0.95rem;border-radius:0.9rem;border:1px solid var(--mpr-color-border,rgba(148,163,184,0.18));background:rgba(15,23,42,0.35)}" +
+    ".mpr-auth-diagnostics__card--profile{display:flex;flex-direction:column;gap:0.75rem}" +
+    ".mpr-auth-diagnostics__label{display:block;font-size:0.74rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--mpr-color-text-muted,#94a3b8)}" +
+    ".mpr-auth-diagnostics__value{display:block;margin-top:0.4rem;font-weight:600;word-break:break-word}" +
+    ".mpr-auth-diagnostics__error{margin:0;padding:0.85rem 0.95rem;border-radius:0.9rem;border:1px solid rgba(248,113,113,0.34);background:rgba(127,29,29,0.32);color:#fecaca}" +
+    '.mpr-auth-diagnostics__error[hidden]{display:none!important}' +
+    ".mpr-auth-diagnostics__empty{margin:0;color:var(--mpr-color-text-muted,#cbd5f5);line-height:1.5}" +
+    ".mpr-auth-diagnostics__profile{margin:0;overflow:auto;padding:0.95rem;border-radius:0.9rem;background:rgba(15,23,42,0.48);border:1px solid rgba(148,163,184,0.16);font:0.88rem/1.55 SFMono-Regular,Consolas,'Liberation Mono',Menlo,monospace;color:var(--mpr-color-text-primary,#e2e8f0);white-space:pre-wrap;word-break:break-word}" +
+    '.mpr-auth-diagnostics__profile[hidden]{display:none!important}';
+
+  function ensureAuthDiagnosticsStyles(documentObject) {
+    if (
+      !documentObject ||
+      typeof documentObject.createElement !== "function" ||
+      !documentObject.head
+    ) {
+      return;
+    }
+    ensureThemeTokenStyles(documentObject);
+    if (documentObject.getElementById(AUTH_DIAGNOSTICS_STYLE_ID)) {
+      return;
+    }
+    var styleElement = documentObject.createElement("style");
+    styleElement.type = "text/css";
+    styleElement.id = AUTH_DIAGNOSTICS_STYLE_ID;
+    if (styleElement.styleSheet) {
+      styleElement.styleSheet.cssText = AUTH_DIAGNOSTICS_STYLE_MARKUP;
+    } else {
+      styleElement.appendChild(
+        documentObject.createTextNode(AUTH_DIAGNOSTICS_STYLE_MARKUP),
+      );
+    }
+    documentObject.head.appendChild(styleElement);
+  }
+
+  function buildAuthDiagnosticsMarkup() {
+    return (
+      '<section class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '" data-mpr-auth-diagnostics="root">' +
+      '<div class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__header">' +
+      '<div>' +
+      '<p class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__eyebrow">' +
+      AUTH_DIAGNOSTICS_DEFAULTS.eyebrow +
+      "</p>" +
+      '<h2 class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__title">' +
+      AUTH_DIAGNOSTICS_DEFAULTS.title +
+      "</h2>" +
+      '<p class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__subtitle">' +
+      AUTH_DIAGNOSTICS_DEFAULTS.subtitle +
+      "</p>" +
+      "</div>" +
+      '<span class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__badge" data-mpr-auth-diagnostics="status-badge"></span>' +
+      "</div>" +
+      '<div class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__grid">' +
+      '<article class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__card"><span class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__label">Target</span><span class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__value" data-mpr-auth-diagnostics="target-label"></span></article>' +
+      '<article class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__card"><span class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__label">Last event</span><span class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__value" data-mpr-auth-diagnostics="event-label"></span></article>' +
+      '<article class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__card"><span class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__label">Google surface</span><span class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__value" data-mpr-auth-diagnostics="google-state"></span></article>' +
+      "</div>" +
+      '<p class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__error" data-mpr-auth-diagnostics="error" hidden></p>' +
+      '<article class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      "__card " +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__card--profile"><span class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__label">Profile snapshot</span><p class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__empty" data-mpr-auth-diagnostics="empty">' +
+      AUTH_DIAGNOSTICS_DEFAULTS.emptyProfile +
+      '</p><pre class="' +
+      AUTH_DIAGNOSTICS_ROOT_CLASS +
+      '__profile" data-mpr-auth-diagnostics="profile" hidden></pre></article>' +
+      "</section>"
+    );
+  }
+
+  function resolveAuthDiagnosticsElements(hostElement) {
+    if (!hostElement || typeof hostElement.querySelector !== "function") {
+      return null;
+    }
+    return {
+      statusBadge: hostElement.querySelector(
+        '[data-mpr-auth-diagnostics="status-badge"]',
+      ),
+      targetLabel: hostElement.querySelector(
+        '[data-mpr-auth-diagnostics="target-label"]',
+      ),
+      eventLabel: hostElement.querySelector(
+        '[data-mpr-auth-diagnostics="event-label"]',
+      ),
+      googleState: hostElement.querySelector(
+        '[data-mpr-auth-diagnostics="google-state"]',
+      ),
+      error: hostElement.querySelector('[data-mpr-auth-diagnostics="error"]'),
+      empty: hostElement.querySelector('[data-mpr-auth-diagnostics="empty"]'),
+      profile: hostElement.querySelector('[data-mpr-auth-diagnostics="profile"]'),
+    };
+  }
+
+  function findElementWithAttribute(queryRoot, attributeName) {
+    if (!queryRoot || !attributeName) {
+      return null;
+    }
+    if (
+      typeof queryRoot.getAttribute === "function" &&
+      queryRoot.getAttribute(attributeName) !== null
+    ) {
+      return queryRoot;
+    }
+    if (typeof queryRoot.querySelector !== "function") {
+      return null;
+    }
+    return queryRoot.querySelector("[" + attributeName + "]");
+  }
+
+  function resolveAuthDiagnosticsTargetState(hostElement) {
+    var documentObject =
+      (hostElement && hostElement.ownerDocument) ||
+      global.document ||
+      (global.window && global.window.document) ||
+      null;
+    var explicitTarget = readElementAttributeValue(hostElement, "auth-target");
+    if (!documentObject || typeof documentObject.querySelector !== "function") {
+      return {
+        targetElement: null,
+        targetLabel: explicitTarget || "auto",
+        errorMessage: "Auth diagnostics requires a browser document context.",
+      };
+    }
+    if (explicitTarget) {
+      try {
+        var explicitElement = documentObject.querySelector(explicitTarget);
+        if (explicitElement) {
+          return {
+            targetElement: explicitElement,
+            targetLabel: explicitTarget,
+            errorMessage: "",
+          };
+        }
+        return {
+          targetElement: null,
+          targetLabel: explicitTarget,
+          errorMessage: 'Unable to find auth target "' + explicitTarget + '".',
+        };
+      } catch (_error) {
+        return {
+          targetElement: null,
+          targetLabel: explicitTarget,
+          errorMessage: 'Invalid auth-target selector "' + explicitTarget + '".',
+        };
+      }
+    }
+    if (typeof documentObject.querySelectorAll !== "function") {
+      return {
+        targetElement: null,
+        targetLabel: "auto",
+        errorMessage:
+          "Auth diagnostics requires auth-target when querySelectorAll is unavailable.",
+      };
+    }
+    var authHosts = Array.from(documentObject.querySelectorAll(AUTH_HOST_SELECTOR));
+    if (authHosts.length === 1) {
+      return {
+        targetElement: authHosts[0],
+        targetLabel: describeAuthDiagnosticsTarget(authHosts[0]),
+        errorMessage: "",
+      };
+    }
+    if (authHosts.length > 1) {
+      return {
+        targetElement: null,
+        targetLabel: "auto",
+        errorMessage:
+          "Multiple auth surfaces found. Set auth-target to the surface under test.",
+      };
+    }
+    return {
+      targetElement: null,
+      targetLabel: "auto",
+      errorMessage:
+        "No auth surface found. Add mpr-header or mpr-login-button before mpr-auth-diagnostics.",
+    };
+  }
+
+  function describeAuthDiagnosticsTarget(targetElement) {
+    if (!targetElement) {
+      return "Unavailable";
+    }
+    var tagName =
+      targetElement && targetElement.tagName
+        ? String(targetElement.tagName).toLowerCase()
+        : "element";
+    var elementId =
+      readElementAttributeValue(targetElement, "id") ||
+      (targetElement && typeof targetElement.id === "string"
+        ? targetElement.id.trim()
+        : "");
+    return elementId ? tagName + "#" + elementId : tagName;
+  }
+
+  function resolveAuthDiagnosticsStatus(targetElement, eventObject) {
+    var eventType = eventObject && eventObject.type ? eventObject.type : "";
+    if (eventType === "mpr-ui:auth:authenticated") {
+      return AUTH_CONTROLLER_STATUS.AUTHENTICATED;
+    }
+    if (eventType === "mpr-ui:auth:unauthenticated") {
+      return AUTH_CONTROLLER_STATUS.UNAUTHENTICATED;
+    }
+    var detailStatus =
+      eventObject &&
+      eventObject.detail &&
+      typeof eventObject.detail.status === "string"
+        ? eventObject.detail.status
+        : "";
+    if (detailStatus) {
+      return detailStatus;
+    }
+    var statusSource = findElementWithAttribute(
+      targetElement,
+      "data-mpr-auth-status",
+    );
+    var statusValue = readElementAttributeValue(statusSource, "data-mpr-auth-status");
+    return statusValue || AUTH_DIAGNOSTICS_UNAVAILABLE_STATUS;
+  }
+
+  function resolveAuthDiagnosticsGoogleState(targetElement) {
+    var googleSource = findElementWithAttribute(
+      targetElement,
+      "data-mpr-google-ready",
+    );
+    var googleState = readElementAttributeValue(googleSource, "data-mpr-google-ready");
+    if (!googleState) {
+      return "n/a";
+    }
+    return googleState === "true" ? "ready" : googleState;
+  }
+
+  function cloneAuthProfile(profile) {
+    if (!profile || typeof profile !== "object" || Array.isArray(profile)) {
+      return null;
+    }
+    var clonedProfile = {};
+    Object.keys(profile).forEach(function cloneProfileEntry(key) {
+      var value = profile[key];
+      if (value === undefined) {
+        return;
+      }
+      clonedProfile[key] = Array.isArray(value) ? value.slice() : value;
+    });
+    return Object.keys(clonedProfile).length ? clonedProfile : null;
+  }
+
+  function resolveAuthDiagnosticsProfile(targetElement, eventObject) {
+    var eventProfile =
+      eventObject && eventObject.detail
+        ? cloneAuthProfile(eventObject.detail.profile)
+        : null;
+    if (eventProfile) {
+      return eventProfile;
+    }
+    return resolveAuthProfileSnapshot(targetElement);
+  }
+
+  function formatAuthDiagnosticsStatus(status) {
+    switch (status) {
+      case AUTH_CONTROLLER_STATUS.AUTHENTICATED:
+        return "Authenticated";
+      case AUTH_CONTROLLER_STATUS.AUTHENTICATING:
+        return "Authenticating";
+      case AUTH_CONTROLLER_STATUS.BOOTSTRAPPING:
+        return "Bootstrapping";
+      case AUTH_CONTROLLER_STATUS.UNAUTHENTICATED:
+        return "Unauthenticated";
+      default:
+        return "Target unavailable";
+    }
+  }
+
+  function applyAuthDiagnosticsProfileDataset(hostElement, profile) {
+    Object.keys(ATTRIBUTE_MAP).forEach(function syncProfileAttribute(key) {
+      setAttributeOrRemove(
+        hostElement,
+        ATTRIBUTE_MAP[key],
+        profile && Object.prototype.hasOwnProperty.call(profile, key)
+          ? profile[key]
+          : null,
+      );
+    });
+  }
+
+  function renderAuthDiagnosticsState(hostElement, elements, state) {
+    if (!hostElement || !elements) {
+      return;
+    }
+    var normalizedStatus =
+      typeof state.status === "string" && state.status
+        ? state.status
+        : AUTH_DIAGNOSTICS_UNAVAILABLE_STATUS;
+    var profile = state.profile || null;
+    var targetLabel =
+      typeof state.targetLabel === "string" && state.targetLabel
+        ? state.targetLabel
+        : "auto";
+    var eventName =
+      typeof state.eventName === "string" && state.eventName
+        ? state.eventName
+        : "initial-snapshot";
+    var googleState =
+      typeof state.googleState === "string" && state.googleState
+        ? state.googleState
+        : "n/a";
+    var errorMessage =
+      typeof state.errorMessage === "string" ? state.errorMessage : "";
+    if (elements.statusBadge) {
+      elements.statusBadge.textContent = formatAuthDiagnosticsStatus(normalizedStatus);
+      elements.statusBadge.setAttribute("data-status", normalizedStatus);
+    }
+    if (elements.targetLabel) {
+      elements.targetLabel.textContent = targetLabel;
+    }
+    if (elements.eventLabel) {
+      elements.eventLabel.textContent = eventName;
+    }
+    if (elements.googleState) {
+      elements.googleState.textContent = googleState;
+    }
+    if (elements.error) {
+      elements.error.hidden = !errorMessage;
+      elements.error.textContent = errorMessage;
+    }
+    if (elements.empty) {
+      elements.empty.hidden = Boolean(profile);
+      elements.empty.textContent = AUTH_DIAGNOSTICS_DEFAULTS.emptyProfile;
+    }
+    if (elements.profile) {
+      elements.profile.hidden = !profile;
+      elements.profile.textContent = profile
+        ? JSON.stringify(profile, null, 2)
+        : "";
+    }
+    setAttributeOrRemove(
+      hostElement,
+      "data-mpr-auth-diagnostics-status",
+      normalizedStatus,
+    );
+    setAttributeOrRemove(
+      hostElement,
+      "data-mpr-auth-diagnostics-event",
+      eventName,
+    );
+    setAttributeOrRemove(
+      hostElement,
+      "data-mpr-auth-diagnostics-google",
+      googleState,
+    );
+    setAttributeOrRemove(
+      hostElement,
+      "data-mpr-auth-diagnostics-target",
+      targetLabel,
+    );
+    setAttributeOrRemove(
+      hostElement,
+      "data-mpr-auth-diagnostics-error",
+      errorMessage || null,
+    );
+    applyAuthDiagnosticsProfileDataset(hostElement, profile);
+  }
+
   var SETTINGS_ROOT_CLASS = "mpr-settings";
   var SETTINGS_STYLE_ID = "mpr-ui-settings-styles";
   var SETTINGS_STYLE_MARKUP =
@@ -11683,6 +12206,174 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
   }
 
+  function defineAuthDiagnosticsElement(registry) {
+    registry.define(
+      "mpr-auth-diagnostics",
+      function setupAuthDiagnosticsElement(Base) {
+        return class MprAuthDiagnosticsElement extends Base {
+          constructor() {
+            super();
+            this.__authDiagnosticsElements = null;
+            this.__authDiagnosticsTarget = null;
+            this.__lastEventName = "initial-snapshot";
+            this.__lastErrorMessage = "";
+            this.__boundDiagnosticsEventHandler =
+              this.__handleDiagnosticsEvent.bind(this);
+          }
+          static get observedAttributes() {
+            return AUTH_DIAGNOSTICS_ATTRIBUTE_NAMES;
+          }
+          render() {
+            this.__applyDiagnostics();
+          }
+          update() {
+            this.__applyDiagnostics();
+          }
+          destroy() {
+            this.__detachDiagnosticsTarget();
+            this.__authDiagnosticsElements = null;
+            this.__lastEventName = "initial-snapshot";
+            this.__lastErrorMessage = "";
+          }
+          __applyDiagnostics() {
+            if (!this.__mprConnected) {
+              return;
+            }
+            var documentObject =
+              this.ownerDocument ||
+              global.document ||
+              (global.window && global.window.document) ||
+              null;
+            ensureAuthDiagnosticsStyles(documentObject);
+            this.classList.add(AUTH_DIAGNOSTICS_ROOT_CLASS + "-host");
+            if (!this.__authDiagnosticsElements) {
+              this.innerHTML = buildAuthDiagnosticsMarkup();
+              this.__authDiagnosticsElements = resolveAuthDiagnosticsElements(this);
+            }
+            var targetState = resolveAuthDiagnosticsTargetState(this);
+            this.__setDiagnosticsTarget(targetState.targetElement);
+            if (targetState.errorMessage) {
+              this.__lastErrorMessage = targetState.errorMessage;
+            } else if (targetState.targetElement) {
+              this.__lastErrorMessage = "";
+            }
+            this.__renderDiagnostics(targetState, null);
+          }
+          __setDiagnosticsTarget(nextTarget) {
+            if (nextTarget === this.__authDiagnosticsTarget) {
+              return;
+            }
+            this.__detachDiagnosticsTarget();
+            this.__authDiagnosticsTarget = nextTarget;
+            if (
+              !nextTarget ||
+              typeof nextTarget.addEventListener !== "function"
+            ) {
+              return;
+            }
+            nextTarget.addEventListener(
+              "mpr-ui:auth:authenticated",
+              this.__boundDiagnosticsEventHandler,
+            );
+            nextTarget.addEventListener(
+              "mpr-ui:auth:unauthenticated",
+              this.__boundDiagnosticsEventHandler,
+            );
+            nextTarget.addEventListener(
+              "mpr-ui:auth:status-change",
+              this.__boundDiagnosticsEventHandler,
+            );
+            nextTarget.addEventListener(
+              "mpr-ui:auth:error",
+              this.__boundDiagnosticsEventHandler,
+            );
+            nextTarget.addEventListener(
+              "mpr-login:error",
+              this.__boundDiagnosticsEventHandler,
+            );
+          }
+          __detachDiagnosticsTarget() {
+            if (
+              !this.__authDiagnosticsTarget ||
+              typeof this.__authDiagnosticsTarget.removeEventListener !== "function"
+            ) {
+              this.__authDiagnosticsTarget = null;
+              return;
+            }
+            this.__authDiagnosticsTarget.removeEventListener(
+              "mpr-ui:auth:authenticated",
+              this.__boundDiagnosticsEventHandler,
+            );
+            this.__authDiagnosticsTarget.removeEventListener(
+              "mpr-ui:auth:unauthenticated",
+              this.__boundDiagnosticsEventHandler,
+            );
+            this.__authDiagnosticsTarget.removeEventListener(
+              "mpr-ui:auth:status-change",
+              this.__boundDiagnosticsEventHandler,
+            );
+            this.__authDiagnosticsTarget.removeEventListener(
+              "mpr-ui:auth:error",
+              this.__boundDiagnosticsEventHandler,
+            );
+            this.__authDiagnosticsTarget.removeEventListener(
+              "mpr-login:error",
+              this.__boundDiagnosticsEventHandler,
+            );
+            this.__authDiagnosticsTarget = null;
+          }
+          __handleDiagnosticsEvent(eventObject) {
+            var eventType = eventObject && eventObject.type ? eventObject.type : "";
+            if (eventType) {
+              this.__lastEventName = eventType;
+            }
+            if (
+              eventType === "mpr-ui:auth:error" ||
+              eventType === "mpr-login:error"
+            ) {
+              var errorDetail = eventObject && eventObject.detail ? eventObject.detail : {};
+              this.__lastErrorMessage =
+                typeof errorDetail.message === "string" && errorDetail.message
+                  ? errorDetail.message
+                  : typeof errorDetail.code === "string" && errorDetail.code
+                  ? errorDetail.code
+                  : "Authentication request failed.";
+            } else {
+              this.__lastErrorMessage = "";
+            }
+            this.__renderDiagnostics(
+              resolveAuthDiagnosticsTargetState(this),
+              eventObject,
+            );
+          }
+          __renderDiagnostics(targetState, eventObject) {
+            if (!this.__authDiagnosticsElements) {
+              return;
+            }
+            var targetElement = targetState ? targetState.targetElement : null;
+            var profile = resolveAuthDiagnosticsProfile(targetElement, eventObject);
+            renderAuthDiagnosticsState(this, this.__authDiagnosticsElements, {
+              status: resolveAuthDiagnosticsStatus(targetElement, eventObject),
+              targetLabel:
+                targetState && targetState.targetLabel
+                  ? targetState.targetLabel
+                  : targetElement
+                  ? describeAuthDiagnosticsTarget(targetElement)
+                  : "auto",
+              eventName: this.__lastEventName,
+              googleState: resolveAuthDiagnosticsGoogleState(targetElement),
+              errorMessage:
+                targetState && targetState.errorMessage
+                  ? targetState.errorMessage
+                  : this.__lastErrorMessage,
+              profile: profile,
+            });
+          }
+        };
+      },
+    );
+  }
+
   function defineSettingsElement(registry) {
     registry.define("mpr-settings", function setupSettingsElement(Base) {
       return class MprSettingsElement extends Base {
@@ -13379,6 +14070,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     defineFooterElement(registry);
     defineThemeToggleElement(registry);
     defineLoginButtonElement(registry);
+    defineAuthDiagnosticsElement(registry);
     defineUserMenuElement(registry);
     defineSettingsElement(registry);
     defineDetailDrawerElement(registry);
@@ -13533,6 +14225,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   var namespace = ensureNamespace(global);
   namespace.createAuthHeader = createAuthHeader;
   namespace.renderAuthHeader = renderAuthHeader;
+  namespace.resolveAuthProfileSnapshot = resolveAuthProfileSnapshot;
   namespace.getFooterSiteCatalog = getFooterSiteCatalog;
   namespace.getBandProjectCatalog = getBandProjectCatalog;
   namespace.configureTheme = function configureTheme(config) {

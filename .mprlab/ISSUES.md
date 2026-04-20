@@ -191,3 +191,22 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 - [x] [MU-436] Release-facing package metadata and pinned docs drifted behind the tagged CDN release line.
   Resolved 2026-04-17: aligned `package.json` and the lockfile root metadata to `3.9.0`, updated the pinned CDN examples in `README.md` and `docs/integration-guide.md` to `v3.9.0`, and added a static unit regression that keeps package metadata, lockfile metadata, and the documented pinned CDN version aligned. Tests: `make test-unit`.
+
+- [ ] [MU-437] Standalone auth lifecycle events are broadcast without element- or attempt-level correlation.
+  Summary: `mpr-ui:auth:authenticated` and `mpr-ui:auth:unauthenticated` are emitted as bubbling `CustomEvent`s whose `detail` carries only the resolved profile payload (or `null`). Standalone consumers listening above the auth element cannot determine whether the event belongs to their own `<mpr-login-button>` / `<mpr-user>` instance or to some other auth controller on the page.
+  Technical details:
+  - `markAuthenticated()` dispatches `mpr-ui:auth:authenticated` with `{ profile }` only. No controller identifier, host identifier, tenant identifier, nonce identifier, login-attempt identifier, or other correlation token is preserved in the event payload.
+  - `markUnauthenticated()` dispatches `mpr-ui:auth:unauthenticated` with `{ profile: null }` only, so logout/session-loss signals have the same ambiguity.
+  - The shared custom-event helper emits these lifecycle events with `bubbles: true`, so auth signals propagate beyond the originating auth host and are observable by unrelated page-level listeners.
+  - `resolveUserMenuEventTarget()` falls back to `document` for standalone `<mpr-user>` instances that are not nested under `<mpr-header>` or `<mpr-login-button>`, which reinforces a page-global signaling model instead of a host-scoped one.
+  Reproduction:
+  1. Mount a standalone `<mpr-login-button>` on a landing page.
+  2. Add a document-level listener that navigates or updates auth state on `mpr-ui:auth:authenticated`.
+  3. Dispatch the same event on `document`, or let a different auth controller on the page dispatch it.
+  4. The consumer cannot distinguish that foreign event from its own login completion and may react as though its own auth flow succeeded.
+  Expected:
+  - Either auth lifecycle events are scoped to the originating auth host only, or the event contract includes a stable correlation surface such as `controllerId`, `hostId`, `loginAttemptId`, or an equivalent token that allows consumers to reject foreign events deterministically.
+  Impact:
+  - Frontend consumers can incorrectly treat a generic DOM event as authoritative auth completion and mutate navigation/UI state on that basis.
+  - Backend session checks still protect real protected routes, but the shared frontend event contract is too weak for standalone integrations and encourages insecure listener patterns.
+  Status 2026-04-19: logged from the WriterBlock integration after a landing-page redirect loop caused by foreign `mpr-ui:auth:authenticated` broadcasts.

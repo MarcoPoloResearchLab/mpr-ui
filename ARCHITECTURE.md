@@ -1,17 +1,14 @@
 # ARCHITECTURE
 
-`mpr-ui` is delivered as a browser-ready bundle (`mpr-ui.js`) that attaches helpers to the global `window.MPRUI` namespace. The project currently ships two behaviours:
+`mpr-ui` is delivered as a browser-ready bundle (`mpr-ui.js`) that attaches helpers to the global `window.MPRUI` namespace. The project ships authentication, diagnostics, chrome, and layout primitives that share one declarative `<mpr-*>` surface.
 
-- An authentication header controller that orchestrates Google Identity Services (GIS) sign-in flows.
-- A sticky footer renderer with dropdown navigation, privacy link, and theme toggle support.
-
-The library assumes a CDN delivery model and no build tooling. Everything runs in the browser with optional Alpine.js convenience factories. The bundle auto-registers `<mpr-*>` custom elements (header, footer, login button, user menu, theme toggle, settings, sites) on load; those declarative tags form the primary public API and the declarative DSL of the package, while the namespace functions documented below exist for frameworks that need imperative mounting or advanced integration.
+The library assumes a CDN delivery model and no build tooling. Everything runs in the browser with optional Alpine.js convenience factories. The bundle auto-registers `<mpr-*>` custom elements (header, footer, login button, auth diagnostics, user menu, theme toggle, settings, sites, and the workspace primitives) on load; those declarative tags form the primary public API and the declarative DSL of the package, while the namespace functions documented below exist for frameworks that need imperative mounting or advanced integration.
 
 ## Files and Responsibilities
 
 | File          | Role                                                                                         |
 | ------------- | -------------------------------------------------------------------------------------------- |
-| `mpr-ui.js`   | Production bundle exposed to consumers. Defines the namespace, auth header helpers, footer.  |
+| `mpr-ui.js`   | Production bundle exposed to consumers. Defines the namespace, auth helpers, diagnostics, shell chrome, and workspace primitives.  |
 | `alpine.js.md`| Notes on Alpine integration patterns.                                                        |
 
 ## Global Namespace
@@ -22,6 +19,7 @@ When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 | --------------------------------------- | ---------------------------------------------------------------------------------------------------- |
 | `MPRUI.createAuthHeader(host, options)` | Creates the auth header controller bound to a DOM element.                                           |
 | `MPRUI.renderAuthHeader(host, options)` | Convenience wrapper that resolves CSS selectors before calling `createAuthHeader`.                   |
+| `MPRUI.resolveAuthProfileSnapshot(target)` | Returns the current mirrored auth profile for an explicit auth surface or `null` when the target is missing or ambiguous. |
 | `MPRUI.configureTheme(config)`          | Merges global theme configuration (attribute, targets, modes) and reapplies the current mode.        |
 | `MPRUI.setThemeMode(value)`             | Sets the active theme mode and dispatches `mpr-ui:theme-change`.                                     |
 | `MPRUI.getThemeMode()`                  | Returns the active theme mode string.                                                                |
@@ -44,6 +42,7 @@ The bundle auto-registers modern HTML custom elements when `window.customElement
 | `<mpr-footer>`    | Footer controller (internal)                   | `prefix-text`, `horizontal-links` (JSON object with `{ alignment, links }`), `links-collection`, `toggle-label`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides, `size`, `sticky` (default `true`)     | `mpr-footer:theme-change`                                 |
 | `<mpr-theme-toggle>` | Theme manager (`configureTheme`)            | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`          | `mpr-ui:theme-change` (via the shared theme manager)      |
 | `<mpr-login-button>` | `createAuthHeader`, shared GIS helper       | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape`        | `mpr-ui:auth:*`, `mpr-login:error`                        |
+| `<mpr-auth-diagnostics>` | Internal diagnostics renderer           | `auth-target` (CSS selector for the auth surface or container under test)                                                                          | —                                                         |
 | `<mpr-user>`      | TAuth profile + menu renderer                  | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `avatar-url`, `avatar-label`                                                                   | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:menu-item`, `mpr-user:error`    |
 | `<mpr-settings>` | Settings CTA + panel wrapper                    | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open`                                                                    | `mpr-settings:toggle`                                     |
 | `<mpr-sites>`    | `getFooterSiteCatalog` (plus inline renderer)   | `links` (JSON), `variant` (`list`, `grid`, `menu`), `columns`, `heading`                                                              | `mpr-sites:link-click`                                    |
@@ -54,7 +53,7 @@ Slots:
 
 - `<mpr-header>`: `brand`, `nav-left`, `nav-right`, `aux`
 - `<mpr-footer>`: `menu-prefix`, `menu-links`, `legal`
-- `<mpr-theme-toggle>` / `<mpr-login-button>` / `<mpr-user>` render controlled content and do not expose slots.
+- `<mpr-theme-toggle>` / `<mpr-login-button>` / `<mpr-auth-diagnostics>` / `<mpr-user>` render controlled content and do not expose slots.
 
 When `customElements.define` is unavailable the helpers fall back gracefully: the registry caches null definitions and no DOM is mutated until the host polyfills the API. The registry performs three key tasks:
 

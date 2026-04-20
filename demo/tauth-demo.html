@@ -20,14 +20,6 @@
     <script src="../mpr-ui-config.js" defer></script>
     <script id="mpr-ui-bundle" type="application/json" data-mpr-ui-bundle-src="../mpr-ui.js"></script>
     <style>
-      :root {
-        --card-background: rgba(255, 255, 255, 0.9);
-        --card-border: rgba(0, 0, 0, 0.1);
-      }
-      body.theme-dark {
-        --card-background: rgba(18, 21, 23, 0.8);
-        --card-border: rgba(255, 255, 255, 0.2);
-      }
       main {
         max-width: 960px;
         margin: 0 auto;
@@ -35,50 +27,6 @@
       }
       .demo-section {
         margin-top: 2rem;
-      }
-      .session-card {
-        border: 1px solid var(--card-border);
-        border-radius: 0.75rem;
-        padding: 1.25rem;
-        background: var(--card-background);
-        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
-      }
-      .session-card__profile {
-        display: flex;
-        gap: 1rem;
-        align-items: center;
-      }
-      .session-card__profile ul {
-        list-style: none;
-        padding: 0;
-        margin: 0;
-      }
-      .session-card__profile li + li {
-        margin-top: 0.25rem;
-      }
-      .session-card__avatar {
-        width: 56px;
-        height: 56px;
-        border-radius: 999px;
-        object-fit: cover;
-      }
-      .session-card__expires {
-        margin-top: 1rem;
-        font-size: 0.95rem;
-        color: var(--mpr-color-text-muted, #555);
-      }
-      .logout-button {
-        margin-top: 1rem;
-        border: 0;
-        border-radius: 999px;
-        padding: 0.75rem 1.5rem;
-        background: #0c67ff;
-        color: #fff;
-        font-weight: 600;
-        cursor: pointer;
-      }
-      .logout-button:hover {
-        background: #0842a8;
       }
       .demo-modal {
         position: fixed;
@@ -187,21 +135,16 @@
       </p>
 
       <section aria-labelledby="profile-status-title" class="demo-section">
-        <h2 id="profile-status-title">Current session</h2>
+        <h2 id="profile-status-title">Login verification</h2>
         <p>
-          Google sign-in requests are exchanged via the TAuth service configured
-          in <code>./config-ui.yaml</code>. <code>mpr-ui</code> reads that
-          config, talks directly to the same-origin auth routes, and keeps the
-          shell state aligned with the session cookie.
+          This shipped <code>&lt;mpr-auth-diagnostics&gt;</code> surface listens
+          to the header auth events and mirrors the current profile snapshot so
+          integration work can verify that login wiring is actually alive.
         </p>
-        <div
-          class="session-card"
-          data-demo-auth-status
-          aria-live="polite"
-          aria-atomic="true"
-        >
-          <p>Awaiting connection to the TAuth service…</p>
-        </div>
+        <mpr-auth-diagnostics
+          id="demo-auth-diagnostics"
+          auth-target="#demo-header"
+        ></mpr-auth-diagnostics>
       </section>
 
       <section aria-labelledby="instructions-title" class="demo-section">
@@ -318,17 +261,16 @@
       theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-light","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
     ></mpr-footer>
     <script defer src="./tauth-settings-modal.js"></script>
-    <script defer src="./status-panel.js"></script>
     <script>
       (function() {
         var READY_EVENT_NAME = 'demo:tauth-ready';
 
         function resolveInitialProfile() {
           if (
-            window.MprDemoAuth &&
-            typeof window.MprDemoAuth.resolveInitialProfileSnapshot === 'function'
+            window.MPRUI &&
+            typeof window.MPRUI.resolveAuthProfileSnapshot === 'function'
           ) {
-            return window.MprDemoAuth.resolveInitialProfileSnapshot();
+            return window.MPRUI.resolveAuthProfileSnapshot('#demo-header');
           }
           return null;
         }

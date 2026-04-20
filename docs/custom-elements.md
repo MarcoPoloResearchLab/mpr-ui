@@ -95,6 +95,26 @@ document.addEventListener('mpr-ui:auth:authenticated', function () {
 ### Script order
 Load `mpr-ui.css`, GIS, `js-yaml`, and `mpr-ui-config.js`, then expose the bundle through `data-mpr-ui-bundle-src`. The config loader applies `/config-ui.yaml` first and then loads `mpr-ui.js`.
 
+## mpr-auth-diagnostics
+
+`<mpr-auth-diagnostics>` is a passive verification surface for integration pages. It listens to the targeted auth surface, mirrors the current auth phase, and renders the latest profile snapshot or error state without asking the host app to write extra glue code.
+
+### Attribute
+- `auth-target`: CSS selector for the auth surface or a containing element that receives bubbled auth events. Required when the page contains multiple auth surfaces; optional when the page contains exactly one `<mpr-header>` or `<mpr-login-button>`.
+
+### Mirrored data attributes
+- `data-mpr-auth-diagnostics-status`
+- `data-mpr-auth-diagnostics-event`
+- `data-mpr-auth-diagnostics-google`
+- `data-mpr-auth-diagnostics-error`
+- the current `data-user-*` profile attributes when authenticated
+
+### Example
+```html
+<mpr-header id="app-header" data-config-url="/config-ui.yaml"></mpr-header>
+<mpr-auth-diagnostics auth-target="#app-header"></mpr-auth-diagnostics>
+```
+
 ## mpr-footer
 
 The footer renders product links, privacy links, and an optional theme switch.

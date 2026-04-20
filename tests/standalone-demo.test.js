@@ -49,10 +49,25 @@ test('standalone demo uses Web Component orchestration', () => {
     /waitForAutoOrchestrationReady\(\)[\s\S]*dispatchReadyEventOnNextFrame/,
     'Expected standalone.html to release the transition screen only after auto-orchestration is ready',
   );
+  assert.match(
+    standaloneHtml,
+    /<mpr-auth-diagnostics[\s\S]*auth-target="#demo-login-button"/,
+    'Expected standalone.html to use the shipped auth diagnostics surface',
+  );
+  assert.match(
+    standaloneHtml,
+    /window\.MPRUI[\s\S]*resolveAuthProfileSnapshot\('#demo-login-button'\)/,
+    'Expected standalone.html to use MPRUI.resolveAuthProfileSnapshot for the initial auth snapshot',
+  );
   assert.doesNotMatch(
     standaloneHtml,
     /<script\b[^>]*\bsrc="\/tauth\.js"[^>]*><\/script>/i,
     'Expected standalone.html to avoid the legacy tauth.js helper',
+  );
+  assert.doesNotMatch(
+    standaloneHtml,
+    /status-panel\.js/,
+    'Expected standalone.html to avoid the old demo-only status panel script',
   );
 });
 

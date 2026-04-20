@@ -18,7 +18,6 @@ All of them follow the same integration ideology:
 - [`demo/config-ui.yaml`](../demo/config-ui.yaml)
 - [`demo/tauth-config.yaml`](../demo/tauth-config.yaml)
 - [`demo/.env.ghttp.example`](../demo/.env.ghttp.example)
-- [`demo/status-panel.js`](../demo/status-panel.js)
 - [`mpr-ui-config.js`](../mpr-ui-config.js)
 - [`mpr-ui.js`](../mpr-ui.js)
 
@@ -101,7 +100,7 @@ At runtime:
 6. if `/me` indicates the session needs renewal, `mpr-ui` retries through `/auth/refresh`
 7. `mpr-ui` dispatches `mpr-ui:auth:authenticated` or `mpr-ui:auth:unauthenticated`
 
-The status panel and standalone page listen only for those events.
+The shipped `<mpr-auth-diagnostics>` surfaces in the demos listen only for those events.
 
 ## Verification checklist
 
@@ -111,7 +110,7 @@ The status panel and standalone page listen only for those events.
 4. Confirm `POST /auth/nonce` happens before the GIS exchange.
 5. Confirm `POST /auth/google` succeeds and sets cookies.
 6. Confirm `/me` returns profile JSON after sign-in.
-7. Confirm `mpr-ui:auth:authenticated` updates the status panel.
+7. Confirm `mpr-ui:auth:authenticated` updates `<mpr-auth-diagnostics>`.
 8. Confirm logout clears shell state through `/auth/logout`.
 
 ## Why this matters

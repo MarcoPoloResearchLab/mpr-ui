@@ -86,7 +86,6 @@ test('MU-435: package.json defines combined Node and browser coverage scripts', 
     'mpr-ui.js',
     'demo/demo.js',
     'demo/entity-workspace.js',
-    'demo/status-panel.js',
     'demo/tauth-settings-modal.js',
   ].forEach((sourcePath) => {
     assert.doesNotMatch(

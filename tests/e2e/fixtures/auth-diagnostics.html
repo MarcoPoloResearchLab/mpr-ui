@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auth Diagnostics Fixture</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+    ></script>
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        background: #0f172a;
+        color: #e2e8f0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+      main {
+        max-width: 760px;
+        margin: 0 auto;
+        padding: 3rem 1.5rem 4rem;
+      }
+      h1 {
+        margin: 0 0 0.75rem;
+        font-size: 2rem;
+      }
+      p {
+        margin: 0 0 1.5rem;
+        line-height: 1.6;
+        color: #cbd5f5;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Auth Diagnostics Fixture</h1>
+      <p>
+        The diagnostics surface targets a simple auth root so Playwright can
+        assert the shipped rendering contract without depending on a live auth
+        backend.
+      </p>
+      <div
+        id="fixture-auth-root"
+        data-mpr-auth-status="unauthenticated"
+        data-mpr-google-ready="true"
+      ></div>
+      <mpr-auth-diagnostics
+        id="fixture-diagnostics"
+        auth-target="#fixture-auth-root"
+      ></mpr-auth-diagnostics>
+    </main>
+    <script>
+      (function () {
+        var authRoot = document.getElementById("fixture-auth-root");
+
+        window.publishFixtureAuthenticated = function publishFixtureAuthenticated() {
+          authRoot.setAttribute("data-mpr-auth-status", "authenticated");
+          authRoot.setAttribute("data-user-display", "Ada Lovelace");
+          authRoot.setAttribute("data-user-email", "ada@example.com");
+          authRoot.setAttribute("data-user-avatar-url", "https://cdn.example.com/avatar.png");
+          authRoot.dispatchEvent(
+            new CustomEvent("mpr-ui:auth:authenticated", {
+              bubbles: true,
+              detail: {
+                profile: {
+                  display: "Ada Lovelace",
+                  user_email: "ada@example.com",
+                  roles: ["operator"],
+                },
+              },
+            }),
+          );
+        };
+
+        window.publishFixtureAuthError = function publishFixtureAuthError() {
+          authRoot.dispatchEvent(
+            new CustomEvent("mpr-login:error", {
+              bubbles: true,
+              detail: {
+                message: "Nonce request failed",
+              },
+            }),
+          );
+        };
+      })();
+    </script>
+  </body>
+</html>

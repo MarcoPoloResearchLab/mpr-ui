@@ -177,11 +177,11 @@ Need a working authentication backend without wiring your own server? The bundle
    - `./up.sh tauth` runs the full header demo.
    - `./up.sh tauth-standalone` runs the standalone login-button demo.
 
-4. Open `https://localhost:4443`, sign in, and inspect the session card.
+4. Open `https://localhost:4443`, sign in, and inspect the auth diagnostics surface.
 
    - The browser exchanges credentials through `/auth/nonce` and `/auth/google`.
    - `mpr-ui` hydrates shell state from `/me` and retries through `/auth/refresh` when needed.
-   - The status panel listens only for `mpr-ui:auth:*` events.
+   - The shipped `<mpr-auth-diagnostics>` surface listens only for `mpr-ui:auth:*`.
 
 Stop the stack with `./down.sh` (or `docker compose down -v` if you want to reclaim the SQLite volume).
 
@@ -193,6 +193,7 @@ Every UI surface is a custom element. The list below maps directly to the `<mpr-
 - `<mpr-footer>` — marketing footer with prefix dropdown menu, privacy link, and theme toggle that now uses internal dropdown listeners so it no longer collides with Bootstrap classes or `data-bs-*` hooks.
 - `<mpr-theme-toggle>` — shared switch/button that talks to the global theme manager.
 - `<mpr-login-button>` — GIS-only control for contexts that do not need the full header.
+- `<mpr-auth-diagnostics>` — passive verification surface for integration pages that need to confirm auth status, profile snapshots, and login errors.
 - `<mpr-user>` — profile menu that displays the signed-in user and triggers TAuth logout.
 - `<mpr-settings>` — emits toggle events so you can wire your own modal/drawer.
 - `<mpr-sites>` — renders the Marco Polo Research Lab network or any JSON catalog you provide.
@@ -205,6 +206,7 @@ The tags above replace the retired imperative helpers. See the example below for
 
 ```html
 <mpr-header
+  id="app-header"
   data-config-url="/config-ui.yaml"
   brand-label="Custom Research"
   brand-href="/"
@@ -253,6 +255,8 @@ The tags above replace the retired imperative helpers. See the example below for
 <!-- Auth attributes are applied from /config-ui.yaml -->
 <mpr-login-button></mpr-login-button>
 
+<mpr-auth-diagnostics auth-target="#app-header"></mpr-auth-diagnostics>
+
 <mpr-user
   display-mode="avatar-name"
   logout-url="/auth/logout"
@@ -278,6 +282,7 @@ The tags above replace the retired imperative helpers. See the example below for
 | `<mpr-footer>` | `prefix-text`, `horizontal-links` (JSON object with `{ alignment, links }`), `links-collection` (JSON with `{ style, text, links }`), `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-switcher`, `theme-config`, `size`, `sticky`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
 | `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config` | — | `mpr-ui:theme-change` |
 | `<mpr-login-button>` | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
+| `<mpr-auth-diagnostics>` | `auth-target` (CSS selector pointing at the auth surface or container under test) | — | — |
 | `<mpr-user>` | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `tauth-url`, `tauth-logout-path`, `avatar-url`, `avatar-label`, `menu-items` | — | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:menu-item`, `mpr-user:error` |
 | `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |
 | `<mpr-sites>` | `links`, `variant` (`list`, `grid`, `menu`), `columns`, `heading` | — | `mpr-sites:link-click` |
@@ -304,6 +309,15 @@ Slots let you inject custom markup without leaving declarative mode:
 Custom elements dispatch the same `mpr-ui:*` events that the deprecated helpers emitted, so event listeners continue working after migrating. See [`docs/custom-elements.md`](docs/custom-elements.md) for a deep-dive covering attribute shapes, events, migration tips, and a concrete YouTube playlists/videos workspace example built from the entity-workspace primitives. For a runnable JSON-backed version of that flow, use [`demo/entity-workspace.html`](demo/entity-workspace.html).
 
 `createAuthHeader()` now reflects `data-mpr-auth-status="bootstrapping"|"authenticating"|"authenticated"|"unauthenticated"` onto auth-bearing hosts. Use that state only for integration wiring and analytics; the preferred UX surface is the declarative `auth-transition` screen on `<mpr-header>`.
+
+For login verification during integration work, drop `<mpr-auth-diagnostics>` onto a non-production scaffold page and point it at the surface under test:
+
+```html
+<mpr-header id="app-header" data-config-url="/config-ui.yaml"></mpr-header>
+<mpr-auth-diagnostics auth-target="#app-header"></mpr-auth-diagnostics>
+```
+
+If the page contains exactly one auth surface (`<mpr-header>` or `<mpr-login-button>`), `auth-target` may be omitted. When there are multiple auth surfaces on the page, set it explicitly so the diagnostics surface does not guess.
 
 > Both `<mpr-header>` and `<mpr-footer>` are sticky by default. Add `sticky="false"` (or pass the equivalent option) if you want them to render in-flow; setting `sticky="true"` is redundant because `true` is the default. The attribute values are case-insensitive (`sticky="FALSE"` works), and the components manage stickiness internally so no host-level CSS overrides are required. In sticky mode the footer renders a spacer + viewport-fixed footer so it stays visible even when the page is scrolled to the top.
 
