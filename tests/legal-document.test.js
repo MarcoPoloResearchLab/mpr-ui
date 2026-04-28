@@ -153,6 +153,22 @@ test('MU-437: terms document includes reusable legal protection sections', () =>
   );
 });
 
+test('MU-437: legal document derives readable text from effective-date overrides', () => {
+  const library = loadLibrary();
+  const documentConfig = library.getLegalDocument({
+    type: 'terms',
+    productName: 'Date Tool',
+    effectiveDate: '2026-05-01',
+  });
+
+  assert.equal(documentConfig.effectiveDate, '2026-05-01');
+  assert.equal(documentConfig.effectiveDateText, 'May 1, 2026');
+  assert.ok(
+    documentConfig.introduction[1].includes('Effective May 1, 2026'),
+    'body copy uses the effective-date override when text is not provided',
+  );
+});
+
 test('MU-437: privacy document accepts product-specific extra sections before contact', () => {
   const library = loadLibrary();
   const documentConfig = library.getLegalDocument({
@@ -229,9 +245,18 @@ test('MU-437: renderLegalDocument can update a prebuilt terms model to privacy d
   assert.match(host.innerHTML, /Model Driven App \(the &quot;Service&quot;\)/);
   assert.match(host.innerHTML, /Indemnification/);
 
-  controller.update({ type: 'privacy', productName: 'Model Driven App' });
+  controller.update({
+    productName: 'Updated Model App',
+    serviceDescription: 'Updated Model App provides updated document automation.',
+  });
 
-  assert.match(host.innerHTML, /Privacy Policy - Model Driven App/);
+  assert.match(host.innerHTML, /Terms of Service - Updated Model App/);
+  assert.match(host.innerHTML, /Updated Model App provides updated document automation/);
+  assert.doesNotMatch(host.innerHTML, /Terms of Service - Model Driven App/);
+
+  controller.update({ type: 'privacy', productName: 'Updated Model App' });
+
+  assert.match(host.innerHTML, /Privacy Policy - Updated Model App/);
   assert.match(host.innerHTML, /Google OAuth and Google User Data/);
   assert.doesNotMatch(host.innerHTML, /Indemnification/);
 });

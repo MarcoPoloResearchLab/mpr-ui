@@ -6771,6 +6771,22 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   var LEGAL_DOCUMENT_SECTION_ERROR_CODE = "mpr-ui.legal.invalid_section";
   var LEGAL_DOCUMENT_TYPES = Object.freeze(["terms", "privacy"]);
   var LEGAL_DOCUMENT_DEFAULT_TYPE = "terms";
+  var LEGAL_DOCUMENT_SOURCE_OPTIONS =
+    typeof WeakMap === "function" ? new WeakMap() : null;
+  var LEGAL_DOCUMENT_MONTH_NAMES = Object.freeze([
+    "January",
+    "February",
+    "March",
+    "April",
+    "May",
+    "June",
+    "July",
+    "August",
+    "September",
+    "October",
+    "November",
+    "December",
+  ]);
   var LEGAL_DOCUMENT_ATTRIBUTE_NAMES = Object.freeze([
     "type",
     "product-name",
@@ -6887,6 +6903,24 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     var trimmed = value.trim();
     return trimmed ? trimmed : fallbackValue;
+  }
+
+  function formatLegalDateText(value) {
+    if (typeof value !== "string") {
+      return "";
+    }
+    var dateParts = value.split("-");
+    if (dateParts.length !== 3) {
+      return value;
+    }
+    var yearText = dateParts[0];
+    var monthNumber = Number(dateParts[1]);
+    var dayNumber = Number(dateParts[2]);
+    var monthName = LEGAL_DOCUMENT_MONTH_NAMES[monthNumber - 1];
+    if (!yearText || !monthName || !dayNumber) {
+      return value;
+    }
+    return monthName + " " + String(dayNumber) + ", " + yearText;
   }
 
   function normalizeLegalTextList(value) {
@@ -7044,6 +7078,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   function normalizeLegalDocumentOptions(rawOptions) {
     var options = rawOptions && typeof rawOptions === "object" ? rawOptions : {};
     var profile = normalizeLegalProfile(options.profile);
+    var effectiveDate = normalizeLegalText(
+      options.effectiveDate,
+      LEGAL_DOCUMENT_DEFAULTS.effectiveDate,
+    );
     if (options.companyName) {
       profile.companyName = normalizeLegalText(options.companyName, profile.companyName);
     }
@@ -7088,13 +7126,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         options.serviceDataDescription,
         LEGAL_DOCUMENT_DEFAULTS.serviceDataDescription,
       ),
-      effectiveDate: normalizeLegalText(
-        options.effectiveDate,
-        LEGAL_DOCUMENT_DEFAULTS.effectiveDate,
-      ),
+      effectiveDate: effectiveDate,
       effectiveDateText: normalizeLegalText(
         options.effectiveDateText,
-        LEGAL_DOCUMENT_DEFAULTS.effectiveDateText,
+        formatLegalDateText(effectiveDate),
       ),
       lastUpdatedDate: normalizeLegalText(
         options.lastUpdatedDate,
@@ -7119,6 +7154,34 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         : null,
       extraSections: normalizeLegalSections(options.extraSections),
     };
+  }
+
+  function getLegalDocumentSourceOptions(rawOptions) {
+    if (
+      rawOptions &&
+      typeof rawOptions === "object" &&
+      LEGAL_DOCUMENT_SOURCE_OPTIONS
+    ) {
+      var sourceOptions = LEGAL_DOCUMENT_SOURCE_OPTIONS.get(rawOptions);
+      if (sourceOptions) {
+        return deepMergeOptions({}, sourceOptions);
+      }
+    }
+    return deepMergeOptions({}, rawOptions || {});
+  }
+
+  function rememberLegalDocumentSourceOptions(documentConfig, rawOptions) {
+    if (
+      documentConfig &&
+      typeof documentConfig === "object" &&
+      LEGAL_DOCUMENT_SOURCE_OPTIONS
+    ) {
+      LEGAL_DOCUMENT_SOURCE_OPTIONS.set(
+        documentConfig,
+        getLegalDocumentSourceOptions(rawOptions),
+      );
+    }
+    return documentConfig;
   }
 
   function buildTermsLegalSections(config) {
@@ -7275,47 +7338,50 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       config.sections && config.sections.length
         ? config.sections.map(cloneLegalSection)
         : insertLegalExtraSections(baseSections, config.extraSections);
-    return {
-      type: config.type,
-      title: config.title || defaultTitle,
-      productName: config.productName,
-      effectiveDate: config.effectiveDate,
-      effectiveDateText: config.effectiveDateText,
-      lastUpdatedDate: config.lastUpdatedDate,
-      profile: cloneLegalProfile(config.profile),
-      introduction:
-        config.type === "privacy"
-          ? [
-              "This Privacy Policy explains how " +
-                config.profile.companyName +
-                ", a " +
-                config.profile.companyForm +
-                ' ("' +
-                config.profile.companyShortName +
-                '", "Company", "we", "our", "us"), collects, uses, discloses, and protects information when you use ' +
-                config.productName +
-                ' (the "Service").',
-            ]
-          : [
-              "These Terms of Service form a binding agreement between you and " +
-                config.profile.companyName +
-                ", a " +
-                config.profile.companyForm +
-                ' ("' +
-                config.profile.companyShortName +
-                '", "Company", "we", "our", "us"), for access to and use of ' +
-                config.productName +
-                ' (the "Service"). By using the Service, you agree to these Terms.',
-              "Effective " +
-                config.effectiveDateText +
-                ", " +
-                config.productName +
-                " is operated by " +
-                config.profile.companyName +
-                ". Continued use of the Service on or after that date is governed by these Terms.",
-            ],
-      sections: resolvedSections,
-    };
+    return rememberLegalDocumentSourceOptions(
+      {
+        type: config.type,
+        title: config.title || defaultTitle,
+        productName: config.productName,
+        effectiveDate: config.effectiveDate,
+        effectiveDateText: config.effectiveDateText,
+        lastUpdatedDate: config.lastUpdatedDate,
+        profile: cloneLegalProfile(config.profile),
+        introduction:
+          config.type === "privacy"
+            ? [
+                "This Privacy Policy explains how " +
+                  config.profile.companyName +
+                  ", a " +
+                  config.profile.companyForm +
+                  ' ("' +
+                  config.profile.companyShortName +
+                  '", "Company", "we", "our", "us"), collects, uses, discloses, and protects information when you use ' +
+                  config.productName +
+                  ' (the "Service").',
+              ]
+            : [
+                "These Terms of Service form a binding agreement between you and " +
+                  config.profile.companyName +
+                  ", a " +
+                  config.profile.companyForm +
+                  ' ("' +
+                  config.profile.companyShortName +
+                  '", "Company", "we", "our", "us"), for access to and use of ' +
+                  config.productName +
+                  ' (the "Service"). By using the Service, you agree to these Terms.',
+                "Effective " +
+                  config.effectiveDateText +
+                  ", " +
+                  config.productName +
+                  " is operated by " +
+                  config.profile.companyName +
+                  ". Continued use of the Service on or after that date is governed by these Terms.",
+              ],
+        sections: resolvedSections,
+      },
+      rawOptions,
+    );
   }
 
   function renderLegalParagraph(paragraph) {
@@ -7411,7 +7477,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (!host || typeof host !== "object") {
       throw new Error("createLegalDocumentController requires a host element");
     }
-    var currentOptions = deepMergeOptions({}, options || {});
+    var currentOptions = getLegalDocumentSourceOptions(options);
     function renderCurrentDocument() {
       var documentObject =
         host.ownerDocument ||
@@ -7435,21 +7501,19 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     renderCurrentDocument();
     return {
       update: function update(nextOptions, replaceOptions) {
+        var incomingOptions = getLegalDocumentSourceOptions(nextOptions);
         var hasTypeChange =
           !replaceOptions &&
-          nextOptions &&
-          nextOptions.type &&
+          incomingOptions.type &&
           currentOptions.type &&
-          nextOptions.type !== currentOptions.type;
+          incomingOptions.type !== currentOptions.type;
         var hasSectionOverride =
-          nextOptions &&
-          Object.prototype.hasOwnProperty.call(nextOptions, "sections");
+          Object.prototype.hasOwnProperty.call(incomingOptions, "sections");
         var hasTitleOverride =
-          nextOptions &&
-          Object.prototype.hasOwnProperty.call(nextOptions, "title");
+          Object.prototype.hasOwnProperty.call(incomingOptions, "title");
         currentOptions = replaceOptions
-          ? deepMergeOptions({}, nextOptions || {})
-          : deepMergeOptions({}, currentOptions, nextOptions || {});
+          ? incomingOptions
+          : deepMergeOptions({}, currentOptions, incomingOptions);
         if (hasTypeChange && !hasSectionOverride) {
           delete currentOptions.sections;
         }
