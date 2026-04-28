@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" data-mpr-theme="dark">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Legal Document Fixture</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <style>
+      body {
+        margin: 0;
+        min-height: 100vh;
+        padding: 48px 16px;
+        background: #07151d;
+        font-family: Inter, system-ui, sans-serif;
+      }
+
+      main {
+        display: grid;
+        gap: 32px;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <mpr-legal-document
+        id="fixture-terms"
+        type="terms"
+        product-name="Fixture Scanner"
+        service-description="Fixture Scanner retrieves product pages, scores listings, and exports verification data."
+        service-data-description="uploaded product IDs, scan profiles, generated scores, and saved crawl artifacts"
+        extra-sections='[
+          {
+            "id": "source-sites",
+            "heading": "Source Site Terms",
+            "paragraphs": ["Users must comply with source-site platform rules."]
+          }
+        ]'
+      ></mpr-legal-document>
+
+      <mpr-legal-document
+        id="fixture-privacy"
+        type="privacy"
+        product-name="Fixture Scanner"
+        service-data-description="uploaded product IDs, scan profiles, generated scores, and saved crawl artifacts"
+      ></mpr-legal-document>
+    </main>
+
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+    ></script>
+  </body>
+</html>

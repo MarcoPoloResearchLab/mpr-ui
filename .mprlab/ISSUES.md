@@ -19,6 +19,14 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 - [x] [MU-133] Add ability to hide/disable the privacy link in `<mpr-footer>`.
   Resolved: added `privacy-link-hidden` (boolean) which omits the privacy link and privacy modal markup when enabled. Tests: `npm test`, `npx --yes --package typescript tsc --noEmit`.
+- [x] [MU-437] Add reusable MPR Lab legal document templates and a custom element for cross-app Terms and Privacy pages.
+  Summary: PoodleScanner now has mature Terms and Privacy pages with Marco Polo Research Lab LLC identity, legal/support contacts, phone number, indemnification, governing-law, refunds, billing, OAuth, analytics, and data-retention clauses. Other MPR Lab apps need the same legal foundation without copy-pasting static HTML in every repository.
+  Expected:
+  - Export a shared MPR Lab legal profile containing company identity, website, support/legal emails, and phone details.
+  - Provide reusable Terms and Privacy document builders that render escaped, product-configurable sections.
+  - Register a `<mpr-legal-document>` element for JS/CDN consumers and expose an imperative rendering helper for frameworks.
+  - Keep product-specific clauses configurable so apps can add domain language without changing shared company/contact defaults.
+  Resolved 2026-04-28: added `MPRUI.getLegalProfile()`, `MPRUI.getLegalDocument()`, `MPRUI.renderLegalDocument()`, and `<mpr-legal-document>` with shared MPR Lab LLC contact defaults, escaped Terms/Privacy rendering, product-specific section overrides, docs, and unit/Playwright coverage. Tests: `node --test tests/legal-document.test.js tests/custom-elements-header-footer.test.js`; `npx playwright test tests/e2e/legal-document.spec.js`; `npx --yes --package typescript@5.9.2 tsc --noEmit`; `make ci`.
 
 ## Improvements (428–527)
 

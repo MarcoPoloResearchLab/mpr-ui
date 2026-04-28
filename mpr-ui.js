@@ -47,6 +47,33 @@
    *   subscribe?: SubscribeConfig,
    * }} BandCatalogEntry
    * @typedef {{
+   *   companyName: string,
+   *   companyShortName: string,
+   *   companyForm: string,
+   *   websiteUrl: string,
+   *   supportEmail: string,
+   *   legalNoticesEmail: string,
+   *   phoneDisplay: string,
+   *   phoneHref: string,
+   * }} LegalProfile
+   * @typedef {{
+   *   id: string,
+   *   heading: string,
+   *   paragraphs: string[],
+   *   list: string[],
+   * }} LegalDocumentSection
+   * @typedef {{
+   *   type: string,
+   *   title: string,
+   *   productName: string,
+   *   effectiveDate: string,
+   *   effectiveDateText: string,
+   *   lastUpdatedDate: string,
+   *   profile: LegalProfile,
+   *   introduction: string[],
+   *   sections: LegalDocumentSection[],
+   * }} LegalDocument
+   * @typedef {{
    *   render?: () => void,
    *   destroy?: () => void,
    *   update?: (name: string, oldValue: string|null, newValue: string|null) => void,
@@ -6738,6 +6765,819 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
   }
 
+  var LEGAL_DOCUMENT_ROOT_CLASS = "mpr-legal-document";
+  var LEGAL_DOCUMENT_STYLE_ID = "mpr-ui-legal-document-styles";
+  var LEGAL_DOCUMENT_TYPE_ERROR_CODE = "mpr-ui.legal.invalid_type";
+  var LEGAL_DOCUMENT_SECTION_ERROR_CODE = "mpr-ui.legal.invalid_section";
+  var LEGAL_DOCUMENT_TYPES = Object.freeze(["terms", "privacy"]);
+  var LEGAL_DOCUMENT_DEFAULT_TYPE = "terms";
+  var LEGAL_DOCUMENT_ATTRIBUTE_NAMES = Object.freeze([
+    "type",
+    "product-name",
+    "service-description",
+    "service-data-description",
+    "effective-date",
+    "effective-date-text",
+    "last-updated-date",
+    "privacy-path",
+    "terms-path",
+    "pricing-path",
+    "company-name",
+    "company-short-name",
+    "company-form",
+    "website-url",
+    "support-email",
+    "legal-email",
+    "phone-display",
+    "phone-href",
+    "profile",
+    "sections",
+    "extra-sections",
+    "title",
+  ]);
+  /** @type {LegalProfile} */
+  var LEGAL_PROFILE_DEFAULTS = Object.freeze({
+    companyName: "Marco Polo Research Lab LLC",
+    companyShortName: "MPR Lab",
+    companyForm: "California limited liability company",
+    websiteUrl: "https://mprlab.com",
+    supportEmail: "support@mprlab.com",
+    legalNoticesEmail: "legal@mprlab.com",
+    phoneDisplay: "(650) 265-1193",
+    phoneHref: "+16502651193",
+  });
+  var LEGAL_DOCUMENT_DEFAULTS = Object.freeze({
+    type: LEGAL_DOCUMENT_DEFAULT_TYPE,
+    productName: "Service",
+    serviceDescription:
+      "The service provides software tools and related support services.",
+    serviceDataDescription:
+      "account records, submitted content, generated results, preferences, and operational history",
+    effectiveDate: "2026-03-30",
+    effectiveDateText: "March 30, 2026",
+    lastUpdatedDate: "2026-04-28",
+    privacyPath: "/privacy",
+    termsPath: "/tos",
+    pricingPath: "/pricing",
+    title: "",
+    profile: LEGAL_PROFILE_DEFAULTS,
+  });
+  var LEGAL_DOCUMENT_STYLE_MARKUP =
+    "mpr-legal-document{display:block;color:var(--mpr-color-text-primary,#e2e8f0)}" +
+    ".mpr-legal-document{display:block}" +
+    ".mpr-legal-document__card{max-width:860px;margin:0 auto;padding:2rem;border-radius:8px;border:1px solid var(--mpr-color-border,rgba(148,163,184,0.35));background:var(--mpr-color-surface-elevated,rgba(3,27,32,0.92));box-shadow:var(--mpr-shadow-elevated,0 25px 60px rgba(0,0,0,0.55));color:var(--mpr-color-text-primary,#e2e8f0)}" +
+    ".mpr-legal-document__title{margin:0 0 0.75rem;font-size:clamp(2rem,4vw,2.75rem);line-height:1.08;font-weight:700;letter-spacing:0}" +
+    ".mpr-legal-document__meta{margin:0 0 1.5rem;color:var(--mpr-color-text-muted,#94a3b8);font-size:0.98rem;line-height:1.6}" +
+    ".mpr-legal-document__intro{margin:0 0 1rem;color:var(--mpr-color-text-muted,#94a3b8);font-size:1rem;line-height:1.7}" +
+    ".mpr-legal-document__section{margin-block-start:1.8rem}" +
+    ".mpr-legal-document__heading{margin:0 0 0.7rem;font-size:1.08rem;line-height:1.35;font-weight:700;letter-spacing:0;color:var(--mpr-color-text-primary,#e2e8f0)}" +
+    ".mpr-legal-document__paragraph,.mpr-legal-document__list-item{margin:0 0 0.85rem;color:var(--mpr-color-text-muted,#94a3b8);font-size:1rem;line-height:1.7}" +
+    ".mpr-legal-document__list{margin:0;padding-inline-start:1.25rem}" +
+    ".mpr-legal-document__link{color:var(--mpr-color-accent,#38bdf8);font-weight:600;text-decoration:none}" +
+    ".mpr-legal-document__link:hover{text-decoration:underline}" +
+    "@media(max-width:640px){.mpr-legal-document__card{padding:1.5rem}.mpr-legal-document__title{font-size:2rem}}";
+
+  function ensureLegalDocumentStyles(documentObject) {
+    if (
+      !documentObject ||
+      typeof documentObject.createElement !== "function" ||
+      !documentObject.head
+    ) {
+      return;
+    }
+    ensureThemeTokenStyles(documentObject);
+    if (documentObject.getElementById(LEGAL_DOCUMENT_STYLE_ID)) {
+      return;
+    }
+    var styleElement = documentObject.createElement("style");
+    styleElement.type = "text/css";
+    styleElement.id = LEGAL_DOCUMENT_STYLE_ID;
+    if (styleElement.styleSheet) {
+      styleElement.styleSheet.cssText = LEGAL_DOCUMENT_STYLE_MARKUP;
+    } else {
+      styleElement.appendChild(
+        documentObject.createTextNode(LEGAL_DOCUMENT_STYLE_MARKUP),
+      );
+    }
+    documentObject.head.appendChild(styleElement);
+  }
+
+  function cloneLegalProfile(profile) {
+    var sourceProfile =
+      profile && typeof profile === "object" ? profile : LEGAL_PROFILE_DEFAULTS;
+    return {
+      companyName: sourceProfile.companyName,
+      companyShortName: sourceProfile.companyShortName,
+      companyForm: sourceProfile.companyForm,
+      websiteUrl: sourceProfile.websiteUrl,
+      supportEmail: sourceProfile.supportEmail,
+      legalNoticesEmail: sourceProfile.legalNoticesEmail,
+      phoneDisplay: sourceProfile.phoneDisplay,
+      phoneHref: sourceProfile.phoneHref,
+    };
+  }
+
+  function getLegalProfile() {
+    return cloneLegalProfile(LEGAL_PROFILE_DEFAULTS);
+  }
+
+  function normalizeLegalText(value, fallbackValue) {
+    if (typeof value !== "string") {
+      return fallbackValue;
+    }
+    var trimmed = value.trim();
+    return trimmed ? trimmed : fallbackValue;
+  }
+
+  function normalizeLegalTextList(value) {
+    if (typeof value === "string") {
+      var trimmedValue = value.trim();
+      return trimmedValue ? [trimmedValue] : [];
+    }
+    if (!Array.isArray(value)) {
+      return [];
+    }
+    return value
+      .map(function normalizeEntry(entry) {
+        return typeof entry === "string" ? entry.trim() : "";
+      })
+      .filter(Boolean);
+  }
+
+  function normalizeLegalSectionId(value, fallbackValue) {
+    var source = normalizeLegalText(value, fallbackValue || "");
+    if (!source) {
+      return "";
+    }
+    return source
+      .toLowerCase()
+      .replace(/[^a-z0-9_-]+/g, "-")
+      .replace(/^-+|-+$/g, "");
+  }
+
+  function normalizeLegalSection(rawSection, sectionIndex) {
+    if (!rawSection || typeof rawSection !== "object") {
+      logError(
+        LEGAL_DOCUMENT_SECTION_ERROR_CODE,
+        "Legal document sections must be objects with heading and content.",
+      );
+      return null;
+    }
+    var heading = normalizeLegalText(
+      rawSection.heading || rawSection.title,
+      "",
+    );
+    if (!heading) {
+      logError(
+        LEGAL_DOCUMENT_SECTION_ERROR_CODE,
+        "Legal document section heading is required.",
+      );
+      return null;
+    }
+    var paragraphs = normalizeLegalTextList(
+      rawSection.paragraphs || rawSection.body || rawSection.content,
+    );
+    var list = normalizeLegalTextList(rawSection.list || rawSection.items);
+    if (!paragraphs.length && !list.length) {
+      logError(
+        LEGAL_DOCUMENT_SECTION_ERROR_CODE,
+        "Legal document section content is required.",
+      );
+      return null;
+    }
+    return {
+      id: normalizeLegalSectionId(rawSection.id, "section-" + String(sectionIndex + 1)),
+      heading: heading,
+      paragraphs: paragraphs,
+      list: list,
+    };
+  }
+
+  function normalizeLegalSections(rawSections) {
+    if (!Array.isArray(rawSections)) {
+      return [];
+    }
+    return rawSections
+      .map(function normalizeSection(section, sectionIndex) {
+        return normalizeLegalSection(section, sectionIndex);
+      })
+      .filter(Boolean);
+  }
+
+  function cloneLegalSection(section) {
+    return {
+      id: section.id,
+      heading: section.heading,
+      paragraphs: section.paragraphs.slice(),
+      list: section.list.slice(),
+    };
+  }
+
+  function createLegalSection(id, heading, paragraphs, list) {
+    return {
+      id: id,
+      heading: heading,
+      paragraphs: paragraphs.slice(),
+      list: Array.isArray(list) ? list.slice() : [],
+    };
+  }
+
+  function normalizeLegalDocumentType(value) {
+    var normalized = normalizeLegalText(value, LEGAL_DOCUMENT_DEFAULT_TYPE).toLowerCase();
+    if (LEGAL_DOCUMENT_TYPES.indexOf(normalized) !== -1) {
+      return normalized;
+    }
+    logError(
+      LEGAL_DOCUMENT_TYPE_ERROR_CODE,
+      'Unsupported legal document type "' + value + '".',
+    );
+    return LEGAL_DOCUMENT_DEFAULT_TYPE;
+  }
+
+  function normalizeLegalProfile(rawProfile) {
+    var profileInput =
+      rawProfile && typeof rawProfile === "object" ? rawProfile : {};
+    var mergedProfile = deepMergeOptions(
+      {},
+      LEGAL_PROFILE_DEFAULTS,
+      profileInput,
+    );
+    if (profileInput.legalEmail && !profileInput.legalNoticesEmail) {
+      mergedProfile.legalNoticesEmail = profileInput.legalEmail;
+    }
+    return cloneLegalProfile({
+      companyName: normalizeLegalText(
+        mergedProfile.companyName,
+        LEGAL_PROFILE_DEFAULTS.companyName,
+      ),
+      companyShortName: normalizeLegalText(
+        mergedProfile.companyShortName,
+        LEGAL_PROFILE_DEFAULTS.companyShortName,
+      ),
+      companyForm: normalizeLegalText(
+        mergedProfile.companyForm,
+        LEGAL_PROFILE_DEFAULTS.companyForm,
+      ),
+      websiteUrl: normalizeLegalText(
+        mergedProfile.websiteUrl,
+        LEGAL_PROFILE_DEFAULTS.websiteUrl,
+      ),
+      supportEmail: normalizeLegalText(
+        mergedProfile.supportEmail,
+        LEGAL_PROFILE_DEFAULTS.supportEmail,
+      ),
+      legalNoticesEmail: normalizeLegalText(
+        mergedProfile.legalNoticesEmail,
+        LEGAL_PROFILE_DEFAULTS.legalNoticesEmail,
+      ),
+      phoneDisplay: normalizeLegalText(
+        mergedProfile.phoneDisplay,
+        LEGAL_PROFILE_DEFAULTS.phoneDisplay,
+      ),
+      phoneHref: normalizeLegalText(
+        mergedProfile.phoneHref,
+        LEGAL_PROFILE_DEFAULTS.phoneHref,
+      ),
+    });
+  }
+
+  function normalizeLegalDocumentOptions(rawOptions) {
+    var options = rawOptions && typeof rawOptions === "object" ? rawOptions : {};
+    var profile = normalizeLegalProfile(options.profile);
+    if (options.companyName) {
+      profile.companyName = normalizeLegalText(options.companyName, profile.companyName);
+    }
+    if (options.companyShortName) {
+      profile.companyShortName = normalizeLegalText(
+        options.companyShortName,
+        profile.companyShortName,
+      );
+    }
+    if (options.companyForm) {
+      profile.companyForm = normalizeLegalText(options.companyForm, profile.companyForm);
+    }
+    if (options.websiteUrl) {
+      profile.websiteUrl = normalizeLegalText(options.websiteUrl, profile.websiteUrl);
+    }
+    if (options.supportEmail) {
+      profile.supportEmail = normalizeLegalText(options.supportEmail, profile.supportEmail);
+    }
+    if (options.legalEmail || options.legalNoticesEmail) {
+      profile.legalNoticesEmail = normalizeLegalText(
+        options.legalEmail || options.legalNoticesEmail,
+        profile.legalNoticesEmail,
+      );
+    }
+    if (options.phoneDisplay) {
+      profile.phoneDisplay = normalizeLegalText(options.phoneDisplay, profile.phoneDisplay);
+    }
+    if (options.phoneHref) {
+      profile.phoneHref = normalizeLegalText(options.phoneHref, profile.phoneHref);
+    }
+    return {
+      type: normalizeLegalDocumentType(options.type),
+      productName: normalizeLegalText(
+        options.productName,
+        LEGAL_DOCUMENT_DEFAULTS.productName,
+      ),
+      serviceDescription: normalizeLegalText(
+        options.serviceDescription,
+        LEGAL_DOCUMENT_DEFAULTS.serviceDescription,
+      ),
+      serviceDataDescription: normalizeLegalText(
+        options.serviceDataDescription,
+        LEGAL_DOCUMENT_DEFAULTS.serviceDataDescription,
+      ),
+      effectiveDate: normalizeLegalText(
+        options.effectiveDate,
+        LEGAL_DOCUMENT_DEFAULTS.effectiveDate,
+      ),
+      effectiveDateText: normalizeLegalText(
+        options.effectiveDateText,
+        LEGAL_DOCUMENT_DEFAULTS.effectiveDateText,
+      ),
+      lastUpdatedDate: normalizeLegalText(
+        options.lastUpdatedDate,
+        LEGAL_DOCUMENT_DEFAULTS.lastUpdatedDate,
+      ),
+      privacyPath: normalizeLegalText(
+        options.privacyPath,
+        LEGAL_DOCUMENT_DEFAULTS.privacyPath,
+      ),
+      termsPath: normalizeLegalText(
+        options.termsPath,
+        LEGAL_DOCUMENT_DEFAULTS.termsPath,
+      ),
+      pricingPath: normalizeLegalText(
+        options.pricingPath,
+        LEGAL_DOCUMENT_DEFAULTS.pricingPath,
+      ),
+      title: normalizeLegalText(options.title, ""),
+      profile: profile,
+      sections: Array.isArray(options.sections)
+        ? normalizeLegalSections(options.sections)
+        : null,
+      extraSections: normalizeLegalSections(options.extraSections),
+    };
+  }
+
+  function buildTermsLegalSections(config) {
+    var profile = config.profile;
+    return [
+      createLegalSection("eligibility", "1. Eligibility and Account Use", [], [
+        "You must be legally able to enter into contracts to use the Service.",
+        "If you use the Service on behalf of an organization, you confirm you have authority to bind that organization.",
+        "You are responsible for maintaining account access and for all activity under your account.",
+      ]),
+      createLegalSection("service-description", "2. Service Description", [
+        config.serviceDescription,
+        "Some features, schedules, notifications, pricing options, integrations, or exports may change over time.",
+      ]),
+      createLegalSection("acceptable-use", "3. Acceptable Use", [], [
+        "Use the Service only for lawful business purposes.",
+        "Comply with applicable third-party terms, platform rules, and content rights for any data or sites you process through the Service.",
+        "Do not interfere with service availability, security, or other users.",
+        "Do not upload malicious code, attempt unauthorized access, or abuse APIs, automation, billing, or usage limits.",
+      ]),
+      createLegalSection("user-content", "4. User Content and Data", [
+        "You retain rights to data you upload or generate through the Service. You grant us a limited license to store, process, and display that data as needed to provide, secure, troubleshoot, and improve the Service.",
+        "You are responsible for confirming that your use of source websites, uploaded content, and generated outputs is permitted. Privacy and data handling details are in the Privacy Policy at " + config.privacyPath + ".",
+      ]),
+      createLegalSection("pricing", "5. Pricing, Credits, and Payments", [
+        "Pricing may be displayed in-product or at " + config.pricingPath + " and may be updated prospectively.",
+        "Usage-based actions may consume credits according to in-product indicators. If paid checkout is enabled, payment processing may be provided by Paddle or another authorized payment provider.",
+        "Subscriptions renew automatically until canceled unless the checkout flow says otherwise. Cancellation stops future renewals and takes effect at the end of the then-current billing period.",
+      ]),
+      createLegalSection("refund-policy", "6. Refund Policy", [
+        "For usage-credit operations, the Service may restore or refund credits for eligible technical failures according to product behavior.",
+        "Except where required by law, required by merchant-of-record terms, or approved in special circumstances, subscription fees, top-up packs, and other completed checkout charges are non-refundable.",
+        "To request refund review or billing support, contact " + profile.supportEmail + ".",
+      ]),
+      createLegalSection("third-party-services", "7. Third-Party Services", [
+        "The Service may depend on third-party services including authentication, hosting, telemetry, support widgets, billing infrastructure, payment processing, and external APIs. We are not responsible for downtime or actions of those third parties beyond our contractual obligations.",
+      ]),
+      createLegalSection("availability", "8. Availability and Changes", [
+        "We may update, suspend, or discontinue features at any time, including to improve security, comply with legal obligations, or maintain platform integrity.",
+        "We may revise these Terms by posting an updated version with a new effective date. Continued use after updates means you accept the revised Terms.",
+      ]),
+      createLegalSection("termination", "9. Suspension and Termination", [
+        "We may suspend or terminate access if you violate these Terms, create legal or security risk, or misuse the Service. You may stop using the Service at any time.",
+      ]),
+      createLegalSection("intellectual-property", "10. Intellectual Property", [
+        "The Service software, design, and related materials are proprietary to " + profile.companyName + " and its licensors, and are protected by applicable intellectual property laws.",
+      ]),
+      createLegalSection("disclaimers", "11. Disclaimers", [
+        'The Service is provided "as is" and "as available" without warranties of any kind. Outputs are informational and may be affected by source data, external services, network conditions, or configured rules.',
+      ]),
+      createLegalSection("limitation-of-liability", "12. Limitation of Liability", [
+        "To the maximum extent permitted by law, " + profile.companyName + " is not liable for indirect, incidental, special, consequential, or punitive damages, or for lost profits, revenue, data, or goodwill arising from use of the Service.",
+      ]),
+      createLegalSection("indemnification", "13. Indemnification", [
+        "To the extent permitted by law, you agree to defend, indemnify, and hold harmless " + profile.companyName + " and its officers, employees, contractors, service providers, and licensors from claims, losses, liabilities, damages, costs, and expenses arising from your content, your use of the Service, your violation of these Terms, or your violation of applicable law or third-party rights.",
+      ]),
+      createLegalSection("governing-law", "14. Governing Law and Venue", [
+        "These Terms are governed by the laws of the State of California, without regard to conflict-of-law rules. Except where applicable law requires otherwise, disputes arising from these Terms or the Service will be resolved in state or federal courts located in Los Angeles County, California, and you consent to that venue.",
+      ]),
+      createLegalSection("contact", "15. Contact and Notices", [
+        "For legal notices or Terms questions, contact " + profile.legalNoticesEmail + ". For billing, refund, account, or support questions, contact " + profile.supportEmail + ". You may also call " + profile.phoneDisplay + " or visit " + profile.websiteUrl + ".",
+      ]),
+    ];
+  }
+
+  function buildPrivacyLegalSections(config) {
+    var profile = config.profile;
+    return [
+      createLegalSection("scope", "1. Scope and Controller", [
+        "Effective " + config.effectiveDateText + ", " + profile.companyName + " is the data controller for information processed through " + config.productName + ". This policy applies to our website, web application, and related support services.",
+      ]),
+      createLegalSection("information-we-collect", "2. Information We Collect", [
+        "Account and authentication data: we may use Google Identity Services or related authentication providers to sign you in and receive profile fields required to operate the account, including your name, email address, and profile image.",
+        "Service data: we collect and store " + config.serviceDataDescription + ".",
+        "Preferences and communications: we store account preferences and notification settings, and we process communications such as support requests.",
+        "Technical and diagnostics data: we process technical data such as IP address, user agent, timestamps, request metadata, and service logs for security, troubleshooting, abuse prevention, and reliability.",
+        "Billing and transaction data: if paid features are enabled, we process credits, subscription, transaction, and reconciliation metadata required to operate billing. Payment providers may process payment details, and we do not receive full payment card numbers.",
+      ]),
+      createLegalSection("use-of-information", "3. How We Use Information", [], [
+        "Authenticate users and secure accounts.",
+        "Operate product functionality, exports, settings, notifications, and support workflows.",
+        "Operate credits, billing, reconciliation, and fraud prevention workflows.",
+        "Monitor, troubleshoot, and improve service reliability and performance.",
+        "Comply with legal obligations and enforce our Terms of Service at " + config.termsPath + ".",
+      ]),
+      createLegalSection("google-oauth", "4. Google OAuth and Google User Data", [
+        config.productName + " uses Google OAuth only for sign-in and account identity when Google sign-in is enabled. Google user data is not sold and is not used for advertising. We use Google profile data solely to provide and secure the Service for the authenticated account.",
+        "If you disconnect your Google account or request account deletion, we stop further OAuth-based access for that account.",
+      ]),
+      createLegalSection("sharing", "5. Sharing and Disclosure", [
+        "We do not sell personal information. We may share information with service providers strictly as needed to operate the Service, including identity/authentication providers, cloud hosting providers, analytics/support tooling, email delivery providers, billing infrastructure, and payment processors.",
+        "We may also disclose information when required by law, to protect rights or safety, or in a corporate transaction.",
+      ]),
+      createLegalSection("cookies", "6. Cookies, Local Storage, and Analytics", [], [
+        "Session cookies may be used for authentication and security.",
+        "Browser local storage may store UI preferences such as theme settings.",
+        "Analytics tools may be used for aggregate usage analytics.",
+        "Support and feedback widgets may collect interaction data needed to provide support.",
+      ]),
+      createLegalSection("retention", "7. Data Retention", [
+        "We retain account and operational data for as long as needed to provide the Service and meet legal, accounting, and security obligations. Retention windows vary by data type and may include active account lifetime, operational backups, and financial recordkeeping periods.",
+      ]),
+      createLegalSection("security", "8. Security", [
+        "We use technical and organizational safeguards designed to protect information, including access controls, transport security, and monitoring. No system is completely secure, and we cannot guarantee absolute security.",
+      ]),
+      createLegalSection("international-transfers", "9. International Transfers", [
+        "We and our providers may process data in multiple countries. When data is transferred across borders, we use appropriate contractual and operational safeguards required by applicable law.",
+      ]),
+      createLegalSection("rights", "10. Your Rights and Choices", [
+        "Depending on your location, you may have rights to access, correct, export, or delete personal information, and to object to or restrict some processing. To submit a request, contact us at " + profile.supportEmail + ".",
+      ]),
+      createLegalSection("children", "11. Children's Privacy", [
+        config.productName + " is not directed to children, and we do not knowingly collect personal information from children.",
+      ]),
+      createLegalSection("changes", "12. Changes to This Policy", [
+        "We may update this Privacy Policy from time to time. Material updates will be reflected by revising the effective date on this page.",
+      ]),
+      createLegalSection("contact", "13. Contact", [
+        "For privacy questions, account deletion requests, or data rights requests, contact " + profile.supportEmail + ". Legal notices may be sent to " + profile.legalNoticesEmail + ". You may also call " + profile.phoneDisplay + " or visit " + profile.websiteUrl + ".",
+      ]),
+    ];
+  }
+
+  function insertLegalExtraSections(baseSections, extraSections) {
+    if (!extraSections.length) {
+      return baseSections.map(cloneLegalSection);
+    }
+    var sections = baseSections.map(cloneLegalSection);
+    var contactIndex = -1;
+    sections.forEach(function findContact(section, sectionIndex) {
+      if (section.id === "contact") {
+        contactIndex = sectionIndex;
+      }
+    });
+    var additions = extraSections.map(cloneLegalSection);
+    if (contactIndex === -1) {
+      Array.prototype.push.apply(sections, additions);
+      return sections;
+    }
+    sections.splice.apply(sections, [contactIndex, 0].concat(additions));
+    return sections;
+  }
+
+  function buildLegalDocument(rawOptions) {
+    var config = normalizeLegalDocumentOptions(rawOptions);
+    var defaultTitle =
+      (config.type === "privacy" ? "Privacy Policy - " : "Terms of Service - ") +
+      config.productName;
+    var baseSections =
+      config.type === "privacy"
+        ? buildPrivacyLegalSections(config)
+        : buildTermsLegalSections(config);
+    var resolvedSections =
+      config.sections && config.sections.length
+        ? config.sections.map(cloneLegalSection)
+        : insertLegalExtraSections(baseSections, config.extraSections);
+    return {
+      type: config.type,
+      title: config.title || defaultTitle,
+      productName: config.productName,
+      effectiveDate: config.effectiveDate,
+      effectiveDateText: config.effectiveDateText,
+      lastUpdatedDate: config.lastUpdatedDate,
+      profile: cloneLegalProfile(config.profile),
+      introduction:
+        config.type === "privacy"
+          ? [
+              "This Privacy Policy explains how " +
+                config.profile.companyName +
+                ", a " +
+                config.profile.companyForm +
+                ' ("' +
+                config.profile.companyShortName +
+                '", "Company", "we", "our", "us"), collects, uses, discloses, and protects information when you use ' +
+                config.productName +
+                ' (the "Service").',
+            ]
+          : [
+              "These Terms of Service form a binding agreement between you and " +
+                config.profile.companyName +
+                ", a " +
+                config.profile.companyForm +
+                ' ("' +
+                config.profile.companyShortName +
+                '", "Company", "we", "our", "us"), for access to and use of ' +
+                config.productName +
+                ' (the "Service"). By using the Service, you agree to these Terms.',
+              "Effective " +
+                config.effectiveDateText +
+                ", " +
+                config.productName +
+                " is operated by " +
+                config.profile.companyName +
+                ". Continued use of the Service on or after that date is governed by these Terms.",
+            ],
+      sections: resolvedSections,
+    };
+  }
+
+  function renderLegalParagraph(paragraph) {
+    return (
+      '<p class="' +
+      LEGAL_DOCUMENT_ROOT_CLASS +
+      '__paragraph">' +
+      escapeHtml(paragraph) +
+      "</p>"
+    );
+  }
+
+  function renderLegalListItem(item) {
+    return (
+      '<li class="' +
+      LEGAL_DOCUMENT_ROOT_CLASS +
+      '__list-item">' +
+      escapeHtml(item) +
+      "</li>"
+    );
+  }
+
+  function buildLegalSectionMarkup(section) {
+    var idMarkup = section.id ? ' id="' + escapeHtml(section.id) + '"' : "";
+    var paragraphMarkup = section.paragraphs.map(renderLegalParagraph).join("");
+    var listMarkup = section.list.length
+      ? '<ul class="' +
+        LEGAL_DOCUMENT_ROOT_CLASS +
+        '__list">' +
+        section.list.map(renderLegalListItem).join("") +
+        "</ul>"
+      : "";
+    return (
+      '<section class="' +
+      LEGAL_DOCUMENT_ROOT_CLASS +
+      '__section"' +
+      idMarkup +
+      ' data-mpr-legal-document="section">' +
+      '<h2 class="' +
+      LEGAL_DOCUMENT_ROOT_CLASS +
+      '__heading">' +
+      escapeHtml(section.heading) +
+      "</h2>" +
+      paragraphMarkup +
+      listMarkup +
+      "</section>"
+    );
+  }
+
+  function buildLegalDocumentMarkup(documentConfig) {
+    var introductionMarkup = documentConfig.introduction
+      .map(function renderIntroduction(paragraph) {
+        return (
+          '<p class="' +
+          LEGAL_DOCUMENT_ROOT_CLASS +
+          '__intro">' +
+          escapeHtml(paragraph) +
+          "</p>"
+        );
+      })
+      .join("");
+    return (
+      '<article class="' +
+      LEGAL_DOCUMENT_ROOT_CLASS +
+      '__card" data-mpr-legal-document="card">' +
+      '<h1 class="' +
+      LEGAL_DOCUMENT_ROOT_CLASS +
+      '__title" data-mpr-legal-document="title">' +
+      escapeHtml(documentConfig.title) +
+      "</h1>" +
+      '<p class="' +
+      LEGAL_DOCUMENT_ROOT_CLASS +
+      '__meta" data-mpr-legal-document="meta">' +
+      "<strong>Effective Date:</strong> " +
+      '<time datetime="' +
+      escapeHtml(documentConfig.effectiveDate) +
+      '">' +
+      escapeHtml(documentConfig.effectiveDate) +
+      "</time> · <strong>Last Updated:</strong> " +
+      '<time datetime="' +
+      escapeHtml(documentConfig.lastUpdatedDate) +
+      '">' +
+      escapeHtml(documentConfig.lastUpdatedDate) +
+      "</time></p>" +
+      introductionMarkup +
+      documentConfig.sections.map(buildLegalSectionMarkup).join("") +
+      "</article>"
+    );
+  }
+
+  function createLegalDocumentController(target, options) {
+    var host = resolveHost(target);
+    if (!host || typeof host !== "object") {
+      throw new Error("createLegalDocumentController requires a host element");
+    }
+    var currentOptions = deepMergeOptions({}, options || {});
+    function renderCurrentDocument() {
+      var documentObject =
+        host.ownerDocument ||
+        global.document ||
+        (global.window && global.window.document) ||
+        null;
+      ensureLegalDocumentStyles(documentObject);
+      var documentConfig = buildLegalDocument(currentOptions);
+      if (host.classList && typeof host.classList.add === "function") {
+        host.classList.add(LEGAL_DOCUMENT_ROOT_CLASS);
+      }
+      if (typeof host.setAttribute === "function") {
+        host.setAttribute("data-mpr-legal-document-type", documentConfig.type);
+        host.setAttribute(
+          "data-mpr-legal-document-section-count",
+          String(documentConfig.sections.length),
+        );
+      }
+      host.innerHTML = buildLegalDocumentMarkup(documentConfig);
+    }
+    renderCurrentDocument();
+    return {
+      update: function update(nextOptions, replaceOptions) {
+        var hasTypeChange =
+          !replaceOptions &&
+          nextOptions &&
+          nextOptions.type &&
+          currentOptions.type &&
+          nextOptions.type !== currentOptions.type;
+        var hasSectionOverride =
+          nextOptions &&
+          Object.prototype.hasOwnProperty.call(nextOptions, "sections");
+        var hasTitleOverride =
+          nextOptions &&
+          Object.prototype.hasOwnProperty.call(nextOptions, "title");
+        currentOptions = replaceOptions
+          ? deepMergeOptions({}, nextOptions || {})
+          : deepMergeOptions({}, currentOptions, nextOptions || {});
+        if (hasTypeChange && !hasSectionOverride) {
+          delete currentOptions.sections;
+        }
+        if (hasTypeChange && !hasTitleOverride) {
+          delete currentOptions.title;
+        }
+        renderCurrentDocument();
+      },
+      destroy: function destroy() {
+        if (host && Object.prototype.hasOwnProperty.call(host, "innerHTML")) {
+          host.innerHTML = "";
+        }
+        if (host && typeof host.removeAttribute === "function") {
+          host.removeAttribute("data-mpr-legal-document-type");
+          host.removeAttribute("data-mpr-legal-document-section-count");
+        }
+      },
+      getDocument: function getDocument() {
+        return buildLegalDocument(currentOptions);
+      },
+    };
+  }
+
+  function buildLegalDocumentOptionsFromAttributes(hostElement) {
+    var options = {};
+    if (!hostElement || typeof hostElement.getAttribute !== "function") {
+      return options;
+    }
+    var typeAttr = hostElement.getAttribute("type");
+    if (typeAttr) {
+      options.type = typeAttr;
+    }
+    var productNameAttr = hostElement.getAttribute("product-name");
+    if (productNameAttr) {
+      options.productName = productNameAttr;
+    }
+    var serviceDescriptionAttr = hostElement.getAttribute("service-description");
+    if (serviceDescriptionAttr) {
+      options.serviceDescription = serviceDescriptionAttr;
+    }
+    var serviceDataDescriptionAttr = hostElement.getAttribute(
+      "service-data-description",
+    );
+    if (serviceDataDescriptionAttr) {
+      options.serviceDataDescription = serviceDataDescriptionAttr;
+    }
+    var effectiveDateAttr = hostElement.getAttribute("effective-date");
+    if (effectiveDateAttr) {
+      options.effectiveDate = effectiveDateAttr;
+    }
+    var effectiveDateTextAttr = hostElement.getAttribute("effective-date-text");
+    if (effectiveDateTextAttr) {
+      options.effectiveDateText = effectiveDateTextAttr;
+    }
+    var lastUpdatedDateAttr = hostElement.getAttribute("last-updated-date");
+    if (lastUpdatedDateAttr) {
+      options.lastUpdatedDate = lastUpdatedDateAttr;
+    }
+    var privacyPathAttr = hostElement.getAttribute("privacy-path");
+    if (privacyPathAttr) {
+      options.privacyPath = privacyPathAttr;
+    }
+    var termsPathAttr = hostElement.getAttribute("terms-path");
+    if (termsPathAttr) {
+      options.termsPath = termsPathAttr;
+    }
+    var pricingPathAttr = hostElement.getAttribute("pricing-path");
+    if (pricingPathAttr) {
+      options.pricingPath = pricingPathAttr;
+    }
+    var titleAttr = hostElement.getAttribute("title");
+    if (titleAttr) {
+      options.title = titleAttr;
+    }
+    var profile = {};
+    var companyNameAttr = hostElement.getAttribute("company-name");
+    if (companyNameAttr) {
+      profile.companyName = companyNameAttr;
+    }
+    var companyShortNameAttr = hostElement.getAttribute("company-short-name");
+    if (companyShortNameAttr) {
+      profile.companyShortName = companyShortNameAttr;
+    }
+    var companyFormAttr = hostElement.getAttribute("company-form");
+    if (companyFormAttr) {
+      profile.companyForm = companyFormAttr;
+    }
+    var websiteUrlAttr = hostElement.getAttribute("website-url");
+    if (websiteUrlAttr) {
+      profile.websiteUrl = websiteUrlAttr;
+    }
+    var supportEmailAttr = hostElement.getAttribute("support-email");
+    if (supportEmailAttr) {
+      profile.supportEmail = supportEmailAttr;
+    }
+    var legalEmailAttr = hostElement.getAttribute("legal-email");
+    if (legalEmailAttr) {
+      profile.legalNoticesEmail = legalEmailAttr;
+    }
+    var phoneDisplayAttr = hostElement.getAttribute("phone-display");
+    if (phoneDisplayAttr) {
+      profile.phoneDisplay = phoneDisplayAttr;
+    }
+    var phoneHrefAttr = hostElement.getAttribute("phone-href");
+    if (phoneHrefAttr) {
+      profile.phoneHref = phoneHrefAttr;
+    }
+    var profileAttr = hostElement.getAttribute("profile");
+    if (profileAttr) {
+      options.profile = deepMergeOptions(
+        {},
+        profile,
+        parseJsonValue(profileAttr, {}),
+      );
+    } else if (Object.keys(profile).length) {
+      options.profile = profile;
+    }
+    var sectionsAttr = hostElement.getAttribute("sections");
+    if (sectionsAttr) {
+      options.sections = parseJsonValue(sectionsAttr, []);
+    }
+    var extraSectionsAttr = hostElement.getAttribute("extra-sections");
+    if (extraSectionsAttr) {
+      options.extraSections = parseJsonValue(extraSectionsAttr, []);
+    }
+    return options;
+  }
+
   /** @type {readonly BandCatalogEntry[]} */
   var BAND_PROJECT_CATALOG = Object.freeze([
     Object.freeze({
@@ -13290,6 +14130,49 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
   }
 
+  function defineLegalDocumentElement(registry) {
+    registry.define("mpr-legal-document", function setupLegalDocumentElement(Base) {
+      return class MprLegalDocumentElement extends Base {
+        constructor() {
+          super();
+          this.__legalDocumentController = null;
+        }
+        static get observedAttributes() {
+          return LEGAL_DOCUMENT_ATTRIBUTE_NAMES;
+        }
+        render() {
+          this.__applyLegalDocument();
+        }
+        update() {
+          this.__applyLegalDocument();
+        }
+        destroy() {
+          if (
+            this.__legalDocumentController &&
+            typeof this.__legalDocumentController.destroy === "function"
+          ) {
+            this.__legalDocumentController.destroy();
+          }
+          this.__legalDocumentController = null;
+        }
+        __applyLegalDocument() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          var options = buildLegalDocumentOptionsFromAttributes(this);
+          if (this.__legalDocumentController) {
+            this.__legalDocumentController.update(options, true);
+          } else {
+            this.__legalDocumentController = createLegalDocumentController(
+              this,
+              options,
+            );
+          }
+        }
+      };
+    });
+  }
+
   function defineBandElement(registry) {
     registry.define("mpr-band", function setupBandElement(Base) {
       return class MprBandElement extends Base {
@@ -13389,6 +14272,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     defineEntityWorkspaceElement(registry);
     defineEntityCardElement(registry);
     defineSitesElement(registry);
+    defineLegalDocumentElement(registry);
     defineBandElement(registry);
     defineCardElement(registry);
   }
@@ -13534,6 +14418,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   namespace.createAuthHeader = createAuthHeader;
   namespace.renderAuthHeader = renderAuthHeader;
   namespace.getFooterSiteCatalog = getFooterSiteCatalog;
+  namespace.getLegalProfile = getLegalProfile;
+  namespace.getLegalDocument = buildLegalDocument;
+  namespace.renderLegalDocument = createLegalDocumentController;
   namespace.getBandProjectCatalog = getBandProjectCatalog;
   namespace.configureTheme = function configureTheme(config) {
     return themeManager.configure(config || {});

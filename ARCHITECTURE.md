@@ -27,6 +27,9 @@ When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
 | `MPRUI.getThemeMode()`                  | Returns the active theme mode string.                                                                |
 | `MPRUI.onThemeChange(listener)`         | Subscribes to theme updates; returns an unsubscribe function.                                        |
 | `MPRUI.getFooterSiteCatalog()`          | Returns a cloned array of packaged Marco Polo Research Lab links for the footer dropdown.            |
+| `MPRUI.getLegalProfile()`               | Returns a cloned Marco Polo Research Lab LLC legal profile with company/contact defaults.            |
+| `MPRUI.getLegalDocument(options)`        | Builds a reusable Terms or Privacy document model from product options and optional extra sections.  |
+| `MPRUI.renderLegalDocument(host, options)` | Renders the legal document model into a host element and returns an update/destroy controller.      |
 | `MPRUI.createCustomElementRegistry()`   | Factory that guards `customElements.define` calls so the bundle can register once per page.          |
 | `MPRUI.MprElement`                      | Base class used by every custom element (handles `connectedCallback`, `attributeChangedCallback`, etc.). |
 
@@ -47,6 +50,7 @@ The bundle auto-registers modern HTML custom elements when `window.customElement
 | `<mpr-user>`      | TAuth profile + menu renderer                  | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `avatar-url`, `avatar-label`                                                                   | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:menu-item`, `mpr-user:error`    |
 | `<mpr-settings>` | Settings CTA + panel wrapper                    | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open`                                                                    | `mpr-settings:toggle`                                     |
 | `<mpr-sites>`    | `getFooterSiteCatalog` (plus inline renderer)   | `links` (JSON), `variant` (`list`, `grid`, `menu`), `columns`, `heading`                                                              | `mpr-sites:link-click`                                    |
+| `<mpr-legal-document>` | `getLegalDocument` + `renderLegalDocument` | `type` (`terms`, `privacy`), `product-name`, service/date/contact attributes, `profile`, `sections`, `extra-sections`                 | —                                                         |
 | `<mpr-band>`     | Themed container with palette tokens            | `category`, `theme` (JSON)                                                                                                            | —                                                         |
 | `<mpr-card>`     | Standalone card controller                      | `card` (JSON), `theme` (JSON)                                                                                                         | `mpr-card:card-toggle`, `mpr-card:subscribe-ready`        |
 
@@ -223,6 +227,39 @@ Declarative attribute `theme-switcher` controls `themeToggle.variant` and implic
 - Theme toggle emits `mpr-footer:theme-change` with `{ theme }` and forwards the mode through the shared theme manager for `<mpr-theme-toggle>` / `<mpr-header>` to consume.
 - All strings are escaped; dangerous schemes for links fall back to `#`.
 - The drop-up toggle uses internal click/outside/Escape listeners and never applies `data-bs-*` attributes, so Bootstrap or other dropdown frameworks cannot hijack the control.
+
+## Legal Document Component
+
+`<mpr-legal-document>` renders reusable Terms of Service or Privacy Policy content from the shared Marco Polo Research Lab LLC legal profile. The default profile includes the LLC name, California entity form, `https://mprlab.com`, `support@mprlab.com`, `legal@mprlab.com`, and `(650) 265-1193`.
+
+### Attributes & Options
+
+| Attribute / Option | Type | Description |
+| --- | --- | --- |
+| `type` | `"terms"` \| `"privacy"` | Selects the packaged document body. Defaults to `terms`. |
+| `product-name` / `productName` | `string` | Product or service name used in title and body copy. |
+| `service-description` / `serviceDescription` | `string` | Terms-specific description of what the product provides. |
+| `service-data-description` / `serviceDataDescription` | `string` | Privacy-specific description of app data collected or generated. |
+| `effective-date`, `effective-date-text`, `last-updated-date` | `string` | Date metadata stamped into the document. |
+| `company-name`, `company-short-name`, `company-form`, `website-url`, `support-email`, `legal-email`, `phone-display`, `phone-href` | `string` | Per-app overrides for the default MPR Lab legal profile. |
+| `profile` | JSON object | Bulk profile override using camelCase keys. |
+| `extra-sections` / `extraSections` | JSON array | Additional `{ id?, heading, paragraphs?, list? }` sections inserted before contact. |
+| `sections` | JSON array | Full section replacement for apps that own the complete legal body. |
+
+All rendered text is escaped. The shared templates intentionally keep product-specific clauses as data (`extra-sections` or `sections`) so applications can add AI-output, payment-provider, source-site, trademark, children/family, or media-provider language without forking the MPR Lab company/contact profile.
+
+The imperative API is the same renderer used by the element:
+
+```js
+const profile = MPRUI.getLegalProfile();
+const terms = MPRUI.getLegalDocument({
+  type: 'terms',
+  productName: 'Poodle Scanner',
+  serviceDescription: 'Poodle Scanner provides product page retrieval and scoring analysis.',
+});
+const controller = MPRUI.renderLegalDocument('#legal-root', terms);
+controller.update({ type: 'privacy', productName: 'Poodle Scanner' });
+```
 
 ## Band Component
 

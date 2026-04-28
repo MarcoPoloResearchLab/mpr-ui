@@ -196,6 +196,7 @@ Every UI surface is a custom element. The list below maps directly to the `<mpr-
 - `<mpr-user>` — profile menu that displays the signed-in user and triggers TAuth logout.
 - `<mpr-settings>` — emits toggle events so you can wire your own modal/drawer.
 - `<mpr-sites>` — renders the Marco Polo Research Lab network or any JSON catalog you provide.
+- `<mpr-legal-document>` — renders reusable MPR Lab Terms or Privacy documents with product-specific overrides.
 - `<mpr-band>` — themed horizontal container that applies preset palettes while letting you drop Bootstrap grids or `<mpr-card>` instances inside without extra DSL.
 - `<mpr-card>` — renders a single project card (front/back, subscribe overlay, CTA) anywhere on the page without needing a band.
 
@@ -270,6 +271,20 @@ The tags above replace the retired imperative helpers. See the example below for
 </mpr-settings>
 
 <mpr-sites variant="grid" columns="2"></mpr-sites>
+
+<mpr-legal-document
+  type="terms"
+  product-name="Custom Research"
+  service-description="Custom Research provides authenticated research tooling, exports, and support workflows."
+  service-data-description="account records, uploaded research inputs, generated outputs, settings, and operational history"
+  extra-sections='[
+    {
+      "id": "research-outputs",
+      "heading": "Research Outputs",
+      "paragraphs": ["Outputs are informational and must be reviewed before operational use."]
+    }
+  ]'
+></mpr-legal-document>
 ```
 
 | Element | Primary attributes | Slots | Key events |
@@ -281,6 +296,7 @@ The tags above replace the retired imperative helpers. See the example below for
 | `<mpr-user>` | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `tauth-url`, `tauth-logout-path`, `avatar-url`, `avatar-label`, `menu-items` | — | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:menu-item`, `mpr-user:error` |
 | `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |
 | `<mpr-sites>` | `links`, `variant` (`list`, `grid`, `menu`), `columns`, `heading` | — | `mpr-sites:link-click` |
+| `<mpr-legal-document>` | `type` (`terms`, `privacy`), `product-name`, `service-description`, `service-data-description`, `effective-date`, `effective-date-text`, `last-updated-date`, company/contact overrides, `profile`, `sections`, `extra-sections` | — | — |
 | `<mpr-workspace-layout>` | `sidebar-width`, `collapsed`, `stacked-breakpoint` | `header`, `sidebar`, `content` (default slot also maps to `content`) | `mpr-workspace-layout:sidebar-toggle` |
 | `<mpr-sidebar-nav>` | `label`, `dense`, `variant` | `header`, `footer` (default slot becomes the keyed nav list) | `mpr-sidebar-nav:change` |
 | `<mpr-entity-rail>` | `label`, `empty-label`, `show-nav`, `nav-step` | `leading`, `trailing` plus default rail items | `mpr-entity-rail:scroll-start`, `mpr-entity-rail:scroll-end` |
@@ -308,6 +324,28 @@ Custom elements dispatch the same `mpr-ui:*` events that the deprecated helpers 
 > Both `<mpr-header>` and `<mpr-footer>` are sticky by default. Add `sticky="false"` (or pass the equivalent option) if you want them to render in-flow; setting `sticky="true"` is redundant because `true` is the default. The attribute values are case-insensitive (`sticky="FALSE"` works), and the components manage stickiness internally so no host-level CSS overrides are required. In sticky mode the footer renders a spacer + viewport-fixed footer so it stays visible even when the page is scrolled to the top.
 
 Both `<mpr-header>` and `<mpr-footer>` also accept `size="normal"` (default) or `size="small"` to scale the component down to about 70% of the normal footprint.
+
+### Legal document component
+
+`<mpr-legal-document>` renders a full Terms of Service or Privacy Policy body using the shared Marco Polo Research Lab LLC legal profile. The packaged profile includes the LLC name, `mprlab.com`, `support@mprlab.com`, `legal@mprlab.com`, and `(650) 265-1193`. Apps provide product copy through attributes such as `product-name`, `service-description`, and `service-data-description`.
+
+Use `extra-sections` to insert product-specific clauses before the contact section. Use `sections` only when an app needs to own the complete section list. Both attributes accept JSON arrays of `{ id?, heading, paragraphs?, list? }`; text is escaped before rendering. The shared defaults are a reusable starting point, not a substitute for app-specific legal review.
+
+The same data is available imperatively:
+
+```js
+const profile = MPRUI.getLegalProfile();
+const terms = MPRUI.getLegalDocument({
+  type: 'terms',
+  productName: 'Custom Research',
+  serviceDescription: 'Custom Research provides authenticated research tooling.',
+});
+
+MPRUI.renderLegalDocument('#terms-root', {
+  type: 'privacy',
+  productName: 'Custom Research',
+});
+```
 
 ### Band component
 
@@ -451,11 +489,13 @@ Every API and integration detail is catalogued in [`ARCHITECTURE.md`](ARCHITECTU
 - Namespace exports, events, and backend expectations.
 - Header options (brand, navigation, auth wiring) and emitted events.
 - Option tables for the bundled footer, theme targets/modes, and notes about the legacy dropdown-enabled footer.
+- Shared legal profile/document helpers for reusable Terms and Privacy pages.
 - Google Identity Services handshake sequence for the auth header helper.
 
 Use that reference when you need to fine-tune copy, extend authentication flows, or decide between the current and legacy footer implementations.
 
 - Reuse the packaged Marco Polo Research Lab network list with `MPRUI.getFooterSiteCatalog()` when you need to reorder or subset the defaults without duplicating data inside your app.
+- Reuse the packaged Marco Polo Research Lab legal profile with `MPRUI.getLegalProfile()` and render shared Terms/Privacy templates with `MPRUI.getLegalDocument()` or `<mpr-legal-document>`.
 
 ## Contributing
 
