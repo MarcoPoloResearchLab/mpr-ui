@@ -133,6 +133,39 @@ The footer renders product links, privacy links, and an optional theme switch.
 ></mpr-footer>
 ```
 
+## mpr-legal-document
+
+The legal document element renders shared Marco Polo Research Lab LLC Terms and Privacy pages for apps that want CDN-delivered legal copy with product-specific overrides.
+
+### Common attributes
+- `type`: `terms` or `privacy`.
+- `product-name`: Product or service name shown in the title and document body.
+- `service-description`: Terms-specific service description.
+- `service-data-description`: Privacy-specific data description.
+- `effective-date`, `effective-date-text`, `last-updated-date`: Date metadata.
+- `company-name`, `company-short-name`, `company-form`, `website-url`, `support-email`, `legal-email`, `phone-display`, `phone-href`: Optional profile overrides.
+- `profile`: JSON object for bulk profile overrides.
+- `extra-sections`: JSON array of `{ id?, heading, paragraphs?, list? }` inserted before contact.
+- `sections`: JSON array that replaces the complete generated section list.
+
+All configured strings are escaped before rendering. Use `extra-sections` for app-specific clauses such as AI outputs, refunds, source-site terms, media-provider APIs, trademark disclaimers, or children/family workflows.
+
+### Example
+```html
+<mpr-legal-document
+  type="privacy"
+  product-name="Poodle Scanner"
+  service-data-description="uploaded product IDs, scan profiles, generated scores, and saved crawl artifacts"
+  extra-sections='[
+    {
+      "id": "source-site-data",
+      "heading": "Source Site Data",
+      "paragraphs": ["Users are responsible for confirming that source-site usage is permitted."]
+    }
+  ]'
+></mpr-legal-document>
+```
+
 ## Entity workspace primitives
 
 The entity-workspace kit is a layout-shell layer. It owns chrome, slots, and event boundaries. Host apps still own:

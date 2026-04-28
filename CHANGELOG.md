@@ -3,19 +3,19 @@
 ## [Unreleased]
 
 ### Features ✨
-- _No changes._
+- Added `MPRUI.getLegalProfile()`, `MPRUI.getLegalDocument()`, `MPRUI.renderLegalDocument()`, and `<mpr-legal-document>` for reusable MPR Lab Terms and Privacy pages.
 
 ### Improvements ⚙️
-- _No changes._
+- Centralized the Marco Polo Research Lab LLC legal profile, including company form, website, support/legal emails, and phone number.
 
 ### Bug Fixes 🐛
 - _No changes._
 
 ### Testing 🧪
-- _No changes._
+- Added unit and Playwright coverage for legal document exports, escaping, custom-element rendering, and product-specific extra sections.
 
 ### Docs 📚
-- _No changes._
+- Documented the shared legal document API, attributes, profile override boundaries, and product-specific section extension pattern.
 
 ## [v3.9.1] - 2026-04-17
 

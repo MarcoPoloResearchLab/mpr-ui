@@ -648,6 +648,15 @@ function createSitesElementHarness(links) {
   return { element, anchors };
 }
 
+function createLegalDocumentElementHarness() {
+  const LegalDocumentElement = global.customElements.get('mpr-legal-document');
+  assert.ok(LegalDocumentElement, 'mpr-legal-document is defined');
+  const element = attachHostApi(new LegalDocumentElement(), new Map());
+  element.dataset = element.dataset || {};
+  element.ownerDocument = global.document;
+  return { element };
+}
+
 function createUserElementHarness(options) {
   const settings = Object.assign({ menuItems: [] }, options);
   const UserElement = global.customElements.get('mpr-user');
@@ -3113,6 +3122,51 @@ test('mpr-sites dispatches link click events with normalized details', () => {
     },
     'link click detail exposes normalized catalog entry',
   );
+});
+
+test('MU-437: mpr-legal-document renders configurable terms and privacy documents', () => {
+  resetEnvironment();
+  loadLibrary();
+  const { element } = createLegalDocumentElementHarness();
+  element.setAttribute('type', 'terms');
+  element.setAttribute('product-name', 'Fixture Scanner');
+  element.setAttribute(
+    'service-description',
+    'Fixture Scanner retrieves product pages and exports verification data.',
+  );
+  element.setAttribute(
+    'extra-sections',
+    JSON.stringify([
+      {
+        id: 'source-sites',
+        heading: 'Source Site Terms',
+        paragraphs: ['Users must comply with source-site platform rules.'],
+      },
+    ]),
+  );
+
+  element.connectedCallback();
+
+  assert.equal(
+    element.getAttribute('data-mpr-legal-document-type'),
+    'terms',
+    'terms type reflected on host',
+  );
+  assert.match(element.innerHTML, /Terms of Service - Fixture Scanner/);
+  assert.match(element.innerHTML, /Marco Polo Research Lab LLC/);
+  assert.match(element.innerHTML, /\(650\) 265-1193/);
+  assert.match(element.innerHTML, /Source Site Terms/);
+  assert.match(element.innerHTML, /retrieves product pages/);
+
+  element.setAttribute('type', 'privacy');
+
+  assert.equal(
+    element.getAttribute('data-mpr-legal-document-type'),
+    'privacy',
+    'privacy type reflected after attribute update',
+  );
+  assert.match(element.innerHTML, /Privacy Policy - Fixture Scanner/);
+  assert.match(element.innerHTML, /Google OAuth and Google User Data/);
 });
 
 test('mpr-header navigation links always open in new window', () => {

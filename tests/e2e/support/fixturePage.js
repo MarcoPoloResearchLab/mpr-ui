@@ -115,6 +115,9 @@ const AUTH_TRANSITION_FIXTURE_URL = pathToFileURL(
 const HEADER_USER_MENU_OVERFLOW_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/header-user-menu-overflow.html'),
 ).href;
+const LEGAL_DOCUMENT_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/legal-document.html'),
+).href;
 
 const SELECTORS = Object.freeze({
   googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
@@ -381,6 +384,20 @@ async function visitHeaderUserMenuOverflowFixture(page) {
 }
 
 /**
+ * Opens the legal-document fixture with local assets.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitLegalDocumentFixture(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(LEGAL_DOCUMENT_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
  * Reads a repository-local asset.
  * @param {string} relativePath
  * @returns {string}
@@ -577,6 +594,7 @@ module.exports = {
   visitUserMenuFixture,
   visitAuthTransitionFixture,
   visitHeaderUserMenuOverflowFixture,
+  visitLegalDocumentFixture,
   captureToggleSnapshot,
   captureColorSnapshots,
   captureDropUpMetrics,
