@@ -3228,7 +3228,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       var parameters = config || {};
       var emit = parameters.emit !== false;
       var prompt = parameters.prompt !== false;
-      pendingNonceToken = null;
+      if (parameters.clearNonce === true) {
+        pendingNonceToken = null;
+      }
       var shouldEmit =
         emit &&
         (state.status !== AUTH_CONTROLLER_STATUS.UNAUTHENTICATED ||
@@ -3477,7 +3479,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     function handleCredential(credentialResponse) {
       if (!credentialResponse || !credentialResponse.credential) {
         emitError("mpr-ui.auth.missing_credential", {});
-        markUnauthenticated({ prompt: true });
+        markUnauthenticated({ prompt: true, clearNonce: true });
         return Promise.resolve();
       }
       var currentLifecycleVersion = lifecycleVersion;
@@ -3501,7 +3503,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             message: error && error.message ? error.message : String(error),
             status: error && error.status ? error.status : null,
           });
-          markUnauthenticated({ prompt: true });
+          markUnauthenticated({ prompt: true, clearNonce: true });
           return Promise.resolve();
         });
     }
@@ -3509,6 +3511,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     function signOut() {
       return performLogout().then(function () {
         pendingProfile = null;
+        pendingNonceToken = null;
         if (typeof global.initAuthClient !== "function") {
           markUnauthenticated({ prompt: true });
           return null;

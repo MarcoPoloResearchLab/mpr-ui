@@ -17,6 +17,23 @@
 ### Docs 📚
 - Documented the shared legal document API, attributes, profile override boundaries, and product-specific section extension pattern.
 
+## [v3.9.3] - 2026-05-08
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- _No changes._
+
+### Bug Fixes 🐛
+- Preserved the prepared Google Identity Services nonce through unauthenticated TAuth bootstrap reconciliation so config-first login buttons exchange the same nonce that Google received.
+
+### Testing 🧪
+- Added focused auth-controller regression coverage for the prepared nonce surviving `/me` + `/auth/refresh` unauthenticated bootstrap.
+
+### Docs 📚
+- _No changes._
+
 ## [v3.9.2] - 2026-04-28
 
 ### Features ✨

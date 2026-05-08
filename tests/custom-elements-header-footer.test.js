@@ -1595,6 +1595,112 @@ test('createAuthHeader ignores an in-flight credential exchange after tauth-url 
   );
 });
 
+test('createAuthHeader preserves the prepared GIS nonce through unauthenticated bootstrap', async () => {
+  resetEnvironment();
+  delete global.initAuthClient;
+  delete global.getCurrentUser;
+  delete global.requestNonce;
+  delete global.exchangeGoogleCredential;
+  const library = loadLibrary();
+  const authenticatedProfile = {
+    display: 'Katherine Johnson',
+    given_name: 'Katherine',
+    avatar_url: 'https://cdn.example.com/katherine.png',
+    user_email: 'katherine@example.com',
+  };
+  const initializeCalls = [];
+  const exchangePayloads = [];
+  let nonceCounter = 0;
+  let resolveProfileResponse;
+
+  function createResponse(status, payload) {
+    return {
+      ok: status >= 200 && status < 300,
+      status,
+      json: function json() {
+        return Promise.resolve(payload || {});
+      },
+    };
+  }
+
+  global.location = { origin: 'http://fallback-origin.test' };
+  global.google = {
+    accounts: {
+      id: {
+        initialize(config) {
+          initializeCalls.push(config);
+        },
+        renderButton() {},
+        prompt() {},
+      },
+    },
+  };
+  global.fetch = function fetch(url, init) {
+    const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
+    if (pathname === '/auth/nonce') {
+      nonceCounter += 1;
+      return Promise.resolve(
+        createResponse(200, { nonce: 'nonce-token-' + String(nonceCounter) }),
+      );
+    }
+    if (pathname === '/me') {
+      return new Promise(function waitForProfile(resolve) {
+        resolveProfileResponse = resolve;
+      });
+    }
+    if (pathname === '/auth/refresh') {
+      return Promise.resolve(createResponse(401));
+    }
+    if (pathname === '/auth/google') {
+      exchangePayloads.push(JSON.parse(init.body));
+      return Promise.resolve(createResponse(200, authenticatedProfile));
+    }
+    return Promise.reject(new Error('unexpected fetch URL: ' + String(url)));
+  };
+
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(hostElement, {
+    googleClientId: 'nonce-stability-client',
+    tauthUrl: 'http://localhost:8080',
+    tauthLoginPath: '/auth/google',
+    tauthLogoutPath: '/auth/logout',
+    tauthNoncePath: '/auth/nonce',
+    tenantId: 'tenant-alpha',
+  });
+
+  await flushAsync();
+  await flushAsync();
+
+  assert.equal(initializeCalls.length, 1, 'GIS initializes after nonce preparation');
+  assert.equal(
+    initializeCalls[0].nonce,
+    'nonce-token-1',
+    'GIS receives the first prepared nonce',
+  );
+
+  resolveProfileResponse(createResponse(401));
+  await flushAsync();
+  await flushAsync();
+  await flushAsync();
+
+  await authController.handleCredential({
+    credential: 'stub-google-credential::nonce-token-1',
+  });
+
+  assert.deepEqual(
+    exchangePayloads,
+    [
+      {
+        google_id_token: 'stub-google-credential::nonce-token-1',
+        nonce_token: 'nonce-token-1',
+      },
+    ],
+    'credential exchange reuses the nonce that was handed to GIS',
+  );
+  assert.equal(nonceCounter, 1, 'credential exchange does not request a second nonce');
+  assert.deepEqual(authController.state.profile, authenticatedProfile);
+});
+
 test('createAuthHeader rejects tenant changes after initialization', async () => {
   resetEnvironment();
   const library = loadLibrary();

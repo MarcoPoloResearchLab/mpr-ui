@@ -126,6 +126,11 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 - [x] [MU-433] `<mpr-header>` can call `google.accounts.id.initialize()` multiple times during initial Google button bootstrap.
   Resolved 2026-03-20: made Google nonce preparation single-flight inside the shared auth controller, created the controller before mounting the header Google button so the button reuses that nonce/bootstrap path, kept a nonce-less fallback when nonce preparation fails, and added regression coverage plus fixture nonce support so the workbench suite continues to render the button without a live backend. Tests: `node --test tests/custom-elements-header-footer.test.js tests/auth-credential-exchange.test.js`; `npx --yes --package typescript tsc --noEmit`; `npm test`.
 
+- [x] [B002] `<mpr-login-button>` loses the GIS-prepared nonce after unauthenticated bootstrap.
+  Summary: A config-first `<mpr-login-button>` can prepare a nonce for `google.accounts.id.initialize()`, then clear that nonce when the initial `/me` + `/auth/refresh` bootstrap settles unauthenticated. Clicking the rendered Google button then posts a newly requested `nonce_token` to TAuth while the Google credential was minted for the older nonce. TAuth rejects the exchange as an invalid credential, leaving consumers such as LoopAware stuck on the login page.
+  Expected: unauthenticated bootstrap must not invalidate the nonce that was already handed to GIS unless auth options change, the controller is destroyed, or a credential exchange completes.
+  Resolved 2026-05-08: preserved the prepared GIS nonce when unauthenticated bootstrap reconciliation settles, while still clearing nonce state for auth option changes, controller teardown, logout, missing credentials, failed credential exchange, and successful authentication. Added a focused regression proving `/auth/google` receives the same nonce handed to `google.accounts.id.initialize()`. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "preserves the prepared GIS nonce"`; `make ci`.
+
 ## Maintenance (419–499)
 
 - [x] [MU-427] Add `horizontal-links` examples to demo pages and document the DSL across guides.
