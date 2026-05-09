@@ -17,6 +17,23 @@
 ### Docs 📚
 - Documented the shared legal document API, attributes, profile override boundaries, and product-specific section extension pattern.
 
+## [v3.9.4] - 2026-05-09
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- Allowed `mpr-ui-config.js` auto-orchestration to use `<mpr-login-button data-config-url>` as the config owner when a page needs a login-only auth surface.
+
+### Bug Fixes 🐛
+- Fixed login-button-only integrations so they no longer need app-owned bootstrap code just to load config before the bundle.
+
+### Testing 🧪
+- Added focused config-loader coverage for login-button-owned auto-orchestration, including bundle loading and config-applied auth attributes.
+
+### Docs 📚
+- Documented the header `aux` slot pattern for login-only pages that need the Google button in the header without a header-owned user menu.
+
 ## [v3.9.3] - 2026-05-08
 
 ### Features ✨

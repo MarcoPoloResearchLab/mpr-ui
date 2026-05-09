@@ -775,7 +775,7 @@ test('applyYamlConfig rejects when the document is missing or login buttons lack
   );
 });
 
-test('autoOrchestrate resolves immediately when the document cannot orchestrate or the header has no config URL', async () => {
+test('autoOrchestrate resolves immediately when the document cannot orchestrate or config owners have no URL', async () => {
   resetEnvironment();
   const namespaceWithoutDocument = loadNamespace();
   await assert.doesNotReject(namespaceWithoutDocument.whenAutoOrchestrationReady());
@@ -818,6 +818,23 @@ test('autoOrchestrate resolves immediately when the document cannot orchestrate 
   global.location = { origin: 'https://example.com' };
   const namespaceWithBlankHeader = loadNamespace();
   await assert.doesNotReject(namespaceWithBlankHeader.whenAutoOrchestrationReady());
+
+  resetEnvironment();
+  const blankLoginButton = createElement({ 'data-config-url': '' });
+  const blankLoginButtonDocument = {
+    readyState: 'complete',
+    addEventListener() {},
+    querySelector(selector) {
+      if (selector === 'mpr-login-button[data-config-url]') {
+        return blankLoginButton;
+      }
+      return null;
+    },
+  };
+  global.document = blankLoginButtonDocument;
+  global.location = { origin: 'https://example.com' };
+  const namespaceWithBlankLoginButton = loadNamespace();
+  await assert.doesNotReject(namespaceWithBlankLoginButton.whenAutoOrchestrationReady());
 });
 
 test('autoOrchestrate loads the bundle once after config application and caches the readiness promise', async () => {
@@ -876,6 +893,68 @@ test('autoOrchestrate loads the bundle once after config application and caches 
       'mpr-ui:orchestration:ready',
     ],
   );
+});
+
+test('autoOrchestrate loads config and bundle from a login-button config owner', async () => {
+  resetEnvironment();
+  const inertHeader = createElement({});
+  const loginButton = createElement({ 'data-config-url': '/config-ui.yaml' });
+  const bundleMarker = {
+    getAttribute(name) {
+      if (name === 'data-mpr-ui-bundle-src') {
+        return './mpr-ui.js';
+      }
+      return null;
+    },
+  };
+  const documentStub = createDocumentStub({
+    readyState: 'complete',
+    autoLoadScripts: true,
+    selectors: {
+      'mpr-header[data-config-url]': null,
+      'mpr-login-button[data-config-url]': loginButton,
+      'script[data-mpr-ui-bundle-src]': bundleMarker,
+    },
+    selectorList: {
+      'mpr-header': [inertHeader],
+      'mpr-header[data-config-url]': [],
+      'mpr-login-button': [loginButton],
+      'mpr-user': [],
+    },
+  });
+
+  function CustomEvent(type, init) {
+    this.type = type;
+    this.detail = init && init.detail;
+  }
+
+  setupYamlEnvironment(createBaseConfig(), {
+    document: documentStub.document,
+    customEvent: CustomEvent,
+    createWindow: true,
+  });
+  const namespace = loadNamespace();
+
+  await namespace.whenAutoOrchestrationReady();
+
+  assert.equal(inertHeader.attributes['google-site-id'], undefined);
+  assert.equal(loginButton.attributes['site-id'], 'example-client');
+  assert.equal(loginButton.attributes['tauth-tenant-id'], 'example-tenant');
+  assert.equal(loginButton.attributes['tauth-login-path'], '/auth/google');
+  assert.equal(loginButton.attributes['button-shape'], 'pill');
+  assert.equal(documentStub.appendedScripts.length, 1);
+  assert.equal(documentStub.appendedScripts[0].src, './mpr-ui.js');
+  assert.deepEqual(
+    documentStub.dispatchedEvents.map(function mapEvent(event) {
+      return event.type;
+    }),
+    [
+      'mpr-ui:config:applied',
+      'mpr-ui:bundle:loaded',
+      'mpr-ui:orchestration:ready',
+    ],
+  );
+  assert.deepEqual(documentStub.dispatchedEvents[2].detail, { configUrl: '/config-ui.yaml' });
 });
 
 test('autoOrchestrate supports deferred DOMContentLoaded bootstrap and missing bundle markers', async () => {

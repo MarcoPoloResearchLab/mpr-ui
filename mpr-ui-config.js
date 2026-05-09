@@ -381,6 +381,26 @@
     return bundleLoadPromise;
   }
 
+  function resolveAutoOrchestrationTarget() {
+    var header = document.querySelector('mpr-header[data-config-url]');
+    if (header) {
+      return {
+        element: header,
+        applyOptions: null,
+      };
+    }
+    var loginButton = document.querySelector('mpr-login-button[data-config-url]');
+    if (!loginButton) {
+      return null;
+    }
+    return {
+      element: loginButton,
+      applyOptions: {
+        headerSelector: 'mpr-header[data-config-url]',
+      },
+    };
+  }
+
   var namespace = ensureNamespace(global);
   namespace.loadYamlConfig = function loadYamlConfig(options) {
     var resolved = normalizeOptions(options);
@@ -411,12 +431,16 @@
     if (autoOrchestrationPromise) {
       return autoOrchestrationPromise;
     }
-    var header = document.querySelector('mpr-header[data-config-url]');
-    if (header) {
-      var configUrl = header.getAttribute('data-config-url');
+    var orchestrationTarget = resolveAutoOrchestrationTarget();
+    if (orchestrationTarget) {
+      var configUrl = orchestrationTarget.element.getAttribute('data-config-url');
       if (configUrl) {
         var bundleMarker = document.querySelector(BUNDLE_MARKER_SELECTOR);
-        autoOrchestrationPromise = global.MPRUI.applyYamlConfig({ configUrl: configUrl })
+        var applyOptions = Object.assign(
+          { configUrl: configUrl },
+          orchestrationTarget.applyOptions || {},
+        );
+        autoOrchestrationPromise = global.MPRUI.applyYamlConfig(applyOptions)
           .then(function handleConfigApplied() {
             return loadBundleFromMarker(bundleMarker);
           })

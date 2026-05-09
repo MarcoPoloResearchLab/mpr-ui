@@ -131,6 +131,11 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
   Expected: unauthenticated bootstrap must not invalidate the nonce that was already handed to GIS unless auth options change, the controller is destroyed, or a credential exchange completes.
   Resolved 2026-05-08: preserved the prepared GIS nonce when unauthenticated bootstrap reconciliation settles, while still clearing nonce state for auth option changes, controller teardown, logout, missing credentials, failed credential exchange, and successful authentication. Added a focused regression proving `/auth/google` receives the same nonce handed to `google.accounts.id.initialize()`. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "preserves the prepared GIS nonce"`; `make ci`.
 
+- [x] [B003] `<mpr-login-button data-config-url>` is ignored by config auto-orchestration.
+  Summary: `mpr-ui-config.js` only watched `mpr-header[data-config-url]`, so login-only pages could not put the Google control inside a header slot without either giving the full header ownership of auth/user-menu bootstrap or adding app-owned bootstrap code.
+  Expected: a login-only `<mpr-login-button data-config-url="/config-ui.yaml">` should use the same config-first orchestration path as `<mpr-header data-config-url>`.
+  Resolved 2026-05-09: auto-orchestration now falls back to `mpr-login-button[data-config-url]` when no configured header is present, applies `/config-ui.yaml` auth/button attributes before loading the bundle, and documents the slotted header login-button pattern. Tests: `node --test tests/yaml-config-loader.test.js --test-name-pattern "autoOrchestrate"`; `make ci`.
+
 ## Maintenance (419–499)
 
 - [x] [MU-427] Add `horizontal-links` examples to demo pages and document the DSL across guides.
