@@ -136,6 +136,11 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
   Expected: a login-only `<mpr-login-button data-config-url="/config-ui.yaml">` should use the same config-first orchestration path as `<mpr-header data-config-url>`.
   Resolved 2026-05-09: auto-orchestration now falls back to `mpr-login-button[data-config-url]` when no configured header is present, applies `/config-ui.yaml` auth/button attributes before loading the bundle, and documents the slotted header login-button pattern. Tests: `node --test tests/yaml-config-loader.test.js --test-name-pattern "autoOrchestrate"`; `make ci`.
 
+- [x] [B004] `<mpr-header>` built-in user menu starts a second profile bootstrap beside header auth.
+  Summary: Consumers using the canonical `<mpr-header data-config-url>` path get the header-owned Google sign-in button and a header-owned user menu. The user menu still called `getCurrentUser()` / profile fetch on connect, so the header auth controller and nested user menu could both probe `/me`.
+  Expected: when `<mpr-user>` is nested inside an auth-owning `<mpr-header>`, it should mirror header auth events and host profile state instead of independently bootstrapping TAuth.
+  Resolved 2026-05-09: nested user menus now synchronize from the closest header/login auth host and skip direct profile fetching; the header auth controller remains the single profile request owner. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "nested user menu"`; `make ci`.
+
 ## Maintenance (419–499)
 
 - [x] [MU-427] Add `horizontal-links` examples to demo pages and document the DSL across guides.

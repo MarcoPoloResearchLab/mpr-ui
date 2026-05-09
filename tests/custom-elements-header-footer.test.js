@@ -906,12 +906,14 @@ test('mpr-header uses a slotted mpr-user element for header menu wiring', () => 
   );
 });
 
-test('mpr-user nested in mpr-header does not error before header wiring applies user attributes', () => {
+test('mpr-user nested in mpr-header does not error before header wiring applies user attributes', async () => {
   resetEnvironment();
   const capture = captureConsoleErrors();
   try {
     loadLibrary();
+    let currentUserCallCount = 0;
     global.getCurrentUser = function getCurrentUser() {
+      currentUserCallCount += 1;
       return null;
     };
     global.logout = function logout() {
@@ -939,6 +941,12 @@ test('mpr-user nested in mpr-header does not error before header wiring applies 
     userElement.connectedCallback();
 
     assert.equal(
+      currentUserCallCount,
+      0,
+      'nested user menu waits for the header auth controller instead of fetching the profile directly',
+    );
+
+    assert.equal(
       userElement.getAttribute('data-mpr-user-error'),
       null,
       'nested user menu does not emit a startup configuration error before header wiring runs',
@@ -950,6 +958,7 @@ test('mpr-user nested in mpr-header does not error before header wiring applies 
     );
 
     headerElement.connectedCallback();
+    await flushAsync();
 
     assert.equal(
       userElement.getAttribute('tauth-tenant-id'),

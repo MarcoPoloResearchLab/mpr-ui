@@ -17,6 +17,23 @@
 ### Docs 📚
 - Documented the shared legal document API, attributes, profile override boundaries, and product-specific section extension pattern.
 
+## [v3.9.5] - 2026-05-09
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- Kept nested `<mpr-user>` menus inside auth-owning headers synchronized from header auth events/state instead of starting their own profile bootstrap.
+
+### Bug Fixes 🐛
+- Fixed `<mpr-header>` integrations that could issue duplicate session profile probes when the built-in header Google button and header user menu were both present.
+
+### Testing 🧪
+- Added focused coverage proving a nested user menu waits for the header auth controller and does not call `getCurrentUser()` directly.
+
+### Docs 📚
+- _No changes._
+
 ## [v3.9.4] - 2026-05-09
 
 ### Features ✨

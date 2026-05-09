@@ -6240,14 +6240,38 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
   }
 
-  function resolveUserMenuEventTarget(hostElement) {
+  function resolveUserMenuScopedAuthHost(hostElement) {
     if (!hostElement) {
       return null;
     }
-    var scopedHost = findClosestHostByTagName(hostElement, [
+    return findClosestHostByTagName(hostElement, [
       "mpr-header",
       "mpr-login-button",
     ]);
+  }
+
+  function readUserMenuProfileFromAuthHost(authHost) {
+    if (!authHost || typeof authHost.getAttribute !== "function") {
+      return null;
+    }
+    if (authHost.getAttribute("data-mpr-auth-status") !== AUTH_CONTROLLER_STATUS.AUTHENTICATED) {
+      return null;
+    }
+    var profile = {};
+    var hasProfileValue = false;
+    Object.keys(ATTRIBUTE_MAP).forEach(function readProfileAttribute(key) {
+      var attributeName = ATTRIBUTE_MAP[key];
+      var value = authHost.getAttribute(attributeName);
+      if (typeof value === "string" && value.trim()) {
+        profile[key] = value;
+        hasProfileValue = true;
+      }
+    });
+    return hasProfileValue ? profile : null;
+  }
+
+  function resolveUserMenuEventTarget(hostElement) {
+    var scopedHost = resolveUserMenuScopedAuthHost(hostElement);
     if (scopedHost && typeof scopedHost.addEventListener === "function") {
       return scopedHost;
     }
@@ -12201,7 +12225,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
           this.__attachMenuEvents();
           this.__attachAuthEvents();
-          this.__refreshProfile();
+          if (!this.__syncProfileFromAuthHost("auth-host")) {
+            this.__refreshProfile();
+          }
         }
         __applyUserMenuError(error) {
           this.__userMenuConfig = null;
@@ -12317,6 +12343,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             this.__boundAuthHandler,
           );
           this.__authEventTarget = null;
+        }
+        __syncProfileFromAuthHost(source) {
+          var authHost = resolveUserMenuScopedAuthHost(this);
+          if (!authHost) {
+            return false;
+          }
+          this.__setProfile(readUserMenuProfileFromAuthHost(authHost), source);
+          return true;
         }
         __attachDismissEvents() {
           var documentObject =
