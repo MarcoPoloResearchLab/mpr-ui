@@ -11,7 +11,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 ## Integration Principles
 
-- One path: serve `/config-ui.yaml`, point `<mpr-header>` at it with `data-config-url`, and let `mpr-ui-config.js` apply auth attributes before the bundle boots.
+- One path: serve `/config-ui.yaml`, point the auth-owning `<mpr-header>` or `<mpr-login-button>` at it with `data-config-url`, and let `mpr-ui-config.js` apply auth attributes before the bundle boots.
 - DSL first: configure shell structure and appearance through `<mpr-*>` attributes, slots, `horizontal-links`, `links-collection`, `theme-switcher`, and `theme-config`.
 - Backend owns config: your app owns `/config-ui.yaml` plus the browser-facing auth routes; `mpr-ui` owns shell bootstrap, GIS credential exchange, and auth lifecycle events.
 - No alternate paths in normal integrations: do not load `tauth.js`, do not hand-wire `tauth-*` attributes in templates, and do not style `mpr-ui` internals from local CSS.
@@ -110,7 +110,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
    ></mpr-footer>
    ```
 
-   `mpr-ui-config.js` sees `mpr-header[data-config-url]`, loads `/config-ui.yaml`, applies auth attributes, and then loads the bundle from `data-mpr-ui-bundle-src`.
+   `mpr-ui-config.js` sees `mpr-header[data-config-url]`, loads `/config-ui.yaml`, applies auth attributes, and then loads the bundle from `data-mpr-ui-bundle-src`. For login-only surfaces, put `data-config-url` on `<mpr-login-button>` instead; the same loader path applies the button auth attributes before the bundle boots.
 
    `auth-transition` is optional. When present, `<mpr-header>` shows a built-in full-screen transition surface while auth is bootstrapping or exchanging credentials. If `completionEvent` is set, the transition surface stays visible after authentication until your app dispatches that event on `document`.
 
@@ -120,7 +120,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 2. Load GIS, `js-yaml`, and `mpr-ui-config.js`.
 3. Serve `/config-ui.yaml` from the app itself.
 4. Put `tauthUrl`, `googleClientId`, `tenantId`, `loginPath`, `logoutPath`, and `noncePath` in `/config-ui.yaml`.
-5. Render `<mpr-header data-config-url="/config-ui.yaml">`.
+5. Render `<mpr-header data-config-url="/config-ui.yaml">`, or render `<mpr-login-button data-config-url="/config-ui.yaml">` when the page only needs the Google sign-in control.
 6. Express shell composition through the DSL, not host CSS overrides into `mpr-ui` internals.
 7. Listen for `mpr-ui:auth:authenticated` and `mpr-ui:auth:unauthenticated` in app code.
 8. If you opt into `auth-transition.completionEvent`, dispatch that event after the authenticated app surface is ready.
@@ -308,6 +308,8 @@ The tags above replace the retired imperative helpers. See the example below for
 | `<mpr-card>` | `card` (JSON with `{ id, title, description, status, url, icon, subscribe }`), `theme` (JSON) | — | `mpr-card:card-toggle`, `mpr-card:subscribe-ready` |
 
 In the primary integration path, `tauth-*` and Google auth attributes are applied from `/config-ui.yaml`. The public auth attributes remain available for compatibility, but new pages should not hand-wire them.
+
+Login-only pages may slot `<mpr-login-button data-config-url="/config-ui.yaml">` into a header `aux` slot when they need the Google control visually in the header without giving `<mpr-header>` ownership of the user menu/auth shell.
 
 Auth components allow live `tauth-url` rebinding but do not support live `tauth-tenant-id` changes. Recreate the component if the app must bind to a different tenant.
 

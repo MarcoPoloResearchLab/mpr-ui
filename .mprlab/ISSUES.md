@@ -126,6 +126,26 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 - [x] [MU-433] `<mpr-header>` can call `google.accounts.id.initialize()` multiple times during initial Google button bootstrap.
   Resolved 2026-03-20: made Google nonce preparation single-flight inside the shared auth controller, created the controller before mounting the header Google button so the button reuses that nonce/bootstrap path, kept a nonce-less fallback when nonce preparation fails, and added regression coverage plus fixture nonce support so the workbench suite continues to render the button without a live backend. Tests: `node --test tests/custom-elements-header-footer.test.js tests/auth-credential-exchange.test.js`; `npx --yes --package typescript tsc --noEmit`; `npm test`.
 
+- [x] [B002] `<mpr-login-button>` loses the GIS-prepared nonce after unauthenticated bootstrap.
+  Summary: A config-first `<mpr-login-button>` can prepare a nonce for `google.accounts.id.initialize()`, then clear that nonce when the initial `/me` + `/auth/refresh` bootstrap settles unauthenticated. Clicking the rendered Google button then posts a newly requested `nonce_token` to TAuth while the Google credential was minted for the older nonce. TAuth rejects the exchange as an invalid credential, leaving consumers such as LoopAware stuck on the login page.
+  Expected: unauthenticated bootstrap must not invalidate the nonce that was already handed to GIS unless auth options change, the controller is destroyed, or a credential exchange completes.
+  Resolved 2026-05-08: preserved the prepared GIS nonce when unauthenticated bootstrap reconciliation settles, while still clearing nonce state for auth option changes, controller teardown, logout, missing credentials, failed credential exchange, and successful authentication. Added a focused regression proving `/auth/google` receives the same nonce handed to `google.accounts.id.initialize()`. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "preserves the prepared GIS nonce"`; `make ci`.
+
+- [x] [B003] `<mpr-login-button data-config-url>` is ignored by config auto-orchestration.
+  Summary: `mpr-ui-config.js` only watched `mpr-header[data-config-url]`, so login-only pages could not put the Google control inside a header slot without either giving the full header ownership of auth/user-menu bootstrap or adding app-owned bootstrap code.
+  Expected: a login-only `<mpr-login-button data-config-url="/config-ui.yaml">` should use the same config-first orchestration path as `<mpr-header data-config-url>`.
+  Resolved 2026-05-09: auto-orchestration now falls back to `mpr-login-button[data-config-url]` when no configured header is present, applies `/config-ui.yaml` auth/button attributes before loading the bundle, and documents the slotted header login-button pattern. Tests: `node --test tests/yaml-config-loader.test.js --test-name-pattern "autoOrchestrate"`; `make ci`.
+
+- [x] [B004] `<mpr-header>` built-in user menu starts a second profile bootstrap beside header auth.
+  Summary: Consumers using the canonical `<mpr-header data-config-url>` path get the header-owned Google sign-in button and a header-owned user menu. The user menu still called `getCurrentUser()` / profile fetch on connect, so the header auth controller and nested user menu could both probe `/me`.
+  Expected: when `<mpr-user>` is nested inside an auth-owning `<mpr-header>`, it should mirror header auth events and host profile state instead of independently bootstrapping TAuth.
+  Resolved 2026-05-09: nested user menus now synchronize from the closest header/login auth host and skip direct profile fetching; the header auth controller remains the single profile request owner. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "nested user menu"`; `make ci`.
+
+- [x] [B005] Config-first auth bootstrap probes `/me` and `/auth/refresh` for fresh anonymous users.
+  Summary: The canonical `/config-ui.yaml` path does not load `tauth.js`, so `mpr-ui` falls back to its own session fetch layer. That layer still eagerly calls `/me` and then `/auth/refresh` on first render, producing noisy unauthorized console requests for users who have no restorable session.
+  Expected: config-first auth bootstrap should mirror TAuth passive restore semantics: fresh anonymous pages skip session probes, while pages with an existing restore hint still attempt `/me` and one refresh before settling unauthenticated.
+  Resolved 2026-05-14: the fallback auth fetch layer now uses the shared TAuth restore-hint key, skips `/me` and `/auth/refresh` when no hint exists, preserves hinted profile restoration, and clears stale hints after unauthorized refresh. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "fallback profile|restore hint|fresh anonymous|prepared GIS nonce"`; `make test-unit`; `make ci`.
+
 ## Maintenance (419–499)
 
 - [x] [MU-427] Add `horizontal-links` examples to demo pages and document the DSL across guides.

@@ -4,7 +4,7 @@ This guide describes the primary `mpr-ui` integration contract. Treat it like an
 
 1. expose `/config-ui.yaml`
 2. load `mpr-ui-config.js`
-3. render `<mpr-header data-config-url="/config-ui.yaml">`
+3. render `<mpr-header data-config-url="/config-ui.yaml">` or a login-only `<mpr-login-button data-config-url="/config-ui.yaml">`
 4. let the loader apply auth attributes and load the bundle
 5. react to `mpr-ui:auth:*` events in app code
 
@@ -136,6 +136,16 @@ Render the shell declaratively:
   theme-switcher="toggle"
 ></mpr-footer>
 ```
+
+For public login pages that need the Google control in the header but do not need a header-owned user menu, keep the header as layout chrome and make the slotted login button the config owner:
+
+```html
+<mpr-header brand-label="My Application" brand-href="/">
+  <mpr-login-button slot="aux" data-config-url="/config-ui.yaml"></mpr-login-button>
+</mpr-header>
+```
+
+The loader applies the same `/config-ui.yaml` auth attributes to the button before loading the bundle.
 
 What the loader applies automatically:
 

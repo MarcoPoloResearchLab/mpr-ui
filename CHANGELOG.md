@@ -9,13 +9,65 @@
 - Centralized the Marco Polo Research Lab LLC legal profile, including company form, website, support/legal emails, and phone number.
 
 ### Bug Fixes 🐛
-- _No changes._
+- Made config-first auth bootstrap skip `/me` and `/auth/refresh` for fresh anonymous users while preserving hinted session restore.
 
 ### Testing 🧪
 - Added unit and Playwright coverage for legal document exports, escaping, custom-element rendering, and product-specific extra sections.
+- Added auth-controller regressions for anonymous no-probe bootstrap, hinted profile restore, and stale restore-hint clearing.
 
 ### Docs 📚
 - Documented the shared legal document API, attributes, profile override boundaries, and product-specific section extension pattern.
+
+## [v3.9.5] - 2026-05-09
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- Kept nested `<mpr-user>` menus inside auth-owning headers synchronized from header auth events/state instead of starting their own profile bootstrap.
+
+### Bug Fixes 🐛
+- Fixed `<mpr-header>` integrations that could issue duplicate session profile probes when the built-in header Google button and header user menu were both present.
+
+### Testing 🧪
+- Added focused coverage proving a nested user menu waits for the header auth controller and does not call `getCurrentUser()` directly.
+
+### Docs 📚
+- _No changes._
+
+## [v3.9.4] - 2026-05-09
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- Allowed `mpr-ui-config.js` auto-orchestration to use `<mpr-login-button data-config-url>` as the config owner when a page needs a login-only auth surface.
+
+### Bug Fixes 🐛
+- Fixed login-button-only integrations so they no longer need app-owned bootstrap code just to load config before the bundle.
+
+### Testing 🧪
+- Added focused config-loader coverage for login-button-owned auto-orchestration, including bundle loading and config-applied auth attributes.
+
+### Docs 📚
+- Documented the header `aux` slot pattern for login-only pages that need the Google button in the header without a header-owned user menu.
+
+## [v3.9.3] - 2026-05-08
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- _No changes._
+
+### Bug Fixes 🐛
+- Preserved the prepared Google Identity Services nonce through unauthenticated TAuth bootstrap reconciliation so config-first login buttons exchange the same nonce that Google received.
+
+### Testing 🧪
+- Added focused auth-controller regression coverage for the prepared nonce surviving `/me` + `/auth/refresh` unauthenticated bootstrap.
+
+### Docs 📚
+- _No changes._
 
 ## [v3.9.2] - 2026-04-28
 
