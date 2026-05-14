@@ -18,6 +18,27 @@
 ### Docs 📚
 - Documented the shared legal document API, attributes, profile override boundaries, and product-specific section extension pattern.
 
+## [v3.9.6] - 2026-05-14
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- Made config-first auth bootstrap skip `/me` and `/auth/refresh` requests for fresh anonymous users while preserving session restore using a shared hint key.
+- The fallback auth fetch layer now respects the restore hint, skipping unnecessary session probes and clearing stale hints after unauthorized refresh responses.
+
+### Bug Fixes 🐛
+- Fixed config-first passive auth bootstrap to avoid noisy unauthorized console requests by correctly mirroring TAuth passive restore semantics.
+- Restored hinted profiles correctly during fallback auth bootstrap.
+- Cleared stale restore hints after unauthorized session refresh calls.
+
+### Testing 🧪
+- Added tests for auth-controller regressions including anonymous no-probe bootstrap, hinted profile restoration, and stale restore-hint clearing.
+- Expanded coverage for fallback profile fetch logic and session restoration behavior.
+
+### Docs 📚
+- _No changes._
+
 ## [v3.9.5] - 2026-05-09
 
 ### Features ✨
