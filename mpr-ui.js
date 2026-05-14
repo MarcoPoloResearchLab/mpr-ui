@@ -17,6 +17,7 @@
   var DEFAULT_TAUTH_PROFILE_PATH = "/me";
   var DEFAULT_TAUTH_REFRESH_PATH = "/auth/refresh";
   var REQUESTED_WITH_HEADER = "XMLHttpRequest";
+  var AUTH_RESTORE_HINT_PREFIX = "tauth.restore.v1:";
   var AUTH_CONTROLLER_STATUS = Object.freeze({
     BOOTSTRAPPING: "bootstrapping",
     AUTHENTICATING: "authenticating",
@@ -210,6 +211,116 @@
     return combined;
   }
 
+  function getCurrentLocationOrigin() {
+    var locationObject = null;
+    if (global.location) {
+      locationObject = global.location;
+    } else if (global.document && global.document.location) {
+      locationObject = global.document.location;
+    } else if (global.window && global.window.location) {
+      locationObject = global.window.location;
+    }
+    if (
+      locationObject &&
+      typeof locationObject.origin === "string" &&
+      locationObject.origin.trim()
+    ) {
+      return locationObject.origin.trim();
+    }
+    return "";
+  }
+
+  function resolveAuthRestoreBaseUrl(authOptions) {
+    var configuredBaseUrl =
+      authOptions && typeof authOptions.tauthUrl === "string"
+        ? authOptions.tauthUrl.trim()
+        : "";
+    return configuredBaseUrl || getCurrentLocationOrigin();
+  }
+
+  function authRestoreStorage() {
+    try {
+      var localStorageDescriptor = Object.getOwnPropertyDescriptor(
+        global,
+        "localStorage",
+      );
+      if (
+        localStorageDescriptor &&
+        Object.prototype.hasOwnProperty.call(localStorageDescriptor, "value")
+      ) {
+        return localStorageDescriptor.value || null;
+      }
+      if (
+        global.process &&
+        global.process.versions &&
+        global.process.versions.node
+      ) {
+        return null;
+      }
+      if (global.localStorage) {
+        return global.localStorage;
+      }
+      if (global.window && global.window.localStorage) {
+        return global.window.localStorage;
+      }
+    } catch (error) {
+      return null;
+    }
+    return null;
+  }
+
+  function authRestoreHintKey(authOptions) {
+    var baseUrl = resolveAuthRestoreBaseUrl(authOptions);
+    if (!baseUrl) {
+      return null;
+    }
+    return (
+      AUTH_RESTORE_HINT_PREFIX +
+      encodeURIComponent(baseUrl) +
+      ":" +
+      encodeURIComponent(normalizeTenantId(authOptions && authOptions.tenantId) || "")
+    );
+  }
+
+  function hasAuthRestoreHint(authOptions) {
+    var storage = authRestoreStorage();
+    var key = authRestoreHintKey(authOptions);
+    if (!storage || !key) {
+      return false;
+    }
+    try {
+      return storage.getItem(key) !== null;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  function rememberAuthRestoreHint(authOptions) {
+    var storage = authRestoreStorage();
+    var key = authRestoreHintKey(authOptions);
+    if (!storage || !key) {
+      return;
+    }
+    try {
+      storage.setItem(key, "1");
+    } catch (error) {
+      return;
+    }
+  }
+
+  function clearAuthRestoreHint(authOptions) {
+    var storage = authRestoreStorage();
+    var key = authRestoreHintKey(authOptions);
+    if (!storage || !key) {
+      return;
+    }
+    try {
+      storage.removeItem(key);
+    } catch (error) {
+      return;
+    }
+  }
+
   /**
    * @param {string} message
    * @param {{ status?: number } | null | undefined} response
@@ -243,6 +354,7 @@
         throw new Error("invalid response from refresh endpoint");
       }
       if (response.ok) {
+        rememberAuthRestoreHint(authOptions);
         return true;
       }
       if (
@@ -258,6 +370,7 @@
         });
       }
       if (response.status === 401) {
+        clearAuthRestoreHint(authOptions);
         return false;
       }
       throw createStatusError("auth session refresh failed", response);
@@ -269,6 +382,9 @@
   }
 
   function requestCurrentProfileWithFetch(authOptions) {
+    if (!hasAuthRestoreHint(authOptions)) {
+      return Promise.resolve(null);
+    }
     if (!global.fetch) {
       return Promise.reject(new Error("fetch is required to load auth profile"));
     }
@@ -286,10 +402,12 @@
             throw new Error("invalid response from profile endpoint");
           }
           if (response.status === 204) {
+            clearAuthRestoreHint(authOptions);
             return null;
           }
           if (response.status === 401) {
             if (!allowRefresh) {
+              clearAuthRestoreHint(authOptions);
               return null;
             }
             return refreshSessionWithFetch(authOptions).then(function (refreshed) {
@@ -307,8 +425,10 @@
           }
           return response.json().then(function (payload) {
             if (!payload || typeof payload !== "object") {
+              clearAuthRestoreHint(authOptions);
               return null;
             }
+            rememberAuthRestoreHint(authOptions);
             return payload;
           });
         });
@@ -352,6 +472,7 @@
         if (!response.ok) {
           throw createStatusError("logout failed", response);
         }
+        clearAuthRestoreHint(authOptions);
         return null;
       });
   }
@@ -3215,6 +3336,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       lastAuthenticatedSignature = signature;
       hasEmittedUnauthenticated = false;
       pendingNonceToken = null;
+      rememberAuthRestoreHint(options);
       updateDatasetFromProfile(profile);
       updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATED);
       if (shouldEmit) {
@@ -3510,6 +3632,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     function signOut() {
       return performLogout().then(function () {
+        clearAuthRestoreHint(options);
         pendingProfile = null;
         pendingNonceToken = null;
         if (typeof global.initAuthClient !== "function") {

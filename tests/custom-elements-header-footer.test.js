@@ -250,6 +250,7 @@ function resetEnvironment() {
   delete require.cache[bundlePath];
   delete global.MPRUI;
   delete global.window;
+  delete global.localStorage;
 
   const definitions = new Map();
   global.customElements = {
@@ -454,6 +455,35 @@ function flushAsync() {
   return new Promise(function resolveLater(resolve) {
     setTimeout(resolve, 0);
   });
+}
+
+function createStorageStub(initialValues) {
+  const values = new Map(Object.entries(initialValues || {}));
+  return {
+    getItem: function getItem(key) {
+      const normalizedKey = String(key);
+      return values.has(normalizedKey) ? values.get(normalizedKey) : null;
+    },
+    setItem: function setItem(key, value) {
+      values.set(String(key), String(value));
+    },
+    removeItem: function removeItem(key) {
+      values.delete(String(key));
+    },
+    clear: function clear() {
+      values.clear();
+    },
+  };
+}
+
+function installStorageStub(initialValues) {
+  const storage = createStorageStub(initialValues);
+  Object.defineProperty(global, 'localStorage', {
+    configurable: true,
+    value: storage,
+    writable: true,
+  });
+  return storage;
 }
 
 function createHeaderElementHarness(options) {
@@ -1619,6 +1649,7 @@ test('createAuthHeader preserves the prepared GIS nonce through unauthenticated 
   };
   const initializeCalls = [];
   const exchangePayloads = [];
+  const restoreHintKey = 'tauth.restore.v1:http%3A%2F%2Flocalhost%3A8080:tenant-alpha';
   let nonceCounter = 0;
   let resolveProfileResponse;
 
@@ -1633,6 +1664,7 @@ test('createAuthHeader preserves the prepared GIS nonce through unauthenticated 
   }
 
   global.location = { origin: 'http://fallback-origin.test' };
+  installStorageStub({ [restoreHintKey]: '1' });
   global.google = {
     accounts: {
       id: {
@@ -1708,6 +1740,225 @@ test('createAuthHeader preserves the prepared GIS nonce through unauthenticated 
   );
   assert.equal(nonceCounter, 1, 'credential exchange does not request a second nonce');
   assert.deepEqual(authController.state.profile, authenticatedProfile);
+});
+
+test('createAuthHeader skips fallback profile probes for fresh anonymous config-first bootstrap', async () => {
+  resetEnvironment();
+  delete global.initAuthClient;
+  delete global.getCurrentUser;
+  delete global.requestNonce;
+  delete global.exchangeGoogleCredential;
+  const library = loadLibrary();
+  const requestedPaths = [];
+
+  function createResponse(status, payload) {
+    return {
+      ok: status >= 200 && status < 300,
+      status,
+      json: function json() {
+        return Promise.resolve(payload || {});
+      },
+    };
+  }
+
+  global.location = { origin: 'http://fallback-origin.test' };
+  installStorageStub();
+  global.google = {
+    accounts: {
+      id: {
+        initialize() {},
+        renderButton() {},
+        prompt() {},
+      },
+    },
+  };
+  global.fetch = function fetch(url) {
+    const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
+    requestedPaths.push(pathname);
+    if (pathname === '/auth/nonce') {
+      return Promise.resolve(createResponse(200, { nonce: 'anonymous-nonce' }));
+    }
+    if (pathname === '/me') {
+      return Promise.resolve(createResponse(401));
+    }
+    if (pathname === '/auth/refresh') {
+      return Promise.resolve(createResponse(401));
+    }
+    return Promise.reject(new Error('unexpected fetch URL: ' + String(url)));
+  };
+
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(hostElement, {
+    googleClientId: 'anonymous-bootstrap-client',
+    tauthUrl: 'http://localhost:8080',
+    tauthLoginPath: '/auth/google',
+    tauthLogoutPath: '/auth/logout',
+    tauthNoncePath: '/auth/nonce',
+    tenantId: 'tenant-alpha',
+  });
+
+  await flushAsync();
+  await flushAsync();
+  await flushAsync();
+
+  assert.equal(authController.state.status, 'unauthenticated');
+  assert.equal(
+    requestedPaths.includes('/me'),
+    false,
+    'fresh anonymous bootstrap does not probe /me',
+  );
+  assert.equal(
+    requestedPaths.includes('/auth/refresh'),
+    false,
+    'fresh anonymous bootstrap does not attempt session refresh',
+  );
+});
+
+test('createAuthHeader restores the fallback profile when a TAuth restore hint exists', async () => {
+  resetEnvironment();
+  delete global.initAuthClient;
+  delete global.getCurrentUser;
+  delete global.requestNonce;
+  delete global.exchangeGoogleCredential;
+  const library = loadLibrary();
+  const requestedPaths = [];
+  const restoreHintKey = 'tauth.restore.v1:http%3A%2F%2Flocalhost%3A8080:tenant-alpha';
+  const profile = {
+    display: 'Grace Hopper',
+    given_name: 'Grace',
+    avatar_url: 'https://cdn.example.com/grace.png',
+    user_email: 'grace@example.com',
+  };
+
+  function createResponse(status, payload) {
+    return {
+      ok: status >= 200 && status < 300,
+      status,
+      json: function json() {
+        return Promise.resolve(payload || {});
+      },
+    };
+  }
+
+  global.location = { origin: 'http://fallback-origin.test' };
+  installStorageStub({ [restoreHintKey]: '1' });
+  global.google = {
+    accounts: {
+      id: {
+        initialize() {},
+        renderButton() {},
+        prompt() {},
+      },
+    },
+  };
+  global.fetch = function fetch(url) {
+    const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
+    requestedPaths.push(pathname);
+    if (pathname === '/auth/nonce') {
+      return Promise.resolve(createResponse(200, { nonce: 'restore-nonce' }));
+    }
+    if (pathname === '/me') {
+      return Promise.resolve(createResponse(200, profile));
+    }
+    return Promise.reject(new Error('unexpected fetch URL: ' + String(url)));
+  };
+
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(hostElement, {
+    googleClientId: 'hinted-bootstrap-client',
+    tauthUrl: 'http://localhost:8080',
+    tauthLoginPath: '/auth/google',
+    tauthLogoutPath: '/auth/logout',
+    tauthNoncePath: '/auth/nonce',
+    tenantId: 'tenant-alpha',
+  });
+
+  await flushAsync();
+  await flushAsync();
+  await flushAsync();
+
+  assert.equal(requestedPaths.includes('/me'), true, 'restore hint probes /me');
+  assert.equal(
+    requestedPaths.includes('/auth/refresh'),
+    false,
+    'successful profile restore does not refresh',
+  );
+  assert.deepEqual(authController.state.profile, profile);
+  assert.equal(authController.state.status, 'authenticated');
+});
+
+test('createAuthHeader clears a stale TAuth restore hint after fallback refresh is unauthorized', async () => {
+  resetEnvironment();
+  delete global.initAuthClient;
+  delete global.getCurrentUser;
+  delete global.requestNonce;
+  delete global.exchangeGoogleCredential;
+  const library = loadLibrary();
+  const requestedPaths = [];
+  const restoreHintKey = 'tauth.restore.v1:http%3A%2F%2Flocalhost%3A8080:tenant-alpha';
+
+  function createResponse(status, payload) {
+    return {
+      ok: status >= 200 && status < 300,
+      status,
+      json: function json() {
+        return Promise.resolve(payload || {});
+      },
+    };
+  }
+
+  global.location = { origin: 'http://fallback-origin.test' };
+  const storage = installStorageStub({ [restoreHintKey]: '1' });
+  global.google = {
+    accounts: {
+      id: {
+        initialize() {},
+        renderButton() {},
+        prompt() {},
+      },
+    },
+  };
+  global.fetch = function fetch(url) {
+    const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
+    requestedPaths.push(pathname);
+    if (pathname === '/auth/nonce') {
+      return Promise.resolve(createResponse(200, { nonce: 'stale-hint-nonce' }));
+    }
+    if (pathname === '/me') {
+      return Promise.resolve(createResponse(401));
+    }
+    if (pathname === '/auth/refresh') {
+      return Promise.resolve(createResponse(401));
+    }
+    return Promise.reject(new Error('unexpected fetch URL: ' + String(url)));
+  };
+
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(hostElement, {
+    googleClientId: 'stale-hint-bootstrap-client',
+    tauthUrl: 'http://localhost:8080',
+    tauthLoginPath: '/auth/google',
+    tauthLogoutPath: '/auth/logout',
+    tauthNoncePath: '/auth/nonce',
+    tenantId: 'tenant-alpha',
+  });
+
+  await flushAsync();
+  await flushAsync();
+  await flushAsync();
+
+  assert.equal(requestedPaths.includes('/me'), true, 'restore hint probes /me');
+  assert.equal(
+    requestedPaths.includes('/auth/refresh'),
+    true,
+    'restore hint attempts one refresh after /me is unauthorized',
+  );
+  assert.equal(authController.state.status, 'unauthenticated');
+  assert.equal(
+    storage.getItem(restoreHintKey),
+    null,
+    'stale restore hint is cleared after confirmed unauthenticated fallback',
+  );
 });
 
 test('createAuthHeader rejects tenant changes after initialization', async () => {

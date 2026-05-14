@@ -141,6 +141,11 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
   Expected: when `<mpr-user>` is nested inside an auth-owning `<mpr-header>`, it should mirror header auth events and host profile state instead of independently bootstrapping TAuth.
   Resolved 2026-05-09: nested user menus now synchronize from the closest header/login auth host and skip direct profile fetching; the header auth controller remains the single profile request owner. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "nested user menu"`; `make ci`.
 
+- [x] [B005] Config-first auth bootstrap probes `/me` and `/auth/refresh` for fresh anonymous users.
+  Summary: The canonical `/config-ui.yaml` path does not load `tauth.js`, so `mpr-ui` falls back to its own session fetch layer. That layer still eagerly calls `/me` and then `/auth/refresh` on first render, producing noisy unauthorized console requests for users who have no restorable session.
+  Expected: config-first auth bootstrap should mirror TAuth passive restore semantics: fresh anonymous pages skip session probes, while pages with an existing restore hint still attempt `/me` and one refresh before settling unauthenticated.
+  Resolved 2026-05-14: the fallback auth fetch layer now uses the shared TAuth restore-hint key, skips `/me` and `/auth/refresh` when no hint exists, preserves hinted profile restoration, and clears stale hints after unauthorized refresh. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "fallback profile|restore hint|fresh anonymous|prepared GIS nonce"`; `make test-unit`; `make ci`.
+
 ## Maintenance (419–499)
 
 - [x] [MU-427] Add `horizontal-links` examples to demo pages and document the DSL across guides.

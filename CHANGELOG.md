@@ -9,10 +9,11 @@
 - Centralized the Marco Polo Research Lab LLC legal profile, including company form, website, support/legal emails, and phone number.
 
 ### Bug Fixes 🐛
-- _No changes._
+- Made config-first auth bootstrap skip `/me` and `/auth/refresh` for fresh anonymous users while preserving hinted session restore.
 
 ### Testing 🧪
 - Added unit and Playwright coverage for legal document exports, escaping, custom-element rendering, and product-specific extra sections.
+- Added auth-controller regressions for anonymous no-probe bootstrap, hinted profile restore, and stale restore-hint clearing.
 
 ### Docs 📚
 - Documented the shared legal document API, attributes, profile override boundaries, and product-specific section extension pattern.
