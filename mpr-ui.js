@@ -3656,7 +3656,83 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       updateOptions: updateOptions,
       destroy: destroy,
       restartSessionWatcher: bootstrapSession,
+      setAuthenticatedForTesting: function setAuthenticatedForTesting(profile) {
+        markAuthenticated(profile);
+        return state;
+      },
+      setUnauthenticatedForTesting: function setUnauthenticatedForTesting() {
+        markUnauthenticated({ prompt: false, clearNonce: true });
+        return state;
+      },
     };
+  }
+
+  function createTestingError(code, message) {
+    /** @type {MprUiError} */
+    var error = new Error(message);
+    error.code = code;
+    return error;
+  }
+
+  function requireTestingProfile(profile) {
+    if (!profile || typeof profile !== "object" || Array.isArray(profile)) {
+      throw createTestingError(
+        "mpr-ui.testing.auth_profile_required",
+        "MPRUI.testing.authenticate requires a profile object",
+      );
+    }
+    return profile;
+  }
+
+  function resolveTestingAuthController(authTarget) {
+    if (!authTarget || typeof authTarget !== "object") {
+      throw createTestingError(
+        "mpr-ui.testing.auth_host_required",
+        "MPRUI.testing auth helpers require an auth host element",
+      );
+    }
+    if (typeof authTarget.setAuthenticatedForTesting === "function") {
+      return authTarget;
+    }
+    var headerController =
+      authTarget.__headerController &&
+      typeof authTarget.__headerController.getAuthController === "function"
+        ? authTarget.__headerController.getAuthController()
+        : null;
+    if (headerController) {
+      return headerController;
+    }
+    if (authTarget.__authController) {
+      return authTarget.__authController;
+    }
+    throw createTestingError(
+      "mpr-ui.testing.auth_controller_missing",
+      "MPRUI.testing auth helpers require a mounted mpr-ui auth controller",
+    );
+  }
+
+  function authenticateForTesting(authTarget, profile) {
+    var authController = resolveTestingAuthController(authTarget);
+    if (typeof authController.setAuthenticatedForTesting !== "function") {
+      throw createTestingError(
+        "mpr-ui.testing.auth_controller_unsupported",
+        "MPRUI.testing.authenticate requires a compatible auth controller",
+      );
+    }
+    return authController.setAuthenticatedForTesting(
+      requireTestingProfile(profile),
+    );
+  }
+
+  function unauthenticateForTesting(authTarget) {
+    var authController = resolveTestingAuthController(authTarget);
+    if (typeof authController.setUnauthenticatedForTesting !== "function") {
+      throw createTestingError(
+        "mpr-ui.testing.auth_controller_unsupported",
+        "MPRUI.testing.unauthenticate requires a compatible auth controller",
+      );
+    }
+    return authController.setUnauthenticatedForTesting();
   }
 
   function renderAuthHeader(target, options) {
@@ -14657,6 +14733,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   namespace.createSelectionState = createSelectionState;
   namespace.createCustomElementRegistry = createCustomElementRegistry;
   namespace.MprElement = MprElement;
+  if (!namespace.testing || typeof namespace.testing !== "object") {
+    namespace.testing = {};
+  }
+  namespace.testing.authenticate = authenticateForTesting;
+  namespace.testing.unauthenticate = unauthenticateForTesting;
   if (!namespace.__dom) {
     namespace.__dom = {};
   }

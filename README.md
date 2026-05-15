@@ -323,6 +323,20 @@ Custom elements dispatch the same `mpr-ui:*` events that the deprecated helpers 
 
 `createAuthHeader()` now reflects `data-mpr-auth-status="bootstrapping"|"authenticating"|"authenticated"|"unauthenticated"` onto auth-bearing hosts. Use that state only for integration wiring and analytics; the preferred UX surface is the declarative `auth-transition` screen on `<mpr-header>`.
 
+For browser integration suites that seed a backend session directly, use the public test helper instead of mutating
+`mpr-ui` DOM internals:
+
+```js
+window.MPRUI.testing.authenticate(document.querySelector("mpr-header"), {
+  user_email: "operator@example.com",
+  display: "Operator",
+  avatar_url: ""
+});
+```
+
+`MPRUI.testing.authenticate(host, profile)` and `MPRUI.testing.unauthenticate(host)` drive the mounted `mpr-ui` auth
+controller and emit the same `mpr-ui:auth:*` lifecycle events as normal auth. App code should not call these methods.
+
 > Both `<mpr-header>` and `<mpr-footer>` are sticky by default. Add `sticky="false"` (or pass the equivalent option) if you want them to render in-flow; setting `sticky="true"` is redundant because `true` is the default. The attribute values are case-insensitive (`sticky="FALSE"` works), and the components manage stickiness internally so no host-level CSS overrides are required. In sticky mode the footer renders a spacer + viewport-fixed footer so it stays visible even when the page is scrolled to the top.
 
 Both `<mpr-header>` and `<mpr-footer>` also accept `size="normal"` (default) or `size="small"` to scale the component down to about 70% of the normal footprint.
