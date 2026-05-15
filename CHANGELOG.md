@@ -21,6 +21,26 @@
 - Documented the shared legal document API, attributes, profile override boundaries, and product-specific section extension pattern.
 - Documented the test-only auth helper contract for integration suites that seed backend sessions.
 
+## [v3.9.8] - 2026-05-14
+
+### Features ✨
+- Exposed public `MPRUI.testing.authenticate()` and `MPRUI.testing.unauthenticate()` helpers for integration test suites to drive the mounted auth controller.
+
+### Improvements ⚙️
+- Added public `MPRUI.testing` auth helpers enabling app browser suites to synchronize auth state without mutating internal DOM.
+- Config-first auth bootstrap improvements to skip unnecessary requests for fresh anonymous users while preserving hinted session restore.
+
+### Bug Fixes 🐛
+- Fixed auth bootstrap to properly handle `/me` and `/auth/refresh` skipping and stale restore-hint clearing.
+
+### Testing 🧪
+- Added unit and Playwright coverage for new auth testing helpers.
+- Covered auth controller scenarios for anonymous bootstrap, hinted profile restore, and stale hint clearing.
+- Verified error handling for invalid calls to auth testing helpers.
+
+### Docs 📚
+- Documented the public test-only auth helper APIs and their usage for integration testing.
+
 ## [v3.9.6] - 2026-05-14
 
 ### Features ✨
