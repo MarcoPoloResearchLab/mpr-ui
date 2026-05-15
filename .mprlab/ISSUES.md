@@ -146,6 +146,11 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
   Expected: config-first auth bootstrap should mirror TAuth passive restore semantics: fresh anonymous pages skip session probes, while pages with an existing restore hint still attempt `/me` and one refresh before settling unauthenticated.
   Resolved 2026-05-14: the fallback auth fetch layer now uses the shared TAuth restore-hint key, skips `/me` and `/auth/refresh` when no hint exists, preserves hinted profile restoration, and clears stale hints after unauthorized refresh. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "fallback profile|restore hint|fresh anonymous|prepared GIS nonce"`; `make test-unit`; `make ci`.
 
+- [x] [B006] Expose auth test helpers for config-first app integration suites.
+  Summary: Apps that seed backend sessions in browser tests need a public `mpr-ui` testing surface to synchronize the mounted auth controller without mutating `mpr-ui` DOM internals or teaching app harnesses private auth state.
+  Expected: `mpr-ui` exposes test-only methods that drive the same auth controller and lifecycle events as normal authentication, and consumer app tests use those methods instead of direct `data-mpr-auth-status` or `mpr-ui:auth:*` event mutation.
+  Resolved 2026-05-14: added `MPRUI.testing.authenticate()` and `MPRUI.testing.unauthenticate()` as public test helpers backed by the mounted auth controller, documented the integration-test contract, and verified with `make test-unit` plus `make ci`.
+
 ## Maintenance (419–499)
 
 - [x] [MU-427] Add `horizontal-links` examples to demo pages and document the DSL across guides.

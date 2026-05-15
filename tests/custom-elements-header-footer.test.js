@@ -2392,6 +2392,122 @@ test('MU-434: createAuthHeader reflects pending auth states on the host element'
   );
 });
 
+test('MPRUI.testing drives mounted header auth state through the auth controller', async () => {
+  resetEnvironment();
+  const authenticatedProfile = {
+    display: 'Hedy Lamarr',
+    given_name: 'Hedy',
+    avatar_url: 'https://cdn.example.com/hedy.png',
+    user_email: 'hedy@example.com',
+  };
+  global.location = { origin: 'http://fallback-origin.test' };
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+
+  const library = loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+  headerElement.setAttribute('google-site-id', 'testing-client');
+  headerElement.setAttribute('tauth-login-path', '/auth/google');
+  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
+  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
+  headerElement.setAttribute('tauth-tenant-id', 'tenant-testing');
+
+  headerElement.connectedCallback();
+  await flushAsync();
+  await flushAsync();
+
+  const authenticatedState = library.testing.authenticate(
+    headerElement,
+    authenticatedProfile,
+  );
+  assert.equal(authenticatedState.status, 'authenticated');
+  assert.deepEqual(authenticatedState.profile, authenticatedProfile);
+  assert.equal(headerElement.getAttribute('data-mpr-auth-status'), 'authenticated');
+  assert.equal(
+    harness.root.classList.contains('mpr-header--authenticated'),
+    true,
+    'testing authenticate refreshes the rendered header state',
+  );
+
+  const authenticatedEvents = headerElement.__dispatchedEvents.filter(
+    (eventEntry) => eventEntry.type === 'mpr-ui:auth:authenticated',
+  );
+  assert.equal(
+    authenticatedEvents.length,
+    1,
+    'testing authenticate emits the same authenticated event as normal auth',
+  );
+
+  const unauthenticatedState = library.testing.unauthenticate(headerElement);
+  assert.equal(unauthenticatedState.status, 'unauthenticated');
+  assert.equal(unauthenticatedState.profile, null);
+  assert.equal(
+    headerElement.getAttribute('data-mpr-auth-status'),
+    'unauthenticated',
+  );
+});
+
+test('MPRUI.testing rejects invalid auth test calls before mutating state', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  assert.throws(
+    function rejectMissingHost() {
+      library.testing.authenticate(null, { user_email: 'test@example.com' });
+    },
+    function verifyMissingHost(error) {
+      assert.equal(error.code, 'mpr-ui.testing.auth_host_required');
+      return true;
+    },
+  );
+
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  assert.throws(
+    function rejectMissingController() {
+      library.testing.authenticate(hostElement, {
+        user_email: 'test@example.com',
+      });
+    },
+    function verifyMissingController(error) {
+      assert.equal(error.code, 'mpr-ui.testing.auth_controller_missing');
+      return true;
+    },
+  );
+
+  const authController = library.createAuthHeader(hostElement, {
+    googleClientId: 'testing-client',
+    tauthUrl: 'http://localhost:8080',
+    tauthLoginPath: '/auth/google',
+    tauthLogoutPath: '/auth/logout',
+    tauthNoncePath: '/auth/nonce',
+    tenantId: 'tenant-testing',
+  });
+
+  assert.throws(
+    function rejectMissingProfile() {
+      library.testing.authenticate(authController, null);
+    },
+    function verifyMissingProfile(error) {
+      assert.equal(error.code, 'mpr-ui.testing.auth_profile_required');
+      return true;
+    },
+  );
+  assert.equal(authController.state.status, 'bootstrapping');
+});
+
 test('MU-434: mpr-header holds the auth transition screen until the configured app-ready event arrives', async () => {
   resetEnvironment();
   const authenticatedProfile = {
