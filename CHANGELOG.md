@@ -23,6 +23,30 @@
 - Documented the shared legal document API, attributes, profile override boundaries, and product-specific section extension pattern.
 - Documented the test-only auth helper contract for integration suites that seed backend sessions.
 
+## [v3.9.9] - 2026-06-01
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- Auth controllers now refresh the prepared Google Identity Services (GIS) nonce when long-lived tabs regain focus or become visible, and Google sign-in buttons request a fresh nonce on pointer, focus, or touch intent.
+- GIS nonce refreshes keep the previous nonce active until the new one is ready, preventing nonce mismatch errors during fast user interactions.
+- Added cleanup of Google button intent event listeners to improve resource management.
+
+### Bug Fixes 🐛
+- Fixed issue where long-lived login pages reused expired GIS nonces causing sign-in failures with 401 errors until page refresh.
+- Credential exchange now correctly uses the refreshed nonce token to avoid stale nonce reuse in TAuth authentication.
+- Regression tests added to cover long-lived tab focus refresh and GIS nonce stability during credential exchange.
+
+### Testing 🧪
+- Added auth-controller regression tests for long-lived tab GIS nonce refresh before credential exchange.
+- Expanded unit and Playwright tests for auth-controller behaviors including anonymous bootstrap, profile restore, and credential exchange nonce handling.
+- Added tests for custom elements header and footer rendering and event handling.
+
+### Docs 📚
+- Updated ISSUES.md with detailed explanation of GIS nonce expiration and refresh behavior.
+- Documented auth-controller nonce refresh mechanism and Google sign-in button intent handling.
+
 ## [v3.9.8] - 2026-05-14
 
 ### Features ✨
