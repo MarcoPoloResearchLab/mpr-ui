@@ -3282,7 +3282,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
             return;
           }
-          handleCredential(payload);
+          return handleCredential(payload, nonceToken);
         },
       });
       ensureGoogleIdentityClient(global.document)
@@ -3542,15 +3542,24 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         });
     }
 
-    function exchangeCredential(credential) {
-      configureTenantId();
-      var noncePromise;
-      if (pendingNonceToken) {
-        noncePromise = Promise.resolve(pendingNonceToken);
-        pendingNonceToken = null;
-      } else {
-        noncePromise = requestNonceToken();
+    function consumeExchangeNonceToken(credentialNonceToken) {
+      if (credentialNonceToken) {
+        if (pendingNonceToken === credentialNonceToken) {
+          pendingNonceToken = null;
+        }
+        return Promise.resolve(credentialNonceToken);
       }
+      if (pendingNonceToken) {
+        var preparedNonceToken = pendingNonceToken;
+        pendingNonceToken = null;
+        return Promise.resolve(preparedNonceToken);
+      }
+      return requestNonceToken();
+    }
+
+    function exchangeCredential(credential, credentialNonceToken) {
+      configureTenantId();
+      var noncePromise = consumeExchangeNonceToken(credentialNonceToken);
       return noncePromise
         .then(function (nonceToken) {
           if (typeof global.exchangeGoogleCredential === "function") {
@@ -3648,7 +3657,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       });
     }
 
-    function handleCredential(credentialResponse) {
+    function handleCredential(credentialResponse, credentialNonceToken) {
       if (!credentialResponse || !credentialResponse.credential) {
         emitError("mpr-ui.auth.missing_credential", {});
         markUnauthenticated({ prompt: true, clearNonce: true });
@@ -3656,7 +3665,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       var currentLifecycleVersion = lifecycleVersion;
       updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATING);
-      return exchangeCredential(credentialResponse.credential)
+      return exchangeCredential(credentialResponse.credential, credentialNonceToken)
         .then(function (profile) {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
             return null;

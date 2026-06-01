@@ -27,7 +27,7 @@ test('MU-132: handleCredential calls markAuthenticated directly after exchangeCr
 
   // Verify the fix is in place: the successful exchange path still marks
   // the controller authenticated directly rather than delegating to bootstrapSession().
-  const fixedPattern = /return exchangeCredential\(credentialResponse\.credential\)\s*\.then\(function\s*\(profile\)\s*\{[\s\S]*?markAuthenticated\(profile\)/s;
+  const fixedPattern = /return exchangeCredential\(credentialResponse\.credential(?:,\s*credentialNonceToken)?\)\s*\.then\(function\s*\(profile\)\s*\{[\s\S]*?markAuthenticated\(profile\)/s;
 
   assert.ok(
     fixedPattern.test(bundleSource),
@@ -42,7 +42,7 @@ test('MU-132: handleCredential does not rely on bootstrapSession callback for au
   // Verify the old buggy pattern is NOT present:
   // The buggy code set pendingProfile and returned bootstrapSession() result,
   // relying on initAuthClient to eventually call onAuthenticated
-  const buggyPattern = /return exchangeCredential\(credentialResponse\.credential\)\s*\.then\(function\s*\(profile\)\s*\{[^}]*pendingProfile\s*=\s*profile[^}]*return bootstrapSession\(\)/s;
+  const buggyPattern = /return exchangeCredential\(credentialResponse\.credential(?:,\s*credentialNonceToken)?\)\s*\.then\(function\s*\(profile\)\s*\{[^}]*pendingProfile\s*=\s*profile[^}]*return bootstrapSession\(\)/s;
 
   assert.ok(
     !buggyPattern.test(bundleSource),

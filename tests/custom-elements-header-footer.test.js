@@ -1871,6 +1871,103 @@ test('createAuthHeader refreshes the prepared GIS nonce after a long-lived tab r
   assert.deepEqual(authController.state.profile, authenticatedProfile);
 });
 
+test('createAuthHeader keeps the GIS callback nonce stable after a focus refresh', async () => {
+  resetEnvironment();
+  delete global.initAuthClient;
+  delete global.getCurrentUser;
+  delete global.requestNonce;
+  delete global.exchangeGoogleCredential;
+  const library = loadLibrary();
+  const authenticatedProfile = {
+    display: 'Ada Lovelace',
+    given_name: 'Ada',
+    avatar_url: 'https://cdn.example.com/ada.png',
+    user_email: 'ada@example.com',
+  };
+  const initializeCalls = [];
+  const exchangePayloads = [];
+  let nonceCounter = 0;
+
+  function createResponse(status, payload) {
+    return {
+      ok: status >= 200 && status < 300,
+      status,
+      json: function json() {
+        return Promise.resolve(payload || {});
+      },
+    };
+  }
+
+  global.window = createWindowEventTargetStub();
+  global.location = { origin: 'http://fallback-origin.test' };
+  installStorageStub();
+  global.google = {
+    accounts: {
+      id: {
+        initialize(config) {
+          initializeCalls.push(config);
+        },
+        renderButton() {},
+        prompt() {},
+      },
+    },
+  };
+  global.fetch = function fetch(url, init) {
+    const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
+    if (pathname === '/auth/nonce') {
+      nonceCounter += 1;
+      return Promise.resolve(
+        createResponse(200, { nonce: 'nonce-token-' + String(nonceCounter) }),
+      );
+    }
+    if (pathname === '/auth/google') {
+      exchangePayloads.push(JSON.parse(init.body));
+      return Promise.resolve(createResponse(200, authenticatedProfile));
+    }
+    return Promise.reject(new Error('unexpected fetch URL: ' + String(url)));
+  };
+
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(hostElement, {
+    googleClientId: 'long-lived-tab-client',
+    tauthUrl: 'http://localhost:8080',
+    tauthLoginPath: '/auth/google',
+    tauthLogoutPath: '/auth/logout',
+    tauthNoncePath: '/auth/nonce',
+    tenantId: 'tenant-alpha',
+  });
+
+  await flushAsync();
+  await flushAsync();
+
+  assert.equal(initializeCalls.length, 1, 'GIS initializes with the first prepared nonce');
+  assert.equal(initializeCalls[0].nonce, 'nonce-token-1');
+
+  global.window.dispatchEvent({ type: 'focus' });
+  await flushAsync();
+  await flushAsync();
+
+  assert.equal(nonceCounter, 2, 'tab focus requests a fresh nonce before the old callback returns');
+  assert.equal(initializeCalls.length, 2, 'GIS is reinitialized with the refreshed nonce');
+  assert.equal(initializeCalls[1].nonce, 'nonce-token-2');
+
+  await initializeCalls[0].callback({
+    credential: 'stub-google-credential::nonce-token-1',
+  });
+
+  assert.deepEqual(
+    exchangePayloads,
+    [
+      {
+        google_id_token: 'stub-google-credential::nonce-token-1',
+        nonce_token: 'nonce-token-1',
+      },
+    ],
+    'credential exchange uses the nonce captured by the callback that started sign-in',
+  );
+  assert.deepEqual(authController.state.profile, authenticatedProfile);
+});
+
 test('createAuthHeader skips fallback profile probes for fresh anonymous config-first bootstrap', async () => {
   resetEnvironment();
   delete global.initAuthClient;
