@@ -65,6 +65,11 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 ## BugFixes (372–399)
 
+- [x] [B007] (P0) Long-lived login pages can reuse an expired GIS nonce.
+  Summary: Apps such as LoopAware keep `/login` open for days, then a user clicks Google sign-in and TAuth rejects `POST /auth/google` with `401` until the page is refreshed. Current `mpr-ui` primes one nonce during auth control setup and reuses it for the later credential exchange, but TAuth requires a fresh nonce for every sign-in attempt and expires nonce tokens after the tenant TTL.
+  Expected: user-initiated sign-in refreshes the GIS nonce before exchange when the prepared nonce is stale, without reintroducing the prior nonce mismatch where `/auth/google` receives a different nonce than GIS received.
+  Resolved 2026-06-01: auth controllers now refresh the prepared GIS nonce when long-lived tabs regain focus or become visible, and rendered Google controls also request a fresh nonce on pointer/focus/touch intent. The previous nonce remains active until the refresh completes, so fast clicks do not pair an old Google credential with a new `nonce_token`. Added a regression covering a long-lived tab focus refresh before credential exchange. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "long-lived tab|prepared GIS nonce|Google button|mpr-login-button renders"`; `make ci`.
+
 - [ ] [B001] (P2) mpr-ui: `base-class` utilities like `mt-auto` are ineffective for flexbox layout when `sticky="false"`.
   ### Summary
   When `<mpr-footer sticky="false">` is used inside a flex column layout (e.g., Bootstrap `d-flex flex-column min-vh-100`), putting `mt-auto` in the `base-class` attribute has no effect on the footer's position. The `base-class` is applied to an inner `<footer>` element inside shadow DOM, not to the `<mpr-footer>` host element. Since the host is the actual flex item, `margin-top: auto` on the inner element doesn't push the component to the bottom of the viewport.
