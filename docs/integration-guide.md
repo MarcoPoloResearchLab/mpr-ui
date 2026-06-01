@@ -102,10 +102,10 @@ Render the shell declaratively:
   brand-label="My Application"
   brand-href="/"
   nav-links='[{ "label": "Docs", "href": "/docs" }]'
+  sign-in-redirect-url="/app"
   auth-transition='{
     "title": "Opening workspace",
-    "message": "Loading your authenticated app surface.",
-    "completionEvent": "my-app:ready"
+    "message": "Loading your authenticated app surface."
   }'
   horizontal-links='{
     "alignment": "right",
@@ -164,7 +164,9 @@ What your template still owns:
 - footer structure
 - `logout-url`
 - slots and theme config
-- optional `auth-transition` UX copy and completion event name
+- optional `auth-transition` UX copy
+- optional `sign-in-redirect-url` authenticated destination
+- optional `auth-transition.completionEvent` name for same-page authenticated hydration
 
 ## App event handling
 
@@ -175,8 +177,6 @@ document.addEventListener('mpr-ui:auth:authenticated', function (event) {
   var profile = event.detail ? event.detail.profile : null;
   // fetch authenticated app data or reveal protected UI
   void profile;
-  // After the authenticated app surface is actually ready:
-  document.dispatchEvent(new CustomEvent('my-app:ready'));
 });
 
 document.addEventListener('mpr-ui:auth:unauthenticated', function () {
@@ -195,6 +195,8 @@ document.addEventListener('mpr-ui:auth:error', function (event) {
 ```
 
 If you do not need the transition screen to wait for app hydration, omit `completionEvent` and the built-in screen will hide as soon as auth settles.
+
+If sign-in should open an authenticated app route, set `sign-in-redirect-url` on `<mpr-header>` and let `mpr-ui` navigate after credential exchange succeeds. Do not duplicate that redirect with app-owned `mpr-ui:auth:authenticated` handlers. If the authenticated UI stays on the same page and needs to finish hydration before the transition clears, set `auth-transition.completionEvent` and dispatch that event after the page is ready.
 
 ## What not to do
 

@@ -191,3 +191,7 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 ## 2026-04-17
 
 - MU-436: aligned release-facing metadata to the shipped `v3.9.0` line by updating `package.json`, root lockfile metadata, and the pinned jsDelivr examples in `README.md` / `docs/integration-guide.md`; added a static regression in `tests/coverage-gate.test.js` so docs and package metadata stay aligned on future releases. Tests: `make test-unit`.
+
+## 2026-06-01
+
+- B008: added `<mpr-header sign-in-redirect-url>` so `mpr-ui` owns post-sign-in navigation and holds `auth-transition` during redirect handoff; restored sessions do not redirect. Tests: `node --test tests/custom-elements-header-footer.test.js`; `make ci`.

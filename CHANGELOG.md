@@ -8,6 +8,7 @@
 ### Improvements ⚙️
 - Centralized the Marco Polo Research Lab LLC legal profile, including company form, website, support/legal emails, and phone number.
 - Added public `MPRUI.testing` auth helpers so app browser suites can drive the mounted auth controller without mutating mpr-ui DOM internals.
+- Added `<mpr-header sign-in-redirect-url>` so `mpr-ui` owns the post-sign-in redirect and keeps `auth-transition` visible while navigation is pending.
 
 ### Bug Fixes 🐛
 - Made config-first auth bootstrap skip `/me` and `/auth/refresh` for fresh anonymous users while preserving hinted session restore.
@@ -18,10 +19,12 @@
 - Added auth-controller regressions for anonymous no-probe bootstrap, hinted profile restore, and stale restore-hint clearing.
 - Added auth-controller coverage for `MPRUI.testing.authenticate()` and `MPRUI.testing.unauthenticate()`.
 - Added an auth-controller regression for a long-lived tab refreshing its GIS nonce before credential exchange.
+- Added header regressions for sign-in redirect handoff, restored-session non-redirect behavior, and app-dispatched auth events not triggering redirects.
 
 ### Docs 📚
 - Documented the shared legal document API, attributes, profile override boundaries, and product-specific section extension pattern.
 - Documented the test-only auth helper contract for integration suites that seed backend sessions.
+- Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
 ## [v3.9.9] - 2026-06-01
 

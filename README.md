@@ -72,10 +72,10 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
      brand-label="Marco Polo Research Lab"
      brand-href="/"
      nav-links='[{ "label": "Docs", "href": "#docs" }]'
+     sign-in-redirect-url="/app"
      auth-transition='{
        "title": "Opening workspace",
-       "message": "Loading your authenticated app surface.",
-       "completionEvent": "my-app:ready"
+       "message": "Loading your authenticated app surface."
      }'
      horizontal-links='{
        "alignment": "right",
@@ -112,7 +112,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
    `mpr-ui-config.js` sees `mpr-header[data-config-url]`, loads `/config-ui.yaml`, applies auth attributes, and then loads the bundle from `data-mpr-ui-bundle-src`. For login-only surfaces, put `data-config-url` on `<mpr-login-button>` instead; the same loader path applies the button auth attributes before the bundle boots.
 
-   `auth-transition` is optional. When present, `<mpr-header>` shows a built-in full-screen transition surface while auth is bootstrapping or exchanging credentials. If `completionEvent` is set, the transition surface stays visible after authentication until your app dispatches that event on `document`.
+   `auth-transition` is optional. When present, `<mpr-header>` shows a built-in full-screen transition surface while auth is bootstrapping or exchanging credentials. If `sign-in-redirect-url` is set, `mpr-ui` redirects there after an interactive sign-in succeeds and keeps the transition visible while navigation is pending. If `completionEvent` is set, the transition surface stays visible after authentication until your app dispatches that event on `document`; use that only for same-page authenticated app hydration.
 
 ## Integration Checklist
 
@@ -123,7 +123,8 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 5. Render `<mpr-header data-config-url="/config-ui.yaml">`, or render `<mpr-login-button data-config-url="/config-ui.yaml">` when the page only needs the Google sign-in control.
 6. Express shell composition through the DSL, not host CSS overrides into `mpr-ui` internals.
 7. Listen for `mpr-ui:auth:authenticated` and `mpr-ui:auth:unauthenticated` in app code.
-8. If you opt into `auth-transition.completionEvent`, dispatch that event after the authenticated app surface is ready.
+8. Set `sign-in-redirect-url` on `<mpr-header>` when a successful sign-in should navigate to an authenticated app route.
+9. If you opt into `auth-transition.completionEvent`, dispatch that event after the same-page authenticated app surface is ready.
 
 `tenantId` / `tauth-tenant-id` is immutable after the auth controller initializes. To switch tenants, destroy the current `<mpr-header>` / `<mpr-login-button>` instance and create a new one instead of mutating the existing element.
 
@@ -289,7 +290,7 @@ The tags above replace the retired imperative helpers. See the example below for
 
 | Element | Primary attributes | Slots | Key events |
 | --- | --- | --- | --- |
-| `<mpr-header>` | `brand-label`, `nav-links`, `horizontal-links` (JSON object with `{ alignment, links }`), `auth-transition` (JSON object with `{ title, message, completionEvent }`), `google-site-id`, `tauth-tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `logout-url`, `user-menu-display-mode`, `user-menu-avatar-url`, `user-menu-avatar-label`, `theme-config`, `settings-label`, `settings`, `sign-in-label`, `sign-out-label`, `size`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:auth:status-change`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
+| `<mpr-header>` | `brand-label`, `nav-links`, `horizontal-links` (JSON object with `{ alignment, links }`), `auth-transition` (JSON object with `{ title, message, completionEvent }`), `sign-in-redirect-url`, `google-site-id`, `tauth-tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `logout-url`, `user-menu-display-mode`, `user-menu-avatar-url`, `user-menu-avatar-label`, `theme-config`, `settings-label`, `settings`, `sign-in-label`, `sign-out-label`, `size`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:auth:status-change`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
 | `<mpr-footer>` | `prefix-text`, `horizontal-links` (JSON object with `{ alignment, links }`), `links-collection` (JSON with `{ style, text, links }`), `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-switcher`, `theme-config`, `size`, `sticky`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
 | `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config` | — | `mpr-ui:theme-change` |
 | `<mpr-login-button>` | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |

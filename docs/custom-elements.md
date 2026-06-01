@@ -23,6 +23,7 @@ Serve `/config-ui.yaml`, render `<mpr-header data-config-url="/config-ui.yaml">`
 - `tauth-url`: Base URL of the TAuth service. When omitted, the current origin is used.
 - `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders an inline utility link list inside the same row as the other header controls.
 - `auth-transition`: JSON string `{ title, message, completionEvent }` that enables the built-in full-screen auth transition surface. The screen appears during auth bootstrap and credential exchange. If `completionEvent` is non-empty, the screen stays visible after authentication until that event is dispatched on `document`.
+- `sign-in-redirect-url`: URL that `mpr-ui` navigates to after an interactive sign-in succeeds. When paired with `auth-transition`, the transition stays visible while that navigation is pending. Restored authenticated sessions do not trigger this redirect.
 - `sign-in-label`: Text for the fallback sign-in button.
 - `sign-out-label`: Text for the sign-out button.
 - `sticky`: `true` or `false` to toggle sticky positioning.
@@ -58,10 +59,10 @@ The auth controller also reflects the current auth phase on the host as `data-mp
 <mpr-header
   class="landing-header"
   data-config-url="/config-ui.yaml"
+  sign-in-redirect-url="/app"
   auth-transition='{
     "title": "Opening LoopAware",
-    "message": "Loading your authenticated workspace.",
-    "completionEvent": "loopaware:ready"
+    "message": "Loading your authenticated workspace."
   }'
   horizontal-links='{
     "alignment": "right",
@@ -83,7 +84,7 @@ The auth controller also reflects the current auth phase on the host as `data-mp
 </mpr-header>
 ```
 
-When `auth-transition.completionEvent` is set, release the transition surface once the authenticated UI is ready:
+Use `auth-transition.completionEvent` only when the authenticated UI stays on the same page and must finish hydration before the shared transition clears:
 
 ```js
 document.addEventListener('mpr-ui:auth:authenticated', function () {
