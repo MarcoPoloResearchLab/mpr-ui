@@ -2935,8 +2935,32 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return wrapper;
   }
 
+  function attachGoogleButtonIntentListeners(containerElement, onIntent) {
+    if (
+      !containerElement ||
+      typeof containerElement.addEventListener !== "function" ||
+      typeof onIntent !== "function"
+    ) {
+      return function noopGoogleIntentListeners() {};
+    }
+    var intentEvents = ["pointerenter", "focusin", "touchstart"];
+    function handleGoogleButtonIntent() {
+      onIntent();
+    }
+    intentEvents.forEach(function attachIntentEvent(eventName) {
+      containerElement.addEventListener(eventName, handleGoogleButtonIntent, {
+        passive: true,
+      });
+    });
+    return function cleanupGoogleIntentListeners() {
+      intentEvents.forEach(function detachIntentEvent(eventName) {
+        containerElement.removeEventListener(eventName, handleGoogleButtonIntent);
+      });
+    };
+  }
 
-  function renderGoogleButton(containerElement, siteId, buttonOptions, onError) {
+
+  function renderGoogleButton(containerElement, siteId, buttonOptions, onError, onIntent) {
     if (!containerElement) {
       return function noopGoogleButton() {};
     }
@@ -2954,10 +2978,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     containerElement.setAttribute("data-mpr-google-site-id", normalizedSiteId);
     var renderTarget = ensureGoogleRenderTarget(containerElement);
     var sentinelObserver = null;
+    var intentCleanup = attachGoogleButtonIntentListeners(containerElement, onIntent);
 
     var isActive = true;
     function cleanup() {
       isActive = false;
+      intentCleanup();
       if (renderTarget) {
         renderTarget.innerHTML = "";
       }
@@ -3124,6 +3150,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         return;
       }
       bootstrapSession();
+      primeFreshGoogleNonce();
     }
 
     function handleSessionVisibilityChange() {
@@ -3138,6 +3165,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         return;
       }
       bootstrapSession();
+      primeFreshGoogleNonce();
     }
 
     function attachSessionSyncListeners() {
@@ -3254,7 +3282,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
             return;
           }
-          handleCredential(payload);
+          return handleCredential(payload, nonceToken);
         },
       });
       ensureGoogleIdentityClient(global.document)
@@ -3264,8 +3292,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         .catch(function () {});
     }
 
-    function prepareGooglePromptNonce() {
-      if (pendingNonceToken) {
+    function prepareGooglePromptNonce(config) {
+      var parameters = config || {};
+      var forceNewNonce = parameters.forceNew === true;
+      if (!forceNewNonce && pendingNonceToken) {
         return Promise.resolve(pendingNonceToken);
       }
       if (noncePreparationPromise) {
@@ -3290,6 +3320,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     function prepareGoogleNonce() {
       return prepareGooglePromptNonce();
+    }
+
+    function refreshGoogleNonce() {
+      return prepareGooglePromptNonce({ forceNew: true });
     }
 
     function updateDatasetFromProfile(profile) {
@@ -3508,15 +3542,24 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         });
     }
 
-    function exchangeCredential(credential) {
-      configureTenantId();
-      var noncePromise;
-      if (pendingNonceToken) {
-        noncePromise = Promise.resolve(pendingNonceToken);
-        pendingNonceToken = null;
-      } else {
-        noncePromise = requestNonceToken();
+    function consumeExchangeNonceToken(credentialNonceToken) {
+      if (credentialNonceToken) {
+        if (pendingNonceToken === credentialNonceToken) {
+          pendingNonceToken = null;
+        }
+        return Promise.resolve(credentialNonceToken);
       }
+      if (pendingNonceToken) {
+        var preparedNonceToken = pendingNonceToken;
+        pendingNonceToken = null;
+        return Promise.resolve(preparedNonceToken);
+      }
+      return requestNonceToken();
+    }
+
+    function exchangeCredential(credential, credentialNonceToken) {
+      configureTenantId();
+      var noncePromise = consumeExchangeNonceToken(credentialNonceToken);
       return noncePromise
         .then(function (nonceToken) {
           if (typeof global.exchangeGoogleCredential === "function") {
@@ -3542,6 +3585,22 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       var currentLifecycleVersion = lifecycleVersion;
       prepareGooglePromptNonce().catch(function (error) {
+        if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+          return;
+        }
+        emitError("mpr-ui.auth.nonce_failed", {
+          message: error && error.message ? error.message : String(error),
+          status: error && error.status ? error.status : null,
+        });
+      });
+    }
+
+    function primeFreshGoogleNonce() {
+      if (isDestroyed) {
+        return;
+      }
+      var currentLifecycleVersion = lifecycleVersion;
+      refreshGoogleNonce().catch(function (error) {
         if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
           return;
         }
@@ -3598,7 +3657,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       });
     }
 
-    function handleCredential(credentialResponse) {
+    function handleCredential(credentialResponse, credentialNonceToken) {
       if (!credentialResponse || !credentialResponse.credential) {
         emitError("mpr-ui.auth.missing_credential", {});
         markUnauthenticated({ prompt: true, clearNonce: true });
@@ -3606,7 +3665,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       var currentLifecycleVersion = lifecycleVersion;
       updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATING);
-      return exchangeCredential(credentialResponse.credential)
+      return exchangeCredential(credentialResponse.credential, credentialNonceToken)
         .then(function (profile) {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
             return null;
@@ -3651,6 +3710,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       host: rootElement,
       state: state,
       prepareGoogleNonce: prepareGoogleNonce,
+      refreshGoogleNonce: refreshGoogleNonce,
       handleCredential: handleCredential,
       signOut: signOut,
       updateOptions: updateOptions,
@@ -5427,6 +5487,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             dispatchHeaderEvent("mpr-ui:header:error", {
               code: mappedCode,
               message: detail && detail.message ? detail.message : undefined,
+            });
+          },
+          function handleGoogleIntent() {
+            if (!authController || typeof authController.refreshGoogleNonce !== "function") {
+              return;
+            }
+            authController.refreshGoogleNonce().catch(function handleNonceFailure(error) {
+              dispatchHeaderEvent("mpr-ui:header:error", {
+                code: "mpr-ui.header.google_nonce_failed",
+                message: error && error.message ? String(error.message) : "google nonce failed",
+              });
             });
           },
         );
@@ -12324,6 +12395,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
                 buttonOptions,
                 function handleLoginError(detail) {
                   dispatchEvent(loginElement, "mpr-login:error", detail || {});
+                },
+                function handleLoginIntent() {
+                  authControllerRef.refreshGoogleNonce().catch(function handleNonceFailure(error) {
+                    dispatchEvent(loginElement, "mpr-login:error", {
+                      code: "mpr-ui.auth.nonce_failed",
+                      message: error && error.message ? error.message : String(error),
+                    });
+                  });
                 },
               );
             })
