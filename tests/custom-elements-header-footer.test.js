@@ -2858,6 +2858,321 @@ test('MU-434: mpr-header holds the auth transition screen until the configured a
   );
 });
 
+test('mpr-header redirects after sign-in and holds the auth transition while navigation is pending', async () => {
+  resetEnvironment();
+  const authenticatedProfile = {
+    display: 'Mary Jackson',
+    given_name: 'Mary',
+    avatar_url: 'https://cdn.example.com/mary.png',
+    user_email: 'mary@example.com',
+  };
+  let resolveCredentialExchange;
+  const locationCalls = [];
+  global.location = {
+    origin: 'http://fallback-origin.test',
+    assign: function assign(url) {
+      locationCalls.push(url);
+    },
+  };
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+  global.exchangeGoogleCredential = function exchangeGoogleCredential() {
+    return new Promise(function waitForExchange(resolve) {
+      resolveCredentialExchange = resolve;
+    });
+  };
+
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+  headerElement.setAttribute('google-site-id', 'redirect-site');
+  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
+  headerElement.setAttribute('tauth-login-path', '/auth/google');
+  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
+  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
+  headerElement.setAttribute('tauth-tenant-id', 'tenant-redirect');
+  headerElement.setAttribute('sign-in-redirect-url', '/app');
+  headerElement.setAttribute(
+    'auth-transition',
+    JSON.stringify({
+      title: 'Opening workspace',
+      message: 'Preparing your authenticated workspace.',
+    }),
+  );
+
+  headerElement.connectedCallback();
+  await flushAsync();
+  await flushAsync();
+
+  const controller = headerElement.__headerController;
+  assert.ok(controller, 'header controller initialized');
+  const authController =
+    controller && typeof controller.getAuthController === 'function'
+      ? controller.getAuthController()
+      : null;
+  assert.ok(authController, 'auth controller attached to the header');
+
+  const exchangePromise = authController.handleCredential({
+    credential: 'signed-id-token',
+  });
+  await flushAsync();
+
+  assert.equal(
+    harness.authTransition.getAttribute('data-mpr-visible'),
+    'true',
+    'transition screen appears while credential exchange is in flight',
+  );
+
+  resolveCredentialExchange(authenticatedProfile);
+  await exchangePromise;
+  await flushAsync();
+  await flushAsync();
+
+  assert.deepEqual(
+    locationCalls,
+    ['/app'],
+    'mpr-ui redirects to the configured authenticated target after sign-in',
+  );
+  assert.equal(
+    harness.authTransition.getAttribute('data-mpr-visible'),
+    'true',
+    'transition screen stays visible while the configured redirect is pending',
+  );
+  assert.equal(
+    harness.root.classList.contains('mpr-header--auth-transition-active'),
+    true,
+    'header root remains in auth-transition-active state during redirect handoff',
+  );
+});
+
+test('mpr-header does not redirect for app-dispatched auth events', async () => {
+  resetEnvironment();
+  const locationCalls = [];
+  global.location = {
+    origin: 'http://fallback-origin.test',
+    assign: function assign(url) {
+      locationCalls.push(url);
+    },
+  };
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+  headerElement.setAttribute('google-site-id', 'external-event-site');
+  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
+  headerElement.setAttribute('tauth-login-path', '/auth/google');
+  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
+  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
+  headerElement.setAttribute('tauth-tenant-id', 'tenant-external-event');
+  headerElement.setAttribute('sign-in-redirect-url', '/app');
+  headerElement.setAttribute(
+    'auth-transition',
+    JSON.stringify({
+      title: 'Opening workspace',
+      message: 'Preparing your authenticated workspace.',
+    }),
+  );
+
+  headerElement.connectedCallback();
+  await flushAsync();
+  await flushAsync();
+
+  headerElement.dispatchEvent(
+    new global.CustomEvent('mpr-ui:auth:status-change', {
+      detail: {
+        status: 'authenticating',
+        previousStatus: 'unauthenticated',
+      },
+    }),
+  );
+  headerElement.dispatchEvent(
+    new global.CustomEvent('mpr-ui:auth:authenticated', {
+      detail: { profile: { user_email: 'external@example.com' } },
+    }),
+  );
+  await flushAsync();
+
+  assert.deepEqual(
+    locationCalls,
+    [],
+    'external app-owned auth events do not trigger the shared sign-in redirect',
+  );
+  assert.equal(
+    harness.authTransition.getAttribute('data-mpr-visible'),
+    'false',
+    'transition screen remains controlled by the auth controller state',
+  );
+});
+
+test('mpr-header does not apply sign-in redirect on restored authenticated sessions', async () => {
+  resetEnvironment();
+  const authenticatedProfile = {
+    display: 'Dorothy Vaughan',
+    given_name: 'Dorothy',
+    avatar_url: 'https://cdn.example.com/dorothy.png',
+    user_email: 'dorothy@example.com',
+  };
+  const locationCalls = [];
+  global.location = {
+    origin: 'http://fallback-origin.test',
+    assign: function assign(url) {
+      locationCalls.push(url);
+    },
+  };
+  global.google = {
+    accounts: {
+      id: {
+        renderButton() {},
+        initialize() {},
+        prompt() {},
+      },
+    },
+  };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(authenticatedProfile);
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+  headerElement.setAttribute('google-site-id', 'restore-site');
+  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
+  headerElement.setAttribute('tauth-login-path', '/auth/google');
+  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
+  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
+  headerElement.setAttribute('tauth-tenant-id', 'tenant-restore');
+  headerElement.setAttribute('sign-in-redirect-url', '/app');
+  headerElement.setAttribute(
+    'auth-transition',
+    JSON.stringify({
+      title: 'Opening workspace',
+      message: 'Preparing your authenticated workspace.',
+    }),
+  );
+
+  headerElement.connectedCallback();
+  await flushAsync();
+  await flushAsync();
+
+  const controller = headerElement.__headerController;
+  assert.ok(controller, 'header controller initialized');
+  const authController =
+    controller && typeof controller.getAuthController === 'function'
+      ? controller.getAuthController()
+      : null;
+  assert.ok(authController, 'auth controller attached to the header');
+
+  assert.equal(
+    authController.state.status,
+    'authenticated',
+    'restored session reaches authenticated state',
+  );
+  assert.deepEqual(
+    locationCalls,
+    [],
+    'mpr-ui leaves already-authenticated public pages in place',
+  );
+  assert.equal(
+    harness.authTransition.getAttribute('data-mpr-visible'),
+    'false',
+    'transition screen hides when restored auth settles without a sign-in handoff',
+  );
+  assert.equal(
+    harness.root.classList.contains('mpr-header--auth-transition-active'),
+    false,
+    'header root does not enter redirect handoff state for session restore',
+  );
+});
+
+test('mpr-header rejects unsafe sign-in redirect URLs', () => {
+  const rejectedRedirectUrls = [
+    'javascript:alert(1)',
+    'https://evil.example/app',
+    '//evil.example/app',
+    'mailto:user@example.com',
+    'tel:+16502651193',
+    '#app',
+  ];
+
+  rejectedRedirectUrls.forEach(function assertRejectedRedirect(signInRedirectUrl) {
+    resetEnvironment();
+    global.location = {
+      origin: 'https://app.example.com',
+      href: 'https://app.example.com/login',
+    };
+    loadLibrary();
+    const harness = createHeaderElementHarness();
+    const headerElement = harness.element;
+    headerElement.setAttribute('sign-in-redirect-url', signInRedirectUrl);
+
+    assert.throws(
+      function connectHeader() {
+        headerElement.connectedCallback();
+      },
+      { message: 'mpr-ui.header.invalid_sign_in_redirect_url' },
+      signInRedirectUrl,
+    );
+  });
+});
+
+test('mpr-header accepts same-origin sign-in redirect URLs', () => {
+  const acceptedRedirectUrls = [
+    '/app',
+    'dashboard',
+    'https://app.example.com/app?workspace=main#ready',
+  ];
+
+  acceptedRedirectUrls.forEach(function assertAcceptedRedirect(signInRedirectUrl) {
+    resetEnvironment();
+    global.location = {
+      origin: 'https://app.example.com',
+      href: 'https://app.example.com/login',
+    };
+    loadLibrary();
+    const harness = createHeaderElementHarness();
+    const headerElement = harness.element;
+    headerElement.setAttribute('sign-in-redirect-url', signInRedirectUrl);
+
+    assert.doesNotThrow(function connectHeader() {
+      headerElement.connectedCallback();
+    }, signInRedirectUrl);
+  });
+});
+
 test('mpr-footer reflects attributes and slot content', () => {
   resetEnvironment();
   loadLibrary();

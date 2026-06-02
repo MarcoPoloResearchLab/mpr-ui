@@ -777,6 +777,7 @@
     "theme-config": "themeToggle",
     "sign-in-label": "signInLabel",
     "sign-out-label": "signOutLabel",
+    "sign-in-redirect-url": "signInRedirectUrl",
     "logout-url": "logoutUrl",
     "user-menu-display-mode": "userMenuDisplayMode",
     "user-menu-avatar-url": "userMenuAvatarUrl",
@@ -2765,6 +2766,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (dataset.signOutLabel) {
       options.signOutLabel = dataset.signOutLabel;
     }
+    if (dataset.signInRedirectUrl) {
+      options.signInRedirectUrl = dataset.signInRedirectUrl;
+    }
     if (dataset.profileLabel) {
       options.profileLabel = dataset.profileLabel;
     }
@@ -3337,7 +3341,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       });
     }
 
-    function updateAuthStatus(nextStatus) {
+    function updateAuthStatus(nextStatus, extraDetail) {
       if (typeof nextStatus !== "string" || !nextStatus) {
         return;
       }
@@ -3347,11 +3351,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       if (previousStatus === nextStatus) {
         return;
       }
-      dispatchEvent(rootElement, "mpr-ui:auth:status-change", {
+      dispatchEvent(rootElement, "mpr-ui:auth:status-change", Object.assign({
         status: nextStatus,
         previousStatus: previousStatus,
         profile: state.profile,
-      });
+      }, extraDetail || {}));
     }
 
     function markAuthenticated(profile) {
@@ -3664,7 +3668,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         return Promise.resolve();
       }
       var currentLifecycleVersion = lifecycleVersion;
-      updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATING);
+      updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATING, {
+        source: "credential",
+      });
       return exchangeCredential(credentialResponse.credential, credentialNonceToken)
         .then(function (profile) {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
@@ -3930,6 +3936,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "</div>";
   var HEADER_LINK_DEFAULT_TARGET = "_blank";
   var HEADER_LINK_DEFAULT_REL = "noopener noreferrer";
+  var HEADER_INVALID_SIGN_IN_REDIRECT_URL =
+    "mpr-ui.header.invalid_sign_in_redirect_url";
+  var HEADER_ALLOWED_REDIRECT_PROTOCOLS = Object.freeze(["http:", "https:"]);
   var HEADER_USER_MENU_OVERRIDE_ATTRIBUTE =
     "data-mpr-header-user-menu-overrides";
   var HEADER_USER_MENU_OVERRIDE_SEPARATOR = ",";
@@ -3970,6 +3979,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }),
     signInLabel: "Sign in",
     signOutLabel: "Sign out",
+    signInRedirectUrl: "",
     profileLabel: "",
     userMenu: Object.freeze({
       displayMode: USER_MENU_DISPLAY_MODES.AVATAR_NAME,
@@ -4012,6 +4022,62 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     var trimmed = value.trim();
     return trimmed ? trimmed : "";
+  }
+
+  function normalizeHeaderSignInRedirectUrl(value) {
+    if (typeof value !== "string") {
+      return "";
+    }
+    var candidate = value.trim();
+    if (!candidate) {
+      return "";
+    }
+    if (candidate[0] === "#" || candidate.indexOf("//") === 0) {
+      throw new Error(HEADER_INVALID_SIGN_IN_REDIRECT_URL);
+    }
+    var protocolMatch = candidate.match(/^([a-z0-9.+-]+):/i);
+    if (
+      protocolMatch &&
+      HEADER_ALLOWED_REDIRECT_PROTOCOLS.indexOf(
+        protocolMatch[1].toLowerCase() + ":",
+      ) === -1
+    ) {
+      throw new Error(HEADER_INVALID_SIGN_IN_REDIRECT_URL);
+    }
+    var currentOrigin =
+      global.location && typeof global.location.origin === "string"
+        ? global.location.origin
+        : "";
+    var currentHref =
+      global.location && typeof global.location.href === "string"
+        ? global.location.href
+        : "";
+    var baseUrl =
+      currentHref ||
+      (currentOrigin && currentOrigin !== "null" ? currentOrigin + "/" : "");
+    if (protocolMatch && (!baseUrl || typeof global.URL !== "function")) {
+      throw new Error(HEADER_INVALID_SIGN_IN_REDIRECT_URL);
+    }
+    if (baseUrl && typeof global.URL === "function") {
+      try {
+        var parsedUrl = new global.URL(candidate, baseUrl);
+        if (
+          currentOrigin &&
+          currentOrigin !== "null" &&
+          parsedUrl.origin !== currentOrigin
+        ) {
+          throw new Error(HEADER_INVALID_SIGN_IN_REDIRECT_URL);
+        }
+        if (
+          HEADER_ALLOWED_REDIRECT_PROTOCOLS.indexOf(parsedUrl.protocol) === -1
+        ) {
+          throw new Error(HEADER_INVALID_SIGN_IN_REDIRECT_URL);
+        }
+      } catch (_error) {
+        throw new Error(HEADER_INVALID_SIGN_IN_REDIRECT_URL);
+      }
+    }
+    return candidate;
   }
 
   function normalizeHeaderAuthTransitionOptionalValue(value, fallbackValue) {
@@ -4267,6 +4333,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       typeof options.signOutLabel === "string" && options.signOutLabel.trim()
         ? options.signOutLabel.trim()
         : HEADER_DEFAULTS.signOutLabel;
+    var signInRedirectUrl =
+      normalizeHeaderSignInRedirectUrl(options.signInRedirectUrl);
     var profileLabel =
       typeof options.profileLabel === "string" && options.profileLabel.trim()
         ? options.profileLabel.trim()
@@ -4297,6 +4365,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       navLinks: navLinks,
       horizontalLinks: horizontalLinks,
       authTransition: authTransition,
+      signInRedirectUrl: signInRedirectUrl,
       settings: {
         enabled: Boolean(settingsSource.enabled),
         label:
@@ -5118,13 +5187,24 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       .join("");
   }
 
-  function shouldShowHeaderAuthTransition(authTransition, status, isReady) {
+  function shouldShowHeaderAuthTransition(
+    authTransition,
+    status,
+    isReady,
+    signInRedirectPending,
+  ) {
     if (!authTransition || authTransition.enabled !== true) {
       return false;
     }
     if (
       status === AUTH_CONTROLLER_STATUS.BOOTSTRAPPING ||
       status === AUTH_CONTROLLER_STATUS.AUTHENTICATING
+    ) {
+      return true;
+    }
+    if (
+      status === AUTH_CONTROLLER_STATUS.AUTHENTICATED &&
+      signInRedirectPending === true
     ) {
       return true;
     }
@@ -5144,6 +5224,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     options,
     state,
     authTransitionReady,
+    signInRedirectPending,
   ) {
     if (!elements.root) {
       return;
@@ -5160,6 +5241,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       options.authTransition,
       authStatus,
       authTransitionReady,
+      signInRedirectPending,
     );
     elements.root.classList.toggle(
       HEADER_ROOT_CLASS + "--auth-transition-active",
@@ -5335,6 +5417,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var googleButtonCleanup = null;
     var googleButtonRenderSequence = 0;
     var fallbackSigninTarget = null;
+    var signInRedirectPending = false;
+    var signInRedirectTarget = "";
     var isDestroyed = false;
     var googleSiteId = normalizeGoogleSiteId(options.siteId);
     if (googleSiteId) {
@@ -5403,6 +5487,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
 
     function dispatchSigninFallback(reason, extraDetail) {
+      markSignInRedirectPending();
       var detail = {
         reason: reason || "manual",
       };
@@ -5412,6 +5497,35 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         });
       }
       dispatchHeaderEvent("mpr-ui:header:signin-click", detail);
+    }
+
+    function markSignInRedirectPending() {
+      if (!options.signInRedirectUrl) {
+        return;
+      }
+      signInRedirectPending = true;
+      refreshAuthState();
+    }
+
+    function clearSignInRedirectPending() {
+      signInRedirectPending = false;
+      signInRedirectTarget = "";
+    }
+
+    function redirectAfterSignIn() {
+      if (!signInRedirectPending || !options.signInRedirectUrl) {
+        clearSignInRedirectPending();
+        return;
+      }
+      if (
+        signInRedirectTarget === options.signInRedirectUrl ||
+        !global.location ||
+        typeof global.location.assign !== "function"
+      ) {
+        return;
+      }
+      signInRedirectTarget = options.signInRedirectUrl;
+      global.location.assign(options.signInRedirectUrl);
     }
 
     function handleFallbackSigninClick(event) {
@@ -5636,11 +5750,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         options,
         authController.state,
         authTransitionReady,
+        signInRedirectPending,
       );
     }
 
     function handleAuthenticatedEvent() {
       refreshAuthState();
+      redirectAfterSignIn();
     }
 
     function handleAuthStatusChangeEvent(eventObject) {
@@ -5657,10 +5773,22 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       ) {
         authTransitionReady = false;
       }
+      if (
+        nextStatus === AUTH_CONTROLLER_STATUS.AUTHENTICATING &&
+        eventObject &&
+        eventObject.detail &&
+        eventObject.detail.source === "credential"
+      ) {
+        markSignInRedirectPending();
+      }
+      if (nextStatus === AUTH_CONTROLLER_STATUS.UNAUTHENTICATED) {
+        clearSignInRedirectPending();
+      }
       refreshAuthState();
     }
 
     function handleUnauthenticatedEvent() {
+      clearSignInRedirectPending();
       refreshAuthState();
     }
 
