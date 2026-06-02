@@ -26,6 +26,29 @@
 - Documented the test-only auth helper contract for integration suites that seed backend sessions.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.10.0] - 2026-06-01
+
+### Features ✨
+- Added `<mpr-header sign-in-redirect-url>` to own post-sign-in navigation and keep `auth-transition` visible during redirect handoff.
+- Restored authenticated sessions do not trigger the sign-in redirect.
+
+### Improvements ⚙️
+- Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
+- Updated documentation and examples to include `sign-in-redirect-url` usage.
+
+### Bug Fixes 🐛
+- Kept the auth transition visible while the component hands off to the configured post-sign-in redirect target.
+- Prevented app-dispatched authentication events from triggering sign-in redirects.
+
+### Testing 🧪
+- Added comprehensive tests for `<mpr-header>` sign-in redirect behavior and auth lifecycle events.
+- Added header regressions for sign-in redirect handoff, restored-session non-redirect behavior, and app-dispatched auth events not triggering redirects.
+
+### Docs 📚
+- Updated multiple documentation files to include `sign-in-redirect-url` attribute and its usage.
+- Clarified `auth-transition` behavior with and without `completionEvent` in docs.
+- Enhanced integration guide and custom elements documentation with new sign-in redirect flow.
+
 ## [v3.9.9] - 2026-06-01
 
 ### Features ✨
