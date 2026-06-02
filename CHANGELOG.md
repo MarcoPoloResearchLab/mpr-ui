@@ -28,6 +28,25 @@
 - Documented the test-only auth helper contract for integration suites that seed backend sessions.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.10.1] - 2026-06-02
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- Auth controllers now timestamp prepared GIS nonces, reject expired callback nonces before credential exchange, emit `mpr-ui.auth.stale_nonce`, and prime a fresh nonce for the next sign-in attempt.
+
+### Bug Fixes 🐛
+- Fixed stale GIS nonce exchange issue where expired nonces could cause unauthenticated app state despite successful popup sign-in.
+- Blocked expired GIS nonce callbacks from reaching credential exchange endpoint to prevent authentication loops.
+
+### Testing 🧪
+- Added auth-controller regression tests for rejecting expired GIS callback nonces before `/auth/google`.
+- Added comprehensive unit and Playwright tests covering auth-controller behaviors including stale nonce handling and sign-in redirect handoff.
+
+### Docs 📚
+- _No changes._
+
 ## [v3.10.0] - 2026-06-01
 
 ### Features ✨
