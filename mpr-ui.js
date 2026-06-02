@@ -18,6 +18,7 @@
   var DEFAULT_TAUTH_REFRESH_PATH = "/auth/refresh";
   var REQUESTED_WITH_HEADER = "XMLHttpRequest";
   var AUTH_RESTORE_HINT_PREFIX = "tauth.restore.v1:";
+  var GOOGLE_NONCE_FRESHNESS_MS = 4 * 60 * 1000;
   var AUTH_CONTROLLER_STATUS = Object.freeze({
     BOOTSTRAPPING: "bootstrapping",
     AUTHENTICATING: "authenticating",
@@ -3101,6 +3102,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var hasEmittedUnauthenticated = false;
     var lastAuthenticatedSignature = null;
     var pendingNonceToken = null;
+    var pendingNoncePreparedAt = 0;
+    var noncePreparedAtByToken = Object.create(null);
     var nonceRequestPromise = null;
     var noncePreparationPromise = null;
     var authSignalVersion = 0;
@@ -3147,6 +3150,38 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     function withTenantHeader(headers) {
       return withTenantHeaderValue(options.tenantId, headers);
+    }
+
+    function nowMilliseconds() {
+      return Date.now();
+    }
+
+    function clearPreparedNonceTokens() {
+      pendingNonceToken = null;
+      pendingNoncePreparedAt = 0;
+      noncePreparedAtByToken = Object.create(null);
+    }
+
+    function rememberPreparedNonceToken(nonceToken) {
+      var preparedAt = nowMilliseconds();
+      pendingNonceToken = nonceToken;
+      pendingNoncePreparedAt = preparedAt;
+      noncePreparedAtByToken[nonceToken] = preparedAt;
+    }
+
+    function resolveNoncePreparedAt(nonceToken) {
+      if (!nonceToken) {
+        return 0;
+      }
+      if (pendingNonceToken === nonceToken) {
+        return pendingNoncePreparedAt;
+      }
+      return noncePreparedAtByToken[nonceToken] || 0;
+    }
+
+    function isPreparedNonceFresh(nonceToken) {
+      var preparedAt = resolveNoncePreparedAt(nonceToken);
+      return preparedAt > 0 && nowMilliseconds() - preparedAt < GOOGLE_NONCE_FRESHNESS_MS;
     }
 
     function handleSessionFocus() {
@@ -3273,7 +3308,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function configureGoogleNonce(nonceToken) {
-      pendingNonceToken = nonceToken;
+      rememberPreparedNonceToken(nonceToken);
       var clientIdValue = normalizeGoogleSiteId(options.googleClientId);
       var currentLifecycleVersion = lifecycleVersion;
       if (!clientIdValue) {
@@ -3299,7 +3334,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     function prepareGooglePromptNonce(config) {
       var parameters = config || {};
       var forceNewNonce = parameters.forceNew === true;
-      if (!forceNewNonce && pendingNonceToken) {
+      if (!forceNewNonce && pendingNonceToken && isPreparedNonceFresh(pendingNonceToken)) {
         return Promise.resolve(pendingNonceToken);
       }
       if (noncePreparationPromise) {
@@ -3373,7 +3408,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       state.profile = profile;
       lastAuthenticatedSignature = signature;
       hasEmittedUnauthenticated = false;
-      pendingNonceToken = null;
+      clearPreparedNonceTokens();
       rememberAuthRestoreHint(options);
       updateDatasetFromProfile(profile);
       updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATED);
@@ -3389,7 +3424,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       var emit = parameters.emit !== false;
       var prompt = parameters.prompt !== false;
       if (parameters.clearNonce === true) {
-        pendingNonceToken = null;
+        clearPreparedNonceTokens();
       }
       var shouldEmit =
         emit &&
@@ -3630,7 +3665,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       options = nextOptions;
       state.options = options;
       pendingProfile = null;
-      pendingNonceToken = null;
+      clearPreparedNonceTokens();
       nonceRequestPromise = null;
       noncePreparationPromise = null;
       hasCompletedInitialBootstrap = false;
@@ -3643,7 +3678,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       isDestroyed = true;
       lifecycleVersion += 1;
       pendingProfile = null;
-      pendingNonceToken = null;
+      clearPreparedNonceTokens();
       nonceRequestPromise = null;
       noncePreparationPromise = null;
       detachSessionSyncListeners();
@@ -3665,6 +3700,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       if (!credentialResponse || !credentialResponse.credential) {
         emitError("mpr-ui.auth.missing_credential", {});
         markUnauthenticated({ prompt: true, clearNonce: true });
+        return Promise.resolve();
+      }
+      if (credentialNonceToken && !isPreparedNonceFresh(credentialNonceToken)) {
+        emitError("mpr-ui.auth.stale_nonce", {
+          message: "prepared nonce expired",
+        });
+        markUnauthenticated({ prompt: true });
+        primeFreshGoogleNonce();
         return Promise.resolve();
       }
       var currentLifecycleVersion = lifecycleVersion;
@@ -3699,7 +3742,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return performLogout().then(function () {
         clearAuthRestoreHint(options);
         pendingProfile = null;
-        pendingNonceToken = null;
+        clearPreparedNonceTokens();
         if (typeof global.initAuthClient !== "function") {
           markUnauthenticated({ prompt: true });
           return null;
