@@ -13,12 +13,14 @@
 ### Bug Fixes 🐛
 - Made config-first auth bootstrap skip `/me` and `/auth/refresh` for fresh anonymous users while preserving hinted session restore.
 - Refreshed prepared GIS nonces when long-lived auth pages regain focus/visibility or receive Google button intent, preventing expired nonce reuse in TAuth credential exchanges.
+- Blocked expired GIS nonce callbacks from reaching TAuth credential exchange and primed a fresh nonce for the next sign-in attempt.
 
 ### Testing 🧪
 - Added unit and Playwright coverage for legal document exports, escaping, custom-element rendering, and product-specific extra sections.
 - Added auth-controller regressions for anonymous no-probe bootstrap, hinted profile restore, and stale restore-hint clearing.
 - Added auth-controller coverage for `MPRUI.testing.authenticate()` and `MPRUI.testing.unauthenticate()`.
 - Added an auth-controller regression for a long-lived tab refreshing its GIS nonce before credential exchange.
+- Added an auth-controller regression for expired GIS callback nonces being rejected before `/auth/google`.
 - Added header regressions for sign-in redirect handoff, restored-session non-redirect behavior, and app-dispatched auth events not triggering redirects.
 
 ### Docs 📚
