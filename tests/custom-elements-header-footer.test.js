@@ -3119,18 +3119,58 @@ test('mpr-header does not apply sign-in redirect on restored authenticated sessi
 });
 
 test('mpr-header rejects unsafe sign-in redirect URLs', () => {
-  resetEnvironment();
-  loadLibrary();
-  const harness = createHeaderElementHarness();
-  const headerElement = harness.element;
-  headerElement.setAttribute('sign-in-redirect-url', 'javascript:alert(1)');
+  const rejectedRedirectUrls = [
+    'javascript:alert(1)',
+    'https://evil.example/app',
+    '//evil.example/app',
+    'mailto:user@example.com',
+    'tel:+16502651193',
+    '#app',
+  ];
 
-  assert.throws(
-    function connectHeader() {
+  rejectedRedirectUrls.forEach(function assertRejectedRedirect(signInRedirectUrl) {
+    resetEnvironment();
+    global.location = {
+      origin: 'https://app.example.com',
+      href: 'https://app.example.com/login',
+    };
+    loadLibrary();
+    const harness = createHeaderElementHarness();
+    const headerElement = harness.element;
+    headerElement.setAttribute('sign-in-redirect-url', signInRedirectUrl);
+
+    assert.throws(
+      function connectHeader() {
+        headerElement.connectedCallback();
+      },
+      { message: 'mpr-ui.header.invalid_sign_in_redirect_url' },
+      signInRedirectUrl,
+    );
+  });
+});
+
+test('mpr-header accepts same-origin sign-in redirect URLs', () => {
+  const acceptedRedirectUrls = [
+    '/app',
+    'dashboard',
+    'https://app.example.com/app?workspace=main#ready',
+  ];
+
+  acceptedRedirectUrls.forEach(function assertAcceptedRedirect(signInRedirectUrl) {
+    resetEnvironment();
+    global.location = {
+      origin: 'https://app.example.com',
+      href: 'https://app.example.com/login',
+    };
+    loadLibrary();
+    const harness = createHeaderElementHarness();
+    const headerElement = harness.element;
+    headerElement.setAttribute('sign-in-redirect-url', signInRedirectUrl);
+
+    assert.doesNotThrow(function connectHeader() {
       headerElement.connectedCallback();
-    },
-    { message: 'mpr-ui.header.invalid_sign_in_redirect_url' },
-  );
+    }, signInRedirectUrl);
+  });
 });
 
 test('mpr-footer reflects attributes and slot content', () => {

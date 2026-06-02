@@ -3936,6 +3936,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "</div>";
   var HEADER_LINK_DEFAULT_TARGET = "_blank";
   var HEADER_LINK_DEFAULT_REL = "noopener noreferrer";
+  var HEADER_INVALID_SIGN_IN_REDIRECT_URL =
+    "mpr-ui.header.invalid_sign_in_redirect_url";
+  var HEADER_ALLOWED_REDIRECT_PROTOCOLS = Object.freeze(["http:", "https:"]);
   var HEADER_USER_MENU_OVERRIDE_ATTRIBUTE =
     "data-mpr-header-user-menu-overrides";
   var HEADER_USER_MENU_OVERRIDE_SEPARATOR = ",";
@@ -4029,11 +4032,52 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (!candidate) {
       return "";
     }
-    var sanitized = sanitizeHref(candidate);
-    if (sanitized === "#" && candidate !== "#") {
-      throw new Error("mpr-ui.header.invalid_sign_in_redirect_url");
+    if (candidate[0] === "#" || candidate.indexOf("//") === 0) {
+      throw new Error(HEADER_INVALID_SIGN_IN_REDIRECT_URL);
     }
-    return sanitized;
+    var protocolMatch = candidate.match(/^([a-z0-9.+-]+):/i);
+    if (
+      protocolMatch &&
+      HEADER_ALLOWED_REDIRECT_PROTOCOLS.indexOf(
+        protocolMatch[1].toLowerCase() + ":",
+      ) === -1
+    ) {
+      throw new Error(HEADER_INVALID_SIGN_IN_REDIRECT_URL);
+    }
+    var currentOrigin =
+      global.location && typeof global.location.origin === "string"
+        ? global.location.origin
+        : "";
+    var currentHref =
+      global.location && typeof global.location.href === "string"
+        ? global.location.href
+        : "";
+    var baseUrl =
+      currentHref ||
+      (currentOrigin && currentOrigin !== "null" ? currentOrigin + "/" : "");
+    if (protocolMatch && (!baseUrl || typeof global.URL !== "function")) {
+      throw new Error(HEADER_INVALID_SIGN_IN_REDIRECT_URL);
+    }
+    if (baseUrl && typeof global.URL === "function") {
+      try {
+        var parsedUrl = new global.URL(candidate, baseUrl);
+        if (
+          currentOrigin &&
+          currentOrigin !== "null" &&
+          parsedUrl.origin !== currentOrigin
+        ) {
+          throw new Error(HEADER_INVALID_SIGN_IN_REDIRECT_URL);
+        }
+        if (
+          HEADER_ALLOWED_REDIRECT_PROTOCOLS.indexOf(parsedUrl.protocol) === -1
+        ) {
+          throw new Error(HEADER_INVALID_SIGN_IN_REDIRECT_URL);
+        }
+      } catch (_error) {
+        throw new Error(HEADER_INVALID_SIGN_IN_REDIRECT_URL);
+      }
+    }
+    return candidate;
   }
 
   function normalizeHeaderAuthTransitionOptionalValue(value, fallbackValue) {
