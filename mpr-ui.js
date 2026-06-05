@@ -19,6 +19,9 @@
   var REQUESTED_WITH_HEADER = "XMLHttpRequest";
   var AUTH_RESTORE_HINT_PREFIX = "tauth.restore.v1:";
   var GOOGLE_NONCE_FRESHNESS_MS = 4 * 60 * 1000;
+  var GOOGLE_NONCE_REFRESH_LEAD_MS = 30 * 1000;
+  var GOOGLE_NONCE_REFRESH_DELAY_MS =
+    GOOGLE_NONCE_FRESHNESS_MS - GOOGLE_NONCE_REFRESH_LEAD_MS;
   var AUTH_CONTROLLER_STATUS = Object.freeze({
     BOOTSTRAPPING: "bootstrapping",
     AUTHENTICATING: "authenticating",
@@ -3104,6 +3107,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var pendingNonceToken = null;
     var pendingNoncePreparedAt = 0;
     var noncePreparedAtByToken = Object.create(null);
+    var nonceRefreshTimerId = null;
     var nonceRequestPromise = null;
     var noncePreparationPromise = null;
     var authSignalVersion = 0;
@@ -3156,7 +3160,50 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return Date.now();
     }
 
+    function clearPreparedNonceRefreshTimer() {
+      if (nonceRefreshTimerId === null) {
+        return;
+      }
+      if (typeof global.clearTimeout === "function") {
+        global.clearTimeout(nonceRefreshTimerId);
+      }
+      nonceRefreshTimerId = null;
+    }
+
+    function schedulePreparedNonceRefresh(preparedAt) {
+      clearPreparedNonceRefreshTimer();
+      if (
+        isDestroyed ||
+        state.status === AUTH_CONTROLLER_STATUS.AUTHENTICATED ||
+        typeof global.setTimeout !== "function"
+      ) {
+        return;
+      }
+      nonceRefreshTimerId = global.setTimeout(
+        function refreshPreparedNonceBeforeExpiry() {
+          nonceRefreshTimerId = null;
+          if (
+            isDestroyed ||
+            state.status === AUTH_CONTROLLER_STATUS.AUTHENTICATED ||
+            pendingNoncePreparedAt !== preparedAt ||
+            !pendingNonceToken
+          ) {
+            return;
+          }
+          primeFreshGoogleNonce();
+        },
+        GOOGLE_NONCE_REFRESH_DELAY_MS,
+      );
+      if (
+        nonceRefreshTimerId &&
+        typeof nonceRefreshTimerId.unref === "function"
+      ) {
+        nonceRefreshTimerId.unref();
+      }
+    }
+
     function clearPreparedNonceTokens() {
+      clearPreparedNonceRefreshTimer();
       pendingNonceToken = null;
       pendingNoncePreparedAt = 0;
       noncePreparedAtByToken = Object.create(null);
@@ -3167,6 +3214,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       pendingNonceToken = nonceToken;
       pendingNoncePreparedAt = preparedAt;
       noncePreparedAtByToken[nonceToken] = preparedAt;
+      schedulePreparedNonceRefresh(preparedAt);
     }
 
     function resolveNoncePreparedAt(nonceToken) {

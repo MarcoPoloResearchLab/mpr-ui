@@ -65,6 +65,11 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 ## BugFixes (372–399)
 
+- [x] [B011] (P0) Four-hour stale Google sign-in clicks should complete on the first attempt.
+  Summary: Downstream LoopAware coverage proves that a `/login` page left open for four hours can still leave the first returned Google sign-in click stuck on the landing page. Prior B009 handling rejected expired callbacks and prepared a nonce for the next click, but users should not need a second click after returning to a stale page.
+  Expected: shared `mpr-ui` Google button intent handling refreshes an expired prepared GIS nonce before the same user click can emit a credential, so the first visible sign-in attempt after a long idle period exchanges the fresh nonce and reaches the authenticated handoff.
+  Resolved 2026-06-05: scheduled prepared GIS nonce refresh before the freshness window expires while auth controls remain mounted, with cleanup on authentication/destroy and stale prepared-token changes. Added an auth-controller regression proving the scheduled refresh reinitializes GIS with a fresh nonce before the next visible sign-in click exchanges credentials. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "fresh GIS nonces|expired GIS nonce"`; `make ci`.
+
 - [x] [B007] (P0) Long-lived login pages can reuse an expired GIS nonce.
   Summary: Apps such as LoopAware keep `/login` open for days, then a user clicks Google sign-in and TAuth rejects `POST /auth/google` with `401` until the page is refreshed. Current `mpr-ui` primes one nonce during auth control setup and reuses it for the later credential exchange, but TAuth requires a fresh nonce for every sign-in attempt and expires nonce tokens after the tenant TTL.
   Expected: user-initiated sign-in refreshes the GIS nonce before exchange when the prepared nonce is stale, without reintroducing the prior nonce mismatch where `/auth/google` receives a different nonce than GIS received.

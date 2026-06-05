@@ -2062,6 +2062,144 @@ test('createAuthHeader blocks expired GIS nonce callbacks and refreshes for the 
   }
 });
 
+test('createAuthHeader schedules fresh GIS nonces before stale sign-in clicks', async () => {
+  resetEnvironment();
+  delete global.initAuthClient;
+  delete global.getCurrentUser;
+  delete global.requestNonce;
+  delete global.exchangeGoogleCredential;
+  const library = loadLibrary();
+  const authenticatedProfile = { user_email: 'ada@example.com' };
+  const initializeCalls = [];
+  const exchangePayloads = [];
+  const scheduledTimers = new Map();
+  let currentTimeMilliseconds = 1_000_000;
+  let nonceCounter = 0;
+  let nextTimerId = 1;
+  const originalDateNow = Date.now;
+  const originalSetTimeout = global.setTimeout;
+  const originalClearTimeout = global.clearTimeout;
+
+  Date.now = function now() {
+    return currentTimeMilliseconds;
+  };
+  global.setTimeout = function setTimeoutStub(callback, delayMilliseconds) {
+    const durationMilliseconds = Number(delayMilliseconds) || 0;
+    if (durationMilliseconds > 1_000) {
+      const timerId = { id: nextTimerId };
+      nextTimerId += 1;
+      scheduledTimers.set(timerId, {
+        callback,
+        durationMilliseconds,
+      });
+      return timerId;
+    }
+    return originalSetTimeout(callback, durationMilliseconds);
+  };
+  global.clearTimeout = function clearTimeoutStub(timerId) {
+    if (scheduledTimers.delete(timerId)) {
+      return;
+    }
+    originalClearTimeout(timerId);
+  };
+
+  function createResponse(status, payload) {
+    return {
+      ok: status >= 200 && status < 300,
+      status,
+      json: function json() {
+        return Promise.resolve(payload || {});
+      },
+    };
+  }
+
+  function runNextScheduledTimer() {
+    const timerEntry = scheduledTimers.entries().next().value;
+    assert.ok(timerEntry, 'expected a scheduled nonce refresh timer');
+    const timerId = timerEntry[0];
+    const timerRecord = timerEntry[1];
+    scheduledTimers.delete(timerId);
+    currentTimeMilliseconds += timerRecord.durationMilliseconds;
+    timerRecord.callback();
+  }
+
+  try {
+    global.window = createWindowEventTargetStub();
+    global.location = { origin: 'http://fallback-origin.test' };
+    installStorageStub();
+    global.google = {
+      accounts: {
+        id: {
+          initialize(config) {
+            initializeCalls.push(config);
+          },
+          renderButton() {},
+          prompt() {},
+        },
+      },
+    };
+    global.fetch = function fetch(url, init) {
+      const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
+      if (pathname === '/auth/nonce') {
+        nonceCounter += 1;
+        return Promise.resolve(
+          createResponse(200, { nonce: 'nonce-token-' + String(nonceCounter) }),
+        );
+      }
+      if (pathname === '/auth/google') {
+        exchangePayloads.push(JSON.parse(init.body));
+        return Promise.resolve(createResponse(200, authenticatedProfile));
+      }
+      return Promise.reject(new Error('unexpected fetch URL: ' + String(url)));
+    };
+
+    const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+    const authController = library.createAuthHeader(hostElement, {
+      googleClientId: 'scheduled-refresh-client',
+      tauthUrl: 'http://localhost:8080',
+      tauthLoginPath: '/auth/google',
+      tauthLogoutPath: '/auth/logout',
+      tauthNoncePath: '/auth/nonce',
+      tenantId: 'tenant-alpha',
+    });
+
+    await flushAsync();
+    await flushAsync();
+
+    assert.equal(initializeCalls.length, 1, 'GIS initializes with the initial nonce');
+    assert.equal(initializeCalls[0].nonce, 'nonce-token-1');
+    assert.equal(scheduledTimers.size, 1, 'prepared nonce schedules a refresh before expiry');
+
+    runNextScheduledTimer();
+    await flushAsync();
+    await flushAsync();
+
+    assert.equal(nonceCounter, 2, 'scheduled timer requests a fresh nonce');
+    assert.equal(initializeCalls.length, 2, 'GIS is reinitialized with the scheduled fresh nonce');
+    assert.equal(initializeCalls[1].nonce, 'nonce-token-2');
+
+    await initializeCalls[1].callback({
+      credential: 'stub-google-credential::nonce-token-2',
+    });
+
+    assert.deepEqual(
+      exchangePayloads,
+      [
+        {
+          google_id_token: 'stub-google-credential::nonce-token-2',
+          nonce_token: 'nonce-token-2',
+        },
+      ],
+      'first sign-in after timer refresh exchanges the fresh nonce',
+    );
+    assert.deepEqual(authController.state.profile, authenticatedProfile);
+  } finally {
+    Date.now = originalDateNow;
+    global.setTimeout = originalSetTimeout;
+    global.clearTimeout = originalClearTimeout;
+  }
+});
+
 test('createAuthHeader skips fallback profile probes for fresh anonymous config-first bootstrap', async () => {
   resetEnvironment();
   delete global.initAuthClient;
