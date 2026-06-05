@@ -3844,6 +3844,97 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return authController.setUnauthenticatedForTesting();
   }
 
+  function resolveGoogleIdentityTestingDriver() {
+    var googleIdentity =
+      global.google &&
+      global.google.accounts &&
+      global.google.accounts.id
+        ? global.google.accounts.id
+        : null;
+    var driver =
+      googleIdentity &&
+      googleIdentity.__mprUiTesting &&
+      typeof googleIdentity.__mprUiTesting === "object"
+        ? googleIdentity.__mprUiTesting
+        : null;
+    return driver;
+  }
+
+  function requireGoogleIdentityTestingDriver() {
+    var driver = resolveGoogleIdentityTestingDriver();
+    if (!driver) {
+      throw createTestingError(
+        "mpr-ui.testing.google_identity_driver_missing",
+        "MPRUI.testing.googleIdentity requires a Google Identity test driver",
+      );
+    }
+    return driver;
+  }
+
+  function requireGoogleIdentityTestingMethod(driver, methodName) {
+    if (!driver || typeof driver[methodName] !== "function") {
+      throw createTestingError(
+        "mpr-ui.testing.google_identity_driver_unsupported",
+        "MPRUI.testing.googleIdentity requires a compatible Google Identity test driver",
+      );
+    }
+    return driver[methodName];
+  }
+
+  function isGoogleIdentityTestingInitialized() {
+    var driver = resolveGoogleIdentityTestingDriver();
+    if (!driver) {
+      return false;
+    }
+    var isInitialized = requireGoogleIdentityTestingMethod(
+      driver,
+      "isInitialized",
+    );
+    return isInitialized.call(driver) === true;
+  }
+
+  function requireInitializedGoogleIdentityTestingDriver() {
+    var driver = requireGoogleIdentityTestingDriver();
+    var isInitialized = requireGoogleIdentityTestingMethod(
+      driver,
+      "isInitialized",
+    );
+    if (isInitialized.call(driver) !== true) {
+      throw createTestingError(
+        "mpr-ui.testing.google_identity_not_initialized",
+        "MPRUI.testing.googleIdentity requires an initialized Google Identity stub",
+      );
+    }
+    return driver;
+  }
+
+  function getGoogleIdentityTestingInitializedNonce() {
+    var driver = requireInitializedGoogleIdentityTestingDriver();
+    var getInitializedNonce = requireGoogleIdentityTestingMethod(
+      driver,
+      "getInitializedNonce",
+    );
+    return String(getInitializedNonce.call(driver));
+  }
+
+  function getGoogleIdentityTestingInitializeCallCount() {
+    var driver = requireGoogleIdentityTestingDriver();
+    var getInitializeCallCount = requireGoogleIdentityTestingMethod(
+      driver,
+      "getInitializeCallCount",
+    );
+    return Number(getInitializeCallCount.call(driver));
+  }
+
+  function enableGoogleIdentityTestingAutoCredentialOnClick() {
+    var driver = requireInitializedGoogleIdentityTestingDriver();
+    var enableAutoCredentialOnClick = requireGoogleIdentityTestingMethod(
+      driver,
+      "enableAutoCredentialOnClick",
+    );
+    return enableAutoCredentialOnClick.call(driver);
+  }
+
   function renderAuthHeader(target, options) {
     var host = target;
     if (typeof target === "string" && global.document) {
@@ -14988,6 +15079,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   }
   namespace.testing.authenticate = authenticateForTesting;
   namespace.testing.unauthenticate = unauthenticateForTesting;
+  namespace.testing.googleIdentity = {
+    isInitialized: isGoogleIdentityTestingInitialized,
+    getInitializedNonce: getGoogleIdentityTestingInitializedNonce,
+    getInitializeCallCount: getGoogleIdentityTestingInitializeCallCount,
+    enableAutoCredentialOnClick: enableGoogleIdentityTestingAutoCredentialOnClick,
+  };
   if (!namespace.__dom) {
     namespace.__dom = {};
   }
