@@ -8,6 +8,7 @@
 ### Improvements ⚙️
 - Centralized the Marco Polo Research Lab LLC legal profile, including company form, website, support/legal emails, and phone number.
 - Added public `MPRUI.testing` auth helpers so app browser suites can drive the mounted auth controller without mutating mpr-ui DOM internals.
+- Added `MPRUI.testing.googleIdentity` helpers so app browser suites can drive stubbed Google Identity credential clicks without mutating app-local stub globals.
 - Added `<mpr-header sign-in-redirect-url>` so `mpr-ui` owns the post-sign-in redirect and keeps `auth-transition` visible while navigation is pending.
 
 ### Bug Fixes 🐛
@@ -19,6 +20,7 @@
 - Added unit and Playwright coverage for legal document exports, escaping, custom-element rendering, and product-specific extra sections.
 - Added auth-controller regressions for anonymous no-probe bootstrap, hinted profile restore, and stale restore-hint clearing.
 - Added auth-controller coverage for `MPRUI.testing.authenticate()` and `MPRUI.testing.unauthenticate()`.
+- Added auth-controller coverage for the `MPRUI.testing.googleIdentity` test-driver adapter.
 - Added an auth-controller regression for a long-lived tab refreshing its GIS nonce before credential exchange.
 - Added an auth-controller regression for expired GIS callback nonces being rejected before `/auth/google`.
 - Added header regressions for sign-in redirect handoff, restored-session non-redirect behavior, and app-dispatched auth events not triggering redirects.
@@ -26,6 +28,7 @@
 ### Docs 📚
 - Documented the shared legal document API, attributes, profile override boundaries, and product-specific section extension pattern.
 - Documented the test-only auth helper contract for integration suites that seed backend sessions.
+- Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
 ## [v3.10.1] - 2026-06-02

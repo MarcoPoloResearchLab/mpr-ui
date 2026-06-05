@@ -338,6 +338,19 @@ window.MPRUI.testing.authenticate(document.querySelector("mpr-header"), {
 `MPRUI.testing.authenticate(host, profile)` and `MPRUI.testing.unauthenticate(host)` drive the mounted `mpr-ui` auth
 controller and emit the same `mpr-ui:auth:*` lifecycle events as normal auth. App code should not call these methods.
 
+Browser integration suites that stub Google Identity Services can expose a test driver at
+`google.accounts.id.__mprUiTesting`. `mpr-ui` then owns the test-only calls through
+`MPRUI.testing.googleIdentity`:
+
+```js
+await page.waitForFunction(() => window.MPRUI.testing.googleIdentity.isInitialized());
+await page.evaluate(() => window.MPRUI.testing.googleIdentity.enableAutoCredentialOnClick());
+```
+
+The driver object must provide `isInitialized()` and `enableAutoCredentialOnClick()`. It may also provide
+`getInitializedNonce()` and `getInitializeCallCount()` when a suite needs to assert nonce refresh behavior. App specs
+should call `MPRUI.testing.googleIdentity` rather than mutating stub globals directly.
+
 > Both `<mpr-header>` and `<mpr-footer>` are sticky by default. Add `sticky="false"` (or pass the equivalent option) if you want them to render in-flow; setting `sticky="true"` is redundant because `true` is the default. The attribute values are case-insensitive (`sticky="FALSE"` works), and the components manage stickiness internally so no host-level CSS overrides are required. In sticky mode the footer renders a spacer + viewport-fixed footer so it stays visible even when the page is scrolled to the top.
 
 Both `<mpr-header>` and `<mpr-footer>` also accept `size="normal"` (default) or `size="small"` to scale the component down to about 70% of the normal footprint.

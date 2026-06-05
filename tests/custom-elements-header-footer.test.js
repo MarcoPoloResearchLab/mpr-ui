@@ -2828,6 +2828,70 @@ test('MPRUI.testing rejects invalid auth test calls before mutating state', asyn
   assert.equal(authController.state.status, 'bootstrapping');
 });
 
+test('MPRUI.testing exposes Google Identity driver helpers for integration stubs', () => {
+  resetEnvironment();
+  let autoCredentialEnabled = false;
+  const library = loadLibrary();
+
+  assert.throws(
+    function rejectMissingDriver() {
+      library.testing.googleIdentity.enableAutoCredentialOnClick();
+    },
+    function verifyMissingDriver(error) {
+      assert.equal(error.code, 'mpr-ui.testing.google_identity_driver_missing');
+      return true;
+    },
+  );
+
+  global.google = {
+    accounts: {
+      id: {
+        __mprUiTesting: {
+          isInitialized: function isInitialized() {
+            return false;
+          },
+          enableAutoCredentialOnClick: function enableAutoCredentialOnClick() {
+            autoCredentialEnabled = true;
+          },
+        },
+      },
+    },
+  };
+
+  assert.equal(library.testing.googleIdentity.isInitialized(), false);
+  assert.throws(
+    function rejectUninitializedDriver() {
+      library.testing.googleIdentity.enableAutoCredentialOnClick();
+    },
+    function verifyUninitializedDriver(error) {
+      assert.equal(error.code, 'mpr-ui.testing.google_identity_not_initialized');
+      return true;
+    },
+  );
+  assert.equal(autoCredentialEnabled, false);
+
+  global.google.accounts.id.__mprUiTesting = {
+    isInitialized: function isInitialized() {
+      return true;
+    },
+    getInitializedNonce: function getInitializedNonce() {
+      return 'testing-nonce';
+    },
+    getInitializeCallCount: function getInitializeCallCount() {
+      return 2;
+    },
+    enableAutoCredentialOnClick: function enableAutoCredentialOnClick() {
+      autoCredentialEnabled = true;
+    },
+  };
+
+  assert.equal(library.testing.googleIdentity.isInitialized(), true);
+  assert.equal(library.testing.googleIdentity.getInitializedNonce(), 'testing-nonce');
+  assert.equal(library.testing.googleIdentity.getInitializeCallCount(), 2);
+  library.testing.googleIdentity.enableAutoCredentialOnClick();
+  assert.equal(autoCredentialEnabled, true);
+});
+
 test('MU-434: mpr-header holds the auth transition screen until the configured app-ready event arrives', async () => {
   resetEnvironment();
   const authenticatedProfile = {
