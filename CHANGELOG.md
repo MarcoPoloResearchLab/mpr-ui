@@ -31,6 +31,23 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.10.2] - 2026-06-05
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- Added `MPRUI.testing.googleIdentity` helpers so app browser suites can drive stubbed Google Identity credential clicks without mutating app-local stub globals.
+
+### Bug Fixes 🐛
+- Kept Google Identity test automation behind a shared `mpr-ui` testing adapter instead of requiring consumer specs to reach into private GIS stub state.
+
+### Testing 🧪
+- Added auth-controller coverage for the `MPRUI.testing.googleIdentity` test-driver adapter.
+
+### Docs 📚
+- Documented the test-only Google Identity stub driver contract for integration suites.
+
 ## [v3.10.1] - 2026-06-02
 
 ### Features ✨
