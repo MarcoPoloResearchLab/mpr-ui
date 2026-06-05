@@ -33,6 +33,23 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.10.3] - 2026-06-05
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- _No changes._
+
+### Bug Fixes 🐛
+- Scheduled prepared Google Identity Services nonces to refresh before their freshness window expires, keeping long-open sign-in controls usable on the first returned click.
+
+### Testing 🧪
+- Added an auth-controller regression proving scheduled nonce refresh reinitializes GIS with a fresh nonce before stale sign-in clicks exchange credentials.
+
+### Docs 📚
+- _No changes._
+
 ## [v3.10.2] - 2026-06-05
 
 ### Features ✨
