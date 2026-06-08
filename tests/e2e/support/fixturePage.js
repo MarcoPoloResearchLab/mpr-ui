@@ -120,7 +120,7 @@ const LEGAL_DOCUMENT_FIXTURE_URL = pathToFileURL(
 ).href;
 
 const SELECTORS = Object.freeze({
-  googleButton: '[data-mpr-header="google-signin"] button[data-test="google-signin"]',
+  googleButton: '[data-mpr-header="google-signin"] [data-test="google-signin"]',
   headerNavLinks: '[data-mpr-header="nav"] a',
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerThemeWrapper: '[data-mpr-footer="theme-toggle"]',

@@ -160,20 +160,14 @@ function createDocumentStub() {
     body: bodyElement,
     documentElement: documentElement,
     createElement: function createElement(tagName) {
-      return {
-        id: '',
-        tagName: String(tagName || '').toUpperCase(),
-        setAttribute: function setAttribute(name, value) {
-          this[name] = value;
-        },
-        appendChild: function appendChild(child) {
-          this.child = child;
-        },
-        styleSheet: null,
-        textContent: '',
-        onload: null,
-        onerror: null,
-      };
+      const element = createStubNode({ attributes: true, supportsEvents: true });
+      element.id = '';
+      element.tagName = String(tagName || '').toUpperCase();
+      element.style = {};
+      element.styleSheet = null;
+      element.onload = null;
+      element.onerror = null;
+      return element;
     },
     createTextNode: function createTextNode(text) {
       return { textContent: String(text) };
@@ -283,6 +277,13 @@ function resetEnvironment() {
   delete global.MPRUI;
   delete global.window;
   delete global.localStorage;
+  delete global.google;
+  delete global.initAuthClient;
+  delete global.getCurrentUser;
+  delete global.requestNonce;
+  delete global.exchangeGoogleCredential;
+  delete global.setAuthTenantId;
+  delete global.logout;
 
   const definitions = new Map();
   global.customElements = {
@@ -564,6 +565,7 @@ function createHeaderElementHarness(options) {
     nav,
     horizontalLinks,
     actions,
+    googleHost,
     userMenu,
     authTransition,
     authTransitionTitle,
@@ -1279,7 +1281,7 @@ test('mpr-header tauth-url attribute configures auth endpoints', async () => {
   assert.equal(authOptions.tenantId, 'tenant-demo');
 });
 
-test('mpr-header calls GSI initialize once before renderButton on initial render', async () => {
+test('mpr-header waits for user sign-in before initializing Google Identity', async () => {
   resetEnvironment();
   const callOrder = [];
   let initializeCallCount = 0;
@@ -1311,99 +1313,78 @@ test('mpr-header calls GSI initialize once before renderButton on initial render
   await flushAsync();
   await flushAsync();
 
-  const initializeIndex = callOrder.indexOf('initialize');
-  const renderButtonIndex = callOrder.indexOf('renderButton');
   assert.equal(
     initializeCallCount,
-    1,
-    'header should initialize Google Identity exactly once during initial render',
+    0,
+    'header should not initialize Google Identity during initial render',
   );
-  assert.ok(
-    initializeIndex !== -1,
-    'header should initialize Google Identity before rendering the button',
+  assert.deepEqual(callOrder, [], 'header does not render a GIS button during initial render');
+  const headerSignInButton = harness.googleHost.children[0];
+  assert.equal(headerSignInButton.tagName, 'BUTTON', 'header renders a real sign-in button');
+  assert.equal(
+    headerSignInButton.getAttribute('data-test'),
+    'google-signin',
+    'header exposes a visible first-party sign-in control',
   );
-  assert.ok(
-    renderButtonIndex !== -1,
-    'header should render the Google button',
-  );
-  assert.ok(
-    initializeIndex < renderButtonIndex,
-    'header must call GSI initialize before renderButton',
+  headerSignInButton.dispatchEvent({ type: 'click', preventDefault() {} });
+  await flushAsync();
+  await flushAsync();
+  assert.equal(initializeCallCount, 1, 'header initializes Google Identity after click');
+  assert.equal(
+    harness.googleHost.getAttribute('data-mpr-google-ready'),
+    'true',
+    'header sign-in trigger stays visible after GIS prompt starts',
   );
 });
 
-test('mpr-header cancels pending nonce work after disconnect', async () => {
-  const settleModes = ['resolve', 'reject'];
-
-  for (const settleMode of settleModes) {
-    resetEnvironment();
-    const callOrder = [];
-    let settleNonce = null;
-    global.google = {
-      accounts: {
-        id: {
-          initialize() {
-            callOrder.push('initialize');
-          },
-          renderButton() {
-            callOrder.push('renderButton');
-          },
-          prompt() {},
+test('mpr-header disconnects cleanly without starting background nonce work', async () => {
+  resetEnvironment();
+  const callOrder = [];
+  let nonceRequestCalls = 0;
+  global.google = {
+    accounts: {
+      id: {
+        initialize() {
+          callOrder.push('initialize');
         },
+        renderButton() {
+          callOrder.push('renderButton');
+        },
+        prompt() {},
       },
-    };
-    global.requestNonce = function requestNonce() {
-      return new Promise(function pendingNonce(resolve, reject) {
-        settleNonce = function settlePendingNonce() {
-          if (settleMode === 'resolve') {
-            resolve('disconnect-race-nonce');
-            return;
-          }
-          reject(new Error('disconnect-race-nonce-failed'));
-        };
-      });
-    };
+    },
+  };
+  global.requestNonce = function requestNonce() {
+    nonceRequestCalls += 1;
+    return Promise.reject(new Error('unexpected background nonce request'));
+  };
 
-    try {
-      loadLibrary();
-      const harness = createHeaderElementHarness();
-      const headerElement = harness.element;
-      headerElement.setAttribute('google-site-id', 'header-race-site');
-      headerElement.setAttribute('tauth-login-path', '/auth/login');
-      headerElement.setAttribute('tauth-logout-path', '/auth/logout');
-      headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
-      headerElement.setAttribute('tauth-tenant-id', 'tenant-race');
+  try {
+    loadLibrary();
+    const harness = createHeaderElementHarness();
+    const headerElement = harness.element;
+    headerElement.setAttribute('google-site-id', 'header-race-site');
+    headerElement.setAttribute('tauth-login-path', '/auth/login');
+    headerElement.setAttribute('tauth-logout-path', '/auth/logout');
+    headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
+    headerElement.setAttribute('tauth-tenant-id', 'tenant-race');
 
-      headerElement.connectedCallback();
-      await flushAsync();
-      assert.equal(
-        typeof settleNonce,
-        'function',
-        'nonce request should still be pending after the first async turn',
-      );
-      headerElement.disconnectedCallback();
-      settleNonce();
-      await flushAsync();
-      await flushAsync();
+    headerElement.connectedCallback();
+    await flushAsync();
+    await flushAsync();
+    headerElement.disconnectedCallback();
+    await flushAsync();
 
-      const headerErrorEvents = headerElement.__dispatchedEvents.filter(
-        function filterHeaderError(entry) {
-          return entry.type === 'mpr-ui:header:error';
-        },
-      );
-      assert.deepEqual(
-        callOrder,
-        [],
-        `stale nonce work should not render after disconnect (${settleMode})`,
-      );
-      assert.equal(
-        headerErrorEvents.length,
-        0,
-        `disconnect should suppress header nonce errors (${settleMode})`,
-      );
-    } finally {
-      delete global.requestNonce;
-    }
+    const headerErrorEvents = headerElement.__dispatchedEvents.filter(
+      function filterHeaderError(entry) {
+        return entry.type === 'mpr-ui:header:error';
+      },
+    );
+    assert.deepEqual(callOrder, [], 'header does not initialize or render GIS during mount');
+    assert.equal(nonceRequestCalls, 0, 'header mount never starts background nonce work');
+    assert.equal(headerErrorEvents.length, 0, 'disconnect emits no hidden header errors');
+  } finally {
+    delete global.requestNonce;
   }
 });
 
@@ -1411,12 +1392,16 @@ test('mpr-header rebinds auth endpoints when tauth-url changes after first rende
   resetEnvironment();
   const initAuthCalls = [];
   const fetchCalls = [];
+  const exchangePayloads = [];
+  const initializeCalls = [];
   global.location = { origin: 'http://fallback-origin.test' };
   global.google = {
     accounts: {
       id: {
         renderButton() {},
-        initialize() {},
+        initialize(config) {
+          initializeCalls.push(config);
+        },
         prompt() {},
       },
     },
@@ -1428,8 +1413,18 @@ test('mpr-header rebinds auth endpoints when tauth-url changes after first rende
   global.getCurrentUser = function getCurrentUser() {
     return Promise.resolve(null);
   };
-  global.fetch = function fetch(url) {
+  global.fetch = function fetch(url, init) {
     fetchCalls.push(String(url));
+    const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
+    if (pathname === '/auth/google') {
+      exchangePayloads.push(JSON.parse(init.body));
+      return Promise.resolve({
+        ok: true,
+        json: function json() {
+          return Promise.resolve({ user_email: 'updated@example.com' });
+        },
+      });
+    }
     return Promise.resolve({
       ok: true,
       json: function json() {
@@ -1474,10 +1469,24 @@ test('mpr-header rebinds auth endpoints when tauth-url changes after first rende
     'http://localhost:8080',
     'initAuthClient reboots with the updated base URL',
   );
+  await authController.startGoogleSignIn();
+  await flushAsync();
+  assert.equal(initializeCalls.length, 1, 'sign-in attempt initializes GIS once');
   assert.equal(
-    fetchCalls[fetchCalls.length - 1],
-    'http://localhost:8080/auth/nonce',
-    'nonce requests switch to the updated tauth-url after the attribute changes',
+    initializeCalls[0].nonce,
+    'updated-nonce-token',
+    'sign-in attempt initializes GIS with the issued nonce',
+  );
+  await initializeCalls[0].callback({ credential: 'updated-header-token' });
+  assert.deepEqual(
+    fetchCalls,
+    ['http://localhost:8080/auth/nonce', 'http://localhost:8080/auth/google'],
+    'credential exchange requests switch to the updated tauth-url after the attribute changes',
+  );
+  assert.deepEqual(
+    exchangePayloads,
+    [{ google_id_token: 'updated-header-token', nonce_token: 'updated-nonce-token' }],
+    'updated nonce is paired with the credential exchange',
   );
 });
 
@@ -1620,7 +1629,7 @@ test('createAuthHeader ignores an in-flight credential exchange after tauth-url 
 
   const exchangePromise = authController.handleCredential({
     credential: 'signed-id-token',
-  });
+  }, 'race-nonce');
   await flushAsync();
 
   assert.deepEqual(
@@ -1666,7 +1675,7 @@ test('createAuthHeader ignores an in-flight credential exchange after tauth-url 
   );
 });
 
-test('createAuthHeader preserves the prepared GIS nonce through unauthenticated bootstrap', async () => {
+test('createAuthHeader initializes GIS with a nonce only for an explicit sign-in attempt', async () => {
   resetEnvironment();
   delete global.initAuthClient;
   delete global.getCurrentUser;
@@ -1681,9 +1690,8 @@ test('createAuthHeader preserves the prepared GIS nonce through unauthenticated 
   };
   const initializeCalls = [];
   const exchangePayloads = [];
-  const restoreHintKey = 'tauth.restore.v1:http%3A%2F%2Flocalhost%3A8080:tenant-alpha';
+  const requestedPaths = [];
   let nonceCounter = 0;
-  let resolveProfileResponse;
 
   function createResponse(status, payload) {
     return {
@@ -1696,7 +1704,7 @@ test('createAuthHeader preserves the prepared GIS nonce through unauthenticated 
   }
 
   global.location = { origin: 'http://fallback-origin.test' };
-  installStorageStub({ [restoreHintKey]: '1' });
+  installStorageStub();
   global.google = {
     accounts: {
       id: {
@@ -1710,19 +1718,12 @@ test('createAuthHeader preserves the prepared GIS nonce through unauthenticated 
   };
   global.fetch = function fetch(url, init) {
     const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
+    requestedPaths.push(pathname);
     if (pathname === '/auth/nonce') {
       nonceCounter += 1;
       return Promise.resolve(
         createResponse(200, { nonce: 'nonce-token-' + String(nonceCounter) }),
       );
-    }
-    if (pathname === '/me') {
-      return new Promise(function waitForProfile(resolve) {
-        resolveProfileResponse = resolve;
-      });
-    }
-    if (pathname === '/auth/refresh') {
-      return Promise.resolve(createResponse(401));
     }
     if (pathname === '/auth/google') {
       exchangePayloads.push(JSON.parse(init.body));
@@ -1744,325 +1745,45 @@ test('createAuthHeader preserves the prepared GIS nonce through unauthenticated 
   await flushAsync();
   await flushAsync();
 
-  assert.equal(initializeCalls.length, 1, 'GIS initializes after nonce preparation');
+  assert.equal(initializeCalls.length, 0, 'GIS does not initialize during bootstrap');
+  assert.deepEqual(requestedPaths, [], 'bootstrap does not issue background nonce requests');
+
+  await authController.startGoogleSignIn();
+  await flushAsync();
+
+  assert.equal(initializeCalls.length, 1, 'explicit sign-in attempt initializes GIS once');
+  assert.equal(initializeCalls[0].client_id, 'nonce-stability-client');
   assert.equal(
     initializeCalls[0].nonce,
     'nonce-token-1',
-    'GIS receives the first prepared nonce',
+    'GIS initialization receives the TAuth nonce for the sign-in attempt',
   );
-
-  resolveProfileResponse(createResponse(401));
-  await flushAsync();
-  await flushAsync();
-  await flushAsync();
-
-  await authController.handleCredential({
-    credential: 'stub-google-credential::nonce-token-1',
-  });
-
-  assert.deepEqual(
-    exchangePayloads,
-    [
-      {
-        google_id_token: 'stub-google-credential::nonce-token-1',
-        nonce_token: 'nonce-token-1',
-      },
-    ],
-    'credential exchange reuses the nonce that was handed to GIS',
-  );
-  assert.equal(nonceCounter, 1, 'credential exchange does not request a second nonce');
-  assert.deepEqual(authController.state.profile, authenticatedProfile);
-});
-
-test('createAuthHeader refreshes the prepared GIS nonce after a long-lived tab regains focus', async () => {
-  resetEnvironment();
-  delete global.initAuthClient;
-  delete global.getCurrentUser;
-  delete global.requestNonce;
-  delete global.exchangeGoogleCredential;
-  const library = loadLibrary();
-  const authenticatedProfile = {
-    display: 'Ada Lovelace',
-    given_name: 'Ada',
-    avatar_url: 'https://cdn.example.com/ada.png',
-    user_email: 'ada@example.com',
-  };
-  const initializeCalls = [];
-  const exchangePayloads = [];
-  let nonceCounter = 0;
-
-  function createResponse(status, payload) {
-    return {
-      ok: status >= 200 && status < 300,
-      status,
-      json: function json() {
-        return Promise.resolve(payload || {});
-      },
-    };
-  }
-
-  global.window = createWindowEventTargetStub();
-  global.location = { origin: 'http://fallback-origin.test' };
-  installStorageStub();
-  global.google = {
-    accounts: {
-      id: {
-        initialize(config) {
-          initializeCalls.push(config);
-        },
-        renderButton() {},
-        prompt() {},
-      },
-    },
-  };
-  global.fetch = function fetch(url, init) {
-    const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
-    if (pathname === '/auth/nonce') {
-      nonceCounter += 1;
-      return Promise.resolve(
-        createResponse(200, { nonce: 'nonce-token-' + String(nonceCounter) }),
-      );
-    }
-    if (pathname === '/auth/google') {
-      exchangePayloads.push(JSON.parse(init.body));
-      return Promise.resolve(createResponse(200, authenticatedProfile));
-    }
-    return Promise.reject(new Error('unexpected fetch URL: ' + String(url)));
-  };
-
-  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
-  const authController = library.createAuthHeader(hostElement, {
-    googleClientId: 'long-lived-tab-client',
-    tauthUrl: 'http://localhost:8080',
-    tauthLoginPath: '/auth/google',
-    tauthLogoutPath: '/auth/logout',
-    tauthNoncePath: '/auth/nonce',
-    tenantId: 'tenant-alpha',
-  });
-
-  await flushAsync();
-  await flushAsync();
-
-  assert.equal(initializeCalls.length, 1, 'GIS initializes with the initial prepared nonce');
-  assert.equal(initializeCalls[0].nonce, 'nonce-token-1');
-
-  global.window.dispatchEvent({ type: 'focus' });
-  await flushAsync();
-  await flushAsync();
-
-  assert.equal(nonceCounter, 2, 'tab focus requests a fresh nonce before sign-in');
-  assert.equal(initializeCalls.length, 2, 'GIS is reinitialized with the refreshed nonce');
-  assert.equal(initializeCalls[1].nonce, 'nonce-token-2');
-
-  await authController.handleCredential({
-    credential: 'stub-google-credential::nonce-token-2',
-  });
-
-  assert.deepEqual(
-    exchangePayloads,
-    [
-      {
-        google_id_token: 'stub-google-credential::nonce-token-2',
-        nonce_token: 'nonce-token-2',
-      },
-    ],
-    'credential exchange uses the nonce from the refreshed GIS initialization',
-  );
-  assert.deepEqual(authController.state.profile, authenticatedProfile);
-});
-
-test('createAuthHeader keeps the GIS callback nonce stable after a focus refresh', async () => {
-  resetEnvironment();
-  delete global.initAuthClient;
-  delete global.getCurrentUser;
-  delete global.requestNonce;
-  delete global.exchangeGoogleCredential;
-  const library = loadLibrary();
-  const authenticatedProfile = {
-    display: 'Ada Lovelace',
-    given_name: 'Ada',
-    avatar_url: 'https://cdn.example.com/ada.png',
-    user_email: 'ada@example.com',
-  };
-  const initializeCalls = [];
-  const exchangePayloads = [];
-  let nonceCounter = 0;
-
-  function createResponse(status, payload) {
-    return {
-      ok: status >= 200 && status < 300,
-      status,
-      json: function json() {
-        return Promise.resolve(payload || {});
-      },
-    };
-  }
-
-  global.window = createWindowEventTargetStub();
-  global.location = { origin: 'http://fallback-origin.test' };
-  installStorageStub();
-  global.google = {
-    accounts: {
-      id: {
-        initialize(config) {
-          initializeCalls.push(config);
-        },
-        renderButton() {},
-        prompt() {},
-      },
-    },
-  };
-  global.fetch = function fetch(url, init) {
-    const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
-    if (pathname === '/auth/nonce') {
-      nonceCounter += 1;
-      return Promise.resolve(
-        createResponse(200, { nonce: 'nonce-token-' + String(nonceCounter) }),
-      );
-    }
-    if (pathname === '/auth/google') {
-      exchangePayloads.push(JSON.parse(init.body));
-      return Promise.resolve(createResponse(200, authenticatedProfile));
-    }
-    return Promise.reject(new Error('unexpected fetch URL: ' + String(url)));
-  };
-
-  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
-  const authController = library.createAuthHeader(hostElement, {
-    googleClientId: 'long-lived-tab-client',
-    tauthUrl: 'http://localhost:8080',
-    tauthLoginPath: '/auth/google',
-    tauthLogoutPath: '/auth/logout',
-    tauthNoncePath: '/auth/nonce',
-    tenantId: 'tenant-alpha',
-  });
-
-  await flushAsync();
-  await flushAsync();
-
-  assert.equal(initializeCalls.length, 1, 'GIS initializes with the first prepared nonce');
-  assert.equal(initializeCalls[0].nonce, 'nonce-token-1');
-
-  global.window.dispatchEvent({ type: 'focus' });
-  await flushAsync();
-  await flushAsync();
-
-  assert.equal(nonceCounter, 2, 'tab focus requests a fresh nonce before the old callback returns');
-  assert.equal(initializeCalls.length, 2, 'GIS is reinitialized with the refreshed nonce');
-  assert.equal(initializeCalls[1].nonce, 'nonce-token-2');
 
   await initializeCalls[0].callback({
-    credential: 'stub-google-credential::nonce-token-1',
+    credential: 'signed-google-id-token',
   });
 
+  assert.deepEqual(
+    requestedPaths,
+    ['/auth/nonce', '/auth/google'],
+    'sign-in attempt requests one TAuth nonce before credential exchange',
+  );
   assert.deepEqual(
     exchangePayloads,
     [
       {
-        google_id_token: 'stub-google-credential::nonce-token-1',
+        google_id_token: 'signed-google-id-token',
         nonce_token: 'nonce-token-1',
       },
     ],
-    'credential exchange uses the nonce captured by the callback that started sign-in',
+    'credential exchange pairs the Google token with a freshly issued TAuth nonce',
   );
+  assert.equal(nonceCounter, 1, 'credential exchange requests exactly one nonce');
+  assert.equal(initializeCalls.length, 1, 'credential exchange does not reinitialize GIS');
   assert.deepEqual(authController.state.profile, authenticatedProfile);
 });
 
-test('createAuthHeader blocks expired GIS nonce callbacks and refreshes for the next sign-in', async () => {
-  resetEnvironment();
-  delete global.initAuthClient;
-  delete global.getCurrentUser;
-  delete global.requestNonce;
-  delete global.exchangeGoogleCredential;
-  const library = loadLibrary();
-  const initializeCalls = [];
-  const exchangePayloads = [];
-  let currentTimeMilliseconds = 1_000_000;
-  let nonceCounter = 0;
-  const originalDateNow = Date.now;
-
-  Date.now = function now() {
-    return currentTimeMilliseconds;
-  };
-
-  function createResponse(status, payload) {
-    return {
-      ok: status >= 200 && status < 300,
-      status,
-      json: function json() {
-        return Promise.resolve(payload || {});
-      },
-    };
-  }
-
-  try {
-    global.window = createWindowEventTargetStub();
-    global.location = { origin: 'http://fallback-origin.test' };
-    installStorageStub();
-    global.google = {
-      accounts: {
-        id: {
-          initialize(config) {
-            initializeCalls.push(config);
-          },
-          renderButton() {},
-          prompt() {},
-        },
-      },
-    };
-    global.fetch = function fetch(url, init) {
-      const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
-      if (pathname === '/auth/nonce') {
-        nonceCounter += 1;
-        return Promise.resolve(
-          createResponse(200, { nonce: 'nonce-token-' + String(nonceCounter) }),
-        );
-      }
-      if (pathname === '/auth/google') {
-        exchangePayloads.push(JSON.parse(init.body));
-        return Promise.resolve(createResponse(200, { user_email: 'ada@example.com' }));
-      }
-      return Promise.reject(new Error('unexpected fetch URL: ' + String(url)));
-    };
-
-    const hostElement = attachHostApi(new global.HTMLElement(), new Map());
-    library.createAuthHeader(hostElement, {
-      googleClientId: 'expired-nonce-client',
-      tauthUrl: 'http://localhost:8080',
-      tauthLoginPath: '/auth/google',
-      tauthLogoutPath: '/auth/logout',
-      tauthNoncePath: '/auth/nonce',
-      tenantId: 'tenant-alpha',
-    });
-
-    await flushAsync();
-    await flushAsync();
-
-    assert.equal(initializeCalls.length, 1, 'GIS initializes with the initial prepared nonce');
-    assert.equal(initializeCalls[0].nonce, 'nonce-token-1');
-
-    currentTimeMilliseconds += 6 * 60 * 1000;
-
-    await initializeCalls[0].callback({
-      credential: 'stub-google-credential::nonce-token-1',
-    });
-    await flushAsync();
-    await flushAsync();
-
-    assert.deepEqual(
-      exchangePayloads,
-      [],
-      'expired GIS nonce callbacks do not reach the credential exchange endpoint',
-    );
-    assert.equal(nonceCounter, 2, 'expired callback starts a fresh nonce request');
-    assert.equal(initializeCalls.length, 2, 'GIS is reinitialized with the fresh nonce');
-    assert.equal(initializeCalls[1].nonce, 'nonce-token-2');
-  } finally {
-    Date.now = originalDateNow;
-  }
-});
-
-test('createAuthHeader schedules fresh GIS nonces before stale sign-in clicks', async () => {
+test('createAuthHeader keeps GIS stable after four idle hours on the landing page', async () => {
   resetEnvironment();
   delete global.initAuthClient;
   delete global.getCurrentUser;
@@ -2072,6 +1793,7 @@ test('createAuthHeader schedules fresh GIS nonces before stale sign-in clicks', 
   const authenticatedProfile = { user_email: 'ada@example.com' };
   const initializeCalls = [];
   const exchangePayloads = [];
+  const requestedPaths = [];
   const scheduledTimers = new Map();
   let currentTimeMilliseconds = 1_000_000;
   let nonceCounter = 0;
@@ -2113,16 +1835,6 @@ test('createAuthHeader schedules fresh GIS nonces before stale sign-in clicks', 
     };
   }
 
-  function runNextScheduledTimer() {
-    const timerEntry = scheduledTimers.entries().next().value;
-    assert.ok(timerEntry, 'expected a scheduled nonce refresh timer');
-    const timerId = timerEntry[0];
-    const timerRecord = timerEntry[1];
-    scheduledTimers.delete(timerId);
-    currentTimeMilliseconds += timerRecord.durationMilliseconds;
-    timerRecord.callback();
-  }
-
   try {
     global.window = createWindowEventTargetStub();
     global.location = { origin: 'http://fallback-origin.test' };
@@ -2140,6 +1852,7 @@ test('createAuthHeader schedules fresh GIS nonces before stale sign-in clicks', 
     };
     global.fetch = function fetch(url, init) {
       const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
+      requestedPaths.push(pathname);
       if (pathname === '/auth/nonce') {
         nonceCounter += 1;
         return Promise.resolve(
@@ -2155,7 +1868,7 @@ test('createAuthHeader schedules fresh GIS nonces before stale sign-in clicks', 
 
     const hostElement = attachHostApi(new global.HTMLElement(), new Map());
     const authController = library.createAuthHeader(hostElement, {
-      googleClientId: 'scheduled-refresh-client',
+      googleClientId: 'long-lived-tab-client',
       tauthUrl: 'http://localhost:8080',
       tauthLoginPath: '/auth/google',
       tauthLogoutPath: '/auth/logout',
@@ -2166,38 +1879,99 @@ test('createAuthHeader schedules fresh GIS nonces before stale sign-in clicks', 
     await flushAsync();
     await flushAsync();
 
-    assert.equal(initializeCalls.length, 1, 'GIS initializes with the initial nonce');
+    assert.equal(initializeCalls.length, 0, 'GIS does not initialize at page load');
+    assert.equal(scheduledTimers.size, 0, 'page load does not schedule nonce refresh timers');
+    assert.deepEqual(requestedPaths, [], 'page load does not request nonce or session endpoints');
+
+    currentTimeMilliseconds += 4 * 60 * 60 * 1000;
+    global.window.dispatchEvent({ type: 'focus' });
+    global.document.hidden = false;
+    global.document.dispatchEvent({ type: 'visibilitychange' });
+    await flushAsync();
+    await flushAsync();
+
+    assert.equal(initializeCalls.length, 0, 'idle focus does not initialize GIS');
+    assert.equal(scheduledTimers.size, 0, 'idle focus does not schedule nonce refresh timers');
+    assert.deepEqual(requestedPaths, [], 'idle focus does not issue background nonce requests');
+
+    await authController.startGoogleSignIn();
+    await flushAsync();
+    assert.equal(initializeCalls.length, 1, 'post-idle sign-in initializes GIS once');
     assert.equal(initializeCalls[0].nonce, 'nonce-token-1');
-    assert.equal(scheduledTimers.size, 1, 'prepared nonce schedules a refresh before expiry');
 
-    runNextScheduledTimer();
-    await flushAsync();
-    await flushAsync();
-
-    assert.equal(nonceCounter, 2, 'scheduled timer requests a fresh nonce');
-    assert.equal(initializeCalls.length, 2, 'GIS is reinitialized with the scheduled fresh nonce');
-    assert.equal(initializeCalls[1].nonce, 'nonce-token-2');
-
-    await initializeCalls[1].callback({
-      credential: 'stub-google-credential::nonce-token-2',
-    });
+    await initializeCalls[0].callback({ credential: 'post-idle-google-token' });
 
     assert.deepEqual(
-      exchangePayloads,
-      [
-        {
-          google_id_token: 'stub-google-credential::nonce-token-2',
-          nonce_token: 'nonce-token-2',
-        },
-      ],
-      'first sign-in after timer refresh exchanges the fresh nonce',
+      requestedPaths,
+      ['/auth/nonce', '/auth/google'],
+      'post-idle sign-in requests nonce only for the explicit attempt',
     );
+    assert.deepEqual(
+      exchangePayloads,
+      [{ google_id_token: 'post-idle-google-token', nonce_token: 'nonce-token-1' }],
+    );
+    assert.equal(initializeCalls.length, 1, 'post-idle sign-in does not reinitialize GIS');
     assert.deepEqual(authController.state.profile, authenticatedProfile);
   } finally {
     Date.now = originalDateNow;
     global.setTimeout = originalSetTimeout;
     global.clearTimeout = originalClearTimeout;
   }
+});
+
+test('createAuthHeader rejects credential callbacks without an attempt nonce', async () => {
+  resetEnvironment();
+  delete global.initAuthClient;
+  delete global.getCurrentUser;
+  delete global.requestNonce;
+  delete global.exchangeGoogleCredential;
+  const library = loadLibrary();
+  const initializeCalls = [];
+  const requestedPaths = [];
+
+  global.location = { origin: 'http://fallback-origin.test' };
+  installStorageStub();
+  global.google = {
+    accounts: {
+      id: {
+        initialize(config) {
+          initializeCalls.push(config);
+        },
+        renderButton() {},
+        prompt() {},
+      },
+    },
+  };
+  global.fetch = function fetch(url) {
+    const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
+    requestedPaths.push(pathname);
+    return Promise.reject(new Error('unexpected fetch URL: ' + String(url)));
+  };
+
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(hostElement, {
+    googleClientId: 'expired-nonce-client',
+    tauthUrl: 'http://localhost:8080',
+    tauthLoginPath: '/auth/google',
+    tauthLogoutPath: '/auth/logout',
+    tauthNoncePath: '/auth/nonce',
+    tenantId: 'tenant-alpha',
+  });
+
+  await flushAsync();
+  await flushAsync();
+
+  await authController.handleCredential({ credential: 'legacy-google-id-token' });
+  await flushAsync();
+
+  const errorEvents = hostElement.__dispatchedEvents.filter(
+    (eventEntry) => eventEntry.type === 'mpr-ui:auth:error',
+  );
+  assert.equal(initializeCalls.length, 0, 'missing nonce handling does not initialize GIS');
+  assert.deepEqual(requestedPaths, [], 'missing nonce handling does not call exchange endpoints');
+  assert.equal(errorEvents.length, 1, 'missing nonce handling emits a visible auth error event');
+  assert.equal(errorEvents[0].detail.code, 'mpr-ui.auth.missing_nonce');
+  assert.equal(authController.state.status, 'unauthenticated');
 });
 
 test('createAuthHeader skips fallback profile probes for fresh anonymous config-first bootstrap', async () => {
@@ -2208,16 +1982,6 @@ test('createAuthHeader skips fallback profile probes for fresh anonymous config-
   delete global.exchangeGoogleCredential;
   const library = loadLibrary();
   const requestedPaths = [];
-
-  function createResponse(status, payload) {
-    return {
-      ok: status >= 200 && status < 300,
-      status,
-      json: function json() {
-        return Promise.resolve(payload || {});
-      },
-    };
-  }
 
   global.location = { origin: 'http://fallback-origin.test' };
   installStorageStub();
@@ -2233,15 +1997,6 @@ test('createAuthHeader skips fallback profile probes for fresh anonymous config-
   global.fetch = function fetch(url) {
     const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
     requestedPaths.push(pathname);
-    if (pathname === '/auth/nonce') {
-      return Promise.resolve(createResponse(200, { nonce: 'anonymous-nonce' }));
-    }
-    if (pathname === '/me') {
-      return Promise.resolve(createResponse(401));
-    }
-    if (pathname === '/auth/refresh') {
-      return Promise.resolve(createResponse(401));
-    }
     return Promise.reject(new Error('unexpected fetch URL: ' + String(url)));
   };
 
@@ -2260,19 +2015,10 @@ test('createAuthHeader skips fallback profile probes for fresh anonymous config-
   await flushAsync();
 
   assert.equal(authController.state.status, 'unauthenticated');
-  assert.equal(
-    requestedPaths.includes('/me'),
-    false,
-    'fresh anonymous bootstrap does not probe /me',
-  );
-  assert.equal(
-    requestedPaths.includes('/auth/refresh'),
-    false,
-    'fresh anonymous bootstrap does not attempt session refresh',
-  );
+  assert.deepEqual(requestedPaths, [], 'fresh anonymous bootstrap performs no auth probes');
 });
 
-test('createAuthHeader restores the fallback profile when a TAuth restore hint exists', async () => {
+test('createAuthHeader restores the fallback profile from the TAuth session endpoint', async () => {
   resetEnvironment();
   delete global.initAuthClient;
   delete global.getCurrentUser;
@@ -2312,10 +2058,7 @@ test('createAuthHeader restores the fallback profile when a TAuth restore hint e
   global.fetch = function fetch(url) {
     const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
     requestedPaths.push(pathname);
-    if (pathname === '/auth/nonce') {
-      return Promise.resolve(createResponse(200, { nonce: 'restore-nonce' }));
-    }
-    if (pathname === '/me') {
+    if (pathname === '/auth/session') {
       return Promise.resolve(createResponse(200, profile));
     }
     return Promise.reject(new Error('unexpected fetch URL: ' + String(url)));
@@ -2335,17 +2078,18 @@ test('createAuthHeader restores the fallback profile when a TAuth restore hint e
   await flushAsync();
   await flushAsync();
 
-  assert.equal(requestedPaths.includes('/me'), true, 'restore hint probes /me');
+  assert.equal(requestedPaths.includes('/auth/session'), true, 'restore hint probes /auth/session');
+  assert.equal(requestedPaths.includes('/me'), false, 'restore hint does not probe /me');
   assert.equal(
     requestedPaths.includes('/auth/refresh'),
     false,
-    'successful profile restore does not refresh',
+    'successful profile restore does not call the refresh endpoint',
   );
   assert.deepEqual(authController.state.profile, profile);
   assert.equal(authController.state.status, 'authenticated');
 });
 
-test('createAuthHeader clears a stale TAuth restore hint after fallback refresh is unauthorized', async () => {
+test('createAuthHeader clears a stale TAuth restore hint from an anonymous session status', async () => {
   resetEnvironment();
   delete global.initAuthClient;
   delete global.getCurrentUser;
@@ -2379,14 +2123,8 @@ test('createAuthHeader clears a stale TAuth restore hint after fallback refresh 
   global.fetch = function fetch(url) {
     const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
     requestedPaths.push(pathname);
-    if (pathname === '/auth/nonce') {
-      return Promise.resolve(createResponse(200, { nonce: 'stale-hint-nonce' }));
-    }
-    if (pathname === '/me') {
-      return Promise.resolve(createResponse(401));
-    }
-    if (pathname === '/auth/refresh') {
-      return Promise.resolve(createResponse(401));
+    if (pathname === '/auth/session') {
+      return Promise.resolve(createResponse(204));
     }
     return Promise.reject(new Error('unexpected fetch URL: ' + String(url)));
   };
@@ -2405,11 +2143,12 @@ test('createAuthHeader clears a stale TAuth restore hint after fallback refresh 
   await flushAsync();
   await flushAsync();
 
-  assert.equal(requestedPaths.includes('/me'), true, 'restore hint probes /me');
+  assert.equal(requestedPaths.includes('/auth/session'), true, 'restore hint probes /auth/session');
+  assert.equal(requestedPaths.includes('/me'), false, 'restore hint does not probe /me');
   assert.equal(
     requestedPaths.includes('/auth/refresh'),
-    true,
-    'restore hint attempts one refresh after /me is unauthorized',
+    false,
+    'anonymous session status does not call the refresh endpoint',
   );
   assert.equal(authController.state.status, 'unauthenticated');
   assert.equal(
@@ -2539,6 +2278,8 @@ test('createAuthHeader ignores stale GIS callbacks after tauth-url change', asyn
   await flushAsync();
   await flushAsync();
 
+  await authController.startGoogleSignIn();
+  await flushAsync();
   assert.ok(initializeCalls.length >= 1, 'initial GIS callback registered');
   const staleCallback = initializeCalls[0].callback;
 
@@ -2550,6 +2291,8 @@ test('createAuthHeader ignores stale GIS callbacks after tauth-url change', asyn
   await flushAsync();
   await flushAsync();
 
+  await authController.startGoogleSignIn();
+  await flushAsync();
   assert.ok(initializeCalls.length >= 2, 'updated GIS callback registered after auth options change');
   const currentCallback = initializeCalls[initializeCalls.length - 1].callback;
 
@@ -2820,7 +2563,7 @@ test('MU-434: createAuthHeader reflects pending auth states on the host element'
 
   const exchangePromise = authController.handleCredential({
     credential: 'signed-id-token',
-  });
+  }, 'transition-nonce');
   await flushAsync();
 
   assert.equal(
@@ -3094,7 +2837,7 @@ test('MU-434: mpr-header holds the auth transition screen until the configured a
 
   const exchangePromise = authController.handleCredential({
     credential: 'signed-id-token',
-  });
+  }, 'transition-nonce');
   await flushAsync();
 
   resolveCredentialExchange(authenticatedProfile);
@@ -3224,7 +2967,7 @@ test('mpr-header redirects after sign-in and holds the auth transition while nav
 
   const exchangePromise = authController.handleCredential({
     credential: 'signed-id-token',
-  });
+  }, 'redirect-nonce');
   await flushAsync();
 
   assert.equal(
@@ -4019,7 +3762,7 @@ test('mpr-theme-toggle logs legacy attributes', () => {
   });
 });
 
-test('mpr-login-button renders the Google button with provided site ID', async () => {
+test('mpr-login-button renders a visible sign-in attempt trigger with provided site ID', async () => {
   resetEnvironment();
   const googleStub = {
     accounts: {
@@ -4034,6 +3777,7 @@ test('mpr-login-button renders the Google button with provided site ID', async (
   loadLibrary();
   const { element, buttonHost, renderCalls } = createLoginButtonHarness(googleStub);
   element.setAttribute('site-id', 'custom-site');
+  element.setAttribute('button-text', 'signin_with');
   element.setAttribute('tauth-login-path', '/auth/login');
   element.setAttribute('tauth-logout-path', '/auth/logout');
   element.setAttribute('tauth-nonce-path', '/auth/nonce');
@@ -4045,11 +3789,18 @@ test('mpr-login-button renders the Google button with provided site ID', async (
     'custom-site',
     'site ID attribute reflected to dataset',
   );
-  assert.equal(renderCalls.length, 1, 'Google renderButton invoked once');
-  assert.strictEqual(
-    renderCalls[0].target,
-    buttonHost,
-    'Google button rendered inside the element host',
+  assert.equal(renderCalls.length, 0, 'Google renderButton is not invoked during mount');
+  const loginTrigger = buttonHost.children[0];
+  assert.equal(loginTrigger.tagName, 'BUTTON', 'login button renders a real button control');
+  assert.equal(
+    loginTrigger.textContent,
+    'Sign in with Google',
+    'login button maps GIS text options to human-facing labels',
+  );
+  assert.equal(
+    loginTrigger.getAttribute('data-test'),
+    'google-signin',
+    'login button exposes a visible sign-in trigger',
   );
 });
 
@@ -4057,12 +3808,16 @@ test('mpr-login-button rebinds auth endpoints when tauth-url changes after first
   resetEnvironment();
   const initAuthCalls = [];
   const fetchCalls = [];
+  const exchangePayloads = [];
+  const initializeCalls = [];
   global.location = { origin: 'http://fallback-origin.test' };
   const googleStub = {
     accounts: {
       id: {
         renderButton() {},
-        initialize() {},
+        initialize(config) {
+          initializeCalls.push(config);
+        },
         prompt() {},
       },
     },
@@ -4075,8 +3830,18 @@ test('mpr-login-button rebinds auth endpoints when tauth-url changes after first
   global.getCurrentUser = function getCurrentUser() {
     return Promise.resolve(null);
   };
-  global.fetch = function fetch(url) {
+  global.fetch = function fetch(url, init) {
     fetchCalls.push(String(url));
+    const pathname = new URL(String(url), 'http://fallback-origin.test').pathname;
+    if (pathname === '/auth/login') {
+      exchangePayloads.push(JSON.parse(init.body));
+      return Promise.resolve({
+        ok: true,
+        json: function json() {
+          return Promise.resolve({ user_email: 'login@example.com' });
+        },
+      });
+    }
     return Promise.resolve({
       ok: true,
       json: function json() {
@@ -4113,10 +3878,24 @@ test('mpr-login-button rebinds auth endpoints when tauth-url changes after first
     'http://localhost:8080',
     'login button restarts initAuthClient with the updated base URL',
   );
+  await authController.startGoogleSignIn();
+  await flushAsync();
+  assert.equal(initializeCalls.length, 1, 'login button sign-in initializes GIS once');
   assert.equal(
-    fetchCalls[fetchCalls.length - 1],
-    'http://localhost:8080/auth/nonce',
-    'login button nonce requests switch to the updated tauth-url',
+    initializeCalls[0].nonce,
+    'updated-login-nonce',
+    'login button sign-in initializes GIS with the updated nonce',
+  );
+  await initializeCalls[0].callback({ credential: 'updated-login-token' });
+  assert.deepEqual(
+    fetchCalls,
+    ['http://localhost:8080/auth/nonce', 'http://localhost:8080/auth/login'],
+    'login button credential exchange requests switch to the updated tauth-url',
+  );
+  assert.deepEqual(
+    exchangePayloads,
+    [{ google_id_token: 'updated-login-token', nonce_token: 'updated-login-nonce' }],
+    'login button pairs the updated nonce with the credential exchange',
   );
 });
 
@@ -4286,7 +4065,7 @@ test('mpr-login-button rejects tauth-tenant-id changes after first render', asyn
   );
 });
 
-test('mpr-login-button calls GSI initialize before renderButton (MU-131)', async () => {
+test('mpr-login-button initializes GSI with a nonce only after sign-in trigger click', async () => {
   resetEnvironment();
   const callOrder = [];
   let initializeCallCount = 0;
@@ -4316,24 +4095,29 @@ test('mpr-login-button calls GSI initialize before renderButton (MU-131)', async
   element.setAttribute('tauth-tenant-id', 'tenant-race');
   element.connectedCallback();
   await flushAsync();
+  assert.deepEqual(callOrder, [], 'login button does not initialize or render GIS on mount');
+
+  const loginTrigger = buttonHost.children[0];
+  assert.equal(loginTrigger.tagName, 'BUTTON', 'login button uses a real button for activation');
+  loginTrigger.dispatchEvent({ type: 'click', preventDefault() {} });
+  await flushAsync();
+  await flushAsync();
+
   const initializeIndex = callOrder.indexOf('initialize');
-  const renderButtonIndex = callOrder.indexOf('renderButton');
   assert.ok(
     initializeIndex !== -1,
-    'GSI initialize should be called',
+    'GSI initialize should be called after the sign-in trigger click',
   );
   assert.equal(
     initializeCallCount,
     1,
-    'GSI initialize should only run once during initial login-button render',
+    'GSI initialize should only run once during the sign-in attempt',
   );
-  assert.ok(
-    renderButtonIndex !== -1,
-    'GSI renderButton should be called',
-  );
-  assert.ok(
-    initializeIndex < renderButtonIndex,
-    'GSI initialize must be called before renderButton to avoid "[GSI_LOGGER]: Failed to render button before calling initialize()" warning',
+  assert.equal(callOrder.includes('renderButton'), false, 'sign-in attempt uses prompt flow');
+  assert.equal(
+    buttonHost.getAttribute('data-mpr-google-ready'),
+    'true',
+    'login button remains visible after GIS prompt starts',
   );
 });
 

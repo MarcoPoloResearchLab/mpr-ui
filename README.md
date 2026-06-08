@@ -167,7 +167,7 @@ Need a working authentication backend without wiring your own server? The bundle
    cp demo/.env.ghttp.example demo/.env.ghttp
    ```
 
-   The sample gHTTP env enables HTTPS, serves the repository root, and reverse-proxies `/auth/*` and `/me` so the browser stays on one origin. Update `docker-compose.yml` to mount your TLS certificate and key files, then set `GHTTP_SERVE_TLS_CERTIFICATE` and `GHTTP_SERVE_TLS_PRIVATE_KEY` accordingly.
+   The sample gHTTP env enables HTTPS, serves the repository root, and reverse-proxies `/auth/*` so the browser stays on one origin. Update `docker-compose.yml` to mount your TLS certificate and key files, then set `GHTTP_SERVE_TLS_CERTIFICATE` and `GHTTP_SERVE_TLS_PRIVATE_KEY` accordingly.
 
 3. Bring the stack up:
 
@@ -181,7 +181,7 @@ Need a working authentication backend without wiring your own server? The bundle
 4. Open `https://localhost:4443`, sign in, and inspect the session card.
 
    - The browser exchanges credentials through `/auth/nonce` and `/auth/google`.
-   - `mpr-ui` hydrates shell state from `/me` and retries through `/auth/refresh` when needed.
+   - `mpr-ui` hydrates hinted shell state from `/auth/session`; fresh anonymous pages do not probe protected auth endpoints.
    - The status panel listens only for `mpr-ui:auth:*` events.
 
 Stop the stack with `./down.sh` (or `docker compose down -v` if you want to reclaim the SQLite volume).
@@ -348,8 +348,10 @@ await page.evaluate(() => window.MPRUI.testing.googleIdentity.enableAutoCredenti
 ```
 
 The driver object must provide `isInitialized()` and `enableAutoCredentialOnClick()`. It may also provide
-`getInitializedNonce()` and `getInitializeCallCount()` when a suite needs to assert nonce refresh behavior. App specs
-should call `MPRUI.testing.googleIdentity` rather than mutating stub globals directly.
+`getInitializeCallCount()` when a suite needs to assert GIS initializes only during an explicit sign-in
+attempt. Stubs may expose `getInitializedNonce()` so app specs can assert the attempt nonce that was
+passed to Google Identity Services. App specs should call `MPRUI.testing.googleIdentity` rather than
+mutating stub globals directly.
 
 > Both `<mpr-header>` and `<mpr-footer>` are sticky by default. Add `sticky="false"` (or pass the equivalent option) if you want them to render in-flow; setting `sticky="true"` is redundant because `true` is the default. The attribute values are case-insensitive (`sticky="FALSE"` works), and the components manage stickiness internally so no host-level CSS overrides are required. In sticky mode the footer renders a spacer + viewport-fixed footer so it stays visible even when the page is scrolled to the top.
 

@@ -11,8 +11,11 @@ test.describe('Header auth transition screen', () => {
     const transitionTitle = page.locator('[data-mpr-header="auth-transition-title"]');
     const transitionMessage = page.locator('[data-mpr-header="auth-transition-message"]');
     const headerRoot = page.locator('header.mpr-header');
+    const googleButton = page.locator('[data-mpr-header="google-signin"] [data-test="google-signin"]');
 
     await expect(transition).toBeHidden();
+    await expect(googleButton).toBeVisible();
+    await googleButton.click();
     await page.waitForFunction(() => Boolean(window.google?.accounts?.id?.__callback));
 
     await page.evaluate(() => {

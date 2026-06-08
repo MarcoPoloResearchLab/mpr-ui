@@ -12,19 +12,19 @@
 - Added `<mpr-header sign-in-redirect-url>` so `mpr-ui` owns the post-sign-in redirect and keeps `auth-transition` visible while navigation is pending.
 
 ### Bug Fixes 🐛
-- Made config-first auth bootstrap skip `/me` and `/auth/refresh` for fresh anonymous users while preserving hinted session restore.
-- Scheduled prepared GIS nonces to refresh before their freshness window expires so long-open sign-in controls keep first-click authentication usable.
-- Refreshed prepared GIS nonces when long-lived auth pages regain focus/visibility or receive Google button intent, preventing expired nonce reuse in TAuth credential exchanges.
-- Blocked expired GIS nonce callbacks from reaching TAuth credential exchange and primed a fresh nonce for the next sign-in attempt.
+- Replaced hinted auth restore probes with `/auth/session`, which returns anonymous stale-session state without browser-visible `/me` or `/auth/refresh` 401s.
+- Stopped public bootstrap, long-open tabs, focus/visibility sync, timers, and Google button intent from issuing background nonce requests.
+- Moved Google Identity Services initialization into the explicit user sign-in attempt so the issued TAuth nonce is passed to GIS and reused for `/auth/google`.
+- Reject credential callbacks that are missing an attempt nonce and surface nonce/GIS preparation failures through auth and header error events.
 
 ### Testing 🧪
 - Added unit and Playwright coverage for legal document exports, escaping, custom-element rendering, and product-specific extra sections.
-- Added auth-controller regressions for anonymous no-probe bootstrap, hinted profile restore, and stale restore-hint clearing.
+- Added auth-controller regressions for anonymous no-probe bootstrap, `/auth/session` hinted profile restore, and stale restore-hint clearing.
 - Added auth-controller coverage for `MPRUI.testing.authenticate()` and `MPRUI.testing.unauthenticate()`.
 - Added auth-controller coverage for the `MPRUI.testing.googleIdentity` test-driver adapter.
-- Added an auth-controller regression for scheduled GIS nonce refresh before stale sign-in clicks.
-- Added an auth-controller regression for a long-lived tab refreshing its GIS nonce before credential exchange.
-- Added an auth-controller regression for expired GIS callback nonces being rejected before `/auth/google`.
+- Added an auth-controller regression for a four-hour idle landing page that initializes GIS only after the user signs in and binds that attempt to one fresh nonce.
+- Added auth-controller coverage proving sign-in attempts request a fresh TAuth nonce, initialize GIS with it, and rebind endpoint URLs only when the user signs in.
+- Added an auth-controller regression proving credential callbacks without an attempt nonce emit a visible auth error before `/auth/google`.
 - Added header regressions for sign-in redirect handoff, restored-session non-redirect behavior, and app-dispatched auth events not triggering redirects.
 
 ### Docs 📚
