@@ -106,12 +106,17 @@ test.describe('Workbench behaviours', () => {
     expect(footerRatio).toBeLessThan(0.8);
   });
 
-  test('MU-307: renders the Google Sign-In button with a valid client id', async ({ page }) => {
+  test('MU-307: starts Google Sign-In with a valid client id and nonce', async ({ page }) => {
     await expect(page.locator(googleButton)).toBeVisible({ timeout: 3000 });
+    await expect.poll(() => page.evaluate(() => window.__googleInitConfig ?? null)).toBeNull();
+    await page.locator(googleButton).click();
+    await expect(page.locator(googleButton)).toBeVisible();
+    await page.waitForFunction(() => Boolean(window.__googleInitConfig?.nonce));
     const googleConfig = await page.evaluate(() => window.__googleInitConfig ?? null);
     expect(googleConfig).not.toBeNull();
     expect(typeof googleConfig?.client_id).toBe('string');
     expect(googleConfig?.client_id).toMatch(/^[0-9a-z.\-]+$/i);
+    expect(googleConfig?.nonce).toBe('fixture-google-nonce');
   });
 
   test('MU-306: navigation links open in a new browsing context', async ({ page }) => {
