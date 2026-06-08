@@ -33,6 +33,31 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.10.4] - 2026-06-08
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- Replaced profile fetch with session endpoint `/auth/session` and removed refresh logic to reduce console noise and improve session handling.
+- Moved Google Identity Services initialization into explicit user sign-in attempts, binding each attempt to a fresh nonce for improved security.
+- Updated README to clarify the auth proxy setup and testing driver details, including changes to session handling and Google sign-in testing.
+
+### Bug Fixes 🐛
+- Improved session restore and Google Identity Services nonce handling to prevent stale nonce reuse and suppress background auth errors.
+- Replaced hinted auth restore probes with `/auth/session` to avoid browser-visible 401 errors on long-idle pages.
+- Rejected credential callbacks missing an attempt nonce and surfaced nonce/GIS preparation failures through visible auth and header error events.
+
+### Testing 🧪
+- Added unit and Playwright tests covering Google Identity sign-in nonce handling, session restore behavior, and auth error event emissions.
+- Added regressions for long-idle landing pages, stale nonce rejection, and explicit nonce-bound sign-in attempts.
+- Improved auth-controller coverage for new session endpoint and Google Identity test-driver adapter.
+
+### Docs 📚
+- Updated README to clarify the removal of `/me` and `/auth/refresh` probes in favor of `/auth/session` for session hydration.
+- Added detailed summaries for critical auth bug fixes B012 and B013 in `.mprlab/ISSUES.md`.
+- Enhanced Google Identity test driver documentation to reflect nonce and initialization changes.
+
 ## [v3.10.3] - 2026-06-05
 
 ### Features ✨
