@@ -14,20 +14,38 @@
     siteName: "",
     siteLink: "",
   };
-  var DEFAULT_TAUTH_PROFILE_PATH = "/me";
-  var DEFAULT_TAUTH_REFRESH_PATH = "/auth/refresh";
+  var DEFAULT_TAUTH_SESSION_PATH = "/auth/session";
   var REQUESTED_WITH_HEADER = "XMLHttpRequest";
   var AUTH_RESTORE_HINT_PREFIX = "tauth.restore.v1:";
-  var GOOGLE_NONCE_FRESHNESS_MS = 4 * 60 * 1000;
-  var GOOGLE_NONCE_REFRESH_LEAD_MS = 30 * 1000;
-  var GOOGLE_NONCE_REFRESH_DELAY_MS =
-    GOOGLE_NONCE_FRESHNESS_MS - GOOGLE_NONCE_REFRESH_LEAD_MS;
   var AUTH_CONTROLLER_STATUS = Object.freeze({
     BOOTSTRAPPING: "bootstrapping",
     AUTHENTICATING: "authenticating",
     AUTHENTICATED: "authenticated",
     UNAUTHENTICATED: "unauthenticated",
   });
+  var GOOGLE_SIGNIN_TEST_ID = "google-signin";
+  var GOOGLE_SIGNIN_READY_STATE = Object.freeze({
+    READY: "true",
+    PREPARING: "preparing",
+    ERROR: "error",
+    FALLBACK: "fallback",
+  });
+  var GOOGLE_SIGNIN_TEXT_OPTION = Object.freeze({
+    SIGN_IN_WITH: "signin_with",
+    SIGN_UP_WITH: "signup_with",
+    CONTINUE_WITH: "continue_with",
+    SIGN_IN: "signin",
+  });
+  var GOOGLE_SIGNIN_TEXT_LABELS = Object.freeze(
+    (function createGoogleSignInTextLabels() {
+      var labels = {};
+      labels[GOOGLE_SIGNIN_TEXT_OPTION.SIGN_IN_WITH] = "Sign in with Google";
+      labels[GOOGLE_SIGNIN_TEXT_OPTION.SIGN_UP_WITH] = "Sign up with Google";
+      labels[GOOGLE_SIGNIN_TEXT_OPTION.CONTINUE_WITH] = "Continue with Google";
+      labels[GOOGLE_SIGNIN_TEXT_OPTION.SIGN_IN] = "Sign in";
+      return labels;
+    })()
+  );
 
   /**
    * @typedef {{ code?: string, status?: number }} MprUiErrorMetadata
@@ -339,52 +357,6 @@
     return error;
   }
 
-  function runSessionRefreshRequest(authOptions, method) {
-    return global.fetch(joinUrl(authOptions.tauthUrl, DEFAULT_TAUTH_REFRESH_PATH), {
-      method: method,
-      credentials: "include",
-      headers: withTenantHeaderValue(authOptions.tenantId, {
-        "X-Requested-With": REQUESTED_WITH_HEADER,
-      }),
-    });
-  }
-
-  function refreshSessionWithFetch(authOptions) {
-    if (!global.fetch) {
-      return Promise.reject(new Error("fetch is required to refresh auth session"));
-    }
-    function handleRefreshResponse(response, allowFallback) {
-      if (!response) {
-        throw new Error("invalid response from refresh endpoint");
-      }
-      if (response.ok) {
-        rememberAuthRestoreHint(authOptions);
-        return true;
-      }
-      if (
-        allowFallback &&
-        (response.status === 404 ||
-          response.status === 405 ||
-          response.status === 501)
-      ) {
-        return runSessionRefreshRequest(authOptions, "GET").then(function (
-          fallbackResponse,
-        ) {
-          return handleRefreshResponse(fallbackResponse, false);
-        });
-      }
-      if (response.status === 401) {
-        clearAuthRestoreHint(authOptions);
-        return false;
-      }
-      throw createStatusError("auth session refresh failed", response);
-    }
-
-    return runSessionRefreshRequest(authOptions, "POST").then(function (response) {
-      return handleRefreshResponse(response, true);
-    });
-  }
-
   function requestCurrentProfileWithFetch(authOptions) {
     if (!hasAuthRestoreHint(authOptions)) {
       return Promise.resolve(null);
@@ -392,53 +364,37 @@
     if (!global.fetch) {
       return Promise.reject(new Error("fetch is required to load auth profile"));
     }
-    function fetchProfile(allowRefresh) {
-      return global
-        .fetch(joinUrl(authOptions.tauthUrl, DEFAULT_TAUTH_PROFILE_PATH), {
-          method: "GET",
-          credentials: "include",
-          headers: withTenantHeaderValue(authOptions.tenantId, {
-            "X-Requested-With": REQUESTED_WITH_HEADER,
-          }),
-        })
-        .then(function (response) {
-          if (!response) {
-            throw new Error("invalid response from profile endpoint");
-          }
-          if (response.status === 204) {
+    return global
+      .fetch(joinUrl(authOptions.tauthUrl, DEFAULT_TAUTH_SESSION_PATH), {
+        method: "GET",
+        credentials: "include",
+        headers: withTenantHeaderValue(authOptions.tenantId, {
+          "X-Requested-With": REQUESTED_WITH_HEADER,
+        }),
+      })
+      .then(function (response) {
+        if (!response) {
+          throw new Error("invalid response from session endpoint");
+        }
+        if (response.status === 204) {
+          clearAuthRestoreHint(authOptions);
+          return null;
+        }
+        if (!response.ok) {
+          throw createStatusError("auth session request failed", response);
+        }
+        if (typeof response.json !== "function") {
+          throw new Error("invalid response from session endpoint");
+        }
+        return response.json().then(function (payload) {
+          if (!payload || typeof payload !== "object") {
             clearAuthRestoreHint(authOptions);
             return null;
           }
-          if (response.status === 401) {
-            if (!allowRefresh) {
-              clearAuthRestoreHint(authOptions);
-              return null;
-            }
-            return refreshSessionWithFetch(authOptions).then(function (refreshed) {
-              if (!refreshed) {
-                return null;
-              }
-              return fetchProfile(false);
-            });
-          }
-          if (!response.ok) {
-            throw createStatusError("auth profile request failed", response);
-          }
-          if (typeof response.json !== "function") {
-            throw new Error("invalid response from profile endpoint");
-          }
-          return response.json().then(function (payload) {
-            if (!payload || typeof payload !== "object") {
-              clearAuthRestoreHint(authOptions);
-              return null;
-            }
-            rememberAuthRestoreHint(authOptions);
-            return payload;
-          });
+          rememberAuthRestoreHint(authOptions);
+          return payload;
         });
-    }
-
-    return fetchProfile(true);
+      });
   }
 
   function requestCurrentProfileFromRuntime(authOptions) {
@@ -1114,6 +1070,14 @@
     return options;
   }
 
+  function normalizeGoogleSignInButtonLabel(value, fallbackLabel) {
+    var normalizedValue = typeof value === "string" ? value.trim() : "";
+    if (!normalizedValue) {
+      return fallbackLabel;
+    }
+    return GOOGLE_SIGNIN_TEXT_LABELS[normalizedValue] || normalizedValue;
+  }
+
   function ensureLoginButtonContainer(hostElement) {
     if (
       hostElement.querySelector &&
@@ -1274,6 +1238,104 @@
     if (typeof targetNode.clear === "function") {
       targetNode.clear();
     }
+  }
+
+  function createElementNear(referenceElement, tagName) {
+    var ownerDocument =
+      (referenceElement && referenceElement.ownerDocument) ||
+      global.document ||
+      (global.window && global.window.document) ||
+      null;
+    if (!ownerDocument || typeof ownerDocument.createElement !== "function") {
+      return null;
+    }
+    return ownerDocument.createElement(tagName);
+  }
+
+  function isSignInTriggerActivationKey(eventObject) {
+    var keyValue =
+      eventObject && typeof eventObject.key === "string"
+        ? eventObject.key
+        : "";
+    return keyValue === "Enter" || keyValue === " " || keyValue === "Spacebar";
+  }
+
+  function createSignInTriggerControl(containerElement, config) {
+    if (!containerElement || typeof config !== "object") {
+      return null;
+    }
+    var buttonLabel =
+      typeof config.label === "string" && config.label.trim()
+        ? config.label.trim()
+        : "Sign in";
+    var clickHandler = config.clickHandler;
+    if (typeof clickHandler !== "function") {
+      return null;
+    }
+    clearNodeContents(containerElement);
+    var buttonElement = createElementNear(containerElement, "button");
+    if (
+      buttonElement &&
+      typeof buttonElement.addEventListener === "function" &&
+      typeof buttonElement.removeEventListener === "function" &&
+      typeof containerElement.appendChild === "function"
+    ) {
+      buttonElement.type = "button";
+      if (typeof buttonElement.setAttribute === "function") {
+        buttonElement.setAttribute("type", "button");
+        buttonElement.setAttribute("data-test", GOOGLE_SIGNIN_TEST_ID);
+        if (config.dataRoleName) {
+          buttonElement.setAttribute(config.dataRoleName, config.dataRoleValue || "");
+        }
+        if (config.className) {
+          buttonElement.setAttribute("class", config.className);
+        }
+      }
+      buttonElement.textContent = buttonLabel;
+      buttonElement.addEventListener("click", clickHandler);
+      containerElement.appendChild(buttonElement);
+      return {
+        target: buttonElement,
+        cleanup: function cleanupSignInButton() {
+          buttonElement.removeEventListener("click", clickHandler);
+          clearNodeContents(containerElement);
+        },
+      };
+    }
+    containerElement.textContent = buttonLabel;
+    if (typeof containerElement.setAttribute === "function") {
+      containerElement.setAttribute("role", "button");
+      containerElement.setAttribute("tabindex", "0");
+      containerElement.setAttribute("data-test", GOOGLE_SIGNIN_TEST_ID);
+    }
+    function handleFallbackTriggerKey(eventObject) {
+      if (!isSignInTriggerActivationKey(eventObject)) {
+        return;
+      }
+      if (typeof eventObject.preventDefault === "function") {
+        eventObject.preventDefault();
+      }
+      clickHandler(eventObject);
+    }
+    if (typeof containerElement.addEventListener === "function") {
+      containerElement.addEventListener("click", clickHandler);
+      containerElement.addEventListener("keydown", handleFallbackTriggerKey);
+    }
+    return {
+      target: containerElement,
+      cleanup: function cleanupSignInFallbackControl() {
+        if (typeof containerElement.removeEventListener === "function") {
+          containerElement.removeEventListener("click", clickHandler);
+          containerElement.removeEventListener("keydown", handleFallbackTriggerKey);
+        }
+        if (typeof containerElement.removeAttribute === "function") {
+          containerElement.removeAttribute("role");
+          containerElement.removeAttribute("tabindex");
+          containerElement.removeAttribute("data-test");
+        }
+        clearNodeContents(containerElement);
+      },
+    };
   }
 
   function normalizeSelectionStateId(value) {
@@ -2843,13 +2905,20 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         continue;
       }
       try {
-        googleClient.accounts.id.initialize({
+        var initializeConfig = {
           client_id: config.clientId || undefined,
           callback: config.callback,
-          nonce: config.nonce,
           auto_select: false,
-        });
-      } catch (_error) {}
+        };
+        if (config.nonce) {
+          initializeConfig.nonce = config.nonce;
+        }
+        googleClient.accounts.id.initialize(initializeConfig);
+      } catch (error) {
+        if (typeof config.onError === "function") {
+          config.onError(error);
+        }
+      }
     }
   }
 
@@ -2896,176 +2965,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return googleIdentityPromise;
   }
 
-  function tagRenderedGoogleButton(containerElement) {
-    if (!containerElement || !containerElement.ownerDocument) {
-      return;
-    }
-    var googleButton =
-      containerElement.querySelector('button:not([data-mpr-google-sentinel="true"])') ||
-      containerElement.querySelector('[role="button"]');
-    if (!googleButton) {
-      return;
-    }
-    googleButton.setAttribute("data-test", "google-signin");
-  }
-
-  function wrapGoogleButtonMarkup(containerElement) {
-    if (!containerElement || !containerElement.ownerDocument) {
-      return null;
-    }
-    var existingWrapper = containerElement.querySelector('[data-mpr-google-wrapper="true"]');
-    if (existingWrapper) {
-      existingWrapper.setAttribute("data-test", "google-signin");
-      return existingWrapper;
-    }
-    var nodes = Array.prototype.slice.call(containerElement.childNodes);
-    if (nodes.length === 0) {
-      return null;
-    }
-    var wrapper = containerElement.ownerDocument.createElement("button");
-    wrapper.type = "button";
-    wrapper.setAttribute("data-mpr-google-wrapper", "true");
-    wrapper.setAttribute("data-test", "google-signin");
-    wrapper.style.border = "none";
-    wrapper.style.background = "transparent";
-    wrapper.style.padding = "0";
-    wrapper.style.margin = "0";
-    wrapper.style.width = "100%";
-    wrapper.style.display = "block";
-    wrapper.style.font = "inherit";
-    wrapper.style.color = "inherit";
-    wrapper.style.textAlign = "inherit";
-    wrapper.style.cursor = "pointer";
-    while (nodes.length) {
-      wrapper.appendChild(nodes.shift());
-    }
-    containerElement.appendChild(wrapper);
-    return wrapper;
-  }
-
-  function attachGoogleButtonIntentListeners(containerElement, onIntent) {
-    if (
-      !containerElement ||
-      typeof containerElement.addEventListener !== "function" ||
-      typeof onIntent !== "function"
-    ) {
-      return function noopGoogleIntentListeners() {};
-    }
-    var intentEvents = ["pointerenter", "focusin", "touchstart"];
-    function handleGoogleButtonIntent() {
-      onIntent();
-    }
-    intentEvents.forEach(function attachIntentEvent(eventName) {
-      containerElement.addEventListener(eventName, handleGoogleButtonIntent, {
-        passive: true,
-      });
-    });
-    return function cleanupGoogleIntentListeners() {
-      intentEvents.forEach(function detachIntentEvent(eventName) {
-        containerElement.removeEventListener(eventName, handleGoogleButtonIntent);
-      });
-    };
-  }
-
-
-  function renderGoogleButton(containerElement, siteId, buttonOptions, onError, onIntent) {
-    if (!containerElement) {
-      return function noopGoogleButton() {};
-    }
-    var normalizedSiteId = normalizeGoogleSiteId(siteId);
-    if (!normalizedSiteId) {
-      if (containerElement) {
-        containerElement.setAttribute("data-mpr-google-error", "missing-site-id");
-      }
-      var siteIdError = createGoogleSiteIdError();
-      if (typeof onError === "function") {
-        onError(siteIdError);
-      }
-      return function noopGoogleButton() {};
-    }
-    containerElement.setAttribute("data-mpr-google-site-id", normalizedSiteId);
-    var renderTarget = ensureGoogleRenderTarget(containerElement);
-    var sentinelObserver = null;
-    var intentCleanup = attachGoogleButtonIntentListeners(containerElement, onIntent);
-
-    var isActive = true;
-    function cleanup() {
-      isActive = false;
-      intentCleanup();
-      if (renderTarget) {
-        renderTarget.innerHTML = "";
-      }
-      if (containerElement) {
-        containerElement.removeAttribute("data-mpr-google-ready");
-        containerElement.removeAttribute("data-mpr-google-error");
-      }
-      if (sentinelObserver) {
-        sentinelObserver.disconnect();
-        sentinelObserver = null;
-      }
-    }
-    ensureGoogleIdentityClient(global.document)
-      .then(function handleGoogleReady(googleClient) {
-        if (!isActive) {
-          return;
-        }
-        runGoogleInitializeQueue(googleClient);
-        var googleId =
-          googleClient &&
-          googleClient.accounts &&
-          googleClient.accounts.id &&
-          typeof googleClient.accounts.id.renderButton === "function"
-            ? googleClient.accounts.id
-            : null;
-        if (!googleId) {
-          if (onError) {
-            onError({
-              code: "mpr-ui.google_unavailable",
-            });
-          }
-          return;
-        }
-        try {
-          googleId.renderButton(
-            renderTarget,
-            deepMergeOptions(
-              {
-                theme: "outline",
-                size: "large",
-                text: "signin_with",
-                type: "standard",
-              },
-              buttonOptions || {},
-            ),
-          );
-          containerElement.setAttribute("data-mpr-google-ready", "true");
-          wrapGoogleButtonMarkup(containerElement);
-          tagRenderedGoogleButton(containerElement);
-        } catch (_error) {
-          if (onError) {
-            onError({
-              code: "mpr-ui.google_render_failed",
-            });
-          }
-        }
-      })
-      .catch(function handleGoogleFailure(error) {
-        if (!isActive) {
-          return;
-        }
-        if (onError) {
-          onError({
-            code: "mpr-ui.google_script_failed",
-            message:
-              error && error.message ? String(error.message) : "google script load failed",
-          });
-        }
-      });
-    return function cleanupGoogleButton() {
-      cleanup();
-    };
-  }
-
   function createAuthHeader(rootElement, rawOptions) {
     if (!rootElement || typeof rootElement.dispatchEvent !== "function") {
       throw new Error("MPRUI.createAuthHeader requires a DOM element");
@@ -3104,12 +3003,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var pendingProfile = null;
     var hasEmittedUnauthenticated = false;
     var lastAuthenticatedSignature = null;
-    var pendingNonceToken = null;
-    var pendingNoncePreparedAt = 0;
-    var noncePreparedAtByToken = Object.create(null);
-    var nonceRefreshTimerId = null;
     var nonceRequestPromise = null;
-    var noncePreparationPromise = null;
+    var googleSignInAttemptPromise = null;
     var authSignalVersion = 0;
     var lifecycleVersion = 0;
     var isDestroyed = false;
@@ -3156,88 +3051,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return withTenantHeaderValue(options.tenantId, headers);
     }
 
-    function nowMilliseconds() {
-      return Date.now();
-    }
-
-    function clearPreparedNonceRefreshTimer() {
-      if (nonceRefreshTimerId === null) {
-        return;
-      }
-      if (typeof global.clearTimeout === "function") {
-        global.clearTimeout(nonceRefreshTimerId);
-      }
-      nonceRefreshTimerId = null;
-    }
-
-    function schedulePreparedNonceRefresh(preparedAt) {
-      clearPreparedNonceRefreshTimer();
-      if (
-        isDestroyed ||
-        state.status === AUTH_CONTROLLER_STATUS.AUTHENTICATED ||
-        typeof global.setTimeout !== "function"
-      ) {
-        return;
-      }
-      nonceRefreshTimerId = global.setTimeout(
-        function refreshPreparedNonceBeforeExpiry() {
-          nonceRefreshTimerId = null;
-          if (
-            isDestroyed ||
-            state.status === AUTH_CONTROLLER_STATUS.AUTHENTICATED ||
-            pendingNoncePreparedAt !== preparedAt ||
-            !pendingNonceToken
-          ) {
-            return;
-          }
-          primeFreshGoogleNonce();
-        },
-        GOOGLE_NONCE_REFRESH_DELAY_MS,
-      );
-      if (
-        nonceRefreshTimerId &&
-        typeof nonceRefreshTimerId.unref === "function"
-      ) {
-        nonceRefreshTimerId.unref();
-      }
-    }
-
-    function clearPreparedNonceTokens() {
-      clearPreparedNonceRefreshTimer();
-      pendingNonceToken = null;
-      pendingNoncePreparedAt = 0;
-      noncePreparedAtByToken = Object.create(null);
-    }
-
-    function rememberPreparedNonceToken(nonceToken) {
-      var preparedAt = nowMilliseconds();
-      pendingNonceToken = nonceToken;
-      pendingNoncePreparedAt = preparedAt;
-      noncePreparedAtByToken[nonceToken] = preparedAt;
-      schedulePreparedNonceRefresh(preparedAt);
-    }
-
-    function resolveNoncePreparedAt(nonceToken) {
-      if (!nonceToken) {
-        return 0;
-      }
-      if (pendingNonceToken === nonceToken) {
-        return pendingNoncePreparedAt;
-      }
-      return noncePreparedAtByToken[nonceToken] || 0;
-    }
-
-    function isPreparedNonceFresh(nonceToken) {
-      var preparedAt = resolveNoncePreparedAt(nonceToken);
-      return preparedAt > 0 && nowMilliseconds() - preparedAt < GOOGLE_NONCE_FRESHNESS_MS;
-    }
-
     function handleSessionFocus() {
       if (isDestroyed) {
         return;
       }
       bootstrapSession();
-      primeFreshGoogleNonce();
     }
 
     function handleSessionVisibilityChange() {
@@ -3252,7 +3070,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         return;
       }
       bootstrapSession();
-      primeFreshGoogleNonce();
     }
 
     function attachSessionSyncListeners() {
@@ -3355,13 +3172,16 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return nonceRequestPromise;
     }
 
-    function configureGoogleNonce(nonceToken) {
-      rememberPreparedNonceToken(nonceToken);
+    function configureGoogleIdentityClient(nonceToken) {
       var clientIdValue = normalizeGoogleSiteId(options.googleClientId);
       var currentLifecycleVersion = lifecycleVersion;
       if (!clientIdValue) {
         throw createGoogleSiteIdError();
       }
+      if (!nonceToken) {
+        throw new Error("mpr-ui.auth.missing_nonce");
+      }
+      var initializeError = null;
       enqueueGoogleInitialize({
         clientId: clientIdValue,
         nonce: nonceToken,
@@ -3371,46 +3191,73 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
           return handleCredential(payload, nonceToken);
         },
+        onError: function handleGoogleInitializeError(error) {
+          initializeError = error || new Error("google identity initialize failed");
+        },
       });
-      ensureGoogleIdentityClient(global.document)
+      return ensureGoogleIdentityClient(global.document)
         .then(function initializeGoogleClient(googleClient) {
           runGoogleInitializeQueue(googleClient);
-        })
-        .catch(function () {});
-    }
-
-    function prepareGooglePromptNonce(config) {
-      var parameters = config || {};
-      var forceNewNonce = parameters.forceNew === true;
-      if (!forceNewNonce && pendingNonceToken && isPreparedNonceFresh(pendingNonceToken)) {
-        return Promise.resolve(pendingNonceToken);
-      }
-      if (noncePreparationPromise) {
-        return noncePreparationPromise;
-      }
-      var currentLifecycleVersion = lifecycleVersion;
-      noncePreparationPromise = requestNonceToken()
-        .then(function (nonceToken) {
+          if (initializeError) {
+            throw initializeError;
+          }
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
-            throw new Error("mpr-ui.auth.stale_nonce");
+            throw new Error("mpr-ui.auth.stale_google_identity");
           }
-          configureGoogleNonce(nonceToken);
-          return nonceToken;
-        })
-        .finally(function () {
-          if (isCurrentLifecycleVersion(currentLifecycleVersion)) {
-            noncePreparationPromise = null;
-          }
+          return null;
         });
-      return noncePreparationPromise;
     }
 
     function prepareGoogleNonce() {
-      return prepareGooglePromptNonce();
+      var currentLifecycleVersion = lifecycleVersion;
+      return requestNonceToken()
+        .then(function configureNonceBoundGoogleClient(nonceToken) {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            throw new Error("mpr-ui.auth.stale_google_identity");
+          }
+          return configureGoogleIdentityClient(nonceToken).then(function () {
+            return nonceToken;
+          });
+        });
     }
 
-    function refreshGoogleNonce() {
-      return prepareGooglePromptNonce({ forceNew: true });
+    function startGoogleSignIn() {
+      if (googleSignInAttemptPromise) {
+        return googleSignInAttemptPromise;
+      }
+      var currentLifecycleVersion = lifecycleVersion;
+      googleSignInAttemptPromise = prepareGoogleNonce()
+        .then(function () {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            throw new Error("mpr-ui.auth.stale_google_identity");
+          }
+          var googleId =
+            global.google &&
+            global.google.accounts &&
+            global.google.accounts.id
+              ? global.google.accounts.id
+              : null;
+          if (!googleId || typeof googleId.prompt !== "function") {
+            throw new Error("google identity prompt unavailable");
+          }
+          googleId.prompt();
+          return null;
+        })
+        .catch(function handleGoogleAttemptFailure(error) {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            return null;
+          }
+          emitError("mpr-ui.auth.google_attempt_failed", {
+            message: error && error.message ? error.message : String(error),
+            status: error && error.status ? error.status : null,
+          });
+          markUnauthenticated({ prompt: false });
+          throw error;
+        })
+        .finally(function () {
+          googleSignInAttemptPromise = null;
+        });
+      return googleSignInAttemptPromise;
     }
 
     function updateDatasetFromProfile(profile) {
@@ -3456,7 +3303,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       state.profile = profile;
       lastAuthenticatedSignature = signature;
       hasEmittedUnauthenticated = false;
-      clearPreparedNonceTokens();
       rememberAuthRestoreHint(options);
       updateDatasetFromProfile(profile);
       updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATED);
@@ -3471,9 +3317,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       var parameters = config || {};
       var emit = parameters.emit !== false;
       var prompt = parameters.prompt !== false;
-      if (parameters.clearNonce === true) {
-        clearPreparedNonceTokens();
-      }
       var shouldEmit =
         emit &&
         (state.status !== AUTH_CONTROLLER_STATUS.UNAUTHENTICATED ||
@@ -3629,73 +3472,25 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         });
     }
 
-    function consumeExchangeNonceToken(credentialNonceToken) {
-      if (credentialNonceToken) {
-        if (pendingNonceToken === credentialNonceToken) {
-          pendingNonceToken = null;
-        }
-        return Promise.resolve(credentialNonceToken);
+    function exchangeCredential(credential, nonceToken) {
+      if (!nonceToken) {
+        return Promise.reject(new Error("mpr-ui.auth.missing_nonce"));
       }
-      if (pendingNonceToken) {
-        var preparedNonceToken = pendingNonceToken;
-        pendingNonceToken = null;
-        return Promise.resolve(preparedNonceToken);
-      }
-      return requestNonceToken();
-    }
-
-    function exchangeCredential(credential, credentialNonceToken) {
       configureTenantId();
-      var noncePromise = consumeExchangeNonceToken(credentialNonceToken);
-      return noncePromise
-        .then(function (nonceToken) {
-          if (typeof global.exchangeGoogleCredential === "function") {
-            return Promise.resolve(
-              global.exchangeGoogleCredential({
-                credential: credential,
-                nonceToken: nonceToken,
-              }),
-            ).catch(function (error) {
-              if (shouldFallbackToFetch(error)) {
-                return exchangeCredentialWithFetch(credential, nonceToken);
-              }
-              throw error;
-            });
+      if (typeof global.exchangeGoogleCredential === "function") {
+        return Promise.resolve(
+          global.exchangeGoogleCredential({
+            credential: credential,
+            nonceToken: nonceToken,
+          }),
+        ).catch(function (error) {
+          if (shouldFallbackToFetch(error)) {
+            return exchangeCredentialWithFetch(credential, nonceToken);
           }
-          return exchangeCredentialWithFetch(credential, nonceToken);
+          throw error;
         });
-    }
-
-    function primeGoogleNonce() {
-      if (isDestroyed) {
-        return;
       }
-      var currentLifecycleVersion = lifecycleVersion;
-      prepareGooglePromptNonce().catch(function (error) {
-        if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
-          return;
-        }
-        emitError("mpr-ui.auth.nonce_failed", {
-          message: error && error.message ? error.message : String(error),
-          status: error && error.status ? error.status : null,
-        });
-      });
-    }
-
-    function primeFreshGoogleNonce() {
-      if (isDestroyed) {
-        return;
-      }
-      var currentLifecycleVersion = lifecycleVersion;
-      refreshGoogleNonce().catch(function (error) {
-        if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
-          return;
-        }
-        emitError("mpr-ui.auth.nonce_failed", {
-          message: error && error.message ? error.message : String(error),
-          status: error && error.status ? error.status : null,
-        });
-      });
+      return exchangeCredentialWithFetch(credential, nonceToken);
     }
 
     function updateOptions(rawNextOptions) {
@@ -3713,22 +3508,19 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       options = nextOptions;
       state.options = options;
       pendingProfile = null;
-      clearPreparedNonceTokens();
       nonceRequestPromise = null;
-      noncePreparationPromise = null;
+      googleSignInAttemptPromise = null;
       hasCompletedInitialBootstrap = false;
       markUnauthenticated({ emit: false, prompt: false });
       bootstrapSession();
-      primeGoogleNonce();
     }
 
     function destroy() {
       isDestroyed = true;
       lifecycleVersion += 1;
       pendingProfile = null;
-      clearPreparedNonceTokens();
       nonceRequestPromise = null;
-      noncePreparationPromise = null;
+      googleSignInAttemptPromise = null;
       detachSessionSyncListeners();
       setAttributeOrRemove(rootElement, "data-mpr-auth-status", null);
     }
@@ -3747,50 +3539,46 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     function handleCredential(credentialResponse, credentialNonceToken) {
       if (!credentialResponse || !credentialResponse.credential) {
         emitError("mpr-ui.auth.missing_credential", {});
-        markUnauthenticated({ prompt: true, clearNonce: true });
-        return Promise.resolve();
-      }
-      if (credentialNonceToken && !isPreparedNonceFresh(credentialNonceToken)) {
-        emitError("mpr-ui.auth.stale_nonce", {
-          message: "prepared nonce expired",
-        });
         markUnauthenticated({ prompt: true });
-        primeFreshGoogleNonce();
         return Promise.resolve();
       }
-      var currentLifecycleVersion = lifecycleVersion;
-      updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATING, {
-        source: "credential",
-      });
-      return exchangeCredential(credentialResponse.credential, credentialNonceToken)
-        .then(function (profile) {
-          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
-            return null;
-          }
-          // Always mark authenticated directly after successful credential exchange.
-          // Previously relied on bootstrapSession() → initAuthClient() → onAuthenticated callback,
-          // but TAuth may not call callbacks on subsequent initAuthClient invocations.
-          markAuthenticated(profile);
-          return profile;
-        })
-        .catch(function (error) {
-          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
-            return Promise.resolve();
-          }
-          emitError("mpr-ui.auth.exchange_failed", {
-            message: error && error.message ? error.message : String(error),
-            status: error && error.status ? error.status : null,
-          });
-          markUnauthenticated({ prompt: true, clearNonce: true });
-          return Promise.resolve();
+      if (credentialNonceToken) {
+        var currentLifecycleVersion = lifecycleVersion;
+        updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATING, {
+          source: "credential",
         });
+        return exchangeCredential(credentialResponse.credential, credentialNonceToken)
+          .then(function (profile) {
+            if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+              return null;
+            }
+            // Always mark authenticated directly after successful credential exchange.
+            markAuthenticated(profile);
+            return profile;
+          })
+          .catch(function (error) {
+            if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+              return Promise.resolve();
+            }
+            emitError("mpr-ui.auth.exchange_failed", {
+              message: error && error.message ? error.message : String(error),
+              status: error && error.status ? error.status : null,
+            });
+            markUnauthenticated({ prompt: true });
+            return Promise.resolve();
+          });
+      }
+      emitError("mpr-ui.auth.missing_nonce", {
+        message: "Google credential callback is missing the sign-in attempt nonce",
+      });
+      markUnauthenticated({ prompt: true });
+      return Promise.resolve();
     }
 
     function signOut() {
       return performLogout().then(function () {
         clearAuthRestoreHint(options);
         pendingProfile = null;
-        clearPreparedNonceTokens();
         if (typeof global.initAuthClient !== "function") {
           markUnauthenticated({ prompt: true });
           return null;
@@ -3801,13 +3589,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     markUnauthenticated({ emit: false, prompt: false });
     bootstrapSession();
-    primeGoogleNonce();
 
     return {
       host: rootElement,
       state: state,
       prepareGoogleNonce: prepareGoogleNonce,
-      refreshGoogleNonce: refreshGoogleNonce,
+      refreshGoogleNonce: prepareGoogleNonce,
+      startGoogleSignIn: startGoogleSignIn,
       handleCredential: handleCredential,
       signOut: signOut,
       updateOptions: updateOptions,
@@ -3818,7 +3606,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         return state;
       },
       setUnauthenticatedForTesting: function setUnauthenticatedForTesting() {
-        markUnauthenticated({ prompt: false, clearNonce: true });
+        markUnauthenticated({ prompt: false });
         return state;
       },
     };
@@ -4070,7 +3858,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "__google{display:none;align-items:center}" +
     "." +
     HEADER_ROOT_CLASS +
-    '__google[data-mpr-google-ready="true"]{display:inline-flex}' +
+    "__google[data-mpr-google-ready]{display:inline-flex}" +
     "." +
     HEADER_ROOT_CLASS +
     "__user{display:none;align-items:center}" +
@@ -5633,17 +5421,18 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         typeof fallbackSigninTarget.removeEventListener === "function"
       ) {
         fallbackSigninTarget.removeEventListener("click", handleFallbackSigninClick);
+        fallbackSigninTarget.removeEventListener("click", handleGoogleSigninClick);
       }
       if (fallbackSigninTarget) {
-        fallbackSigninTarget.textContent = "";
-        fallbackSigninTarget.removeAttribute("data-mpr-google-ready");
-        fallbackSigninTarget.removeAttribute("data-mpr-signin-fallback");
         fallbackSigninTarget = null;
       }
       if (elements.googleSignin) {
-        elements.googleSignin.innerHTML = "";
+        clearNodeContents(elements.googleSignin);
         if (reason === "error") {
-          elements.googleSignin.setAttribute("data-mpr-google-ready", "error");
+          elements.googleSignin.setAttribute(
+            "data-mpr-google-ready",
+            GOOGLE_SIGNIN_READY_STATE.ERROR,
+          );
           if (errorCode) {
             elements.googleSignin.setAttribute("data-mpr-google-error", errorCode);
           } else {
@@ -5717,24 +5506,79 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       dispatchSigninFallback("manual");
     }
 
+    function handleGoogleSigninClick(event) {
+      if (event && typeof event.preventDefault === "function") {
+        event.preventDefault();
+      }
+      if (!authController || typeof authController.startGoogleSignIn !== "function") {
+        dispatchSigninFallback("disabled");
+        return;
+      }
+      if (elements.googleSignin) {
+        elements.googleSignin.setAttribute(
+          "data-mpr-google-ready",
+          GOOGLE_SIGNIN_READY_STATE.PREPARING,
+        );
+        elements.googleSignin.removeAttribute("data-mpr-google-error");
+      }
+      dispatchHeaderEvent("mpr-ui:header:signin-click", {
+        reason: "google-attempt",
+      });
+      authController.startGoogleSignIn().then(function handleGooglePromptReady() {
+        if (isDestroyed || !elements.googleSignin) {
+          return;
+        }
+        elements.googleSignin.setAttribute(
+          "data-mpr-google-ready",
+          GOOGLE_SIGNIN_READY_STATE.READY,
+        );
+      }).catch(function handleGoogleSigninFailure(error) {
+        if (isDestroyed) {
+          return;
+        }
+        if (elements.googleSignin) {
+          elements.googleSignin.setAttribute(
+            "data-mpr-google-ready",
+            GOOGLE_SIGNIN_READY_STATE.ERROR,
+          );
+          elements.googleSignin.setAttribute(
+            "data-mpr-google-error",
+            "google-attempt-failed",
+          );
+        }
+        dispatchHeaderEvent("mpr-ui:header:error", {
+          code: "mpr-ui.header.google_attempt_failed",
+          message:
+            error && error.message ? String(error.message) : "google sign-in failed",
+        });
+      });
+    }
+
     function mountFallbackSigninButton(reason) {
       if (!elements.googleSignin) {
         dispatchSigninFallback(reason || "disabled");
         return;
       }
-      fallbackSigninTarget = elements.googleSignin;
-      fallbackSigninTarget.innerHTML = "";
-      fallbackSigninTarget.textContent =
+      var fallbackLabel =
         (options.signInLabel && options.signInLabel.trim()) || HEADER_DEFAULTS.signInLabel;
-      fallbackSigninTarget.setAttribute("data-mpr-google-ready", "fallback");
-      fallbackSigninTarget.removeAttribute("data-mpr-google-error");
+      var fallbackControl = createSignInTriggerControl(elements.googleSignin, {
+        label: fallbackLabel,
+        clickHandler: handleFallbackSigninClick,
+        className: HEADER_ROOT_CLASS + "__button " + HEADER_ROOT_CLASS + "__button--primary",
+        dataRoleName: "data-mpr-header",
+        dataRoleValue: "google-signin-button",
+      });
+      fallbackSigninTarget = fallbackControl ? fallbackControl.target : null;
+      googleButtonCleanup = fallbackControl ? fallbackControl.cleanup : null;
+      elements.googleSignin.setAttribute(
+        "data-mpr-google-ready",
+        GOOGLE_SIGNIN_READY_STATE.FALLBACK,
+      );
+      elements.googleSignin.removeAttribute("data-mpr-google-error");
       if (reason) {
-        fallbackSigninTarget.setAttribute("data-mpr-signin-fallback", reason);
+        elements.googleSignin.setAttribute("data-mpr-signin-fallback", reason);
       } else {
-        fallbackSigninTarget.removeAttribute("data-mpr-signin-fallback");
-      }
-      if (typeof fallbackSigninTarget.addEventListener === "function") {
-        fallbackSigninTarget.addEventListener("click", handleFallbackSigninClick);
+        elements.googleSignin.removeAttribute("data-mpr-signin-fallback");
       }
     }
 
@@ -5763,70 +5607,26 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         mountFallbackSigninButton("disabled");
         return;
       }
-      function renderMountedGoogleButton() {
-        if (isDestroyed || renderSequenceNumber !== googleButtonRenderSequence) {
-          return;
-        }
-        googleButtonCleanup = renderGoogleButton(
-          elements.googleSignin,
-          googleSiteId,
-          { theme: "outline", size: "large", text: "signin_with" },
-          function handleGoogleError(detail) {
-            var incomingCode = detail && detail.code ? detail.code : "";
-            var codeMap = {
-              "mpr-ui.google_unavailable": "mpr-ui.header.google_unavailable",
-              "mpr-ui.google_render_failed": "mpr-ui.header.google_render_failed",
-              "mpr-ui.google_script_failed": "mpr-ui.header.google_script_failed",
-            };
-            var mappedCode = codeMap[incomingCode] || "mpr-ui.header.google_error";
-            destroyGoogleButton("error", { code: mappedCode });
-            dispatchHeaderEvent("mpr-ui:header:error", {
-              code: mappedCode,
-              message: detail && detail.message ? detail.message : undefined,
-            });
-          },
-          function handleGoogleIntent() {
-            if (!authController || typeof authController.refreshGoogleNonce !== "function") {
-              return;
-            }
-            authController.refreshGoogleNonce().catch(function handleNonceFailure(error) {
-              dispatchHeaderEvent("mpr-ui:header:error", {
-                code: "mpr-ui.header.google_nonce_failed",
-                message: error && error.message ? String(error.message) : "google nonce failed",
-              });
-            });
-          },
-        );
+      if (isDestroyed || renderSequenceNumber !== googleButtonRenderSequence) {
+        return;
       }
-      authController
-        .prepareGoogleNonce()
-        .then(function handleNoncePrepared() {
-          if (renderSequenceNumber !== googleButtonRenderSequence) {
-            return;
-          }
-          renderMountedGoogleButton();
-        })
-        .catch(function handleNonceFailure(error) {
-          if (renderSequenceNumber !== googleButtonRenderSequence) {
-            return;
-          }
-          dispatchHeaderEvent("mpr-ui:header:error", {
-            code: "mpr-ui.header.google_nonce_failed",
-            message: error && error.message ? String(error.message) : "google nonce failed",
-          });
-          if (isDestroyed || renderSequenceNumber !== googleButtonRenderSequence) {
-            return;
-          }
-          enqueueGoogleInitialize({
-            clientId: googleSiteId,
-            callback: function handleGoogleCredential(payload) {
-              if (authController && typeof authController.handleCredential === "function") {
-                authController.handleCredential(payload);
-              }
-            },
-          });
-          renderMountedGoogleButton();
-        });
+      var googleButtonLabel =
+        (options.signInLabel && options.signInLabel.trim()) || HEADER_DEFAULTS.signInLabel;
+      var googleControl = createSignInTriggerControl(elements.googleSignin, {
+        label: googleButtonLabel,
+        clickHandler: handleGoogleSigninClick,
+        className: HEADER_ROOT_CLASS + "__button " + HEADER_ROOT_CLASS + "__button--primary",
+        dataRoleName: "data-mpr-header",
+        dataRoleValue: "google-signin-button",
+      });
+      fallbackSigninTarget = googleControl ? googleControl.target : null;
+      googleButtonCleanup = googleControl ? googleControl.cleanup : null;
+      elements.googleSignin.setAttribute(
+        "data-mpr-google-ready",
+        GOOGLE_SIGNIN_READY_STATE.READY,
+      );
+      elements.googleSignin.removeAttribute("data-mpr-google-error");
+      elements.googleSignin.removeAttribute("data-mpr-signin-fallback");
     }
 
     if (options.auth) {
@@ -12689,46 +12489,70 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           var renderSequenceNumber = ++this.__renderSequenceNumber;
           var loginElement = this;
           var authControllerRef = this.__authController;
-          authControllerRef
-            .prepareGoogleNonce()
-            .then(function handleNoncePrepared() {
+          var buttonOptions = buildLoginButtonDisplayOptions(loginElement);
+          var buttonLabel = normalizeGoogleSignInButtonLabel(
+            buttonOptions.text,
+            HEADER_DEFAULTS.signInLabel,
+          );
+          function handleLoginAttemptClick(event) {
+            if (event && typeof event.preventDefault === "function") {
+              event.preventDefault();
+            }
+            if (
+              !loginElement.__mprConnected ||
+              loginElement.__renderSequenceNumber !== renderSequenceNumber
+            ) {
+              return;
+            }
+            container.setAttribute(
+              "data-mpr-google-ready",
+              GOOGLE_SIGNIN_READY_STATE.PREPARING,
+            );
+            authControllerRef.startGoogleSignIn().then(function handleLoginPromptReady() {
               if (
                 !loginElement.__mprConnected ||
                 loginElement.__renderSequenceNumber !== renderSequenceNumber
               ) {
                 return;
               }
-              var buttonOptions = buildLoginButtonDisplayOptions(loginElement);
-              loginElement.__googleCleanup = renderGoogleButton(
-                container,
-                siteId,
-                buttonOptions,
-                function handleLoginError(detail) {
-                  dispatchEvent(loginElement, "mpr-login:error", detail || {});
-                },
-                function handleLoginIntent() {
-                  authControllerRef.refreshGoogleNonce().catch(function handleNonceFailure(error) {
-                    dispatchEvent(loginElement, "mpr-login:error", {
-                      code: "mpr-ui.auth.nonce_failed",
-                      message: error && error.message ? error.message : String(error),
-                    });
-                  });
-                },
+              container.setAttribute(
+                "data-mpr-google-ready",
+                GOOGLE_SIGNIN_READY_STATE.READY,
               );
-            })
-            .catch(function handleNonceFailure(error) {
+            }).catch(function handleLoginAttemptError(error) {
               if (
                 !loginElement.__mprConnected ||
                 loginElement.__renderSequenceNumber !== renderSequenceNumber
               ) {
                 return;
               }
-              loginElement.setAttribute("data-mpr-google-error", "nonce-failed");
+              loginElement.setAttribute("data-mpr-google-error", "attempt-failed");
+              container.setAttribute(
+                "data-mpr-google-ready",
+                GOOGLE_SIGNIN_READY_STATE.ERROR,
+              );
               dispatchEvent(loginElement, "mpr-login:error", {
-                code: "mpr-ui.auth.nonce_failed",
+                code: "mpr-ui.auth.google_attempt_failed",
                 message: error && error.message ? error.message : String(error),
               });
             });
+          }
+          var loginControl = createSignInTriggerControl(container, {
+            label: buttonLabel,
+            clickHandler: handleLoginAttemptClick,
+          });
+          container.setAttribute(
+            "data-mpr-google-ready",
+            GOOGLE_SIGNIN_READY_STATE.READY,
+          );
+          container.removeAttribute("data-mpr-google-error");
+          this.__googleCleanup = function cleanupLoginAttemptButton() {
+            if (loginControl && typeof loginControl.cleanup === "function") {
+              loginControl.cleanup();
+            }
+            container.removeAttribute("data-mpr-google-ready");
+            container.removeAttribute("data-mpr-google-error");
+          };
         }
       };
     });
@@ -15144,17 +14968,3 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   namespace.__utils.normalizeLinkForRendering = normalizeLinkForRendering;
   registerCustomElements(namespace);
 })(typeof window !== "undefined" ? window : globalThis);
-  function ensureGoogleRenderTarget(containerElement) {
-    if (!containerElement || !containerElement.ownerDocument) {
-      return containerElement;
-    }
-    var target = containerElement.querySelector('[data-mpr-google-target="true"]');
-    if (target) {
-      return target;
-    }
-    var hostDocument = containerElement.ownerDocument;
-    target = hostDocument.createElement("div");
-    target.setAttribute("data-mpr-google-target", "true");
-    containerElement.appendChild(target);
-    return target;
-  }
