@@ -279,7 +279,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Disabled accounts clear local auth state and render unauthenticated UI consistently.
   - Docs, demos, and integration contracts explain the new canonical path and the app/TAuth/`mpr-ui` boundary.
   - `make ci` passes with the new tests.
-- [ ] [F008] Add config-driven Apple Sign In redirect-provider support to `mpr-ui`.
+- [ ] [F008] (P1) Add config-driven Apple Sign In redirect-provider support to `mpr-ui`.
   Summary: TAuth now has an Apple OAuth implementation path for browser apps, but `mpr-ui` still treats shared auth as a Google Identity Services-only surface. Canonical `mpr-ui` consumers use `/config-ui.yaml`, `mpr-ui-config.js`, `mpr-header[data-config-url]`, and the shared auth controller rather than direct `tauth.js` calls. Apple Sign In needs to become a first-class config-driven redirect provider in that same shared shell so Apple-only tenants, such as Kamu/Kamu Tales, can authenticate without app-owned one-off login wiring.
   Context:
   - Current `mpr-ui` auth config is Google-centric: `auth.googleClientId`, `auth.tenantId`, `auth.loginPath`, `auth.logoutPath`, and `auth.noncePath` are applied to `<mpr-header>` and `<mpr-login-button>` as Google/TAuth attributes.
