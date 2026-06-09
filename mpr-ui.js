@@ -3763,7 +3763,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   }
 
   function enableGoogleIdentityTestingAutoCredentialOnClick() {
-    var driver = requireInitializedGoogleIdentityTestingDriver();
+    var driver = requireGoogleIdentityTestingDriver();
     var enableAutoCredentialOnClick = requireGoogleIdentityTestingMethod(
       driver,
       "enableAutoCredentialOnClick",
