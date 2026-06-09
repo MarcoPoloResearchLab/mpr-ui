@@ -110,7 +110,37 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   Summary: Apps that seed backend sessions in browser tests need a public `mpr-ui` testing surface to synchronize the mounted auth controller without mutating `mpr-ui` DOM internals or teaching app harnesses private auth state.
   Expected: `mpr-ui` exposes test-only methods that drive the same auth controller and lifecycle events as normal authentication, and consumer app tests use those methods instead of direct `data-mpr-auth-status` or `mpr-ui:auth:*` event mutation.
   Resolved 2026-05-14: added `MPRUI.testing.authenticate()` and `MPRUI.testing.unauthenticate()` as public test helpers backed by the mounted auth controller, documented the integration-test contract, and verified with `make test-unit` plus `make ci`.
-- [ ] [B027] (P0) 16:17:44 tyemirov@Fast-MBP:~/Development/mpr-ui - [master] $ gix sync master -- repo: MarcoPoloResearchLab/mpr-ui ------------------------------------------- 16:18:07 INFO  REPO_SWITCHED      → gix/add-detailed-plans-for-password-and-apple-sign-in (created) SYNCED: /Users/tyemirov/Development/mpr-ui (gix/add-detailed-plans-for-password-and-apple-sign-in)   That is a bug (unexpected behavior). I was explicit about the branch and was expecting the uncommitted changes to be summed up and committed on the branch of my choice. in other words, if I am on master and I say gix sync we shall absolutely create a new branch. but if I say gix sync master we shall not create new branch, and we shall create new commits on master instead and push them to remote.
+- [ ] [B027] (P0) gix sync: avoid creating a new branch when an explicit target branch is provided.
+  Goal:
+  Ensure that running `gix sync <branch>` commits and pushes uncommitted changes to the explicitly named branch instead of creating a new branch, so users can control where their work is recorded when syncing.
+  
+  Requirements:
+  - When the user invokes `gix sync` with no branch argument while on a branch (e.g., master), the current behavior of creating a new work branch from the current HEAD is preserved.
+  - When the user invokes `gix sync <existing-branch-name>` (e.g., `gix sync master`), uncommitted changes in the working copy must be committed onto that specified branch and pushed to its remote, without creating a new branch.
+  - The behavior must be consistent regardless of the current checked-out branch when an explicit target branch is provided.
+  - Do not silently discard or stash changes; all uncommitted changes at sync time must end up in commits on the target branch.
+  - Error clearly if the specified branch does not exist or cannot be checked out, without making partial or unexpected changes.
+  - Preserve existing logging/UX patterns where possible, but avoid messages that imply a new branch was created when the explicit target branch mode is used.
+  
+  Deliverables:
+  - Updated `gix sync` implementation (and any related helpers) that distinguishes between `gix sync` and `gix sync <branch>` semantics as described.
+  - Any new or updated configuration or flags needed to support the clarified behavior, documented inline in code comments.
+  - Inline code comments explaining the decision logic for when a new branch is created versus when commits are made on an existing branch.
+  - Updated user-facing help/usage text for `gix sync` to describe behavior with and without an explicit branch argument.
+  - Unit or integration tests capturing the scenarios: `gix sync` on master, `gix sync master` on master, and `gix sync master` while currently on a different branch, including the absence of unintended branch creation.
+  
+  Validation:
+  - Reproduce the original scenario:
+    - Start on `master` with uncommitted changes.
+    - Run `gix sync master`.
+    - Confirm that:
+      - No new branch (e.g., `gix/add-...`) is created.
+      - New commits containing the previous uncommitted changes are created on `master`.
+      - `master` is pushed to the remote as expected.
+  - Run `gix sync` (no argument) while on `master` with uncommitted changes and confirm that a new work branch is created and used as it is today.
+  - Run `gix sync master` from a different current branch with uncommitted changes and confirm that the changes end up on `master` and are pushed, with no extra branches created.
+  - Verify that attempting `gix sync <nonexistent-branch>` produces a clear error and leaves the repository state unchanged apart from any safe checks performed.
+  - Confirm logs and CLI output no longer describe branch creation when an explicit existing target branch is provided.
 
 
 ## Improvements
