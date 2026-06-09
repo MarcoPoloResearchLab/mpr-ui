@@ -259,3 +259,174 @@ Use the current styling of the logged in user in gravity as an inspiration. the 
 
 - [x] [MU-436] Release-facing package metadata and pinned docs drifted behind the tagged CDN release line.
   Resolved 2026-04-17: aligned `package.json` and the lockfile root metadata to `3.9.0`, updated the pinned CDN examples in `README.md` and `docs/integration-guide.md` to `v3.9.0`, and added a static unit regression that keeps package metadata, lockfile metadata, and the documented pinned CDN version aligned. Tests: `make test-unit`.
+
+- [ ] [MU-500] Add config-driven TAuth email/password authentication and account-management forms to `mpr-ui`.
+  Summary: TAuth now exposes first-party email/password authentication and account-management endpoints in addition to Google Identity Services, but `mpr-ui` still only provides config-first Google sign-in controls. Apps that adopt password auth currently must hand-roll signup, login, verification, password reset, password change, identity linking, unlinking, and account-disable forms, which fragments the shared auth lifecycle and duplicates TAuth request semantics across products.
+  Context:
+  - Canonical `mpr-ui` integrations load `/config-ui.yaml`, run `mpr-ui-config.js`, and let configured web components own the shared auth lifecycle. Direct `tauth.js` usage is compatibility-only and must not become the new integration path for password/account forms.
+  - Current auth config covers `auth.tauthUrl`, `auth.googleClientId`, `auth.tenantId`, `auth.loginPath`, `auth.logoutPath`, and `auth.noncePath`; there is no explicit password provider or account-management endpoint contract.
+  - `<mpr-login-button>` and the header-owned auth controller are Google-oriented. Successful password auth must drive the same profile/session state, `mpr-ui:auth:*` events, and `<mpr-user>` mirroring that Google auth already uses.
+  - TAuth owns endpoint behavior, session cookies, challenge-token rules, and account policy. `mpr-ui` should own shared forms, client request wiring, validation at the UI/config edge, accessibility, status rendering, and auth-event synchronization.
+  Current gap:
+  - No reusable password login/signup/reset/verification forms exist in `mpr-ui`.
+  - No reusable authenticated account-management panel exists for password change, password identity linking, Google identity linking, unlinking identities, or disabling the account.
+  - No config schema exposes the required TAuth endpoint paths, provider enablement, copy, or post-action redirects.
+  - App teams cannot rely on one `mpr-ui` event contract for both Google and email/password sessions.
+  - Existing docs and demos describe Google/TAuth shell integration but not the new account-management surface.
+  Expected:
+  - `mpr-ui` exposes config-first custom elements for password auth and account management that talk to TAuth through one shared client/action layer.
+  - The feature is explicitly configured from `/config-ui.yaml`; missing required endpoint config fails loudly when a password/account component is present.
+  - Successful password authentication produces the same authenticated profile state as Google sign-in, including session hint handling, status transitions, and user-menu synchronization.
+  - Account-management actions update or clear the shared auth controller state as appropriate without leaking secrets, passwords, challenge tokens, provider credentials, or reset/link tokens into attributes, events, local storage, logs, or rendered debug output.
+  Technical plan:
+  - Extend the `/config-ui.yaml` contract in `mpr-ui-config.js` with explicit auth provider/account-management sections. Prefer a shape equivalent to:
+    - `auth.providers.google.enabled`
+    - `auth.providers.password.enabled`
+    - `auth.password.loginPath`
+    - `auth.password.signupPath`
+    - `auth.password.verifyEmailPath`
+    - `auth.password.resetStartPath`
+    - `auth.password.resetCompletePath`
+    - `auth.account.passwordChangePath`
+    - `auth.account.passwordLinkStartPath`
+    - `auth.account.passwordLinkVerifyPath`
+    - `auth.account.googleLinkPath`
+    - `auth.account.unlinkPath`
+    - `auth.account.disablePath`
+  - Preserve the existing Google config path while making provider selection explicit for new components. Do not introduce hidden default endpoint paths in code; demo/test config can carry default values.
+  - Add config validation that rejects password/account components when required endpoint paths, `auth.tauthUrl`, or `auth.tenantId` are absent or malformed. Validation belongs at config/component boundaries; action helpers should assume validated options.
+  - Add a shared TAuth action/client layer inside `mpr-ui` that wraps password/account POSTs with the same origin/tenant/session semantics as the current auth controller: `credentials: "include"`, `X-Requested-With`, `X-TAuth-Tenant`, stable error codes, and no UI-component-owned raw `fetch` calls.
+  - Introduce a password auth form component, tentatively `<mpr-password-auth>`, with explicit modes for `login`, `signup`, `verify-email`, `reset-start`, and `reset-complete`. The component should support mode attributes/config, disabled/loading/error states, accessible labels, and DOM-scoped submit/status events.
+  - Introduce an authenticated account-management component, tentatively `<mpr-account-panel>`, for password change, password link/start/verify, Google link, identity unlink, and account disable. It should require authenticated auth-controller state and render unauthenticated state explicitly instead of probing independently.
+  - Reuse the existing Google nonce/GIS proof path for Google identity linking, then post the resulting credential to the configured TAuth Google-link endpoint. This must share the stale-config/lifecycle-version protections already used by Google login.
+  - Dispatch existing auth events on session-changing actions: `mpr-ui:auth:authenticated`, `mpr-ui:auth:unauthenticated`, `mpr-ui:auth:error`, and `mpr-ui:auth:status-change`. Add focused account events only where they represent non-auth-state changes, for example `mpr-ui:account:updated`, `mpr-ui:account:challenge-issued`, and `mpr-ui:account:disabled`.
+  - Keep challenge-token handling explicit. Test/demo fixtures may display returned verification/reset/link tokens only when the local TAuth fixture has `return_challenge_tokens` enabled; production UI must assume email delivery or an app-owned challenge delivery surface.
+  - Add typed JSDoc contracts for provider config, password action requests, account action requests, normalized action results, and component events. New or edited JS files must keep `// @ts-check`.
+  - Update `<mpr-header>` integration so a configured header can optionally render Google and password entry points together without creating multiple auth controllers or duplicate `/me` probes.
+  - Ensure `<mpr-user>` continues to mirror only the nearest owning auth host and does not independently bootstrap when nested inside a header/account shell.
+  - Document component boundaries clearly: TAuth owns account policy and cookies; `mpr-ui` owns shared UI controls and auth events; host apps own route protection, app-specific profile fields, and any bespoke account-policy decisions.
+  Config/demo fixtures:
+  - Extend `demo/config-ui.yaml` with explicit password provider and account-management endpoint config.
+  - Extend `demo/tauth-config.yaml` and `.env.tauth.example` with local TAuth password/account settings needed for fixture-backed verification, including password auth enabled, account management enabled, signup enabled, and test-only challenge-token return when appropriate.
+  - Add demo pages or demo sections that exercise login, signup, verify email, reset password, change password, link identity, unlink identity, and disable account without requiring apps to write custom fetch code.
+  Documentation plan:
+  - Update `README.md`, `docs/custom-elements.md`, and `docs/integration-guide.md` with the new config schema, component attributes, events, endpoint expectations, security constraints, and migration guidance from app-owned forms.
+  - Call out that direct `tauth.js` integration remains compatibility-only and is not the canonical path for new `mpr-ui` consumers.
+  - Update `mpr-integration` contracts after implementation so the canonical integration notes no longer say apps must own password forms once a released `mpr-ui` version contains these components.
+  Test plan:
+  - Add YAML/config loader coverage for accepted password/account config, missing required fields, malformed paths, unknown keys, and component attribute application.
+  - Add black-box component tests for each password-auth mode and account-management action, asserting rendered state, disabled/loading behavior, submitted request shape, stable error display, and emitted events.
+  - Add auth-controller tests proving password login and password-reset completion reconcile the same profile/session state as Google sign-in.
+  - Add lifecycle tests for stale config changes, tenant immutability, in-flight request cancellation/ignore semantics, and nested `<mpr-user>` synchronization.
+  - Add Playwright E2E coverage against local TAuth fixtures or route stubs for the core flows: signup, verify email, login, reset start, reset complete, change password, link password, link Google, unlink identity, and disable account.
+  - Add a regression that raw passwords, reset tokens, verification tokens, link tokens, and Google credentials are not written to attributes, local storage, auth events, logs, or persistent profile state.
+  - Run the repo validation gate with `make ci` before marking the issue resolved.
+  Out of scope:
+  - Do not implement new TAuth backend endpoints in `mpr-ui`.
+  - Do not add app-specific account settings, billing, profile editing, organization membership, or route-guard policy.
+  - Do not make direct `tauth.js` loading the canonical integration path.
+  - Do not add silent endpoint defaults, legacy aliases, or compatibility fallbacks for unconfigured password/account actions.
+  Acceptance criteria:
+  - `/config-ui.yaml` can explicitly enable Google, password, or both providers and can configure all account-management endpoint paths without hidden code defaults.
+  - Shared password/auth components authenticate through TAuth and drive the existing `mpr-ui` auth state/events/profile contract.
+  - Account-management components perform password change, password link, Google link, identity unlink, and account disable through validated TAuth endpoints.
+  - Disabled accounts clear local auth state and render unauthenticated UI consistently.
+  - Docs, demos, and integration contracts explain the new canonical path and the app/TAuth/`mpr-ui` boundary.
+  - `make ci` passes with the new tests.
+
+- [ ] [MU-501] Add config-driven Apple Sign In redirect-provider support to `mpr-ui`.
+  Summary: TAuth now has an Apple OAuth implementation path for browser apps, but `mpr-ui` still treats shared auth as a Google Identity Services-only surface. Canonical `mpr-ui` consumers use `/config-ui.yaml`, `mpr-ui-config.js`, `mpr-header[data-config-url]`, and the shared auth controller rather than direct `tauth.js` calls. Apple Sign In needs to become a first-class config-driven redirect provider in that same shared shell so Apple-only tenants, such as Kamu/Kamu Tales, can authenticate without app-owned one-off login wiring.
+  Context:
+  - Current `mpr-ui` auth config is Google-centric: `auth.googleClientId`, `auth.tenantId`, `auth.loginPath`, `auth.logoutPath`, and `auth.noncePath` are applied to `<mpr-header>` and `<mpr-login-button>` as Google/TAuth attributes.
+  - `<mpr-header>` and `<mpr-login-button>` currently initiate Google sign-in through Google Identity Services, nonce issuance, and `POST /auth/google`. Apple web sign-in is a top-level browser redirect to TAuth, not a Google-style credential callback or an app-owned form POST.
+  - TAuth Apple support uses a browser-facing start path equivalent to `/auth/apple/start` with `tenant_id` and optional `return_to`; the callback is handled by TAuth on the auth origin, issues the normal TAuth session cookies, and redirects back to the caller when `return_to` is present.
+  - TAuth validates `return_to` against the tenant's registered origins. `mpr-ui` must still construct the return target deliberately and reject unsafe or unsupported app handoff targets at the browser/config edge.
+  - Apple-only tenants must be representable. Requiring `googleClientId` globally makes a valid Apple-only config impossible even when Google is intentionally disabled.
+  - The MPR Integration contract currently says normal integrations must not load `tauth.js` directly or manually wire `tauth-*` attributes when `/config-ui.yaml` is available. Apple support should extend that canonical path rather than create a compatibility-only shortcut.
+  - MU-500 covers email/password and account-management forms. Apple redirect-provider support is a separate provider/lifecycle feature and should not wait for password/account-management forms.
+  Current gap:
+  - `/config-ui.yaml` has no explicit auth-provider model and no Apple provider section.
+  - `mpr-ui-config.js` cannot express an Apple redirect start endpoint, Apple provider enablement, Apple button placement, or Apple-only auth configuration.
+  - Existing auth controls render Google actions only; there is no shared Apple Sign In action in the header, login button, diagnostics page, demos, or tests.
+  - Existing auth state restoration assumes same-page Google/password-style auth completion. Apple redirects away from the app, so the shared shell must mark a pending restore before navigation and reconcile the session after returning.
+  - Existing docs and integration contracts do not define which repo owns Apple login UI, how `return_to` is selected, how Apple-only tenants are configured, or what events should fire after the user returns.
+  Expected:
+  - `mpr-ui` exposes a first-class config-driven Apple provider that participates in the same shared auth lifecycle as Google.
+  - Apps can enable Google, Apple, or both providers through `/config-ui.yaml` without hidden endpoint defaults and without direct `tauth.js` script loading.
+  - Apple-only configs do not require a Google client ID, Google nonce path, or Google login path when Google is disabled.
+  - Apple sign-in is started by a user-visible shared control that performs top-level navigation to the configured TAuth Apple start path with the selected tenant ID and a validated app return target.
+  - Returning from TAuth after Apple login hydrates the same profile/session state as Google login and emits the existing `mpr-ui:auth:*` lifecycle events.
+  - Provider support remains strict: unknown providers, missing provider paths, unsafe return targets, malformed auth URLs, and disabled-provider controls fail loudly at the config/component boundary.
+  Proposed config contract:
+  - Extend auth config with an explicit provider map while preserving the current released Google config contract for existing Google-only consumers:
+    - `auth.tauthUrl`
+    - `auth.tenantId`
+    - `auth.logoutPath`
+    - `auth.sessionPath`
+    - `auth.providers.google.enabled`
+    - `auth.providers.google.clientId`
+    - `auth.providers.google.loginPath`
+    - `auth.providers.google.noncePath`
+    - `auth.providers.apple.enabled`
+    - `auth.providers.apple.startPath`
+    - `auth.providers.apple.returnTo`
+    - `auth.providers.apple.label`
+  - Treat `auth.providers.apple.returnTo` as an explicit policy value, not an arbitrary URL escape hatch. Supported values should be narrow and testable, for example `current-url`, `current-origin`, or a same-origin path already accepted by the existing sign-in redirect sanitizer.
+  - Do not add hidden code defaults for Apple endpoint paths. Demo and test config may use `/auth/apple/start`; production apps must explicitly provide the browser-facing path.
+  - Do not expose Apple service IDs, team IDs, key IDs, private keys, client secrets, authorization codes, ID tokens, or callback paths in browser config. The browser only needs the provider enablement, start path, tenant ID, and return-target policy.
+  - Keep tenant ID immutable for the component/controller lifetime, matching the existing auth tenant invariant.
+  Technical plan:
+  - Add JSDoc domain types and smart-constructor-style validators for `AuthProviderId`, `AuthProviderConfig`, `GoogleAuthProviderConfig`, `AppleAuthProviderConfig`, `AppleReturnTargetPolicy`, and normalized provider action options.
+  - Validate provider config in `mpr-ui-config.js` and component attribute parsing only. After validation, shared auth controller/provider action helpers should operate on normalized provider objects and should not repeat edge validation.
+  - Refactor the current Google-specific auth options into a provider-aware auth options object without duplicating Google nonce/login logic.
+  - Add an Apple redirect action helper that builds the TAuth start URL with the browser `URL` API, appends `tenant_id`, appends the validated `return_to`, marks the shared restore hint, emits a pending auth status, and performs top-level navigation.
+  - Reuse the existing same-origin sign-in redirect hardening for any configured Apple return target. External, protocol-relative, hash-only, non-navigation, or otherwise unsupported return targets must be rejected with stable error codes before navigation.
+  - Ensure Apple navigation uses the browser-facing TAuth origin from `auth.tauthUrl`. An empty `tauthUrl` remains the same-origin proxy case; any non-empty value must be browser-reachable and validated at the config edge.
+  - Add provider-aware rendering to the shared auth controls. Either extend `<mpr-login-button>` and `<mpr-header>` to render multiple configured provider actions, or introduce a dedicated provider action element such as `<mpr-auth-actions>` and have header/login-button compose it.
+  - Preserve one owning auth controller per header/login surface. Rendering Google and Apple together must not create duplicate `/auth/session`, `/me`, or profile probes, and nested `<mpr-user>` must continue to mirror the nearest owning auth host.
+  - After return from Apple, use the same passive restore/session path as the existing shared auth stack. The shell should emit `mpr-ui:auth:authenticated`, `mpr-ui:auth:unauthenticated`, `mpr-ui:auth:error`, and `mpr-ui:auth:status-change` exactly as it does for other session-changing auth outcomes.
+  - Add provider metadata only where it is useful and non-breaking. Existing consumers should not have to branch on provider to observe authenticated state.
+  - Extend `<mpr-auth-diagnostics>` so a non-production page can prove that an Apple redirect-backed login restored the intended auth surface. The diagnostics surface should bind through `auth-target`, not by probing internals.
+  - Add `MPRUI.testing` support for redirect providers so unit/browser tests can assert the constructed Apple start URL and pending-restore behavior without leaving the test page unless the test explicitly opts into navigation.
+  - Keep all user-facing strings in the shared constants surface, including provider labels, loading text, and error messages.
+  - Implement Apple button styling through a reusable shared component surface. At implementation time, verify the current official Apple Sign In button requirements and encode them as component tests or visual assertions where feasible.
+  - Update demos so at least one local config shows Google-only, Apple-only, and Google-plus-Apple auth configuration. The Apple demo may use a route stub for local browser tests; real Apple Developer credentials must not be required for default `make ci`.
+  Security and privacy requirements:
+  - Never store Apple authorization codes, ID tokens, state payloads, private keys, service IDs, team IDs, or client secrets in DOM attributes, local storage, events, logs, test helper output, or rendered diagnostics.
+  - Do not include raw Apple callback query parameters in app return URLs. Apple callback handling remains TAuth-owned.
+  - Do not silently continue when Apple provider config is incomplete. Missing start path, missing tenant ID, malformed `tauthUrl`, or unsafe `return_to` policy must produce stable explicit errors.
+  - Do not create a popup or iframe Apple flow. Apple Sign In should use top-level navigation through TAuth so cookies, callback routing, and `return_to` behavior remain consistent.
+  - Do not infer production hostnames, callback URLs, cookie domains, or provider secrets from repo names. Hosted rollout must use app profile/deployment literals.
+  Documentation plan:
+  - Update `README.md`, `docs/custom-elements.md`, and `docs/integration-guide.md` with the provider config schema, Apple provider requirements, example Apple-only config, multi-provider rendering behavior, event lifecycle, and migration guidance.
+  - Explicitly document that direct `tauth.js` usage remains compatibility-only for normal integrations.
+  - Update MPR Integration contracts after implementation so `references/contracts/mpr-ui.md` and `references/contracts/tauth.md` describe Apple as a supported shared auth provider and identify the TAuth/app/`mpr-ui` ownership boundary.
+  - Document that Apple Developer portal configuration and server-to-server notification endpoints are TAuth/deployment concerns, not browser config fields.
+  Test plan:
+  - Add YAML/config loader coverage for Google-only, Apple-only, and Google-plus-Apple configs.
+  - Add negative config tests for unknown providers, disabled providers with rendered controls, missing Apple start path, missing tenant ID, malformed `tauthUrl`, unsafe `return_to`, missing Google client ID when Google is enabled, and absent Google client ID when Google is disabled.
+  - Add component tests proving header/login-provider controls render the configured provider set, expose accessible labels, keep stable loading/error states, and do not resize or duplicate controls across rerenders.
+  - Add auth-controller tests proving Apple start marks pending restore, emits a pending status, constructs the correct TAuth start URL, and navigates only after validation.
+  - Add return-from-Apple tests proving a pending restore uses the shared session restore path and emits the same authenticated profile event contract as Google sign-in.
+  - Add stale-config/lifecycle tests proving in-flight Apple navigation intent cannot start under a changed tenant, changed auth origin, or destroyed auth controller.
+  - Add nested `<mpr-user>` tests proving Apple-enabled headers do not create independent profile bootstrap probes.
+  - Add diagnostics tests proving `<mpr-auth-diagnostics auth-target="...">` reflects authenticated state after an Apple-style restore.
+  - Add security regressions asserting Apple provider secrets, authorization codes, ID tokens, state payloads, and `return_to` internals are not written to DOM attributes, local storage, auth events, logs, or diagnostics.
+  - Add Playwright coverage for Apple-only and multi-provider rendered controls using local route stubs, plus at least one test that verifies the top-level navigation target without requiring live Apple credentials.
+  - Run `make ci` before marking the issue resolved.
+  Out of scope:
+  - Do not implement or modify TAuth Apple backend endpoints in `mpr-ui`.
+  - Do not configure Apple Developer portal App IDs, Services IDs, keys, callback URLs, notification endpoints, or private keys from browser code.
+  - Do not implement password, signup, reset, linking, unlinking, or account-disable forms as part of this issue; those remain under MU-500.
+  - Do not add app-specific route guards, billing/account settings, profile editing, organization membership, or product-specific login pages.
+  - Do not make direct `tauth.js` loading, manual `tauth-*` wiring, or app-owned fetch wrappers the canonical Apple integration path.
+  - Do not introduce silent endpoint defaults, legacy aliases, provider fallbacks, or compatibility shims for incomplete Apple config.
+  Acceptance criteria:
+  - `/config-ui.yaml` can explicitly enable Apple, Google, or both providers through a validated provider config.
+  - Apple-only tenants can render and start login without requiring Google client ID, Google nonce path, or Google login path.
+  - Apple sign-in controls navigate to the configured TAuth Apple start endpoint with the configured tenant ID and a validated `return_to`.
+  - The shared restore/session path authenticates the user after returning from TAuth and emits the existing `mpr-ui:auth:*` event contract.
+  - Header, login-button/provider-action, user-menu, diagnostics, demos, and docs all use the same provider-aware auth controller contract.
+  - Security regressions prove no Apple secrets, callback tokens, authorization codes, ID tokens, or raw state are exposed through browser-visible surfaces.
+  - MPR Integration contracts are updated to describe Apple as a canonical shared-shell provider.
+  - `make ci` passes with the new tests.
