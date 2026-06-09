@@ -39,7 +39,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   Summary: Consumer integration suites that stub Google Identity still reach into app-local globals to toggle fake credential emission and inspect initialized nonce state.
   Expected: `mpr-ui` owns a test-only Google Identity driver API under `MPRUI.testing`, backed by an explicit GIS stub adapter, so app specs do not mutate or read private stub globals.
   Resolved 2026-06-05: added `MPRUI.testing.googleIdentity` with driver-backed helpers for initialized-state checks, initialized nonce reads, initialize-call counts, and auto credential-on-click toggling. Documented the `google.accounts.id.__mprUiTesting` adapter contract, added regression coverage, and verified `make ci`.
-- [ ] [B008] (P2) mpr-ui: `base-class` utilities like `mt-auto` are ineffective for flexbox layout when `sticky="false"`.
+- [ ] [B008] (P1) mpr-ui: `base-class` utilities like `mt-auto` are ineffective for flexbox layout when `sticky="false"`.
   ### Summary
   When `<mpr-footer sticky="false">` is used inside a flex column layout (e.g., Bootstrap `d-flex flex-column min-vh-100`), putting `mt-auto` in the `base-class` attribute has no effect on the footer's position. The `base-class` is applied to an inner `<footer>` element inside shadow DOM, not to the `<mpr-footer>` host element. Since the host is the actual flex item, `margin-top: auto` on the inner element doesn't push the component to the bottom of the viewport.
   ### Workaround
