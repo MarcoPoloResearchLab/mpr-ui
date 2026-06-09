@@ -79,7 +79,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   Resolved 2026-02-11: footer `horizontal-links` now flexes to fill remaining space inside `[data-mpr-footer="layout"]` so `alignment` (left|center|right) produces distinct layouts again; added Playwright regression coverage. Tests: `npm test`.
 - [x] [B019] `mpr-user` dropdown opens underneath the header and menu actions become unreachable.
   Resolved 2026-02-17: removed `overflow-x:auto` clipping from `.mpr-header__inner` (now `overflow:visible`) so the absolutely positioned `mpr-user` flyout can render and receive pointer events outside the header bounds; added Playwright regression coverage (`MU-431`) with a header fixture that verifies menu hit-testing below the header boundary. Tests: `make ci`.
-- [ ] [B020] Footer/Header runtime theme update path should be explicit after `theme-mode` deprecation.
+- [ ] [B020] (P1) Footer/Header runtime theme update path should be explicit after `theme-mode` deprecation.
   Summary: ProductScanner integration surfaced console warnings from mpr-ui when legacy `theme-mode` is set dynamically on `<mpr-footer>` (for example `element.setAttribute("theme-mode", preferredTheme)`), after MU-425 removed legacy DSL support.
   Context:
   - mpr-ui logs `mpr-ui.dsl.legacy_attribute Unsupported legacy attribute "theme-mode" on <mpr-footer>`.
