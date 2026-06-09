@@ -110,7 +110,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   Summary: Apps that seed backend sessions in browser tests need a public `mpr-ui` testing surface to synchronize the mounted auth controller without mutating `mpr-ui` DOM internals or teaching app harnesses private auth state.
   Expected: `mpr-ui` exposes test-only methods that drive the same auth controller and lifecycle events as normal authentication, and consumer app tests use those methods instead of direct `data-mpr-auth-status` or `mpr-ui:auth:*` event mutation.
   Resolved 2026-05-14: added `MPRUI.testing.authenticate()` and `MPRUI.testing.unauthenticate()` as public test helpers backed by the mounted auth controller, documented the integration-test contract, and verified with `make test-unit` plus `make ci`.
-- [ ] [B027] (P0) gix sync: avoid creating a new branch when an explicit target branch is provided.
+- [ ] [B027] (P1) gix sync: avoid creating a new branch when an explicit target branch is provided.
   Goal:
   Ensure that running `gix sync <branch>` commits and pushes uncommitted changes to the explicitly named branch instead of creating a new branch, so users can control where their work is recorded when syncing.
   
