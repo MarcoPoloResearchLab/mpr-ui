@@ -33,6 +33,25 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.10.5] - 2026-06-09
+
+### Features ✨
+- Added `isDriverAvailable` method for Google Identity testing driver to check availability before usage.
+
+### Improvements ⚙️
+- Updated README to clarify usage of Google Identity driver methods in tests.
+- Allowed `enableAutoCredentialOnClick()` to be called even when Google Identity is not initialized.
+
+### Bug Fixes 🐛
+- Fixed incorrect import of Google Identity testing driver in main library file.
+
+### Testing 🧪
+- Added assertions for Google Identity driver availability in integration tests.
+- Enabled auto credential behavior in tests without requiring initialized Google Identity.
+
+### Docs 📚
+- Updated README and issue tracker with details on Google Identity testing adapter and usage.
+
 ## [v3.10.4] - 2026-06-08
 
 ### Features ✨
