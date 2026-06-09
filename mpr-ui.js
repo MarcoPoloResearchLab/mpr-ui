@@ -3707,6 +3707,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return driver;
   }
 
+  function isGoogleIdentityTestingDriverAvailable() {
+    return Boolean(resolveGoogleIdentityTestingDriver());
+  }
+
   function requireGoogleIdentityTestingMethod(driver, methodName) {
     if (!driver || typeof driver[methodName] !== "function") {
       throw createTestingError(
@@ -3763,7 +3767,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   }
 
   function enableGoogleIdentityTestingAutoCredentialOnClick() {
-    var driver = requireInitializedGoogleIdentityTestingDriver();
+    var driver = requireGoogleIdentityTestingDriver();
     var enableAutoCredentialOnClick = requireGoogleIdentityTestingMethod(
       driver,
       "enableAutoCredentialOnClick",
@@ -14952,6 +14956,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   namespace.testing.authenticate = authenticateForTesting;
   namespace.testing.unauthenticate = unauthenticateForTesting;
   namespace.testing.googleIdentity = {
+    isDriverAvailable: isGoogleIdentityTestingDriverAvailable,
     isInitialized: isGoogleIdentityTestingInitialized,
     getInitializedNonce: getGoogleIdentityTestingInitializedNonce,
     getInitializeCallCount: getGoogleIdentityTestingInitializeCallCount,

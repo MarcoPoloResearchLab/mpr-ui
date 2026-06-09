@@ -343,15 +343,16 @@ Browser integration suites that stub Google Identity Services can expose a test 
 `MPRUI.testing.googleIdentity`:
 
 ```js
-await page.waitForFunction(() => window.MPRUI.testing.googleIdentity.isInitialized());
+await page.waitForFunction(() => window.MPRUI.testing.googleIdentity.isDriverAvailable());
 await page.evaluate(() => window.MPRUI.testing.googleIdentity.enableAutoCredentialOnClick());
 ```
 
 The driver object must provide `isInitialized()` and `enableAutoCredentialOnClick()`. It may also provide
 `getInitializeCallCount()` when a suite needs to assert GIS initializes only during an explicit sign-in
 attempt. Stubs may expose `getInitializedNonce()` so app specs can assert the attempt nonce that was
-passed to Google Identity Services. App specs should call `MPRUI.testing.googleIdentity` rather than
-mutating stub globals directly.
+passed to Google Identity Services. `enableAutoCredentialOnClick()` only requires the driver to be
+available; use `isInitialized()` and nonce reads after the sign-in attempt has initialized GIS. App specs
+should call `MPRUI.testing.googleIdentity` rather than mutating stub globals directly.
 
 > Both `<mpr-header>` and `<mpr-footer>` are sticky by default. Add `sticky="false"` (or pass the equivalent option) if you want them to render in-flow; setting `sticky="true"` is redundant because `true` is the default. The attribute values are case-insensitive (`sticky="FALSE"` works), and the components manage stickiness internally so no host-level CSS overrides are required. In sticky mode the footer renders a spacer + viewport-fixed footer so it stays visible even when the page is scrolled to the top.
 
