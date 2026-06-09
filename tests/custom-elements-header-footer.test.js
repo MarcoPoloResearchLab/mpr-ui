@@ -2714,6 +2714,7 @@ test('MPRUI.testing exposes Google Identity driver helpers for integration stubs
   let autoCredentialEnabled = false;
   const library = loadLibrary();
 
+  assert.equal(library.testing.googleIdentity.isDriverAvailable(), false);
   assert.throws(
     function rejectMissingDriver() {
       library.testing.googleIdentity.enableAutoCredentialOnClick();
@@ -2739,6 +2740,7 @@ test('MPRUI.testing exposes Google Identity driver helpers for integration stubs
     },
   };
 
+  assert.equal(library.testing.googleIdentity.isDriverAvailable(), true);
   assert.equal(library.testing.googleIdentity.isInitialized(), false);
   library.testing.googleIdentity.enableAutoCredentialOnClick();
   assert.equal(autoCredentialEnabled, true);
