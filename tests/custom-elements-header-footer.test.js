@@ -2740,17 +2740,10 @@ test('MPRUI.testing exposes Google Identity driver helpers for integration stubs
   };
 
   assert.equal(library.testing.googleIdentity.isInitialized(), false);
-  assert.throws(
-    function rejectUninitializedDriver() {
-      library.testing.googleIdentity.enableAutoCredentialOnClick();
-    },
-    function verifyUninitializedDriver(error) {
-      assert.equal(error.code, 'mpr-ui.testing.google_identity_not_initialized');
-      return true;
-    },
-  );
-  assert.equal(autoCredentialEnabled, false);
+  library.testing.googleIdentity.enableAutoCredentialOnClick();
+  assert.equal(autoCredentialEnabled, true);
 
+  autoCredentialEnabled = false;
   global.google.accounts.id.__mprUiTesting = {
     isInitialized: function isInitialized() {
       return true;
