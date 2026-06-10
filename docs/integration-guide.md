@@ -147,6 +147,24 @@ For public login pages that need the Google control in the header but do not nee
 
 The loader applies the same `/config-ui.yaml` auth attributes to the button before loading the bundle.
 
+### Multi-provider chooser primitive
+
+When a login surface needs to show multiple provider choices before the shared provider-aware auth controller exists, use `<mpr-auth-provider-chooser>` as a compact UI primitive:
+
+```html
+<mpr-auth-provider-chooser providers='["apple","google","email"]'></mpr-auth-provider-chooser>
+```
+
+This element is intentionally not a replacement for the config-driven Google shell above. The config loader does not currently apply provider config to it, and the element does not call TAuth, start Apple redirects, initialize GIS, or mark the user authenticated.
+
+Integration rules:
+
+- treat `providers` as the explicit source of provider order; do not infer or default provider sets in app code
+- listen to `mpr-auth-provider:select` only as a provider-choice event
+- listen to `mpr-auth-provider:email-submit` only as a local form-intent event; raw email and password values are intentionally omitted from the event detail
+- complete auth through an owning controller or app action layer, then observe the existing `mpr-ui:auth:*` events before revealing authenticated UI
+- if the requirement is real Apple redirect login or real TAuth email/password login, pair this guide with the relevant TAuth contract and verify the selected `mpr-ui` release actually supports the provider action path
+
 What the loader applies automatically:
 
 - `google-site-id`
@@ -205,6 +223,8 @@ If sign-in should open an authenticated app route, set `sign-in-redirect-url` on
 - do not duplicate `tauth-*` auth attributes in templates
 - do not ship app CSS that targets `mpr-ui` internal classes or internal `[data-mpr-*]` nodes
 - do not mutate `tauth-tenant-id` after render; recreate the component instead
+- do not treat `mpr-auth-provider:select` or `mpr-auth-provider:email-submit` as authentication proof
+- do not put raw email/password values into DOM attributes, local storage, logs, diagnostics, or redispatched events
 
 ## Verification
 
@@ -215,6 +235,8 @@ If sign-in should open an authenticated app route, set `sign-in-redirect-url` on
 5. Confirm `POST /auth/google` succeeds and sets the cookie.
 6. Confirm `mpr-ui:auth:authenticated` fires and your app reacts.
 7. Confirm logout calls `/auth/logout` and `mpr-ui:auth:unauthenticated` fires.
+8. If using `<mpr-auth-provider-chooser>`, confirm provider clicks emit only provider-choice events and that authenticated UI still waits for `mpr-ui:auth:authenticated`.
+9. If using the chooser email form, confirm submitted email/password values do not appear in event details, attributes, local storage, logs, or diagnostics.
 
 ## Troubleshooting
 
@@ -226,6 +248,9 @@ If sign-in should open an authenticated app route, set `sign-in-redirect-url` on
 | Sign-in button renders but click does nothing | `/auth/nonce` or `/auth/google` is unreachable | Verify the same-origin auth proxy and path values. |
 | Shell stays signed out after page refresh | `/me` is missing or returns the wrong status | Expose `/me` on the browser-facing origin and keep cookies on that origin. |
 | Header works but user menu logout fails | `mpr-user` is missing config-applied auth attrs | Keep the config loader in front of the bundle and do not bypass `data-config-url`. |
+| Provider chooser renders but no auth happens | the chooser is only a UI/event primitive | Wire provider events to a real auth controller or use `<mpr-header>` / `<mpr-login-button>` for the current config-driven Google flow. |
+| App reveals authenticated UI after `mpr-auth-provider:select` | provider-choice events were mistaken for auth lifecycle events | Wait for `mpr-ui:auth:authenticated` before showing authenticated UI. |
+| Password appears in logs or event output | app code redispatched or logged form values after reading the email panel | Keep credentials inside the immediate auth request path and never copy them into DOM-visible state. |
 
 ## Advanced / Compatibility Only
 
