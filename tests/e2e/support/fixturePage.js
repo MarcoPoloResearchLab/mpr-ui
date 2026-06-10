@@ -112,6 +112,9 @@ const USER_MENU_FIXTURE_URL = pathToFileURL(
 const AUTH_TRANSITION_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/auth-transition.html'),
 ).href;
+const AUTH_PROVIDER_CHOOSER_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/auth-provider-chooser.html'),
+).href;
 const HEADER_USER_MENU_OVERFLOW_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/header-user-menu-overflow.html'),
 ).href;
@@ -369,6 +372,20 @@ async function visitAuthTransitionFixture(page) {
 }
 
 /**
+ * Opens the auth provider chooser fixture with local assets.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitAuthProviderChooserFixture(page) {
+  await Promise.all([
+    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
+  ]);
+  await page.goto(AUTH_PROVIDER_CHOOSER_FIXTURE_URL, { waitUntil: 'load' });
+  await page.waitForLoadState('networkidle');
+}
+
+/**
  * Opens the header fixture that exercises slotted mpr-user dropdown overflow behavior.
  * @param {import('@playwright/test').Page} page
  * @returns {Promise<void>}
@@ -593,6 +610,7 @@ module.exports = {
   visitEntityWorkspaceFixture,
   visitUserMenuFixture,
   visitAuthTransitionFixture,
+  visitAuthProviderChooserFixture,
   visitHeaderUserMenuOverflowFixture,
   visitLegalDocumentFixture,
   captureToggleSnapshot,
