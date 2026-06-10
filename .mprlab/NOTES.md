@@ -195,3 +195,8 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 ## 2026-06-01
 
 - B008: added `<mpr-header sign-in-redirect-url>` so `mpr-ui` owns post-sign-in navigation and holds `auth-transition` during redirect handoff; restored sessions do not redirect. Tests: `node --test tests/custom-elements-header-footer.test.js`; `make ci`.
+
+## 2026-06-10
+
+- Auth provider chooser primitive: added compact `<mpr-auth-provider-chooser providers='["apple","google","email"]'>` rendering with explicit provider ordering, inline email disclosure, provider/email events that omit raw credentials, injected/CSS stylesheet coverage, docs, unit regressions, and a Playwright fixture. Tests: `npx --yes --package typescript@5.9.2 tsc --noEmit`; `npm run test:unit`; `npm run test:e2e`; `make ci`.
+- Auth provider chooser documentation follow-up: expanded README, custom-elements docs, integration guide, and the adjacent `mpr-integration` skill contracts to distinguish shipped chooser UI from future Apple/email auth wiring and to keep provider events separate from `mpr-ui:auth:*` proof. Tests: docs/checks only; implementation gate already passed with `make ci`.
