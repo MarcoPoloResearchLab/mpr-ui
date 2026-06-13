@@ -155,13 +155,24 @@ When a login surface needs to show multiple provider choices before the shared p
 <mpr-auth-provider-chooser providers='["apple","google","email"]'></mpr-auth-provider-chooser>
 ```
 
+If the page already labels the login choices, keep the chooser to one compact row of square icon buttons:
+
+```html
+<mpr-auth-provider-chooser
+  providers='["apple","google","email"]'
+  variant="icon-row"
+></mpr-auth-provider-chooser>
+```
+
 This element is intentionally not a replacement for the config-driven Google shell above. The config loader does not currently apply provider config to it, and the element does not call TAuth, start Apple redirects, initialize GIS, or mark the user authenticated.
 
 Integration rules:
 
 - treat `providers` as the explicit source of provider order; do not infer or default provider sets in app code
+- use `variant="icon-row"` only when surrounding copy or layout already explains the available providers; the buttons stay square, keep accessible labels, and show icons visually
 - listen to `mpr-auth-provider:select` only as a provider-choice event
 - listen to `mpr-auth-provider:email-submit` only as a local form-intent event; raw email and password values are intentionally omitted from the event detail
+- treat the built-in Google and Apple marks as chooser cues, not as proof that the final auth flow satisfies provider button branding rules
 - complete auth through an owning controller or app action layer, then observe the existing `mpr-ui:auth:*` events before revealing authenticated UI
 - if the requirement is real Apple redirect login or real TAuth email/password login, pair this guide with the relevant TAuth contract and verify the selected `mpr-ui` release actually supports the provider action path
 
@@ -235,7 +246,7 @@ If sign-in should open an authenticated app route, set `sign-in-redirect-url` on
 5. Confirm `POST /auth/google` succeeds and sets the cookie.
 6. Confirm `mpr-ui:auth:authenticated` fires and your app reacts.
 7. Confirm logout calls `/auth/logout` and `mpr-ui:auth:unauthenticated` fires.
-8. If using `<mpr-auth-provider-chooser>`, confirm provider clicks emit only provider-choice events and that authenticated UI still waits for `mpr-ui:auth:authenticated`.
+8. If using `<mpr-auth-provider-chooser>`, confirm provider clicks emit only provider-choice events, any `variant="icon-row"` buttons still have accessible names, and authenticated UI still waits for `mpr-ui:auth:authenticated`.
 9. If using the chooser email form, confirm submitted email/password values do not appear in event details, attributes, local storage, logs, or diagnostics.
 
 ## Troubleshooting
