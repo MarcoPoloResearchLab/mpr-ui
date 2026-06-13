@@ -70,9 +70,10 @@ mpr-header mpr-auth-provider-chooser {
 }
 
 .mpr-auth-provider-chooser__action {
-  display: inline-flex;
+  display: inline-grid;
+  grid-template-columns: calc(1.15rem * var(--mpr-auth-provider-scale, 1)) minmax(0, 1fr) calc(1.15rem * var(--mpr-auth-provider-scale, 1));
   align-items: center;
-  justify-content: center;
+  column-gap: calc(0.5rem * var(--mpr-auth-provider-scale, 1));
   min-block-size: calc(2.35rem * var(--mpr-auth-provider-scale, 1));
   inline-size: 100%;
   padding: calc(0.45rem * var(--mpr-auth-provider-scale, 1)) calc(0.7rem * var(--mpr-auth-provider-scale, 1));
@@ -89,6 +90,29 @@ mpr-header mpr-auth-provider-chooser {
   box-sizing: border-box;
 }
 
+.mpr-auth-provider-chooser__mark {
+  display: inline-flex;
+  grid-column: 1;
+  align-items: center;
+  justify-content: center;
+  inline-size: calc(1.15rem * var(--mpr-auth-provider-scale, 1));
+  block-size: calc(1.15rem * var(--mpr-auth-provider-scale, 1));
+}
+
+.mpr-auth-provider-chooser__mark svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.mpr-auth-provider-chooser__label {
+  grid-column: 2;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .mpr-auth-provider-chooser__action:hover {
   background: var(--mpr-chip-hover-bg, rgba(148, 163, 184, 0.32));
 }
@@ -101,15 +125,64 @@ mpr-header mpr-auth-provider-chooser {
 .mpr-auth-provider-chooser__action--apple {
   background: #020617;
   color: #f8fafc;
-  border-color: #020617;
 }
 
 .mpr-auth-provider-chooser__action--apple:hover {
   background: #111827;
 }
 
-.mpr-auth-provider-chooser__action--email {
-  border-style: dashed;
+mpr-auth-provider-chooser[variant='icon-row'],
+mpr-auth-provider-chooser[data-mpr-auth-provider-variant='icon-row'] {
+  inline-size: max-content;
+  max-inline-size: 100%;
+  --mpr-auth-provider-radius: 6px;
+}
+
+mpr-auth-provider-chooser[variant='icon-row'] .mpr-auth-provider-chooser__actions,
+mpr-auth-provider-chooser[data-mpr-auth-provider-variant='icon-row'] .mpr-auth-provider-chooser__actions,
+.mpr-auth-provider-chooser[data-mpr-auth-provider-variant='icon-row'] .mpr-auth-provider-chooser__actions {
+  display: inline-grid;
+  grid-auto-flow: column;
+  grid-auto-columns: calc(2.25rem * var(--mpr-auth-provider-scale, 1));
+  grid-template-columns: none;
+  gap: calc(0.3rem * var(--mpr-auth-provider-scale, 1));
+  inline-size: max-content;
+  max-inline-size: 100%;
+}
+
+mpr-auth-provider-chooser[variant='icon-row'] .mpr-auth-provider-chooser__action,
+mpr-auth-provider-chooser[data-mpr-auth-provider-variant='icon-row'] .mpr-auth-provider-chooser__action,
+.mpr-auth-provider-chooser[data-mpr-auth-provider-variant='icon-row'] .mpr-auth-provider-chooser__action {
+  position: relative;
+  grid-template-columns: 1fr;
+  place-items: center;
+  justify-items: center;
+  inline-size: calc(2.25rem * var(--mpr-auth-provider-scale, 1));
+  block-size: calc(2.25rem * var(--mpr-auth-provider-scale, 1));
+  min-inline-size: calc(2.25rem * var(--mpr-auth-provider-scale, 1));
+  min-block-size: calc(2.25rem * var(--mpr-auth-provider-scale, 1));
+  padding: 0;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+mpr-auth-provider-chooser[variant='icon-row'] .mpr-auth-provider-chooser__mark,
+mpr-auth-provider-chooser[data-mpr-auth-provider-variant='icon-row'] .mpr-auth-provider-chooser__mark,
+.mpr-auth-provider-chooser[data-mpr-auth-provider-variant='icon-row'] .mpr-auth-provider-chooser__mark {
+  grid-column: 1;
+  inline-size: calc(1.1rem * var(--mpr-auth-provider-scale, 1));
+  block-size: calc(1.1rem * var(--mpr-auth-provider-scale, 1));
+}
+
+mpr-auth-provider-chooser[variant='icon-row'] .mpr-auth-provider-chooser__label,
+mpr-auth-provider-chooser[data-mpr-auth-provider-variant='icon-row'] .mpr-auth-provider-chooser__label,
+.mpr-auth-provider-chooser[data-mpr-auth-provider-variant='icon-row'] .mpr-auth-provider-chooser__label {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .mpr-auth-provider-chooser__email-panel {
