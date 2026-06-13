@@ -33,6 +33,36 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.11.0] - 2026-06-13
+
+### Features ✨
+- Add auth provider chooser component with email, Google, and Apple options.
+- Introduce variant attribute with stack and icon-row options for auth provider chooser.
+- Add serve-demo script to serve mpr-ui demos locally.
+- Add auth-provider-chooser demo page and event logger.
+
+### Improvements ⚙️
+- Enhance auth provider chooser tests and demo coverage.
+- Add demo:serve script to package.json for serving demo site.
+- Improve mpr-auth-provider-chooser layout and add icon-row variant.
+- Add config-driven password and Apple Sign In support to mpr-ui.
+
+### Bug Fixes 🐛
+- _No changes._
+
+### Testing 🧪
+- Add unit and e2e tests for provider chooser component.
+- Enhance auth provider chooser test coverage.
+
+### Docs 📚
+- Document mpr-auth-provider-chooser variant option and update demos.
+- Add Provider chooser link to index.html demo list.
+- Add icon-row variant to mpr-auth-provider-chooser usage and docs.
+- Update NOTES.md with auth provider chooser demo and UI follow-ups.
+- Add mpr-auth-provider-chooser UI primitive and integration guide.
+- Add <mpr-auth-provider-chooser> UI primitive to README.
+- Add notes for auth provider chooser feature and docs updates.
+
 ## [v3.10.5] - 2026-06-09
 
 ### Features ✨
