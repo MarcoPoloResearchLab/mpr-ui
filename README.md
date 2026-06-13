@@ -149,13 +149,24 @@ Use it when a page or future shared auth controller owns the provider mechanics:
 <mpr-auth-provider-chooser providers='["apple","google","email"]'></mpr-auth-provider-chooser>
 ```
 
+Use `variant="icon-row"` when the surrounding login surface already explains the available providers and the chooser should stay to one horizontal row of square icon buttons:
+
+```html
+<mpr-auth-provider-chooser
+  providers='["apple","google","email"]'
+  variant="icon-row"
+></mpr-auth-provider-chooser>
+```
+
 Rules:
 
 - `providers` is required, ordered, and explicit. Supported values are `apple`, `google`, and `email`.
+- `variant` is optional. The default is `stack`; `icon-row` keeps provider buttons horizontal and square, visually hiding the text labels while preserving accessible button labels.
 - A single provider renders the same direct action surface; multiple providers render the same compact stack in the supplied order.
-- Unknown, missing, or duplicate providers fail loudly through `mpr-auth-provider:error`.
+- Unknown, missing, or duplicate providers and unsupported variants fail loudly through `mpr-auth-provider:error`.
 - `mpr-auth-provider:select` only identifies the chosen provider; it is not an authenticated state.
 - `mpr-auth-provider:email-submit` intentionally omits raw email and password values. The owning action layer must handle credentials without persisting or redispatching secrets.
+- Google, Apple, and email actions render compact provider marks. Treat those marks as UI cues only; production Google and Apple sign-in flows still need provider-specific button and branding review appropriate to the final auth implementation.
 - Auth completion must still be proven through the existing `mpr-ui:auth:*` lifecycle from an owning auth controller.
 
 Current boundary: Apple redirect support and TAuth email/password submission are tracked separately from this primitive. Until those controller/config paths are implemented, do not treat this element as a replacement for `<mpr-header>` or `<mpr-login-button>` in the canonical config-driven Google flow.
@@ -278,7 +289,10 @@ The tags above replace the retired imperative helpers. See the example below for
 <mpr-login-button></mpr-login-button>
 
 <!-- UI primitive only; provider mechanics are owned by the surrounding auth controller. -->
-<mpr-auth-provider-chooser providers='["apple","google","email"]'></mpr-auth-provider-chooser>
+<mpr-auth-provider-chooser
+  providers='["apple","google","email"]'
+  variant="icon-row"
+></mpr-auth-provider-chooser>
 
 <mpr-user
   display-mode="avatar-name"
@@ -319,7 +333,7 @@ The tags above replace the retired imperative helpers. See the example below for
 | `<mpr-footer>` | `prefix-text`, `horizontal-links` (JSON object with `{ alignment, links }`), `links-collection` (JSON with `{ style, text, links }`), `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-switcher`, `theme-config`, `size`, `sticky`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
 | `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config` | — | `mpr-ui:theme-change` |
 | `<mpr-login-button>` | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
-| `<mpr-auth-provider-chooser>` | `providers` (JSON array ordered from `apple`, `google`, `email`) | — | `mpr-auth-provider:select`, `mpr-auth-provider:email-submit`, `mpr-auth-provider:email-mode`, `mpr-auth-provider:error` |
+| `<mpr-auth-provider-chooser>` | `providers` (JSON array ordered from `apple`, `google`, `email`), `variant` (`stack`, `icon-row`) | — | `mpr-auth-provider:select`, `mpr-auth-provider:email-submit`, `mpr-auth-provider:email-mode`, `mpr-auth-provider:error` |
 | `<mpr-user>` | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `tauth-url`, `tauth-logout-path`, `avatar-url`, `avatar-label`, `menu-items` | — | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:menu-item`, `mpr-user:error` |
 | `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |
 | `<mpr-sites>` | `links`, `variant` (`list`, `grid`, `menu`), `columns`, `heading` | — | `mpr-sites:link-click` |
@@ -345,7 +359,7 @@ Slots let you inject custom markup without leaving declarative mode:
 - Header slots: `brand`, `nav-left`, `nav-right`, `aux`
 - Footer slots: `menu-prefix`, `menu-links`, `legal`
 - Login button inherits the global `mpr-ui:auth:*` events dispatched by `createAuthHeader` and emits `mpr-login:error` when GIS cannot load, so you can listen for authentication without writing any extra glue.
-- Auth provider chooser requires an explicit ordered `providers` JSON array. When `email` is selected it expands the email form in place; submit and mode events intentionally omit raw email and password values.
+- Auth provider chooser requires an explicit ordered `providers` JSON array. Use `variant="icon-row"` for horizontal square icon buttons; when `email` is selected it expands the email form in place and submit/mode events intentionally omit raw email and password values.
 
 Custom elements dispatch the same `mpr-ui:*` events that the deprecated helpers emitted, so event listeners continue working after migrating. See [`docs/custom-elements.md`](docs/custom-elements.md) for a deep-dive covering attribute shapes, events, migration tips, and a concrete YouTube playlists/videos workspace example built from the entity-workspace primitives. For a runnable JSON-backed version of that flow, use [`demo/entity-workspace.html`](demo/entity-workspace.html).
 
@@ -464,7 +478,9 @@ console.log(selectionState.getSelectedIds());
 ## Demo
 
 - Open `demo/index.html` in a browser to use the shared demo header/footer and the CDN-backed preview.
+- For the lightweight local preview, run `npm run demo:serve` and open `http://127.0.0.1:4177/`. The demo server serves local files with `Cache-Control: no-store` so iterative `mpr-ui.js` / `mpr-ui.css` changes are visible after refresh; Google sign-in still requires the TAuth stack.
 - Need to test local changes before publishing? Open `demo/local.html` instead; it loads `mpr-ui.js` and `mpr-ui.css` from your working tree but still fetches Google Identity Services from the official CDN.
+- Need to inspect the compact multi-provider auth surface? Open `demo/auth-provider-chooser.html` to compare the icon-row, stacked all-provider, one-provider, and two-provider variants.
 - Need a concrete entity-workspace example? Start `./up.sh tauth`, open `https://localhost:4443/`, and use the shared header to open `Entity workspace`; the page is intentionally wired to the Docker-mounted `demo/mpr-ui.js` bundle and blocks direct static serving.
 - Both demo variants rely on the real Google Identity Services script (`https://accounts.google.com/gsi/client`), so ensure you have network access when testing sign-in flows.
 
