@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auth Provider Chooser Demo</title>
+    <link rel="stylesheet" href="../mpr-ui.css" />
+    <link rel="stylesheet" href="./demo.css" />
+    <script id="mpr-ui-bundle" defer src="../mpr-ui.js"></script>
+    <style>
+      body {
+        background: var(--mpr-color-surface-primary, #f8fafc);
+        color: var(--mpr-color-text-primary, #0f172a);
+        min-height: 100vh;
+        margin: 0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+
+      .provider-demo {
+        width: min(100% - 2rem, 68rem);
+        margin: 0 auto;
+        padding: 3rem 0 5rem;
+      }
+
+      .provider-demo__chrome {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        padding: 0.7rem 1rem;
+        border-bottom: 1px solid var(--mpr-color-border, rgba(148, 163, 184, 0.35));
+        background: var(--mpr-color-surface-elevated, #ffffff);
+      }
+
+      .provider-demo__brand {
+        color: var(--mpr-color-text-primary, #0f172a);
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .provider-demo__nav {
+        display: flex;
+        align-items: center;
+        justify-content: flex-end;
+        gap: 0.75rem;
+        min-width: 0;
+        overflow-x: auto;
+      }
+
+      .provider-demo__nav a {
+        color: var(--mpr-color-text-muted, #64748b);
+        font-size: 0.86rem;
+        font-weight: 700;
+        text-decoration: none;
+        white-space: nowrap;
+      }
+
+      .provider-demo__nav a:hover {
+        color: var(--mpr-color-accent, #0ea5e9);
+      }
+
+      .provider-demo__hero {
+        display: grid;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+      }
+
+      .provider-demo__eyebrow {
+        margin: 0;
+        color: var(--mpr-color-text-muted, #64748b);
+        font-size: 0.78rem;
+        font-weight: 700;
+        letter-spacing: 0;
+        text-transform: uppercase;
+      }
+
+      .provider-demo__title {
+        margin: 0;
+        color: var(--mpr-color-text-primary, #0f172a);
+        font-size: clamp(1.9rem, 3vw, 2.8rem);
+        line-height: 1.05;
+      }
+
+      .provider-demo__lede {
+        max-width: 43rem;
+        margin: 0;
+        color: var(--mpr-color-text-muted, #64748b);
+        font-size: 1rem;
+      }
+
+      .provider-demo__grid {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) minmax(16rem, 21rem);
+        gap: 1rem;
+        align-items: start;
+      }
+
+      .provider-demo__examples {
+        display: grid;
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        gap: 1rem;
+      }
+
+      .provider-demo__example,
+      .provider-demo__event-panel {
+        border: 1px solid var(--mpr-color-border, rgba(148, 163, 184, 0.35));
+        border-radius: 0.5rem;
+        background: var(--mpr-color-surface-elevated, #ffffff);
+        box-shadow: var(--mpr-shadow-elevated, 0 8px 16px rgba(15, 23, 42, 0.12));
+      }
+
+      .provider-demo__example {
+        display: grid;
+        gap: 1rem;
+        padding: 1rem;
+      }
+
+      .provider-demo__example--primary {
+        grid-column: 1 / -1;
+      }
+
+      .provider-demo__heading {
+        display: flex;
+        align-items: start;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+
+      .provider-demo__heading h2,
+      .provider-demo__event-panel h2 {
+        margin: 0;
+        color: var(--mpr-color-text-primary, #0f172a);
+        font-size: 1rem;
+        line-height: 1.2;
+      }
+
+      .provider-demo__heading p {
+        margin: 0.25rem 0 0;
+        color: var(--mpr-color-text-muted, #64748b);
+        font-size: 0.85rem;
+      }
+
+      .provider-demo__pill {
+        border: 1px solid var(--mpr-color-border, rgba(148, 163, 184, 0.35));
+        border-radius: 999px;
+        padding: 0.2rem 0.55rem;
+        color: var(--mpr-color-text-muted, #64748b);
+        background: var(--mpr-chip-bg, rgba(148, 163, 184, 0.14));
+        font-size: 0.72rem;
+        font-weight: 700;
+        white-space: nowrap;
+      }
+
+      .provider-demo__chooser-shell {
+        width: min(100%, 22rem);
+      }
+
+      .provider-demo__event-panel {
+        position: sticky;
+        top: 5rem;
+        padding: 1rem;
+      }
+
+      .provider-demo__event-panel p {
+        margin: 0.35rem 0 0.75rem;
+        color: var(--mpr-color-text-muted, #64748b);
+        font-size: 0.85rem;
+      }
+
+      .provider-demo__event-log {
+        display: grid;
+        gap: 0.45rem;
+        max-height: 20rem;
+        margin: 0;
+        padding: 0;
+        overflow: auto;
+        list-style: none;
+      }
+
+      .provider-demo__event-log li,
+      .provider-demo__empty-log {
+        border-radius: 0.4rem;
+        padding: 0.55rem;
+        background: var(--mpr-chip-bg, rgba(148, 163, 184, 0.14));
+        color: var(--mpr-color-text-primary, #0f172a);
+        font-family: 'SFMono-Regular', Menlo, Monaco, Consolas, 'Liberation Mono', monospace;
+        font-size: 0.76rem;
+        line-height: 1.45;
+        overflow-wrap: anywhere;
+      }
+
+      .provider-demo__empty-log {
+        color: var(--mpr-color-text-muted, #64748b);
+        font-family: inherit;
+      }
+
+      @media (max-width: 820px) {
+        .provider-demo__chrome {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+
+        .provider-demo__nav {
+          justify-content: flex-start;
+          width: 100%;
+        }
+
+        .provider-demo__grid,
+        .provider-demo__examples {
+          grid-template-columns: 1fr;
+        }
+
+        .provider-demo__event-panel {
+          position: static;
+        }
+      }
+    </style>
+    <script defer src="./auth-provider-chooser.js"></script>
+  </head>
+  <body class="theme-light" data-demo-palette="default">
+    <header class="provider-demo__chrome">
+      <a class="provider-demo__brand" href="https://mprlab.com/">Marco Polo Research Lab</a>
+      <nav class="provider-demo__nav" aria-label="Demo pages">
+        <a href="../index.html">Index demo</a>
+        <a href="./tauth-demo.html">TAuth demo</a>
+        <a href="./auth-provider-chooser.html" aria-current="page">Provider chooser</a>
+        <a href="./entity-workspace.html?entity-demo-docker=2">Entity workspace</a>
+        <a href="./standalone.html">Standalone demo</a>
+      </nav>
+    </header>
+
+    <main class="provider-demo">
+      <section class="provider-demo__hero" aria-labelledby="provider-demo-title">
+        <p class="provider-demo__eyebrow">Auth surface</p>
+        <h1 id="provider-demo-title" class="provider-demo__title">Provider chooser</h1>
+        <p class="provider-demo__lede">
+          Compact provider selection for Google, Apple, and email without stretching the login surface into three separate panels.
+        </p>
+      </section>
+
+      <div class="provider-demo__grid">
+        <section class="provider-demo__examples" aria-label="Provider chooser examples">
+          <article class="provider-demo__example provider-demo__example--primary">
+            <div class="provider-demo__heading">
+              <div>
+                <h2>Icon row</h2>
+                <p>Use this when the surrounding login surface already explains the available sign-in providers.</p>
+              </div>
+              <span class="provider-demo__pill">square icons</span>
+            </div>
+            <div class="provider-demo__chooser-shell">
+              <mpr-auth-provider-chooser
+                id="provider-demo-icon-row"
+                providers='["apple","google","email"]'
+                variant="icon-row"
+              ></mpr-auth-provider-chooser>
+            </div>
+          </article>
+
+          <article class="provider-demo__example">
+            <div class="provider-demo__heading">
+              <div>
+                <h2>All providers</h2>
+                <p>Use this when the site should offer Apple, Google, and email together.</p>
+              </div>
+              <span class="provider-demo__pill">3 providers</span>
+            </div>
+            <div class="provider-demo__chooser-shell">
+              <mpr-auth-provider-chooser
+                id="provider-demo-all"
+                providers='["apple","google","email"]'
+              ></mpr-auth-provider-chooser>
+            </div>
+          </article>
+
+          <article class="provider-demo__example">
+            <div class="provider-demo__heading">
+              <div>
+                <h2>Google only</h2>
+                <p>The same primitive collapses to a direct action.</p>
+              </div>
+              <span class="provider-demo__pill">single</span>
+            </div>
+            <div class="provider-demo__chooser-shell">
+              <mpr-auth-provider-chooser
+                id="provider-demo-google"
+                providers='["google"]'
+              ></mpr-auth-provider-chooser>
+            </div>
+          </article>
+
+          <article class="provider-demo__example">
+            <div class="provider-demo__heading">
+              <div>
+                <h2>Google and email</h2>
+                <p>A smaller mixed surface keeps the email form folded away.</p>
+              </div>
+              <span class="provider-demo__pill">2 providers</span>
+            </div>
+            <div class="provider-demo__chooser-shell">
+              <mpr-auth-provider-chooser
+                id="provider-demo-google-email"
+                providers='["google","email"]'
+              ></mpr-auth-provider-chooser>
+            </div>
+          </article>
+        </section>
+
+        <aside class="provider-demo__event-panel" aria-labelledby="provider-demo-event-title">
+          <h2 id="provider-demo-event-title">Provider events</h2>
+          <p>Selections and email intents appear here. Raw email and password values are not emitted.</p>
+          <ol
+            id="provider-demo-event-log"
+            class="provider-demo__event-log"
+            aria-live="polite"
+            aria-atomic="false"
+          >
+            <li class="provider-demo__empty-log" data-provider-event-empty>
+              Choose a provider to populate the log.
+            </li>
+          </ol>
+        </aside>
+      </div>
+    </main>
+
+    <mpr-footer
+      id="page-footer"
+      sticky="false"
+      size="small"
+      privacy-link-label="Privacy &amp; Terms"
+      privacy-link-href="#privacy"
+      privacy-modal-content="
+        <h1>Privacy Policy — MPR UI</h1>
+        <p><strong>Effective Date:</strong> 2025-10-11</p>
+        <p>LoopAware uses Google Identity Services to authenticate users. We receive your Google profile
+           information (name, email, profile image) only to sign you in. We do not sell or share your data,
+           and we only store your notes so the service functions.</p>
+        <p>To request deletion of your data, contact
+           <a href='mailto:support@mprlab.com'>support@mprlab.com</a>.</p>
+      "
+      horizontal-links='{
+        "alignment": "center",
+        "links": [
+          { "label": "Docs", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/README.md", "target": "_blank" },
+          { "label": "Changelog", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/CHANGELOG.md", "target": "_blank" },
+          { "label": "GitHub", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui", "target": "_blank" },
+          { "label": "Support", "href": "mailto:support@mprlab.com" }
+        ]
+      }'
+      links-collection='{
+        "style": "drop-up",
+        "text": "Built by Marco Polo Research Lab",
+        "links": [
+          { "label": "Marco Polo Research Lab", "url": "https://mprlab.com" },
+          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+        ]
+      }'
+      theme-switcher="toggle"
+      theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-light","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
+    ></mpr-footer>
+  </body>
+</html>

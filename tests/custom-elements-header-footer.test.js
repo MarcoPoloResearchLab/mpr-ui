@@ -670,6 +670,69 @@ function createLoginButtonHarness(googleStub) {
   return { element, buttonHost, renderCalls };
 }
 
+function attachChildTreeApi(element) {
+  element.children = [];
+  element.childNodes = element.children;
+  element.appendChild = function appendChild(child) {
+    this.children.push(child);
+    return child;
+  };
+  element.clear = function clear() {
+    this.children.length = 0;
+    this.innerHTML = '';
+    this.textContent = '';
+  };
+  return element;
+}
+
+function createAuthProviderChooserHarness(providers, options) {
+  const AuthProviderChooserElement = global.customElements.get('mpr-auth-provider-chooser');
+  assert.ok(AuthProviderChooserElement, 'mpr-auth-provider-chooser is defined');
+  const element = attachChildTreeApi(attachHostApi(new AuthProviderChooserElement(), new Map()));
+  if (providers !== undefined) {
+    element.setAttribute('providers', JSON.stringify(providers));
+  }
+  if (options && options.variant) {
+    element.setAttribute('variant', options.variant);
+  }
+  return { element };
+}
+
+function walkStubTree(root) {
+  const nodes = [];
+  function visit(node) {
+    if (!node) {
+      return;
+    }
+    nodes.push(node);
+    const children = Array.isArray(node.children) ? node.children : [];
+    children.forEach(function visitChild(child) {
+      visit(child);
+    });
+  }
+  visit(root);
+  return nodes;
+}
+
+function findStubNodesByAttribute(root, attributeName, attributeValue) {
+  return walkStubTree(root).filter(function matchNode(node) {
+    if (!node || typeof node.getAttribute !== 'function') {
+      return false;
+    }
+    const currentValue = node.getAttribute(attributeName);
+    return attributeValue === undefined ? currentValue !== null : currentValue === attributeValue;
+  });
+}
+
+function getStubNodeByAttribute(root, attributeName, attributeValue) {
+  const node = findStubNodesByAttribute(root, attributeName, attributeValue)[0];
+  assert.ok(
+    node,
+    'expected node with ' + attributeName + '=' + String(attributeValue),
+  );
+  return node;
+}
+
 function createSettingsElementHarness() {
   const SettingsElement = global.customElements.get('mpr-settings');
   assert.ok(SettingsElement, 'mpr-settings is defined');
@@ -3755,6 +3818,301 @@ test('mpr-theme-toggle logs legacy attributes', () => {
       capture.restore();
     }
   });
+});
+
+test('mpr-auth-provider-chooser renders configured providers compactly in order', () => {
+  resetEnvironment();
+  loadLibrary();
+  const { element } = createAuthProviderChooserHarness(['apple', 'google', 'email']);
+
+  element.connectedCallback();
+
+  assert.equal(
+    element.getAttribute('data-mpr-auth-provider-layout'),
+    'chooser',
+    'three providers render as chooser layout',
+  );
+  assert.equal(
+    element.getAttribute('data-mpr-auth-provider-email-expanded'),
+    'false',
+    'email form stays collapsed until the email provider is selected',
+  );
+  const providerButtons = findStubNodesByAttribute(element, 'data-mpr-auth-provider');
+  assert.deepEqual(
+    providerButtons.map(function providerId(button) {
+      return button.getAttribute('data-mpr-auth-provider');
+    }),
+    ['apple', 'google', 'email'],
+    'provider button order follows the explicit providers attribute',
+  );
+  assert.deepEqual(
+    providerButtons.map(function providerLabel(button) {
+      return button.getAttribute('aria-label');
+    }),
+    ['Continue with Apple', 'Continue with Google', 'Continue with email'],
+    'provider buttons use compact continue labels',
+  );
+  assert.deepEqual(
+    findStubNodesByAttribute(element, 'data-mpr-auth-provider-mark').map(
+      function providerMark(mark) {
+        return mark.getAttribute('data-mpr-auth-provider-mark');
+      },
+    ),
+    ['apple', 'google', 'email'],
+    'provider buttons include decorative provider marks',
+  );
+  assert.deepEqual(
+    findStubNodesByAttribute(element, 'data-mpr-auth-provider-label').map(
+      function providerLabel(label) {
+        return label.textContent;
+      },
+    ),
+    ['Continue with Apple', 'Continue with Google', 'Continue with email'],
+    'provider labels remain visible text inside the button',
+  );
+  assert.equal(
+    findStubNodesByAttribute(element, 'data-mpr-auth-provider-chooser', 'email-panel').length,
+    0,
+    'collapsed email form does not occupy the compact provider stack',
+  );
+});
+
+test('mpr-auth-provider-chooser supports icon-row provider actions', () => {
+  resetEnvironment();
+  loadLibrary();
+  const { element } = createAuthProviderChooserHarness(
+    ['apple', 'google', 'email'],
+    { variant: 'icon-row' },
+  );
+
+  element.connectedCallback();
+
+  assert.equal(
+    element.getAttribute('data-mpr-auth-provider-variant'),
+    'icon-row',
+    'icon-row variant is reflected on the host',
+  );
+  assert.equal(
+    getStubNodeByAttribute(element, 'data-mpr-auth-provider-chooser', 'root')
+      .getAttribute('data-mpr-auth-provider-variant'),
+    'icon-row',
+    'icon-row variant is reflected on the rendered root',
+  );
+  assert.deepEqual(
+    findStubNodesByAttribute(element, 'data-mpr-auth-provider-mark').map(
+      function providerMark(mark) {
+        return mark.getAttribute('data-mpr-auth-provider-mark');
+      },
+    ),
+    ['apple', 'google', 'email'],
+    'icon-row still renders all provider marks',
+  );
+  assert.deepEqual(
+    findStubNodesByAttribute(element, 'data-mpr-auth-provider').map(
+      function providerLabel(button) {
+        return button.getAttribute('aria-label');
+      },
+    ),
+    ['Continue with Apple', 'Continue with Google', 'Continue with email'],
+    'icon-row keeps accessible provider labels',
+  );
+});
+
+test('mpr-auth-provider-chooser expands email in place and omits credentials from events', () => {
+  resetEnvironment();
+  loadLibrary();
+  const { element } = createAuthProviderChooserHarness(['apple', 'google', 'email']);
+
+  element.connectedCallback();
+  const emailButton = getStubNodeByAttribute(element, 'data-mpr-auth-provider', 'email');
+  emailButton.dispatchEvent({ type: 'click', preventDefault() {} });
+
+  assert.equal(
+    element.getAttribute('data-mpr-auth-provider-selected'),
+    'email',
+    'email selection is reflected as provider state only',
+  );
+  assert.equal(
+    element.getAttribute('data-mpr-auth-provider-email-expanded'),
+    'true',
+    'email selection expands the inline email form',
+  );
+  assert.equal(
+    getStubNodeByAttribute(element, 'data-mpr-auth-provider-chooser', 'email-panel')
+      .getAttribute('id'),
+    emailButton.getAttribute('aria-controls'),
+    'email button controls the inline email panel',
+  );
+  const submitForm = getStubNodeByAttribute(
+    element,
+    'data-mpr-auth-provider-email',
+    'form',
+  );
+  const emailInput = getStubNodeByAttribute(
+    element,
+    'data-mpr-auth-provider-field',
+    'email',
+  );
+  const passwordInput = getStubNodeByAttribute(
+    element,
+    'data-mpr-auth-provider-field',
+    'password',
+  );
+  emailInput.value = 'operator@example.com';
+  passwordInput.value = 'correct-horse-battery-staple';
+  submitForm.dispatchEvent({ type: 'submit', preventDefault() {} });
+
+  const submitEvents = element.__dispatchedEvents.filter(function keepSubmitEvent(eventEntry) {
+    return eventEntry.type === 'mpr-auth-provider:email-submit';
+  });
+  assert.equal(submitEvents.length, 1, 'email submit emits one provider event');
+  assert.deepEqual(
+    submitEvents[0].detail,
+    { provider: 'email', action: 'login' },
+    'email submit event carries no raw email or password value',
+  );
+  assert.equal(
+    JSON.stringify(submitEvents[0].detail).indexOf('correct-horse-battery-staple'),
+    -1,
+    'email submit detail does not leak the password',
+  );
+});
+
+test('mpr-auth-provider-chooser collapses email when a different provider is selected', () => {
+  resetEnvironment();
+  loadLibrary();
+  const { element } = createAuthProviderChooserHarness(['apple', 'google', 'email']);
+
+  element.connectedCallback();
+  getStubNodeByAttribute(element, 'data-mpr-auth-provider', 'email').dispatchEvent({
+    type: 'click',
+    preventDefault() {},
+  });
+  getStubNodeByAttribute(element, 'data-mpr-auth-provider', 'google').dispatchEvent({
+    type: 'click',
+    preventDefault() {},
+  });
+
+  assert.equal(
+    element.getAttribute('data-mpr-auth-provider-selected'),
+    'google',
+    'google selection replaces the selected provider state',
+  );
+  assert.equal(
+    element.getAttribute('data-mpr-auth-provider-email-expanded'),
+    'false',
+    'google selection collapses the email panel',
+  );
+  assert.equal(
+    findStubNodesByAttribute(element, 'data-mpr-auth-provider-chooser', 'email-panel').length,
+    0,
+    'email panel is removed after choosing a non-email provider',
+  );
+  assert.deepEqual(
+    element.__dispatchedEvents
+      .filter(function keepProviderEvents(eventEntry) {
+        return eventEntry.type === 'mpr-auth-provider:select';
+      })
+      .map(function providerId(eventEntry) {
+        return eventEntry.detail.provider;
+      }),
+    ['email', 'google'],
+    'provider selections dispatch DOM-scoped provider events',
+  );
+});
+
+test('mpr-auth-provider-chooser reconciles selection when providers change', () => {
+  resetEnvironment();
+  loadLibrary();
+  const { element } = createAuthProviderChooserHarness(['apple', 'google', 'email']);
+
+  element.connectedCallback();
+  getStubNodeByAttribute(element, 'data-mpr-auth-provider', 'email').dispatchEvent({
+    type: 'click',
+    preventDefault() {},
+  });
+  element.setAttribute('providers', JSON.stringify(['google']));
+
+  assert.equal(
+    element.getAttribute('data-mpr-auth-provider-selected'),
+    null,
+    'provider updates clear selections that are no longer available',
+  );
+  assert.equal(
+    element.getAttribute('data-mpr-auth-provider-email-expanded'),
+    'false',
+    'provider updates collapse stale email state when email is removed',
+  );
+  assert.deepEqual(
+    findStubNodesByAttribute(element, 'data-mpr-auth-provider').map(
+      function providerId(button) {
+        return button.getAttribute('data-mpr-auth-provider');
+      },
+    ),
+    ['google'],
+    'provider updates rerender only the new provider list',
+  );
+  assert.equal(
+    findStubNodesByAttribute(element, 'data-mpr-auth-provider-chooser', 'email-panel').length,
+    0,
+    'provider updates remove stale email panels',
+  );
+
+  const retainedHarness = createAuthProviderChooserHarness(['apple', 'google', 'email']);
+  retainedHarness.element.connectedCallback();
+  getStubNodeByAttribute(retainedHarness.element, 'data-mpr-auth-provider', 'google')
+    .dispatchEvent({
+      type: 'click',
+      preventDefault() {},
+    });
+  retainedHarness.element.setAttribute('providers', JSON.stringify(['google', 'email']));
+
+  assert.equal(
+    retainedHarness.element.getAttribute('data-mpr-auth-provider-selected'),
+    'google',
+    'provider updates preserve selections that are still available',
+  );
+});
+
+test('mpr-auth-provider-chooser rejects missing, unknown, and duplicate providers', () => {
+  resetEnvironment();
+  loadLibrary();
+  const missingProviders = createAuthProviderChooserHarness().element;
+
+  missingProviders.connectedCallback();
+
+  assert.equal(
+    missingProviders.getAttribute('data-mpr-auth-provider-error'),
+    'mpr-ui.auth_provider_chooser.providers_required',
+    'missing providers fail loudly on the host',
+  );
+
+  const { element: unknownProvider } = createAuthProviderChooserHarness(['google', 'magic']);
+  unknownProvider.connectedCallback();
+  assert.equal(
+    unknownProvider.getAttribute('data-mpr-auth-provider-error'),
+    'mpr-ui.auth_provider_chooser.unsupported_provider',
+    'unknown provider IDs are rejected',
+  );
+
+  const { element: duplicateProvider } = createAuthProviderChooserHarness(['apple', 'apple']);
+  duplicateProvider.connectedCallback();
+  assert.equal(
+    duplicateProvider.getAttribute('data-mpr-auth-provider-error'),
+    'mpr-ui.auth_provider_chooser.duplicate_provider',
+    'duplicate provider IDs are rejected',
+  );
+
+  const { element: unsupportedVariant } = createAuthProviderChooserHarness(
+    ['apple', 'google', 'email'],
+    { variant: 'spread' },
+  );
+  unsupportedVariant.connectedCallback();
+  assert.equal(
+    unsupportedVariant.getAttribute('data-mpr-auth-provider-error'),
+    'mpr-ui.auth_provider_chooser.unsupported_variant',
+    'unsupported variants fail loudly on the host',
+  );
 });
 
 test('mpr-login-button renders a visible sign-in attempt trigger with provided site ID', async () => {

@@ -1,9 +1,10 @@
 # demo auth stack
 
-This document explains the bundled same-origin auth demos:
+This document explains the bundled auth and auth-adjacent demos:
 
 - [`/index.html`](../index.html) for the demo hub
 - [`/demo/tauth-demo.html`](../demo/tauth-demo.html) for header auth
+- [`/demo/auth-provider-chooser.html`](../demo/auth-provider-chooser.html) for the compact provider chooser
 - [`/demo/standalone.html`](../demo/standalone.html) for standalone login + user menu
 
 All of them follow the same integration ideology:
@@ -12,6 +13,12 @@ All of them follow the same integration ideology:
 - the shell is declared with `<mpr-*>`
 - the backend exposes `/auth/*` and `/me`
 - the page does not load `tauth.js`
+
+The provider chooser demo is intentionally a UI/event primitive. It renders
+Google, Apple, and email provider choices in stacked and icon-row variants and
+records provider events, but it does not load `config-ui.yaml`, complete Apple
+redirects, or submit email/password credentials to TAuth. Authenticated UI must
+still wait for `mpr-ui:auth:*`.
 
 ## Files involved
 
@@ -22,16 +29,25 @@ All of them follow the same integration ideology:
 - [`mpr-ui-config.js`](../mpr-ui-config.js)
 - [`mpr-ui.js`](../mpr-ui.js)
 
+## Preview modes
+
+Run `npm run demo:serve` for the lightweight static preview at `http://127.0.0.1:4177/`. The server applies `Cache-Control: no-store` to local demo assets so iterative `mpr-ui.js` and `mpr-ui.css` edits are visible after refresh. `demo/config-ui.yaml` includes that exact origin so the shared header/footer components render while you inspect the demos. This mode does not provide `/auth/*` or `/me`; use `./up.sh tauth` for real sign-in.
+
+Run `./up.sh tauth` for the full HTTPS stack at `https://localhost:4443/`. This is the mode that exercises gHTTP, TAuth, `/auth/*`, `/me`, and cookies.
+
 ## Page contract
 
-Each demo page:
+The TAuth-backed demo pages:
 
 1. loads `mpr-ui.css`
 2. loads GIS
 3. loads `js-yaml`
 4. loads `mpr-ui-config.js`
 5. exposes the local bundle through `data-mpr-ui-bundle-src`
-6. renders `<mpr-header data-config-url="./config-ui.yaml">`
+6. render `<mpr-header data-config-url="./config-ui.yaml">`
+
+`/demo/auth-provider-chooser.html` is the exception: it loads `../mpr-ui.js`
+directly so the chooser can be inspected from any static local server.
 
 Example:
 

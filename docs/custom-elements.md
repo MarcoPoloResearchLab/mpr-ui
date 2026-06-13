@@ -96,6 +96,67 @@ document.addEventListener('mpr-ui:auth:authenticated', function () {
 ### Script order
 Load `mpr-ui.css`, GIS, `js-yaml`, and `mpr-ui-config.js`, then expose the bundle through `data-mpr-ui-bundle-src`. The config loader applies `/config-ui.yaml` first and then loads `mpr-ui.js`.
 
+## mpr-auth-provider-chooser
+
+The provider chooser renders a compact ordered set of provider actions. It is the shared primitive for pages that need Google, Apple, and email entry points without expanding into separate login panels by default.
+
+This element is a UI and event primitive. It does not create a shared auth controller, start Apple redirects, call Google Identity Services, submit email/password credentials to TAuth, or mark the user authenticated. The surrounding page or a future provider-aware auth controller owns those mechanics and must still prove completion through the existing `mpr-ui:auth:*` lifecycle.
+
+### Required attributes
+- `providers`: JSON array ordered from `apple`, `google`, and `email`. The array is explicit and must be non-empty; unknown or duplicate providers fail on `mpr-auth-provider:error`.
+
+### Optional attributes
+- `variant`: `stack` by default, or `icon-row` for a horizontal row of square icon buttons. The icon-row variant visually hides provider text labels while preserving accessible button names.
+
+Supported provider IDs:
+
+- `apple`
+- `google`
+- `email`
+
+Missing, malformed, unknown, or duplicate provider lists and unsupported variants fail on the host with `data-mpr-auth-provider-error` and emit `mpr-auth-provider:error`.
+
+Provider actions include compact decorative marks for Google, Apple, and email. They make the choice scannable, but they do not certify the final sign-in flow as provider-brand compliant; use provider-owned Google and Apple sign-in button guidance when the selected provider action starts real authentication.
+
+Stable error codes:
+
+- `mpr-ui.auth_provider_chooser.providers_required`
+- `mpr-ui.auth_provider_chooser.providers_invalid`
+- `mpr-ui.auth_provider_chooser.unsupported_provider`
+- `mpr-ui.auth_provider_chooser.duplicate_provider`
+- `mpr-ui.auth_provider_chooser.unsupported_variant`
+
+### Events
+- `mpr-auth-provider:select` (detail includes `provider`).
+- `mpr-auth-provider:email-submit` (detail includes `provider: "email"` and `action: "login"`; raw email and password values are not included).
+- `mpr-auth-provider:email-mode` (detail includes `mode`, currently `reset-start` or `signup`).
+- `mpr-auth-provider:error` (detail includes `code` and `message`).
+
+Provider events are DOM-scoped control events. They are not `mpr-ui:auth:*` lifecycle events and should not be used as proof that a session exists.
+
+### Example
+```html
+<mpr-auth-provider-chooser providers='["apple","google","email"]'></mpr-auth-provider-chooser>
+```
+
+Smaller provider sets use the same compact primitive:
+
+```html
+<mpr-auth-provider-chooser providers='["google"]'></mpr-auth-provider-chooser>
+<mpr-auth-provider-chooser providers='["google","email"]'></mpr-auth-provider-chooser>
+```
+
+When vertical space is tighter and the surrounding login surface already names the providers, use the square icon row:
+
+```html
+<mpr-auth-provider-chooser
+  providers='["apple","google","email"]'
+  variant="icon-row"
+></mpr-auth-provider-chooser>
+```
+
+Selecting `email` expands the email/password form in place. Selecting Apple or Google emits the provider selection event and leaves provider-specific auth mechanics to the owning auth controller. Email form submit events deliberately omit raw input values; if an owning controller reads the fields, it must send credentials directly to the configured auth action without storing them in attributes, local storage, logs, or secondary events.
+
 ## mpr-footer
 
 The footer renders product links, privacy links, and an optional theme switch.

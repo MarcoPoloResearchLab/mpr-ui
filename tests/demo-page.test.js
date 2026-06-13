@@ -4,6 +4,8 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
+const yaml = require('js-yaml');
+const packageJson = require('../package.json');
 
 const repoRoot = join(__dirname, '..');
 const demoDir = join(repoRoot, 'demo');
@@ -12,12 +14,16 @@ const sharedCssPath = join(repoRoot, 'mpr-ui.css');
 const demoCssPath = join(demoDir, 'demo.css');
 const entityWorkspaceCssPath = join(demoDir, 'entity-workspace.css');
 const dockerComposePath = join(repoRoot, 'docker-compose.yml');
+const demoConfigPath = join(demoDir, 'config-ui.yaml');
+const demoServerPath = join(repoRoot, 'scripts', 'serve-demo.mjs');
 
 const landingHtml = readFileSync(landingHtmlPath, 'utf8');
 const sharedCss = readFileSync(sharedCssPath, 'utf8');
 const demoCss = readFileSync(demoCssPath, 'utf8');
 const entityWorkspaceCss = readFileSync(entityWorkspaceCssPath, 'utf8');
 const dockerCompose = readFileSync(dockerComposePath, 'utf8');
+const demoConfig = yaml.load(readFileSync(demoConfigPath, 'utf8'));
+const demoServer = readFileSync(demoServerPath, 'utf8');
 
 const HEADER_HORIZONTAL_LINK_DEMO_FILES = Object.freeze([
   'tauth-demo.html',
@@ -26,6 +32,13 @@ const HEADER_HORIZONTAL_LINK_DEMO_FILES = Object.freeze([
 ]);
 
 const FOOTER_HORIZONTAL_LINK_DEMO_FILES = Object.freeze([
+  'tauth-demo.html',
+  'auth-provider-chooser.html',
+  'entity-workspace.html',
+  'standalone.html',
+]);
+
+const AUTH_BACKED_HEADER_DEMO_FILES = Object.freeze([
   'tauth-demo.html',
   'entity-workspace.html',
   'standalone.html',
@@ -70,6 +83,57 @@ test('landing page loads local mpr-ui assets', () => {
     landingHtml,
     /<link[^>]+href="\.\/mpr-ui\.css"/,
     'Expected root index.html to reference the local stylesheet',
+  );
+});
+
+test('local demo preview uses the no-store demo server', () => {
+  assert.equal(
+    packageJson.scripts['demo:serve'],
+    'node scripts/serve-demo.mjs',
+    'Expected package scripts to expose the cache-killing demo server',
+  );
+  assert.match(
+    demoServer,
+    /const CACHE_CONTROL_VALUE = 'no-store, no-cache, must-revalidate, max-age=0';/,
+    'Expected the demo server to disable browser caching for local assets',
+  );
+  assert.match(
+    demoServer,
+    /response\.setHeader\('Cache-Control', CACHE_CONTROL_VALUE\);/,
+    'Expected the demo server to apply the no-store header to responses',
+  );
+  assert.match(
+    demoServer,
+    /const DEFAULT_PORT = 4177;/,
+    'Expected the no-store demo server to use the documented preview port',
+  );
+});
+
+test('auth provider chooser icon-row CSS is compact and declarative', () => {
+  assert.match(
+    sharedCss,
+    /mpr-auth-provider-chooser\[variant='icon-row'\]/,
+    'Expected icon-row styling to apply from the public variant attribute',
+  );
+  assert.match(
+    sharedCss,
+    /grid-auto-columns: calc\(2\.25rem \* var\(--mpr-auth-provider-scale, 1\)\)/,
+    'Expected icon-row provider buttons to use compact square columns',
+  );
+  assert.match(
+    sharedCss,
+    /inline-size: calc\(2\.25rem \* var\(--mpr-auth-provider-scale, 1\)\)/,
+    'Expected icon-row provider buttons to use compact square width',
+  );
+  assert.match(
+    sharedCss,
+    /block-size: calc\(2\.25rem \* var\(--mpr-auth-provider-scale, 1\)\)/,
+    'Expected icon-row provider buttons to use compact square height',
+  );
+  assert.doesNotMatch(
+    sharedCss,
+    /mpr-auth-provider-chooser__action--email[\s\S]*border-style/,
+    'Expected provider chooser outlines to avoid email-specific border styling',
   );
 });
 
@@ -190,7 +254,7 @@ test('demo pages keep the shared slotted avatar control in the header', () => {
     /<mpr-user[\s\S]*slot="aux"[\s\S]*display-mode="avatar"[\s\S]*logout-url="\/"[\s\S]*logout-label="Log out"[\s\S]*><\/mpr-user>/,
     'Expected landing page to keep the shared slotted avatar control',
   );
-  HEADER_HORIZONTAL_LINK_DEMO_FILES.forEach((demoFileName) => {
+  AUTH_BACKED_HEADER_DEMO_FILES.forEach((demoFileName) => {
     const demoHtmlFile = readDemoFile(demoFileName);
 
     assert.match(
@@ -206,6 +270,26 @@ test('docker compose keeps the index demo as the single root entrypoint', () => 
     dockerCompose,
     /- \.\/:[^\s]*\/app\/www/,
     'Expected docker-compose.yml to mount the repository as the app root',
+  );
+});
+
+test('demo config supports the lightweight static preview origin', () => {
+  const staticPreviewEnvironment = demoConfig.environments.find(
+    (environment) => environment.description === 'Static HTTP preview',
+  );
+  assert.ok(
+    staticPreviewEnvironment,
+    'Expected demo/config-ui.yaml to define the static HTTP preview environment',
+  );
+  assert.deepEqual(
+    staticPreviewEnvironment.origins,
+    ['http://127.0.0.1:4177', 'http://localhost:4177'],
+    'Expected the documented static server origins to match the demo config',
+  );
+  assert.equal(
+    staticPreviewEnvironment.auth.tenantId,
+    'mpr-sites',
+    'Expected the static preview to keep the demo tenant',
   );
 });
 
@@ -254,5 +338,59 @@ test('standalone demo uses Web Component orchestration', () => {
     html,
     /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\ssrc="\.\.\/mpr-ui\.js"[^>]*>/i,
     'Expected standalone demo to avoid loading the bundle before config orchestration completes',
+  );
+});
+
+test('auth provider chooser demo exposes the compact provider surface', () => {
+  const html = readDemoFile('auth-provider-chooser.html');
+  assert.doesNotMatch(
+    html,
+    /<mpr-header/i,
+    'Expected auth provider chooser demo to avoid auth-backed header controls',
+  );
+  assert.match(
+    html,
+    /<nav class="provider-demo__nav" aria-label="Demo pages">[\s\S]*Provider chooser[\s\S]*<\/nav>/,
+    'Expected auth provider chooser demo to keep demo navigation links',
+  );
+  assert.match(
+    html,
+    /<script\b[^>]*\bid="mpr-ui-bundle"[^>]*\sdefer[^>]*\ssrc="\.\.\/mpr-ui\.js"[^>]*><\/script>/i,
+    'Expected auth provider chooser demo to load the local bundle directly',
+  );
+  assert.doesNotMatch(
+    html,
+    /data-config-url="\.?\/config-ui\.yaml"/,
+    'Expected auth provider chooser demo to avoid the auth stack config gate',
+  );
+  assert.match(
+    html,
+    /<mpr-auth-provider-chooser[\s\S]*providers='\["apple","google","email"\]'[\s\S]*><\/mpr-auth-provider-chooser>/,
+    'Expected auth provider chooser demo to render all three providers',
+  );
+  assert.match(
+    html,
+    /<mpr-auth-provider-chooser[\s\S]*providers='\["apple","google","email"\]'[\s\S]*variant="icon-row"[\s\S]*><\/mpr-auth-provider-chooser>/,
+    'Expected auth provider chooser demo to render the icon-row provider variant',
+  );
+  assert.match(
+    html,
+    /<mpr-auth-provider-chooser[\s\S]*providers='\["google"\]'[\s\S]*><\/mpr-auth-provider-chooser>/,
+    'Expected auth provider chooser demo to render the single-provider variant',
+  );
+  assert.match(
+    html,
+    /<mpr-auth-provider-chooser[\s\S]*providers='\["google","email"\]'[\s\S]*><\/mpr-auth-provider-chooser>/,
+    'Expected auth provider chooser demo to render the mixed-provider variant',
+  );
+  assert.match(
+    html,
+    /<script\b[^>]*\bsrc="\.\/auth-provider-chooser\.js"[^>]*><\/script>/i,
+    'Expected auth provider chooser demo to load its event logger',
+  );
+  assert.doesNotMatch(
+    html,
+    /<script\b[^>]*\bsrc="\/tauth\.js"[^>]*><\/script>/i,
+    'Expected auth provider chooser demo to avoid the legacy tauth.js helper',
   );
 });

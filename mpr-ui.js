@@ -46,10 +46,77 @@
       return labels;
     })()
   );
+  var AUTH_PROVIDER_CHOOSER_ROOT_CLASS = "mpr-auth-provider-chooser";
+  var AUTH_PROVIDER_CHOOSER_STYLE_ID = "mpr-ui-auth-provider-chooser-styles";
+  var AUTH_PROVIDER_CHOOSER_PROVIDERS_ATTRIBUTE = "providers";
+  var AUTH_PROVIDER_CHOOSER_VARIANT_ATTRIBUTE = "variant";
+  var AUTH_PROVIDER_CHOOSER_ERROR_ATTRIBUTE = "data-mpr-auth-provider-error";
+  var AUTH_PROVIDER_CHOOSER_SELECTED_ATTRIBUTE =
+    "data-mpr-auth-provider-selected";
+  var AUTH_PROVIDER_CHOOSER_EMAIL_EXPANDED_ATTRIBUTE =
+    "data-mpr-auth-provider-email-expanded";
+  var AUTH_PROVIDER_SELECT_EVENT = "mpr-auth-provider:select";
+  var AUTH_PROVIDER_EMAIL_SUBMIT_EVENT = "mpr-auth-provider:email-submit";
+  var AUTH_PROVIDER_EMAIL_MODE_EVENT = "mpr-auth-provider:email-mode";
+  var AUTH_PROVIDER_ERROR_EVENT = "mpr-auth-provider:error";
+  var AUTH_PROVIDER_CHOOSER_PROVIDERS_REQUIRED_ERROR_CODE =
+    "mpr-ui.auth_provider_chooser.providers_required";
+  var AUTH_PROVIDER_CHOOSER_PROVIDERS_INVALID_ERROR_CODE =
+    "mpr-ui.auth_provider_chooser.providers_invalid";
+  var AUTH_PROVIDER_CHOOSER_UNSUPPORTED_PROVIDER_ERROR_CODE =
+    "mpr-ui.auth_provider_chooser.unsupported_provider";
+  var AUTH_PROVIDER_CHOOSER_DUPLICATE_PROVIDER_ERROR_CODE =
+    "mpr-ui.auth_provider_chooser.duplicate_provider";
+  var AUTH_PROVIDER_CHOOSER_UNSUPPORTED_VARIANT_ERROR_CODE =
+    "mpr-ui.auth_provider_chooser.unsupported_variant";
+  var AUTH_PROVIDER_CHOOSER_LABELS = Object.freeze({
+    group: "Authentication providers",
+    apple: "Continue with Apple",
+    google: "Continue with Google",
+    email: "Continue with email",
+    emailField: "Email",
+    passwordField: "Password",
+    submit: "Sign in",
+    forgotPassword: "Forgot password",
+    createAccount: "Create account",
+  });
+  var AUTH_PROVIDER_CHOOSER_MARKUP = Object.freeze({
+    apple:
+      '<svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path fill="currentColor" d="M11.182.008C11.148-.03 9.923.023 8.857 1.18 7.791 2.336 7.955 3.662 7.979 3.696c.024.034 1.52.087 2.475-1.258C11.409 1.093 11.216.046 11.182.008Zm3.314 11.733c-.048-.096-2.325-1.234-2.113-3.422.212-2.189 1.675-2.789 1.698-2.854.023-.065-.597-.79-1.254-1.157a3.692 3.692 0 0 0-1.563-.434c-.108-.003-.483-.095-1.254.116-.508.139-1.653.589-1.968.607-.316.018-1.256-.522-2.267-.665-.647-.125-1.333.131-1.824.328-.49.196-1.422.754-2.074 2.237-.652 1.482-.311 3.83-.067 4.56.244.729.625 1.924 1.273 2.796.576.984 1.34 1.667 1.659 1.899.319.232 1.219.386 1.843.067.502-.308 1.408-.485 1.766-.472.357.013 1.061.154 1.782.539.571.197 1.111.115 1.652-.105.541-.221 1.324-1.059 2.238-2.758.347-.79.505-1.217.473-1.282Z"/></svg>',
+    google:
+      '<svg viewBox="0 0 18 18" aria-hidden="true" focusable="false"><path fill="#4285f4" d="M17.64 9.204c0-.638-.057-1.252-.164-1.841H9v3.482h4.844a4.14 4.14 0 0 1-1.793 2.716v2.258h2.909c1.699-1.563 2.68-3.874 2.68-6.615Z"/><path fill="#34a853" d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.909-2.259c-.806.54-1.837.859-3.047.859-2.344 0-4.328-1.583-5.036-3.71H.957v2.332C2.438 15.983 5.482 18 9 18Z"/><path fill="#fbbc05" d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.594.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332Z"/><path fill="#ea4335" d="M9 3.58c1.321 0 2.508.454 3.44 1.346l2.582-2.582C13.463.892 11.426 0 9 0 5.482 0 2.438 2.017.957 4.958L3.964 7.29C4.672 5.162 6.656 3.58 9 3.58Z"/></svg>',
+    email:
+      '<svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4 6h16v12H4z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"/><path d="m4 7 8 6 8-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>',
+  });
+  var AUTH_PROVIDER_IDS = Object.freeze({
+    APPLE: "apple",
+    GOOGLE: "google",
+    EMAIL: "email",
+  });
+  var AUTH_PROVIDER_ID_VALUES = Object.freeze([
+    AUTH_PROVIDER_IDS.APPLE,
+    AUTH_PROVIDER_IDS.GOOGLE,
+    AUTH_PROVIDER_IDS.EMAIL,
+  ]);
+  var AUTH_PROVIDER_EMAIL_MODE = Object.freeze({
+    RESET_START: "reset-start",
+    SIGNUP: "signup",
+  });
+  var AUTH_PROVIDER_CHOOSER_VARIANTS = Object.freeze({
+    STACK: "stack",
+    ICON_ROW: "icon-row",
+  });
+  var AUTH_PROVIDER_CHOOSER_VARIANT_VALUES = Object.freeze([
+    AUTH_PROVIDER_CHOOSER_VARIANTS.STACK,
+    AUTH_PROVIDER_CHOOSER_VARIANTS.ICON_ROW,
+  ]);
 
   /**
    * @typedef {{ code?: string, status?: number }} MprUiErrorMetadata
    * @typedef {Error & MprUiErrorMetadata} MprUiError
+   * @typedef {"apple"|"google"|"email"} AuthProviderId
+   * @typedef {"stack"|"icon-row"} AuthProviderChooserVariant
+   * @typedef {{ providers: readonly AuthProviderId[], variant: AuthProviderChooserVariant }} AuthProviderChooserOptions
    * @typedef {{
    *   tauthUrl?: string,
    *   tauthLoginPath?: string,
@@ -811,6 +878,10 @@
     "button-size",
     "button-shape",
   ]);
+  var AUTH_PROVIDER_CHOOSER_ATTRIBUTE_NAMES = Object.freeze([
+    AUTH_PROVIDER_CHOOSER_PROVIDERS_ATTRIBUTE,
+    AUTH_PROVIDER_CHOOSER_VARIANT_ATTRIBUTE,
+  ]);
   var USER_MENU_ATTRIBUTE_NAMES = Object.freeze([
     "display-mode",
     "logout-url",
@@ -1336,6 +1407,412 @@
         clearNodeContents(containerElement);
       },
     };
+  }
+
+  var authProviderEmailPanelCounter = 0;
+
+  function createAuthProviderEmailPanelId() {
+    authProviderEmailPanelCounter += 1;
+    return "mpr-auth-provider-email-" + authProviderEmailPanelCounter;
+  }
+
+  /**
+   * @param {string} code
+   * @param {string} message
+   * @returns {MprUiError}
+   */
+  function createAuthProviderChooserError(code, message) {
+    /** @type {MprUiError} */
+    var error = new Error(message);
+    error.code = code;
+    return error;
+  }
+
+  /**
+   * @param {unknown} value
+   * @param {number} index
+   * @returns {AuthProviderId}
+   */
+  function normalizeAuthProviderId(value, index) {
+    if (typeof value !== "string" || !value.trim()) {
+      throw createAuthProviderChooserError(
+        AUTH_PROVIDER_CHOOSER_PROVIDERS_INVALID_ERROR_CODE,
+        "Auth provider at index " + index + " must be a non-empty string",
+      );
+    }
+    var normalized = /** @type {AuthProviderId} */ (value.trim().toLowerCase());
+    if (AUTH_PROVIDER_ID_VALUES.indexOf(normalized) === -1) {
+      throw createAuthProviderChooserError(
+        AUTH_PROVIDER_CHOOSER_UNSUPPORTED_PROVIDER_ERROR_CODE,
+        'Unsupported auth provider "' + normalized + '"',
+      );
+    }
+    return /** @type {AuthProviderId} */ (normalized);
+  }
+
+  /**
+   * @param {string|null} rawValue
+   * @returns {readonly AuthProviderId[]}
+   */
+  function parseAuthProviderListAttribute(rawValue) {
+    if (typeof rawValue !== "string" || !rawValue.trim()) {
+      throw createAuthProviderChooserError(
+        AUTH_PROVIDER_CHOOSER_PROVIDERS_REQUIRED_ERROR_CODE,
+        "Auth provider chooser requires an explicit providers attribute",
+      );
+    }
+    var parsedValue = null;
+    try {
+      parsedValue = JSON.parse(rawValue);
+    } catch (_error) {
+      throw createAuthProviderChooserError(
+        AUTH_PROVIDER_CHOOSER_PROVIDERS_INVALID_ERROR_CODE,
+        "Auth provider chooser providers must be a JSON array",
+      );
+    }
+    if (!Array.isArray(parsedValue) || parsedValue.length === 0) {
+      throw createAuthProviderChooserError(
+        AUTH_PROVIDER_CHOOSER_PROVIDERS_INVALID_ERROR_CODE,
+        "Auth provider chooser providers must be a non-empty JSON array",
+      );
+    }
+    var seenProviders = {};
+    var providers = parsedValue.map(function normalizeProvider(provider, index) {
+      var providerId = normalizeAuthProviderId(provider, index);
+      if (seenProviders[providerId]) {
+        throw createAuthProviderChooserError(
+          AUTH_PROVIDER_CHOOSER_DUPLICATE_PROVIDER_ERROR_CODE,
+          'Duplicate auth provider "' + providerId + '"',
+        );
+      }
+      seenProviders[providerId] = true;
+      return providerId;
+    });
+    return Object.freeze(providers);
+  }
+
+  /**
+   * @param {string|null} rawValue
+   * @returns {AuthProviderChooserVariant}
+   */
+  function normalizeAuthProviderChooserVariant(rawValue) {
+    if (typeof rawValue !== "string" || !rawValue.trim()) {
+      return AUTH_PROVIDER_CHOOSER_VARIANTS.STACK;
+    }
+    var normalized = /** @type {AuthProviderChooserVariant} */ (
+      rawValue.trim().toLowerCase()
+    );
+    if (AUTH_PROVIDER_CHOOSER_VARIANT_VALUES.indexOf(normalized) === -1) {
+      throw createAuthProviderChooserError(
+        AUTH_PROVIDER_CHOOSER_UNSUPPORTED_VARIANT_ERROR_CODE,
+        'Unsupported auth provider chooser variant "' + normalized + '"',
+      );
+    }
+    return normalized;
+  }
+
+  /**
+   * @param {{ getAttribute: (attributeName: string) => (string|null) }} hostElement
+   * @returns {AuthProviderChooserOptions}
+   */
+  function buildAuthProviderChooserOptionsFromAttributes(hostElement) {
+    return Object.freeze({
+      providers: parseAuthProviderListAttribute(
+        hostElement.getAttribute(AUTH_PROVIDER_CHOOSER_PROVIDERS_ATTRIBUTE),
+      ),
+      variant: normalizeAuthProviderChooserVariant(
+        hostElement.getAttribute(AUTH_PROVIDER_CHOOSER_VARIANT_ATTRIBUTE),
+      ),
+    });
+  }
+
+  function getAuthProviderLabel(providerId) {
+    return AUTH_PROVIDER_CHOOSER_LABELS[providerId];
+  }
+
+  function setAuthProviderChooserError(hostElement, error) {
+    if (!hostElement || typeof hostElement.setAttribute !== "function") {
+      return;
+    }
+    var errorCode = error && error.code ? error.code : "mpr-ui.auth_provider_chooser.error";
+    hostElement.setAttribute(AUTH_PROVIDER_CHOOSER_ERROR_ATTRIBUTE, errorCode);
+    logError(errorCode, error && error.message ? error.message : String(error));
+    dispatchEvent(hostElement, AUTH_PROVIDER_ERROR_EVENT, {
+      code: errorCode,
+      message: error && error.message ? error.message : String(error),
+    });
+  }
+
+  function clearAuthProviderChooserError(hostElement) {
+    if (!hostElement || typeof hostElement.removeAttribute !== "function") {
+      return;
+    }
+    hostElement.removeAttribute(AUTH_PROVIDER_CHOOSER_ERROR_ATTRIBUTE);
+  }
+
+  function createAuthProviderElement(hostElement, tagName) {
+    var element = createElementNear(hostElement, tagName);
+    if (!element) {
+      throw createAuthProviderChooserError(
+        AUTH_PROVIDER_CHOOSER_PROVIDERS_INVALID_ERROR_CODE,
+        "Auth provider chooser requires document.createElement",
+      );
+    }
+    return element;
+  }
+
+  function appendAuthProviderElement(parentElement, childElement) {
+    if (!parentElement || typeof parentElement.appendChild !== "function") {
+      throw createAuthProviderChooserError(
+        AUTH_PROVIDER_CHOOSER_PROVIDERS_INVALID_ERROR_CODE,
+        "Auth provider chooser requires appendChild support",
+      );
+    }
+    parentElement.appendChild(childElement);
+  }
+
+  function setAuthProviderElementClass(element, className) {
+    if (element && typeof element.setAttribute === "function") {
+      element.setAttribute("class", className);
+    }
+  }
+
+  function setAuthProviderElementText(element, text) {
+    element.textContent = text;
+  }
+
+  function createAuthProviderMark(hostElement, providerId) {
+    var markElement = createAuthProviderElement(hostElement, "span");
+    setAuthProviderElementClass(
+      markElement,
+      AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+        "__mark " +
+        AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+        "__mark--" +
+        providerId,
+    );
+    markElement.innerHTML = AUTH_PROVIDER_CHOOSER_MARKUP[providerId];
+    if (typeof markElement.setAttribute === "function") {
+      markElement.setAttribute("aria-hidden", "true");
+      markElement.setAttribute("data-mpr-auth-provider-mark", providerId);
+    }
+    return markElement;
+  }
+
+  function createAuthProviderLabel(hostElement, providerId) {
+    var labelElement = createAuthProviderElement(hostElement, "span");
+    setAuthProviderElementClass(
+      labelElement,
+      AUTH_PROVIDER_CHOOSER_ROOT_CLASS + "__label",
+    );
+    setAuthProviderElementText(labelElement, getAuthProviderLabel(providerId));
+    if (typeof labelElement.setAttribute === "function") {
+      labelElement.setAttribute("data-mpr-auth-provider-label", providerId);
+    }
+    return labelElement;
+  }
+
+  function createAuthProviderActionButton(
+    hostElement,
+    providerId,
+    emailPanelId,
+    emailExpanded,
+    handleClick,
+  ) {
+    var buttonElement = createAuthProviderElement(hostElement, "button");
+    buttonElement.type = "button";
+    setAuthProviderElementClass(
+      buttonElement,
+      AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+        "__action " +
+        AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+        "__action--" +
+        providerId,
+    );
+    if (typeof buttonElement.setAttribute === "function") {
+      buttonElement.setAttribute("type", "button");
+      buttonElement.setAttribute("data-mpr-auth-provider", providerId);
+      buttonElement.setAttribute("data-test", "auth-provider-" + providerId);
+      buttonElement.setAttribute("aria-label", getAuthProviderLabel(providerId));
+      if (providerId === AUTH_PROVIDER_IDS.EMAIL) {
+        buttonElement.setAttribute("aria-expanded", emailExpanded ? "true" : "false");
+        buttonElement.setAttribute("aria-controls", emailPanelId);
+      }
+    }
+    appendAuthProviderElement(
+      buttonElement,
+      createAuthProviderMark(hostElement, providerId),
+    );
+    appendAuthProviderElement(
+      buttonElement,
+      createAuthProviderLabel(hostElement, providerId),
+    );
+    buttonElement.addEventListener("click", handleClick);
+    return buttonElement;
+  }
+
+  function createAuthProviderField(
+    hostElement,
+    fieldId,
+    fieldName,
+    fieldType,
+    label,
+    autocompleteValue,
+  ) {
+    var fieldWrapper = createAuthProviderElement(hostElement, "label");
+    var labelText = createAuthProviderElement(hostElement, "span");
+    var inputElement = createAuthProviderElement(hostElement, "input");
+    setAuthProviderElementClass(
+      fieldWrapper,
+      AUTH_PROVIDER_CHOOSER_ROOT_CLASS + "__field",
+    );
+    setAuthProviderElementClass(
+      labelText,
+      AUTH_PROVIDER_CHOOSER_ROOT_CLASS + "__field-label",
+    );
+    setAuthProviderElementClass(
+      inputElement,
+      AUTH_PROVIDER_CHOOSER_ROOT_CLASS + "__input",
+    );
+    setAuthProviderElementText(labelText, label);
+    if (typeof inputElement.setAttribute === "function") {
+      inputElement.setAttribute("id", fieldId);
+      inputElement.setAttribute("name", fieldName);
+      inputElement.setAttribute("type", fieldType);
+      inputElement.setAttribute("autocomplete", autocompleteValue);
+      inputElement.setAttribute("required", "");
+      inputElement.setAttribute("data-mpr-auth-provider-field", fieldName);
+    }
+    if (typeof fieldWrapper.setAttribute === "function") {
+      fieldWrapper.setAttribute("for", fieldId);
+    }
+    appendAuthProviderElement(fieldWrapper, labelText);
+    appendAuthProviderElement(fieldWrapper, inputElement);
+    return fieldWrapper;
+  }
+
+  function createAuthProviderEmailPanel(
+    hostElement,
+    emailPanelId,
+    handleSubmit,
+    handleForgotPasswordClick,
+    handleCreateAccountClick,
+  ) {
+    var panelElement = createAuthProviderElement(hostElement, "div");
+    var formElement = createAuthProviderElement(hostElement, "form");
+    var submitButton = createAuthProviderElement(hostElement, "button");
+    var secondaryActions = createAuthProviderElement(hostElement, "div");
+    var forgotPasswordButton = createAuthProviderElement(hostElement, "button");
+    var createAccountButton = createAuthProviderElement(hostElement, "button");
+    setAuthProviderElementClass(
+      panelElement,
+      AUTH_PROVIDER_CHOOSER_ROOT_CLASS + "__email-panel",
+    );
+    setAuthProviderElementClass(
+      formElement,
+      AUTH_PROVIDER_CHOOSER_ROOT_CLASS + "__email-form",
+    );
+    setAuthProviderElementClass(
+      submitButton,
+      AUTH_PROVIDER_CHOOSER_ROOT_CLASS + "__submit",
+    );
+    setAuthProviderElementClass(
+      secondaryActions,
+      AUTH_PROVIDER_CHOOSER_ROOT_CLASS + "__secondary-actions",
+    );
+    setAuthProviderElementClass(
+      forgotPasswordButton,
+      AUTH_PROVIDER_CHOOSER_ROOT_CLASS + "__link-button",
+    );
+    setAuthProviderElementClass(
+      createAccountButton,
+      AUTH_PROVIDER_CHOOSER_ROOT_CLASS + "__link-button",
+    );
+    if (typeof panelElement.setAttribute === "function") {
+      panelElement.setAttribute("id", emailPanelId);
+      panelElement.setAttribute("data-mpr-auth-provider-chooser", "email-panel");
+    }
+    if (typeof formElement.setAttribute === "function") {
+      formElement.setAttribute("data-mpr-auth-provider-email", "form");
+    }
+    if (typeof submitButton.setAttribute === "function") {
+      submitButton.setAttribute("type", "submit");
+      submitButton.setAttribute("data-mpr-auth-provider-email", "submit");
+    }
+    if (typeof secondaryActions.setAttribute === "function") {
+      secondaryActions.setAttribute(
+        "data-mpr-auth-provider-email",
+        "secondary-actions",
+      );
+    }
+    if (typeof forgotPasswordButton.setAttribute === "function") {
+      forgotPasswordButton.setAttribute("type", "button");
+      forgotPasswordButton.setAttribute(
+        "data-mpr-auth-provider-email",
+        AUTH_PROVIDER_EMAIL_MODE.RESET_START,
+      );
+    }
+    if (typeof createAccountButton.setAttribute === "function") {
+      createAccountButton.setAttribute("type", "button");
+      createAccountButton.setAttribute(
+        "data-mpr-auth-provider-email",
+        AUTH_PROVIDER_EMAIL_MODE.SIGNUP,
+      );
+    }
+    setAuthProviderElementText(submitButton, AUTH_PROVIDER_CHOOSER_LABELS.submit);
+    setAuthProviderElementText(
+      forgotPasswordButton,
+      AUTH_PROVIDER_CHOOSER_LABELS.forgotPassword,
+    );
+    setAuthProviderElementText(
+      createAccountButton,
+      AUTH_PROVIDER_CHOOSER_LABELS.createAccount,
+    );
+    appendAuthProviderElement(
+      formElement,
+      createAuthProviderField(
+        hostElement,
+        emailPanelId + "-email",
+        "email",
+        "email",
+        AUTH_PROVIDER_CHOOSER_LABELS.emailField,
+        "username",
+      ),
+    );
+    appendAuthProviderElement(
+      formElement,
+      createAuthProviderField(
+        hostElement,
+        emailPanelId + "-password",
+        "password",
+        "password",
+        AUTH_PROVIDER_CHOOSER_LABELS.passwordField,
+        "current-password",
+      ),
+    );
+    appendAuthProviderElement(formElement, submitButton);
+    appendAuthProviderElement(secondaryActions, forgotPasswordButton);
+    appendAuthProviderElement(secondaryActions, createAccountButton);
+    appendAuthProviderElement(panelElement, formElement);
+    appendAuthProviderElement(panelElement, secondaryActions);
+    formElement.addEventListener("submit", handleSubmit);
+    forgotPasswordButton.addEventListener("click", handleForgotPasswordClick);
+    createAccountButton.addEventListener("click", handleCreateAccountClick);
+    return {
+      panel: panelElement,
+      cleanup: function cleanupAuthProviderEmailPanel() {
+        formElement.removeEventListener("submit", handleSubmit);
+        forgotPasswordButton.removeEventListener("click", handleForgotPasswordClick);
+        createAccountButton.removeEventListener("click", handleCreateAccountClick);
+      },
+    };
+  }
+
+  function dispatchAuthProviderModeEvent(hostElement, mode) {
+    dispatchEvent(hostElement, AUTH_PROVIDER_EMAIL_MODE_EVENT, {
+      provider: AUTH_PROVIDER_IDS.EMAIL,
+      mode: mode,
+    });
   }
 
   function normalizeSelectionStateId(value) {
@@ -4181,6 +4658,135 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     } else {
       styleElement.appendChild(
         documentObject.createTextNode(HEADER_STYLE_MARKUP),
+      );
+    }
+    documentObject.head.appendChild(styleElement);
+  }
+
+  var AUTH_PROVIDER_CHOOSER_STYLE_MARKUP =
+    "mpr-auth-provider-chooser{display:block;inline-size:100%;max-inline-size:22rem;color:var(--mpr-color-text-primary,#e2e8f0);--mpr-auth-provider-radius:8px;--mpr-auth-provider-scale:1}" +
+    "mpr-header mpr-auth-provider-chooser{--mpr-auth-provider-scale:var(--mpr-header-scale,1)}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "{display:flex;flex-direction:column;gap:calc(0.45rem * var(--mpr-auth-provider-scale,1));inline-size:100%}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__actions{display:flex;flex-direction:column;gap:calc(0.45rem * var(--mpr-auth-provider-scale,1));inline-size:100%}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__action{display:inline-grid;grid-template-columns:calc(1.15rem * var(--mpr-auth-provider-scale,1)) minmax(0,1fr) calc(1.15rem * var(--mpr-auth-provider-scale,1));align-items:center;column-gap:calc(0.5rem * var(--mpr-auth-provider-scale,1));min-block-size:calc(2.35rem * var(--mpr-auth-provider-scale,1));inline-size:100%;padding:calc(0.45rem * var(--mpr-auth-provider-scale,1)) calc(0.7rem * var(--mpr-auth-provider-scale,1));border-radius:var(--mpr-auth-provider-radius);border:1px solid var(--mpr-color-border,rgba(148,163,184,0.35));background:var(--mpr-color-surface-elevated,rgba(15,23,42,0.98));color:var(--mpr-color-text-primary,#e2e8f0);font:inherit;font-size:calc(0.92rem * var(--mpr-auth-provider-scale,1));font-weight:700;line-height:1.2;text-align:center;cursor:pointer;box-sizing:border-box}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__mark{display:inline-flex;grid-column:1;align-items:center;justify-content:center;inline-size:calc(1.15rem * var(--mpr-auth-provider-scale,1));block-size:calc(1.15rem * var(--mpr-auth-provider-scale,1))}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__mark svg{display:block;inline-size:100%;block-size:100%}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__label{grid-column:2;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__action:hover{background:var(--mpr-chip-hover-bg,rgba(148,163,184,0.32))}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__action:focus-visible{outline:none;box-shadow:0 0 0 2px rgba(56,189,248,0.4)}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__action--apple{background:#020617;color:#f8fafc}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__action--apple:hover{background:#111827}" +
+    "mpr-auth-provider-chooser[variant='icon-row'],mpr-auth-provider-chooser[data-mpr-auth-provider-variant='icon-row']{inline-size:max-content;max-inline-size:100%;--mpr-auth-provider-radius:6px}" +
+    "mpr-auth-provider-chooser[variant='icon-row'] ." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__actions,mpr-auth-provider-chooser[data-mpr-auth-provider-variant='icon-row'] ." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__actions,." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "[data-mpr-auth-provider-variant='icon-row'] ." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__actions{display:inline-grid;grid-auto-flow:column;grid-auto-columns:calc(2.25rem * var(--mpr-auth-provider-scale,1));grid-template-columns:none;gap:calc(0.3rem * var(--mpr-auth-provider-scale,1));inline-size:max-content;max-inline-size:100%}" +
+    "mpr-auth-provider-chooser[variant='icon-row'] ." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__action,mpr-auth-provider-chooser[data-mpr-auth-provider-variant='icon-row'] ." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__action,." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "[data-mpr-auth-provider-variant='icon-row'] ." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__action{position:relative;grid-template-columns:1fr;place-items:center;justify-items:center;inline-size:calc(2.25rem * var(--mpr-auth-provider-scale,1));block-size:calc(2.25rem * var(--mpr-auth-provider-scale,1));min-inline-size:calc(2.25rem * var(--mpr-auth-provider-scale,1));min-block-size:calc(2.25rem * var(--mpr-auth-provider-scale,1));padding:0;aspect-ratio:1/1;overflow:hidden}" +
+    "mpr-auth-provider-chooser[variant='icon-row'] ." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__mark,mpr-auth-provider-chooser[data-mpr-auth-provider-variant='icon-row'] ." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__mark,." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "[data-mpr-auth-provider-variant='icon-row'] ." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__mark{grid-column:1;inline-size:calc(1.1rem * var(--mpr-auth-provider-scale,1));block-size:calc(1.1rem * var(--mpr-auth-provider-scale,1))}" +
+    "mpr-auth-provider-chooser[variant='icon-row'] ." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__label,mpr-auth-provider-chooser[data-mpr-auth-provider-variant='icon-row'] ." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__label,." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "[data-mpr-auth-provider-variant='icon-row'] ." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__label{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__email-panel{display:flex;flex-direction:column;gap:calc(0.45rem * var(--mpr-auth-provider-scale,1));padding:calc(0.55rem * var(--mpr-auth-provider-scale,1));border-radius:var(--mpr-auth-provider-radius);border:1px solid var(--mpr-color-border,rgba(148,163,184,0.35));background:rgba(15,23,42,0.34);box-sizing:border-box}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__email-form{display:flex;flex-direction:column;gap:calc(0.45rem * var(--mpr-auth-provider-scale,1));margin:0}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__field{display:flex;flex-direction:column;gap:calc(0.22rem * var(--mpr-auth-provider-scale,1));font-size:calc(0.78rem * var(--mpr-auth-provider-scale,1));font-weight:700;color:var(--mpr-color-text-muted,#cbd5f5)}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__input{inline-size:100%;min-block-size:calc(2rem * var(--mpr-auth-provider-scale,1));padding:calc(0.35rem * var(--mpr-auth-provider-scale,1)) calc(0.5rem * var(--mpr-auth-provider-scale,1));border-radius:var(--mpr-auth-provider-radius);border:1px solid var(--mpr-color-border,rgba(148,163,184,0.35));background:var(--mpr-color-surface-primary,rgba(15,23,42,0.92));color:var(--mpr-color-text-primary,#e2e8f0);font:inherit;font-size:calc(0.9rem * var(--mpr-auth-provider-scale,1));box-sizing:border-box}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__input:focus{outline:none;box-shadow:0 0 0 2px rgba(56,189,248,0.35)}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__submit{min-block-size:calc(2.1rem * var(--mpr-auth-provider-scale,1));border:none;border-radius:var(--mpr-auth-provider-radius);background:var(--mpr-color-accent,#38bdf8);color:var(--mpr-color-accent-contrast,#0f172a);font:inherit;font-size:calc(0.9rem * var(--mpr-auth-provider-scale,1));font-weight:800;cursor:pointer}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__submit:hover{filter:brightness(1.05)}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__submit:focus-visible{outline:none;box-shadow:0 0 0 2px rgba(56,189,248,0.4)}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__secondary-actions{display:flex;align-items:center;justify-content:space-between;gap:0.5rem;flex-wrap:wrap}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__link-button{border:none;background:transparent;color:var(--mpr-color-text-muted,#cbd5f5);font:inherit;font-size:calc(0.78rem * var(--mpr-auth-provider-scale,1));font-weight:700;padding:0;cursor:pointer}" +
+    "." +
+    AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
+    "__link-button:hover{color:var(--mpr-color-text-primary,#e2e8f0);text-decoration:underline}";
+
+  function ensureAuthProviderChooserStyles(documentObject) {
+    if (
+      !documentObject ||
+      typeof documentObject.createElement !== "function" ||
+      !documentObject.head
+    ) {
+      return;
+    }
+    ensureThemeTokenStyles(documentObject);
+    if (documentObject.getElementById(AUTH_PROVIDER_CHOOSER_STYLE_ID)) {
+      return;
+    }
+    var styleElement = documentObject.createElement("style");
+    styleElement.type = "text/css";
+    styleElement.id = AUTH_PROVIDER_CHOOSER_STYLE_ID;
+    if (styleElement.styleSheet) {
+      styleElement.styleSheet.cssText = AUTH_PROVIDER_CHOOSER_STYLE_MARKUP;
+    } else {
+      styleElement.appendChild(
+        documentObject.createTextNode(AUTH_PROVIDER_CHOOSER_STYLE_MARKUP),
       );
     }
     documentObject.head.appendChild(styleElement);
@@ -12562,6 +13168,193 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
   }
 
+  function defineAuthProviderChooserElement(registry) {
+    registry.define(
+      "mpr-auth-provider-chooser",
+      function setupAuthProviderChooserElement(Base) {
+        return class MprAuthProviderChooserElement extends Base {
+          constructor() {
+            super();
+            this.__authProviderCleanupHandlers = [];
+            this.__emailExpanded = false;
+            this.__emailPanelId = createAuthProviderEmailPanelId();
+          }
+          static get observedAttributes() {
+            return AUTH_PROVIDER_CHOOSER_ATTRIBUTE_NAMES;
+          }
+          render() {
+            this.__renderAuthProviderChooser();
+          }
+          update() {
+            this.__renderAuthProviderChooser();
+          }
+          destroy() {
+            this.__cleanupAuthProviderChooser();
+            clearNodeContents(this);
+            clearAuthProviderChooserError(this);
+            this.removeAttribute(AUTH_PROVIDER_CHOOSER_SELECTED_ATTRIBUTE);
+            this.removeAttribute(AUTH_PROVIDER_CHOOSER_EMAIL_EXPANDED_ATTRIBUTE);
+          }
+          __cleanupAuthProviderChooser() {
+            this.__authProviderCleanupHandlers.forEach(function runCleanup(cleanup) {
+              cleanup();
+            });
+            this.__authProviderCleanupHandlers = [];
+          }
+          __renderAuthProviderChooser() {
+            if (!this.__mprConnected) {
+              return;
+            }
+            this.__cleanupAuthProviderChooser();
+            clearNodeContents(this);
+            try {
+              var options = buildAuthProviderChooserOptionsFromAttributes(
+                /** @type {{ getAttribute: (attributeName: string) => (string|null) }} */ (
+                  /** @type {unknown} */ (this)
+                ),
+              );
+              var selectedProvider = this.getAttribute(
+                AUTH_PROVIDER_CHOOSER_SELECTED_ATTRIBUTE,
+              );
+              if (
+                selectedProvider &&
+                options.providers.indexOf(selectedProvider) === -1
+              ) {
+                this.removeAttribute(AUTH_PROVIDER_CHOOSER_SELECTED_ATTRIBUTE);
+                selectedProvider = "";
+              }
+              if (this.__emailExpanded && selectedProvider !== AUTH_PROVIDER_IDS.EMAIL) {
+                this.__emailExpanded = false;
+              }
+              clearAuthProviderChooserError(this);
+              this.setAttribute(
+                "data-mpr-auth-provider-variant",
+                options.variant,
+              );
+              this.setAttribute(
+                "data-mpr-auth-provider-layout",
+                options.providers.length === 1 ? "direct" : "chooser",
+              );
+              this.setAttribute(
+                AUTH_PROVIDER_CHOOSER_EMAIL_EXPANDED_ATTRIBUTE,
+                this.__emailExpanded ? "true" : "false",
+              );
+              this.__mountAuthProviderChooser(options);
+            } catch (error) {
+              this.__emailExpanded = false;
+              this.removeAttribute("data-mpr-auth-provider-variant");
+              this.removeAttribute("data-mpr-auth-provider-layout");
+              this.removeAttribute(AUTH_PROVIDER_CHOOSER_SELECTED_ATTRIBUTE);
+              this.removeAttribute(AUTH_PROVIDER_CHOOSER_EMAIL_EXPANDED_ATTRIBUTE);
+              setAuthProviderChooserError(this, error);
+            }
+          }
+          __mountAuthProviderChooser(options) {
+            var documentObject =
+              this.ownerDocument ||
+              global.document ||
+              (global.window && global.window.document) ||
+              null;
+            ensureAuthProviderChooserStyles(documentObject);
+            var rootElement = createAuthProviderElement(this, "div");
+            var actionsElement = createAuthProviderElement(this, "div");
+            var chooserElement = this;
+            setAuthProviderElementClass(rootElement, AUTH_PROVIDER_CHOOSER_ROOT_CLASS);
+            setAuthProviderElementClass(
+              actionsElement,
+              AUTH_PROVIDER_CHOOSER_ROOT_CLASS + "__actions",
+            );
+            if (typeof rootElement.setAttribute === "function") {
+              rootElement.setAttribute("data-mpr-auth-provider-chooser", "root");
+              rootElement.setAttribute(
+                "data-mpr-auth-provider-variant",
+                options.variant,
+              );
+              rootElement.setAttribute("role", "group");
+              rootElement.setAttribute(
+                "aria-label",
+                AUTH_PROVIDER_CHOOSER_LABELS.group,
+              );
+            }
+            if (typeof actionsElement.setAttribute === "function") {
+              actionsElement.setAttribute(
+                "data-mpr-auth-provider-chooser",
+                "actions",
+              );
+            }
+            options.providers.forEach(function mountProvider(providerId) {
+              function handleProviderClick(event) {
+                chooserElement.__handleAuthProviderSelection(providerId, event);
+              }
+              var actionButton = createAuthProviderActionButton(
+                chooserElement,
+                providerId,
+                chooserElement.__emailPanelId,
+                chooserElement.__emailExpanded,
+                handleProviderClick,
+              );
+              chooserElement.__authProviderCleanupHandlers.push(
+                function cleanupProviderAction() {
+                  actionButton.removeEventListener("click", handleProviderClick);
+                },
+              );
+              appendAuthProviderElement(actionsElement, actionButton);
+            });
+            appendAuthProviderElement(rootElement, actionsElement);
+            if (this.__emailExpanded) {
+              function handleEmailSubmit(event) {
+                if (event && typeof event.preventDefault === "function") {
+                  event.preventDefault();
+                }
+                dispatchEvent(chooserElement, AUTH_PROVIDER_EMAIL_SUBMIT_EVENT, {
+                  provider: AUTH_PROVIDER_IDS.EMAIL,
+                  action: "login",
+                });
+              }
+              function handleForgotPasswordClick(event) {
+                if (event && typeof event.preventDefault === "function") {
+                  event.preventDefault();
+                }
+                dispatchAuthProviderModeEvent(
+                  chooserElement,
+                  AUTH_PROVIDER_EMAIL_MODE.RESET_START,
+                );
+              }
+              function handleCreateAccountClick(event) {
+                if (event && typeof event.preventDefault === "function") {
+                  event.preventDefault();
+                }
+                dispatchAuthProviderModeEvent(
+                  chooserElement,
+                  AUTH_PROVIDER_EMAIL_MODE.SIGNUP,
+                );
+              }
+              var emailPanel = createAuthProviderEmailPanel(
+                this,
+                this.__emailPanelId,
+                handleEmailSubmit,
+                handleForgotPasswordClick,
+                handleCreateAccountClick,
+              );
+              this.__authProviderCleanupHandlers.push(emailPanel.cleanup);
+              appendAuthProviderElement(rootElement, emailPanel.panel);
+            }
+            appendAuthProviderElement(this, rootElement);
+          }
+          __handleAuthProviderSelection(providerId, event) {
+            if (event && typeof event.preventDefault === "function") {
+              event.preventDefault();
+            }
+            this.setAttribute(AUTH_PROVIDER_CHOOSER_SELECTED_ATTRIBUTE, providerId);
+            this.__emailExpanded = providerId === AUTH_PROVIDER_IDS.EMAIL;
+            this.__renderAuthProviderChooser();
+            dispatchEvent(this, AUTH_PROVIDER_SELECT_EVENT, { provider: providerId });
+          }
+        };
+      },
+    );
+  }
+
   function defineUserMenuElement(registry) {
     registry.define("mpr-user", function setupUserElement(Base) {
       return class MprUserElement extends Base {
@@ -14779,6 +15572,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     defineFooterElement(registry);
     defineThemeToggleElement(registry);
     defineLoginButtonElement(registry);
+    defineAuthProviderChooserElement(registry);
     defineUserMenuElement(registry);
     defineSettingsElement(registry);
     defineDetailDrawerElement(registry);
