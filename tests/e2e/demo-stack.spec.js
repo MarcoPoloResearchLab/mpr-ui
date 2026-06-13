@@ -90,7 +90,9 @@ test('sub-demos provide consistent navigation and local asset loading', async ({
     await expect(indexLink).toBeVisible();
     await indexLink.click();
     
-    await expect(page).toHaveURL(new RegExp(`${BASE_URL.replace(/\/$/, '')}/$`));
+    await expect(page).toHaveURL(
+      new RegExp(`${BASE_URL.replace(/\/$/, '')}/(?:index\\.html)?$`),
+    );
     await expect(page.locator('[data-layout-section="hero-title"]')).toBeVisible();
   }
 });

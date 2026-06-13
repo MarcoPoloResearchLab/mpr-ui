@@ -685,12 +685,15 @@ function attachChildTreeApi(element) {
   return element;
 }
 
-function createAuthProviderChooserHarness(providers) {
+function createAuthProviderChooserHarness(providers, options) {
   const AuthProviderChooserElement = global.customElements.get('mpr-auth-provider-chooser');
   assert.ok(AuthProviderChooserElement, 'mpr-auth-provider-chooser is defined');
   const element = attachChildTreeApi(attachHostApi(new AuthProviderChooserElement(), new Map()));
   if (providers !== undefined) {
     element.setAttribute('providers', JSON.stringify(providers));
+  }
+  if (options && options.variant) {
+    element.setAttribute('variant', options.variant);
   }
   return { element };
 }
@@ -3844,15 +3847,74 @@ test('mpr-auth-provider-chooser renders configured providers compactly in order'
   );
   assert.deepEqual(
     providerButtons.map(function providerLabel(button) {
-      return button.textContent;
+      return button.getAttribute('aria-label');
     }),
     ['Continue with Apple', 'Continue with Google', 'Continue with email'],
     'provider buttons use compact continue labels',
+  );
+  assert.deepEqual(
+    findStubNodesByAttribute(element, 'data-mpr-auth-provider-mark').map(
+      function providerMark(mark) {
+        return mark.getAttribute('data-mpr-auth-provider-mark');
+      },
+    ),
+    ['apple', 'google', 'email'],
+    'provider buttons include decorative provider marks',
+  );
+  assert.deepEqual(
+    findStubNodesByAttribute(element, 'data-mpr-auth-provider-label').map(
+      function providerLabel(label) {
+        return label.textContent;
+      },
+    ),
+    ['Continue with Apple', 'Continue with Google', 'Continue with email'],
+    'provider labels remain visible text inside the button',
   );
   assert.equal(
     findStubNodesByAttribute(element, 'data-mpr-auth-provider-chooser', 'email-panel').length,
     0,
     'collapsed email form does not occupy the compact provider stack',
+  );
+});
+
+test('mpr-auth-provider-chooser supports icon-row provider actions', () => {
+  resetEnvironment();
+  loadLibrary();
+  const { element } = createAuthProviderChooserHarness(
+    ['apple', 'google', 'email'],
+    { variant: 'icon-row' },
+  );
+
+  element.connectedCallback();
+
+  assert.equal(
+    element.getAttribute('data-mpr-auth-provider-variant'),
+    'icon-row',
+    'icon-row variant is reflected on the host',
+  );
+  assert.equal(
+    getStubNodeByAttribute(element, 'data-mpr-auth-provider-chooser', 'root')
+      .getAttribute('data-mpr-auth-provider-variant'),
+    'icon-row',
+    'icon-row variant is reflected on the rendered root',
+  );
+  assert.deepEqual(
+    findStubNodesByAttribute(element, 'data-mpr-auth-provider-mark').map(
+      function providerMark(mark) {
+        return mark.getAttribute('data-mpr-auth-provider-mark');
+      },
+    ),
+    ['apple', 'google', 'email'],
+    'icon-row still renders all provider marks',
+  );
+  assert.deepEqual(
+    findStubNodesByAttribute(element, 'data-mpr-auth-provider').map(
+      function providerLabel(button) {
+        return button.getAttribute('aria-label');
+      },
+    ),
+    ['Continue with Apple', 'Continue with Google', 'Continue with email'],
+    'icon-row keeps accessible provider labels',
   );
 });
 
@@ -3959,6 +4021,59 @@ test('mpr-auth-provider-chooser collapses email when a different provider is sel
   );
 });
 
+test('mpr-auth-provider-chooser reconciles selection when providers change', () => {
+  resetEnvironment();
+  loadLibrary();
+  const { element } = createAuthProviderChooserHarness(['apple', 'google', 'email']);
+
+  element.connectedCallback();
+  getStubNodeByAttribute(element, 'data-mpr-auth-provider', 'email').dispatchEvent({
+    type: 'click',
+    preventDefault() {},
+  });
+  element.setAttribute('providers', JSON.stringify(['google']));
+
+  assert.equal(
+    element.getAttribute('data-mpr-auth-provider-selected'),
+    null,
+    'provider updates clear selections that are no longer available',
+  );
+  assert.equal(
+    element.getAttribute('data-mpr-auth-provider-email-expanded'),
+    'false',
+    'provider updates collapse stale email state when email is removed',
+  );
+  assert.deepEqual(
+    findStubNodesByAttribute(element, 'data-mpr-auth-provider').map(
+      function providerId(button) {
+        return button.getAttribute('data-mpr-auth-provider');
+      },
+    ),
+    ['google'],
+    'provider updates rerender only the new provider list',
+  );
+  assert.equal(
+    findStubNodesByAttribute(element, 'data-mpr-auth-provider-chooser', 'email-panel').length,
+    0,
+    'provider updates remove stale email panels',
+  );
+
+  const retainedHarness = createAuthProviderChooserHarness(['apple', 'google', 'email']);
+  retainedHarness.element.connectedCallback();
+  getStubNodeByAttribute(retainedHarness.element, 'data-mpr-auth-provider', 'google')
+    .dispatchEvent({
+      type: 'click',
+      preventDefault() {},
+    });
+  retainedHarness.element.setAttribute('providers', JSON.stringify(['google', 'email']));
+
+  assert.equal(
+    retainedHarness.element.getAttribute('data-mpr-auth-provider-selected'),
+    'google',
+    'provider updates preserve selections that are still available',
+  );
+});
+
 test('mpr-auth-provider-chooser rejects missing, unknown, and duplicate providers', () => {
   resetEnvironment();
   loadLibrary();
@@ -3986,6 +4101,17 @@ test('mpr-auth-provider-chooser rejects missing, unknown, and duplicate provider
     duplicateProvider.getAttribute('data-mpr-auth-provider-error'),
     'mpr-ui.auth_provider_chooser.duplicate_provider',
     'duplicate provider IDs are rejected',
+  );
+
+  const { element: unsupportedVariant } = createAuthProviderChooserHarness(
+    ['apple', 'google', 'email'],
+    { variant: 'spread' },
+  );
+  unsupportedVariant.connectedCallback();
+  assert.equal(
+    unsupportedVariant.getAttribute('data-mpr-auth-provider-error'),
+    'mpr-ui.auth_provider_chooser.unsupported_variant',
+    'unsupported variants fail loudly on the host',
   );
 });
 
