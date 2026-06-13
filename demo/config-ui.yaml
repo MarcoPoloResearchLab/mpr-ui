@@ -9,7 +9,7 @@ environments:
       - "https://localhost:4443"
       - "https://127.0.0.1:4443"
       - "https://computercat.tyemirov.net:4443"
-    auth:
+    auth: &local_demo_auth
       # Empty string means the auth endpoints are same-origin via gHTTP proxy.
       tauthUrl: ""
       googleClientId: "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
@@ -17,8 +17,17 @@ environments:
       loginPath: "/auth/google"
       logoutPath: "/auth/logout"
       noncePath: "/auth/nonce"
-    authButton:
+    authButton: &local_demo_auth_button
       text: "signin_with"
       size: "large"
       theme: "outline"
       shape: "circle"
+
+  # Lightweight no-store static preview served with `npm run demo:serve`.
+  # This origin renders the demo chrome and components; authenticated sign-in still requires `./up.sh tauth`.
+  - description: "Static HTTP preview"
+    origins:
+      - "http://127.0.0.1:4177"
+      - "http://localhost:4177"
+    auth: *local_demo_auth
+    authButton: *local_demo_auth_button
