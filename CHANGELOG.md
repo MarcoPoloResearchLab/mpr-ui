@@ -33,6 +33,24 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.11.1] - 2026-06-24
+
+### Features ✨
+- _No changes._
+
+### Improvements ⚙️
+- Updated yargs dependency to version 17.7.3 for improved package management.
+
+### Bug Fixes 🐛
+- Ensured opaque user IDs are correctly handled and reflected without provider-prefix parsing.
+- Fixed issue where restored opaque account profiles now emit a single authenticated event with the correct profile payload.
+
+### Testing 🧪
+- Added tests to verify opaque user ID handling and authenticated event emission during auth header restoration.
+
+### Docs 📚
+- _No changes._
+
 ## [v3.11.0] - 2026-06-13
 
 ### Features ✨
