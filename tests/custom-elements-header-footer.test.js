@@ -2091,6 +2091,7 @@ test('createAuthHeader restores the fallback profile from the TAuth session endp
   const requestedPaths = [];
   const restoreHintKey = 'tauth.restore.v1:http%3A%2F%2Flocalhost%3A8080:tenant-alpha';
   const profile = {
+    user_id: 'U6fYpCTyBv0qcDKw9d0o2g',
     display: 'Grace Hopper',
     given_name: 'Grace',
     avatar_url: 'https://cdn.example.com/grace.png',
@@ -2150,6 +2151,24 @@ test('createAuthHeader restores the fallback profile from the TAuth session endp
   );
   assert.deepEqual(authController.state.profile, profile);
   assert.equal(authController.state.status, 'authenticated');
+  assert.equal(
+    hostElement.getAttribute('data-user-id'),
+    profile.user_id,
+    'opaque account IDs are reflected without provider-prefix parsing',
+  );
+  const authenticatedEvents = hostElement.__dispatchedEvents.filter(
+    (eventEntry) => eventEntry.type === 'mpr-ui:auth:authenticated',
+  );
+  assert.equal(
+    authenticatedEvents.length,
+    1,
+    'restored opaque account profile emits one authenticated event',
+  );
+  assert.deepEqual(
+    authenticatedEvents[0].detail,
+    { profile },
+    'authenticated event preserves the opaque account profile payload',
+  );
 });
 
 test('createAuthHeader clears a stale TAuth restore hint from an anonymous session status', async () => {
