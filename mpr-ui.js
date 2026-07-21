@@ -5087,6 +5087,41 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "." +
     LOGIN_BUTTON_ROOT_CLASS +
     '[data-mpr-login-shape="square"] .' +
+    LOGIN_BUTTON_CONTROL_CLASS +
+    ",." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="circle"] .' +
+    LOGIN_BUTTON_CONTROL_CLASS +
+    "{grid-template-columns:1fr;place-items:center;column-gap:0}" +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="square"] .' +
+    LOGIN_BUTTON_MARK_CLASS +
+    ",." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="circle"] .' +
+    LOGIN_BUTTON_MARK_CLASS +
+    ",." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="square"] .' +
+    LOGIN_BUTTON_SPINNER_CLASS +
+    ",." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="circle"] .' +
+    LOGIN_BUTTON_SPINNER_CLASS +
+    "{grid-column:1;grid-row:1}" +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-state="preparing"][data-mpr-login-shape="square"] .' +
+    LOGIN_BUTTON_MARK_CLASS +
+    ",." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-state="preparing"][data-mpr-login-shape="circle"] .' +
+    LOGIN_BUTTON_MARK_CLASS +
+    "{visibility:hidden}" +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="square"] .' +
     LOGIN_BUTTON_LABEL_CLASS +
     ",." +
     LOGIN_BUTTON_ROOT_CLASS +
