@@ -33,6 +33,24 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.11.2] - 2026-07-21
+
+- Merge pull request #180 from MarcoPoloResearchLab/gix/reorganize-and-document-recurring-maintenance-issue
+- test: add release contract tests for tag collision and macOS bash wrappers
+- chore(release): refactor env fallback logic, add release tag check in scripts
+- fix(login-button): align styles for circle and square shapes
+- fix: improve square and circle login button alignment and preparing state
+- chore: add deterministic release and deploy scripts with helper utility
+- test: add e2e contract for standalone login button and release tooling
+- feat: add modern configurable Google login button component with flexible theming
+- feat(css): add styles for mpr-login-button component
+- docs: add integration guide section for `<mpr-login-button>` presentation
+- docs: document login-only button presentation and customization rules
+- build(makefile): add release, publish, and deploy targets
+- docs: document forward-only, no-backward-compatibility contract discipline
+- docs: add agent conventions for Docker, frontend, Git, Go, and issues
+- ci: remove purge-jsdelivr-aliases workflow from GitHub Actions
+
 ## [v3.11.1] - 2026-06-24
 
 ### Features ✨
