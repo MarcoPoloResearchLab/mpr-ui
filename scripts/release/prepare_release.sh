@@ -22,37 +22,13 @@ Options:
 USAGE
 }
 
-if [[ -v RELEASE_HELPER ]]; then
-  helper="${RELEASE_HELPER}"
-else
-  helper=""
-fi
-if [[ -v RELEASE_BUMP ]] && [[ -n "${RELEASE_BUMP}" ]]; then
-  bump="${RELEASE_BUMP}"
-else
-  bump="patch"
-fi
-if [[ -v RELEASE_VERSION ]]; then
-  version="${RELEASE_VERSION}"
-else
-  version=""
-fi
-if [[ -v RELEASE_SCHEME ]]; then
-  scheme="${RELEASE_SCHEME}"
-else
-  scheme=""
-fi
-if [[ -v RELEASE_CI_TIMEOUT ]] && [[ -n "${RELEASE_CI_TIMEOUT}" ]]; then
-  ci_timeout="${RELEASE_CI_TIMEOUT}"
-else
-  ci_timeout="350"
-fi
+helper="${RELEASE_HELPER:-}"
+bump="${RELEASE_BUMP:-patch}"
+version="${RELEASE_VERSION:-}"
+scheme="${RELEASE_SCHEME:-}"
+ci_timeout="${RELEASE_CI_TIMEOUT:-350}"
 dry_run="false"
-if [[ -v RELEASE_ARTIFACT_TARGETS ]]; then
-  artifact_targets="${RELEASE_ARTIFACT_TARGETS}"
-else
-  artifact_targets=""
-fi
+artifact_targets="${RELEASE_ARTIFACT_TARGETS:-}"
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
@@ -177,6 +153,18 @@ print(effective_scheme)
 ' "$1" "${version}" "${bump}" "${scheme}"
 }
 
+require_unused_release_tag() {
+  local release_tag="$1"
+  if ! git check-ref-format "refs/tags/${release_tag}"; then
+    echo "error: invalid release tag: ${release_tag}" >&2
+    exit 1
+  fi
+  if git show-ref --verify --quiet "refs/tags/${release_tag}"; then
+    echo "error: release tag already exists: ${release_tag}" >&2
+    exit 1
+  fi
+}
+
 preflight_json="$(mktemp)"
 notes_file="$(mktemp)"
 cleanup() {
@@ -204,6 +192,7 @@ selection="$(select_release "${preflight_json}")"
 next_version="$(sed -n '1p' <<<"${selection}")"
 boundary_tag="$(sed -n '2p' <<<"${selection}")"
 effective_scheme="$(sed -n '3p' <<<"${selection}")"
+require_unused_release_tag "${next_version}"
 
 if [[ "${dry_run}" == "true" ]]; then
   echo "release_dry_run=true"
@@ -225,6 +214,7 @@ selection="$(select_release "${preflight_json}")"
 next_version="$(sed -n '1p' <<<"${selection}")"
 boundary_tag="$(sed -n '2p' <<<"${selection}")"
 effective_scheme="$(sed -n '3p' <<<"${selection}")"
+require_unused_release_tag "${next_version}"
 
 "${helper}" initialize-release-artifact \
   --version "${next_version}" \
@@ -247,6 +237,7 @@ if [[ -n "${artifact_targets}" ]]; then
   run_local_preflight
   [[ "$(git rev-parse HEAD)" == "${source_commit}" ]] || { echo "error: HEAD changed while preparing release artifacts" >&2; exit 1; }
 fi
+require_unused_release_tag "${next_version}"
 
 echo "==> [release] Preparing ${next_version} from local Git history"
 notes_args=(generate-notes --version "${next_version}" --release-date "${release_date}")
@@ -267,6 +258,7 @@ if [[ "${staged_files}" != "CHANGELOG.md" ]]; then
   printf '%s\n' "${staged_files}" >&2
   exit 1
 fi
+require_unused_release_tag "${next_version}"
 
 git commit -m "Release ${next_version}"
 release_commit="$(git rev-parse HEAD)"

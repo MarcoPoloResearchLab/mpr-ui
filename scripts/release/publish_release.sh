@@ -1,11 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [[ -v RELEASE_HELPER ]]; then
-  helper="${RELEASE_HELPER}"
-else
-  helper=""
-fi
+helper="${RELEASE_HELPER:-}"
 if [[ -z "${helper}" ]]; then
   helper="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/release_helper.py"
 fi
