@@ -3,6 +3,13 @@
 const { test, expect } = require('./support/browserCoverage');
 const { visitLoginButtonFixture } = require('./support/fixturePage');
 
+const ICON_ONLY_BUTTON_VARIANTS = Object.freeze([
+  Object.freeze({ buttonShape: 'square', buttonSize: 'small' }),
+  Object.freeze({ buttonShape: 'circle', buttonSize: 'small' }),
+  Object.freeze({ buttonShape: 'square', buttonSize: 'large' }),
+  Object.freeze({ buttonShape: 'circle', buttonSize: 'large' }),
+]);
+
 test.describe('Standalone login button presentation', () => {
   test('B044: renders one styled accessible Google control and starts the nonce-bound flow only after click', async ({ page }) => {
     await visitLoginButtonFixture(page);
@@ -70,5 +77,31 @@ test.describe('Standalone login button presentation', () => {
     await expect(page.getByRole('button')).toHaveCount(1);
     await expect(googleControl).toBeVisible();
     await expect(loginButton).not.toHaveAttribute('role', 'button');
+  });
+
+  test('B044: icon-only login controls preserve their square footprint', async ({ page }) => {
+    await visitLoginButtonFixture(page);
+
+    const loginButton = page.locator('mpr-login-button#fixture-login-button');
+    const googleControl = page.getByRole('button', { name: 'Sign in with Google' });
+
+    for (const buttonVariant of ICON_ONLY_BUTTON_VARIANTS) {
+      await loginButton.evaluate((element, variant) => {
+        element.setAttribute('button-shape', variant.buttonShape);
+        element.setAttribute('button-size', variant.buttonSize);
+      }, buttonVariant);
+
+      await expect(googleControl).toBeVisible();
+
+      const controlBox = await googleControl.boundingBox();
+      expect(controlBox).not.toBeNull();
+      if (controlBox === null) {
+        throw new Error('Expected the configured Google login control to have visible bounds.');
+      }
+
+      expect(controlBox.width).toBeGreaterThan(0);
+      expect(controlBox.height).toBeGreaterThan(0);
+      expect(Math.abs(controlBox.width - controlBox.height)).toBeLessThanOrEqual(1);
+    }
   });
 });
