@@ -1034,6 +1034,22 @@ mpr-login-button[data-mpr-login-mounted="true"] {
   inline-size: var(--mpr-login-button-height);
   min-inline-size: var(--mpr-login-button-height);
   padding: 0;
+  grid-template-columns: 1fr;
+  place-items: center;
+  column-gap: 0;
+}
+
+.mpr-login-button[data-mpr-login-shape="square"] .mpr-login-button__mark,
+.mpr-login-button[data-mpr-login-shape="circle"] .mpr-login-button__mark,
+.mpr-login-button[data-mpr-login-shape="square"] .mpr-login-button__spinner,
+.mpr-login-button[data-mpr-login-shape="circle"] .mpr-login-button__spinner {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.mpr-login-button[data-mpr-login-state="preparing"][data-mpr-login-shape="square"] .mpr-login-button__mark,
+.mpr-login-button[data-mpr-login-state="preparing"][data-mpr-login-shape="circle"] .mpr-login-button__mark {
+  visibility: hidden;
 }
 
 .mpr-login-button[data-mpr-login-shape="square"] .mpr-login-button__label,
