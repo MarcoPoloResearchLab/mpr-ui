@@ -128,6 +128,10 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 `tenantId` / `tauth-tenant-id` is immutable after the auth controller initializes. To switch tenants, destroy the current `<mpr-header>` / `<mpr-login-button>` instance and create a new one instead of mutating the existing element.
 
+### Login-only button presentation
+
+`<mpr-login-button>` renders one component-owned native Google control. Keep the element empty: any child CTA markup, Google mark, or nested button is removed during hydration and is not a supported presentation path. Use `authButton.text`, `authButton.theme`, `authButton.size`, and optional `authButton.shape` in `/config-ui.yaml` for the standard presentation; use only the documented `--mpr-login-button-*` custom properties for branded surface values. Do not target generated internals from app CSS. The click remains the only point that starts the nonce-bound GIS flow. See the [integration guide](docs/integration-guide.md#login-only-button-presentation) for the accepted values and appearance hooks.
+
 ## `/config-ui.yaml` Rules
 
 - `tauthUrl` is required and may be an empty string. Use `""` for same-origin auth.
