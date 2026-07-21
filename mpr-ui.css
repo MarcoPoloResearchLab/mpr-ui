@@ -855,3 +855,226 @@ footer.mpr-footer [data-mpr-footer="privacy-modal"][data-mpr-modal="container"] 
     transform: rotate(360deg);
   }
 }
+
+mpr-login-button[data-mpr-login-mounted="true"] {
+  display: contents;
+}
+
+.mpr-login-button {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  inline-size: var(--mpr-login-button-inline-size, auto);
+  max-inline-size: 100%;
+  --mpr-login-button-theme-background: #fff;
+  --mpr-login-button-theme-border-color: #dadce0;
+  --mpr-login-button-theme-color: #1f1f1f;
+  --mpr-login-button-theme-hover-background: #f8faff;
+  --mpr-login-button-focus-color: rgba(66, 133, 244, 0.5);
+  --mpr-login-button-radius: 0.5rem;
+  --mpr-login-button-height: 2.75rem;
+  --mpr-login-button-padding-inline: 0.95rem;
+  --mpr-login-button-font-size: 0.95rem;
+}
+
+.mpr-login-button__control {
+  display: inline-grid;
+  grid-template-columns: 1.15rem minmax(0, 1fr) 1.15rem;
+  align-items: center;
+  column-gap: 0.5rem;
+  inline-size: 100%;
+  min-inline-size: 0;
+  min-block-size: var(--mpr-login-button-height);
+  padding: 0 var(--mpr-login-button-padding-inline);
+  border: 1px solid var(
+    --mpr-login-button-border-color,
+    var(--mpr-login-button-theme-border-color)
+  );
+  border-radius: var(--mpr-login-button-radius);
+  background: var(
+    --mpr-login-button-background,
+    var(--mpr-login-button-theme-background)
+  );
+  color: var(--mpr-login-button-color, var(--mpr-login-button-theme-color));
+  font: inherit;
+  font-size: var(--mpr-login-button-font-size);
+  font-weight: 700;
+  line-height: 1.2;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  box-sizing: border-box;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: background-color 140ms ease, border-color 140ms ease,
+    box-shadow 140ms ease;
+}
+
+.mpr-login-button__control:hover {
+  background: var(
+    --mpr-login-button-hover-background,
+    var(--mpr-login-button-theme-hover-background)
+  );
+}
+
+.mpr-login-button__control:focus-visible {
+  outline: 3px solid var(--mpr-login-button-focus-color);
+  outline-offset: 2px;
+}
+
+.mpr-login-button__control:disabled {
+  cursor: progress;
+  opacity: 0.82;
+}
+
+.mpr-login-button__mark {
+  display: inline-flex;
+  grid-column: 1;
+  align-items: center;
+  justify-content: center;
+  inline-size: 1.15rem;
+  block-size: 1.15rem;
+}
+
+.mpr-login-button__mark svg {
+  display: block;
+  inline-size: 100%;
+  block-size: 100%;
+}
+
+.mpr-login-button__label {
+  grid-column: 2;
+  min-inline-size: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mpr-login-button__spinner {
+  grid-column: 3;
+  justify-self: center;
+  inline-size: 0.9rem;
+  block-size: 0.9rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  visibility: hidden;
+}
+
+.mpr-login-button[data-mpr-login-state="preparing"] .mpr-login-button__spinner {
+  visibility: visible;
+  animation: mpr-login-button-spin 0.7s linear infinite;
+}
+
+.mpr-login-button__status {
+  margin: 0;
+  color: var(--mpr-color-text-muted, #64748b);
+  font: inherit;
+  font-size: 0.84rem;
+  line-height: 1.35;
+}
+
+.mpr-login-button__status:empty {
+  display: none;
+}
+
+.mpr-login-button[data-mpr-login-state="error"] .mpr-login-button__status {
+  color: var(--mpr-color-error, #dc2626);
+}
+
+.mpr-login-button[data-mpr-login-theme="outline"] {
+  --mpr-login-button-theme-background: #fff;
+  --mpr-login-button-theme-border-color: #dadce0;
+  --mpr-login-button-theme-color: #1f1f1f;
+  --mpr-login-button-theme-hover-background: #f8faff;
+}
+
+.mpr-login-button[data-mpr-login-theme="filled_blue"] {
+  --mpr-login-button-theme-background: #4285f4;
+  --mpr-login-button-theme-border-color: #4285f4;
+  --mpr-login-button-theme-color: #fff;
+  --mpr-login-button-theme-hover-background: #1a73e8;
+}
+
+.mpr-login-button[data-mpr-login-theme="filled_black"] {
+  --mpr-login-button-theme-background: #202124;
+  --mpr-login-button-theme-border-color: #202124;
+  --mpr-login-button-theme-color: #fff;
+  --mpr-login-button-theme-hover-background: #000;
+}
+
+.mpr-login-button[data-mpr-login-size="small"] {
+  --mpr-login-button-height: 2.25rem;
+  --mpr-login-button-padding-inline: 0.7rem;
+  --mpr-login-button-font-size: 0.84rem;
+}
+
+.mpr-login-button[data-mpr-login-size="large"] {
+  --mpr-login-button-height: 3rem;
+  --mpr-login-button-padding-inline: 1.1rem;
+  --mpr-login-button-font-size: 1rem;
+}
+
+.mpr-login-button[data-mpr-login-shape="pill"] {
+  --mpr-login-button-radius: 999px;
+}
+
+.mpr-login-button[data-mpr-login-shape="square"] {
+  --mpr-login-button-radius: 0.4rem;
+  inline-size: var(--mpr-login-button-height);
+}
+
+.mpr-login-button[data-mpr-login-shape="circle"] {
+  --mpr-login-button-radius: 50%;
+  inline-size: var(--mpr-login-button-height);
+}
+
+.mpr-login-button[data-mpr-login-shape="square"] .mpr-login-button__control,
+.mpr-login-button[data-mpr-login-shape="circle"] .mpr-login-button__control {
+  inline-size: var(--mpr-login-button-height);
+  min-inline-size: var(--mpr-login-button-height);
+  padding: 0;
+  grid-template-columns: 1fr;
+  place-items: center;
+  column-gap: 0;
+}
+
+.mpr-login-button[data-mpr-login-shape="square"] .mpr-login-button__mark,
+.mpr-login-button[data-mpr-login-shape="circle"] .mpr-login-button__mark,
+.mpr-login-button[data-mpr-login-shape="square"] .mpr-login-button__spinner,
+.mpr-login-button[data-mpr-login-shape="circle"] .mpr-login-button__spinner {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+.mpr-login-button[data-mpr-login-state="preparing"][data-mpr-login-shape="square"] .mpr-login-button__mark,
+.mpr-login-button[data-mpr-login-state="preparing"][data-mpr-login-shape="circle"] .mpr-login-button__mark {
+  visibility: hidden;
+}
+
+.mpr-login-button[data-mpr-login-shape="square"] .mpr-login-button__label,
+.mpr-login-button[data-mpr-login-shape="circle"] .mpr-login-button__label {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .mpr-login-button__control {
+    transition: none;
+  }
+
+  .mpr-login-button[data-mpr-login-state="preparing"] .mpr-login-button__spinner {
+    animation: none;
+  }
+}
+
+@keyframes mpr-login-button-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

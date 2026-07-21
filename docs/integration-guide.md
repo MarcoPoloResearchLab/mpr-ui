@@ -197,6 +197,31 @@ What your template still owns:
 - optional `sign-in-redirect-url` authenticated destination
 - optional `auth-transition.completionEvent` name for same-page authenticated hydration
 
+## Login-only button presentation
+
+`<mpr-login-button>` owns the complete Google sign-in control. After the element upgrades, it removes any child CTA markup and host button semantics, then renders one native button with the configured label, Google mark, focus treatment, and loading/error feedback. Child markup is not a fallback, slot, or alternate presentation API.
+
+Configure the standard appearance through the config-backed `authButton` fields or their corresponding attributes:
+
+| Setting | Values | Default |
+| --- | --- | --- |
+| `button-text` / `authButton.text` | `signin_with`, `signup_with`, `continue_with`, `signin` | `signin` |
+| `button-theme` / `authButton.theme` | `outline`, `filled_blue`, `filled_black` | `outline` |
+| `button-size` / `authButton.size` | `small`, `medium`, `large` | `medium` |
+| `button-shape` / `authButton.shape` | `rectangular`, `pill`, `square`, `circle` | `rectangular` |
+
+For a branded page, set the documented custom properties on the component or an ancestor. Do not target generated `.mpr-login-button__*` classes or `[data-mpr-login]` nodes from app CSS.
+
+| Custom property | Purpose |
+| --- | --- |
+| `--mpr-login-button-inline-size` | Control width, for example `100%` inside a login panel. |
+| `--mpr-login-button-background` | Control background. |
+| `--mpr-login-button-border-color` | Control border color. |
+| `--mpr-login-button-color` | Control label color. |
+| `--mpr-login-button-hover-background` | Control hover background. |
+
+The button remains session-first: mounting it does not initialize GIS, request a nonce, or probe a protected session. Those actions begin only after the user activates the rendered button.
+
 ## App event handling
 
 Listen for auth events in app code:
@@ -233,6 +258,7 @@ If sign-in should open an authenticated app route, set `sign-in-redirect-url` on
 - do not call `initAuthClient`, `getCurrentUser`, `requestNonce`, or `logout` yourself
 - do not duplicate `tauth-*` auth attributes in templates
 - do not ship app CSS that targets `mpr-ui` internal classes or internal `[data-mpr-*]` nodes
+- do not place fallback CTA content, a Google mark, or another button inside `<mpr-login-button>`
 - do not mutate `tauth-tenant-id` after render; recreate the component instead
 - do not treat `mpr-auth-provider:select` or `mpr-auth-provider:email-submit` as authentication proof
 - do not put raw email/password values into DOM attributes, local storage, logs, diagnostics, or redispatched events
@@ -248,6 +274,7 @@ If sign-in should open an authenticated app route, set `sign-in-redirect-url` on
 7. Confirm logout calls `/auth/logout` and `mpr-ui:auth:unauthenticated` fires.
 8. If using `<mpr-auth-provider-chooser>`, confirm provider clicks emit only provider-choice events, any `variant="icon-row"` buttons still have accessible names, and authenticated UI still waits for `mpr-ui:auth:authenticated`.
 9. If using the chooser email form, confirm submitted email/password values do not appear in event details, attributes, local storage, logs, or diagnostics.
+10. If using `<mpr-login-button>`, confirm there is one visible native sign-in control and no auth request or GIS initialization occurs before it is activated.
 
 ## Troubleshooting
 

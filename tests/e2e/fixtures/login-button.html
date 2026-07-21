@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>MPR Login Button Fixture</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <style>
+      body {
+        display: grid;
+        min-block-size: 100vh;
+        place-items: center;
+        margin: 0;
+        background: #0f172a;
+        color: #e2e8f0;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+      }
+
+      main {
+        inline-size: min(100% - 2rem, 30rem);
+      }
+
+      .login-panel {
+        display: grid;
+        gap: 1rem;
+        padding: 1.5rem;
+        border: 1px solid rgba(148, 163, 184, 0.35);
+        border-radius: 1rem;
+        background: rgba(15, 23, 42, 0.92);
+        --mpr-login-button-inline-size: 100%;
+        --mpr-login-button-background: #f8fafc;
+        --mpr-login-button-border-color: #cbd5e1;
+        --mpr-login-button-color: #0f172a;
+        --mpr-login-button-hover-background: #e2e8f0;
+      }
+
+      .legacy-host-presentation {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-block-size: 44px;
+        padding: 0.72rem 1.2rem;
+        border: 1px solid #0ea5e9;
+        border-radius: 999px;
+        background: #0ea5e9;
+        color: #ffffff;
+        font-size: 0.95rem;
+        font-weight: 700;
+      }
+    </style>
+    <script>
+      (function configureLoginButtonFixture(globalObject) {
+        globalObject.__loginButtonRequestPaths = [];
+        globalObject.__loginButtonGoogleInitializeCalls = [];
+        globalObject.__loginButtonPromptCount = 0;
+        globalObject.__loginButtonNonceFailure = false;
+        globalObject.__loginButtonHoldNonce = false;
+        globalObject.__resolveLoginButtonNonce = null;
+        globalObject.localStorage.clear();
+
+        globalObject.google = {
+          accounts: {
+            id: {
+              renderButton: function renderGoogleIdentityButton() {},
+              initialize: function initializeGoogleIdentity(config) {
+                globalObject.__loginButtonGoogleInitializeCalls.push({
+                  clientId: config.client_id,
+                  nonce: config.nonce,
+                });
+              },
+              prompt: function promptGoogleIdentity() {
+                globalObject.__loginButtonPromptCount += 1;
+              },
+            },
+          },
+        };
+
+        function createNonceResponse() {
+          if (globalObject.__loginButtonNonceFailure) {
+            return {
+              ok: false,
+              status: 500,
+              json: function readFailurePayload() {
+                return Promise.resolve({ error: 'nonce failed' });
+              },
+            };
+          }
+          return {
+            ok: true,
+            json: function readNoncePayload() {
+              return Promise.resolve({ nonce: 'fixture-login-nonce' });
+            },
+          };
+        }
+
+        globalObject.fetch = function fetchAuthResource(input) {
+          var requestUrl = new URL(String(input), globalObject.location.href);
+          globalObject.__loginButtonRequestPaths.push(requestUrl.pathname);
+          if (requestUrl.pathname !== '/auth/nonce') {
+            return Promise.reject(new Error('unexpected auth request: ' + requestUrl.pathname));
+          }
+          if (globalObject.__loginButtonHoldNonce) {
+            return new Promise(function holdNonceResponse(resolve) {
+              globalObject.__resolveLoginButtonNonce = function resolveNonceResponse() {
+                globalObject.__resolveLoginButtonNonce = null;
+                resolve(createNonceResponse());
+              };
+            });
+          }
+          return Promise.resolve(createNonceResponse());
+        };
+      })(window);
+    </script>
+  </head>
+  <body>
+    <main>
+      <section class="login-panel" aria-label="Branded login panel">
+        <h1>Continue to Poodle Scanner</h1>
+        <mpr-login-button
+          id="fixture-login-button"
+          class="legacy-host-presentation"
+          role="button"
+          tabindex="0"
+          aria-label="Legacy CTA fallback"
+          site-id="fixture-google-client"
+          tauth-url="https://auth.example.test"
+          tauth-login-path="/auth/google"
+          tauth-logout-path="/auth/logout"
+          tauth-nonce-path="/auth/nonce"
+          tauth-tenant-id="fixture-tenant"
+          button-text="signin_with"
+          button-size="large"
+          button-theme="outline"
+          button-shape="pill"
+        >
+          <span>Legacy CTA fallback</span>
+        </mpr-login-button>
+      </section>
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"></script>
+  </body>
+</html>

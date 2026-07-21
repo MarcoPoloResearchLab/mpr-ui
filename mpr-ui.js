@@ -46,6 +46,74 @@
       return labels;
     })()
   );
+  var LOGIN_BUTTON_ROOT_CLASS = "mpr-login-button";
+  var LOGIN_BUTTON_CONTROL_CLASS = LOGIN_BUTTON_ROOT_CLASS + "__control";
+  var LOGIN_BUTTON_MARK_CLASS = LOGIN_BUTTON_ROOT_CLASS + "__mark";
+  var LOGIN_BUTTON_LABEL_CLASS = LOGIN_BUTTON_ROOT_CLASS + "__label";
+  var LOGIN_BUTTON_SPINNER_CLASS = LOGIN_BUTTON_ROOT_CLASS + "__spinner";
+  var LOGIN_BUTTON_STATUS_CLASS = LOGIN_BUTTON_ROOT_CLASS + "__status";
+  var LOGIN_BUTTON_STYLE_ID = "mpr-ui-login-button-styles";
+  var LOGIN_BUTTON_CONTAINER_SELECTOR = '[data-mpr-login="google-button"]';
+  var LOGIN_BUTTON_MOUNTED_ATTRIBUTE = "data-mpr-login-mounted";
+  var LOGIN_BUTTON_STATE_ATTRIBUTE = "data-mpr-login-state";
+  var LOGIN_BUTTON_THEME_ATTRIBUTE = "data-mpr-login-theme";
+  var LOGIN_BUTTON_SIZE_ATTRIBUTE = "data-mpr-login-size";
+  var LOGIN_BUTTON_SHAPE_ATTRIBUTE = "data-mpr-login-shape";
+  var LOGIN_BUTTON_PRESENTATION_STATE = Object.freeze({
+    READY: "ready",
+    PREPARING: "preparing",
+    ERROR: "error",
+  });
+  var LOGIN_BUTTON_THEME = Object.freeze({
+    OUTLINE: "outline",
+    FILLED_BLUE: "filled_blue",
+    FILLED_BLACK: "filled_black",
+  });
+  var LOGIN_BUTTON_SIZE = Object.freeze({
+    SMALL: "small",
+    MEDIUM: "medium",
+    LARGE: "large",
+  });
+  var LOGIN_BUTTON_SHAPE = Object.freeze({
+    RECTANGULAR: "rectangular",
+    PILL: "pill",
+    SQUARE: "square",
+    CIRCLE: "circle",
+  });
+  var LOGIN_BUTTON_PRESENTATION_VALUES = Object.freeze({
+    theme: Object.freeze([
+      LOGIN_BUTTON_THEME.OUTLINE,
+      LOGIN_BUTTON_THEME.FILLED_BLUE,
+      LOGIN_BUTTON_THEME.FILLED_BLACK,
+    ]),
+    size: Object.freeze([
+      LOGIN_BUTTON_SIZE.SMALL,
+      LOGIN_BUTTON_SIZE.MEDIUM,
+      LOGIN_BUTTON_SIZE.LARGE,
+    ]),
+    shape: Object.freeze([
+      LOGIN_BUTTON_SHAPE.RECTANGULAR,
+      LOGIN_BUTTON_SHAPE.PILL,
+      LOGIN_BUTTON_SHAPE.SQUARE,
+      LOGIN_BUTTON_SHAPE.CIRCLE,
+    ]),
+  });
+  var LOGIN_BUTTON_PRESENTATION_ERROR_CODES = Object.freeze({
+    theme: "mpr-ui.login_button.invalid_theme",
+    size: "mpr-ui.login_button.invalid_size",
+    shape: "mpr-ui.login_button.invalid_shape",
+  });
+  var LOGIN_BUTTON_NATIVE_CONTROL_ERROR =
+    "mpr-ui.login_button.native_control_unavailable";
+  var LOGIN_BUTTON_PRESENTATION_DEFAULTS = Object.freeze({
+    theme: LOGIN_BUTTON_THEME.OUTLINE,
+    size: LOGIN_BUTTON_SIZE.MEDIUM,
+    shape: LOGIN_BUTTON_SHAPE.RECTANGULAR,
+  });
+  var LOGIN_BUTTON_LABELS = Object.freeze({
+    preparing: "Starting Google sign-in…",
+    attemptFailed: "Unable to start Google sign-in. Try again.",
+  });
   var AUTH_PROVIDER_CHOOSER_ROOT_CLASS = "mpr-auth-provider-chooser";
   var AUTH_PROVIDER_CHOOSER_STYLE_ID = "mpr-ui-auth-provider-chooser-styles";
   var AUTH_PROVIDER_CHOOSER_PROVIDERS_ATTRIBUTE = "providers";
@@ -1154,7 +1222,7 @@
       hostElement.querySelector &&
       typeof hostElement.querySelector === "function"
     ) {
-      var existing = hostElement.querySelector('[data-mpr-login="google-button"]');
+      var existing = hostElement.querySelector(LOGIN_BUTTON_CONTAINER_SELECTOR);
       if (existing) {
         return existing;
       }
@@ -1172,9 +1240,147 @@
       return null;
     }
     container.setAttribute("data-mpr-login", "google-button");
+    container.setAttribute("class", LOGIN_BUTTON_ROOT_CLASS);
     hostElement.innerHTML = "";
     hostElement.appendChild(container);
     return container;
+  }
+
+  function prepareLoginButtonHost(hostElement) {
+    if (!hostElement || typeof hostElement.setAttribute !== "function") {
+      return;
+    }
+    hostElement.setAttribute(LOGIN_BUTTON_MOUNTED_ATTRIBUTE, "true");
+    if (typeof hostElement.removeAttribute !== "function") {
+      return;
+    }
+    hostElement.removeAttribute("role");
+    hostElement.removeAttribute("tabindex");
+    hostElement.removeAttribute("aria-label");
+  }
+
+  function getLoginButtonPresentationValue(
+    value,
+    fallbackValue,
+    allowedValues,
+    errorCode,
+  ) {
+    var normalizedValue = typeof value === "string" ? value.trim() : "";
+    if (!normalizedValue) {
+      return fallbackValue;
+    }
+    if (allowedValues.indexOf(normalizedValue) === -1) {
+      throw new Error(errorCode + ": " + normalizedValue);
+    }
+    return normalizedValue;
+  }
+
+  function applyLoginButtonPresentation(containerElement, buttonOptions) {
+    if (!containerElement || typeof containerElement.setAttribute !== "function") {
+      return;
+    }
+    var options = buttonOptions && typeof buttonOptions === "object"
+      ? buttonOptions
+      : {};
+    containerElement.setAttribute(
+      LOGIN_BUTTON_THEME_ATTRIBUTE,
+      getLoginButtonPresentationValue(
+        options.theme,
+        LOGIN_BUTTON_PRESENTATION_DEFAULTS.theme,
+        LOGIN_BUTTON_PRESENTATION_VALUES.theme,
+        LOGIN_BUTTON_PRESENTATION_ERROR_CODES.theme,
+      ),
+    );
+    containerElement.setAttribute(
+      LOGIN_BUTTON_SIZE_ATTRIBUTE,
+      getLoginButtonPresentationValue(
+        options.size,
+        LOGIN_BUTTON_PRESENTATION_DEFAULTS.size,
+        LOGIN_BUTTON_PRESENTATION_VALUES.size,
+        LOGIN_BUTTON_PRESENTATION_ERROR_CODES.size,
+      ),
+    );
+    containerElement.setAttribute(
+      LOGIN_BUTTON_SHAPE_ATTRIBUTE,
+      getLoginButtonPresentationValue(
+        options.shape,
+        LOGIN_BUTTON_PRESENTATION_DEFAULTS.shape,
+        LOGIN_BUTTON_PRESENTATION_VALUES.shape,
+        LOGIN_BUTTON_PRESENTATION_ERROR_CODES.shape,
+      ),
+    );
+  }
+
+  function createLoginButtonTriggerContent(buttonElement, buttonLabel) {
+    if (!buttonElement || typeof buttonElement.appendChild !== "function") {
+      return;
+    }
+    if (typeof buttonElement.innerHTML === "string") {
+      buttonElement.innerHTML = "";
+    }
+    var markElement = createElementNear(buttonElement, "span");
+    var labelElement = createElementNear(buttonElement, "span");
+    var spinnerElement = createElementNear(buttonElement, "span");
+    if (!markElement || !labelElement || !spinnerElement) {
+      return;
+    }
+    markElement.setAttribute("class", LOGIN_BUTTON_MARK_CLASS);
+    markElement.setAttribute("aria-hidden", "true");
+    markElement.setAttribute("data-mpr-login", "google-mark");
+    markElement.innerHTML = AUTH_PROVIDER_CHOOSER_MARKUP.google;
+    labelElement.setAttribute("class", LOGIN_BUTTON_LABEL_CLASS);
+    labelElement.setAttribute("data-mpr-login", "label");
+    labelElement.textContent = buttonLabel;
+    spinnerElement.setAttribute("class", LOGIN_BUTTON_SPINNER_CLASS);
+    spinnerElement.setAttribute("aria-hidden", "true");
+    spinnerElement.setAttribute("data-mpr-login", "spinner");
+    buttonElement.setAttribute("aria-label", buttonLabel);
+    buttonElement.appendChild(markElement);
+    buttonElement.appendChild(labelElement);
+    buttonElement.appendChild(spinnerElement);
+  }
+
+  function createLoginButtonStatus(containerElement) {
+    var statusElement = createElementNear(containerElement, "p");
+    if (!statusElement || typeof containerElement.appendChild !== "function") {
+      return null;
+    }
+    statusElement.setAttribute("class", LOGIN_BUTTON_STATUS_CLASS);
+    statusElement.setAttribute("data-mpr-login", "status");
+    statusElement.setAttribute("role", "status");
+    statusElement.setAttribute("aria-live", "polite");
+    statusElement.textContent = "";
+    containerElement.appendChild(statusElement);
+    return statusElement;
+  }
+
+  function setLoginButtonPresentationState(
+    containerElement,
+    loginControl,
+    presentationState,
+  ) {
+    if (!containerElement || typeof containerElement.setAttribute !== "function") {
+      return;
+    }
+    var isPreparing = presentationState === LOGIN_BUTTON_PRESENTATION_STATE.PREPARING;
+    containerElement.setAttribute(LOGIN_BUTTON_STATE_ATTRIBUTE, presentationState);
+    if (loginControl && loginControl.target) {
+      loginControl.target.disabled = isPreparing;
+      if (typeof loginControl.target.setAttribute === "function") {
+        loginControl.target.setAttribute("aria-busy", isPreparing ? "true" : "false");
+      }
+    }
+    if (!loginControl || !loginControl.statusElement) {
+      return;
+    }
+    if (presentationState === LOGIN_BUTTON_PRESENTATION_STATE.PREPARING) {
+      loginControl.statusElement.textContent = LOGIN_BUTTON_LABELS.preparing;
+      return;
+    }
+    loginControl.statusElement.textContent =
+      presentationState === LOGIN_BUTTON_PRESENTATION_STATE.ERROR
+        ? LOGIN_BUTTON_LABELS.attemptFailed
+        : "";
   }
 
   function buildHeaderOptionsFromAttributes(hostElement) {
@@ -1363,6 +1569,9 @@
         }
       }
       buttonElement.textContent = buttonLabel;
+      if (typeof config.contentBuilder === "function") {
+        config.contentBuilder(buttonElement, buttonLabel);
+      }
       buttonElement.addEventListener("click", clickHandler);
       containerElement.appendChild(buttonElement);
       return {
@@ -1372,6 +1581,11 @@
           clearNodeContents(containerElement);
         },
       };
+    }
+    if (config.requireNativeButton) {
+      throw new Error(
+        config.nativeControlErrorCode || "mpr-ui.signin.native_control_unavailable",
+      );
     }
     containerElement.textContent = buttonLabel;
     if (typeof containerElement.setAttribute === "function") {
@@ -4787,6 +5001,162 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     } else {
       styleElement.appendChild(
         documentObject.createTextNode(AUTH_PROVIDER_CHOOSER_STYLE_MARKUP),
+      );
+    }
+    documentObject.head.appendChild(styleElement);
+  }
+
+  var LOGIN_BUTTON_STYLE_MARKUP =
+    'mpr-login-button[data-mpr-login-mounted="true"]{display:contents}' +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    "{display:inline-flex;flex-direction:column;gap:0.5rem;inline-size:var(--mpr-login-button-inline-size,auto);max-inline-size:100%;--mpr-login-button-theme-background:#fff;--mpr-login-button-theme-border-color:#dadce0;--mpr-login-button-theme-color:#1f1f1f;--mpr-login-button-theme-hover-background:#f8faff;--mpr-login-button-focus-color:rgba(66,133,244,0.5);--mpr-login-button-radius:0.5rem;--mpr-login-button-height:2.75rem;--mpr-login-button-padding-inline:0.95rem;--mpr-login-button-font-size:0.95rem}" +
+    "." +
+    LOGIN_BUTTON_CONTROL_CLASS +
+    "{display:inline-grid;grid-template-columns:1.15rem minmax(0,1fr) 1.15rem;align-items:center;column-gap:0.5rem;inline-size:100%;min-inline-size:0;min-block-size:var(--mpr-login-button-height);padding:0 var(--mpr-login-button-padding-inline);border:1px solid var(--mpr-login-button-border-color,var(--mpr-login-button-theme-border-color));border-radius:var(--mpr-login-button-radius);background:var(--mpr-login-button-background,var(--mpr-login-button-theme-background));color:var(--mpr-login-button-color,var(--mpr-login-button-theme-color));font:inherit;font-size:var(--mpr-login-button-font-size);font-weight:700;line-height:1.2;text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box;appearance:none;-webkit-appearance:none;transition:background-color 140ms ease,border-color 140ms ease,box-shadow 140ms ease}" +
+    "." +
+    LOGIN_BUTTON_CONTROL_CLASS +
+    ":hover{background:var(--mpr-login-button-hover-background,var(--mpr-login-button-theme-hover-background))}" +
+    "." +
+    LOGIN_BUTTON_CONTROL_CLASS +
+    ":focus-visible{outline:3px solid var(--mpr-login-button-focus-color);outline-offset:2px}" +
+    "." +
+    LOGIN_BUTTON_CONTROL_CLASS +
+    ":disabled{cursor:progress;opacity:0.82}" +
+    "." +
+    LOGIN_BUTTON_MARK_CLASS +
+    "{display:inline-flex;grid-column:1;align-items:center;justify-content:center;inline-size:1.15rem;block-size:1.15rem}" +
+    "." +
+    LOGIN_BUTTON_MARK_CLASS +
+    " svg{display:block;inline-size:100%;block-size:100%}" +
+    "." +
+    LOGIN_BUTTON_LABEL_CLASS +
+    "{grid-column:2;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
+    "." +
+    LOGIN_BUTTON_SPINNER_CLASS +
+    "{grid-column:3;justify-self:center;inline-size:0.9rem;block-size:0.9rem;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;visibility:hidden}" +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-state="preparing"] .' +
+    LOGIN_BUTTON_SPINNER_CLASS +
+    "{visibility:visible;animation:mpr-login-button-spin 0.7s linear infinite}" +
+    "." +
+    LOGIN_BUTTON_STATUS_CLASS +
+    "{margin:0;color:var(--mpr-color-text-muted,#64748b);font:inherit;font-size:0.84rem;line-height:1.35}" +
+    "." +
+    LOGIN_BUTTON_STATUS_CLASS +
+    ":empty{display:none}" +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-state="error"] .' +
+    LOGIN_BUTTON_STATUS_CLASS +
+    "{color:var(--mpr-color-error,#dc2626)}" +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-theme="outline"]{--mpr-login-button-theme-background:#fff;--mpr-login-button-theme-border-color:#dadce0;--mpr-login-button-theme-color:#1f1f1f;--mpr-login-button-theme-hover-background:#f8faff}' +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-theme="filled_blue"]{--mpr-login-button-theme-background:#4285f4;--mpr-login-button-theme-border-color:#4285f4;--mpr-login-button-theme-color:#fff;--mpr-login-button-theme-hover-background:#1a73e8}' +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-theme="filled_black"]{--mpr-login-button-theme-background:#202124;--mpr-login-button-theme-border-color:#202124;--mpr-login-button-theme-color:#fff;--mpr-login-button-theme-hover-background:#000}' +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-size="small"]{--mpr-login-button-height:2.25rem;--mpr-login-button-padding-inline:0.7rem;--mpr-login-button-font-size:0.84rem}' +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-size="large"]{--mpr-login-button-height:3rem;--mpr-login-button-padding-inline:1.1rem;--mpr-login-button-font-size:1rem}' +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="pill"]{--mpr-login-button-radius:999px}' +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="square"]{--mpr-login-button-radius:0.4rem;inline-size:var(--mpr-login-button-height)}' +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="circle"]{--mpr-login-button-radius:50%;inline-size:var(--mpr-login-button-height)}' +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="square"] .' +
+    LOGIN_BUTTON_CONTROL_CLASS +
+    ",." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="circle"] .' +
+    LOGIN_BUTTON_CONTROL_CLASS +
+    "{inline-size:var(--mpr-login-button-height);min-inline-size:var(--mpr-login-button-height);padding:0}" +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="square"] .' +
+    LOGIN_BUTTON_CONTROL_CLASS +
+    ",." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="circle"] .' +
+    LOGIN_BUTTON_CONTROL_CLASS +
+    "{grid-template-columns:1fr;place-items:center;column-gap:0}" +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="square"] .' +
+    LOGIN_BUTTON_MARK_CLASS +
+    ",." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="circle"] .' +
+    LOGIN_BUTTON_MARK_CLASS +
+    ",." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="square"] .' +
+    LOGIN_BUTTON_SPINNER_CLASS +
+    ",." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="circle"] .' +
+    LOGIN_BUTTON_SPINNER_CLASS +
+    "{grid-column:1;grid-row:1}" +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-state="preparing"][data-mpr-login-shape="square"] .' +
+    LOGIN_BUTTON_MARK_CLASS +
+    ",." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-state="preparing"][data-mpr-login-shape="circle"] .' +
+    LOGIN_BUTTON_MARK_CLASS +
+    "{visibility:hidden}" +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="square"] .' +
+    LOGIN_BUTTON_LABEL_CLASS +
+    ",." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-shape="circle"] .' +
+    LOGIN_BUTTON_LABEL_CLASS +
+    "{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}" +
+    "@media (prefers-reduced-motion:reduce){." +
+    LOGIN_BUTTON_CONTROL_CLASS +
+    "{transition:none}." +
+    LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-state="preparing"] .' +
+    LOGIN_BUTTON_SPINNER_CLASS +
+    "{animation:none}}" +
+    "@keyframes mpr-login-button-spin{to{transform:rotate(360deg)}}";
+
+  function ensureLoginButtonStyles(documentObject) {
+    if (
+      !documentObject ||
+      typeof documentObject.createElement !== "function" ||
+      !documentObject.head
+    ) {
+      return;
+    }
+    ensureThemeTokenStyles(documentObject);
+    if (documentObject.getElementById(LOGIN_BUTTON_STYLE_ID)) {
+      return;
+    }
+    var styleElement = documentObject.createElement("style");
+    styleElement.type = "text/css";
+    styleElement.id = LOGIN_BUTTON_STYLE_ID;
+    if (styleElement.styleSheet) {
+      styleElement.styleSheet.cssText = LOGIN_BUTTON_STYLE_MARKUP;
+    } else {
+      styleElement.appendChild(
+        documentObject.createTextNode(LOGIN_BUTTON_STYLE_MARKUP),
       );
     }
     documentObject.head.appendChild(styleElement);
@@ -13035,6 +13405,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           if (!this.__mprConnected) {
             return;
           }
+          prepareLoginButtonHost(this);
+          var documentObject =
+            this.ownerDocument ||
+            global.document ||
+            (global.window && global.window.document) ||
+            null;
+          ensureLoginButtonStyles(documentObject);
           var container = ensureLoginButtonContainer(this);
           if (!container) {
             return;
@@ -13104,6 +13481,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             buttonOptions.text,
             HEADER_DEFAULTS.signInLabel,
           );
+          applyLoginButtonPresentation(container, buttonOptions);
+          var loginControl = null;
           function handleLoginAttemptClick(event) {
             if (event && typeof event.preventDefault === "function") {
               event.preventDefault();
@@ -13114,9 +13493,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             ) {
               return;
             }
+            loginElement.removeAttribute("data-mpr-google-error");
             container.setAttribute(
               "data-mpr-google-ready",
               GOOGLE_SIGNIN_READY_STATE.PREPARING,
+            );
+            setLoginButtonPresentationState(
+              container,
+              loginControl,
+              LOGIN_BUTTON_PRESENTATION_STATE.PREPARING,
             );
             authControllerRef.startGoogleSignIn().then(function handleLoginPromptReady() {
               if (
@@ -13128,6 +13513,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
               container.setAttribute(
                 "data-mpr-google-ready",
                 GOOGLE_SIGNIN_READY_STATE.READY,
+              );
+              setLoginButtonPresentationState(
+                container,
+                loginControl,
+                LOGIN_BUTTON_PRESENTATION_STATE.READY,
               );
             }).catch(function handleLoginAttemptError(error) {
               if (
@@ -13141,27 +13531,45 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
                 "data-mpr-google-ready",
                 GOOGLE_SIGNIN_READY_STATE.ERROR,
               );
+              setLoginButtonPresentationState(
+                container,
+                loginControl,
+                LOGIN_BUTTON_PRESENTATION_STATE.ERROR,
+              );
               dispatchEvent(loginElement, "mpr-login:error", {
                 code: "mpr-ui.auth.google_attempt_failed",
                 message: error && error.message ? error.message : String(error),
               });
             });
           }
-          var loginControl = createSignInTriggerControl(container, {
+          loginControl = createSignInTriggerControl(container, {
             label: buttonLabel,
             clickHandler: handleLoginAttemptClick,
+            className: LOGIN_BUTTON_CONTROL_CLASS,
+            contentBuilder: createLoginButtonTriggerContent,
+            requireNativeButton: true,
+            nativeControlErrorCode: LOGIN_BUTTON_NATIVE_CONTROL_ERROR,
           });
+          if (loginControl) {
+            loginControl.statusElement = createLoginButtonStatus(container);
+          }
           container.setAttribute(
             "data-mpr-google-ready",
             GOOGLE_SIGNIN_READY_STATE.READY,
           );
           container.removeAttribute("data-mpr-google-error");
+          setLoginButtonPresentationState(
+            container,
+            loginControl,
+            LOGIN_BUTTON_PRESENTATION_STATE.READY,
+          );
           this.__googleCleanup = function cleanupLoginAttemptButton() {
             if (loginControl && typeof loginControl.cleanup === "function") {
               loginControl.cleanup();
             }
             container.removeAttribute("data-mpr-google-ready");
             container.removeAttribute("data-mpr-google-error");
+            container.removeAttribute(LOGIN_BUTTON_STATE_ATTRIBUTE);
           };
         }
       };
