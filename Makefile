@@ -6,8 +6,14 @@ E2E_TIMEOUT ?= 350
 FULL_TIMEOUT ?= 350
 LINT_TIMEOUT ?= 30
 FORMAT_TIMEOUT ?= 30
+RELEASE_ARGS ?=
+RELEASE_HELPER := $(abspath $(CURDIR)/scripts/release/release_helper.py)
+PUBLISH_RELEASE_ARGS ?=
+DEPLOY_ARGS ?=
+RELEASE_TOOL_DIR := $(abspath $(CURDIR)/scripts/release)
 
 .PHONY: test test-unit test-coverage test-e2e lint format ci
+.PHONY: release publish deploy
 
 test:
 	timeout -k $(FULL_TIMEOUT)s -s SIGKILL $(FULL_TIMEOUT)s npm test
@@ -28,3 +34,12 @@ format:
 	timeout -k $(FORMAT_TIMEOUT)s -s SIGKILL $(FORMAT_TIMEOUT)s npm run format --if-present
 
 ci: lint format test-coverage test-e2e
+
+release:
+	@RELEASE_HELPER="$(RELEASE_HELPER)" "$(RELEASE_TOOL_DIR)/prepare_release.sh" $(RELEASE_ARGS)
+
+publish:
+	@RELEASE_HELPER="$(RELEASE_HELPER)" "$(RELEASE_TOOL_DIR)/publish_release.sh" $(PUBLISH_RELEASE_ARGS)
+
+deploy:
+	@bash scripts/deploy-jsdelivr.sh $(DEPLOY_ARGS)
