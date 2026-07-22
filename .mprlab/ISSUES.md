@@ -142,7 +142,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Verify that attempting `gix sync <nonexistent-branch>` produces a clear error and leaves the repository state unchanged apart from any safe checks performed.
   - Confirm logs and CLI output no longer describe branch creation when an explicit existing target branch is provided.
 
-- [ ] [B044] (P1) Session-first `<mpr-login-button>` renders an unstyled nested browser button and discards the consumer CTA presentation.
+- [x] [B044] (P1) Session-first `<mpr-login-button>` renders an unstyled nested browser button and discards the consumer CTA presentation.
   Summary:
   The session-first auth implementation correctly replaced eager Google `renderButton()` setup with a first-party trigger that obtains a fresh TAuth nonce and starts the Google prompt only after an explicit click. Its current login-button renderer clears the custom-element host contents, creates a `data-mpr-login="google-button"` wrapper, and appends a plain native `<button>` containing only the configured label. The generated button has neither component-owned presentation nor a documented appearance hook.
 
@@ -168,6 +168,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Playwright proves a configured `<mpr-login-button>` exposes one visible, accessible, styled sign-in control rather than a browser-default button nested inside a separately styled host.
   - Playwright proves no GIS initialization, nonce request, or protected-session request occurs before a sign-in click; one click performs the existing fresh-nonce Google prompt flow.
   - Regression coverage proves rerenders, error handling, and teardown preserve the canonical visual and auth contracts.
+  Resolved: moved login-button presentation to static `button-*` attributes, removed `authButton` from the runtime YAML contract, and made obsolete presentation configuration fail explicitly. Added a browser fixture that loads auth-only YAML across origins while preserving the static presentation contract. Tests: `make ci`.
 
 
 ## Improvements

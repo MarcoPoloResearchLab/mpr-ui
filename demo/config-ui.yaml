@@ -17,11 +17,6 @@ environments:
       loginPath: "/auth/google"
       logoutPath: "/auth/logout"
       noncePath: "/auth/nonce"
-    authButton: &local_demo_auth_button
-      text: "signin_with"
-      size: "large"
-      theme: "outline"
-      shape: "circle"
 
   # Lightweight no-store static preview served with `npm run demo:serve`.
   # This origin renders the demo chrome and components; authenticated sign-in still requires `./up.sh tauth`.
@@ -30,4 +25,3 @@ environments:
       - "http://127.0.0.1:4177"
       - "http://localhost:4177"
     auth: *local_demo_auth
-    authButton: *local_demo_auth_button

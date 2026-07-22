@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Auth-only runtime configuration fixture</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <style>
+      .fixture-login-shell {
+        max-width: 24rem;
+        padding: 2rem;
+      }
+
+      mpr-login-button {
+        --mpr-login-button-height: 44px;
+      }
+    </style>
+    <script defer src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+    ></script>
+    <script
+      id="mpr-ui-bundle"
+      type="application/json"
+      data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+    ></script>
+  </head>
+  <body>
+    <main class="fixture-login-shell">
+      <mpr-login-button
+        id="fixture-config-login-button"
+        data-config-url="https://api.fixture.test/config-ui.yaml"
+        button-text="signin_with"
+        button-size="large"
+        button-theme="filled_blue"
+        button-shape="pill"
+      ></mpr-login-button>
+    </main>
+  </body>
+</html>

@@ -49,12 +49,6 @@ function createBaseConfig() {
           logoutPath: '/auth/logout',
           noncePath: '/auth/nonce',
         },
-        authButton: {
-          text: 'signin_with',
-          size: 'large',
-          theme: 'outline',
-          shape: 'pill',
-        },
       },
     ],
   };
@@ -196,32 +190,38 @@ test('loadYamlConfig selects matching environment by origin and preserves an exi
     'https://mirror.example.com',
   ]);
   assert.equal(runtimeConfig.auth.googleClientId, 'example-client');
-  assert.equal(runtimeConfig.authButton.shape, 'pill');
   assert.equal(Object.isFrozen(runtimeConfig), true);
   assert.equal(Object.isFrozen(runtimeConfig.auth), true);
-  assert.equal(Object.isFrozen(runtimeConfig.authButton), true);
 });
 
-test('loadYamlConfig tolerates a missing authButton section and omits optional shape', async () => {
+test('loadYamlConfig accepts auth-only runtime config and rejects obsolete presentation configuration', async () => {
   resetEnvironment();
   const configPayload = createBaseConfig();
-  delete configPayload.environments[0].authButton.shape;
 
   setupYamlEnvironment(configPayload);
   const namespace = loadNamespace();
   const runtimeConfig = await namespace.loadYamlConfig({ configUrl: '/config-ui.yaml' });
 
-  assert.equal(runtimeConfig.authButton.shape, undefined);
+  assert.deepEqual(Object.keys(runtimeConfig), ['description', 'origins', 'auth']);
 
   resetEnvironment();
-  const noButtonConfigPayload = createBaseConfig();
-  delete noButtonConfigPayload.environments[0].authButton;
+  const obsoletePresentationConfig = createBaseConfig();
+  obsoletePresentationConfig.environments[0].authButton = {
+    text: 'signin_with',
+    size: 'large',
+    theme: 'outline',
+  };
 
-  setupYamlEnvironment(noButtonConfigPayload);
+  setupYamlEnvironment(obsoletePresentationConfig);
   const secondNamespace = loadNamespace();
-  const secondRuntimeConfig = await secondNamespace.loadYamlConfig({ configUrl: '/config-ui.yaml' });
 
-  assert.equal(secondRuntimeConfig.authButton, null);
+  await assert.rejects(
+    secondNamespace.loadYamlConfig({ configUrl: '/config-ui.yaml' }),
+    {
+      message:
+        'config-ui.yaml does not allow authButton; declare login-button presentation in static markup',
+    },
+  );
 });
 
 test('loadYamlConfig covers default options and loader fallback branches', async () => {
@@ -454,67 +454,6 @@ test('loadYamlConfig rejects invalid config structure and required auth strings'
       },
       expectedMessage: 'config-ui.yaml missing auth.noncePath',
     },
-    {
-      name: 'invalid authButton payload',
-      configPayload: {
-        environments: [
-          {
-            origins: ['https://example.com'],
-            auth: createBaseConfig().environments[0].auth,
-            authButton: 'invalid',
-          },
-        ],
-      },
-      expectedMessage: 'config-ui.yaml missing authButton.authButton',
-    },
-    {
-      name: 'missing authButton text',
-      configPayload: {
-        environments: [
-          {
-            origins: ['https://example.com'],
-            auth: createBaseConfig().environments[0].auth,
-            authButton: {
-              size: 'large',
-              theme: 'outline',
-            },
-          },
-        ],
-      },
-      expectedMessage: 'config-ui.yaml missing authButton.text',
-    },
-    {
-      name: 'missing authButton size',
-      configPayload: {
-        environments: [
-          {
-            origins: ['https://example.com'],
-            auth: createBaseConfig().environments[0].auth,
-            authButton: {
-              text: 'signin_with',
-              theme: 'outline',
-            },
-          },
-        ],
-      },
-      expectedMessage: 'config-ui.yaml missing authButton.size',
-    },
-    {
-      name: 'missing authButton theme',
-      configPayload: {
-        environments: [
-          {
-            origins: ['https://example.com'],
-            auth: createBaseConfig().environments[0].auth,
-            authButton: {
-              text: 'signin_with',
-              size: 'large',
-            },
-          },
-        ],
-      },
-      expectedMessage: 'config-ui.yaml missing authButton.theme',
-    },
   ];
 
   for (const testCase of cases) {
@@ -651,7 +590,12 @@ test('loadYamlConfig rejects missing fetch, failed fetch responses, parser load 
 test('applyYamlConfig waits for DOMContentLoaded, applies custom selectors, and dispatches config events when available', async () => {
   resetEnvironment();
   const header = createElement({});
-  const loginButton = createElement({});
+  const loginButton = createElement({
+    'button-text': 'signin_with',
+    'button-size': 'large',
+    'button-theme': 'filled_blue',
+    'button-shape': 'pill',
+  });
   const userMenu = createElement({});
   const deferredDocument = createDocumentStub({
     readyState: 'loading',
@@ -691,6 +635,9 @@ test('applyYamlConfig waits for DOMContentLoaded, applies custom selectors, and 
   assert.equal(header.attributes['google-site-id'], 'example-client');
   assert.equal(header.attributes['tauth-url'], 'https://auth.example.com');
   assert.equal(loginButton.attributes['site-id'], 'example-client');
+  assert.equal(loginButton.attributes['button-text'], 'signin_with');
+  assert.equal(loginButton.attributes['button-size'], 'large');
+  assert.equal(loginButton.attributes['button-theme'], 'filled_blue');
   assert.equal(loginButton.attributes['button-shape'], 'pill');
   assert.equal(userMenu.attributes['tauth-tenant-id'], 'example-tenant');
   assert.equal(deferredDocument.dispatchedEvents.length, 1);
@@ -709,7 +656,6 @@ test('applyYamlConfig handles same-origin auth, missing dispatch APIs, absent se
   resetEnvironment();
   const configPayload = createBaseConfig();
   configPayload.environments[0].auth.tauthUrl = '   ';
-  delete configPayload.environments[0].authButton.shape;
 
   const inertHeader = {};
   const inertLogin = {
@@ -746,7 +692,7 @@ test('applyYamlConfig handles same-origin auth, missing dispatch APIs, absent se
   assert.equal(emptyDocument.dispatchedEvents.length, 0);
 });
 
-test('applyYamlConfig rejects when the document is missing or login buttons lack authButton settings', async () => {
+test('applyYamlConfig rejects when the document is missing and applies auth-only config to login buttons', async () => {
   resetEnvironment();
   setupYamlEnvironment(createBaseConfig());
   const namespaceWithoutDocument = loadNamespace();
@@ -757,22 +703,31 @@ test('applyYamlConfig rejects when the document is missing or login buttons lack
   );
 
   resetEnvironment();
-  const configWithoutButton = createBaseConfig();
-  delete configWithoutButton.environments[0].authButton;
-  const loginButton = createElement({});
+  const loginButton = createElement({
+    'button-text': 'signin_with',
+    'button-size': 'large',
+    'button-theme': 'outline',
+    'button-shape': 'pill',
+  });
   const documentStub = createDocumentStub({
     selectorList: {
       'mpr-login-button': [loginButton],
     },
   });
 
-  setupYamlEnvironment(configWithoutButton, { document: documentStub.document });
-  const namespaceWithoutButton = loadNamespace();
+  setupYamlEnvironment(createBaseConfig(), { document: documentStub.document });
+  const namespaceWithAuthOnlyConfig = loadNamespace();
 
-  await assert.rejects(
-    namespaceWithoutButton.applyYamlConfig({ configUrl: '/config-ui.yaml' }),
-    { message: 'config-ui.yaml missing authButton for login button' },
-  );
+  const runtimeConfig = await namespaceWithAuthOnlyConfig.applyYamlConfig({
+    configUrl: '/config-ui.yaml',
+  });
+
+  assert.equal(runtimeConfig.auth.googleClientId, 'example-client');
+  assert.equal(loginButton.attributes['site-id'], 'example-client');
+  assert.equal(loginButton.attributes['button-text'], 'signin_with');
+  assert.equal(loginButton.attributes['button-size'], 'large');
+  assert.equal(loginButton.attributes['button-theme'], 'outline');
+  assert.equal(loginButton.attributes['button-shape'], 'pill');
 });
 
 test('autoOrchestrate resolves immediately when the document cannot orchestrate or config owners have no URL', async () => {
@@ -898,7 +853,10 @@ test('autoOrchestrate loads the bundle once after config application and caches 
 test('autoOrchestrate loads config and bundle from a login-button config owner', async () => {
   resetEnvironment();
   const inertHeader = createElement({});
-  const loginButton = createElement({ 'data-config-url': '/config-ui.yaml' });
+  const loginButton = createElement({
+    'data-config-url': '/config-ui.yaml',
+    'button-shape': 'pill',
+  });
   const bundleMarker = {
     getAttribute(name) {
       if (name === 'data-mpr-ui-bundle-src') {

@@ -42,7 +42,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
    ></script>
    ```
 
-2. **Serve `/config-ui.yaml` from your backend**.
+2. **Serve `/config-ui.yaml` from your backend**. It may be an absolute API URL when that backend grants the browser origin CORS access.
 
    ```yaml
    environments:
@@ -56,10 +56,6 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
          loginPath: "/auth/google"
          logoutPath: "/auth/logout"
          noncePath: "/auth/nonce"
-       authButton:
-         text: "signin_with"
-         size: "large"
-         theme: "outline"
    ```
 
    The loader matches the environment by `window.location.origin`, validates the payload, and applies auth attributes to `<mpr-header>`, `<mpr-login-button>`, and `<mpr-user>` automatically.
@@ -130,7 +126,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 ### Login-only button presentation
 
-`<mpr-login-button>` renders one component-owned native Google control. Keep the element empty: any child CTA markup, Google mark, or nested button is removed during hydration and is not a supported presentation path. Use `authButton.text`, `authButton.theme`, `authButton.size`, and optional `authButton.shape` in `/config-ui.yaml` for the standard presentation; use only the documented `--mpr-login-button-*` custom properties for branded surface values. Do not target generated internals from app CSS. The click remains the only point that starts the nonce-bound GIS flow. See the [integration guide](docs/integration-guide.md#login-only-button-presentation) for the accepted values and appearance hooks.
+`<mpr-login-button>` renders one component-owned native Google control. Keep the element empty: any child CTA markup, Google mark, or nested button is removed during hydration and is not a supported presentation path. Declare `button-text`, `button-theme`, `button-size`, and optional `button-shape` in the static element markup; runtime YAML carries auth data only. Use only the documented `--mpr-login-button-*` custom properties for branded surface values. Do not target generated internals from app CSS. The click remains the only point that starts the nonce-bound GIS flow. See the [integration guide](docs/integration-guide.md#login-only-button-presentation) for the accepted values and appearance hooks.
 
 ## `/config-ui.yaml` Rules
 
@@ -138,7 +134,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 - `googleClientId` is required and must be non-empty.
 - `tenantId` is required and must match the backend tenant.
 - `loginPath`, `logoutPath`, and `noncePath` are required and explicit.
-- `authButton` is optional; when present, `text`, `size`, and `theme` are required.
+- `authButton` is not part of this schema and is rejected. Declare login-button presentation with static `button-*` attributes instead.
 - Each browser origin must appear in exactly one environment entry.
 
 If no environment matches, if multiple environments match, or if required auth fields are missing, `mpr-ui-config.js` throws and the app halts rather than guessing.
