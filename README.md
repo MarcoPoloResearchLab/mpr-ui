@@ -56,6 +56,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
          loginPath: "/auth/google"
          logoutPath: "/auth/logout"
          noncePath: "/auth/nonce"
+         sessionPath: ""
    ```
 
    The loader matches the environment by `window.location.origin`, validates the payload, and applies auth attributes to `<mpr-header>`, `<mpr-login-button>`, and `<mpr-user>` automatically.
@@ -115,7 +116,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 1. Load `mpr-ui.css` before any `mpr-ui` scripts.
 2. Load GIS, `js-yaml`, and `mpr-ui-config.js`.
 3. Serve `/config-ui.yaml` from the app itself.
-4. Put `tauthUrl`, `googleClientId`, `tenantId`, `loginPath`, `logoutPath`, and `noncePath` in `/config-ui.yaml`.
+4. Put `tauthUrl`, `googleClientId`, `tenantId`, `loginPath`, `logoutPath`, `noncePath`, and `sessionPath` in `/config-ui.yaml`.
 5. Render `<mpr-header data-config-url="/config-ui.yaml">`, or render `<mpr-login-button data-config-url="/config-ui.yaml">` when the page only needs the Google sign-in control.
 6. Express shell composition through the DSL, not host CSS overrides into `mpr-ui` internals.
 7. Listen for `mpr-ui:auth:authenticated` and `mpr-ui:auth:unauthenticated` in app code.
@@ -133,7 +134,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 - `tauthUrl` is required and may be an empty string. Use `""` for same-origin auth.
 - `googleClientId` is required and must be non-empty.
 - `tenantId` is required and must match the backend tenant.
-- `loginPath`, `logoutPath`, and `noncePath` are required and explicit.
+- `loginPath`, `logoutPath`, `noncePath`, and `sessionPath` are required and explicit. Use `sessionPath: ""` when the browser API does not expose session restoration.
 - `authButton` is not part of this schema and is rejected. Declare login-button presentation with static `button-*` attributes instead.
 - Each browser origin must appear in exactly one environment entry.
 

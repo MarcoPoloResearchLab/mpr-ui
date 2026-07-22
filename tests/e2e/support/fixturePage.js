@@ -164,6 +164,7 @@ const AUTH_ONLY_RUNTIME_CONFIG = String.raw`environments:
       loginPath: "/auth/google"
       logoutPath: "/auth/logout"
       noncePath: "/auth/nonce"
+      sessionPath: ""
 `;
 
 /**

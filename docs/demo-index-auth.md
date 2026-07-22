@@ -101,6 +101,7 @@ auth:
   loginPath: "/auth/google"
   logoutPath: "/auth/logout"
   noncePath: "/auth/nonce"
+  sessionPath: ""
 ```
 
 Empty `tauthUrl` is intentional. It keeps every browser request on the current origin, which is the only path documented by the demos.

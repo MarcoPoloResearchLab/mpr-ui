@@ -146,6 +146,7 @@
       loginPath: requireString(authPayload, "loginPath", SECTION_AUTH),
       logoutPath: requireString(authPayload, "logoutPath", SECTION_AUTH),
       noncePath: requireString(authPayload, "noncePath", SECTION_AUTH),
+      sessionPath: requireStringAllowEmpty(authPayload, "sessionPath", SECTION_AUTH),
     });
   }
 

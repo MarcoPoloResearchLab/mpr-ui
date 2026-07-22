@@ -48,6 +48,7 @@ function createBaseConfig() {
           loginPath: '/auth/google',
           logoutPath: '/auth/logout',
           noncePath: '/auth/nonce',
+          sessionPath: '',
         },
       },
     ],
@@ -190,6 +191,7 @@ test('loadYamlConfig selects matching environment by origin and preserves an exi
     'https://mirror.example.com',
   ]);
   assert.equal(runtimeConfig.auth.googleClientId, 'example-client');
+  assert.equal(runtimeConfig.auth.sessionPath, '');
   assert.equal(Object.isFrozen(runtimeConfig), true);
   assert.equal(Object.isFrozen(runtimeConfig.auth), true);
 });

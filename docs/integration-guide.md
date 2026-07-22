@@ -78,6 +78,7 @@ environments:
       loginPath: "/auth/google"
       logoutPath: "/auth/logout"
       noncePath: "/auth/nonce"
+      sessionPath: ""
 ```
 
 Rules:
@@ -85,7 +86,7 @@ Rules:
 - `tauthUrl` is required and may be `""` for same-origin auth.
 - `googleClientId` is required and non-empty.
 - `tenantId` is required and non-empty.
-- `loginPath`, `logoutPath`, and `noncePath` are required and explicit.
+- `loginPath`, `logoutPath`, `noncePath`, and `sessionPath` are required and explicit. Use `sessionPath: ""` when the browser API does not expose session restoration.
 - each `window.location.origin` must match exactly one environment.
 
 If the config is missing, malformed, or ambiguous, the loader throws and the app halts.
