@@ -37,6 +37,17 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.11.3] - 2026-07-23
+
+- Merge pull request #181 from MarcoPoloResearchLab/bugfix/B044-login-button-presentation-ownership
+- test: add tauth-session-path coverage to header, YAML, and config-loader e2e
+- feat: add tauthSessionPath support to auth options and config loading
+- feat: add tauth-session-path as config attribute for auth elements
+- docs(changelog): note sessionPath wiring and improved restore contract coverage
+- docs(issues): document tauth-session-path config and restore logic update
+- feat(config): add required sessionPath to auth config schema
+- fix: move login-button presentation to static attributes and reject YAML authButton
+
 ## [v3.11.2] - 2026-07-21
 
 - Merge pull request #180 from MarcoPoloResearchLab/gix/reorganize-and-document-recurring-maintenance-issue
