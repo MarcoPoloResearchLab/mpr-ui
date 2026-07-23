@@ -1299,7 +1299,7 @@ test('mpr-header projects slot content into brand, nav, and actions', () => {
   );
 });
 
-test('mpr-header tauth-url attribute configures auth endpoints', async () => {
+test('mpr-header tauth attributes configure auth endpoints', async () => {
   resetEnvironment();
   const googleStub = {
     accounts: {
@@ -1319,6 +1319,7 @@ test('mpr-header tauth-url attribute configures auth endpoints', async () => {
   headerElement.setAttribute('tauth-login-path', '/auth/google');
   headerElement.setAttribute('tauth-logout-path', '/auth/logout');
   headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
+  headerElement.setAttribute('tauth-session-path', '/auth/custom-session');
   headerElement.setAttribute('tauth-tenant-id', 'tenant-demo');
 
   headerElement.connectedCallback();
@@ -1341,6 +1342,7 @@ test('mpr-header tauth-url attribute configures auth endpoints', async () => {
   assert.equal(authOptions.tauthLoginPath, '/auth/google');
   assert.equal(authOptions.tauthLogoutPath, '/auth/logout');
   assert.equal(authOptions.tauthNoncePath, '/auth/nonce');
+  assert.equal(authOptions.tauthSessionPath, '/auth/custom-session');
   assert.equal(authOptions.tenantId, 'tenant-demo');
 });
 

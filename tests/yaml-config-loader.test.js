@@ -636,12 +636,15 @@ test('applyYamlConfig waits for DOMContentLoaded, applies custom selectors, and 
   assert.equal(runtimeConfig.auth.tenantId, 'example-tenant');
   assert.equal(header.attributes['google-site-id'], 'example-client');
   assert.equal(header.attributes['tauth-url'], 'https://auth.example.com');
+  assert.equal(header.attributes['tauth-session-path'], '');
   assert.equal(loginButton.attributes['site-id'], 'example-client');
+  assert.equal(loginButton.attributes['tauth-session-path'], '');
   assert.equal(loginButton.attributes['button-text'], 'signin_with');
   assert.equal(loginButton.attributes['button-size'], 'large');
   assert.equal(loginButton.attributes['button-theme'], 'filled_blue');
   assert.equal(loginButton.attributes['button-shape'], 'pill');
   assert.equal(userMenu.attributes['tauth-tenant-id'], 'example-tenant');
+  assert.equal(userMenu.attributes['tauth-session-path'], '');
   assert.equal(deferredDocument.dispatchedEvents.length, 1);
   assert.equal(deferredDocument.dispatchedEvents[0].type, 'mpr-ui:config:applied');
   assert.equal(
@@ -726,6 +729,7 @@ test('applyYamlConfig rejects when the document is missing and applies auth-only
 
   assert.equal(runtimeConfig.auth.googleClientId, 'example-client');
   assert.equal(loginButton.attributes['site-id'], 'example-client');
+  assert.equal(loginButton.attributes['tauth-session-path'], '');
   assert.equal(loginButton.attributes['button-text'], 'signin_with');
   assert.equal(loginButton.attributes['button-size'], 'large');
   assert.equal(loginButton.attributes['button-theme'], 'outline');
@@ -901,6 +905,7 @@ test('autoOrchestrate loads config and bundle from a login-button config owner',
   assert.equal(loginButton.attributes['site-id'], 'example-client');
   assert.equal(loginButton.attributes['tauth-tenant-id'], 'example-tenant');
   assert.equal(loginButton.attributes['tauth-login-path'], '/auth/google');
+  assert.equal(loginButton.attributes['tauth-session-path'], '');
   assert.equal(loginButton.attributes['button-shape'], 'pill');
   assert.equal(documentStub.appendedScripts.length, 1);
   assert.equal(documentStub.appendedScripts[0].src, './mpr-ui.js');

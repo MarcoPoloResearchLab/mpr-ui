@@ -10,6 +10,15 @@ const CDN_CONFIG_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@
 const YAML_PARSER_URL = 'https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js';
 const GOOGLE_IDENTITY_URL = 'https://accounts.google.com/gsi/client';
 const RUNTIME_CONFIG_URL = 'https://api.fixture.test/config-ui.yaml';
+const RUNTIME_AUTH_ORIGIN = 'https://auth.fixture.test';
+const RUNTIME_AUTH_TENANT_ID = 'fixture-config-tenant';
+const RUNTIME_SESSION_PATH = '/auth/custom-session';
+const RUNTIME_SESSION_URL = RUNTIME_AUTH_ORIGIN + RUNTIME_SESSION_PATH;
+const RUNTIME_RESTORE_HINT_KEY =
+  'tauth.restore.v1:' +
+  encodeURIComponent(RUNTIME_AUTH_ORIGIN) +
+  ':' +
+  encodeURIComponent(RUNTIME_AUTH_TENANT_ID);
 const GOOGLE_IDENTITY_STUB = String.raw`
 (function createGoogleIdentityStub() {
   const globalObject = window;
@@ -158,13 +167,13 @@ const AUTH_ONLY_RUNTIME_CONFIG = String.raw`environments:
     origins:
       - "https://static.fixture.test"
     auth:
-      tauthUrl: "https://auth.fixture.test"
+      tauthUrl: "${RUNTIME_AUTH_ORIGIN}"
       googleClientId: "fixture-config-client"
-      tenantId: "fixture-config-tenant"
+      tenantId: "${RUNTIME_AUTH_TENANT_ID}"
       loginPath: "/auth/google"
       logoutPath: "/auth/logout"
       noncePath: "/auth/nonce"
-      sessionPath: ""
+      sessionPath: "${RUNTIME_SESSION_PATH}"
 `;
 
 /**
@@ -429,6 +438,9 @@ async function visitLoginButtonFixture(page) {
  * @returns {Promise<void>}
  */
 async function visitConfigLoaderFixture(page) {
+  await page.addInitScript((restoreHintKey) => {
+    window.localStorage.setItem(restoreHintKey, '1');
+  }, RUNTIME_RESTORE_HINT_KEY);
   await Promise.all([
     routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
@@ -437,6 +449,7 @@ async function visitConfigLoaderFixture(page) {
     routeLocalAsset(page, GOOGLE_IDENTITY_URL, GOOGLE_IDENTITY_STUB, 'application/javascript'),
     routeLocalAsset(page, CONFIG_LOADER_FIXTURE_URL, LOCAL_ASSETS.configLoaderFixture, 'text/html'),
     routeRuntimeConfig(page),
+    routeRuntimeSession(page),
   ]);
   await page.goto(CONFIG_LOADER_FIXTURE_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
@@ -668,6 +681,25 @@ async function routeRuntimeConfig(page) {
   });
 }
 
+/**
+ * Serves the configured cross-origin session endpoint for hinted restore.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function routeRuntimeSession(page) {
+  await page.route(RUNTIME_SESSION_URL, (route) => {
+    route.fulfill({
+      status: 204,
+      headers: {
+        'access-control-allow-credentials': 'true',
+        'access-control-allow-headers': 'x-requested-with,x-tauth-tenant',
+        'access-control-allow-methods': 'GET,OPTIONS',
+        'access-control-allow-origin': 'https://static.fixture.test',
+      },
+    });
+  });
+}
+
 module.exports = {
   visitWorkbenchFixture,
   visitFullLayoutFixture,
@@ -694,5 +726,6 @@ module.exports = {
   captureColorSnapshots,
   captureDropUpMetrics,
   readEventLogEntries,
+  runtimeSessionUrl: RUNTIME_SESSION_URL,
   selectors: SELECTORS,
 };
