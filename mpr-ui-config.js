@@ -282,6 +282,7 @@
     setAttributeValue(targetElement, "tauth-login-path", authConfig.loginPath);
     setAttributeValue(targetElement, "tauth-logout-path", authConfig.logoutPath);
     setAttributeValue(targetElement, "tauth-nonce-path", authConfig.noncePath);
+    setAttributeValue(targetElement, "tauth-session-path", authConfig.sessionPath);
     if (authConfig.tauthUrl && authConfig.tauthUrl.trim().length > 0) {
       setAttributeValue(targetElement, "tauth-url", authConfig.tauthUrl);
       return;
