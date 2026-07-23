@@ -12,7 +12,7 @@ Do not introduce a second path through direct `tauth.js` loading or template-lev
 
 ## Principles
 
-- One path: `/config-ui.yaml` is the browser-facing config surface.
+- One path: `/config-ui.yaml` is the browser-facing config surface. The URL may be absolute when the config backend grants the page origin CORS access.
 - DSL first: use `<mpr-*>` attributes, slots, `horizontal-links`, `links-collection`, `theme-switcher`, and `theme-config`.
 - Backend owns config: your app serves `/config-ui.yaml`, `/auth/*`, and `/me`.
 - `mpr-ui` owns auth lifecycle: it handles GIS nonce preparation, credential exchange, shell state, and auth events.
@@ -60,6 +60,8 @@ Your backend must provide:
 
 `mpr-ui` uses `/me` as the session source of truth and retries through `/auth/refresh` when the backend indicates that renewal is required.
 
+When static assets and the API use different origins, set `data-config-url` to the absolute API configuration URL and return `Access-Control-Allow-Origin` for the static page origin. The loader has no static-config fallback.
+
 ## `/config-ui.yaml`
 
 Create `/config-ui.yaml` at your app root:
@@ -76,10 +78,7 @@ environments:
       loginPath: "/auth/google"
       logoutPath: "/auth/logout"
       noncePath: "/auth/nonce"
-    authButton:
-      text: "signin_with"
-      size: "large"
-      theme: "outline"
+      sessionPath: ""
 ```
 
 Rules:
@@ -87,7 +86,7 @@ Rules:
 - `tauthUrl` is required and may be `""` for same-origin auth.
 - `googleClientId` is required and non-empty.
 - `tenantId` is required and non-empty.
-- `loginPath`, `logoutPath`, and `noncePath` are required and explicit.
+- `loginPath`, `logoutPath`, `noncePath`, and `sessionPath` are required and explicit. Use `sessionPath: ""` when the browser API does not expose session restoration.
 - each `window.location.origin` must match exactly one environment.
 
 If the config is missing, malformed, or ambiguous, the loader throws and the app halts.
@@ -141,11 +140,18 @@ For public login pages that need the Google control in the header but do not nee
 
 ```html
 <mpr-header brand-label="My Application" brand-href="/">
-  <mpr-login-button slot="aux" data-config-url="/config-ui.yaml"></mpr-login-button>
+  <mpr-login-button
+    slot="aux"
+    data-config-url="/config-ui.yaml"
+    button-text="signin_with"
+    button-size="large"
+    button-theme="outline"
+    button-shape="pill"
+  ></mpr-login-button>
 </mpr-header>
 ```
 
-The loader applies the same `/config-ui.yaml` auth attributes to the button before loading the bundle.
+The loader applies only `/config-ui.yaml` auth attributes to the button before loading the bundle. The `button-*` attributes remain static page presentation.
 
 ### Multi-provider chooser primitive
 
@@ -201,14 +207,14 @@ What your template still owns:
 
 `<mpr-login-button>` owns the complete Google sign-in control. After the element upgrades, it removes any child CTA markup and host button semantics, then renders one native button with the configured label, Google mark, focus treatment, and loading/error feedback. Child markup is not a fallback, slot, or alternate presentation API.
 
-Configure the standard appearance through the config-backed `authButton` fields or their corresponding attributes:
+Configure the standard appearance through static element attributes. `/config-ui.yaml` is auth-only and rejects `authButton`:
 
 | Setting | Values | Default |
 | --- | --- | --- |
-| `button-text` / `authButton.text` | `signin_with`, `signup_with`, `continue_with`, `signin` | `signin` |
-| `button-theme` / `authButton.theme` | `outline`, `filled_blue`, `filled_black` | `outline` |
-| `button-size` / `authButton.size` | `small`, `medium`, `large` | `medium` |
-| `button-shape` / `authButton.shape` | `rectangular`, `pill`, `square`, `circle` | `rectangular` |
+| `button-text` | `signin_with`, `signup_with`, `continue_with`, `signin` | `signin` |
+| `button-theme` | `outline`, `filled_blue`, `filled_black` | `outline` |
+| `button-size` | `small`, `medium`, `large` | `medium` |
+| `button-shape` | `rectangular`, `pill`, `square`, `circle` | `rectangular` |
 
 For a branded page, set the documented custom properties on the component or an ancestor. Do not target generated `.mpr-login-button__*` classes or `[data-mpr-login]` nodes from app CSS.
 

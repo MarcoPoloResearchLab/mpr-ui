@@ -12,7 +12,6 @@
 
   var SECTION_ENVIRONMENTS = "environments";
   var SECTION_AUTH = "auth";
-  var SECTION_AUTH_BUTTON = "authButton";
   var SECTION_ORIGINS = "origins";
   var BUNDLE_MARKER_SELECTOR = "script[data-mpr-ui-bundle-src]";
   var EVENT_CONFIG_APPLIED = "mpr-ui:config:applied";
@@ -75,13 +74,6 @@
     return value;
   }
 
-  function readOptionalObject(source, key, scope) {
-    if (!Object.prototype.hasOwnProperty.call(source, key)) {
-      return null;
-    }
-    return requireObject(source, key, scope);
-  }
-
   function readStringArray(source, key) {
     var value = source[key];
     if (!Array.isArray(value)) {
@@ -104,6 +96,11 @@
       if (!isPlainObject(environment)) {
         throw new Error(
           CONFIG_FILE_LABEL + " environment at index " + index + " must be an object",
+        );
+      }
+      if (Object.prototype.hasOwnProperty.call(environment, "authButton")) {
+        throw new Error(
+          CONFIG_FILE_LABEL + " does not allow authButton; declare login-button presentation in static markup",
         );
       }
       return environment;
@@ -149,23 +146,8 @@
       loginPath: requireString(authPayload, "loginPath", SECTION_AUTH),
       logoutPath: requireString(authPayload, "logoutPath", SECTION_AUTH),
       noncePath: requireString(authPayload, "noncePath", SECTION_AUTH),
+      sessionPath: requireStringAllowEmpty(authPayload, "sessionPath", SECTION_AUTH),
     });
-  }
-
-  function buildAuthButtonConfig(environment) {
-    var buttonPayload = readOptionalObject(environment, SECTION_AUTH_BUTTON, SECTION_AUTH_BUTTON);
-    if (!buttonPayload) {
-      return null;
-    }
-    var config = {
-      text: requireString(buttonPayload, "text", SECTION_AUTH_BUTTON),
-      size: requireString(buttonPayload, "size", SECTION_AUTH_BUTTON),
-      theme: requireString(buttonPayload, "theme", SECTION_AUTH_BUTTON),
-    };
-    if (typeof buttonPayload.shape === "string" && buttonPayload.shape.trim().length > 0) {
-      config.shape = buttonPayload.shape.trim();
-    }
-    return Object.freeze(config);
   }
 
   function buildRuntimeConfig(environment) {
@@ -175,7 +157,6 @@
       description: description,
       origins: origins,
       auth: buildAuthConfig(environment),
-      authButton: buildAuthButtonConfig(environment),
     });
   }
 
@@ -301,6 +282,7 @@
     setAttributeValue(targetElement, "tauth-login-path", authConfig.loginPath);
     setAttributeValue(targetElement, "tauth-logout-path", authConfig.logoutPath);
     setAttributeValue(targetElement, "tauth-nonce-path", authConfig.noncePath);
+    setAttributeValue(targetElement, "tauth-session-path", authConfig.sessionPath);
     if (authConfig.tauthUrl && authConfig.tauthUrl.trim().length > 0) {
       setAttributeValue(targetElement, "tauth-url", authConfig.tauthUrl);
       return;
@@ -313,15 +295,9 @@
     applyAuthAttributes(headerElement, authConfig);
   }
 
-  function applyLoginButtonAttributes(loginButton, authConfig, authButtonConfig) {
+  function applyLoginButtonAttributes(loginButton, authConfig) {
     setAttributeValue(loginButton, "site-id", authConfig.googleClientId);
     applyAuthAttributes(loginButton, authConfig);
-    setAttributeValue(loginButton, "button-text", authButtonConfig.text);
-    setAttributeValue(loginButton, "button-size", authButtonConfig.size);
-    setAttributeValue(loginButton, "button-theme", authButtonConfig.theme);
-    if (authButtonConfig.shape) {
-      setAttributeValue(loginButton, "button-shape", authButtonConfig.shape);
-    }
   }
 
   function applyUserAttributes(userElement, authConfig) {
@@ -338,11 +314,8 @@
       });
     }
     if (loginButtons.length > 0) {
-      if (!runtimeConfig.authButton) {
-        throw new Error(CONFIG_FILE_LABEL + " missing authButton for login button");
-      }
       loginButtons.forEach(function updateLogin(loginButton) {
-        applyLoginButtonAttributes(loginButton, runtimeConfig.auth, runtimeConfig.authButton);
+        applyLoginButtonAttributes(loginButton, runtimeConfig.auth);
       });
     }
     if (userMenus.length > 0) {

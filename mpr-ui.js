@@ -9,12 +9,12 @@
     tauthLoginPath: "/auth/google",
     tauthLogoutPath: "/auth/logout",
     tauthNoncePath: "/auth/nonce",
+    tauthSessionPath: "/auth/session",
     googleClientId: "",
     tenantId: "",
     siteName: "",
     siteLink: "",
   };
-  var DEFAULT_TAUTH_SESSION_PATH = "/auth/session";
   var REQUESTED_WITH_HEADER = "XMLHttpRequest";
   var AUTH_RESTORE_HINT_PREFIX = "tauth.restore.v1:";
   var AUTH_CONTROLLER_STATUS = Object.freeze({
@@ -190,6 +190,7 @@
    *   tauthLoginPath?: string,
    *   tauthLogoutPath?: string,
    *   tauthNoncePath?: string,
+   *   tauthSessionPath?: string,
    *   googleClientId?: string,
    *   tenantId?: string,
    * }} AuthOptions
@@ -439,7 +440,25 @@
     );
   }
 
+  function hasConfiguredAuthSessionPath(authOptions) {
+    return Boolean(
+      authOptions &&
+        typeof authOptions.tauthSessionPath === "string" &&
+        authOptions.tauthSessionPath.trim(),
+    );
+  }
+
+  function usesDefaultAuthSessionPath(authOptions) {
+    return (
+      authOptions &&
+      authOptions.tauthSessionPath === DEFAULT_OPTIONS.tauthSessionPath
+    );
+  }
+
   function hasAuthRestoreHint(authOptions) {
+    if (!hasConfiguredAuthSessionPath(authOptions)) {
+      return false;
+    }
     var storage = authRestoreStorage();
     var key = authRestoreHintKey(authOptions);
     if (!storage || !key) {
@@ -453,6 +472,9 @@
   }
 
   function rememberAuthRestoreHint(authOptions) {
+    if (!hasConfiguredAuthSessionPath(authOptions)) {
+      return;
+    }
     var storage = authRestoreStorage();
     var key = authRestoreHintKey(authOptions);
     if (!storage || !key) {
@@ -500,7 +522,7 @@
       return Promise.reject(new Error("fetch is required to load auth profile"));
     }
     return global
-      .fetch(joinUrl(authOptions.tauthUrl, DEFAULT_TAUTH_SESSION_PATH), {
+      .fetch(joinUrl(authOptions.tauthUrl, authOptions.tauthSessionPath), {
         method: "GET",
         credentials: "include",
         headers: withTenantHeaderValue(authOptions.tenantId, {
@@ -533,6 +555,9 @@
   }
 
   function requestCurrentProfileFromRuntime(authOptions) {
+    if (!usesDefaultAuthSessionPath(authOptions)) {
+      return requestCurrentProfileWithFetch(authOptions);
+    }
     if (typeof global.getCurrentUser === "function") {
       var helperResult = global.getCurrentUser();
       if (helperResult && typeof helperResult.then === "function") {
@@ -684,7 +709,7 @@
   var LEGACY_DSL_SETTINGS_REPLACEMENT = '"settings"';
   var LEGACY_DSL_LINKS_REPLACEMENT = '"links-collection"';
   var LEGACY_DSL_TAUTH_REPLACEMENT =
-    '"tauth-url"/"tauth-login-path"/"tauth-logout-path"/"tauth-nonce-path"';
+    '"tauth-url"/"tauth-login-path"/"tauth-logout-path"/"tauth-nonce-path"/"tauth-session-path"';
   var LEGACY_DSL_THEME_VARIANT_REPLACEMENT =
     '"themeToggle.variant" or "theme-switcher"';
   var HORIZONTAL_LINKS_ALIGNMENT_ERROR_CODE =
@@ -886,6 +911,7 @@
       "tauth-login-path",
       "tauth-logout-path",
       "tauth-nonce-path",
+      "tauth-session-path",
       "tauth-url",
     ]),
   );
@@ -940,6 +966,7 @@
     "tauth-login-path",
     "tauth-logout-path",
     "tauth-nonce-path",
+    "tauth-session-path",
     "tauth-url",
     "button-text",
     "button-theme",
@@ -957,6 +984,7 @@
     "tauth-tenant-id",
     "tauth-url",
     "tauth-logout-path",
+    "tauth-session-path",
     "avatar-url",
     "avatar-label",
     "menu-items",
@@ -1170,6 +1198,7 @@
   }
 
   function buildLoginAuthOptionsFromAttributes(hostElement) {
+    var sessionPath = hostElement.getAttribute("tauth-session-path");
     return {
       tauthUrl: hostElement.getAttribute("tauth-url") || "",
       tauthLoginPath:
@@ -1181,6 +1210,8 @@
       tauthNoncePath:
         hostElement.getAttribute("tauth-nonce-path") ||
         DEFAULT_OPTIONS.tauthNoncePath,
+      tauthSessionPath:
+        sessionPath === null ? DEFAULT_OPTIONS.tauthSessionPath : sessionPath,
       googleClientId:
         hostElement.getAttribute("site-id") || DEFAULT_OPTIONS.googleClientId,
       tenantId:
@@ -1428,6 +1459,13 @@
     if (noncePath) {
       authOptions = authOptions || {};
       authOptions.tauthNoncePath = noncePath;
+    }
+    var sessionPath = hostElement.getAttribute
+      ? hostElement.getAttribute("tauth-session-path")
+      : null;
+    if (sessionPath !== null) {
+      authOptions = authOptions || {};
+      authOptions.tauthSessionPath = sessionPath;
     }
     var tauthUrl = hostElement.getAttribute
       ? hostElement.getAttribute("tauth-url")
@@ -3667,6 +3705,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         normalizedOptions.googleClientId,
       );
       normalizedOptions.tenantId = requireTenantId(normalizedOptions.tenantId);
+      normalizedOptions.tauthSessionPath =
+        typeof normalizedOptions.tauthSessionPath === "string"
+          ? normalizedOptions.tauthSessionPath.trim()
+          : DEFAULT_OPTIONS.tauthSessionPath;
       return normalizedOptions;
     }
 
@@ -3679,6 +3721,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         leftOptions.tauthLoginPath === rightOptions.tauthLoginPath &&
         leftOptions.tauthLogoutPath === rightOptions.tauthLogoutPath &&
         leftOptions.tauthNoncePath === rightOptions.tauthNoncePath &&
+        leftOptions.tauthSessionPath === rightOptions.tauthSessionPath &&
         leftOptions.googleClientId === rightOptions.googleClientId &&
         leftOptions.tenantId === rightOptions.tenantId
       );
@@ -3764,7 +3807,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function attachSessionSyncListeners() {
-      if (typeof global.initAuthClient === "function") {
+      if (
+        !hasConfiguredAuthSessionPath(options) ||
+        (typeof global.initAuthClient === "function" &&
+          usesDefaultAuthSessionPath(options))
+      ) {
         return;
       }
       if (
@@ -4077,7 +4124,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       configureTenantId();
       attachSessionSyncListeners();
       var bootstrapPromise = Promise.resolve();
-      if (typeof global.initAuthClient === "function") {
+      if (
+        typeof global.initAuthClient === "function" &&
+        usesDefaultAuthSessionPath(options)
+      ) {
         var resolvedBaseUrl = resolveAuthBaseUrl();
         bootstrapPromise = Promise.resolve(
           global.initAuthClient({
@@ -4196,6 +4246,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         return;
       }
       lifecycleVersion += 1;
+      detachSessionSyncListeners();
       options = nextOptions;
       state.options = options;
       pendingProfile = null;
@@ -7064,6 +7115,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (tauthLogoutPath !== null) {
       options.tauthLogoutPath = tauthLogoutPath;
     }
+    var tauthSessionPath = hostElement.getAttribute("tauth-session-path");
+    if (tauthSessionPath !== null) {
+      options.tauthSessionPath = tauthSessionPath;
+    }
     var avatarUrl = hostElement.getAttribute("avatar-url");
     if (avatarUrl !== null) {
       options.avatarUrl = avatarUrl;
@@ -7095,6 +7150,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       if (!Object.prototype.hasOwnProperty.call(options, "tauthLogoutPath")) {
         options.tauthLogoutPath = inheritedOptions.tauthLogoutPath;
+      }
+      if (!Object.prototype.hasOwnProperty.call(options, "tauthSessionPath")) {
+        options.tauthSessionPath = inheritedOptions.tauthSessionPath;
       }
       if (!Object.prototype.hasOwnProperty.call(options, "avatarUrl")) {
         options.avatarUrl = inheritedOptions.avatarUrl;
@@ -7137,6 +7195,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     var tauthUrl = headerElement.getAttribute("tauth-url");
     var tauthLogoutPath = headerElement.getAttribute("tauth-logout-path");
+    var tauthSessionPath = headerElement.getAttribute("tauth-session-path");
     var avatarUrl = headerElement.getAttribute("user-menu-avatar-url");
     if (avatarUrl === null && headerDataset.userMenuAvatarUrl) {
       avatarUrl = headerDataset.userMenuAvatarUrl;
@@ -7160,6 +7219,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       tenantId: tenantId,
       tauthUrl: tauthUrl,
       tauthLogoutPath: tauthLogoutPath,
+      tauthSessionPath: tauthSessionPath,
       avatarUrl: normalizeHeaderUserMenuOptionalValue(avatarUrl),
       avatarLabel: normalizeHeaderUserMenuOptionalValue(avatarLabel),
     };
@@ -7365,6 +7425,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       typeof options.tauthLogoutPath === "string" && options.tauthLogoutPath.trim()
         ? options.tauthLogoutPath.trim()
         : DEFAULT_OPTIONS.tauthLogoutPath;
+    var tauthSessionPath =
+      typeof options.tauthSessionPath === "string"
+        ? options.tauthSessionPath.trim()
+        : DEFAULT_OPTIONS.tauthSessionPath;
     var logoutUrl = normalizeUserMenuLogoutUrl(options.logoutUrl);
     var logoutLabel = normalizeUserMenuLabel(options.logoutLabel);
     var avatarUrl = null;
@@ -7385,6 +7449,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       tenantId: tenantId,
       tauthUrl: tauthUrl,
       tauthLogoutPath: tauthLogoutPath,
+      tauthSessionPath: tauthSessionPath,
       logoutUrl: logoutUrl,
       logoutLabel: logoutLabel,
       avatarUrl: avatarUrl,
