@@ -169,6 +169,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Playwright proves no GIS initialization, nonce request, or protected-session request occurs before a sign-in click; one click performs the existing fresh-nonce Google prompt flow.
   - Regression coverage proves rerenders, error handling, and teardown preserve the canonical visual and auth contracts.
   Resolved: moved login-button presentation to static `button-*` attributes, removed `authButton` from the runtime YAML contract, and made obsolete presentation configuration fail explicitly. Added a browser fixture that loads auth-only YAML across origins while preserving the static presentation contract. Tests: `make ci`.
+  Resolved 2026-07-23 follow-up: wired required `sessionPath` config through `tauth-session-path` into header, login-button, user-menu, and auth-controller session restoration. The cross-origin browser fixture now proves hinted restore uses the configured endpoint and explicit empty paths disable fallback restore requests.
 
 
 ## Improvements
