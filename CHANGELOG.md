@@ -13,13 +13,14 @@
 
 ### Bug Fixes 🐛
 - Moved `<mpr-login-button>` presentation out of `/config-ui.yaml` into static `button-*` attributes; the loader now rejects obsolete `authButton` input while accepting auth-only cross-origin runtime configuration.
+- Wired configured `sessionPath` values through `tauth-session-path` so auth controllers restore sessions from the declared endpoint and explicit empty paths disable fallback restoration.
 - Replaced hinted auth restore probes with `/auth/session`, which returns anonymous stale-session state without browser-visible `/me` or `/auth/refresh` 401s.
 - Stopped public bootstrap, long-open tabs, focus/visibility sync, timers, and Google button intent from issuing background nonce requests.
 - Moved Google Identity Services initialization into the explicit user sign-in attempt so the issued TAuth nonce is passed to GIS and reused for `/auth/google`.
 - Reject credential callbacks that are missing an attempt nonce and surface nonce/GIS preparation failures through auth and header error events.
 
 ### Testing 🧪
-- Added a browser contract for auth-only cross-origin configuration that preserves declarative login-button presentation.
+- Added a browser contract for auth-only cross-origin configuration that preserves declarative login-button presentation and restores through its configured session endpoint.
 - Added unit and Playwright coverage for legal document exports, escaping, custom-element rendering, and product-specific extra sections.
 - Added auth-controller regressions for anonymous no-probe bootstrap, `/auth/session` hinted profile restore, and stale restore-hint clearing.
 - Added auth-controller coverage for `MPRUI.testing.authenticate()` and `MPRUI.testing.unauthenticate()`.
