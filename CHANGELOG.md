@@ -10,6 +10,7 @@
 - Added public `MPRUI.testing` auth helpers so app browser suites can drive the mounted auth controller without mutating mpr-ui DOM internals.
 - Added `MPRUI.testing.googleIdentity` helpers so app browser suites can drive stubbed Google Identity credential clicks without mutating app-local stub globals.
 - Added `<mpr-header sign-in-redirect-url>` so `mpr-ui` owns the post-sign-in redirect and keeps `auth-transition` visible while navigation is pending.
+- Updated Playwright to `1.61.1` and made the Node tooling module type explicit so Node 26 release checks run without deprecated loader or ambiguous-module warnings.
 
 ### Bug Fixes 🐛
 - Moved `<mpr-login-button>` presentation out of `/config-ui.yaml` into static `button-*` attributes; the loader now rejects obsolete `authButton` input while accepting auth-only cross-origin runtime configuration.
