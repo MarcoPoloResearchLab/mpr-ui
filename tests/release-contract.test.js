@@ -1,8 +1,8 @@
 // @ts-check
 
-import assert from 'node:assert/strict';
-import { execFileSync, spawnSync } from 'node:child_process';
-import {
+const assert = require('node:assert/strict');
+const { execFileSync, spawnSync } = require('node:child_process');
+const {
   chmodSync,
   existsSync,
   mkdirSync,
@@ -11,13 +11,12 @@ import {
   rmSync,
   statSync,
   writeFileSync,
-} from 'node:fs';
-import { resolve } from 'node:path';
-import { tmpdir } from 'node:os';
-import test from 'node:test';
-import { fileURLToPath } from 'node:url';
+} = require('node:fs');
+const { resolve } = require('node:path');
+const { tmpdir } = require('node:os');
+const test = require('node:test');
 
-const repositoryRoot = resolve(fileURLToPath(new URL('..', import.meta.url)));
+const repositoryRoot = resolve(__dirname, '..');
 const prepareReleaseScript = resolve(repositoryRoot, 'scripts', 'release', 'prepare_release.sh');
 const publishReleaseScript = resolve(repositoryRoot, 'scripts', 'release', 'publish_release.sh');
 const stockMacosBash = '/bin/bash';
