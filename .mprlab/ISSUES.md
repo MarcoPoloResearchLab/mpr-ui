@@ -644,3 +644,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 
 - [ ] [B043] Release and publish depended on sibling agentSkills/gitrelease; vendor the canonical core bundle, route those targets locally, preserve jsDelivr deploy, and validate the observable Make contract.
+- [x] [B045] Node 26 repeats Playwright `module.register()` deprecation warnings for the coordinator and every browser worker during `make release`.
+  Resolved 2026-07-23: upgraded `@playwright/test`, `playwright`, and `playwright-core` from `1.56.1` to `1.61.1`, declared the Node tooling package as CommonJS, and converted the release contract test to that canonical module shape. Tests: warning-traced Playwright discovery; warning-traced `make ci` with 167 Node tests and both 71-test browser runs passing.
+- [ ] [B046] `npm audit` reports high-severity denial-of-service advisories in the direct `js-yaml` development dependency and transitive `brace-expansion` dependency.
+  Discovered 2026-07-23 while refreshing the Playwright lockfile; dependency and browser-CDN parser ownership need a separate focused update and validation.
