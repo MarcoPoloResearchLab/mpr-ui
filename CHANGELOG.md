@@ -38,6 +38,15 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.11.4] - 2026-07-24
+
+- Merge pull request #182 from MarcoPoloResearchLab/gix/update-playwright-to-1-61-1-declare-commonjs-fix-node-26
+- test: switch release contract test from ES modules to CommonJS requires
+- build: set module type to commonjs and update Playwright to 1.61.1
+- chore(deps): upgrade @playwright/test and related packages to 1.61.1
+- chore(tooling): update Playwright to 1.61.1 and set Node module type
+- docs: document Playwright upgrade and Node 26 module warning resolution
+
 ## [v3.11.3] - 2026-07-23
 
 - Merge pull request #181 from MarcoPoloResearchLab/bugfix/B044-login-button-presentation-ownership
