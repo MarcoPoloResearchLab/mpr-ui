@@ -13,6 +13,7 @@
 - Updated Playwright to `1.61.1` and made the Node tooling module type explicit so Node 26 release checks run without deprecated loader or ambiguous-module warnings.
 
 ### Bug Fixes 🐛
+- Kept `<mpr-login-button>` geometry stable while Google sign-in preparation is pending by retaining the accessible status announcement outside the visible layout flow.
 - Moved `<mpr-login-button>` presentation out of `/config-ui.yaml` into static `button-*` attributes; the loader now rejects obsolete `authButton` input while accepting auth-only cross-origin runtime configuration.
 - Wired configured `sessionPath` values through `tauth-session-path` so auth controllers restore sessions from the declared endpoint and explicit empty paths disable fallback restoration.
 - Replaced hinted auth restore probes with `/auth/session`, which returns anonymous stale-session state without browser-visible `/me` or `/auth/refresh` 401s.
@@ -21,6 +22,7 @@
 - Reject credential callbacks that are missing an attempt nonce and surface nonce/GIS preparation failures through auth and header error events.
 
 ### Testing 🧪
+- Added a fixture-backed browser regression that holds Google sign-in preparation and verifies the visible control group and button geometry do not change.
 - Added a browser contract for auth-only cross-origin configuration that preserves declarative login-button presentation and restores through its configured session endpoint.
 - Added unit and Playwright coverage for legal document exports, escaping, custom-element rendering, and product-specific extra sections.
 - Added auth-controller regressions for anonymous no-probe bootstrap, `/auth/session` hinted profile restore, and stale restore-hint clearing.

@@ -978,6 +978,16 @@ mpr-login-button[data-mpr-login-mounted="true"] {
   display: none;
 }
 
+.mpr-login-button[data-mpr-login-state="preparing"] .mpr-login-button__status {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
 .mpr-login-button[data-mpr-login-state="error"] .mpr-login-button__status {
   color: var(--mpr-color-error, #dc2626);
 }
