@@ -4,15 +4,18 @@ set -euo pipefail
 REPO_ROOT="$(cd "$(dirname "$0")" && pwd)"
 cd "$REPO_ROOT"
 
-if [ ! -f demo/.env.ghttp ]; then
-  cp demo/.env.ghttp.example demo/.env.ghttp
-  echo "Seeded demo/.env.ghttp from demo/.env.ghttp.example"
-fi
+require_private_environment() {
+  local environment_path="$1"
+  if [ ! -f "${environment_path}" ]; then
+    echo "Missing private runtime environment: ${environment_path}" >&2
+    echo "Create it explicitly with mode 0600; env example files are documentation only." >&2
+    exit 1
+  fi
+  chmod 0600 "${environment_path}"
+}
 
-if [ ! -f demo/.env.tauth ]; then
-  cp .env.tauth.example demo/.env.tauth
-  echo "Seeded demo/.env.tauth from .env.tauth.example"
-fi
+require_private_environment demo/.env.ghttp
+require_private_environment demo/.env.tauth
 
 ENTRY_URL="$(sed -n 's/^[[:space:]]*-[[:space:]]*"\(https:\/\/[^"]*\)".*/\1/p' demo/config-ui.yaml | head -n 1)"
 
