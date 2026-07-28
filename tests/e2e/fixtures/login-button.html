@@ -119,25 +119,27 @@
     <main>
       <section class="login-panel" aria-label="Branded login panel">
         <h1>Continue to Poodle Scanner</h1>
-        <mpr-login-button
-          id="fixture-login-button"
-          class="legacy-host-presentation"
-          role="button"
-          tabindex="0"
-          aria-label="Legacy CTA fallback"
-          site-id="fixture-google-client"
-          tauth-url="https://auth.example.test"
-          tauth-login-path="/auth/google"
-          tauth-logout-path="/auth/logout"
-          tauth-nonce-path="/auth/nonce"
-          tauth-tenant-id="fixture-tenant"
-          button-text="signin_with"
-          button-size="large"
-          button-theme="outline"
-          button-shape="pill"
-        >
-          <span>Legacy CTA fallback</span>
-        </mpr-login-button>
+        <div role="group" aria-label="Google sign-in control">
+          <mpr-login-button
+            id="fixture-login-button"
+            class="legacy-host-presentation"
+            role="button"
+            tabindex="0"
+            aria-label="Legacy CTA fallback"
+            site-id="fixture-google-client"
+            tauth-url="https://auth.example.test"
+            tauth-login-path="/auth/google"
+            tauth-logout-path="/auth/logout"
+            tauth-nonce-path="/auth/nonce"
+            tauth-tenant-id="fixture-tenant"
+            button-text="signin_with"
+            button-size="large"
+            button-theme="outline"
+            button-shape="pill"
+          >
+            <span>Legacy CTA fallback</span>
+          </mpr-login-button>
+        </div>
       </section>
     </main>
 

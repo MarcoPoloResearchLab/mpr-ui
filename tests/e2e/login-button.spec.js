@@ -10,6 +10,27 @@ const ICON_ONLY_BUTTON_VARIANTS = Object.freeze([
   Object.freeze({ buttonShape: 'circle', buttonSize: 'large' }),
 ]);
 
+async function renderedGeometry(locator) {
+  const bounds = await locator.boundingBox();
+  expect(bounds).not.toBeNull();
+  if (bounds === null) {
+    throw new Error('Expected the visible Google login control to have rendered bounds.');
+  }
+
+  return locator.evaluate((element, box) => {
+    const styles = window.getComputedStyle(element);
+    return {
+      width: box.width,
+      height: box.height,
+      borderRadius: styles.borderRadius,
+      borderTopWidth: styles.borderTopWidth,
+      borderRightWidth: styles.borderRightWidth,
+      borderBottomWidth: styles.borderBottomWidth,
+      borderLeftWidth: styles.borderLeftWidth,
+    };
+  }, bounds);
+}
+
 test.describe('Standalone login button presentation', () => {
   test('B044: renders one styled accessible Google control and starts the nonce-bound flow only after click', async ({ page }) => {
     await visitLoginButtonFixture(page);
@@ -58,6 +79,7 @@ test.describe('Standalone login button presentation', () => {
     await googleControl.click();
 
     await expect(page.getByRole('status')).toHaveText('Unable to start Google sign-in. Try again.');
+    await expect(page.getByRole('status')).toBeVisible();
     await expect(googleControl).toBeEnabled();
 
     await loginButton.evaluate((element) => {
@@ -77,6 +99,36 @@ test.describe('Standalone login button presentation', () => {
     await expect(page.getByRole('button')).toHaveCount(1);
     await expect(googleControl).toBeVisible();
     await expect(loginButton).not.toHaveAttribute('role', 'button');
+  });
+
+  test('B047: preparation keeps the visible Google sign-in control geometry unchanged', async ({ page }) => {
+    await visitLoginButtonFixture(page);
+
+    const controlGroup = page.getByRole('group', { name: 'Google sign-in control' });
+    const googleControl = page.getByRole('button', { name: 'Sign in with Google' });
+
+    await expect(controlGroup).toBeVisible();
+    await expect(googleControl).toBeVisible();
+
+    const initialGroupGeometry = await renderedGeometry(controlGroup);
+    const initialControlGeometry = await renderedGeometry(googleControl);
+
+    await page.evaluate(() => {
+      window.__loginButtonHoldNonce = true;
+    });
+    await googleControl.click();
+
+    await expect(googleControl).toHaveAttribute('aria-busy', 'true');
+    await expect(page.getByRole('status')).toHaveText('Starting Google sign-in…');
+
+    expect(await renderedGeometry(controlGroup)).toEqual(initialGroupGeometry);
+    expect(await renderedGeometry(googleControl)).toEqual(initialControlGeometry);
+
+    await page.evaluate(() => {
+      window.__loginButtonHoldNonce = false;
+      window.__resolveLoginButtonNonce?.();
+    });
+    await expect(googleControl).toHaveAttribute('aria-busy', 'false');
   });
 
   test('B044: icon-only login controls preserve their square footprint', async ({ page }) => {

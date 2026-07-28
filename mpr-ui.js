@@ -5099,6 +5099,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ":empty{display:none}" +
     "." +
     LOGIN_BUTTON_ROOT_CLASS +
+    '[data-mpr-login-state="preparing"] .' +
+    LOGIN_BUTTON_STATUS_CLASS +
+    "{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}" +
+    "." +
+    LOGIN_BUTTON_ROOT_CLASS +
     '[data-mpr-login-state="error"] .' +
     LOGIN_BUTTON_STATUS_CLASS +
     "{color:var(--mpr-color-error,#dc2626)}" +

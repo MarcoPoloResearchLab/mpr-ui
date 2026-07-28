@@ -648,3 +648,17 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   Resolved 2026-07-23: upgraded `@playwright/test`, `playwright`, and `playwright-core` from `1.56.1` to `1.61.1`, declared the Node tooling package as CommonJS, and converted the release contract test to that canonical module shape. Tests: warning-traced Playwright discovery; warning-traced `make ci` with 167 Node tests and both 71-test browser runs passing.
 - [ ] [B046] `npm audit` reports high-severity denial-of-service advisories in the direct `js-yaml` development dependency and transitive `brace-expansion` dependency.
   Discovered 2026-07-23 while refreshing the Playwright lockfile; dependency and browser-CDN parser ownership need a separate focused update and validation.
+
+- [x] [B047] `<mpr-login-button>` grows while its click-driven Google sign-in preparation is in progress.
+  Summary: activating a Google login control adds the preparing status to the component's normal layout flow, changing the visible control group's height while the nonce request is pending.
+  Expected:
+  - Clicking a Google login control preserves the rendered width, height, border radius, and border geometry of the visible control group.
+  - The preparing state remains available to assistive technology and communicates progress without causing layout movement.
+  - Error feedback continues to remain visibly rendered after a failed preparation attempt.
+  Actual:
+  - The click-driven preparing status increases the visible component height until the nonce request completes.
+  Deliverables:
+  - Add a fixture-backed Playwright regression that measures the public Google control before and during the held preparation state.
+  - Keep preparing feedback accessible while taking it out of the visible layout flow.
+  - Pass the complete repository CI gate without reducing coverage requirements.
+  Resolved 2026-07-28: retained the visible in-control spinner and `aria-busy` state while moving only the transient `role="status"` preparing announcement out of normal layout flow; error feedback remains visibly rendered. The fixture-backed B047 regression failed before the fix when the control group grew from 48px to 74.140625px, then passed after the change. Tests: `make test-e2e` (72 passed); `make ci` (167 Node tests, 72 browser coverage tests, and 72 browser tests passed).
