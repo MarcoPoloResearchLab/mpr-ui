@@ -185,10 +185,12 @@ Need a working authentication backend without wiring your own server? The bundle
 1. Configure TAuth:
 
    ```bash
-   cp .env.tauth.example demo/.env.tauth
+   install -m 0600 /dev/null demo/.env.tauth
    # Replace TAUTH_GOOGLE_WEB_CLIENT_ID with your OAuth Web Client ID
    # Replace TAUTH_JWT_SIGNING_KEY (generate with: openssl rand -base64 48)
    ```
+
+   Use `.env.tauth.example` only to review variable names. Its values are intentionally unusable; never copy or source it.
 
    Review `demo/tauth-config.yaml` so the tenant origins and IDs match your local ports.
 
@@ -197,10 +199,10 @@ Need a working authentication backend without wiring your own server? The bundle
 2. Configure gHTTP:
 
    ```bash
-   cp demo/.env.ghttp.example demo/.env.ghttp
+   install -m 0600 /dev/null demo/.env.ghttp
    ```
 
-   The sample gHTTP env enables HTTPS, serves the repository root, and reverse-proxies `/auth/*` so the browser stays on one origin. Update `docker-compose.yml` to mount your TLS certificate and key files, then set `GHTTP_SERVE_TLS_CERTIFICATE` and `GHTTP_SERVE_TLS_PRIVATE_KEY` accordingly.
+   Use `demo/.env.ghttp.example` only to review variable names. Define the HTTPS, repository-root, and `/auth/*` reverse-proxy values explicitly in the private file. Update `docker-compose.yml` to mount your TLS certificate and key files, then set `GHTTP_SERVE_TLS_CERTIFICATE` and `GHTTP_SERVE_TLS_PRIVATE_KEY` accordingly.
 
 3. Bring the stack up:
 
