@@ -40,6 +40,16 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.11.5] - 2026-07-28
+
+- Merge pull request #183 from MarcoPoloResearchLab/tyemirov/bugfix/B047-login-button-preparing-geometry
+- refactor: require manual creation of private env files in up.sh
+- chore(tests): update tauth .env.example with non-operational doc values
+- docs(demo): clarify .env.ghttp.example is documentation only and update sample values
+- docs: clarify usage of env example files and improve setup instructions
+- docs(env): clarify .env.tauth.example is non-operational with dummy values
+- fix(login-button): keep preparing geometry stable
+
 ## [v3.11.4] - 2026-07-24
 
 - Merge pull request #182 from MarcoPoloResearchLab/gix/update-playwright-to-1-61-1-declare-commonjs-fix-node-26
