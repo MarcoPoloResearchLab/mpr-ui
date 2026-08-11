@@ -44,6 +44,16 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.11.6] - 2026-08-11
+
+- Merge pull request #184 from MarcoPoloResearchLab/tyemirov/bugfix/B048-authenticated-fetch
+- test(auth): cover recovery cancellation on auth option rebinding
+- fix(auth): reject recovery after controller lifecycle changes
+- feat(auth): add shared authenticated fetch recovery
+- docs: add MPR Lab governance guidance
+- docs: standardize repository guidance and documentation policy
+- chore(gitignore): track root plan and ignore mprlab plans
+
 ## [v3.11.5] - 2026-07-28
 
 - Merge pull request #183 from MarcoPoloResearchLab/tyemirov/bugfix/B047-login-button-preparing-geometry
