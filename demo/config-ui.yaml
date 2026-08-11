@@ -17,7 +17,7 @@ environments:
       loginPath: "/auth/google"
       logoutPath: "/auth/logout"
       noncePath: "/auth/nonce"
-      sessionPath: ""
+      sessionPath: "/auth/session"
 
   # Lightweight no-store static preview served with `npm run demo:serve`.
   # This origin renders the demo chrome and components; authenticated sign-in still requires `./up.sh tauth`.

@@ -18,6 +18,7 @@ Serve `/config-ui.yaml`, render `<mpr-header data-config-url="/config-ui.yaml">`
 - `tauth-login-path`: TAuth login endpoint, typically `/auth/google`.
 - `tauth-logout-path`: TAuth logout endpoint, typically `/auth/logout`.
 - `tauth-nonce-path`: TAuth nonce endpoint, typically `/auth/nonce`.
+- `tauth-session-path`: TAuth session recovery endpoint, typically `/auth/session`.
 
 ### Optional attributes
 - `tauth-url`: Base URL of the TAuth service. When omitted, the current origin is used.
@@ -44,6 +45,7 @@ The auth controller also reflects the current auth phase on the host as `data-mp
 - `authenticating`
 - `authenticated`
 - `unauthenticated`
+- `error`
 
 ### Events
 - `mpr-ui:auth:authenticated` (detail includes `profile`).
@@ -95,6 +97,19 @@ document.addEventListener('mpr-ui:auth:authenticated', function () {
 
 ### Script order
 Load `mpr-ui.css`, GIS, `js-yaml`, and `mpr-ui-config.js`, then expose the bundle through `data-mpr-ui-bundle-src`. The config loader applies `/config-ui.yaml` first and then loads `mpr-ui.js`.
+
+### Protected requests
+
+Wait for `mpr-ui:auth:authenticated`. Then send protected requests through `MPRUI.authenticatedFetch()`.
+
+```js
+var header = document.querySelector('mpr-header');
+var response = await window.MPRUI.authenticatedFetch(header, '/api/workspace');
+```
+
+After HTTP 401, the API coordinates one session recovery between requests and browser tabs. It retries a replayable safe request one time.
+
+For a mutation, pass `mutationReplay: "authorization-before-domain-work"` only when the server completes authorization before domain work. The request body must be replayable.
 
 ## mpr-auth-provider-chooser
 

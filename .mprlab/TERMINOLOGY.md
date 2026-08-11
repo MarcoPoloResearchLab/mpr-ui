@@ -80,7 +80,11 @@ Give each term one meaning. Use the same term for the same concept in all docume
 Add repository-specific technical nouns below this line.
 
 ```text
-- `term`: Definition with one meaning.
+- `authenticated fetch`: The `MPRUI.authenticatedFetch()` API that sends a protected request and coordinates TAuth session recovery.
+- `generation record`: A local storage record that identifies the result of one completed session recovery operation.
+- `mutation replay`: A second request for a mutation after TAuth confirms a renewed session.
+- `single-flight recovery`: One shared session recovery operation for concurrent protected requests.
+- `Web Lock`: A browser lock that coordinates one operation between browser tabs on the same origin.
 ```
 
 ## MPR Lab Technical Verbs

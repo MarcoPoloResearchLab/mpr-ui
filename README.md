@@ -14,6 +14,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 - One path: serve `/config-ui.yaml`, point the auth-owning `<mpr-header>` or `<mpr-login-button>` at it with `data-config-url`, and let `mpr-ui-config.js` apply auth attributes before the bundle boots.
 - DSL first: configure shell structure and appearance through `<mpr-*>` attributes, slots, `horizontal-links`, `links-collection`, `theme-switcher`, and `theme-config`.
 - Backend owns config: your app owns `/config-ui.yaml` plus the browser-facing auth routes; `mpr-ui` owns shell bootstrap, GIS credential exchange, and auth lifecycle events.
+- Shared protected requests: app code waits for authenticated state and sends protected requests through `MPRUI.authenticatedFetch()`.
 - No alternate paths in normal integrations: do not load `tauth.js`, do not hand-wire `tauth-*` attributes in templates, and do not style `mpr-ui` internals from local CSS.
 
 > Upgrading from **≤0.1.x**? The legacy helper mapping and migration checklist live in [`docs/deprecation-roadmap.md`](docs/deprecation-roadmap.md).
@@ -56,7 +57,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
          loginPath: "/auth/google"
          logoutPath: "/auth/logout"
          noncePath: "/auth/nonce"
-         sessionPath: ""
+         sessionPath: "/auth/session"
    ```
 
    The loader matches the environment by `window.location.origin`, validates the payload, and applies auth attributes to `<mpr-header>`, `<mpr-login-button>`, and `<mpr-user>` automatically.
@@ -120,8 +121,9 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 5. Render `<mpr-header data-config-url="/config-ui.yaml">`, or render `<mpr-login-button data-config-url="/config-ui.yaml">` when the page only needs the Google sign-in control.
 6. Express shell composition through the DSL, not host CSS overrides into `mpr-ui` internals.
 7. Listen for `mpr-ui:auth:authenticated` and `mpr-ui:auth:unauthenticated` in app code.
-8. Set `sign-in-redirect-url` on `<mpr-header>` when a successful sign-in should navigate to an authenticated app route.
-9. If you opt into `auth-transition.completionEvent`, dispatch that event after the same-page authenticated app surface is ready.
+8. Send each protected request through `MPRUI.authenticatedFetch()`.
+9. Set `sign-in-redirect-url` on `<mpr-header>` when a successful sign-in should navigate to an authenticated app route.
+10. If you opt into `auth-transition.completionEvent`, dispatch that event after the same-page authenticated app surface is ready.
 
 `tenantId` / `tauth-tenant-id` is immutable after the auth controller initializes. To switch tenants, destroy the current `<mpr-header>` / `<mpr-login-button>` instance and create a new one instead of mutating the existing element.
 
@@ -134,11 +136,72 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 - `tauthUrl` is required and may be an empty string. Use `""` for same-origin auth.
 - `googleClientId` is required and must be non-empty.
 - `tenantId` is required and must match the backend tenant.
-- `loginPath`, `logoutPath`, `noncePath`, and `sessionPath` are required and explicit. Use `sessionPath: ""` when the browser API does not expose session restoration.
+- `loginPath`, `logoutPath`, `noncePath`, and `sessionPath` are required and explicit.
+- Protected apps must configure a non-empty `sessionPath` for `MPRUI.authenticatedFetch()`.
+- `sessionPath: ""` disables session restoration and the protected-request API.
 - `authButton` is not part of this schema and is rejected. Declare login-button presentation with static `button-*` attributes instead.
 - Each browser origin must appear in exactly one environment entry.
 
 If no environment matches, if multiple environments match, or if required auth fields are missing, `mpr-ui-config.js` throws and the app halts rather than guessing.
+
+## Protected requests and session recovery
+
+TAuth owns the server session and refresh cookie. `mpr-ui` owns browser recovery after a protected request returns HTTP 401.
+
+Wait for authenticated state. Then pass the mounted auth host to `MPRUI.authenticatedFetch()`:
+
+```js
+var authHost = document.querySelector("mpr-header");
+
+document.addEventListener(
+  "mpr-ui:auth:authenticated",
+  async function loadProtectedProduct() {
+    var response = await window.MPRUI.authenticatedFetch(
+      authHost,
+      "/api/products/product-123",
+    );
+    if (response.ok) {
+      var product = await response.json();
+      void product;
+    }
+  },
+  { once: true },
+);
+```
+
+The auth target can be a mounted `<mpr-header>`, a mounted `<mpr-login-button>`, or a controller from `createAuthHeader()`.
+
+The API applies this contract:
+
+- It sends credentials with the protected request.
+- It returns the first response when the status is not HTTP 401.
+- It sends one request to the configured `sessionPath` after an HTTP 401 response.
+- It shares the session request between concurrent requests and browser tabs.
+- It uses one Web Lock and one generation record for each auth URL, tenant, and session path.
+- The generation record contains a result status. It contains no profile or credential data.
+- It retries a replayable `GET`, `HEAD`, or `OPTIONS` request one time after successful recovery.
+- It returns the second response without another recovery operation.
+- It emits `mpr-ui:auth:unauthenticated` when TAuth returns HTTP 204, 401, or 403.
+- It emits `mpr-ui:auth:error` and rejects when the session request has a network, server, or payload error.
+
+Mutation replay needs an explicit server contract. Authorization must finish before domain work starts. The Fetch API must also clone the request body.
+
+```js
+var response = await window.MPRUI.authenticatedFetch(
+  authHost,
+  "/api/products/product-123",
+  {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ title: "New title" }),
+  },
+  { mutationReplay: "authorization-before-domain-work" },
+);
+```
+
+Without this policy value, a mutation can start recovery but cannot run a second domain request. A failed request clone has the same result.
+
+`MPRUI.authenticatedFetch()` requires a non-empty `sessionPath`, local storage, and the browser Web Locks API. A missing requirement emits a stable auth error and rejects the request.
 
 ## Multi-Provider Auth UI Primitive
 
@@ -332,10 +395,10 @@ The tags above replace the retired imperative helpers. See the example below for
 
 | Element | Primary attributes | Slots | Key events |
 | --- | --- | --- | --- |
-| `<mpr-header>` | `brand-label`, `nav-links`, `horizontal-links` (JSON object with `{ alignment, links }`), `auth-transition` (JSON object with `{ title, message, completionEvent }`), `sign-in-redirect-url`, `google-site-id`, `tauth-tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `logout-url`, `user-menu-display-mode`, `user-menu-avatar-url`, `user-menu-avatar-label`, `theme-config`, `settings-label`, `settings`, `sign-in-label`, `sign-out-label`, `size`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:auth:status-change`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
+| `<mpr-header>` | `brand-label`, `nav-links`, `horizontal-links` (JSON object with `{ alignment, links }`), `auth-transition` (JSON object with `{ title, message, completionEvent }`), `sign-in-redirect-url`, `google-site-id`, `tauth-tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-session-path`, `logout-url`, `user-menu-display-mode`, `user-menu-avatar-url`, `user-menu-avatar-label`, `theme-config`, `settings-label`, `settings`, `sign-in-label`, `sign-out-label`, `size`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:auth:status-change`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
 | `<mpr-footer>` | `prefix-text`, `horizontal-links` (JSON object with `{ alignment, links }`), `links-collection` (JSON with `{ style, text, links }`), `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-switcher`, `theme-config`, `size`, `sticky`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
 | `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config` | — | `mpr-ui:theme-change` |
-| `<mpr-login-button>` | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
+| `<mpr-login-button>` | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-session-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
 | `<mpr-auth-provider-chooser>` | `providers` (JSON array ordered from `apple`, `google`, `email`), `variant` (`stack`, `icon-row`) | — | `mpr-auth-provider:select`, `mpr-auth-provider:email-submit`, `mpr-auth-provider:email-mode`, `mpr-auth-provider:error` |
 | `<mpr-user>` | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `tauth-url`, `tauth-logout-path`, `avatar-url`, `avatar-label`, `menu-items` | — | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:menu-item`, `mpr-user:error` |
 | `<mpr-settings>` | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open` | `trigger`, `panel` (default slot also maps to `panel`) | `mpr-settings:toggle` |
@@ -366,7 +429,7 @@ Slots let you inject custom markup without leaving declarative mode:
 
 Custom elements dispatch the same `mpr-ui:*` events that the deprecated helpers emitted, so event listeners continue working after migrating. See [`docs/custom-elements.md`](docs/custom-elements.md) for a deep-dive covering attribute shapes, events, migration tips, and a concrete YouTube playlists/videos workspace example built from the entity-workspace primitives. For a runnable JSON-backed version of that flow, use [`demo/entity-workspace.html`](demo/entity-workspace.html).
 
-`createAuthHeader()` now reflects `data-mpr-auth-status="bootstrapping"|"authenticating"|"authenticated"|"unauthenticated"` onto auth-bearing hosts. Use that state only for integration wiring and analytics; the preferred UX surface is the declarative `auth-transition` screen on `<mpr-header>`.
+`createAuthHeader()` reflects `data-mpr-auth-status="bootstrapping"|"authenticating"|"authenticated"|"unauthenticated"|"error"` onto auth-bearing hosts. Use that state only for integration wiring and analytics. The preferred UX surface is the declarative `auth-transition` screen on `<mpr-header>`.
 
 For browser integration suites that seed a backend session directly, use the public test helper instead of mutating
 `mpr-ui` DOM internals:

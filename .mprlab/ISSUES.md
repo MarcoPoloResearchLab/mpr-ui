@@ -171,6 +171,36 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   Resolved: moved login-button presentation to static `button-*` attributes, removed `authButton` from the runtime YAML contract, and made obsolete presentation configuration fail explicitly. Added a browser fixture that loads auth-only YAML across origins while preserving the static presentation contract. Tests: `make ci`.
   Resolved 2026-07-23 follow-up: wired required `sessionPath` config through `tauth-session-path` into header, login-button, user-menu, and auth-controller session restoration. The cross-origin browser fixture now proves hinted restore uses the configured endpoint and explicit empty paths disable fallback restore requests.
 
+- [x] [B048] (P0) Protected requests fail after the access session expires while the TAuth refresh cookie remains valid.
+  Summary: PoodleScanner returned `Unauthorized` when a signed-in user opened the product Edit tab after session expiry.
+  Expected:
+  - Keep TAuth as the server session and refresh authority.
+  - Provide `MPRUI.authenticatedFetch()` as the only shared protected-request API.
+  - On an HTTP 401 response, run one single-flight recovery through the configured `/auth/session` endpoint.
+  - Update the shared auth lifecycle and retry a replayable request exactly one time.
+  - Share one recovery operation between concurrent requests and browser tabs.
+  - Emit `mpr-ui:auth:unauthenticated` when TAuth rejects the refresh cookie.
+  - Emit `mpr-ui:auth:error` when the recovery request fails because of a network or server error.
+  - Require apps to wait for `mpr-ui:auth:authenticated` before they send a protected request.
+  - Require apps to use `MPRUI.authenticatedFetch()` without local redirect, refresh, or login-state logic.
+  - Permit mutation replay only after the app declares authorization-before-domain-work semantics.
+  - Permit mutation replay only when the Fetch API can clone the request body.
+  Actual:
+  - `mpr-ui` only restores a session during auth bootstrap and focus or visibility changes.
+  - Apps use direct Fetch API calls for protected domain requests.
+  - A protected HTTP 401 response does not start shared TAuth session recovery.
+  Acceptance:
+  - Verify an expired access session with a valid refresh cookie.
+  - Verify concurrent protected requests use one recovery operation.
+  - Verify protected requests in multiple browser tabs use one recovery operation.
+  - Verify TAuth refresh rejection and refresh-cookie expiry emit the unauthenticated event.
+  - Verify a recovery network failure emits the auth error event.
+  - Verify a non-replayable request does not run a second domain request.
+  - Verify a replayable mutation runs a second domain request only with the required policy declaration.
+  - Verify a second HTTP 401 response does not start another recovery operation.
+  - Run `make ci` after the last source or test change.
+  Resolved 2026-08-11: added `MPRUI.authenticatedFetch()` with one Web Lock and one generation record for each auth scope. The API updates auth lifecycle state. It retries one permitted request after TAuth session recovery. The browser suite covers all B048 acceptance conditions. Tests: focused Playwright suite (12 passed). `make ci` passed 167 Node tests, 84 browser-coverage tests, and 84 E2E tests.
+
 
 ## Improvements
 

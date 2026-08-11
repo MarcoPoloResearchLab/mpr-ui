@@ -7,6 +7,7 @@ This guide describes the primary `mpr-ui` integration contract. Treat it like an
 3. render `<mpr-header data-config-url="/config-ui.yaml">` or a login-only `<mpr-login-button data-config-url="/config-ui.yaml">`
 4. let the loader apply auth attributes and load the bundle
 5. react to `mpr-ui:auth:*` events in app code
+6. send protected requests through `MPRUI.authenticatedFetch()`
 
 Do not introduce a second path through direct `tauth.js` loading or template-level `tauth-*` wiring.
 
@@ -14,8 +15,9 @@ Do not introduce a second path through direct `tauth.js` loading or template-lev
 
 - One path: `/config-ui.yaml` is the browser-facing config surface. The URL may be absolute when the config backend grants the page origin CORS access.
 - DSL first: use `<mpr-*>` attributes, slots, `horizontal-links`, `links-collection`, `theme-switcher`, and `theme-config`.
-- Backend owns config: your app serves `/config-ui.yaml`, `/auth/*`, and `/me`.
+- Backend owns config: your app serves `/config-ui.yaml`, `/auth/*`, and protected domain routes.
 - `mpr-ui` owns auth lifecycle: it handles GIS nonce preparation, credential exchange, shell state, and auth events.
+- `mpr-ui` owns protected requests: it coordinates TAuth session recovery and one permitted request retry.
 
 ## Required assets
 
@@ -55,10 +57,13 @@ Your backend must provide:
 - `POST /auth/nonce`
 - `POST /auth/google`
 - `POST /auth/logout`
-- `GET /me`
-- `POST /auth/refresh` or `GET /auth/refresh`
+- `GET /auth/session`, or the exact path in `auth.sessionPath`
 
-`mpr-ui` uses `/me` as the session source of truth and retries through `/auth/refresh` when the backend indicates that renewal is required.
+TAuth is the server session and refresh authority. The session endpoint returns the current profile after successful recovery.
+
+Return HTTP 204, 401, or 403 when TAuth rejects the refresh cookie. `mpr-ui` then emits `mpr-ui:auth:unauthenticated`.
+
+For replayable mutations, complete authorization before domain work starts. This server order makes one declared mutation replay safe.
 
 When static assets and the API use different origins, set `data-config-url` to the absolute API configuration URL and return `Access-Control-Allow-Origin` for the static page origin. The loader has no static-config fallback.
 
@@ -78,7 +83,7 @@ environments:
       loginPath: "/auth/google"
       logoutPath: "/auth/logout"
       noncePath: "/auth/nonce"
-      sessionPath: ""
+      sessionPath: "/auth/session"
 ```
 
 Rules:
@@ -86,7 +91,9 @@ Rules:
 - `tauthUrl` is required and may be `""` for same-origin auth.
 - `googleClientId` is required and non-empty.
 - `tenantId` is required and non-empty.
-- `loginPath`, `logoutPath`, `noncePath`, and `sessionPath` are required and explicit. Use `sessionPath: ""` when the browser API does not expose session restoration.
+- `loginPath`, `logoutPath`, `noncePath`, and `sessionPath` are required and explicit.
+- Protected apps must configure a non-empty `sessionPath` for `MPRUI.authenticatedFetch()`.
+- `sessionPath: ""` disables session restoration and the protected-request API.
 - each `window.location.origin` must match exactly one environment.
 
 If the config is missing, malformed, or ambiguous, the loader throws and the app halts.
@@ -228,6 +235,73 @@ For a branded page, set the documented custom properties on the component or an 
 
 The button remains session-first: mounting it does not initialize GIS, request a nonce, or probe a protected session. Those actions begin only after the user activates the rendered button.
 
+## Protected request contract
+
+App code must wait for `mpr-ui:auth:authenticated`. App code must then use `MPRUI.authenticatedFetch()` for each protected request.
+
+Shared lifecycle events are the only login-state authority for app code. `mpr-ui` owns session calls, refresh results, and auth redirects.
+
+```js
+var authHost = document.querySelector('mpr-header');
+
+document.addEventListener(
+  'mpr-ui:auth:authenticated',
+  async function loadWorkspace() {
+    var response = await window.MPRUI.authenticatedFetch(
+      authHost,
+      '/api/workspace',
+    );
+    void response;
+  },
+  { once: true },
+);
+```
+
+After an HTTP 401 response, `mpr-ui` sends one request to the configured session endpoint. One Web Lock coordinates this request between browser tabs.
+
+A local generation record lets concurrent callers use the completed result. The record contains no profile, cookie, token, or credential.
+
+After successful recovery, the API retries a replayable safe request one time. A second HTTP 401 response returns to the caller.
+
+Use this policy only when the server completes authorization before domain work:
+
+```js
+var response = await window.MPRUI.authenticatedFetch(
+  authHost,
+  '/api/products/product-123',
+  {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title: 'New title' }),
+  },
+  { mutationReplay: 'authorization-before-domain-work' },
+);
+```
+
+The API retries the mutation only when the Fetch API can clone its request. Without the policy, the API recovers the session and returns the first HTTP 401 response.
+
+The protected-request API requires these browser and config inputs:
+
+- A mounted auth host or a controller from `createAuthHeader()`.
+- A non-empty configured `sessionPath`.
+- Local storage on the app origin.
+- The Web Locks API on the app origin.
+
+The API emits these primary error codes for diagnostics:
+
+| Code | Condition |
+| --- | --- |
+| `mpr-ui.auth.authenticated_state_required` | The app sent a request before authenticated state. |
+| `mpr-ui.auth.recovery_config_required` | The auth controller has no recovery scope. |
+| `mpr-ui.auth.recovery_storage_unavailable` | The app origin has no local storage access. |
+| `mpr-ui.auth.recovery_lock_unavailable` | The app origin has no Web Locks API. |
+| `mpr-ui.auth.session_recovery_failed` | The TAuth session request had a network or server error. |
+| `mpr-ui.auth.session_recovery_invalid_profile` | TAuth returned an invalid authenticated profile. |
+| `mpr-ui.auth.mutation_replay_policy_invalid` | The mutation replay policy value is invalid. |
+| `mpr-ui.auth.request_invalid` | The Fetch API rejected the request input. |
+
+Use these codes for error reporting. Use `mpr-ui:auth:authenticated` and `mpr-ui:auth:unauthenticated` for login state.
+
 ## App event handling
 
 Listen for auth events in app code:
@@ -235,7 +309,7 @@ Listen for auth events in app code:
 ```js
 document.addEventListener('mpr-ui:auth:authenticated', function (event) {
   var profile = event.detail ? event.detail.profile : null;
-  // fetch authenticated app data or reveal protected UI
+  // reveal protected UI and use MPRUI.authenticatedFetch for app data
   void profile;
 });
 
@@ -278,9 +352,11 @@ If sign-in should open an authenticated app route, set `sign-in-redirect-url` on
 5. Confirm `POST /auth/google` succeeds and sets the cookie.
 6. Confirm `mpr-ui:auth:authenticated` fires and your app reacts.
 7. Confirm logout calls `/auth/logout` and `mpr-ui:auth:unauthenticated` fires.
-8. If using `<mpr-auth-provider-chooser>`, confirm provider clicks emit only provider-choice events, any `variant="icon-row"` buttons still have accessible names, and authenticated UI still waits for `mpr-ui:auth:authenticated`.
-9. If using the chooser email form, confirm submitted email/password values do not appear in event details, attributes, local storage, logs, or diagnostics.
-10. If using `<mpr-login-button>`, confirm there is one visible native sign-in control and no auth request or GIS initialization occurs before it is activated.
+8. Expire the access session and keep the refresh cookie valid.
+9. Confirm one `/auth/session` request runs and the protected request succeeds after one retry.
+10. If using `<mpr-auth-provider-chooser>`, confirm provider clicks emit only provider-choice events, any `variant="icon-row"` buttons still have accessible names, and authenticated UI still waits for `mpr-ui:auth:authenticated`.
+11. If using the chooser email form, confirm submitted email/password values do not appear in event details, attributes, local storage, logs, or diagnostics.
+12. If using `<mpr-login-button>`, confirm there is one visible native sign-in control and no auth request or GIS initialization occurs before it is activated.
 
 ## Troubleshooting
 
@@ -290,7 +366,8 @@ If sign-in should open an authenticated app route, set `sign-in-redirect-url` on
 | `config-ui.yaml has no environment for origin X` | no environment matched `window.location.origin` | Add the current origin to exactly one environment. |
 | `config-ui.yaml has multiple environments for origin X` | the origin is duplicated | Make every origin unique across environments. |
 | Sign-in button renders but click does nothing | `/auth/nonce` or `/auth/google` is unreachable | Verify the same-origin auth proxy and path values. |
-| Shell stays signed out after page refresh | `/me` is missing or returns the wrong status | Expose `/me` on the browser-facing origin and keep cookies on that origin. |
+| Shell stays signed out after page refresh | The configured session endpoint is missing or returns the wrong status | Expose the configured session path and keep TAuth cookies available to it. |
+| A protected request returns `Unauthorized` after idle time | App code used `fetch()` without shared session recovery | Use `MPRUI.authenticatedFetch()` with the mounted auth host. |
 | Header works but user menu logout fails | `mpr-user` is missing config-applied auth attrs | Keep the config loader in front of the bundle and do not bypass `data-config-url`. |
 | Provider chooser renders but no auth happens | the chooser is only a UI/event primitive | Wire provider events to a real auth controller or use `<mpr-header>` / `<mpr-login-button>` for the current config-driven Google flow. |
 | App reveals authenticated UI after `mpr-auth-provider:select` | provider-choice events were mistaken for auth lifecycle events | Wait for `mpr-ui:auth:authenticated` before showing authenticated UI. |

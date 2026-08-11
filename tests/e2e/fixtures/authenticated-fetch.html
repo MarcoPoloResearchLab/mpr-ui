@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Authenticated fetch fixture</title>
+  </head>
+  <body>
+    <div id="auth-host"></div>
+
+    <script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"></script>
+    <script>
+      window.fixtureReady = Promise.resolve().then(function createFixtureController() {
+        var authHost = document.querySelector("#auth-host");
+        window.fixtureAuthHost = authHost;
+        window.fixtureAuthTarget = window.MPRUI.createAuthHeader(authHost, {
+          googleClientId: "fixture-client",
+          tauthUrl: "https://auth.fixture.test",
+          tenantId: "fixture-tenant",
+          tauthLoginPath: "/auth/google",
+          tauthLogoutPath: "/auth/logout",
+          tauthNoncePath: "/auth/nonce",
+          tauthSessionPath: "/auth/session",
+        });
+        window.fixtureAuthEvents = [];
+        [
+          "mpr-ui:auth:authenticated",
+          "mpr-ui:auth:unauthenticated",
+          "mpr-ui:auth:error",
+          "mpr-ui:auth:status-change",
+        ].forEach(function observeAuthEvent(eventName) {
+          authHost.addEventListener(eventName, function recordAuthEvent(event) {
+            window.fixtureAuthEvents.push({
+              type: event.type,
+              detail: event.detail || null,
+            });
+          });
+        });
+        return new Promise(function waitForInitialBootstrap(resolve) {
+          setTimeout(resolve, 0);
+        });
+      }).then(function authenticateFixture() {
+        window.MPRUI.testing.authenticate(window.fixtureAuthTarget, {
+          user_id: "fixture-user",
+          user_email: "fixture@example.com",
+          display: "Fixture User",
+        });
+        window.localStorage.removeItem(
+          "tauth.restore.v1:https%3A%2F%2Fauth.fixture.test:fixture-tenant",
+        );
+        window.fixtureAuthEvents = [];
+      });
+    </script>
+  </body>
+</html>
