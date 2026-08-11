@@ -16,7 +16,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 - .mprlab/NOTES.md: Read-only process/journal. Append-only when closing work; do not retroactively edit history.
 - .mprlab/ISSUES.md: Append-only log of newly discovered requests and changes. No instructive sections live here; each entry records what changed or what was discovered.
-- .mprlab/PLAN.md: Working plan for one concrete change/issue; ephemeral and replaced per change.
+- `.mprlab/<PLAN-ID>-PLAN.md`: Temporary execution plan. Use `.mprlab/PLANNING.md` for the plan ID.
 
 ### Issue Status Terms
 
@@ -369,3 +369,25 @@ All rules for validation, error handling, invariants, and “confident programmi
 - [ ] Clear type hints, no single-letter identifiers.
 - [ ] Config validated at startup.
 - [ ] `pytest`, `mypy --strict` passing.
+
+<!-- BEGIN MPRLAB-GOVERNANCE -->
+## MPR Lab Governance
+
+Most workflow context files live under `.mprlab/`. The root `AGENTS.md` remains the repository entrypoint for agents.
+
+Read these files before editing:
+
+- `.mprlab/POLICY.md`: binding validation and confident-programming rules.
+- `.mprlab/PLANNING.md`: durable planning contract.
+- `.mprlab/AGENTS.DOCS.md`: ASD-STE100 documentation rules.
+- `.mprlab/TERMINOLOGY.md`: approved repository technical terms.
+- `.mprlab/issues-md-format.md`: issue tracker format and recurring identifier rules.
+- `.mprlab/ISSUES.md`: active issue tracker.
+- `.mprlab/AGENTS.GIT.md`: Git and pull request workflow.
+- `.mprlab/AGENTS.PY.md`: Python guidance.
+- `.mprlab/AGENTS.FRONTEND.md`: browser frontend guidance.
+- `.mprlab/AGENTS.DOCKER.md`: Docker and container guidance.
+
+Do not create `.mprlab/AGENTS.md`. Scoped guidance belongs in `.mprlab/AGENTS.*.md` files.
+If guidance conflicts, follow `.mprlab/POLICY.md` first, then root `AGENTS.md`, then the relevant scoped guide.
+<!-- END MPRLAB-GOVERNANCE -->
