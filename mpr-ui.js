@@ -19,6 +19,8 @@
   var AUTH_RESTORE_HINT_PREFIX = "tauth.restore.v1:";
   var AUTH_RECOVERY_RECORD_PREFIX = "mpr-ui.auth.recovery.v1:";
   var AUTH_RECOVERY_LOCK_PREFIX = "mpr-ui:auth:recovery:v1:";
+  var AUTH_RECOVERY_LIFECYCLE_CHANGED_ERROR_CODE =
+    "mpr-ui.auth.recovery_lifecycle_changed";
   var AUTH_MUTATION_REPLAY_POLICY = "authorization-before-domain-work";
   var authSessionRecoveryPromises = Object.create(null);
   var AUTH_CONTROLLER_STATUS = Object.freeze({
@@ -4066,6 +4068,16 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return candidateVersion === lifecycleVersion;
     }
 
+    function requireCurrentAuthRecoveryLifecycle(candidateVersion) {
+      if (!isDestroyed && isCurrentLifecycleVersion(candidateVersion)) {
+        return;
+      }
+      throw createAuthRecoveryError(
+        AUTH_RECOVERY_LIFECYCLE_CHANGED_ERROR_CODE,
+        "Authenticated fetch recovery belongs to an obsolete auth controller lifecycle",
+      );
+    }
+
     function assertStableTenantId(nextOptions) {
       if (nextOptions.tenantId === options.tenantId) {
         return;
@@ -4552,14 +4564,20 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     /**
      * @param {{ scope: string, generation: number }} observedRecovery
+     * @param {number} recoveryLifecycleVersion
      * @returns {Promise<AuthRecoveryResult>}
      */
-    function recoverSessionAfterUnauthorized(observedRecovery) {
+    function recoverSessionAfterUnauthorized(
+      observedRecovery,
+      recoveryLifecycleVersion,
+    ) {
+      requireCurrentAuthRecoveryLifecycle(recoveryLifecycleVersion);
       updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATING, {
         source: "session-recovery",
       });
       return coordinateAuthSessionRecovery(options, observedRecovery)
         .then(function applySessionRecoveryResult(result) {
+          requireCurrentAuthRecoveryLifecycle(recoveryLifecycleVersion);
           if (result.status === "authenticated") {
             markAuthenticated(result.profile || state.profile);
             return result;
@@ -4590,6 +4608,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           throw recoveryError;
         })
         .catch(function handleSessionRecoveryCoordinationFailure(error) {
+          requireCurrentAuthRecoveryLifecycle(recoveryLifecycleVersion);
           if (
             error &&
             (error.code === "mpr-ui.auth.session_recovery_failed" ||
@@ -4662,6 +4681,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
       var observedRecovery;
       var firstRequest;
+      var requestLifecycleVersion = lifecycleVersion;
       try {
         observedRecovery = captureAuthRecoveryGeneration(options);
         firstRequest = new global.Request(
@@ -4701,8 +4721,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         if (!response || response.status !== 401) {
           return response;
         }
-        return recoverSessionAfterUnauthorized(observedRecovery).then(
+        return recoverSessionAfterUnauthorized(
+          observedRecovery,
+          requestLifecycleVersion,
+        ).then(
           function retryProtectedRequest(result) {
+            requireCurrentAuthRecoveryLifecycle(requestLifecycleVersion);
             if (result.status !== "authenticated" || !retryRequest) {
               return response;
             }
