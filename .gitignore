@@ -140,7 +140,6 @@ dist
 vite.config.js.timestamp-*
 vite.config.ts.timestamp-*
 
-PLAN.md
 tools/
 test-results/
 
@@ -161,3 +160,7 @@ node_modules/
 !.github/
 !.github/workflows/
 !.github/workflows/*.yml
+
+# BEGIN MPRLAB-GOVERNANCE
+/.mprlab/*-PLAN.md
+# END MPRLAB-GOVERNANCE
