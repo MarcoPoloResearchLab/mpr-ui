@@ -6,6 +6,7 @@
 - Added `MPRUI.getLegalProfile()`, `MPRUI.getLegalDocument()`, `MPRUI.renderLegalDocument()`, and `<mpr-legal-document>` for reusable MPR Lab Terms and Privacy pages.
 
 ### Improvements ⚙️
+- Added `MPRUI.authenticatedFetch()` with one cross-tab TAuth session recovery and one permitted protected-request retry.
 - Centralized the Marco Polo Research Lab LLC legal profile, including company form, website, support/legal emails, and phone number.
 - Added public `MPRUI.testing` auth helpers so app browser suites can drive the mounted auth controller without mutating mpr-ui DOM internals.
 - Added `MPRUI.testing.googleIdentity` helpers so app browser suites can drive stubbed Google Identity credential clicks without mutating app-local stub globals.
@@ -13,6 +14,7 @@
 - Updated Playwright to `1.61.1` and made the Node tooling module type explicit so Node 26 release checks run without deprecated loader or ambiguous-module warnings.
 
 ### Bug Fixes 🐛
+- Renewed expired access sessions through the configured TAuth session endpoint before a protected request retry.
 - Kept `<mpr-login-button>` geometry stable while Google sign-in preparation is pending by retaining the accessible status announcement outside the visible layout flow.
 - Moved `<mpr-login-button>` presentation out of `/config-ui.yaml` into static `button-*` attributes; the loader now rejects obsolete `authButton` input while accepting auth-only cross-origin runtime configuration.
 - Wired configured `sessionPath` values through `tauth-session-path` so auth controllers restore sessions from the declared endpoint and explicit empty paths disable fallback restoration.
@@ -22,6 +24,7 @@
 - Reject credential callbacks that are missing an attempt nonce and surface nonce/GIS preparation failures through auth and header error events.
 
 ### Testing 🧪
+- Added browser acceptance for session expiry, concurrent requests, two tabs, refresh rejection, network failure, request replay, and refresh-cookie expiry.
 - Added a fixture-backed browser regression that holds Google sign-in preparation and verifies the visible control group and button geometry do not change.
 - Added a browser contract for auth-only cross-origin configuration that preserves declarative login-button presentation and restores through its configured session endpoint.
 - Added unit and Playwright coverage for legal document exports, escaping, custom-element rendering, and product-specific extra sections.
@@ -34,6 +37,7 @@
 - Added header regressions for sign-in redirect handoff, restored-session non-redirect behavior, and app-dispatched auth events not triggering redirects.
 
 ### Docs 📚
+- Documented the shared protected-request API, TAuth ownership boundary, lifecycle events, and mutation replay policy.
 - Documented auth-only `/config-ui.yaml`, absolute cross-origin config URLs, and static login-button presentation ownership.
 - Documented the shared legal document API, attributes, profile override boundaries, and product-specific section extension pattern.
 - Documented the test-only auth helper contract for integration suites that seed backend sessions.

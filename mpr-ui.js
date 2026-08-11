@@ -17,11 +17,18 @@
   };
   var REQUESTED_WITH_HEADER = "XMLHttpRequest";
   var AUTH_RESTORE_HINT_PREFIX = "tauth.restore.v1:";
+  var AUTH_RECOVERY_RECORD_PREFIX = "mpr-ui.auth.recovery.v1:";
+  var AUTH_RECOVERY_LOCK_PREFIX = "mpr-ui:auth:recovery:v1:";
+  var AUTH_RECOVERY_LIFECYCLE_CHANGED_ERROR_CODE =
+    "mpr-ui.auth.recovery_lifecycle_changed";
+  var AUTH_MUTATION_REPLAY_POLICY = "authorization-before-domain-work";
+  var authSessionRecoveryPromises = Object.create(null);
   var AUTH_CONTROLLER_STATUS = Object.freeze({
     BOOTSTRAPPING: "bootstrapping",
     AUTHENTICATING: "authenticating",
     AUTHENTICATED: "authenticated",
     UNAUTHENTICATED: "unauthenticated",
+    ERROR: "error",
   });
   var GOOGLE_SIGNIN_TEST_ID = "google-signin";
   var GOOGLE_SIGNIN_READY_STATE = Object.freeze({
@@ -194,6 +201,21 @@
    *   googleClientId?: string,
    *   tenantId?: string,
    * }} AuthOptions
+   * @typedef {{
+   *   mutationReplay?: "authorization-before-domain-work",
+   * }} AuthenticatedFetchPolicy
+   * @typedef {{
+   *   generation: number,
+   *   status: "authenticated"|"unauthenticated"|"error",
+   *   code?: string,
+   *   responseStatus?: number,
+   * }} AuthRecoveryRecord
+   * @typedef {{
+   *   status: "authenticated"|"unauthenticated"|"error",
+   *   profile: object|null,
+   *   code?: string,
+   *   responseStatus?: number,
+   * }} AuthRecoveryResult
    * @typedef {{ script: string, title: string, copy: string, height?: number }} SubscribeConfig
    * @typedef {{
    *   id: string,
@@ -512,6 +534,302 @@
       error.status = response.status;
     }
     return error;
+  }
+
+  /**
+   * @param {string} code
+   * @param {string} message
+   * @param {number=} status
+   * @returns {MprUiError}
+   */
+  function createAuthRecoveryError(code, message, status) {
+    /** @type {MprUiError} */
+    var error = new Error(message);
+    error.code = code;
+    if (typeof status === "number") {
+      error.status = status;
+    }
+    return error;
+  }
+
+  function authRecoveryScope(authOptions) {
+    var baseUrl = resolveAuthRestoreBaseUrl(authOptions);
+    var tenantId = normalizeTenantId(authOptions && authOptions.tenantId) || "";
+    var sessionPath =
+      authOptions && typeof authOptions.tauthSessionPath === "string"
+        ? authOptions.tauthSessionPath.trim()
+        : "";
+    if (!baseUrl || !tenantId || !sessionPath) {
+      throw createAuthRecoveryError(
+        "mpr-ui.auth.recovery_config_required",
+        "Authenticated fetch requires a TAuth URL, tenant ID, and session path",
+      );
+    }
+    return [baseUrl, tenantId, sessionPath].map(encodeURIComponent).join(":");
+  }
+
+  function requireAuthRecoveryStorage() {
+    var storage = authRestoreStorage();
+    if (!storage) {
+      throw createAuthRecoveryError(
+        "mpr-ui.auth.recovery_storage_unavailable",
+        "Authenticated fetch requires local storage for browser-tab recovery coordination",
+      );
+    }
+    return storage;
+  }
+
+  function requireAuthRecoveryLocks() {
+    var lockManager =
+      global.navigator && global.navigator.locks ? global.navigator.locks : null;
+    if (!lockManager || typeof lockManager.request !== "function") {
+      throw createAuthRecoveryError(
+        "mpr-ui.auth.recovery_lock_unavailable",
+        "Authenticated fetch requires Web Locks for browser-tab recovery coordination",
+      );
+    }
+    return lockManager;
+  }
+
+  /**
+   * @param {Storage} storage
+   * @param {string} recordKey
+   * @returns {AuthRecoveryRecord|null}
+   */
+  function readAuthRecoveryRecord(storage, recordKey) {
+    var serializedRecord;
+    try {
+      serializedRecord = storage.getItem(recordKey);
+    } catch (error) {
+      throw createAuthRecoveryError(
+        "mpr-ui.auth.recovery_storage_failed",
+        "Authenticated fetch could not read the recovery generation record",
+      );
+    }
+    if (serializedRecord === null) {
+      return null;
+    }
+    var parsedRecord;
+    try {
+      parsedRecord = JSON.parse(serializedRecord);
+    } catch (error) {
+      throw createAuthRecoveryError(
+        "mpr-ui.auth.recovery_record_invalid",
+        "Authenticated fetch found an invalid recovery generation record",
+      );
+    }
+    if (
+      !parsedRecord ||
+      typeof parsedRecord !== "object" ||
+      !Number.isSafeInteger(parsedRecord.generation) ||
+      parsedRecord.generation < 1 ||
+      ["authenticated", "unauthenticated", "error"].indexOf(
+        parsedRecord.status,
+      ) === -1
+    ) {
+      throw createAuthRecoveryError(
+        "mpr-ui.auth.recovery_record_invalid",
+        "Authenticated fetch found an invalid recovery generation record",
+      );
+    }
+    return parsedRecord;
+  }
+
+  /**
+   * @param {Storage} storage
+   * @param {string} recordKey
+   * @param {AuthRecoveryRecord} record
+   */
+  function writeAuthRecoveryRecord(storage, recordKey, record) {
+    try {
+      storage.setItem(recordKey, JSON.stringify(record));
+    } catch (error) {
+      throw createAuthRecoveryError(
+        "mpr-ui.auth.recovery_storage_failed",
+        "Authenticated fetch could not write the recovery generation record",
+      );
+    }
+  }
+
+  /**
+   * @param {AuthOptions} authOptions
+   * @returns {{ scope: string, generation: number }}
+   */
+  function captureAuthRecoveryGeneration(authOptions) {
+    var scope = authRecoveryScope(authOptions);
+    var storage = requireAuthRecoveryStorage();
+    requireAuthRecoveryLocks();
+    var record = readAuthRecoveryRecord(
+      storage,
+      AUTH_RECOVERY_RECORD_PREFIX + scope,
+    );
+    return {
+      scope: scope,
+      generation: record ? record.generation : 0,
+    };
+  }
+
+  /**
+   * @param {AuthOptions} authOptions
+   * @returns {Promise<AuthRecoveryResult>}
+   */
+  function requestAuthSessionRecovery(authOptions) {
+    if (!global.fetch) {
+      return Promise.resolve({
+        status: "error",
+        profile: null,
+        code: "mpr-ui.auth.session_recovery_failed",
+      });
+    }
+    return global
+      .fetch(joinUrl(authOptions.tauthUrl, authOptions.tauthSessionPath), {
+        method: "GET",
+        credentials: "include",
+        headers: withTenantHeaderValue(authOptions.tenantId, {
+          "X-Requested-With": REQUESTED_WITH_HEADER,
+        }),
+      })
+      .then(
+        /**
+         * @param {Response} response
+         * @returns {AuthRecoveryResult|Promise<AuthRecoveryResult>}
+         */
+        function classifyAuthSessionRecoveryResponse(response) {
+          if (!response) {
+            return {
+              status: "error",
+              profile: null,
+              code: "mpr-ui.auth.session_recovery_failed",
+            };
+          }
+          if (
+            response.status === 204 ||
+            response.status === 401 ||
+            response.status === 403
+          ) {
+            return {
+              status: "unauthenticated",
+              profile: null,
+              responseStatus: response.status,
+            };
+          }
+          if (!response.ok || typeof response.json !== "function") {
+            return {
+              status: "error",
+              profile: null,
+              code: "mpr-ui.auth.session_recovery_failed",
+              responseStatus: response.status,
+            };
+          }
+          return response
+            .json()
+            .then(function validateAuthSessionRecoveryProfile(profile) {
+              if (
+                !profile ||
+                typeof profile !== "object" ||
+                Array.isArray(profile)
+              ) {
+                return {
+                  status: "error",
+                  profile: null,
+                  code: "mpr-ui.auth.session_recovery_invalid_profile",
+                  responseStatus: response.status,
+                };
+              }
+              return {
+                status: "authenticated",
+                profile: profile,
+                responseStatus: response.status,
+              };
+            });
+        },
+      )
+      .catch(
+        /** @returns {AuthRecoveryResult} */
+        function classifyAuthSessionRecoveryNetworkFailure() {
+          return {
+            status: "error",
+            profile: null,
+            code: "mpr-ui.auth.session_recovery_failed",
+          };
+        },
+      );
+  }
+
+  /**
+   * @param {AuthRecoveryRecord} record
+   * @returns {AuthRecoveryResult}
+   */
+  function authRecoveryResultFromRecord(record) {
+    return {
+      status: record.status,
+      profile: null,
+      code: record.code,
+      responseStatus: record.responseStatus,
+    };
+  }
+
+  /**
+   * @param {AuthOptions} authOptions
+   * @param {{ scope: string, generation: number }} observedRecovery
+   * @returns {Promise<AuthRecoveryResult>}
+   */
+  function coordinateAuthSessionRecovery(authOptions, observedRecovery) {
+    var scope = authRecoveryScope(authOptions);
+    if (!observedRecovery || observedRecovery.scope !== scope) {
+      return Promise.reject(
+        createAuthRecoveryError(
+          "mpr-ui.auth.recovery_scope_mismatch",
+          "Authenticated fetch recovery scope changed during the protected request",
+        ),
+      );
+    }
+    if (authSessionRecoveryPromises[scope]) {
+      return authSessionRecoveryPromises[scope];
+    }
+    var recoveryPromise = Promise.resolve().then(function coordinateRecovery() {
+      var storage = requireAuthRecoveryStorage();
+      var lockManager = requireAuthRecoveryLocks();
+      var recordKey = AUTH_RECOVERY_RECORD_PREFIX + scope;
+      return lockManager.request(
+        AUTH_RECOVERY_LOCK_PREFIX + scope,
+        function runRecoveryInsideWebLock() {
+          var currentRecord = readAuthRecoveryRecord(storage, recordKey);
+          if (
+            currentRecord &&
+            currentRecord.generation > observedRecovery.generation
+          ) {
+            return authRecoveryResultFromRecord(currentRecord);
+          }
+          var nextGeneration = currentRecord
+            ? currentRecord.generation + 1
+            : 1;
+          return requestAuthSessionRecovery(authOptions).then(
+            function publishAuthSessionRecovery(result) {
+              /** @type {AuthRecoveryRecord} */
+              var nextRecord = {
+                generation: nextGeneration,
+                status: result.status,
+              };
+              if (result.code) {
+                nextRecord.code = result.code;
+              }
+              if (typeof result.responseStatus === "number") {
+                nextRecord.responseStatus = result.responseStatus;
+              }
+              writeAuthRecoveryRecord(storage, recordKey, nextRecord);
+              return result;
+            },
+          );
+        },
+      );
+    });
+    authSessionRecoveryPromises[scope] = recoveryPromise.finally(
+      function releaseAuthSessionRecoveryPromise() {
+        delete authSessionRecoveryPromises[scope];
+      },
+    );
+    return authSessionRecoveryPromises[scope];
   }
 
   function requestCurrentProfileWithFetch(authOptions) {
@@ -3750,6 +4068,16 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return candidateVersion === lifecycleVersion;
     }
 
+    function requireCurrentAuthRecoveryLifecycle(candidateVersion) {
+      if (!isDestroyed && isCurrentLifecycleVersion(candidateVersion)) {
+        return;
+      }
+      throw createAuthRecoveryError(
+        AUTH_RECOVERY_LIFECYCLE_CHANGED_ERROR_CODE,
+        "Authenticated fetch recovery belongs to an obsolete auth controller lifecycle",
+      );
+    }
+
     function assertStableTenantId(nextOptions) {
       if (nextOptions.tenantId === options.tenantId) {
         return;
@@ -4234,6 +4562,180 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return exchangeCredentialWithFetch(credential, nonceToken);
     }
 
+    /**
+     * @param {{ scope: string, generation: number }} observedRecovery
+     * @param {number} recoveryLifecycleVersion
+     * @returns {Promise<AuthRecoveryResult>}
+     */
+    function recoverSessionAfterUnauthorized(
+      observedRecovery,
+      recoveryLifecycleVersion,
+    ) {
+      requireCurrentAuthRecoveryLifecycle(recoveryLifecycleVersion);
+      updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATING, {
+        source: "session-recovery",
+      });
+      return coordinateAuthSessionRecovery(options, observedRecovery)
+        .then(function applySessionRecoveryResult(result) {
+          requireCurrentAuthRecoveryLifecycle(recoveryLifecycleVersion);
+          if (result.status === "authenticated") {
+            markAuthenticated(result.profile || state.profile);
+            return result;
+          }
+          if (result.status === "unauthenticated") {
+            clearAuthRestoreHint(options);
+            markUnauthenticated({ prompt: false });
+            return result;
+          }
+          updateAuthStatus(AUTH_CONTROLLER_STATUS.ERROR, {
+            source: "session-recovery",
+          });
+          var recoveryError = createAuthRecoveryError(
+            result.code || "mpr-ui.auth.session_recovery_failed",
+            "TAuth session recovery failed",
+            result.responseStatus,
+          );
+          emitError(
+            recoveryError.code || "mpr-ui.auth.session_recovery_failed",
+            {
+              message: recoveryError.message,
+              status:
+                typeof recoveryError.status === "number"
+                  ? recoveryError.status
+                  : null,
+            },
+          );
+          throw recoveryError;
+        })
+        .catch(function handleSessionRecoveryCoordinationFailure(error) {
+          requireCurrentAuthRecoveryLifecycle(recoveryLifecycleVersion);
+          if (
+            error &&
+            (error.code === "mpr-ui.auth.session_recovery_failed" ||
+              error.code === "mpr-ui.auth.session_recovery_invalid_profile")
+          ) {
+            throw error;
+          }
+          updateAuthStatus(AUTH_CONTROLLER_STATUS.ERROR, {
+            source: "session-recovery",
+          });
+          var coordinationError =
+            error && error.code
+              ? error
+              : createAuthRecoveryError(
+                  "mpr-ui.auth.session_recovery_failed",
+                  "TAuth session recovery failed",
+                );
+          emitError(coordinationError.code, {
+            message: coordinationError.message,
+            status:
+              typeof coordinationError.status === "number"
+                ? coordinationError.status
+                : null,
+          });
+          throw coordinationError;
+        });
+    }
+
+    /**
+     * @param {RequestInfo|URL} input
+     * @param {RequestInit=} init
+     * @param {AuthenticatedFetchPolicy=} fetchPolicy
+     * @returns {Promise<Response>}
+     */
+    function authenticatedFetchWithController(input, init, fetchPolicy) {
+      var policy = fetchPolicy || {};
+      if (
+        policy.mutationReplay !== undefined &&
+        policy.mutationReplay !== AUTH_MUTATION_REPLAY_POLICY
+      ) {
+        var policyError = createAuthRecoveryError(
+          "mpr-ui.auth.mutation_replay_policy_invalid",
+          "Mutation replay requires the authorization-before-domain-work policy",
+        );
+        emitError(policyError.code || "mpr-ui.auth.mutation_replay_policy_invalid", {
+          message: policyError.message,
+        });
+        return Promise.reject(policyError);
+      }
+      if (!state.profile || typeof state.profile !== "object") {
+        var stateError = createAuthRecoveryError(
+          "mpr-ui.auth.authenticated_state_required",
+          "Wait for mpr-ui:auth:authenticated before an authenticated fetch",
+        );
+        emitError(stateError.code || "mpr-ui.auth.authenticated_state_required", {
+          message: stateError.message,
+        });
+        return Promise.reject(stateError);
+      }
+      if (!global.fetch || typeof global.Request !== "function") {
+        var fetchError = createAuthRecoveryError(
+          "mpr-ui.auth.fetch_unavailable",
+          "Authenticated fetch requires the browser Fetch API",
+        );
+        emitError(fetchError.code || "mpr-ui.auth.fetch_unavailable", {
+          message: fetchError.message,
+        });
+        return Promise.reject(fetchError);
+      }
+
+      var observedRecovery;
+      var firstRequest;
+      var requestLifecycleVersion = lifecycleVersion;
+      try {
+        observedRecovery = captureAuthRecoveryGeneration(options);
+        firstRequest = new global.Request(
+          input,
+          Object.assign({}, init || {}, { credentials: "include" }),
+        );
+      } catch (error) {
+        var preparationError =
+          error && error.code
+            ? error
+            : createAuthRecoveryError(
+                "mpr-ui.auth.request_invalid",
+                error && error.message
+                  ? error.message
+                  : "Authenticated fetch could not create the request",
+              );
+        emitError(preparationError.code, {
+          message: preparationError.message,
+        });
+        return Promise.reject(preparationError);
+      }
+
+      var method = String(firstRequest.method || "GET").toUpperCase();
+      var isSafeMethod = ["GET", "HEAD", "OPTIONS"].indexOf(method) !== -1;
+      var mutationReplayAllowed =
+        policy.mutationReplay === AUTH_MUTATION_REPLAY_POLICY;
+      var retryRequest = null;
+      if (isSafeMethod || mutationReplayAllowed) {
+        try {
+          retryRequest = firstRequest.clone();
+        } catch (error) {
+          retryRequest = null;
+        }
+      }
+
+      return global.fetch(firstRequest).then(function handleProtectedResponse(response) {
+        if (!response || response.status !== 401) {
+          return response;
+        }
+        return recoverSessionAfterUnauthorized(
+          observedRecovery,
+          requestLifecycleVersion,
+        ).then(
+          function retryProtectedRequest(result) {
+            requireCurrentAuthRecoveryLifecycle(requestLifecycleVersion);
+            if (result.status !== "authenticated" || !retryRequest) {
+              return response;
+            }
+            return global.fetch(retryRequest);
+          },
+        );
+      });
+    }
+
     function updateOptions(rawNextOptions) {
       if (isDestroyed) {
         return;
@@ -4339,6 +4841,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       refreshGoogleNonce: prepareGoogleNonce,
       startGoogleSignIn: startGoogleSignIn,
       handleCredential: handleCredential,
+      authenticatedFetch: authenticatedFetchWithController,
       signOut: signOut,
       updateOptions: updateOptions,
       destroy: destroy,
@@ -4359,6 +4862,53 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var error = new Error(message);
     error.code = code;
     return error;
+  }
+
+  function resolveAuthenticatedFetchController(authTarget) {
+    if (!authTarget || typeof authTarget !== "object") {
+      throw createAuthRecoveryError(
+        "mpr-ui.auth.auth_host_required",
+        "MPRUI.authenticatedFetch requires an auth host element",
+      );
+    }
+    if (typeof authTarget.authenticatedFetch === "function") {
+      return authTarget;
+    }
+    var headerController =
+      authTarget.__headerController &&
+      typeof authTarget.__headerController.getAuthController === "function"
+        ? authTarget.__headerController.getAuthController()
+        : null;
+    if (headerController && typeof headerController.authenticatedFetch === "function") {
+      return headerController;
+    }
+    if (
+      authTarget.__authController &&
+      typeof authTarget.__authController.authenticatedFetch === "function"
+    ) {
+      return authTarget.__authController;
+    }
+    throw createAuthRecoveryError(
+      "mpr-ui.auth.auth_controller_missing",
+      "MPRUI.authenticatedFetch requires a mounted mpr-ui auth controller",
+    );
+  }
+
+  /**
+   * @param {object} authTarget
+   * @param {RequestInfo|URL} input
+   * @param {RequestInit=} init
+   * @param {AuthenticatedFetchPolicy=} fetchPolicy
+   * @returns {Promise<Response>}
+   */
+  function authenticatedFetch(authTarget, input, init, fetchPolicy) {
+    var authController;
+    try {
+      authController = resolveAuthenticatedFetchController(authTarget);
+    } catch (error) {
+      return Promise.reject(error);
+    }
+    return authController.authenticatedFetch(input, init, fetchPolicy);
   }
 
   function requireTestingProfile(profile) {
@@ -16205,6 +16755,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
   var namespace = ensureNamespace(global);
   namespace.createAuthHeader = createAuthHeader;
+  namespace.authenticatedFetch = authenticatedFetch;
   namespace.renderAuthHeader = renderAuthHeader;
   namespace.getFooterSiteCatalog = getFooterSiteCatalog;
   namespace.getLegalProfile = getLegalProfile;
