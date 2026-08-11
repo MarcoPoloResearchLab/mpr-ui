@@ -54,6 +54,7 @@ function createProtectedRouteState(expectedInitialRequests, options) {
       sessionStatus: 200,
       sessionNetworkFailure: false,
       protectedAlwaysUnauthorized: false,
+      holdSessionRecovery: false,
     },
     options || {},
   );
@@ -64,6 +65,16 @@ function createProtectedRouteState(expectedInitialRequests, options) {
   const initialRequestsReady = new Promise((resolve) => {
     releaseInitialRequests = resolve;
   });
+  let markSessionRequestStarted;
+  const sessionRequestStarted = new Promise((resolve) => {
+    markSessionRequestStarted = resolve;
+  });
+  let releaseHeldSessionRecovery;
+  const heldSessionRecovery = config.holdSessionRecovery
+    ? new Promise((resolve) => {
+        releaseHeldSessionRecovery = resolve;
+      })
+    : Promise.resolve();
 
   return {
     async routeProtected(route) {
@@ -87,7 +98,9 @@ function createProtectedRouteState(expectedInitialRequests, options) {
         return;
       }
       sessionCalls += 1;
+      markSessionRequestStarted();
       await initialRequestsReady;
+      await heldSessionRecovery;
       if (config.sessionNetworkFailure) {
         await route.abort('failed');
         return;
@@ -114,6 +127,14 @@ function createProtectedRouteState(expectedInitialRequests, options) {
     },
     snapshot() {
       return { protectedCalls, sessionCalls };
+    },
+    waitForSessionRequest() {
+      return sessionRequestStarted;
+    },
+    releaseSessionRecovery() {
+      if (releaseHeldSessionRecovery) {
+        releaseHeldSessionRecovery();
+      }
     },
   };
 }
@@ -386,5 +407,57 @@ test.describe('MPRUI.authenticatedFetch', () => {
 
     expect(result.status).toBe(401);
     expect(routeState.snapshot()).toEqual({ protectedCalls: 2, sessionCalls: 1 });
+  });
+
+  test('B048: auth option rebinding cancels an in-flight recovery and replay', async ({
+    context,
+    page,
+  }) => {
+    const routeState = await installProtectedRoutes(context, 1, {
+      holdSessionRecovery: true,
+    });
+    await openFixture(page);
+
+    const pendingResult = page.evaluate(async (protectedUrl) => {
+      try {
+        const response = await window.MPRUI.authenticatedFetch(
+          window.fixtureAuthTarget,
+          protectedUrl,
+        );
+        return { status: response.status };
+      } catch (error) {
+        return {
+          code: error.code,
+          authStatus: window.fixtureAuthHost.getAttribute('data-mpr-auth-status'),
+          profileEmail: window.fixtureAuthHost.getAttribute('data-user-email'),
+          events: window.fixtureAuthEvents,
+        };
+      }
+    }, PROTECTED_URL);
+
+    await routeState.waitForSessionRequest();
+    await page.evaluate(() => {
+      window.fixtureAuthEvents = [];
+      window.fixtureAuthTarget.updateOptions({
+        googleClientId: 'fixture-client',
+        tauthUrl: 'https://rebound-auth.fixture.test',
+        tenantId: 'fixture-tenant',
+        tauthLoginPath: '/auth/google',
+        tauthLogoutPath: '/auth/logout',
+        tauthNoncePath: '/auth/nonce',
+        tauthSessionPath: '/auth/session',
+      });
+    });
+    routeState.releaseSessionRecovery();
+
+    const result = await pendingResult;
+
+    expect(result.code).toBe('mpr-ui.auth.recovery_lifecycle_changed');
+    expect(result.authStatus).toBe('unauthenticated');
+    expect(result.profileEmail).toBeNull();
+    expect(result.events.map((event) => event.type)).not.toContain(
+      'mpr-ui:auth:authenticated',
+    );
+    expect(routeState.snapshot()).toEqual({ protectedCalls: 1, sessionCalls: 1 });
   });
 });
