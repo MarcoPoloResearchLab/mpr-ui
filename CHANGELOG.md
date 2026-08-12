@@ -44,6 +44,13 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.11.7] - 2026-08-12
+
+- Merge pull request #185 from MarcoPoloResearchLab/bugfix/automatic-session-verification
+- Make repeated bundle delivery idempotent
+- Retry failed YAML parser loads
+- Retry TAuth session verification automatically
+
 ## [v3.11.6] - 2026-08-11
 
 - Merge pull request #184 from MarcoPoloResearchLab/tyemirov/bugfix/B048-authenticated-fetch
