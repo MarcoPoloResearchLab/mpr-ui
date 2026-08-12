@@ -191,12 +191,17 @@
     if (yamlParserPromise) {
       return yamlParserPromise;
     }
-    yamlParserPromise = loadScript(parserUrl).then(function resolveParser() {
-      if (global.jsyaml && typeof global.jsyaml.load === "function") {
-        return global.jsyaml;
-      }
-      throw new Error("js-yaml parser did not initialize");
-    });
+    yamlParserPromise = loadScript(parserUrl)
+      .then(function resolveParser() {
+        if (global.jsyaml && typeof global.jsyaml.load === "function") {
+          return global.jsyaml;
+        }
+        throw new Error("js-yaml parser did not initialize");
+      })
+      .catch(function resetFailedParserLoad(error) {
+        yamlParserPromise = null;
+        throw error;
+      });
     return yamlParserPromise;
   }
 

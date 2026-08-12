@@ -4,12 +4,18 @@
 (function (global) {
   "use strict";
 
+  var BUNDLE_READY_MARKER = "__bundleReady";
+  if (global.MPRUI && global.MPRUI[BUNDLE_READY_MARKER] === true) {
+    return;
+  }
+
   var DEFAULT_OPTIONS = {
     tauthUrl: "",
     tauthLoginPath: "/auth/google",
     tauthLogoutPath: "/auth/logout",
     tauthNoncePath: "/auth/nonce",
     tauthSessionPath: "/auth/session",
+    tauthBootstrapMode: "restore-if-hinted",
     googleClientId: "",
     tenantId: "",
     siteName: "",
@@ -17,18 +23,26 @@
   };
   var REQUESTED_WITH_HEADER = "XMLHttpRequest";
   var AUTH_RESTORE_HINT_PREFIX = "tauth.restore.v1:";
-  var AUTH_RECOVERY_RECORD_PREFIX = "mpr-ui.auth.recovery.v1:";
-  var AUTH_RECOVERY_LOCK_PREFIX = "mpr-ui:auth:recovery:v1:";
+  var AUTH_RECOVERY_RECORD_PREFIX = "mpr-ui.auth.recovery.v2:";
+  var AUTH_RECOVERY_LOCK_PREFIX = "mpr-ui:auth:recovery:v2:";
   var AUTH_RECOVERY_LIFECYCLE_CHANGED_ERROR_CODE =
     "mpr-ui.auth.recovery_lifecycle_changed";
   var AUTH_MUTATION_REPLAY_POLICY = "authorization-before-domain-work";
+  var AUTH_SESSION_RETRY_POLICY = Object.freeze({
+    initialDelayMs: 250,
+    maximumDelayMs: 5000,
+    multiplier: 2,
+  });
+  var AUTH_BOOTSTRAP_MODE = Object.freeze({
+    EAGER: "eager",
+    RESTORE_IF_HINTED: "restore-if-hinted",
+  });
   var authSessionRecoveryPromises = Object.create(null);
   var AUTH_CONTROLLER_STATUS = Object.freeze({
     BOOTSTRAPPING: "bootstrapping",
     AUTHENTICATING: "authenticating",
     AUTHENTICATED: "authenticated",
     UNAUTHENTICATED: "unauthenticated",
-    ERROR: "error",
   });
   var GOOGLE_SIGNIN_TEST_ID = "google-signin";
   var GOOGLE_SIGNIN_READY_STATE = Object.freeze({
@@ -198,6 +212,7 @@
    *   tauthLogoutPath?: string,
    *   tauthNoncePath?: string,
    *   tauthSessionPath?: string,
+   *   tauthBootstrapMode?: "eager"|"restore-if-hinted",
    *   googleClientId?: string,
    *   tenantId?: string,
    * }} AuthOptions
@@ -206,7 +221,7 @@
    * }} AuthenticatedFetchPolicy
    * @typedef {{
    *   generation: number,
-   *   status: "authenticated"|"unauthenticated"|"error",
+   *   status: "authenticated"|"unauthenticated",
    *   code?: string,
    *   responseStatus?: number,
    * }} AuthRecoveryRecord
@@ -477,6 +492,41 @@
     );
   }
 
+  function requiresEagerSessionVerification(authOptions) {
+    return Boolean(
+      authOptions &&
+        authOptions.tauthBootstrapMode === AUTH_BOOTSTRAP_MODE.EAGER,
+    );
+  }
+
+  function authSessionRetryDelay(attempt) {
+    return Math.min(
+      AUTH_SESSION_RETRY_POLICY.maximumDelayMs,
+      AUTH_SESSION_RETRY_POLICY.initialDelayMs *
+        Math.pow(AUTH_SESSION_RETRY_POLICY.multiplier, attempt),
+    );
+  }
+
+  function waitForAuthSessionRetry(attempt) {
+    return new Promise(function waitForRetry(resolve) {
+      global.setTimeout(resolve, authSessionRetryDelay(attempt));
+    });
+  }
+
+  function normalizeAuthBootstrapMode(value) {
+    var normalized = typeof value === "string" ? value.trim() : "";
+    if (
+      normalized !== AUTH_BOOTSTRAP_MODE.EAGER &&
+      normalized !== AUTH_BOOTSTRAP_MODE.RESTORE_IF_HINTED
+    ) {
+      throw createAuthRecoveryError(
+        "mpr-ui.auth.bootstrap_mode_invalid",
+        "Authentication bootstrap mode is invalid",
+      );
+    }
+    return normalized;
+  }
+
   function hasAuthRestoreHint(authOptions) {
     if (!hasConfiguredAuthSessionPath(authOptions)) {
       return false;
@@ -623,9 +673,7 @@
       typeof parsedRecord !== "object" ||
       !Number.isSafeInteger(parsedRecord.generation) ||
       parsedRecord.generation < 1 ||
-      ["authenticated", "unauthenticated", "error"].indexOf(
-        parsedRecord.status,
-      ) === -1
+      ["authenticated", "unauthenticated"].indexOf(parsedRecord.status) === -1
     ) {
       throw createAuthRecoveryError(
         "mpr-ui.auth.recovery_record_invalid",
@@ -702,11 +750,7 @@
               code: "mpr-ui.auth.session_recovery_failed",
             };
           }
-          if (
-            response.status === 204 ||
-            response.status === 401 ||
-            response.status === 403
-          ) {
+          if (response.status === 204) {
             return {
               status: "unauthenticated",
               profile: null,
@@ -754,6 +798,17 @@
           };
         },
       );
+  }
+
+  function requestAuthSessionRecoveryUntilSettled(authOptions, attempt) {
+    return requestAuthSessionRecovery(authOptions).then(function (result) {
+      if (result.status !== "error") {
+        return result;
+      }
+      return waitForAuthSessionRetry(attempt).then(function retryRecovery() {
+        return requestAuthSessionRecoveryUntilSettled(authOptions, attempt + 1);
+      });
+    });
   }
 
   /**
@@ -804,7 +859,7 @@
           var nextGeneration = currentRecord
             ? currentRecord.generation + 1
             : 1;
-          return requestAuthSessionRecovery(authOptions).then(
+          return requestAuthSessionRecoveryUntilSettled(authOptions, 0).then(
             function publishAuthSessionRecovery(result) {
               /** @type {AuthRecoveryRecord} */
               var nextRecord = {
@@ -833,7 +888,10 @@
   }
 
   function requestCurrentProfileWithFetch(authOptions) {
-    if (!hasAuthRestoreHint(authOptions)) {
+    if (
+      !requiresEagerSessionVerification(authOptions) &&
+      !hasAuthRestoreHint(authOptions)
+    ) {
       return Promise.resolve(null);
     }
     if (!global.fetch) {
@@ -862,9 +920,8 @@
           throw new Error("invalid response from session endpoint");
         }
         return response.json().then(function (payload) {
-          if (!payload || typeof payload !== "object") {
-            clearAuthRestoreHint(authOptions);
-            return null;
+          if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
+            throw new Error("invalid profile from session endpoint");
           }
           rememberAuthRestoreHint(authOptions);
           return payload;
@@ -879,12 +936,23 @@
     if (typeof global.getCurrentUser === "function") {
       var helperResult = global.getCurrentUser();
       if (helperResult && typeof helperResult.then === "function") {
-        return helperResult.catch(function (error) {
-          if (shouldFallbackToFetch(error)) {
+        return helperResult.then(function (profile) {
+          if (profile) {
+            return profile;
+          }
+          if (requiresEagerSessionVerification(authOptions)) {
             return requestCurrentProfileWithFetch(authOptions);
           }
-          throw error;
+          return null;
+        }).catch(function (error) {
+          if (!shouldFallbackToFetch(error)) {
+            throw error;
+          }
+          return requestCurrentProfileWithFetch(authOptions);
         });
+      }
+      if (!helperResult && requiresEagerSessionVerification(authOptions)) {
+        return requestCurrentProfileWithFetch(authOptions);
       }
       return helperResult;
     }
@@ -1226,6 +1294,7 @@
 
   var HEADER_ATTRIBUTE_OBSERVERS = Object.freeze(
     Object.keys(HEADER_ATTRIBUTE_DATASET_MAP).concat([
+      "tauth-bootstrap-mode",
       "tauth-login-path",
       "tauth-logout-path",
       "tauth-nonce-path",
@@ -1280,6 +1349,7 @@
   ]);
   var LOGIN_BUTTON_ATTRIBUTE_NAMES = Object.freeze([
     "site-id",
+    "tauth-bootstrap-mode",
     "tauth-tenant-id",
     "tauth-login-path",
     "tauth-logout-path",
@@ -1530,6 +1600,9 @@
         DEFAULT_OPTIONS.tauthNoncePath,
       tauthSessionPath:
         sessionPath === null ? DEFAULT_OPTIONS.tauthSessionPath : sessionPath,
+      tauthBootstrapMode:
+        hostElement.getAttribute("tauth-bootstrap-mode") ||
+        DEFAULT_OPTIONS.tauthBootstrapMode,
       googleClientId:
         hostElement.getAttribute("site-id") || DEFAULT_OPTIONS.googleClientId,
       tenantId:
@@ -1784,6 +1857,13 @@
     if (sessionPath !== null) {
       authOptions = authOptions || {};
       authOptions.tauthSessionPath = sessionPath;
+    }
+    var bootstrapMode = hostElement.getAttribute
+      ? hostElement.getAttribute("tauth-bootstrap-mode")
+      : null;
+    if (bootstrapMode) {
+      authOptions = authOptions || {};
+      authOptions.tauthBootstrapMode = bootstrapMode;
     }
     var tauthUrl = hostElement.getAttribute
       ? hostElement.getAttribute("tauth-url")
@@ -4027,6 +4107,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         typeof normalizedOptions.tauthSessionPath === "string"
           ? normalizedOptions.tauthSessionPath.trim()
           : DEFAULT_OPTIONS.tauthSessionPath;
+      normalizedOptions.tauthBootstrapMode = normalizeAuthBootstrapMode(
+        normalizedOptions.tauthBootstrapMode,
+      );
       return normalizedOptions;
     }
 
@@ -4040,6 +4123,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         leftOptions.tauthLogoutPath === rightOptions.tauthLogoutPath &&
         leftOptions.tauthNoncePath === rightOptions.tauthNoncePath &&
         leftOptions.tauthSessionPath === rightOptions.tauthSessionPath &&
+        leftOptions.tauthBootstrapMode === rightOptions.tauthBootstrapMode &&
         leftOptions.googleClientId === rightOptions.googleClientId &&
         leftOptions.tenantId === rightOptions.tenantId
       );
@@ -4442,7 +4526,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         return Promise.resolve();
       }
       var currentLifecycleVersion = lifecycleVersion;
-      var bootstrapAuthSignalVersion = authSignalVersion;
       if (
         !hasCompletedInitialBootstrap &&
         state.status !== AUTH_CONTROLLER_STATUS.AUTHENTICATED
@@ -4451,23 +4534,28 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       configureTenantId();
       attachSessionSyncListeners();
-      var bootstrapPromise = Promise.resolve();
-      if (
-        typeof global.initAuthClient === "function" &&
-        usesDefaultAuthSessionPath(options)
-      ) {
-        var resolvedBaseUrl = resolveAuthBaseUrl();
-        bootstrapPromise = Promise.resolve(
-          global.initAuthClient({
-            baseUrl: resolvedBaseUrl,
-            tenantId: options.tenantId,
-            onAuthenticated: handleAuthenticatedCallback,
-            onUnauthenticated: handleUnauthenticatedCallback,
-          }),
-        );
-      }
-      return bootstrapPromise
-        .then(function reconcileCurrentProfile() {
+      function runBootstrapAttempt(attempt) {
+        if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+          return Promise.resolve();
+        }
+        var bootstrapAuthSignalVersion = authSignalVersion;
+        var bootstrapPromise = Promise.resolve();
+        if (
+          typeof global.initAuthClient === "function" &&
+          usesDefaultAuthSessionPath(options)
+        ) {
+          var resolvedBaseUrl = resolveAuthBaseUrl();
+          bootstrapPromise = Promise.resolve(
+            global.initAuthClient({
+              baseUrl: resolvedBaseUrl,
+              bootstrapMode: options.tauthBootstrapMode,
+              tenantId: options.tenantId,
+              onAuthenticated: handleAuthenticatedCallback,
+              onUnauthenticated: handleUnauthenticatedCallback,
+            }),
+          );
+        }
+        return bootstrapPromise.then(function reconcileCurrentProfile() {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
             return null;
           }
@@ -4495,16 +4583,19 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
           markUnauthenticated({ emit: false, prompt: false });
         })
-        .catch(function (error) {
+        .catch(function retrySessionVerification() {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
             return;
           }
-          markUnauthenticated({ emit: false, prompt: false });
-          emitError("mpr-ui.auth.bootstrap_failed", {
-            message: error && error.message ? error.message : String(error),
+          updateAuthStatus(AUTH_CONTROLLER_STATUS.BOOTSTRAPPING, {
+            source: "session-verification",
           });
-        })
-        .finally(function finalizeBootstrapSession() {
+          return waitForAuthSessionRetry(attempt).then(function retryBootstrap() {
+            return runBootstrapAttempt(attempt + 1);
+          });
+        });
+      }
+      return runBootstrapAttempt(0).then(function finalizeBootstrapSession() {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
             return;
           }
@@ -4587,38 +4678,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             markUnauthenticated({ prompt: false });
             return result;
           }
-          updateAuthStatus(AUTH_CONTROLLER_STATUS.ERROR, {
-            source: "session-recovery",
-          });
-          var recoveryError = createAuthRecoveryError(
-            result.code || "mpr-ui.auth.session_recovery_failed",
-            "TAuth session recovery failed",
-            result.responseStatus,
+          throw createAuthRecoveryError(
+            "mpr-ui.auth.session_recovery_result_invalid",
+            "TAuth session recovery returned an invalid result",
           );
-          emitError(
-            recoveryError.code || "mpr-ui.auth.session_recovery_failed",
-            {
-              message: recoveryError.message,
-              status:
-                typeof recoveryError.status === "number"
-                  ? recoveryError.status
-                  : null,
-            },
-          );
-          throw recoveryError;
         })
         .catch(function handleSessionRecoveryCoordinationFailure(error) {
           requireCurrentAuthRecoveryLifecycle(recoveryLifecycleVersion);
-          if (
-            error &&
-            (error.code === "mpr-ui.auth.session_recovery_failed" ||
-              error.code === "mpr-ui.auth.session_recovery_invalid_profile")
-          ) {
-            throw error;
-          }
-          updateAuthStatus(AUTH_CONTROLLER_STATUS.ERROR, {
-            source: "session-recovery",
-          });
           var coordinationError =
             error && error.code
               ? error
@@ -16795,4 +16861,5 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   }
   namespace.__utils.normalizeLinkForRendering = normalizeLinkForRendering;
   registerCustomElements(namespace);
+  namespace[BUNDLE_READY_MARKER] = true;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -473,7 +473,7 @@ test('loadYamlConfig rejects invalid config structure and required auth strings'
   }
 });
 
-test('loadYamlConfig rejects missing fetch, failed fetch responses, parser load failures, and missing document head while caching the parser request', async () => {
+test('loadYamlConfig rejects boundary failures, shares in-flight parser loads, and retries a failed parser load', async () => {
   resetEnvironment();
   global.location = { origin: 'https://example.com' };
   const namespaceWithoutDocument = loadNamespace();
@@ -571,6 +571,24 @@ test('loadYamlConfig rejects missing fetch, failed fetch responses, parser load 
   await assert.rejects(parserPromise, { message: 'js-yaml parser did not initialize' });
   await assert.rejects(secondParserPromise, { message: 'js-yaml parser did not initialize' });
   assert.equal(parserDocument.appendedScripts.length, 1);
+
+  parserDocument.document.head.appendChild = function appendAndInitialize(node) {
+    parserDocument.appendedScripts.push(node);
+    global.jsyaml = {
+      load() {
+        return createBaseConfig();
+      },
+    };
+    if (typeof node.onload === 'function') {
+      node.onload();
+    }
+    return node;
+  };
+  const recoveredParserConfig = await parserNamespace.loadYamlConfig({
+    configUrl: '/config-ui.yaml',
+  });
+  assert.equal(recoveredParserConfig.auth.tenantId, 'example-tenant');
+  assert.equal(parserDocument.appendedScripts.length, 2);
 
   resetEnvironment();
   const noHeadDocument = createDocumentStub({
