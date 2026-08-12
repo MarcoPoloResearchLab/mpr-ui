@@ -4786,13 +4786,22 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
       var observedRecovery;
       var firstRequest;
+      var initialFetchInput;
+      var initialFetchInit;
       var requestLifecycleVersion = lifecycleVersion;
       try {
         observedRecovery = captureAuthRecoveryGeneration(options);
-        firstRequest = new global.Request(
-          input,
-          Object.assign({}, init || {}, { credentials: "include" }),
-        );
+        var requestInit = Object.assign({}, init || {}, {
+          credentials: "include",
+        });
+        firstRequest = new global.Request(input, requestInit);
+        if (input instanceof global.Request) {
+          initialFetchInput = firstRequest;
+          initialFetchInit = undefined;
+        } else {
+          initialFetchInput = input;
+          initialFetchInit = requestInit;
+        }
       } catch (error) {
         var preparationError =
           error && error.code
@@ -4822,23 +4831,25 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         }
       }
 
-      return global.fetch(firstRequest).then(function handleProtectedResponse(response) {
-        if (!response || response.status !== 401) {
-          return response;
-        }
-        return recoverSessionAfterUnauthorized(
-          observedRecovery,
-          requestLifecycleVersion,
-        ).then(
-          function retryProtectedRequest(result) {
-            requireCurrentAuthRecoveryLifecycle(requestLifecycleVersion);
-            if (result.status !== "authenticated" || !retryRequest) {
-              return response;
-            }
-            return global.fetch(retryRequest);
-          },
-        );
-      });
+      return global
+        .fetch(initialFetchInput, initialFetchInit)
+        .then(function handleProtectedResponse(response) {
+          if (!response || response.status !== 401) {
+            return response;
+          }
+          return recoverSessionAfterUnauthorized(
+            observedRecovery,
+            requestLifecycleVersion,
+          ).then(
+            function retryProtectedRequest(result) {
+              requireCurrentAuthRecoveryLifecycle(requestLifecycleVersion);
+              if (result.status !== "authenticated" || !retryRequest) {
+                return response;
+              }
+              return global.fetch(retryRequest);
+            },
+          );
+        });
     }
 
     function updateOptions(rawNextOptions) {

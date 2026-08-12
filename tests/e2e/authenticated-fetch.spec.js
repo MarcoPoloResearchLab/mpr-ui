@@ -54,13 +54,15 @@ function createProtectedRouteState(expectedInitialRequests, options) {
       sessionStatus: 200,
       sessionFailureSequence: [],
       protectedAlwaysUnauthorized: false,
+      protectedInitiallyAuthorized: false,
       holdSessionRecovery: false,
     },
     options || {},
   );
   let protectedCalls = 0;
   let sessionCalls = 0;
-  let accessSessionValid = false;
+  let accessSessionValid = config.protectedInitiallyAuthorized;
+  const protectedRequestBodies = [];
   let releaseInitialRequests;
   const initialRequestsReady = new Promise((resolve) => {
     releaseInitialRequests = resolve;
@@ -79,6 +81,9 @@ function createProtectedRouteState(expectedInitialRequests, options) {
   return {
     async routeProtected(route) {
       protectedCalls += 1;
+      if (route.request().method() === 'POST') {
+        protectedRequestBodies.push(route.request().postDataJSON());
+      }
       if (!accessSessionValid || config.protectedAlwaysUnauthorized) {
         if (protectedCalls >= expectedInitialRequests) {
           releaseInitialRequests();
@@ -135,6 +140,9 @@ function createProtectedRouteState(expectedInitialRequests, options) {
     },
     snapshot() {
       return { protectedCalls, sessionCalls };
+    },
+    protectedBodies() {
+      return protectedRequestBodies.slice();
     },
     waitForSessionRequest() {
       return sessionRequestStarted;
@@ -354,6 +362,34 @@ test.describe('MPRUI.authenticatedFetch', () => {
 
     expect(status).toBe(401);
     expect(routeState.snapshot()).toEqual({ protectedCalls: 1, sessionCalls: 1 });
+  });
+
+  test('B048: an authorized mutation sends its JSON request body', async ({
+    context,
+    page,
+  }) => {
+    const routeState = await installProtectedRoutes(context, 1, {
+      protectedInitiallyAuthorized: true,
+    });
+    await openFixture(page);
+
+    const status = await page.evaluate(async (protectedUrl) => {
+      const response = await window.MPRUI.authenticatedFetch(
+        window.fixtureAuthTarget,
+        protectedUrl,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'test' }),
+        },
+        { mutationReplay: 'authorization-before-domain-work' },
+      );
+      return response.status;
+    }, PROTECTED_URL);
+
+    expect(status).toBe(200);
+    expect(routeState.snapshot()).toEqual({ protectedCalls: 1, sessionCalls: 0 });
+    expect(routeState.protectedBodies()).toEqual([{ name: 'test' }]);
   });
 
   test('B048: a mutation without the server policy is not sent a second time', async ({
