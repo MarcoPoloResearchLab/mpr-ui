@@ -133,4 +133,42 @@ test.describe('TAuth session verification', () => {
     );
     expect(sessionCalls).toBe(1);
   });
+
+  test('repeated bundle delivery preserves one mounted authentication controller', async ({
+    context,
+    page,
+  }) => {
+    let sessionCalls = 0;
+    const pageErrors = [];
+    page.on('pageerror', (error) => {
+      pageErrors.push(error.message);
+    });
+    await context.route(SESSION_URL, async (route) => {
+      if (route.request().method() === 'OPTIONS') {
+        await route.fulfill({ status: 204, headers: corsHeaders() });
+        return;
+      }
+      sessionCalls += 1;
+      await route.fulfill({ status: 204, headers: corsHeaders() });
+    });
+
+    await page.goto(FIXTURE_URL, { waitUntil: 'load' });
+    await expect(page.locator('#auth-controller')).toHaveAttribute(
+      'data-mpr-auth-status',
+      'unauthenticated',
+    );
+    const initialNamespace = await page.evaluateHandle(() => window.MPRUI);
+
+    await page.evaluate((bundleURL) => new Promise((resolve, reject) => {
+      const scriptElement = document.createElement('script');
+      scriptElement.src = bundleURL;
+      scriptElement.onload = resolve;
+      scriptElement.onerror = () => reject(new Error('duplicate bundle load failed'));
+      document.head.appendChild(scriptElement);
+    }), BUNDLE_URL);
+
+    expect(await page.evaluate((namespace) => window.MPRUI === namespace, initialNamespace)).toBe(true);
+    expect(sessionCalls).toBe(1);
+    expect(pageErrors).toEqual([]);
+  });
 });
