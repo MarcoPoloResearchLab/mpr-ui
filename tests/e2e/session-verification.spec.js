@@ -47,7 +47,7 @@ test.describe('TAuth session verification', () => {
     await installFixtureRoutes(context);
   });
 
-  test('verifies a new browser without a restore hint and retries until valid', async ({
+  test('verifies a new browser without a restore hint and retries transient failures', async ({
     context,
     page,
   }) => {
@@ -63,17 +63,7 @@ test.describe('TAuth session verification', () => {
         return;
       }
       if (sessionCalls === 2) {
-        await route.fulfill({ status: 401, headers: corsHeaders() });
-        return;
-      }
-      if (sessionCalls === 3) {
-        await route.fulfill({
-          status: 200,
-          headers: Object.assign(corsHeaders(), {
-            'content-type': 'application/json',
-          }),
-          body: '[]',
-        });
+        await route.fulfill({ status: 503, headers: corsHeaders() });
         return;
       }
       await route.fulfill({
@@ -93,7 +83,7 @@ test.describe('TAuth session verification', () => {
 
     const controller = page.locator('#auth-controller');
     await expect(controller).toHaveAttribute('data-mpr-auth-status', 'authenticated');
-    expect(sessionCalls).toBe(4);
+    expect(sessionCalls).toBe(3);
     const snapshot = await page.evaluate(() => ({
       restoreHint: window.localStorage.getItem(
         'tauth.restore.v1:https%3A%2F%2Fauth.fixture.test:fixture-tenant',
@@ -109,6 +99,41 @@ test.describe('TAuth session verification', () => {
         .filter((event) => event.type === 'mpr-ui:auth:status-change')
         .map((event) => event.detail.status),
     ).not.toContain('error');
+  });
+
+  test('stops after a permanent TAuth rejection and keeps sign-in available', async ({
+    context,
+    page,
+  }) => {
+    let sessionCalls = 0;
+    await context.route(SESSION_URL, async (route) => {
+      if (route.request().method() === 'OPTIONS') {
+        await route.fulfill({ status: 204, headers: corsHeaders() });
+        return;
+      }
+      sessionCalls += 1;
+      await route.fulfill({ status: 403, headers: corsHeaders() });
+    });
+
+    await page.goto(FIXTURE_URL, { waitUntil: 'load' });
+
+    const controller = page.locator('#auth-controller');
+    await expect(controller).toHaveAttribute('data-mpr-auth-status', 'unauthenticated');
+    expect(sessionCalls).toBe(1);
+    const snapshot = await page.evaluate(() => ({
+      restoreHint: window.localStorage.getItem(
+        'tauth.restore.v1:https%3A%2F%2Fauth.fixture.test:fixture-tenant',
+      ),
+      events: window.fixtureAuthEvents,
+    }));
+    expect(snapshot.restoreHint).toBeNull();
+    expect(snapshot.events).toContainEqual(expect.objectContaining({
+      type: 'mpr-ui:auth:error',
+      detail: expect.objectContaining({
+        code: 'mpr-ui.auth.bootstrap_failed',
+        status: 403,
+      }),
+    }));
   });
 
   test('accepts only the canonical anonymous session response', async ({

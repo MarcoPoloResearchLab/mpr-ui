@@ -267,21 +267,38 @@ test.describe('MPRUI.authenticatedFetch', () => {
     expect(result.events.map((event) => event.type)).not.toContain('mpr-ui:auth:error');
   });
 
-  test('B048: noncanonical recovery responses retry until the session is valid', async ({
+  test('B049: permanent recovery responses stop without retrying', async ({
     context,
     page,
   }) => {
     const routeState = await installProtectedRoutes(context, 1, {
-      sessionFailureSequence: [500, 401],
+      sessionFailureSequence: [403],
     });
     await openFixture(page);
 
-    const result = await runAuthenticatedFetch(page, '?case=response-retry');
+    const result = await page.evaluate(async (protectedUrl) => {
+      try {
+        await window.MPRUI.authenticatedFetch(
+          window.fixtureAuthTarget,
+          protectedUrl + '?case=permanent-response',
+        );
+        return null;
+      } catch (error) {
+        return {
+          code: error.code,
+          status: error.status,
+          authStatus: window.fixtureAuthHost.getAttribute('data-mpr-auth-status'),
+          events: window.fixtureAuthEvents,
+        };
+      }
+    }, PROTECTED_URL);
 
-    expect(result.status).toBe(200);
-    expect(result.authStatus).toBe('authenticated');
-    expect(routeState.snapshot()).toEqual({ protectedCalls: 2, sessionCalls: 3 });
-    expect(result.events.map((event) => event.type)).not.toContain('mpr-ui:auth:error');
+    expect(result.code).toBe('mpr-ui.auth.session_recovery_failed');
+    expect(result.status).toBe(403);
+    expect(result.authStatus).toBe('unauthenticated');
+    expect(routeState.snapshot()).toEqual({ protectedCalls: 1, sessionCalls: 1 });
+    expect(result.events.map((event) => event.type)).toContain('mpr-ui:auth:unauthenticated');
+    expect(result.events.map((event) => event.type)).toContain('mpr-ui:auth:error');
   });
 
   test('B048: protected requests wait for authenticated lifecycle state', async ({

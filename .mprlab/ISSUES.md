@@ -11,6 +11,23 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [x] [B050] (P1) A temporary bundle load failure stops authentication orchestration.
+  Summary: One bundle load failure rejected the shared orchestration promise.
+  Expected: The shared config loader retries a temporary bundle load failure without app code.
+  Actual: The shared config loader cached the rejected bundle promise.
+  Resolution: The shared config loader now retries temporary config and bundle failures with bounded delay.
+  Permanent config errors still reject the orchestration promise.
+  Validation: The unit suite proved that a failed bundle request succeeds on its next attempt.
+
+- [x] [B049] (P0) Session verification retries permanent TAuth responses.
+  Summary: The session operation retried every response that was not a valid session response.
+  Expected: The session operation retries only temporary failures.
+  Actual: An HTTP 403 response kept the auth state in `bootstrapping` or `authenticating`.
+  Resolution: Network failures and temporary HTTP responses continue to retry.
+  Permanent HTTP responses now stop after one request and publish the unauthenticated state.
+  Protected request recovery also removes the prior authenticated state after a permanent failure.
+  Validation: The final CI gate passed 168 unit tests and two browser runs of 88 tests.
+
 - [x] [B001] (P0) Bind browser Google sign-in attempts to a fresh nonce claim without idle GIS work.
   Summary: The B012 no-background-work fix removed console-noisy nonce refreshes by initializing GIS once without a nonce and moving TAuth nonce issuance into `/auth/google` exchange. The security audit rejected that shape because the Google ID token is no longer cryptographically bound to the issued nonce. Long-lived public pages still need console-clean idle behavior, but each actual user sign-in attempt must initialize Google with the issued nonce and exchange the credential with the same nonce token.
   Expected: public page bootstrap and focus/visibility recovery do not call `/auth/nonce` or reinitialize GIS; user-initiated sign-in prepares one visible nonce-bound Google attempt; nonce and GIS failures emit visible auth/header error events; credential exchange never proceeds without an attempt nonce.

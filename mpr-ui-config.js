@@ -17,10 +17,60 @@
   var EVENT_CONFIG_APPLIED = "mpr-ui:config:applied";
   var EVENT_BUNDLE_LOADED = "mpr-ui:bundle:loaded";
   var EVENT_ORCHESTRATION_READY = "mpr-ui:orchestration:ready";
+  var ORCHESTRATION_RETRY_POLICY = Object.freeze({
+    initialDelayMs: 1000,
+    maximumDelayMs: 3000,
+    multiplier: 2,
+  });
 
   var yamlParserPromise = null;
   var bundleLoadPromise = null;
   var autoOrchestrationPromise = null;
+
+  function createOrchestrationError(message, retryable, status) {
+    var error = new Error(message);
+    error.mprUiRetryable = retryable === true;
+    if (typeof status === "number") {
+      error.status = status;
+    }
+    return error;
+  }
+
+  function isRetryableStatus(status) {
+    return (
+      status === 408 ||
+      status === 425 ||
+      status === 429 ||
+      status >= 500
+    );
+  }
+
+  function orchestrationRetryDelay(attempt) {
+    return Math.min(
+      ORCHESTRATION_RETRY_POLICY.maximumDelayMs,
+      ORCHESTRATION_RETRY_POLICY.initialDelayMs *
+        Math.pow(ORCHESTRATION_RETRY_POLICY.multiplier, attempt),
+    );
+  }
+
+  function waitForOrchestrationRetry(attempt) {
+    return new Promise(function waitForRetry(resolve) {
+      global.setTimeout(resolve, orchestrationRetryDelay(attempt));
+    });
+  }
+
+  function retryTransientOperation(operation, attempt) {
+    return Promise.resolve()
+      .then(operation)
+      .catch(function handleOperationFailure(error) {
+        if (!error || error.mprUiRetryable !== true) {
+          throw error;
+        }
+        return waitForOrchestrationRetry(attempt).then(function retryOperation() {
+          return retryTransientOperation(operation, attempt + 1);
+        });
+      });
+  }
 
   function ensureNamespace(target) {
     if (!target.MPRUI) {
@@ -174,7 +224,7 @@
         resolve();
       };
       scriptElement.onerror = function handleError() {
-        reject(new Error("Failed to load " + scriptUrl));
+        reject(createOrchestrationError("Failed to load " + scriptUrl, true));
       };
       if (global.document.head && typeof global.document.head.appendChild === "function") {
         global.document.head.appendChild(scriptElement);
@@ -209,13 +259,27 @@
     if (!global.fetch) {
       return Promise.reject(new Error("fetch is required to load " + CONFIG_FILE_LABEL));
     }
-    return global.fetch(configUrl, { cache: "no-store" }).then(function parseResponse(response) {
-      if (!response || !response.ok) {
-        var status = response ? response.status : "unknown";
-        throw new Error(CONFIG_FILE_LABEL + " request failed (" + status + ")");
-      }
-      return response.text();
-    });
+    return global.fetch(configUrl, { cache: "no-store" })
+      .then(function parseResponse(response) {
+        if (!response || !response.ok) {
+          var status = response ? response.status : "unknown";
+          throw createOrchestrationError(
+            CONFIG_FILE_LABEL + " request failed (" + status + ")",
+            typeof status !== "number" || isRetryableStatus(status),
+            typeof status === "number" ? status : undefined,
+          );
+        }
+        return response.text();
+      })
+      .catch(function classifyConfigRequestFailure(error) {
+        if (error && typeof error.mprUiRetryable === "boolean") {
+          throw error;
+        }
+        throw createOrchestrationError(
+          CONFIG_FILE_LABEL + " request failed (network)",
+          true,
+        );
+      });
   }
 
   function parseConfigYaml(configText, parser) {
@@ -352,7 +416,9 @@
     }
     /* node:coverage enable */
     var bundleSource = readBundleMarkerSource(bundleMarker);
-    bundleLoadPromise = loadScript(bundleSource).then(function resolveBundleLoad() {
+    bundleLoadPromise = retryTransientOperation(function requestBundle() {
+      return loadScript(bundleSource);
+    }, 0).then(function resolveBundleLoad() {
       dispatchDocumentEvent(EVENT_BUNDLE_LOADED, { src: bundleSource });
       return bundleSource;
     });
@@ -418,7 +484,9 @@
           { configUrl: configUrl },
           orchestrationTarget.applyOptions || {},
         );
-        autoOrchestrationPromise = global.MPRUI.applyYamlConfig(applyOptions)
+        autoOrchestrationPromise = retryTransientOperation(function requestConfig() {
+          return global.MPRUI.applyYamlConfig(applyOptions);
+        }, 0)
           .then(function handleConfigApplied() {
             return loadBundleFromMarker(bundleMarker);
           })

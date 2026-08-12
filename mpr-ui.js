@@ -513,6 +513,30 @@
     });
   }
 
+  function isRetryableAuthSessionStatus(status) {
+    return (
+      typeof status !== "number" ||
+      status === 408 ||
+      status === 425 ||
+      status === 429 ||
+      status >= 500
+    );
+  }
+
+  function isRetryableAuthSessionResult(result) {
+    return Boolean(
+      result &&
+        result.status === "error" &&
+        isRetryableAuthSessionStatus(result.responseStatus),
+    );
+  }
+
+  function isRetryableAuthSessionError(error) {
+    return isRetryableAuthSessionStatus(
+      error && typeof error.status === "number" ? error.status : undefined,
+    );
+  }
+
   function normalizeAuthBootstrapMode(value) {
     var normalized = typeof value === "string" ? value.trim() : "";
     if (
@@ -805,6 +829,13 @@
       if (result.status !== "error") {
         return result;
       }
+      if (!isRetryableAuthSessionResult(result)) {
+        throw createAuthRecoveryError(
+          result.code || "mpr-ui.auth.session_recovery_failed",
+          "TAuth session recovery returned a permanent failure",
+          result.responseStatus,
+        );
+      }
       return waitForAuthSessionRetry(attempt).then(function retryRecovery() {
         return requestAuthSessionRecoveryUntilSettled(authOptions, attempt + 1);
       });
@@ -917,11 +948,11 @@
           throw createStatusError("auth session request failed", response);
         }
         if (typeof response.json !== "function") {
-          throw new Error("invalid response from session endpoint");
+          throw createStatusError("invalid response from session endpoint", response);
         }
         return response.json().then(function (payload) {
           if (!payload || typeof payload !== "object" || Array.isArray(payload)) {
-            throw new Error("invalid profile from session endpoint");
+            throw createStatusError("invalid profile from session endpoint", response);
           }
           rememberAuthRestoreHint(authOptions);
           return payload;
@@ -4583,8 +4614,19 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
           markUnauthenticated({ emit: false, prompt: false });
         })
-        .catch(function retrySessionVerification() {
+        .catch(function handleSessionVerificationFailure(error) {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            return;
+          }
+          if (!isRetryableAuthSessionError(error)) {
+            markUnauthenticated({ emit: false, prompt: false });
+            emitError("mpr-ui.auth.bootstrap_failed", {
+              message: error && error.message ? error.message : String(error),
+              status:
+                error && typeof error.status === "number"
+                  ? error.status
+                  : null,
+            });
             return;
           }
           updateAuthStatus(AUTH_CONTROLLER_STATUS.BOOTSTRAPPING, {
@@ -4692,6 +4734,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
                   "mpr-ui.auth.session_recovery_failed",
                   "TAuth session recovery failed",
                 );
+          clearAuthRestoreHint(options);
+          markUnauthenticated({ prompt: false });
           emitError(coordinationError.code, {
             message: coordinationError.message,
             status:
