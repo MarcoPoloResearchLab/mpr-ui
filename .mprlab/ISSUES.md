@@ -11,6 +11,19 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [x] [B051] (P0) The mutable latest URL can return an old bundle.
+  Summary: Chrome kept the `mpr-ui@latest` bundle response from `v3.11.5`
+  after `v3.11.8` was available.
+  Expected: the shared loader revalidates a mutable bundle URL and verifies the
+  required public API before authentication orchestration is ready.
+  Actual: the old bundle verified the session but did not supply
+  `MPRUI.authenticatedFetch()`.
+  Resolution: the loader now adds a unique request parameter to each mutable
+  bundle request. It rejects a loaded bundle that does not supply the required
+  public API.
+  Validation: the final `make ci` passed 169 unit tests and two browser runs of
+  88 tests. The focused configuration-loader browser test also passed.
+
 - [x] [B050] (P1) A temporary bundle load failure stops authentication orchestration.
   Summary: One bundle load failure rejected the shared orchestration promise.
   Expected: The shared config loader retries a temporary bundle load failure without app code.

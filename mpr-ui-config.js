@@ -16,6 +16,10 @@
   var BUNDLE_MARKER_SELECTOR = "script[data-mpr-ui-bundle-src]";
   var BUNDLE_MARKER_ERROR_MESSAGE =
     "mpr-ui auto-orchestration requires data-mpr-ui-bundle-src";
+  var BUNDLE_API_ERROR_MESSAGE =
+    "mpr-ui bundle must expose MPRUI.authenticatedFetch";
+  var LATEST_BUNDLE_PATH_SEGMENT = "/mpr-ui@latest/";
+  var BUNDLE_REVALIDATION_PARAMETER = "mpr-ui-revalidate";
   var EVENT_CONFIG_APPLIED = "mpr-ui:config:applied";
   var EVENT_BUNDLE_LOADED = "mpr-ui:bundle:loaded";
   var EVENT_ORCHESTRATION_READY = "mpr-ui:orchestration:ready";
@@ -27,6 +31,7 @@
 
   var yamlParserPromise = null;
   var bundleLoadPromise = null;
+  var bundleRequestSequence = 0;
   var autoOrchestrationPromise = null;
 
   function createOrchestrationError(message, retryable, status) {
@@ -408,6 +413,25 @@
     return bundleSource.trim();
   }
 
+  function createBundleRequestSource(bundleSource) {
+    if (bundleSource.indexOf(LATEST_BUNDLE_PATH_SEGMENT) === -1) {
+      return bundleSource;
+    }
+    bundleRequestSequence += 1;
+    var bundleRequestUrl = new URL(bundleSource);
+    bundleRequestUrl.searchParams.set(
+      BUNDLE_REVALIDATION_PARAMETER,
+      String(Date.now()) + "-" + String(bundleRequestSequence),
+    );
+    return bundleRequestUrl.toString();
+  }
+
+  function requireBundleApi() {
+    if (!global.MPRUI || typeof global.MPRUI.authenticatedFetch !== "function") {
+      throw new Error(BUNDLE_API_ERROR_MESSAGE);
+    }
+  }
+
   function loadBundleFromMarker(bundleMarker) {
     /* node:coverage disable */
     if (bundleLoadPromise) {
@@ -416,8 +440,9 @@
     /* node:coverage enable */
     var bundleSource = readBundleMarkerSource(bundleMarker);
     bundleLoadPromise = retryTransientOperation(function requestBundle() {
-      return loadScript(bundleSource);
+      return loadScript(createBundleRequestSource(bundleSource));
     }, 0).then(function resolveBundleLoad() {
+      requireBundleApi();
       dispatchDocumentEvent(EVENT_BUNDLE_LOADED, { src: bundleSource });
       return bundleSource;
     });
