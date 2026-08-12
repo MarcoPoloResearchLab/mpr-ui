@@ -44,6 +44,11 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.11.9] - 2026-08-12
+
+- Merge pull request #187 from MarcoPoloResearchLab/bugfix/latest-bundle-cache-revalidation
+- fix: revalidate mutable latest bundles
+
 ## [v3.11.8] - 2026-08-12
 
 - Merge pull request #186 from MarcoPoloResearchLab/bugfix/session-verification-response-classification
