@@ -442,7 +442,7 @@ async function visitConfigLoaderFixture(page) {
     window.localStorage.setItem(restoreHintKey, '1');
   }, RUNTIME_RESTORE_HINT_KEY);
   await Promise.all([
-    routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
+    routeLocalAsset(page, CDN_BUNDLE_URL + '*', LOCAL_ASSETS.bundle, 'application/javascript'),
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
     routeLocalAsset(page, CDN_CONFIG_URL, LOCAL_ASSETS.config, 'application/javascript'),
     routeLocalAsset(page, YAML_PARSER_URL, LOCAL_ASSETS.yamlParser, 'application/javascript'),

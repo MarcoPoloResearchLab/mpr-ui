@@ -109,6 +109,7 @@ function createDocumentStub(options) {
       hasHead: true,
       autoLoadScripts: false,
       autoFailScripts: false,
+      exposeBundleApi: true,
       includeCreateElement: true,
     },
     options || {},
@@ -126,6 +127,9 @@ function createDocumentStub(options) {
               node.onerror();
             }
             if (settings.autoLoadScripts && typeof node.onload === 'function') {
+              if (settings.exposeBundleApi) {
+                global.MPRUI.authenticatedFetch = function authenticatedFetch() {};
+              }
               node.onload();
             }
             return node;
@@ -874,6 +878,73 @@ test('autoOrchestrate loads the bundle once after config application and caches 
   );
 });
 
+test('autoOrchestrate revalidates the mutable latest bundle and requires its public API', async () => {
+  resetEnvironment();
+  const header = createElement({ 'data-config-url': '/config-ui.yaml' });
+  const bundleMarker = {
+    getAttribute(name) {
+      if (name === 'data-mpr-ui-bundle-src') {
+        return 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js';
+      }
+      return null;
+    },
+  };
+  const documentStub = createDocumentStub({
+    readyState: 'complete',
+    autoLoadScripts: true,
+    selectors: {
+      'mpr-header[data-config-url]': header,
+      'script[data-mpr-ui-bundle-src]': bundleMarker,
+    },
+    selectorList: {
+      'mpr-header': [header],
+      'mpr-login-button': [],
+      'mpr-user': [],
+    },
+  });
+
+  setupYamlEnvironment(createBaseConfig(), { document: documentStub.document });
+  const namespace = loadNamespace();
+
+  await namespace.whenAutoOrchestrationReady();
+
+  const bundleRequestUrl = new URL(documentStub.appendedScripts[0].src);
+  assert.equal(
+    bundleRequestUrl.origin + bundleRequestUrl.pathname,
+    'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js',
+  );
+  assert.match(bundleRequestUrl.searchParams.get('mpr-ui-revalidate'), /^\d+-1$/);
+
+  resetEnvironment();
+  const missingApiHeader = createElement({ 'data-config-url': '/config-ui.yaml' });
+  const missingApiDocument = createDocumentStub({
+    readyState: 'complete',
+    autoLoadScripts: true,
+    exposeBundleApi: false,
+    selectors: {
+      'mpr-header[data-config-url]': missingApiHeader,
+      'script[data-mpr-ui-bundle-src]': bundleMarker,
+    },
+    selectorList: {
+      'mpr-header': [missingApiHeader],
+      'mpr-login-button': [],
+      'mpr-user': [],
+    },
+  });
+  const originalConsoleError = console.error;
+  console.error = function swallowConsoleError() {};
+  try {
+    setupYamlEnvironment(createBaseConfig(), { document: missingApiDocument.document });
+    const missingApiNamespace = loadNamespace();
+    await assert.rejects(
+      missingApiNamespace.whenAutoOrchestrationReady(),
+      { message: 'mpr-ui bundle must expose MPRUI.authenticatedFetch' },
+    );
+  } finally {
+    console.error = originalConsoleError;
+  }
+});
+
 test('autoOrchestrate loads config and bundle from a login-button config owner', async () => {
   resetEnvironment();
   const inertHeader = createElement({});
@@ -1222,6 +1293,7 @@ test('autoOrchestrate rejects invalid bundle markers and logs orchestration fail
       node.onerror();
       return node;
     }
+    global.MPRUI.authenticatedFetch = function authenticatedFetch() {};
     node.onload();
     return node;
   };

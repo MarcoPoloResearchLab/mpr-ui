@@ -41,7 +41,11 @@ test.describe('Runtime configuration presentation ownership', () => {
   test('loads the shared bundle exactly once through automatic orchestration', async ({ page }) => {
     const requestedBundleUrls = [];
     page.on('request', (request) => {
-      if (request.method() === 'GET' && request.url() === bundleUrl) {
+      const requestUrl = new URL(request.url());
+      if (
+        request.method() === 'GET'
+        && requestUrl.origin + requestUrl.pathname === bundleUrl
+      ) {
         requestedBundleUrls.push(request.url());
       }
     });
@@ -52,6 +56,9 @@ test.describe('Runtime configuration presentation ownership', () => {
       'data-mpr-auth-status',
       'unauthenticated',
     );
-    expect(requestedBundleUrls).toEqual([bundleUrl]);
+    expect(requestedBundleUrls).toHaveLength(1);
+    expect(
+      new URL(requestedBundleUrls[0]).searchParams.get('mpr-ui-revalidate'),
+    ).toMatch(/^\d+-1$/);
   });
 });
