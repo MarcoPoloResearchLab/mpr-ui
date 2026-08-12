@@ -726,6 +726,7 @@ module.exports = {
   captureColorSnapshots,
   captureDropUpMetrics,
   readEventLogEntries,
+  bundleUrl: CDN_BUNDLE_URL,
   runtimeSessionUrl: RUNTIME_SESSION_URL,
   selectors: SELECTORS,
 };

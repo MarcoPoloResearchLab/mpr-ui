@@ -4,11 +4,6 @@
 (function (global) {
   "use strict";
 
-  var BUNDLE_READY_MARKER = "__bundleReady";
-  if (global.MPRUI && global.MPRUI[BUNDLE_READY_MARKER] === true) {
-    return;
-  }
-
   var DEFAULT_OPTIONS = {
     tauthUrl: "",
     tauthLoginPath: "/auth/google",
@@ -16905,5 +16900,4 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   }
   namespace.__utils.normalizeLinkForRendering = normalizeLinkForRendering;
   registerCustomElements(namespace);
-  namespace[BUNDLE_READY_MARKER] = true;
 })(typeof window !== "undefined" ? window : globalThis);

@@ -14,6 +14,8 @@
   var SECTION_AUTH = "auth";
   var SECTION_ORIGINS = "origins";
   var BUNDLE_MARKER_SELECTOR = "script[data-mpr-ui-bundle-src]";
+  var BUNDLE_MARKER_ERROR_MESSAGE =
+    "mpr-ui auto-orchestration requires data-mpr-ui-bundle-src";
   var EVENT_CONFIG_APPLIED = "mpr-ui:config:applied";
   var EVENT_BUNDLE_LOADED = "mpr-ui:bundle:loaded";
   var EVENT_ORCHESTRATION_READY = "mpr-ui:orchestration:ready";
@@ -397,19 +399,16 @@
 
   function readBundleMarkerSource(bundleMarker) {
     if (!bundleMarker || typeof bundleMarker.getAttribute !== "function") {
-      return "";
+      throw new Error(BUNDLE_MARKER_ERROR_MESSAGE);
     }
     var bundleSource = bundleMarker.getAttribute("data-mpr-ui-bundle-src");
     if (typeof bundleSource !== "string" || bundleSource.trim().length === 0) {
-      throw new Error("mpr-ui auto-orchestration requires data-mpr-ui-bundle-src");
+      throw new Error(BUNDLE_MARKER_ERROR_MESSAGE);
     }
     return bundleSource.trim();
   }
 
   function loadBundleFromMarker(bundleMarker) {
-    if (!bundleMarker) {
-      return Promise.resolve(null);
-    }
     /* node:coverage disable */
     if (bundleLoadPromise) {
       return bundleLoadPromise;
