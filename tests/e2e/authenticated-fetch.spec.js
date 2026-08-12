@@ -52,7 +52,7 @@ function createProtectedRouteState(expectedInitialRequests, options) {
   const config = Object.assign(
     {
       sessionStatus: 200,
-      sessionNetworkFailure: false,
+      sessionFailureSequence: [],
       protectedAlwaysUnauthorized: false,
       holdSessionRecovery: false,
     },
@@ -101,8 +101,16 @@ function createProtectedRouteState(expectedInitialRequests, options) {
       markSessionRequestStarted();
       await initialRequestsReady;
       await heldSessionRecovery;
-      if (config.sessionNetworkFailure) {
+      const configuredFailure = config.sessionFailureSequence[sessionCalls - 1];
+      if (configuredFailure === 'network') {
         await route.abort('failed');
+        return;
+      }
+      if (typeof configuredFailure === 'number') {
+        await route.fulfill({
+          status: configuredFailure,
+          headers: corsHeaders(),
+        });
         return;
       }
       if (config.sessionStatus !== 200) {
@@ -223,7 +231,7 @@ test.describe('MPRUI.authenticatedFetch', () => {
     expect(routeState.snapshot()).toEqual({ protectedCalls: 4, sessionCalls: 1 });
   });
 
-  for (const sessionStatus of [204, 401]) {
+  for (const sessionStatus of [204]) {
     test(`B048: session recovery status ${sessionStatus} emits unauthenticated`, async ({
       context,
       page,
@@ -242,60 +250,38 @@ test.describe('MPRUI.authenticatedFetch', () => {
     });
   }
 
-  test('B048: a recovery network failure emits auth error and rejects', async ({
+  test('B048: a recovery network failure retries without exposing an auth error', async ({
     context,
     page,
   }) => {
     const routeState = await installProtectedRoutes(context, 1, {
-      sessionNetworkFailure: true,
+      sessionFailureSequence: ['network'],
     });
     await openFixture(page);
 
-    const result = await page.evaluate(async (protectedUrl) => {
-      try {
-        await window.MPRUI.authenticatedFetch(window.fixtureAuthTarget, protectedUrl);
-        return null;
-      } catch (error) {
-        return {
-          code: error.code,
-          authStatus: window.fixtureAuthHost.getAttribute('data-mpr-auth-status'),
-          events: window.fixtureAuthEvents,
-        };
-      }
-    }, PROTECTED_URL);
+    const result = await runAuthenticatedFetch(page, '?case=network-retry');
 
-    expect(result.code).toBe('mpr-ui.auth.session_recovery_failed');
-    expect(result.authStatus).toBe('error');
-    expect(routeState.snapshot()).toEqual({ protectedCalls: 1, sessionCalls: 1 });
-    expect(result.events.map((event) => event.type)).toContain('mpr-ui:auth:error');
+    expect(result.status).toBe(200);
+    expect(result.authStatus).toBe('authenticated');
+    expect(routeState.snapshot()).toEqual({ protectedCalls: 2, sessionCalls: 2 });
+    expect(result.events.map((event) => event.type)).not.toContain('mpr-ui:auth:error');
   });
 
-  test('B048: a recovery server failure emits auth error and rejects', async ({
+  test('B048: noncanonical recovery responses retry until the session is valid', async ({
     context,
     page,
   }) => {
     const routeState = await installProtectedRoutes(context, 1, {
-      sessionStatus: 500,
+      sessionFailureSequence: [500, 401],
     });
     await openFixture(page);
 
-    const result = await page.evaluate(async (protectedUrl) => {
-      try {
-        await window.MPRUI.authenticatedFetch(window.fixtureAuthTarget, protectedUrl);
-        return null;
-      } catch (error) {
-        return {
-          code: error.code,
-          authStatus: window.fixtureAuthHost.getAttribute('data-mpr-auth-status'),
-          events: window.fixtureAuthEvents,
-        };
-      }
-    }, PROTECTED_URL);
+    const result = await runAuthenticatedFetch(page, '?case=response-retry');
 
-    expect(result.code).toBe('mpr-ui.auth.session_recovery_failed');
-    expect(result.authStatus).toBe('error');
-    expect(routeState.snapshot()).toEqual({ protectedCalls: 1, sessionCalls: 1 });
-    expect(result.events.map((event) => event.type)).toContain('mpr-ui:auth:error');
+    expect(result.status).toBe(200);
+    expect(result.authStatus).toBe('authenticated');
+    expect(routeState.snapshot()).toEqual({ protectedCalls: 2, sessionCalls: 3 });
+    expect(result.events.map((event) => event.type)).not.toContain('mpr-ui:auth:error');
   });
 
   test('B048: protected requests wait for authenticated lifecycle state', async ({

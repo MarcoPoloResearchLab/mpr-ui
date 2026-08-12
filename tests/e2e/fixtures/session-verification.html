@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>Session verification fixture</title>
+    <script>
+      window.localStorage.clear();
+      window.fixtureAuthEvents = [];
+      [
+        "mpr-ui:auth:authenticated",
+        "mpr-ui:auth:unauthenticated",
+        "mpr-ui:auth:error",
+        "mpr-ui:auth:status-change",
+      ].forEach(function observeAuthEvent(eventName) {
+        document.addEventListener(eventName, function recordAuthEvent(event) {
+          window.fixtureAuthEvents.push({
+            type: event.type,
+            detail: event.detail || null,
+          });
+        });
+      });
+    </script>
+  </head>
+  <body>
+    <mpr-login-button
+      id="auth-controller"
+      site-id="fixture-client"
+      tauth-url="https://auth.fixture.test"
+      tauth-tenant-id="fixture-tenant"
+      tauth-session-path="/auth/session"
+      tauth-bootstrap-mode="eager"
+    ></mpr-login-button>
+    <script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"></script>
+  </body>
+</html>
