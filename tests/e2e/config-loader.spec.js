@@ -2,6 +2,7 @@
 
 const { test, expect } = require('./support/browserCoverage');
 const {
+  bundleUrl,
   runtimeSessionUrl,
   visitConfigLoaderFixture,
 } = require('./support/fixturePage');
@@ -35,5 +36,22 @@ test.describe('Runtime configuration presentation ownership', () => {
     await expect(googleControl).toBeVisible();
     await expect(googleControl).toHaveCSS('display', 'grid');
     expect(requestedSessionUrls).toEqual([runtimeSessionUrl]);
+  });
+
+  test('loads the shared bundle exactly once through automatic orchestration', async ({ page }) => {
+    const requestedBundleUrls = [];
+    page.on('request', (request) => {
+      if (request.method() === 'GET' && request.url() === bundleUrl) {
+        requestedBundleUrls.push(request.url());
+      }
+    });
+
+    await visitConfigLoaderFixture(page);
+
+    await expect(page.locator('mpr-login-button#fixture-config-login-button')).toHaveAttribute(
+      'data-mpr-auth-status',
+      'unauthenticated',
+    );
+    expect(requestedBundleUrls).toEqual([bundleUrl]);
   });
 });

@@ -940,15 +940,114 @@ test('autoOrchestrate loads config and bundle from a login-button config owner',
   assert.deepEqual(documentStub.dispatchedEvents[2].detail, { configUrl: '/config-ui.yaml' });
 });
 
-test('autoOrchestrate supports deferred DOMContentLoaded bootstrap and missing bundle markers', async () => {
+test('autoOrchestrate stops on permanent config failures and retries transient failures with a capped delay', async () => {
+  resetEnvironment();
+  const permanentHeader = createElement({ 'data-config-url': '/config-ui.yaml' });
+  const permanentDocument = createDocumentStub({
+    readyState: 'complete',
+    selectors: {
+      'mpr-header[data-config-url]': permanentHeader,
+      'script[data-mpr-ui-bundle-src]': null,
+    },
+    selectorList: {
+      'mpr-header': [permanentHeader],
+      'mpr-login-button': [],
+      'mpr-user': [],
+    },
+  });
+  const originalConsoleError = console.error;
+  console.error = function swallowConsoleError() {};
+  try {
+    setupYamlEnvironment(createBaseConfig(), {
+      document: permanentDocument.document,
+      responseOk: false,
+      status: 403,
+    });
+    const permanentNamespace = loadNamespace();
+
+    await assert.rejects(
+      permanentNamespace.whenAutoOrchestrationReady(),
+      { message: 'config-ui.yaml request failed (403)' },
+    );
+  } finally {
+    console.error = originalConsoleError;
+  }
+
+  resetEnvironment();
+  const transientHeader = createElement({ 'data-config-url': '/config-ui.yaml' });
+  const transientBundleMarker = {
+    getAttribute(name) {
+      if (name === 'data-mpr-ui-bundle-src') {
+        return './mpr-ui.js';
+      }
+      return null;
+    },
+  };
+  const transientDocument = createDocumentStub({
+    readyState: 'complete',
+    autoLoadScripts: true,
+    selectors: {
+      'mpr-header[data-config-url]': transientHeader,
+      'script[data-mpr-ui-bundle-src]': transientBundleMarker,
+    },
+    selectorList: {
+      'mpr-header': [transientHeader],
+      'mpr-login-button': [],
+      'mpr-user': [],
+    },
+  });
+  const retryDelays = [];
+  let configAttempts = 0;
+  const originalSetTimeout = global.setTimeout;
+  global.setTimeout = function runRetry(callback, delay) {
+    retryDelays.push(delay);
+    callback();
+    return 1;
+  };
+  try {
+    setupYamlEnvironment(createBaseConfig(), { document: transientDocument.document });
+    global.fetch = async function fetchConfigWithTransientFailures() {
+      configAttempts += 1;
+      if (configAttempts <= 4) {
+        throw new TypeError('network unavailable');
+      }
+      return {
+        ok: true,
+        status: 200,
+        text: async function readText() {
+          return 'ignored';
+        },
+      };
+    };
+    const transientNamespace = loadNamespace();
+
+    await transientNamespace.whenAutoOrchestrationReady();
+  } finally {
+    global.setTimeout = originalSetTimeout;
+  }
+
+  assert.equal(configAttempts, 5);
+  assert.deepEqual(retryDelays, [1000, 2000, 3000, 3000]);
+});
+
+test('autoOrchestrate supports deferred DOMContentLoaded bootstrap with one bundle load', async () => {
   resetEnvironment();
   const header = createElement({ 'data-config-url': '/config-ui.yaml' });
   const loginButton = createElement({});
+  const bundleMarker = {
+    getAttribute(name) {
+      if (name === 'data-mpr-ui-bundle-src') {
+        return './mpr-ui.js';
+      }
+      return null;
+    },
+  };
   const documentStub = createDocumentStub({
     readyState: 'loading',
+    autoLoadScripts: true,
     selectors: {
       'mpr-header[data-config-url]': header,
-      'script[data-mpr-ui-bundle-src]': null,
+      'script[data-mpr-ui-bundle-src]': bundleMarker,
     },
     selectorList: {
       'mpr-header': [header],
@@ -974,52 +1073,78 @@ test('autoOrchestrate supports deferred DOMContentLoaded bootstrap and missing b
   await namespace.whenAutoOrchestrationReady();
   documentStub.eventHandlers.DOMContentLoaded();
 
-  assert.equal(documentStub.appendedScripts.length, 0);
+  assert.equal(documentStub.appendedScripts.length, 1);
+  assert.equal(documentStub.appendedScripts[0].src, './mpr-ui.js');
   assert.deepEqual(
     documentStub.dispatchedEvents.map(function mapEvent(event) {
       return event.type;
     }),
-    ['mpr-ui:config:applied', 'mpr-ui:orchestration:ready'],
+    [
+      'mpr-ui:config:applied',
+      'mpr-ui:bundle:loaded',
+      'mpr-ui:orchestration:ready',
+    ],
   );
 });
 
-test('autoOrchestrate tolerates bundle markers without getAttribute', async () => {
+test('autoOrchestrate rejects missing and malformed bundle markers', async () => {
   resetEnvironment();
-  const header = createElement({ 'data-config-url': '/config-ui.yaml' });
-  const inertMarkerDocument = createDocumentStub({
-    readyState: 'complete',
-    autoLoadScripts: true,
-    selectors: {
-      'mpr-header[data-config-url]': header,
-      'script[data-mpr-ui-bundle-src]': {},
+  const cases = [
+    {
+      name: 'missing marker',
+      marker: null,
     },
-    selectorList: {
-      'mpr-header': [header],
-      'mpr-login-button': [],
-      'mpr-user': [],
+    {
+      name: 'malformed marker',
+      marker: {},
     },
-  });
+  ];
+  const originalConsoleError = console.error;
+  console.error = function swallowConsoleError() {};
+  try {
+    for (const testCase of cases) {
+      resetEnvironment();
+      const header = createElement({ 'data-config-url': '/config-ui.yaml' });
+      const documentStub = createDocumentStub({
+        readyState: 'complete',
+        selectors: {
+          'mpr-header[data-config-url]': header,
+          'script[data-mpr-ui-bundle-src]': testCase.marker,
+        },
+        selectorList: {
+          'mpr-header': [header],
+          'mpr-login-button': [],
+          'mpr-user': [],
+        },
+      });
+      function CustomEvent(type, init) {
+        this.type = type;
+        this.detail = init && init.detail;
+      }
 
-  function CustomEvent(type, init) {
-    this.type = type;
-    this.detail = init && init.detail;
+      setupYamlEnvironment(createBaseConfig(), {
+        document: documentStub.document,
+        customEvent: CustomEvent,
+      });
+      const namespace = loadNamespace();
+
+      await assert.rejects(
+        namespace.whenAutoOrchestrationReady(),
+        { message: 'mpr-ui auto-orchestration requires data-mpr-ui-bundle-src' },
+        testCase.name,
+      );
+      assert.equal(documentStub.appendedScripts.length, 0, testCase.name);
+      assert.deepEqual(
+        documentStub.dispatchedEvents.map(function mapEvent(event) {
+          return event.type;
+        }),
+        ['mpr-ui:config:applied'],
+        testCase.name,
+      );
+    }
+  } finally {
+    console.error = originalConsoleError;
   }
-
-  setupYamlEnvironment(createBaseConfig(), {
-    document: inertMarkerDocument.document,
-    customEvent: CustomEvent,
-  });
-  const namespace = loadNamespace();
-  await namespace.whenAutoOrchestrationReady();
-
-  assert.deepEqual(
-    inertMarkerDocument.dispatchedEvents.map(function mapEvent(event) {
-      return event.type;
-    }),
-    ['mpr-ui:config:applied', 'mpr-ui:bundle:loaded', 'mpr-ui:orchestration:ready'],
-  );
-  assert.equal(inertMarkerDocument.appendedScripts.length, 1);
-  assert.equal(inertMarkerDocument.appendedScripts[0].src, '');
 });
 
 test('autoOrchestrate rejects invalid bundle markers and logs orchestration failures', async () => {
@@ -1077,9 +1202,8 @@ test('autoOrchestrate rejects invalid bundle markers and logs orchestration fail
       return null;
     },
   };
-  const failingScriptDocument = createDocumentStub({
+  const retryingScriptDocument = createDocumentStub({
     readyState: 'complete',
-    autoFailScripts: true,
     selectors: {
       'mpr-header[data-config-url]': failingScriptHeader,
       'script[data-mpr-ui-bundle-src]': validBundleMarker,
@@ -1090,19 +1214,49 @@ test('autoOrchestrate rejects invalid bundle markers and logs orchestration fail
       'mpr-user': [],
     },
   });
+  let bundleAttempts = 0;
+  retryingScriptDocument.document.head.appendChild = function appendBundle(node) {
+    retryingScriptDocument.appendedScripts.push(node);
+    bundleAttempts += 1;
+    if (bundleAttempts === 1) {
+      node.onerror();
+      return node;
+    }
+    node.onload();
+    return node;
+  };
+  const originalSetTimeout = global.setTimeout;
+  global.setTimeout = function runRetry(callback) {
+    callback();
+    return 1;
+  };
 
   console.error = function swallowConsoleError() {};
   try {
+    function RetryCustomEvent(type, init) {
+      this.type = type;
+      this.detail = init && init.detail;
+    }
     setupYamlEnvironment(createBaseConfig(), {
-      document: failingScriptDocument.document,
+      document: retryingScriptDocument.document,
+      customEvent: RetryCustomEvent,
     });
-    const namespaceWithFailingBundle = loadNamespace();
+    const namespaceWithRetryingBundle = loadNamespace();
 
-    await assert.rejects(
-      namespaceWithFailingBundle.whenAutoOrchestrationReady(),
-      { message: 'Failed to load ./mpr-ui.js' },
-    );
+    await namespaceWithRetryingBundle.whenAutoOrchestrationReady();
   } finally {
+    global.setTimeout = originalSetTimeout;
     console.error = originalConsoleError;
   }
+  assert.equal(bundleAttempts, 2);
+  assert.deepEqual(
+    retryingScriptDocument.dispatchedEvents.map(function mapEvent(event) {
+      return event.type;
+    }),
+    [
+      'mpr-ui:config:applied',
+      'mpr-ui:bundle:loaded',
+      'mpr-ui:orchestration:ready',
+    ],
+  );
 });
