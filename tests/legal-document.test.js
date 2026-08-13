@@ -145,6 +145,21 @@ test('MU-437: terms document includes reusable legal protection sections', () =>
   assert.ok(headings.includes('13. Indemnification'));
   assert.ok(headings.includes('14. Governing Law and Venue'));
   assert.ok(headings.includes('15. Contact and Notices'));
+  const refundPolicy = documentConfig.sections.find(
+    (section) => section.id === 'refund-policy',
+  );
+  assert.ok(
+    refundPolicy.paragraphs.some((paragraph) =>
+      paragraph.includes('unconditional full refund within 14 calendar days'),
+    ),
+    'terms promise the canonical refund window',
+  );
+  assert.ok(
+    refundPolicy.paragraphs.some((paragraph) =>
+      paragraph.includes('You do not need to provide a reason.'),
+    ),
+    'terms make the refund unconditional',
+  );
   assert.ok(
     documentConfig.sections
       .find((section) => section.id === 'service-description')

@@ -15,6 +15,8 @@ test.describe('Legal document component', () => {
     await expect(terms).toContainText('Terms of Service - Fixture Scanner');
     await expect(terms).toContainText('Marco Polo Research Lab LLC');
     await expect(terms).toContainText('(650) 265-1193');
+    await expect(terms).toContainText('unconditional full refund within 14 calendar days');
+    await expect(terms).toContainText('You do not need to provide a reason.');
     await expect(terms).toContainText('Indemnification');
     await expect(terms).toContainText('Governing Law and Venue');
     await expect(terms).toContainText('Source Site Terms');
