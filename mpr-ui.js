@@ -4795,7 +4795,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           credentials: "include",
         });
         firstRequest = new global.Request(input, requestInit);
-        if (input instanceof global.Request) {
+        var requestInitHasReadableStreamBody =
+          requestInit.body !== undefined &&
+          requestInit.body !== null &&
+          firstRequest.body === requestInit.body;
+        if (input instanceof global.Request || requestInitHasReadableStreamBody) {
           initialFetchInput = firstRequest;
           initialFetchInit = undefined;
         } else {
