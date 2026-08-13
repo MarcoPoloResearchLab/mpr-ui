@@ -54,13 +54,15 @@ function createProtectedRouteState(expectedInitialRequests, options) {
       sessionStatus: 200,
       sessionFailureSequence: [],
       protectedAlwaysUnauthorized: false,
+      protectedInitiallyAuthorized: false,
       holdSessionRecovery: false,
     },
     options || {},
   );
   let protectedCalls = 0;
   let sessionCalls = 0;
-  let accessSessionValid = false;
+  let accessSessionValid = config.protectedInitiallyAuthorized;
+  const protectedRequestBodies = [];
   let releaseInitialRequests;
   const initialRequestsReady = new Promise((resolve) => {
     releaseInitialRequests = resolve;
@@ -79,6 +81,14 @@ function createProtectedRouteState(expectedInitialRequests, options) {
   return {
     async routeProtected(route) {
       protectedCalls += 1;
+      if (route.request().method() === 'POST') {
+        const contentType = route.request().headers()['content-type'] || '';
+        protectedRequestBodies.push(
+          contentType.includes('application/json')
+            ? route.request().postDataJSON()
+            : route.request().postData(),
+        );
+      }
       if (!accessSessionValid || config.protectedAlwaysUnauthorized) {
         if (protectedCalls >= expectedInitialRequests) {
           releaseInitialRequests();
@@ -135,6 +145,9 @@ function createProtectedRouteState(expectedInitialRequests, options) {
     },
     snapshot() {
       return { protectedCalls, sessionCalls };
+    },
+    protectedBodies() {
+      return protectedRequestBodies.slice();
     },
     waitForSessionRequest() {
       return sessionRequestStarted;
@@ -354,6 +367,229 @@ test.describe('MPRUI.authenticatedFetch', () => {
 
     expect(status).toBe(401);
     expect(routeState.snapshot()).toEqual({ protectedCalls: 1, sessionCalls: 1 });
+  });
+
+  test('B048: an authorized mutation sends its JSON request body', async ({
+    context,
+    page,
+  }) => {
+    const routeState = await installProtectedRoutes(context, 1, {
+      protectedInitiallyAuthorized: true,
+    });
+    await openFixture(page);
+
+    const status = await page.evaluate(async (protectedUrl) => {
+      const response = await window.MPRUI.authenticatedFetch(
+        window.fixtureAuthTarget,
+        protectedUrl,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'test' }),
+        },
+        { mutationReplay: 'authorization-before-domain-work' },
+      );
+      return response.status;
+    }, PROTECTED_URL);
+
+    expect(status).toBe(200);
+    expect(routeState.snapshot()).toEqual({ protectedCalls: 1, sessionCalls: 0 });
+    expect(routeState.protectedBodies()).toEqual([{ name: 'test' }]);
+  });
+
+  test('B048: an authorized mutation sends its multipart request body', async ({
+    context,
+    page,
+  }) => {
+    const routeState = await installProtectedRoutes(context, 1, {
+      protectedInitiallyAuthorized: true,
+    });
+    await openFixture(page);
+
+    const status = await page.evaluate(async (protectedUrl) => {
+      const formData = new FormData();
+      formData.append('name', 'test');
+      const response = await window.MPRUI.authenticatedFetch(
+        window.fixtureAuthTarget,
+        protectedUrl,
+        { method: 'POST', body: formData },
+        { mutationReplay: 'authorization-before-domain-work' },
+      );
+      return response.status;
+    }, PROTECTED_URL);
+
+    expect(status).toBe(200);
+    expect(routeState.snapshot()).toEqual({ protectedCalls: 1, sessionCalls: 0 });
+    expect(routeState.protectedBodies()).toHaveLength(1);
+    expect(routeState.protectedBodies()[0]).toContain('name="name"');
+    expect(routeState.protectedBodies()[0]).toContain('test');
+  });
+
+  test('B048: a readable stream remains available for initial delivery and replay', async ({
+    page,
+  }) => {
+    await openFixture(page);
+
+    const result = await page.evaluate(async ({ protectedUrl, sessionUrl }) => {
+      const originalFetch = window.fetch;
+      const protectedBodies = [];
+      let protectedCalls = 0;
+      let sessionCalls = 0;
+      window.fetch = async function captureAuthenticatedRequest(input, init) {
+        const request = new Request(input, init);
+        if (request.url === sessionUrl) {
+          sessionCalls += 1;
+          return new Response(JSON.stringify({
+            user_id: 'fixture-user',
+            user_email: 'fixture@example.com',
+            display: 'Fixture User',
+          }), {
+            status: 200,
+            headers: { 'Content-Type': 'application/json' },
+          });
+        }
+        if (request.url !== protectedUrl) {
+          throw new Error(`unexpected request: ${request.url}`);
+        }
+        protectedCalls += 1;
+        protectedBodies.push(await request.text());
+        return new Response('', { status: protectedCalls === 1 ? 401 : 200 });
+      };
+      try {
+        const requestBody = new ReadableStream({
+          start(controller) {
+            controller.enqueue(new TextEncoder().encode('stream-test'));
+            controller.close();
+          },
+        });
+        const response = await window.MPRUI.authenticatedFetch(
+          window.fixtureAuthTarget,
+          protectedUrl,
+          {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain' },
+            body: requestBody,
+            duplex: 'half',
+          },
+          { mutationReplay: 'authorization-before-domain-work' },
+        );
+        return {
+          status: response.status,
+          protectedBodies,
+          protectedCalls,
+          sessionCalls,
+        };
+      } finally {
+        window.fetch = originalFetch;
+      }
+    }, { protectedUrl: PROTECTED_URL, sessionUrl: SESSION_URL });
+
+    expect(result).toEqual({
+      status: 200,
+      protectedBodies: ['stream-test', 'stream-test'],
+      protectedCalls: 2,
+      sessionCalls: 1,
+    });
+  });
+
+  test('B048: a Request input preserves its method and body', async ({ page }) => {
+    await openFixture(page);
+
+    const result = await page.evaluate(async (protectedUrl) => {
+      const originalFetch = window.fetch;
+      const capturedRequests = [];
+      window.fetch = async function captureAuthenticatedRequest(input, init) {
+        const request = new Request(input, init);
+        capturedRequests.push({
+          body: await request.text(),
+          method: request.method,
+          requestInput: input instanceof Request,
+        });
+        return new Response('', { status: 200 });
+      };
+      try {
+        const request = new Request(protectedUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'request-test' }),
+        });
+        const response = await window.MPRUI.authenticatedFetch(
+          window.fixtureAuthTarget,
+          request,
+          undefined,
+          { mutationReplay: 'authorization-before-domain-work' },
+        );
+        return { status: response.status, capturedRequests };
+      } finally {
+        window.fetch = originalFetch;
+      }
+    }, PROTECTED_URL);
+
+    expect(result).toEqual({
+      status: 200,
+      capturedRequests: [{
+        body: JSON.stringify({ name: 'request-test' }),
+        method: 'POST',
+        requestInput: true,
+      }],
+    });
+  });
+
+  test('B052: a cross-realm Request input preserves its method and body', async ({
+    page,
+  }) => {
+    await openFixture(page);
+
+    const result = await page.evaluate(async (protectedUrl) => {
+      const originalFetch = window.fetch;
+      const capturedRequests = [];
+      const iframe = document.createElement('iframe');
+      document.body.appendChild(iframe);
+      window.fetch = async function captureAuthenticatedRequest(input, init) {
+        const request = new Request(input, init);
+        capturedRequests.push({
+          body: await request.text(),
+          method: request.method,
+          requestInput: input instanceof Request,
+        });
+        return new Response('', { status: 200 });
+      };
+      try {
+        const iframeWindow = iframe.contentWindow;
+        if (!iframeWindow) {
+          throw new Error('same-origin iframe window is unavailable');
+        }
+        const request = new iframeWindow.Request(protectedUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'cross-realm-request-test' }),
+        });
+        const response = await window.MPRUI.authenticatedFetch(
+          window.fixtureAuthTarget,
+          request,
+          undefined,
+          { mutationReplay: 'authorization-before-domain-work' },
+        );
+        return {
+          status: response.status,
+          capturedRequests,
+          crossRealm: !(request instanceof Request),
+        };
+      } finally {
+        window.fetch = originalFetch;
+        iframe.remove();
+      }
+    }, PROTECTED_URL);
+
+    expect(result).toEqual({
+      status: 200,
+      capturedRequests: [{
+        body: JSON.stringify({ name: 'cross-realm-request-test' }),
+        method: 'POST',
+        requestInput: true,
+      }],
+      crossRealm: true,
+    });
   });
 
   test('B048: a mutation without the server policy is not sent a second time', async ({
