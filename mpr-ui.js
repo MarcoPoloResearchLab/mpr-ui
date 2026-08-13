@@ -4743,6 +4743,23 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     /**
+     * @param {unknown} input
+     * @returns {boolean}
+     */
+    function isBrandedRequestInput(input) {
+      var bodyUsedGetter = Object.getOwnPropertyDescriptor(
+        global.Request.prototype,
+        "bodyUsed",
+      ).get;
+      try {
+        bodyUsedGetter.call(input);
+        return true;
+      } catch {
+        return false;
+      }
+    }
+
+    /**
      * @param {RequestInfo|URL} input
      * @param {RequestInit=} init
      * @param {AuthenticatedFetchPolicy=} fetchPolicy
@@ -4794,12 +4811,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         var requestInit = Object.assign({}, init || {}, {
           credentials: "include",
         });
+        var inputIsBrandedRequest = isBrandedRequestInput(input);
         firstRequest = new global.Request(input, requestInit);
         var requestInitHasReadableStreamBody =
           requestInit.body !== undefined &&
           requestInit.body !== null &&
           firstRequest.body === requestInit.body;
-        if (input instanceof global.Request || requestInitHasReadableStreamBody) {
+        if (inputIsBrandedRequest || requestInitHasReadableStreamBody) {
           initialFetchInput = firstRequest;
           initialFetchInit = undefined;
         } else {
