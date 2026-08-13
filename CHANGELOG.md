@@ -47,6 +47,16 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.11.10] - 2026-08-12
+
+- Merge pull request #188 from MarcoPoloResearchLab/bugfix/authenticated-fetch-mutation-body
+- test(auth): cover cross-realm Request method and body preservation
+- fix: detect cross-realm Request inputs by brand check
+- fix(auth): preserve cross-realm Request methods and bodies
+- docs: document cross-realm Request body regression
+- fix(auth): preserve readable stream requests
+- fix(auth): preserve initial mutation request bodies
+
 ## [v3.11.9] - 2026-08-12
 
 - Merged pull request #187 from MarcoPoloResearchLab/bugfix/latest-bundle-cache-revalidation
