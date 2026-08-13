@@ -535,6 +535,63 @@ test.describe('MPRUI.authenticatedFetch', () => {
     });
   });
 
+  test('B052: a cross-realm Request input preserves its method and body', async ({
+    page,
+  }) => {
+    await openFixture(page);
+
+    const result = await page.evaluate(async (protectedUrl) => {
+      const originalFetch = window.fetch;
+      const capturedRequests = [];
+      const iframe = document.createElement('iframe');
+      document.body.appendChild(iframe);
+      window.fetch = async function captureAuthenticatedRequest(input, init) {
+        const request = new Request(input, init);
+        capturedRequests.push({
+          body: await request.text(),
+          method: request.method,
+          requestInput: input instanceof Request,
+        });
+        return new Response('', { status: 200 });
+      };
+      try {
+        const iframeWindow = iframe.contentWindow;
+        if (!iframeWindow) {
+          throw new Error('same-origin iframe window is unavailable');
+        }
+        const request = new iframeWindow.Request(protectedUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name: 'cross-realm-request-test' }),
+        });
+        const response = await window.MPRUI.authenticatedFetch(
+          window.fixtureAuthTarget,
+          request,
+          undefined,
+          { mutationReplay: 'authorization-before-domain-work' },
+        );
+        return {
+          status: response.status,
+          capturedRequests,
+          crossRealm: !(request instanceof Request),
+        };
+      } finally {
+        window.fetch = originalFetch;
+        iframe.remove();
+      }
+    }, PROTECTED_URL);
+
+    expect(result).toEqual({
+      status: 200,
+      capturedRequests: [{
+        body: JSON.stringify({ name: 'cross-realm-request-test' }),
+        method: 'POST',
+        requestInput: true,
+      }],
+      crossRealm: true,
+    });
+  });
+
   test('B048: a mutation without the server policy is not sent a second time', async ({
     context,
     page,
