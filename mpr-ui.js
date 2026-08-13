@@ -9357,9 +9357,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         "Subscriptions renew automatically until canceled unless the checkout flow says otherwise. Cancellation stops future renewals and takes effect at the end of the then-current billing period.",
       ]),
       createLegalSection("refund-policy", "6. Refund Policy", [
-        "For usage-credit operations, the Service may restore or refund credits for eligible technical failures according to product behavior.",
-        "Except where required by law, required by merchant-of-record terms, or approved in special circumstances, subscription fees, top-up packs, and other completed checkout charges are non-refundable.",
-        "To request refund review or billing support, contact " + profile.supportEmail + ".",
+        "For usage-credit operations, the Service may separately restore credits for eligible technical failures according to product behavior.",
+        "For any completed checkout charge processed through a website, you may request an unconditional full refund within 14 calendar days of the charge. This policy applies to initial subscription fees, renewals, top-up packs, and other direct purchases, even after you use the Service.",
+        "You do not need to provide a reason. To request a refund or get billing support, contact " + profile.supportEmail + ". Purchases processed by the Apple App Store or Google Play use the applicable store's refund process. This policy does not limit rights under applicable law.",
       ]),
       createLegalSection("third-party-services", "7. Third-Party Services", [
         "The Service may depend on third-party services including authentication, hosting, telemetry, support widgets, billing infrastructure, payment processing, and external APIs. We are not responsible for downtime or actions of those third parties beyond our contractual obligations.",
