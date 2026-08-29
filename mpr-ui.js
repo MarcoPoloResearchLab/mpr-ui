@@ -9850,7 +9850,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       icon: "assets/projects/loopaware/icon.svg",
       subscribe: Object.freeze({
         script:
-          "https://loopaware.mprlab.com/subscribe.js?site_id=a3222433-92ec-473a-9255-0797226c2273&mode=inline&accent=%23ffd369&cta=Subscribe&success=Thanks%20for%20subscribing&name_field=false",
+          "https://loopaware.mprlab.com/subscribe.js?site_id=c4fa39f7-4690-4bae-93d1-9401bdf98dbf&mode=inline&accent=%23ffd369&cta=Subscribe&success=Thanks%20for%20subscribing&name_field=false",
         title: "Get LoopAware release updates",
         copy:
           "Drop your email to hear when LoopAware ships fresh drops, integrations, and subscriber tooling.",
@@ -9895,6 +9895,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       category: "platform",
       url: "https://github.com/tyemirov/ledger",
       icon: "assets/projects/ledger/icon.png",
+      subscribe: Object.freeze({
+        script:
+          "https://loopaware.mprlab.com/subscribe.js?site_id=9edfc4a2-e5ab-43f8-ada8-72bebf3f56a1&mode=inline&accent=%23ffd369&cta=Subscribe&success=Thanks%20for%20subscribing&name_field=false",
+        title: "Get Ledger Service release updates",
+        copy:
+          "Drop your email to hear when Ledger Service ships new credit controls, integrations, and audit tools.",
+      }),
     }),
     Object.freeze({
       id: "product-scanner",
@@ -9927,7 +9934,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       icon: "assets/projects/gravity-notes/icon.png",
       subscribe: Object.freeze({
         script:
-          "https://loopaware.mprlab.com/subscribe.js?site_id=d8c3d1c8-7968-43d0-8026-ee827ada7666&mode=inline&accent=%23ffd369&cta=Subscribe&success=Thanks%20for%20subscribing&name_field=false",
+          "https://loopaware.mprlab.com/subscribe.js?site_id=8b4fa15e-52a9-4feb-a466-bb186f42df81&mode=inline&accent=%23ffd369&cta=Subscribe&success=Thanks%20for%20subscribing&name_field=false",
         title: "Get Gravity Notes release updates",
         copy:
           "Drop your email to hear when Gravity Notes ships fresh features, AI integrations, and new plugins.",

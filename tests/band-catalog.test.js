@@ -93,6 +93,24 @@ test('mpr-band custom element registers and exposes the default catalog helper',
   assert.equal(typeof bandCtor, 'function');
 });
 
+test('the project catalog uses the current LoopAware subscription identifiers', () => {
+  resetEnvironment();
+  require(bundlePath);
+  const catalog = global.MPRUI.getBandProjectCatalog();
+  const expectedSiteIds = {
+    'gravity-notes': '8b4fa15e-52a9-4feb-a466-bb186f42df81',
+    ledger: '9edfc4a2-e5ab-43f8-ada8-72bebf3f56a1',
+    loopaware: 'c4fa39f7-4690-4bae-93d1-9401bdf98dbf',
+  };
+
+  for (const [projectId, expectedSiteId] of Object.entries(expectedSiteIds)) {
+    const project = catalog.find((entry) => entry.id === projectId);
+    assert.ok(project, `${projectId} must exist in the project catalog`);
+    const subscribeUrl = new URL(project.subscribe.script);
+    assert.equal(subscribeUrl.searchParams.get('site_id'), expectedSiteId);
+  }
+});
+
 test('<mpr-card> custom element registers', () => {
   resetEnvironment();
   require(bundlePath);

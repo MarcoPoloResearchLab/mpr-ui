@@ -11,6 +11,13 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [x] [B053] (P1) The project catalog uses obsolete LoopAware site identifiers.
+  Goal: The project catalog uses the current production site identifiers.
+  Expected: The LoopAware, Gravity, and Ledger Service subscription URLs use their current identifiers.
+  Actual: The LoopAware and Gravity URLs used obsolete identifiers. Ledger Service had no subscription URL.
+  Resolution: The catalog now uses the current identifiers for all three projects.
+  Validation: The focused catalog test passed. `make ci` passed 170 unit tests and two browser runs of 93 tests.
+
 - [x] [B052] (P2) A cross-realm `Request` input loses its request body.
   Goal: The authenticated fetch API sends a body-bearing `Request` from another same-origin browser context.
   Expected: The first protected request contains the original method and body.
