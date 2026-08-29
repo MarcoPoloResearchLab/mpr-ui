@@ -47,6 +47,13 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.11.11] - 2026-08-29
+
+- Merge pull request #189 from MarcoPoloResearchLab/bugfix/B053-loopaware-site-identifiers
+- fix: update LoopAware catalog identifiers
+- test: cover unconditional 14-day refund policy terms
+- feat(legal): add 14-day unconditional web purchase refunds
+
 ## [v3.11.10] - 2026-08-12
 
 - Merge pull request #188 from MarcoPoloResearchLab/bugfix/authenticated-fetch-mutation-body
