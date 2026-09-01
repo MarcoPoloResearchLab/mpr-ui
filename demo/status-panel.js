@@ -153,7 +153,7 @@ function renderSession(profile) {
   const refreshParagraph = document.createElement('p');
   refreshParagraph.classList.add('session-card__expires');
   refreshParagraph.textContent =
-    'mpr-ui treats the backend cookie as the source of truth and reconciles the shell through /me and /auth/refresh.';
+    'mpr-ui treats the backend cookie as the source of truth and reconciles the shell through the configured /auth/session route.';
   host.append(profileContainer, expiryParagraph, refreshParagraph);
 }
 
