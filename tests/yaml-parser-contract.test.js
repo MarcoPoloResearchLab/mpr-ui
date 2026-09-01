@@ -138,18 +138,19 @@ test('B046: the current parser preserves the canonical provider maps', () => {
   assert.equal(parsedConfig.environments.length, 3);
   assert.deepEqual(
     parsedConfig.environments.map((environment) => {
-      const auth = /** @type {{ providers: { google: { enabled: boolean }, apple: { enabled: boolean } } }} */ (
+      const auth = /** @type {{ providers: { google: { enabled: boolean }, apple: { enabled: boolean }, password: { enabled: boolean } } }} */ (
         environment.auth
       );
       return {
         google: auth.providers.google.enabled,
         apple: auth.providers.apple.enabled,
+        password: auth.providers.password.enabled,
       };
     }),
     [
-      { google: true, apple: false },
-      { google: true, apple: true },
-      { google: false, apple: true },
+      { google: true, apple: false, password: true },
+      { google: true, apple: true, password: true },
+      { google: false, apple: true, password: false },
     ],
   );
 });

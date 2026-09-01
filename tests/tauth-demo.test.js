@@ -58,3 +58,61 @@ test('tauth demo does not load the legacy tauth.js helper', () => {
     'Expected tauth-demo.html to avoid the legacy tauth.js helper',
   );
 });
+
+test('F007: tauth demo exposes every shared password and account action', () => {
+  const passwordModes = [
+    'login',
+    'signup',
+    'verify-email',
+    'reset-start',
+    'reset-complete',
+  ];
+  const accountActions = [
+    'password-change',
+    'password-link-start',
+    'password-link-verify',
+    'google-link',
+    'unlink',
+    'disable',
+  ];
+
+  passwordModes.forEach((passwordMode) => {
+    assert.match(
+      tauthDemoHtml,
+      new RegExp(`<mpr-password-auth\\s+mode="${passwordMode}"\\s+auth-target="#demo-header"`),
+      `Expected tauth-demo.html to expose password mode ${passwordMode}`,
+    );
+  });
+  accountActions.forEach((accountAction) => {
+    assert.match(
+      tauthDemoHtml,
+      new RegExp(`<mpr-account-panel\\s+action="${accountAction}"\\s+auth-target="#demo-header"`),
+      `Expected tauth-demo.html to expose account action ${accountAction}`,
+    );
+  });
+  assert.doesNotMatch(
+    tauthDemoHtml,
+    /fetch\s*\(/,
+    'Expected shared components to own all demo password and account requests',
+  );
+  assert.match(
+    tauthDemoHtml,
+    /mode="signup"[^>]*\bdisplay-challenge-token\b/,
+    'Expected signup to display its local fixture challenge token',
+  );
+  assert.match(
+    tauthDemoHtml,
+    /mode="reset-start"[^>]*\bdisplay-challenge-token\b/,
+    'Expected reset start to display its local fixture challenge token',
+  );
+  assert.match(
+    tauthDemoHtml,
+    /action="password-link-start"[^>]*\bdisplay-challenge-token\b/,
+    'Expected password linking to display its local fixture challenge token',
+  );
+  assert.doesNotMatch(
+    tauthDemoHtml,
+    /action="unlink"[^>]*\bproviderId\b/,
+    'Expected unlink to avoid a manually entered provider identity',
+  );
+});

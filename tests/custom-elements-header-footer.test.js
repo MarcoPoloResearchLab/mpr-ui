@@ -358,6 +358,9 @@ function resetEnvironment() {
       }
       notifyObservedAttributeChange(this, attrName, oldValue, null);
     }
+    hasAttribute(name) {
+      return Object.prototype.hasOwnProperty.call(this.attributes, String(name));
+    }
     addEventListener(type, handler) {
       const eventType = String(type);
       if (!this.__listeners[eventType]) {
@@ -545,6 +548,7 @@ function createGoogleAuthConfig(overrides) {
         noncePath: settings.googleNoncePath,
       },
       apple: { enabled: false },
+      password: { enabled: false },
     },
   };
 }
@@ -575,6 +579,7 @@ function createAppleAuthConfig(overrides) {
         returnTo: settings.appleReturnTo,
         label: settings.appleLabel,
       },
+      password: { enabled: false },
     },
   };
 }
@@ -597,6 +602,27 @@ function createBothAuthConfig(overrides) {
     clientId: settings.googleClientId,
     loginPath: settings.googleLoginPath,
     noncePath: settings.googleNoncePath,
+  };
+  return config;
+}
+
+function createPasswordAccountAuthConfig(overrides) {
+  const config = createGoogleAuthConfig(overrides);
+  config.providers.password = { enabled: true };
+  config.password = {
+    loginPath: '/auth/password/login',
+    signupPath: '/auth/password/signup',
+    verifyEmailPath: '/auth/password/verify-email',
+    resetStartPath: '/auth/password/reset/start',
+    resetCompletePath: '/auth/password/reset/complete',
+  };
+  config.account = {
+    passwordChangePath: '/auth/account/password/change',
+    passwordLinkStartPath: '/auth/account/password/link/start',
+    passwordLinkVerifyPath: '/auth/account/password/link/verify',
+    googleLinkPath: '/auth/account/google/link',
+    unlinkPath: '/auth/account/unlink',
+    disablePath: '/auth/account/disable',
   };
   return config;
 }
@@ -3124,6 +3150,66 @@ test('mpr-header redirects after sign-in and holds the auth transition while nav
   );
 });
 
+test('F007: password login uses the owning header post-sign-in redirect', async () => {
+  resetEnvironment();
+  const locationCalls = [];
+  global.location = {
+    origin: 'http://fallback-origin.test',
+    assign: function assign(url) {
+      locationCalls.push(url);
+    },
+  };
+  global.initAuthClient = function initAuthClient() {
+    return Promise.resolve();
+  };
+  global.getCurrentUser = function getCurrentUser() {
+    return Promise.resolve(null);
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+  global.fetch = function submitPasswordLogin() {
+    return Promise.resolve({
+      ok: true,
+      status: 200,
+      json: function profilePayload() {
+        return Promise.resolve({
+          user_id: 'password-redirect-user',
+          user_email: 'redirect@example.com',
+          display: 'Password Redirect User',
+        });
+      },
+    });
+  };
+
+  loadLibrary();
+  const harness = createHeaderElementHarness();
+  const headerElement = harness.element;
+  headerElement.setAttribute(
+    'auth-config',
+    JSON.stringify(
+      createPasswordAccountAuthConfig({
+        tauthUrl: 'https://auth.redirect.test',
+        tenantId: 'password-redirect-tenant',
+      }),
+    ),
+  );
+  headerElement.setAttribute('sign-in-redirect-url', '/app');
+  headerElement.connectedCallback();
+  await flushAsync();
+
+  const authController = headerElement.__headerController.getAuthController();
+  await authController.performPasswordAction('login', {
+    email: 'redirect@example.com',
+    password: 'redirect-secret',
+  });
+  await flushAsync();
+
+  assert.deepEqual(locationCalls, ['/app']);
+  assert.equal(
+    JSON.stringify(headerElement.__dispatchedEvents).includes('redirect-secret'),
+    false,
+  );
+});
+
 test('mpr-header does not redirect for app-dispatched auth events', async () => {
   resetEnvironment();
   const locationCalls = [];
@@ -4657,6 +4743,7 @@ test('F008: canonical auth options support Google-only, Apple-only, and combined
       providers: {
         google: { enabled: false },
         apple: { enabled: false },
+        password: { enabled: false },
       },
     }),
     (error) => error.code === 'mpr-ui.auth.enabled_provider_required',
@@ -5546,4 +5633,810 @@ test('mpr-user validates required attributes', () => {
       `${testCase.label}: error code details match`,
     );
   });
+});
+
+test('F007: password auth modes submit through the owning controller without exposing credentials', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const PasswordAuthElement = global.customElements.get('mpr-password-auth');
+  assert.ok(PasswordAuthElement, 'mpr-password-auth is defined');
+  const authConfig = createPasswordAccountAuthConfig();
+  const normalizedOptions = library.createAuthOptions(authConfig);
+  const modeCases = [
+    { mode: 'login', values: { email: 'login@example.com', password: 'login-secret' } },
+    { mode: 'signup', values: { email: 'signup@example.com', password: 'signup-secret' } },
+    { mode: 'verify-email', values: { token: 'verification-secret' } },
+    { mode: 'reset-start', values: { email: 'reset@example.com' } },
+    { mode: 'reset-complete', values: { token: 'reset-token-secret', password: 'reset-secret' } },
+  ];
+
+  for (const modeCase of modeCases) {
+    const calls = [];
+    const controller = {
+      host: createStubNode({ supportsEvents: true }),
+      state: {
+        status: 'unauthenticated',
+        profile: null,
+        options: normalizedOptions,
+      },
+      performPasswordAction(mode, request) {
+        calls.push({ mode, request });
+        return Promise.resolve({ action: mode, status: 'accepted' });
+      },
+      performAccountAction() {
+        return Promise.resolve();
+      },
+    };
+    const element = attachChildTreeApi(
+      attachHostApi(new PasswordAuthElement(), new Map()),
+    );
+    element.ownerDocument = global.document;
+    element.__authControllerOverride = controller;
+    element.setAttribute('mode', modeCase.mode);
+    element.setAttribute('auth-config', JSON.stringify(authConfig));
+    element.connectedCallback();
+
+    const inputs = walkStubTree(element).filter((node) => typeof node.name === 'string');
+    inputs.forEach((input) => {
+      input.value = modeCase.values[input.name];
+    });
+    const form = walkStubTree(element).find((node) => node.tagName === 'FORM');
+    assert.ok(form, `${modeCase.mode}: form rendered`);
+    form.dispatchEvent({
+      type: 'submit',
+      preventDefault() {},
+    });
+    assert.equal(element.getAttribute('data-mpr-password-auth-status'), 'loading');
+    assert.equal(
+      walkStubTree(element).find((node) => node.tagName === 'BUTTON').disabled,
+      true,
+      `${modeCase.mode}: submit disables while the action is pending`,
+    );
+    await flushAsync();
+
+    assert.deepEqual(calls, [{ mode: modeCase.mode, request: modeCase.values }]);
+    assert.equal(element.getAttribute('data-mpr-password-auth-status'), 'success');
+    const eventText = JSON.stringify(element.__dispatchedEvents);
+    Object.values(modeCase.values).forEach((value) => {
+      if (String(value).includes('secret')) {
+        assert.equal(eventText.includes(value), false, `${modeCase.mode}: secrets stay out of events`);
+      }
+    });
+    inputs.forEach((input) => {
+      if (input.type === 'password' || input.name === 'token') {
+        assert.equal(input.value, '', `${modeCase.mode}: secret field clears after submit`);
+      }
+    });
+  }
+});
+
+test('F007: account panel actions require shared authenticated state and submit safe requests', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const AccountPanelElement = global.customElements.get('mpr-account-panel');
+  assert.ok(AccountPanelElement, 'mpr-account-panel is defined');
+  const authConfig = createPasswordAccountAuthConfig();
+  const normalizedOptions = library.createAuthOptions(authConfig);
+  const actionCases = [
+    {
+      action: 'password-change',
+      values: { currentPassword: 'current-secret', newPassword: 'new-secret' },
+    },
+    {
+      action: 'password-link-start',
+      values: { email: 'linked@example.com', password: 'link-secret' },
+    },
+    { action: 'password-link-verify', values: { token: 'link-token-secret' } },
+    { action: 'google-link', values: {} },
+    {
+      action: 'unlink',
+      values: { identity: '0' },
+      identities: [
+        {
+          provider: 'google',
+          providerId: 'google-subject',
+          label: 'Google sign-in',
+        },
+      ],
+      expectedRequest: { provider: 'google', providerId: 'google-subject' },
+    },
+    { action: 'disable', values: {} },
+  ];
+
+  for (const actionCase of actionCases) {
+    const calls = [];
+    const controller = {
+      host: createStubNode({ supportsEvents: true }),
+      state: {
+        status: 'authenticated',
+        profile: { user_id: 'account-id', user_email: 'account@example.com' },
+        options: normalizedOptions,
+      },
+      performPasswordAction() {
+        return Promise.resolve();
+      },
+      performAccountAction(action, request) {
+        calls.push({ action, request });
+        return Promise.resolve({ action, status: 'updated' });
+      },
+      startGoogleLink() {
+        calls.push({ action: 'google-link', request: {} });
+        return Promise.resolve({ action: 'google-link', status: 'updated' });
+      },
+    };
+    const element = attachChildTreeApi(
+      attachHostApi(new AccountPanelElement(), new Map()),
+    );
+    element.ownerDocument = global.document;
+    element.__authControllerOverride = controller;
+    element.setAttribute('action', actionCase.action);
+    element.setAttribute('auth-config', JSON.stringify(authConfig));
+    if (actionCase.identities) {
+      element.setAttribute('identities', JSON.stringify(actionCase.identities));
+    }
+    element.connectedCallback();
+
+    const inputs = walkStubTree(element).filter((node) => typeof node.name === 'string');
+    inputs.forEach((input) => {
+      input.value = actionCase.values[input.name];
+    });
+    const form = walkStubTree(element).find((node) => node.tagName === 'FORM');
+    assert.ok(form, `${actionCase.action}: form rendered`);
+    form.dispatchEvent({ type: 'submit', preventDefault() {} });
+    assert.equal(element.getAttribute('data-mpr-account-panel-status'), 'loading');
+    await flushAsync();
+
+    assert.deepEqual(calls, [
+      {
+        action: actionCase.action,
+        request: actionCase.expectedRequest || actionCase.values,
+      },
+    ]);
+    assert.equal(element.getAttribute('data-mpr-account-panel-status'), 'success');
+    const eventText = JSON.stringify(element.__dispatchedEvents);
+    Object.values(actionCase.values).forEach((value) => {
+      if (String(value).includes('secret')) {
+        assert.equal(eventText.includes(value), false, `${actionCase.action}: secrets stay out of events`);
+      }
+    });
+  }
+
+  const unauthenticatedController = {
+    host: createStubNode({ supportsEvents: true }),
+    state: { status: 'unauthenticated', profile: null, options: normalizedOptions },
+    performPasswordAction() {},
+    performAccountAction() {},
+  };
+  const unauthenticatedElement = attachChildTreeApi(
+    attachHostApi(new AccountPanelElement(), new Map()),
+  );
+  unauthenticatedElement.ownerDocument = global.document;
+  unauthenticatedElement.__authControllerOverride = unauthenticatedController;
+  unauthenticatedElement.setAttribute('action', 'unlink');
+  unauthenticatedElement.setAttribute('auth-config', JSON.stringify(authConfig));
+  unauthenticatedElement.connectedCallback();
+  assert.equal(
+    unauthenticatedElement.getAttribute('data-mpr-account-panel-status'),
+    'unauthenticated',
+  );
+  assert.equal(
+    walkStubTree(unauthenticatedElement).some((node) => node.tagName === 'FORM'),
+    false,
+  );
+});
+
+test('F007: unlink requires configured identities and renders only their labels', () => {
+  const cases = [
+    {
+      label: 'missing identities',
+      value: null,
+      code: 'mpr-ui.account_panel.identities_required',
+    },
+    {
+      label: 'malformed identities',
+      value: '{',
+      code: 'mpr-ui.account_panel.identities_invalid',
+    },
+    {
+      label: 'empty identities',
+      value: '[]',
+      code: 'mpr-ui.account_panel.identities_required',
+    },
+    {
+      label: 'unknown identity key',
+      value: JSON.stringify([
+        {
+          provider: 'google',
+          providerId: 'subject',
+          label: 'Google sign-in',
+          legacyId: 'subject',
+        },
+      ]),
+      code: 'mpr-ui.account_panel.identity_invalid',
+    },
+  ];
+
+  cases.forEach((testCase) => {
+    resetEnvironment();
+    const library = loadLibrary();
+    const AccountPanelElement = global.customElements.get('mpr-account-panel');
+    const authConfig = createPasswordAccountAuthConfig();
+    const controller = {
+      host: createStubNode({ supportsEvents: true }),
+      state: {
+        status: 'authenticated',
+        profile: { user_id: 'account-id', user_email: 'account@example.com' },
+        options: library.createAuthOptions(authConfig),
+      },
+      performPasswordAction() {},
+      performAccountAction() {},
+    };
+    const element = attachChildTreeApi(
+      attachHostApi(new AccountPanelElement(), new Map()),
+    );
+    element.ownerDocument = global.document;
+    element.__authControllerOverride = controller;
+    element.setAttribute('action', 'unlink');
+    element.setAttribute('auth-config', JSON.stringify(authConfig));
+    if (testCase.value !== null) {
+      element.setAttribute('identities', testCase.value);
+    }
+    element.connectedCallback();
+
+    assert.equal(
+      element.getAttribute('data-mpr-account-panel-error'),
+      testCase.code,
+      testCase.label,
+    );
+    assert.equal(
+      walkStubTree(element).some((node) => node.tagName === 'FORM'),
+      false,
+      testCase.label,
+    );
+  });
+});
+
+test('F007: local challenge display stays out of public component events', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const PasswordAuthElement = global.customElements.get('mpr-password-auth');
+  const authConfig = createPasswordAccountAuthConfig();
+  let capturedResultOptions = null;
+  const controller = {
+    host: createStubNode({ supportsEvents: true }),
+    state: {
+      status: 'unauthenticated',
+      profile: null,
+      options: library.createAuthOptions(authConfig),
+    },
+    performPasswordAction(_mode, _request, resultOptions) {
+      capturedResultOptions = resultOptions;
+      return Promise.resolve({
+        action: 'signup',
+        status: 'accepted',
+        challengeToken: 'local-fixture-token',
+      });
+    },
+    performAccountAction() {},
+  };
+  const element = attachChildTreeApi(
+    attachHostApi(new PasswordAuthElement(), new Map()),
+  );
+  element.ownerDocument = global.document;
+  element.__authControllerOverride = controller;
+  element.setAttribute('mode', 'signup');
+  element.setAttribute('auth-config', JSON.stringify(authConfig));
+  element.setAttribute('display-challenge-token', '');
+  element.connectedCallback();
+  const inputs = walkStubTree(element).filter((node) => node.tagName === 'INPUT');
+  inputs.forEach((input) => {
+    input.value = input.name === 'email' ? 'local@example.com' : 'local-password';
+  });
+  const form = walkStubTree(element).find((node) => node.tagName === 'FORM');
+  form.dispatchEvent({ type: 'submit', preventDefault() {} });
+  await flushAsync();
+
+  assert.deepEqual(capturedResultOptions, { includeChallengeToken: true });
+  const statusElement = walkStubTree(element).find(
+    (node) => node.className === 'mpr-auth-form__status',
+  );
+  assert.equal(statusElement.textContent, 'Challenge token: local-fixture-token');
+  assert.equal(
+    JSON.stringify(element.__dispatchedEvents).includes('local-fixture-token'),
+    false,
+  );
+});
+
+test('F007: password auth disabled and error states are explicit and stable', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const PasswordAuthElement = global.customElements.get('mpr-password-auth');
+  const authConfig = createPasswordAccountAuthConfig();
+  const normalizedOptions = library.createAuthOptions(authConfig);
+  let disabledSubmissionCount = 0;
+  const disabledController = {
+    host: createStubNode({ supportsEvents: true }),
+    state: { status: 'unauthenticated', profile: null, options: normalizedOptions },
+    performPasswordAction() {
+      disabledSubmissionCount += 1;
+      return Promise.resolve();
+    },
+    performAccountAction() {
+      return Promise.resolve();
+    },
+  };
+  const disabledElement = attachChildTreeApi(
+    attachHostApi(new PasswordAuthElement(), new Map()),
+  );
+  disabledElement.ownerDocument = global.document;
+  disabledElement.__authControllerOverride = disabledController;
+  disabledElement.setAttribute('mode', 'login');
+  disabledElement.setAttribute('auth-config', JSON.stringify(authConfig));
+  disabledElement.setAttribute('disabled', '');
+  disabledElement.connectedCallback();
+  const disabledForm = walkStubTree(disabledElement).find(
+    (node) => node.tagName === 'FORM',
+  );
+  const disabledControls = walkStubTree(disabledElement).filter(
+    (node) => node.tagName === 'INPUT' || node.tagName === 'BUTTON',
+  );
+  assert.ok(disabledControls.length > 0);
+  disabledControls.forEach((control) => assert.equal(control.disabled, true));
+  disabledForm.dispatchEvent({ type: 'submit', preventDefault() {} });
+  assert.equal(disabledSubmissionCount, 0);
+
+  const actionError = Object.assign(new Error('Password login rejected'), {
+    code: 'mpr-ui.auth.password_login_failed',
+  });
+  const errorController = {
+    host: createStubNode({ supportsEvents: true }),
+    state: { status: 'unauthenticated', profile: null, options: normalizedOptions },
+    performPasswordAction() {
+      return Promise.reject(actionError);
+    },
+    performAccountAction() {
+      return Promise.resolve();
+    },
+  };
+  const errorElement = attachChildTreeApi(
+    attachHostApi(new PasswordAuthElement(), new Map()),
+  );
+  errorElement.ownerDocument = global.document;
+  errorElement.__authControllerOverride = errorController;
+  errorElement.setAttribute('mode', 'login');
+  errorElement.setAttribute('auth-config', JSON.stringify(authConfig));
+  errorElement.connectedCallback();
+  const errorInputs = walkStubTree(errorElement).filter(
+    (node) => node.tagName === 'INPUT',
+  );
+  errorInputs.forEach((input) => {
+    input.value = input.name === 'email' ? 'error@example.com' : 'error-secret';
+  });
+  const errorForm = walkStubTree(errorElement).find((node) => node.tagName === 'FORM');
+  errorForm.dispatchEvent({ type: 'submit', preventDefault() {} });
+  await flushAsync();
+  assert.equal(errorElement.getAttribute('data-mpr-password-auth-status'), 'error');
+  assert.equal(
+    errorElement.getAttribute('data-mpr-password-auth-error'),
+    'mpr-ui.auth.password_login_failed',
+  );
+  assert.equal(JSON.stringify(errorElement.__dispatchedEvents).includes('error-secret'), false);
+});
+
+test('F007: shared TAuth actions use explicit paths, tenant headers, and sanitized results', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const authConfig = createPasswordAccountAuthConfig({
+    tauthUrl: 'https://auth.example.test',
+    tenantId: 'account-tenant',
+  });
+  const requests = [];
+  global.fetch = async function captureActionRequest(url, options) {
+    requests.push({ url, options });
+    if (String(url).endsWith('/auth/password/reset/start')) {
+      return {
+        ok: true,
+        status: 202,
+        json: async function challengePayload() {
+          return {
+            status: 'accepted',
+            expires_unix: 12345,
+            reset_token: 'server-reset-secret',
+          };
+        },
+      };
+    }
+    if (String(url).endsWith('/auth/account/disable')) {
+      return { ok: true, status: 204 };
+    }
+    return {
+      ok: true,
+      status: 200,
+      json: async function profilePayload() {
+        return {
+          user_id: 'account-id',
+          user_email: 'account@example.com',
+          display: 'Account User',
+        };
+      },
+    };
+  };
+  const host = createStubNode({ supportsEvents: true, attributes: true });
+  const controller = library.createAuthHeader(host, authConfig);
+  controller.setAuthenticatedForTesting({
+    user_id: 'account-id',
+    user_email: 'account@example.com',
+  });
+
+  await controller.performPasswordAction('login', {
+    email: 'account@example.com',
+    password: 'login-secret',
+  });
+  await controller.performPasswordAction('reset-complete', {
+    token: 'reset-token-secret',
+    password: 'reset-password-secret',
+  });
+  assert.equal(controller.state.status, 'authenticated');
+  assert.equal(controller.state.profile.user_id, 'account-id');
+  const challengeResult = await controller.performPasswordAction('reset-start', {
+    email: 'account@example.com',
+  });
+  await controller.performAccountAction('password-change', {
+    currentPassword: 'current-secret',
+    newPassword: 'new-secret',
+  });
+  await controller.performAccountAction('disable', {});
+
+  assert.equal(requests[0].url, 'https://auth.example.test/auth/password/login');
+  assert.deepEqual(JSON.parse(requests[0].options.body), {
+    email: 'account@example.com',
+    password: 'login-secret',
+  });
+  requests.forEach((request) => {
+    assert.equal(request.options.credentials, 'include');
+    assert.equal(request.options.headers['X-Requested-With'], 'XMLHttpRequest');
+    assert.equal(request.options.headers['X-TAuth-Tenant'], 'account-tenant');
+  });
+  assert.deepEqual(challengeResult, {
+    action: 'reset-start',
+    status: 'accepted',
+    expiresUnix: 12345,
+  });
+  assert.equal(JSON.stringify(challengeResult).includes('server-reset-secret'), false);
+  assert.equal(controller.state.status, 'unauthenticated');
+  assert.equal(controller.state.profile, null);
+  controller.destroy();
+});
+
+test('F007: explicit local challenge results expose tokens only to the caller', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const authConfig = createPasswordAccountAuthConfig({
+    tauthUrl: 'https://auth.example.test',
+    tenantId: 'challenge-tenant',
+  });
+  const tokenByPath = {
+    '/auth/password/signup': ['verification_token', 'signup-fixture-token'],
+    '/auth/password/reset/start': ['reset_token', 'reset-fixture-token'],
+    '/auth/account/password/link/start': [
+      'verification_token',
+      'link-fixture-token',
+    ],
+  };
+  global.fetch = async function returnChallengeToken(url) {
+    const requestPath = new URL(String(url)).pathname;
+    const tokenEntry = tokenByPath[requestPath];
+    assert.ok(tokenEntry, `Unexpected challenge request: ${requestPath}`);
+    return {
+      ok: true,
+      status: 202,
+      json: async function challengePayload() {
+        return {
+          status: 'accepted',
+          expires_unix: 12345,
+          [tokenEntry[0]]: tokenEntry[1],
+        };
+      },
+    };
+  };
+  const host = createStubNode({ supportsEvents: true, attributes: true });
+  const controller = library.createAuthHeader(host, authConfig);
+
+  const signupResult = await controller.performPasswordAction(
+    'signup',
+    { email: 'signup@example.com', password: 'signup-password' },
+    { includeChallengeToken: true },
+  );
+  const resetResult = await controller.performPasswordAction(
+    'reset-start',
+    { email: 'reset@example.com' },
+    { includeChallengeToken: true },
+  );
+  controller.setAuthenticatedForTesting({
+    user_id: 'account-id',
+    user_email: 'account@example.com',
+  });
+  const linkResult = await controller.performAccountAction(
+    'password-link-start',
+    { email: 'link@example.com', password: 'link-password' },
+    { includeChallengeToken: true },
+  );
+
+  assert.equal(signupResult.challengeToken, 'signup-fixture-token');
+  assert.equal(resetResult.challengeToken, 'reset-fixture-token');
+  assert.equal(linkResult.challengeToken, 'link-fixture-token');
+  const eventText = JSON.stringify(host.__dispatchedEvents || []);
+  Object.values(tokenByPath).forEach((tokenEntry) => {
+    assert.equal(eventText.includes(tokenEntry[1]), false);
+  });
+  controller.destroy();
+});
+
+test('F007: in-flight password actions cannot update a changed auth lifecycle', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const initialConfig = createPasswordAccountAuthConfig({
+    tauthUrl: 'https://auth.initial.test',
+    tenantId: 'lifecycle-tenant',
+  });
+  let resolveActionResponse;
+  global.fetch = function holdPasswordAction() {
+    return new Promise((resolve) => {
+      resolveActionResponse = resolve;
+    });
+  };
+  const host = createStubNode({ supportsEvents: true, attributes: true });
+  const controller = library.createAuthHeader(host, initialConfig);
+  const actionPromise = controller.performPasswordAction('login', {
+    email: 'lifecycle@example.com',
+    password: 'lifecycle-secret',
+  });
+
+  controller.updateOptions(
+    createPasswordAccountAuthConfig({
+      tauthUrl: 'https://auth.current.test',
+      tenantId: 'lifecycle-tenant',
+    }),
+  );
+  resolveActionResponse({
+    ok: true,
+    status: 200,
+    json: async function currentProfilePayload() {
+      return {
+        user_id: 'obsolete-profile',
+        user_email: 'obsolete@example.com',
+      };
+    },
+  });
+
+  await assert.rejects(
+    actionPromise,
+    (error) => error.code === 'mpr-ui.auth.recovery_lifecycle_changed',
+  );
+  assert.equal(controller.state.status, 'unauthenticated');
+  assert.equal(controller.state.profile, null);
+  const dispatchedEvents = host.__dispatchedEvents || [];
+  assert.equal(
+    JSON.stringify(dispatchedEvents).includes('lifecycle-secret'),
+    false,
+  );
+  assert.equal(
+    dispatchedEvents.some(
+      (eventEntry) =>
+        eventEntry.type === 'mpr-ui:auth:error' &&
+        eventEntry.detail.code === 'mpr-ui.auth.recovery_lifecycle_changed',
+    ),
+    false,
+  );
+  controller.destroy();
+});
+
+test('F007: sign-out invalidates delayed account responses', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const authConfig = createPasswordAccountAuthConfig({
+    tauthUrl: 'https://auth.example.test',
+    tenantId: 'signout-race-tenant',
+  });
+  let resolveAccountResponse;
+  global.fetch = function routeSignOutRaceRequest(url) {
+    if (String(url).endsWith('/auth/account/password/change')) {
+      return new Promise((resolve) => {
+        resolveAccountResponse = resolve;
+      });
+    }
+    if (String(url).endsWith('/auth/logout')) {
+      return Promise.resolve({ ok: true, status: 204 });
+    }
+    throw new Error('Unexpected request: ' + String(url));
+  };
+  const host = createStubNode({ supportsEvents: true, attributes: true });
+  const controller = library.createAuthHeader(host, authConfig);
+  controller.setAuthenticatedForTesting({
+    user_id: 'race-account',
+    user_email: 'race@example.com',
+  });
+
+  const accountPromise = controller.performAccountAction('password-change', {
+    currentPassword: 'current-password',
+    newPassword: 'new-password',
+  });
+  await controller.signOut();
+  resolveAccountResponse({
+    ok: true,
+    status: 200,
+    json: async function delayedProfile() {
+      return { user_id: 'race-account', user_email: 'race@example.com' };
+    },
+  });
+
+  await assert.rejects(
+    accountPromise,
+    (error) => error.code === 'mpr-ui.auth.recovery_lifecycle_changed',
+  );
+  assert.equal(controller.state.status, 'unauthenticated');
+  assert.equal(controller.state.profile, null);
+  controller.destroy();
+});
+
+test('F007: Google linking resolves only after credential exchange', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const authConfig = createPasswordAccountAuthConfig({
+    tauthUrl: 'https://auth.example.test',
+    tenantId: 'google-link-tenant',
+  });
+  let googleCredentialCallback;
+  let resolveGoogleLinkResponse;
+  global.requestNonce = function requestGoogleLinkNonce() {
+    return Promise.resolve('google-link-nonce');
+  };
+  global.google = {
+    accounts: {
+      id: {
+        initialize(config) {
+          googleCredentialCallback = config.callback;
+        },
+        renderButton() {},
+        prompt(handlePromptMoment) {
+          googleCredentialCallback({ credential: 'google-link-credential' });
+          handlePromptMoment({
+            isNotDisplayed() {
+              return false;
+            },
+            isSkippedMoment() {
+              return false;
+            },
+            isDismissedMoment() {
+              return true;
+            },
+          });
+        },
+      },
+    },
+  };
+  global.fetch = function holdGoogleLinkResponse(url) {
+    assert.equal(String(url), 'https://auth.example.test/auth/account/google/link');
+    return new Promise((resolve) => {
+      resolveGoogleLinkResponse = resolve;
+    });
+  };
+  const host = createStubNode({ supportsEvents: true, attributes: true });
+  const controller = library.createAuthHeader(host, authConfig);
+  controller.setAuthenticatedForTesting({
+    user_id: 'account-id',
+    user_email: 'account@example.com',
+  });
+  let linkCompleted = false;
+  const linkPromise = controller.startGoogleLink().then((result) => {
+    linkCompleted = true;
+    return result;
+  });
+  await flushAsync();
+  assert.equal(linkCompleted, false);
+
+  resolveGoogleLinkResponse({
+    ok: true,
+    status: 200,
+    json: async function linkedProfile() {
+      return { user_id: 'account-id', user_email: 'account@example.com' };
+    },
+  });
+  const result = await linkPromise;
+
+  assert.deepEqual(result, { action: 'google-link', status: 'updated' });
+  assert.equal(linkCompleted, true);
+  assert.equal(controller.state.status, 'authenticated');
+  controller.destroy();
+});
+
+test('F007: Google linking rejects a prompt that ends without a credential', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const authConfig = createPasswordAccountAuthConfig();
+  let googleCredentialCallback;
+  let accountRequestCount = 0;
+  global.requestNonce = function requestGoogleLinkNonce() {
+    return Promise.resolve('google-link-nonce');
+  };
+  global.google = {
+    accounts: {
+      id: {
+        initialize(config) {
+          googleCredentialCallback = config.callback;
+        },
+        renderButton() {},
+        prompt(handlePromptMoment) {
+          handlePromptMoment({
+            isNotDisplayed() {
+              return false;
+            },
+            isSkippedMoment() {
+              return false;
+            },
+            isDismissedMoment() {
+              return true;
+            },
+          });
+        },
+      },
+    },
+  };
+  global.fetch = function rejectUnexpectedGoogleLink() {
+    accountRequestCount += 1;
+    return Promise.reject(new Error('Google link request must not start'));
+  };
+  const host = createStubNode({ supportsEvents: true, attributes: true });
+  const controller = library.createAuthHeader(host, authConfig);
+  controller.setAuthenticatedForTesting({
+    user_id: 'account-id',
+    user_email: 'account@example.com',
+  });
+
+  await assert.rejects(
+    controller.startGoogleLink(),
+    (error) => error.code === 'mpr-ui.account.google_prompt_incomplete',
+  );
+  await googleCredentialCallback({ credential: 'late-google-credential' });
+  await flushAsync();
+  assert.equal(accountRequestCount, 0);
+  assert.equal(controller.state.status, 'authenticated');
+  controller.destroy();
+});
+
+test('F007: sign-out rejects a Google link prompt that is still pending', async () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const authConfig = createPasswordAccountAuthConfig();
+  global.requestNonce = function requestGoogleLinkNonce() {
+    return Promise.resolve('google-link-nonce');
+  };
+  global.google = {
+    accounts: {
+      id: {
+        initialize() {},
+        renderButton() {},
+        prompt() {},
+      },
+    },
+  };
+  global.logout = function completeLogout() {
+    return Promise.resolve();
+  };
+  const host = createStubNode({ supportsEvents: true, attributes: true });
+  const controller = library.createAuthHeader(host, authConfig);
+  controller.setAuthenticatedForTesting({
+    user_id: 'account-id',
+    user_email: 'account@example.com',
+  });
+  const linkPromise = controller.startGoogleLink();
+  await flushAsync();
+
+  await controller.signOut();
+  await assert.rejects(
+    linkPromise,
+    (error) => error.code === 'mpr-ui.auth.recovery_lifecycle_changed',
+  );
+  assert.equal(controller.state.status, 'unauthenticated');
+  controller.destroy();
 });

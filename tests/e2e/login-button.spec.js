@@ -50,6 +50,7 @@ test.describe('Standalone login button presentation', () => {
             returnTo: 'current-origin',
             label: 'Sign in with Apple',
           },
+          password: { enabled: false },
         },
       }));
     });

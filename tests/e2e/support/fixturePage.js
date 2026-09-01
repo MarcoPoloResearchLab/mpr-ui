@@ -183,6 +183,21 @@ const AUTH_ONLY_RUNTIME_CONFIG = String.raw`environments:
           startPath: "/auth/apple/start"
           returnTo: "current-origin"
           label: "Sign in with Apple"
+        password:
+          enabled: true
+      password:
+        loginPath: "/auth/password/login"
+        signupPath: "/auth/password/signup"
+        verifyEmailPath: "/auth/password/verify-email"
+        resetStartPath: "/auth/password/reset/start"
+        resetCompletePath: "/auth/password/reset/complete"
+      account:
+        passwordChangePath: "/auth/account/password/change"
+        passwordLinkStartPath: "/auth/account/password/link/start"
+        passwordLinkVerifyPath: "/auth/account/password/link/verify"
+        googleLinkPath: "/auth/account/google/link"
+        unlinkPath: "/auth/account/unlink"
+        disablePath: "/auth/account/disable"
 `;
 
 /**

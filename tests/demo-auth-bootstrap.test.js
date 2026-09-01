@@ -157,6 +157,7 @@ async function flushMicrotasks() {
 test('status panel boots from the existing auth dataset on reload', () => {
   const statusHost = createElement('div');
   const sourceElement = createElement('mpr-header');
+  const unlinkPanel = createElement('mpr-account-panel');
   sourceElement.setAttribute('data-user-display', 'Ada Lovelace');
   sourceElement.setAttribute('data-user-email', 'ada@example.com');
   sourceElement.setAttribute('data-user-avatar-url', 'https://cdn.example.com/avatar.png');
@@ -168,6 +169,7 @@ test('status panel boots from the existing auth dataset on reload', () => {
       'mpr-header[data-user-display]': sourceElement,
       'mpr-user[data-user-display]': null,
       'mpr-login-button[data-user-display]': null,
+      'mpr-account-panel[action="unlink"]': unlinkPanel,
     },
   });
   const sandbox = createSandbox(documentStub);
@@ -185,6 +187,16 @@ test('status panel boots from the existing auth dataset on reload', () => {
     statusHost.children[0].children[1].children[1].children[1].textContent,
     ' ada@example.com',
   );
+  assert.deepEqual(JSON.parse(unlinkPanel.getAttribute('identities')), [
+    {
+      provider: 'password',
+      providerId: 'ada@example.com',
+      label: 'Email sign-in (ada@example.com)',
+    },
+  ]);
+
+  documentStub.dispatchEvent({ type: 'mpr-ui:auth:unauthenticated' });
+  assert.equal(unlinkPanel.getAttribute('identities'), null);
 });
 
 test('standalone demo boots the auth card from the shared initial profile snapshot', () => {

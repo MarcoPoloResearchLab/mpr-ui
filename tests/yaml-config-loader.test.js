@@ -56,6 +56,9 @@ function createBaseConfig() {
             apple: {
               enabled: false,
             },
+            password: {
+              enabled: false,
+            },
           },
         },
       },
@@ -250,6 +253,7 @@ test('loadYamlConfig accepts Google-only, Apple-only, and combined provider maps
         noncePath: '/auth/nonce',
       },
       apple: { enabled: false },
+      password: { enabled: false },
     },
     {
       label: 'Apple-only',
@@ -260,6 +264,7 @@ test('loadYamlConfig accepts Google-only, Apple-only, and combined provider maps
         returnTo: 'current-url',
         label: 'Sign in with Apple',
       },
+      password: { enabled: false },
     },
     {
       label: 'combined',
@@ -275,6 +280,7 @@ test('loadYamlConfig accepts Google-only, Apple-only, and combined provider maps
         returnTo: '/signed-in',
         label: 'Continue with Apple',
       },
+      password: { enabled: false },
     },
   ];
 
@@ -284,6 +290,7 @@ test('loadYamlConfig accepts Google-only, Apple-only, and combined provider maps
     configPayload.environments[0].auth.providers = {
       google: providerCase.google,
       apple: providerCase.apple,
+      password: providerCase.password,
     };
     setupYamlEnvironment(configPayload);
     const namespace = loadNamespace();
@@ -301,6 +308,67 @@ test('loadYamlConfig accepts Google-only, Apple-only, and combined provider maps
       providerCase.apple.enabled,
       `${providerCase.label}: Apple state is preserved`,
     );
+  }
+});
+
+test('F007: loadYamlConfig validates explicit password and account endpoint sections', async () => {
+  resetEnvironment();
+  const configPayload = createBaseConfig();
+  const auth = configPayload.environments[0].auth;
+  auth.providers.google = { enabled: false };
+  auth.providers.apple = { enabled: false };
+  auth.providers.password = { enabled: true };
+  auth.password = {
+    loginPath: '/auth/password/login',
+    signupPath: '/auth/password/signup',
+    verifyEmailPath: '/auth/password/verify-email',
+    resetStartPath: '/auth/password/reset/start',
+    resetCompletePath: '/auth/password/reset/complete',
+  };
+  auth.account = {
+    passwordChangePath: '/auth/account/password/change',
+    passwordLinkStartPath: '/auth/account/password/link/start',
+    passwordLinkVerifyPath: '/auth/account/password/link/verify',
+    googleLinkPath: '/auth/account/google/link',
+    unlinkPath: '/auth/account/unlink',
+    disablePath: '/auth/account/disable',
+  };
+  setupYamlEnvironment(configPayload);
+  const namespace = loadNamespace();
+  const runtimeConfig = await namespace.loadYamlConfig();
+
+  assert.equal(runtimeConfig.auth.providers.password.enabled, true);
+  assert.equal(runtimeConfig.auth.password.resetCompletePath, '/auth/password/reset/complete');
+  assert.equal(runtimeConfig.auth.account.disablePath, '/auth/account/disable');
+
+  for (const invalidCase of [
+    {
+      mutate(currentAuth) {
+        delete currentAuth.password;
+      },
+      message: 'config-ui.yaml missing auth.password',
+    },
+    {
+      mutate(currentAuth) {
+        currentAuth.password.loginPath = 'https://unsafe.example/login';
+      },
+      message: 'config-ui.yaml invalid auth.password.loginPath',
+    },
+    {
+      mutate(currentAuth) {
+        currentAuth.account.magicPath = '/auth/account/magic';
+      },
+      message: 'config-ui.yaml unknown auth.account.magicPath',
+    },
+  ]) {
+    resetEnvironment();
+    const invalidConfig = structuredClone(configPayload);
+    invalidCase.mutate(invalidConfig.environments[0].auth);
+    setupYamlEnvironment(invalidConfig);
+    const invalidNamespace = loadNamespace();
+    await assert.rejects(invalidNamespace.loadYamlConfig(), {
+      message: invalidCase.message,
+    });
   }
 });
 
@@ -728,12 +796,16 @@ test('applyYamlConfig waits for DOMContentLoaded, applies custom selectors, and 
     'button-shape': 'pill',
   });
   const userMenu = createElement({});
+  const passwordAuth = createElement({});
+  const accountPanel = createElement({});
   const deferredDocument = createDocumentStub({
     readyState: 'loading',
     selectorList: {
       '.header-target': [header],
       '.login-target': [loginButton],
       '.user-target': [userMenu],
+      '.password-target': [passwordAuth],
+      '.account-target': [accountPanel],
     },
   });
 
@@ -752,6 +824,8 @@ test('applyYamlConfig waits for DOMContentLoaded, applies custom selectors, and 
     headerSelector: '.header-target',
     loginButtonSelector: '.login-target',
     userSelector: '.user-target',
+    passwordAuthSelector: '.password-target',
+    accountPanelSelector: '.account-target',
   });
 
   await Promise.resolve();
@@ -771,6 +845,8 @@ test('applyYamlConfig waits for DOMContentLoaded, applies custom selectors, and 
   assert.equal(loginButton.attributes['button-theme'], 'filled_blue');
   assert.equal(loginButton.attributes['button-shape'], 'pill');
   assert.equal(userMenu.attributes['auth-config'], serializedAuthConfig);
+  assert.equal(passwordAuth.attributes['auth-config'], serializedAuthConfig);
+  assert.equal(accountPanel.attributes['auth-config'], serializedAuthConfig);
   assert.equal(deferredDocument.dispatchedEvents.length, 1);
   assert.equal(deferredDocument.dispatchedEvents[0].type, 'mpr-ui:config:applied');
   assert.equal(

@@ -690,6 +690,7 @@ test.describe('MPRUI.authenticatedFetch', () => {
             noncePath: '/auth/nonce',
           },
           apple: { enabled: false },
+          password: { enabled: false },
         },
       });
     });
