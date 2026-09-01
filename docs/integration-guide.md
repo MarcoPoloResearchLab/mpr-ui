@@ -16,7 +16,7 @@ Do not introduce a second path through direct `tauth.js` loading or template-lev
 - One path: `/config-ui.yaml` is the browser-facing config surface. The URL may be absolute when the config backend grants the page origin CORS access.
 - DSL first: use `<mpr-*>` attributes, slots, `horizontal-links`, `links-collection`, `theme-switcher`, and `theme-config`.
 - Backend owns config: your app serves `/config-ui.yaml`, browser-facing `/auth/*` routes, and protected domain routes.
-- `mpr-ui` owns auth lifecycle: it handles Google nonce preparation and credential exchange, Apple redirect initiation, shell state, and auth events.
+- `mpr-ui` owns auth lifecycle: it handles Google nonce preparation and credential exchange, Apple redirect initiation, password and account requests, shell state, and auth events.
 - `mpr-ui` owns protected requests: it coordinates TAuth session recovery and one permitted request retry.
 
 ## Required assets
@@ -57,6 +57,8 @@ Your backend must provide:
 - `POST /auth/nonce`
 - `POST /auth/google`
 - `GET /auth/apple/start` when Apple is enabled
+- the configured `/auth/password/*` routes when password auth is enabled
+- the configured `/auth/account/*` routes when account management is present
 - `POST /auth/logout`
 - `GET /auth/session`, or the exact path in `auth.sessionPath`
 
@@ -93,6 +95,21 @@ environments:
           startPath: "/auth/apple/start"
           returnTo: "current-origin"
           label: "Sign in with Apple"
+        password:
+          enabled: true
+      password:
+        loginPath: "/auth/password/login"
+        signupPath: "/auth/password/signup"
+        verifyEmailPath: "/auth/password/verify-email"
+        resetStartPath: "/auth/password/reset/start"
+        resetCompletePath: "/auth/password/reset/complete"
+      account:
+        passwordChangePath: "/auth/account/password/change"
+        passwordLinkStartPath: "/auth/account/password/link/start"
+        passwordLinkVerifyPath: "/auth/account/password/link/verify"
+        googleLinkPath: "/auth/account/google/link"
+        unlinkPath: "/auth/account/unlink"
+        disablePath: "/auth/account/disable"
 ```
 
 Rules:
@@ -100,9 +117,11 @@ Rules:
 - `tauthUrl` is required and may be `""` for same-origin auth.
 - `tenantId` is required and non-empty.
 - `logoutPath` and `sessionPath` are required and explicit.
-- `providers.google` and `providers.apple` are required. At least one provider is enabled.
+- `providers.google`, `providers.apple`, and `providers.password` are required. At least one provider is enabled.
 - enabled Google requires `clientId`, `loginPath`, and `noncePath`.
 - enabled Apple requires `startPath`, `returnTo`, and an approved `label`.
+- enabled password auth requires every path in `auth.password`.
+- account panels require every path in `auth.account`.
 - a disabled provider contains only `enabled: false`.
 - Apple `returnTo` is `current-url`, `current-origin`, or a same-origin path.
 - Protected apps must configure a non-empty `sessionPath` for `MPRUI.authenticatedFetch()`.
@@ -173,11 +192,44 @@ The loader applies only `/config-ui.yaml` auth attributes to the button before l
 
 ### Config-driven provider actions
 
-The owning header or login button renders the provider set from `/config-ui.yaml`. Google-only, Apple-only, and combined tenants use the same component and one auth controller. Provider actions do not create duplicate session or profile probes.
+The owning header or login button renders the provider set from `/config-ui.yaml`. Google, Apple, and password can be enabled independently or together. The surface uses one auth controller, and provider actions do not create duplicate session or profile probes.
 
 Apple is a redirect provider. The action builds the configured TAuth `startPath` with `tenant_id` and a validated `return_to`. It records a restore hint and emits an authenticating status. It then navigates the top-level page. TAuth handles the callback and session cookies. The returned page uses `sessionPath` and emits the ordinary `mpr-ui:auth:*` lifecycle.
 
 Apple Developer portal values belong to TAuth and deployment configuration. Browser config contains only enablement, start path, tenant ID, return policy, and approved label.
+
+### Password and account actions
+
+Use `<mpr-password-auth>` for public password flows. Set one explicit `mode`: `login`, `signup`, `verify-email`, `reset-start`, or `reset-complete`.
+
+```html
+<mpr-password-auth
+  mode="login"
+  auth-target="#site-header"
+></mpr-password-auth>
+```
+
+Use `<mpr-account-panel>` for authenticated account actions. Set one explicit `action`: `password-change`, `password-link-start`, `password-link-verify`, `google-link`, `unlink`, or `disable`.
+
+```html
+<mpr-account-panel
+  action="password-change"
+  auth-target="#site-header"
+></mpr-account-panel>
+```
+
+The config loader applies `auth-config` to both component types. `auth-target` names the owning header or login button when the component is outside that element. Each component uses the owning controller state and never creates a separate session probe.
+
+For `action="unlink"`, provide an `identities` JSON array containing exact
+`provider`, `providerId`, and user-facing `label` fields. The component renders
+a select control and submits the configured identity; users do not type opaque
+provider subjects.
+
+Every password or account POST uses `credentials: "include"`, `X-Requested-With: XMLHttpRequest`, and `X-TAuth-Tenant`. Successful login, verification, and reset completion produce the same profile state and `mpr-ui:auth:*` events as Google login. Account disable clears that state.
+
+Password and token values remain local to the immediate request. Do not copy them into attributes, event details, local storage, logs, diagnostics, or persistent profiles. TAuth may return challenge tokens only for a local fixture with `return_challenge_tokens` enabled. By default, the shared components discard returned token fields and assume TAuth delivers the challenge through email or another server-owned channel. A local fixture or trusted delivery integration can add `display-challenge-token` to `signup`, `reset-start`, or `password-link-start`; the token then appears only in that form's status text and remains absent from public events and profiles.
+
+TAuth owns password policy, challenge lifecycle, cookie issuance, identity rules, and account state. `mpr-ui` owns controls, browser validation, request wiring, status UI, and auth events. Host apps own route protection, app-specific profile data, and bespoke account-policy decisions. Direct `tauth.js` loading and app-owned password forms are obsolete.
 
 Use `current-url` when the app must return to the current path and safe query values. `mpr-ui` removes callback-shaped query values and the fragment. Use `current-origin` for the origin root. Use a same-origin path for a fixed handoff route.
 
@@ -214,7 +266,7 @@ Integration rules:
 
 What the loader applies automatically:
 
-- one validated `auth-config` JSON object on `<mpr-header>`, `<mpr-login-button>`, and `<mpr-user>`
+- one validated `auth-config` JSON object on `<mpr-header>`, `<mpr-login-button>`, `<mpr-user>`, `<mpr-password-auth>`, and `<mpr-account-panel>`
 - no presentation attributes; static `button-*` markup remains authoritative for `<mpr-login-button>`
 
 What your template still owns:
@@ -230,7 +282,7 @@ What your template still owns:
 
 ## Login-only button presentation
 
-`<mpr-login-button>` owns the complete enabled provider action set. After upgrade, it removes child CTA markup and host button semantics. It then renders accessible provider buttons with focus and status feedback. Google starts nonce-bound GIS on activation. Apple starts validated top-level TAuth navigation.
+`<mpr-login-button>` owns the complete enabled provider action set. After upgrade, it removes child CTA markup and host button semantics. It then renders accessible provider buttons with focus and status feedback. Google starts nonce-bound GIS on activation. Apple starts validated top-level TAuth navigation. Password opens `<mpr-password-auth mode="login">` on the same controller.
 
 Configure the standard appearance through static element attributes. `/config-ui.yaml` is auth-only and rejects `authButton`:
 
@@ -365,7 +417,7 @@ If sign-in should open an authenticated app route, set `sign-in-redirect-url` on
 
 1. Open the page and confirm `/config-ui.yaml` loads before the bundle.
 2. Confirm the template contains `mpr-header`, `mpr-footer`, `mpr-ui-config.js`, `mpr-ui.js`, and `/config-ui.yaml`.
-3. Confirm the page does not load `tauth.js`.
+3. Confirm the page does not load `tauth.js` and contains no app-owned password fetch code.
 4. Confirm `POST /auth/nonce` runs before GIS credential exchange.
 5. Confirm `POST /auth/google` succeeds and sets the cookie.
 6. Confirm `mpr-ui:auth:authenticated` fires and your app reacts.
@@ -378,6 +430,9 @@ If sign-in should open an authenticated app route, set `sign-in-redirect-url` on
 13. If Apple is enabled, inspect the start URL and confirm the configured TAuth origin and start path.
 14. Confirm `return_to` stays on the app origin.
 15. After the Apple return, confirm one session restore produces the ordinary authenticated profile event.
+16. If password auth is enabled, complete login, signup, verification, reset-start, and reset-complete through `<mpr-password-auth>`.
+17. If account management is enabled, complete change, link, unlink, and disable through `<mpr-account-panel>`.
+18. Confirm credentials and challenge tokens do not appear in attributes, event details, local storage, logs, diagnostics, or stored profiles.
 
 ## Troubleshooting
 
@@ -394,8 +449,8 @@ If sign-in should open an authenticated app route, set `sign-in-redirect-url` on
 | Header works but user menu logout fails | `mpr-user` is missing the config-applied provider map | Keep the config loader in front of the bundle and use `data-config-url`. |
 | Provider chooser renders but no auth happens | the chooser is only a UI/event primitive | Use `<mpr-header>` or `<mpr-login-button>` for config-driven provider auth. |
 | App reveals authenticated UI after `mpr-auth-provider:select` | provider-choice events were mistaken for auth lifecycle events | Wait for `mpr-ui:auth:authenticated` before showing authenticated UI. |
-| Password appears in logs or event output | app code redispatched or logged form values after reading the email panel | Keep credentials inside the immediate auth request path and never copy them into DOM-visible state. |
+| Password appears in logs or event output | an integration copied form values outside the shared component request | Remove the app-owned credential path and use `<mpr-password-auth>` or `<mpr-account-panel>`. |
 
 ## Migration
 
-Move flat Google and `tauth-*` values into the provider map in `/config-ui.yaml`. Add the Apple provider entry, even when disabled. Remove direct `tauth.js` loading and manual auth attributes. The loader writes one `auth-config` attribute.
+Move flat Google and `tauth-*` values into the provider map in `/config-ui.yaml`. Add Google, Apple, and password provider entries, even when disabled. Add explicit password and account path sections for the shared forms. Remove direct `tauth.js` loading, app-owned password fetch code, and manual auth attributes. The loader writes one `auth-config` attribute.

@@ -6,7 +6,7 @@ The header/footer sections below reflect current LoopAware usage. The entity-wor
 
 ## mpr-header
 
-The header integrates configured Google and Apple providers with TAuth and emits the shared auth lifecycle events.
+The header integrates configured Google, Apple, and password providers with TAuth and emits the shared auth lifecycle events.
 
 ### Primary integration path
 
@@ -20,8 +20,11 @@ Serve `/config-ui.yaml`. Render `<mpr-header data-config-url="/config-ui.yaml">`
 - `sessionPath`: Same-origin passive session restore path.
 - `providers.google`: Explicit Google provider object. Enabled Google requires `clientId`, `loginPath`, and `noncePath`.
 - `providers.apple`: Explicit Apple provider object. Enabled Apple requires `startPath`, `returnTo`, and an Apple-approved `label`.
+- `providers.password`: Explicit password provider object. Enabled password auth requires the complete `auth.password` path section.
+- `password`: Explicit login, signup, email verification, reset-start, and reset-complete paths.
+- `account`: Explicit password-change, password-link, Google-link, unlink, and disable paths.
 
-Both provider keys are required. A disabled provider contains only `{ "enabled": false }`. `returnTo` accepts `current-url`, `current-origin`, or a same-origin path. The config edge rejects unsafe targets, unknown fields, and incomplete provider settings.
+All three provider keys are required. A disabled provider contains only `{ "enabled": false }`. `returnTo` accepts `current-url`, `current-origin`, or a same-origin path. The config edge rejects unsafe targets, unknown fields, and incomplete provider settings.
 
 ### Optional attributes
 - `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders an inline utility link list inside the same row as the other header controls.
@@ -103,6 +106,67 @@ Load `mpr-ui.css`, `js-yaml`, and `mpr-ui-config.js`. Expose the bundle through 
 The Apple action builds the configured TAuth `startPath` with `tenant_id` and a validated `return_to`. It records a restore hint and emits `authenticating`. It then performs top-level navigation. TAuth owns Apple callback handling and session cookies. After return, the owning controller reads `sessionPath`. It emits the same auth events used by Google.
 
 Browser config and diagnostics contain no Apple service IDs, team IDs, key IDs, private keys, client secrets, callback paths, authorization codes, tokens, or raw state. Apple Developer portal values and server-to-server notifications belong to TAuth and deployment configuration.
+
+## mpr-password-auth
+
+`<mpr-password-auth>` submits email/password actions through an existing auth controller. It never creates a controller or sends an independent session probe.
+
+Required attributes:
+
+- `mode`: `login`, `signup`, `verify-email`, `reset-start`, or `reset-complete`.
+- `auth-config`: Applied by `mpr-ui-config.js`.
+- `auth-target`: Selector for the owning `<mpr-header>` or `<mpr-login-button>` when the form is not nested inside that auth surface.
+
+Optional `disabled` prevents input and submission. The form exposes its current state through `data-mpr-password-auth-status`. It emits `mpr-ui:password-auth:submit` and `mpr-ui:password-auth:status`. Event details contain the mode, status, and stable error code only. They never contain email values, passwords, or challenge tokens.
+
+Local fixtures that enable TAuth `return_challenge_tokens` can add the
+`display-challenge-token` attribute to `signup` and `reset-start` forms. The
+returned token appears only in that form's status text. Public events and the
+owning profile remain token-free. Do not set this attribute outside a local
+fixture or trusted delivery integration.
+
+Successful `login`, `verify-email`, and `reset-complete` actions update the owning controller and emit the ordinary `mpr-ui:auth:*` lifecycle. `signup` and `reset-start` emit `mpr-ui:account:challenge-issued` from the owning auth host with only the action, accepted status, and expiry time.
+
+```html
+<mpr-password-auth
+  mode="reset-complete"
+  auth-target="#site-header"
+></mpr-password-auth>
+```
+
+## mpr-account-panel
+
+`<mpr-account-panel>` requires authenticated state from its owning controller. It renders an explicit signed-out message when the controller is unauthenticated. It does not probe the session independently.
+
+Required attributes:
+
+- `action`: `password-change`, `password-link-start`, `password-link-verify`, `google-link`, `unlink`, or `disable`.
+- `auth-config`: Applied by `mpr-ui-config.js`.
+- `auth-target`: Selector for the owning auth surface when the panel is not nested inside it.
+
+The `unlink` action also requires an `identities` JSON array. Each entry has an
+exact `provider`, `providerId`, and user-facing `label`. The panel renders these
+canonical identities as a selection control; it never asks the user to enter a
+provider subject. Obtain the array from the account data owned by the host and
+TAuth integration.
+
+The panel emits `mpr-ui:account-panel:submit` and `mpr-ui:account-panel:status`. The owning auth host emits `mpr-ui:account:updated`, `mpr-ui:account:challenge-issued`, or `mpr-ui:account:disabled` after a successful action. Account disable also clears the shared profile and emits the unauthenticated lifecycle.
+
+Google linking uses the same nonce-bound Google Identity Services proof flow as Google login, then posts the credential to `auth.account.googleLinkPath`.
+
+```html
+<mpr-account-panel
+  action="unlink"
+  auth-target="#site-header"
+  identities='[{"provider":"password","providerId":"person@example.com","label":"Email sign-in (person@example.com)"}]'
+></mpr-account-panel>
+```
+
+Local fixtures can add `display-challenge-token` to the
+`password-link-start` action under the same restrictions as
+`<mpr-password-auth>`.
+
+TAuth owns password policy, challenge delivery, linked-identity rules, cookies, and account state. `mpr-ui` owns the shared forms and browser auth events. Host apps own route protection, app-specific profile fields, and bespoke account-policy decisions. Direct `tauth.js` loading and app-owned password fetch code are obsolete integration paths.
 
 ## mpr-auth-diagnostics
 
