@@ -61,21 +61,21 @@
         display-mode="avatar-name"
         logout-url="#signed-out"
         logout-label="Log out"
-        tauth-tenant-id="tenant-test"
+        auth-config='{"tauthUrl":"","tenantId":"tenant-test","logoutPath":"/auth/logout","sessionPath":"/auth/session","providers":{"google":{"enabled":true,"clientId":"fixture-client","loginPath":"/auth/google","noncePath":"/auth/nonce"},"apple":{"enabled":false}}}'
       ></mpr-user>
       <mpr-user
         id="fixture-user-avatar"
         display-mode="avatar"
         logout-url="#avatar-only"
         logout-label="Log out"
-        tauth-tenant-id="tenant-test"
+        auth-config='{"tauthUrl":"","tenantId":"tenant-test","logoutPath":"/auth/logout","sessionPath":"/auth/session","providers":{"google":{"enabled":true,"clientId":"fixture-client","loginPath":"/auth/google","noncePath":"/auth/nonce"},"apple":{"enabled":false}}}'
       ></mpr-user>
       <mpr-user
         id="fixture-user-menu-items"
         display-mode="avatar-name"
         logout-url="#menu-items"
         logout-label="Log out"
-        tauth-tenant-id="tenant-test"
+        auth-config='{"tauthUrl":"","tenantId":"tenant-test","logoutPath":"/auth/logout","sessionPath":"/auth/session","providers":{"google":{"enabled":true,"clientId":"fixture-client","loginPath":"/auth/google","noncePath":"/auth/nonce"},"apple":{"enabled":false}}}'
         menu-items='[{"label":"Account settings","href":"/settings"},{"label":"Billing","href":"/billing"}]'
       ></mpr-user>
       <mpr-user
@@ -83,7 +83,7 @@
         display-mode="avatar-name"
         logout-url="#menu-actions"
         logout-label="Log out"
-        tauth-tenant-id="tenant-test"
+        auth-config='{"tauthUrl":"","tenantId":"tenant-test","logoutPath":"/auth/logout","sessionPath":"/auth/session","providers":{"google":{"enabled":true,"clientId":"fixture-client","loginPath":"/auth/google","noncePath":"/auth/nonce"},"apple":{"enabled":false}}}'
         menu-items='[{"label":"Open settings","action":"open-settings"},{"label":"Billing","href":"/billing"}]'
       ></mpr-user>
       <mpr-user
@@ -92,7 +92,7 @@
         avatar-url="https://cdn.example.com/custom.png"
         logout-url="#custom-logout"
         logout-label="Log out"
-        tauth-tenant-id="tenant-test"
+        auth-config='{"tauthUrl":"","tenantId":"tenant-test","logoutPath":"/auth/logout","sessionPath":"/auth/session","providers":{"google":{"enabled":true,"clientId":"fixture-client","loginPath":"/auth/google","noncePath":"/auth/nonce"},"apple":{"enabled":false}}}'
       ></mpr-user>
     </div>
     <script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"></script>

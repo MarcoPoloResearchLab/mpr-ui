@@ -192,12 +192,7 @@ test.describe('MU-428: horizontal-links stays inline (single-row chrome)', () =>
       header.setAttribute('settings', 'false');
       header.setAttribute('nav-links', '[]');
 
-      header.removeAttribute('tauth-login-path');
-      header.removeAttribute('tauth-logout-path');
-      header.removeAttribute('tauth-nonce-path');
-      header.removeAttribute('tauth-url');
-      header.removeAttribute('tauth-tenant-id');
-      header.removeAttribute('google-site-id');
+      header.removeAttribute('auth-config');
     });
 
     const headerHorizontalLinks = page.locator('[data-mpr-header="horizontal-links"]');

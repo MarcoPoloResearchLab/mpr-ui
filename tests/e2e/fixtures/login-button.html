@@ -126,12 +126,7 @@
             role="button"
             tabindex="0"
             aria-label="Legacy CTA fallback"
-            site-id="fixture-google-client"
-            tauth-url="https://auth.example.test"
-            tauth-login-path="/auth/google"
-            tauth-logout-path="/auth/logout"
-            tauth-nonce-path="/auth/nonce"
-            tauth-tenant-id="fixture-tenant"
+            auth-config='{"tauthUrl":"https://auth.example.test","tenantId":"fixture-tenant","logoutPath":"/auth/logout","sessionPath":"/auth/session","providers":{"google":{"enabled":true,"clientId":"fixture-google-client","loginPath":"/auth/google","noncePath":"/auth/nonce"},"apple":{"enabled":false}}}'
             button-text="signin_with"
             button-size="large"
             button-theme="outline"

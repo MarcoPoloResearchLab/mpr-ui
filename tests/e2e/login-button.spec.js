@@ -32,6 +32,38 @@ async function renderedGeometry(locator) {
 }
 
 test.describe('Standalone login button presentation', () => {
+  test('F008: renders an Apple-only control without Google settings', async ({ page }) => {
+    await visitLoginButtonFixture(page);
+    const loginButton = page.locator('mpr-login-button#fixture-login-button');
+
+    await loginButton.evaluate((element) => {
+      element.setAttribute('auth-config', JSON.stringify({
+        tauthUrl: 'https://auth.example.test',
+        tenantId: 'fixture-tenant',
+        logoutPath: '/auth/logout',
+        sessionPath: '/auth/session',
+        providers: {
+          google: { enabled: false },
+          apple: {
+            enabled: true,
+            startPath: '/auth/apple/start',
+            returnTo: 'current-origin',
+            label: 'Sign in with Apple',
+          },
+        },
+      }));
+    });
+
+    const appleControl = page.getByRole('button', { name: 'Sign in with Apple' });
+    await expect(appleControl).toBeVisible();
+    await expect(page.getByRole('button', { name: 'Sign in with Google' })).toHaveCount(0);
+    await expect(loginButton).toHaveAttribute('data-mpr-auth-providers', 'apple');
+    const controlBox = await appleControl.boundingBox();
+    expect(controlBox).not.toBeNull();
+    expect(controlBox?.width || 0).toBeGreaterThanOrEqual(140);
+    expect(controlBox?.height || 0).toBeGreaterThanOrEqual(44);
+  });
+
   test('B044: renders one styled accessible Google control and starts the nonce-bound flow only after click', async ({ page }) => {
     await visitLoginButtonFixture(page);
 

@@ -43,12 +43,20 @@ function createBaseConfig() {
         origins: [' https://example.com ', '', 'https://mirror.example.com'],
         auth: {
           tauthUrl: 'https://auth.example.com',
-          googleClientId: 'example-client',
           tenantId: 'example-tenant',
-          loginPath: '/auth/google',
           logoutPath: '/auth/logout',
-          noncePath: '/auth/nonce',
-          sessionPath: '',
+          sessionPath: '/auth/session',
+          providers: {
+            google: {
+              enabled: true,
+              clientId: 'example-client',
+              loginPath: '/auth/google',
+              noncePath: '/auth/nonce',
+            },
+            apple: {
+              enabled: false,
+            },
+          },
         },
       },
     ],
@@ -194,10 +202,11 @@ test('loadYamlConfig selects matching environment by origin and preserves an exi
     'https://example.com',
     'https://mirror.example.com',
   ]);
-  assert.equal(runtimeConfig.auth.googleClientId, 'example-client');
-  assert.equal(runtimeConfig.auth.sessionPath, '');
+  assert.equal(runtimeConfig.auth.providers.google.clientId, 'example-client');
+  assert.equal(runtimeConfig.auth.sessionPath, '/auth/session');
   assert.equal(Object.isFrozen(runtimeConfig), true);
   assert.equal(Object.isFrozen(runtimeConfig.auth), true);
+  assert.equal(Object.isFrozen(runtimeConfig.auth.providers), true);
 });
 
 test('loadYamlConfig accepts auth-only runtime config and rejects obsolete presentation configuration', async () => {
@@ -228,6 +237,71 @@ test('loadYamlConfig accepts auth-only runtime config and rejects obsolete prese
         'config-ui.yaml does not allow authButton; declare login-button presentation in static markup',
     },
   );
+});
+
+test('loadYamlConfig accepts Google-only, Apple-only, and combined provider maps', async () => {
+  const providerCases = [
+    {
+      label: 'Google-only',
+      google: {
+        enabled: true,
+        clientId: 'google-client',
+        loginPath: '/auth/google',
+        noncePath: '/auth/nonce',
+      },
+      apple: { enabled: false },
+    },
+    {
+      label: 'Apple-only',
+      google: { enabled: false },
+      apple: {
+        enabled: true,
+        startPath: '/auth/apple/start',
+        returnTo: 'current-url',
+        label: 'Sign in with Apple',
+      },
+    },
+    {
+      label: 'combined',
+      google: {
+        enabled: true,
+        clientId: 'google-client',
+        loginPath: '/auth/google',
+        noncePath: '/auth/nonce',
+      },
+      apple: {
+        enabled: true,
+        startPath: '/auth/apple/start',
+        returnTo: '/signed-in',
+        label: 'Continue with Apple',
+      },
+    },
+  ];
+
+  for (const providerCase of providerCases) {
+    resetEnvironment();
+    const configPayload = createBaseConfig();
+    configPayload.environments[0].auth.providers = {
+      google: providerCase.google,
+      apple: providerCase.apple,
+    };
+    setupYamlEnvironment(configPayload);
+    const namespace = loadNamespace();
+    const runtimeConfig = await namespace.loadYamlConfig({
+      configUrl: '/config-ui.yaml',
+    });
+
+    assert.equal(
+      runtimeConfig.auth.providers.google.enabled,
+      providerCase.google.enabled,
+      `${providerCase.label}: Google state is preserved`,
+    );
+    assert.equal(
+      runtimeConfig.auth.providers.apple.enabled,
+      providerCase.apple.enabled,
+      `${providerCase.label}: Apple state is preserved`,
+    );
+  }
 });
 
 test('loadYamlConfig covers default options and loader fallback branches', async () => {
@@ -271,7 +345,13 @@ test('loadYamlConfig covers default options and loader fallback branches', async
   );
 });
 
-test('loadYamlConfig rejects invalid config structure and required auth strings', async () => {
+test('loadYamlConfig rejects invalid structure and provider-aware auth config', async () => {
+  function configWithAuthMutation(mutateAuth) {
+    const config = createBaseConfig();
+    mutateAuth(config.environments[0].auth);
+    return config;
+  }
+
   const cases = [
     {
       name: 'missing runtime origin',
@@ -334,131 +414,158 @@ test('loadYamlConfig rejects invalid config structure and required auth strings'
     },
     {
       name: 'missing tauthUrl',
-      configPayload: {
-        environments: [
-          {
-            origins: ['https://example.com'],
-            auth: {
-              googleClientId: 'example-client',
-              tenantId: 'example-tenant',
-              loginPath: '/auth/google',
-              logoutPath: '/auth/logout',
-              noncePath: '/auth/nonce',
-            },
-          },
-        ],
-      },
+      configPayload: configWithAuthMutation((auth) => delete auth.tauthUrl),
       expectedMessage: 'config-ui.yaml missing auth.tauthUrl',
     },
     {
       name: 'non-string tauthUrl',
-      configPayload: {
-        environments: [
-          {
-            origins: ['https://example.com'],
-            auth: {
-              tauthUrl: null,
-              googleClientId: 'example-client',
-              tenantId: 'example-tenant',
-              loginPath: '/auth/google',
-              logoutPath: '/auth/logout',
-              noncePath: '/auth/nonce',
-            },
-          },
-        ],
-      },
+      configPayload: configWithAuthMutation((auth) => {
+        auth.tauthUrl = null;
+      }),
       expectedMessage: 'config-ui.yaml missing auth.tauthUrl',
     },
     {
-      name: 'blank googleClientId',
-      configPayload: {
-        environments: [
-          {
-            origins: ['https://example.com'],
-            auth: {
-              tauthUrl: 'https://auth.example.com',
-              googleClientId: '   ',
-              tenantId: 'example-tenant',
-              loginPath: '/auth/google',
-              logoutPath: '/auth/logout',
-              noncePath: '/auth/nonce',
-            },
-          },
-        ],
-      },
-      expectedMessage: 'config-ui.yaml missing auth.googleClientId',
+      name: 'malformed tauthUrl',
+      configPayload: configWithAuthMutation((auth) => {
+        auth.tauthUrl = 'not-a-url';
+      }),
+      expectedMessage: 'config-ui.yaml invalid auth.tauthUrl',
+    },
+    {
+      name: 'tauthUrl includes a path',
+      configPayload: configWithAuthMutation((auth) => {
+        auth.tauthUrl = 'https://auth.example.com/private';
+      }),
+      expectedMessage: 'config-ui.yaml invalid auth.tauthUrl',
     },
     {
       name: 'missing tenantId',
-      configPayload: {
-        environments: [
-          {
-            origins: ['https://example.com'],
-            auth: {
-              tauthUrl: 'https://auth.example.com',
-              googleClientId: 'example-client',
-              loginPath: '/auth/google',
-              logoutPath: '/auth/logout',
-              noncePath: '/auth/nonce',
-            },
-          },
-        ],
-      },
+      configPayload: configWithAuthMutation((auth) => delete auth.tenantId),
       expectedMessage: 'config-ui.yaml missing auth.tenantId',
     },
     {
-      name: 'missing loginPath',
-      configPayload: {
-        environments: [
-          {
-            origins: ['https://example.com'],
-            auth: {
-              tauthUrl: 'https://auth.example.com',
-              googleClientId: 'example-client',
-              tenantId: 'example-tenant',
-              logoutPath: '/auth/logout',
-              noncePath: '/auth/nonce',
-            },
-          },
-        ],
-      },
-      expectedMessage: 'config-ui.yaml missing auth.loginPath',
+      name: 'unknown auth key',
+      configPayload: configWithAuthMutation((auth) => {
+        auth.googleClientId = 'obsolete-client';
+      }),
+      expectedMessage: 'config-ui.yaml unknown auth.googleClientId',
     },
     {
       name: 'missing logoutPath',
-      configPayload: {
-        environments: [
-          {
-            origins: ['https://example.com'],
-            auth: {
-              tauthUrl: 'https://auth.example.com',
-              googleClientId: 'example-client',
-              tenantId: 'example-tenant',
-              loginPath: '/auth/google',
-              noncePath: '/auth/nonce',
-            },
-          },
-        ],
-      },
+      configPayload: configWithAuthMutation((auth) => delete auth.logoutPath),
       expectedMessage: 'config-ui.yaml missing auth.logoutPath',
     },
     {
-      name: 'missing noncePath',
-      configPayload: {
-        environments: [
-          {
-            origins: ['https://example.com'],
-            auth: {
-              tauthUrl: 'https://auth.example.com',
-              googleClientId: 'example-client',
-              tenantId: 'example-tenant',
-              loginPath: '/auth/google',
-              logoutPath: '/auth/logout',
-            },
-          },
-        ],
-      },
-      expectedMessage: 'config-ui.yaml missing auth.noncePath',
+      name: 'unsafe sessionPath',
+      configPayload: configWithAuthMutation((auth) => {
+        auth.sessionPath = 'https://unsafe.example/session';
+      }),
+      expectedMessage: 'config-ui.yaml invalid auth.sessionPath',
+    },
+    {
+      name: 'unknown provider',
+      configPayload: configWithAuthMutation((auth) => {
+        auth.providers.magic = { enabled: true };
+      }),
+      expectedMessage: 'config-ui.yaml unknown auth.providers.magic',
+    },
+    {
+      name: 'missing Google provider',
+      configPayload: configWithAuthMutation((auth) => delete auth.providers.google),
+      expectedMessage: 'config-ui.yaml missing auth.providers.google',
+    },
+    {
+      name: 'invalid Google enabled flag',
+      configPayload: configWithAuthMutation((auth) => {
+        auth.providers.google.enabled = 'true';
+      }),
+      expectedMessage: 'config-ui.yaml missing auth.providers.google.enabled',
+    },
+    {
+      name: 'disabled Google provider includes settings',
+      configPayload: configWithAuthMutation((auth) => {
+        auth.providers.google.enabled = false;
+      }),
+      expectedMessage: 'config-ui.yaml disabled auth.providers.google has settings',
+    },
+    {
+      name: 'enabled Google provider misses clientId',
+      configPayload: configWithAuthMutation((auth) => {
+        delete auth.providers.google.clientId;
+      }),
+      expectedMessage: 'config-ui.yaml missing auth.providers.google.clientId',
+    },
+    {
+      name: 'enabled Apple provider misses startPath',
+      configPayload: configWithAuthMutation((auth) => {
+        auth.providers.google = { enabled: false };
+        auth.providers.apple = {
+          enabled: true,
+          returnTo: 'current-url',
+          label: 'Sign in with Apple',
+        };
+      }),
+      expectedMessage: 'config-ui.yaml missing auth.providers.apple.startPath',
+    },
+    {
+      name: 'enabled Apple provider has unsafe returnTo',
+      configPayload: configWithAuthMutation((auth) => {
+        auth.providers.google = { enabled: false };
+        auth.providers.apple = {
+          enabled: true,
+          startPath: '/auth/apple/start',
+          returnTo: 'https://unsafe.example/return',
+          label: 'Sign in with Apple',
+        };
+      }),
+      expectedMessage: 'config-ui.yaml invalid auth.providers.apple.returnTo',
+    },
+    {
+      name: 'enabled Apple provider startPath has a backslash authority escape',
+      configPayload: configWithAuthMutation((auth) => {
+        auth.providers.google = { enabled: false };
+        auth.providers.apple = {
+          enabled: true,
+          startPath: '/\\unsafe.example/start',
+          returnTo: 'current-origin',
+          label: 'Sign in with Apple',
+        };
+      }),
+      expectedMessage: 'config-ui.yaml invalid auth.providers.apple.startPath',
+    },
+    {
+      name: 'enabled Apple provider returnTo has a stripped control escape',
+      configPayload: configWithAuthMutation((auth) => {
+        auth.providers.google = { enabled: false };
+        auth.providers.apple = {
+          enabled: true,
+          startPath: '/auth/apple/start',
+          returnTo: '/\t/unsafe.example/return',
+          label: 'Sign in with Apple',
+        };
+      }),
+      expectedMessage: 'config-ui.yaml invalid auth.providers.apple.returnTo',
+    },
+    {
+      name: 'enabled Apple provider has invalid label',
+      configPayload: configWithAuthMutation((auth) => {
+        auth.providers.google = { enabled: false };
+        auth.providers.apple = {
+          enabled: true,
+          startPath: '/auth/apple/start',
+          returnTo: 'current-origin',
+          label: 'Apple',
+        };
+      }),
+      expectedMessage: 'config-ui.yaml invalid auth.providers.apple.label',
+    },
+    {
+      name: 'all providers disabled',
+      configPayload: configWithAuthMutation((auth) => {
+        auth.providers.google = { enabled: false };
+        auth.providers.apple = { enabled: false };
+      }),
+      expectedMessage: 'config-ui.yaml requires an enabled auth provider',
     },
   ];
 
@@ -654,23 +761,20 @@ test('applyYamlConfig waits for DOMContentLoaded, applies custom selectors, and 
   deferredDocument.eventHandlers.DOMContentLoaded();
 
   const runtimeConfig = await applyPromise;
+  const serializedAuthConfig = JSON.stringify(runtimeConfig.auth);
 
   assert.equal(runtimeConfig.auth.tenantId, 'example-tenant');
-  assert.equal(header.attributes['google-site-id'], 'example-client');
-  assert.equal(header.attributes['tauth-url'], 'https://auth.example.com');
-  assert.equal(header.attributes['tauth-session-path'], '');
-  assert.equal(loginButton.attributes['site-id'], 'example-client');
-  assert.equal(loginButton.attributes['tauth-session-path'], '');
+  assert.equal(header.attributes['auth-config'], serializedAuthConfig);
+  assert.equal(loginButton.attributes['auth-config'], serializedAuthConfig);
   assert.equal(loginButton.attributes['button-text'], 'signin_with');
   assert.equal(loginButton.attributes['button-size'], 'large');
   assert.equal(loginButton.attributes['button-theme'], 'filled_blue');
   assert.equal(loginButton.attributes['button-shape'], 'pill');
-  assert.equal(userMenu.attributes['tauth-tenant-id'], 'example-tenant');
-  assert.equal(userMenu.attributes['tauth-session-path'], '');
+  assert.equal(userMenu.attributes['auth-config'], serializedAuthConfig);
   assert.equal(deferredDocument.dispatchedEvents.length, 1);
   assert.equal(deferredDocument.dispatchedEvents[0].type, 'mpr-ui:config:applied');
   assert.equal(
-    deferredDocument.dispatchedEvents[0].detail.runtimeConfig.auth.googleClientId,
+    deferredDocument.dispatchedEvents[0].detail.runtimeConfig.auth.providers.google.clientId,
     'example-client',
   );
   assert.equal(
@@ -749,9 +853,11 @@ test('applyYamlConfig rejects when the document is missing and applies auth-only
     configUrl: '/config-ui.yaml',
   });
 
-  assert.equal(runtimeConfig.auth.googleClientId, 'example-client');
-  assert.equal(loginButton.attributes['site-id'], 'example-client');
-  assert.equal(loginButton.attributes['tauth-session-path'], '');
+  assert.equal(runtimeConfig.auth.providers.google.clientId, 'example-client');
+  assert.deepEqual(
+    JSON.parse(loginButton.attributes['auth-config']),
+    runtimeConfig.auth,
+  );
   assert.equal(loginButton.attributes['button-text'], 'signin_with');
   assert.equal(loginButton.attributes['button-size'], 'large');
   assert.equal(loginButton.attributes['button-theme'], 'outline');
@@ -991,10 +1097,10 @@ test('autoOrchestrate loads config and bundle from a login-button config owner',
   await namespace.whenAutoOrchestrationReady();
 
   assert.equal(inertHeader.attributes['google-site-id'], undefined);
-  assert.equal(loginButton.attributes['site-id'], 'example-client');
-  assert.equal(loginButton.attributes['tauth-tenant-id'], 'example-tenant');
-  assert.equal(loginButton.attributes['tauth-login-path'], '/auth/google');
-  assert.equal(loginButton.attributes['tauth-session-path'], '');
+  assert.deepEqual(
+    JSON.parse(loginButton.attributes['auth-config']),
+    createBaseConfig().environments[0].auth,
+  );
   assert.equal(loginButton.attributes['button-shape'], 'pill');
   assert.equal(documentStub.appendedScripts.length, 1);
   assert.equal(documentStub.appendedScripts[0].src, './mpr-ui.js');

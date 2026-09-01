@@ -126,7 +126,7 @@ test('B046: parser reference validation rejects noncanonical URL forms', () => {
   }
 });
 
-test('B046: the current parser preserves the canonical config aliases', () => {
+test('B046: the current parser preserves the canonical provider maps', () => {
   const configSource = readFileSync(
     join(repositoryRoot, 'demo', 'config-ui.yaml'),
     'utf8',
@@ -135,9 +135,21 @@ test('B046: the current parser preserves the canonical config aliases', () => {
     yaml.load(configSource)
   );
 
-  assert.equal(parsedConfig.environments.length, 2);
+  assert.equal(parsedConfig.environments.length, 3);
   assert.deepEqual(
-    parsedConfig.environments[1].auth,
-    parsedConfig.environments[0].auth,
+    parsedConfig.environments.map((environment) => {
+      const auth = /** @type {{ providers: { google: { enabled: boolean }, apple: { enabled: boolean } } }} */ (
+        environment.auth
+      );
+      return {
+        google: auth.providers.google.enabled,
+        apple: auth.providers.apple.enabled,
+      };
+    }),
+    [
+      { google: true, apple: false },
+      { google: true, apple: true },
+      { google: false, apple: true },
+    ],
   );
 });

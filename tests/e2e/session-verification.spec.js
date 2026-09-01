@@ -47,7 +47,7 @@ test.describe('TAuth session verification', () => {
     await installFixtureRoutes(context);
   });
 
-  test('verifies a new browser without a restore hint and retries transient failures', async ({
+  test('verifies a hinted returning browser and retries transient failures', async ({
     context,
     page,
   }) => {
@@ -91,6 +91,15 @@ test.describe('TAuth session verification', () => {
       events: window.fixtureAuthEvents,
     }));
     expect(snapshot.restoreHint).toBe('1');
+    expect(snapshot.events).toContainEqual(expect.objectContaining({
+      type: 'mpr-ui:auth:authenticated',
+      detail: expect.objectContaining({
+        profile: expect.objectContaining({
+          user_id: 'new-user',
+          user_email: 'new@example.com',
+        }),
+      }),
+    }));
     expect(snapshot.events.map((event) => event.type)).not.toContain(
       'mpr-ui:auth:error',
     );

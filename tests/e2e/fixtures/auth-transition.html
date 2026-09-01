@@ -62,12 +62,7 @@
         "message": "Loading your authenticated app surface.",
         "completionEvent": "fixture:app-ready"
       }'
-      google-site-id="fixture-site"
-      tauth-url="http://localhost:8080"
-      tauth-login-path="/auth/google"
-      tauth-logout-path="/auth/logout"
-      tauth-nonce-path="/auth/nonce"
-      tauth-tenant-id="tenant-fixture"
+      auth-config='{"tauthUrl":"http://localhost:8080","tenantId":"tenant-fixture","logoutPath":"/auth/logout","sessionPath":"/auth/session","providers":{"google":{"enabled":true,"clientId":"fixture-site","loginPath":"/auth/google","noncePath":"/auth/nonce"},"apple":{"enabled":false}}}'
       logout-url="/"
     ></mpr-header>
 

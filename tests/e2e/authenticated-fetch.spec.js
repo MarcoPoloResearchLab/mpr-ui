@@ -678,13 +678,19 @@ test.describe('MPRUI.authenticatedFetch', () => {
     await page.evaluate(() => {
       window.fixtureAuthEvents = [];
       window.fixtureAuthTarget.updateOptions({
-        googleClientId: 'fixture-client',
         tauthUrl: 'https://rebound-auth.fixture.test',
         tenantId: 'fixture-tenant',
-        tauthLoginPath: '/auth/google',
-        tauthLogoutPath: '/auth/logout',
-        tauthNoncePath: '/auth/nonce',
-        tauthSessionPath: '/auth/session',
+        logoutPath: '/auth/logout',
+        sessionPath: '/auth/session',
+        providers: {
+          google: {
+            enabled: true,
+            clientId: 'fixture-client',
+            loginPath: '/auth/google',
+            noncePath: '/auth/nonce',
+          },
+          apple: { enabled: false },
+        },
       });
     });
     routeState.releaseSessionRecovery();

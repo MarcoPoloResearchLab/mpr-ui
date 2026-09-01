@@ -5,6 +5,10 @@
     <title>Session verification fixture</title>
     <script>
       window.localStorage.clear();
+      window.localStorage.setItem(
+        "tauth.restore.v1:https%3A%2F%2Fauth.fixture.test:fixture-tenant",
+        "1",
+      );
       window.fixtureAuthEvents = [];
       [
         "mpr-ui:auth:authenticated",
@@ -24,11 +28,7 @@
   <body>
     <mpr-login-button
       id="auth-controller"
-      site-id="fixture-client"
-      tauth-url="https://auth.fixture.test"
-      tauth-tenant-id="fixture-tenant"
-      tauth-session-path="/auth/session"
-      tauth-bootstrap-mode="eager"
+      auth-config='{"tauthUrl":"https://auth.fixture.test","tenantId":"fixture-tenant","logoutPath":"/auth/logout","sessionPath":"/auth/session","providers":{"google":{"enabled":false},"apple":{"enabled":true,"startPath":"/auth/apple/start","returnTo":"current-origin","label":"Sign in with Apple"}}}'
     ></mpr-login-button>
     <script src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"></script>
   </body>

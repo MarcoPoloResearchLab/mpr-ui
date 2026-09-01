@@ -519,6 +519,94 @@ function installStorageStub(initialValues) {
   return storage;
 }
 
+function createGoogleAuthConfig(overrides) {
+  const settings = Object.assign(
+    {
+      tauthUrl: 'http://localhost:8080',
+      tenantId: 'tenant-test',
+      logoutPath: '/auth/logout',
+      sessionPath: '/auth/session',
+      googleClientId: 'test-google-client',
+      googleLoginPath: '/auth/google',
+      googleNoncePath: '/auth/nonce',
+    },
+    overrides || {},
+  );
+  return {
+    tauthUrl: settings.tauthUrl,
+    tenantId: settings.tenantId,
+    logoutPath: settings.logoutPath,
+    sessionPath: settings.sessionPath,
+    providers: {
+      google: {
+        enabled: true,
+        clientId: settings.googleClientId,
+        loginPath: settings.googleLoginPath,
+        noncePath: settings.googleNoncePath,
+      },
+      apple: { enabled: false },
+    },
+  };
+}
+
+function createAppleAuthConfig(overrides) {
+  const settings = Object.assign(
+    {
+      tauthUrl: 'https://auth.example.test',
+      tenantId: 'tenant-test',
+      logoutPath: '/auth/logout',
+      sessionPath: '/auth/session',
+      appleStartPath: '/auth/apple/start',
+      appleReturnTo: 'current-url',
+      appleLabel: 'Sign in with Apple',
+    },
+    overrides || {},
+  );
+  return {
+    tauthUrl: settings.tauthUrl,
+    tenantId: settings.tenantId,
+    logoutPath: settings.logoutPath,
+    sessionPath: settings.sessionPath,
+    providers: {
+      google: { enabled: false },
+      apple: {
+        enabled: true,
+        startPath: settings.appleStartPath,
+        returnTo: settings.appleReturnTo,
+        label: settings.appleLabel,
+      },
+    },
+  };
+}
+
+function createBothAuthConfig(overrides) {
+  const settings = Object.assign(
+    {
+      googleClientId: 'test-google-client',
+      googleLoginPath: '/auth/google',
+      googleNoncePath: '/auth/nonce',
+      appleStartPath: '/auth/apple/start',
+      appleReturnTo: 'current-url',
+      appleLabel: 'Sign in with Apple',
+    },
+    overrides || {},
+  );
+  const config = createAppleAuthConfig(settings);
+  config.providers.google = {
+    enabled: true,
+    clientId: settings.googleClientId,
+    loginPath: settings.googleLoginPath,
+    noncePath: settings.googleNoncePath,
+  };
+  return config;
+}
+
+function setGoogleAuthConfig(element, overrides) {
+  const config = createGoogleAuthConfig(overrides);
+  element.setAttribute('auth-config', JSON.stringify(config));
+  return config;
+}
+
 function createHeaderElementHarness(options) {
   const settings = Object.assign({ includeInternalUserMenu: true }, options);
   const HeaderElement = global.customElements.get('mpr-header');
@@ -530,7 +618,11 @@ function createHeaderElementHarness(options) {
   const nav = createStubNode({});
   const horizontalLinks = createStubNode({ attributes: true });
   const actions = createStubNode({});
-  const googleHost = createStubNode({ attributes: true, classList: true, supportsEvents: true });
+  const authActionsHost = createStubNode({
+    attributes: true,
+    classList: true,
+    supportsEvents: true,
+  });
   const settingsButton = createStubNode({ attributes: true, supportsEvents: true });
   const userMenu = createStubNode({ attributes: true, supportsEvents: true });
   const authTransition = createStubNode({ attributes: true });
@@ -543,7 +635,7 @@ function createHeaderElementHarness(options) {
     ['.mpr-header__brand', brandContainer],
     ['[data-mpr-header="nav"]', nav],
     ['[data-mpr-header="horizontal-links"]', horizontalLinks],
-    ['[data-mpr-header="google-signin"]', googleHost],
+    ['[data-mpr-header="auth-actions"]', authActionsHost],
     ['[data-mpr-header="settings-button"]', settingsButton],
     ['[data-mpr-header="auth-transition"]', authTransition],
     ['[data-mpr-header="auth-transition-title"]', authTransitionTitle],
@@ -565,7 +657,8 @@ function createHeaderElementHarness(options) {
     nav,
     horizontalLinks,
     actions,
-    googleHost,
+    authActionsHost,
+    googleHost: authActionsHost,
     userMenu,
     authTransition,
     authTransitionTitle,
@@ -661,7 +754,7 @@ function createLoginButtonHarness(googleStub) {
   buttonHost.querySelector = function querySelector() {
     return null;
   };
-  const selectorMap = new Map([['[data-mpr-login="google-button"]', buttonHost]]);
+  const selectorMap = new Map([['[data-mpr-login="auth-actions"]', buttonHost]]);
   const element = attachHostApi(new LoginButtonElement(), selectorMap);
   const renderCalls = [];
   googleStub.accounts.id.renderButton = function renderButton(target, config) {
@@ -856,8 +949,10 @@ test('mpr-header reflects attributes and updates values', () => {
   );
   headerElement.setAttribute('settings-label', 'Preferences');
   headerElement.setAttribute('settings', 'false');
-  headerElement.setAttribute('google-site-id', 'example-site');
-  headerElement.setAttribute('tauth-tenant-id', 'tenant-alpha');
+  const authConfig = setGoogleAuthConfig(headerElement, {
+    googleClientId: 'example-site',
+    tenantId: 'tenant-alpha',
+  });
   headerElement.setAttribute(
     'theme-config',
     JSON.stringify({ initialMode: 'light' }),
@@ -895,12 +990,11 @@ test('mpr-header reflects attributes and updates values', () => {
     true,
     'settings toggle disabled when attribute false',
   );
-  assert.equal(
-    headerElement.getAttribute('data-mpr-google-site-id'),
-    'example-site',
-    'google site id reflected on host dataset',
+  assert.deepEqual(
+    JSON.parse(headerElement.getAttribute('auth-config')),
+    authConfig,
+    'canonical provider configuration remains on the host',
   );
-  assert.equal(headerElement.dataset.tenantId, 'tenant-alpha');
 
   headerElement.setAttribute('brand-label', 'Next Brand');
   assert.equal(harness.brandLink.textContent, 'Next Brand');
@@ -941,7 +1035,9 @@ test('mpr-header wires the user menu element with logout and tenant attributes',
   resetEnvironment();
   loadLibrary();
   const harness = createHeaderElementHarness();
-  harness.element.setAttribute('tauth-tenant-id', 'tenant-demo');
+  const authConfig = setGoogleAuthConfig(harness.element, {
+    tenantId: 'tenant-demo',
+  });
   harness.element.setAttribute('logout-url', '/signed-out');
   harness.element.setAttribute('sign-out-label', 'Log out');
   harness.element.setAttribute('user-menu-display-mode', 'avatar-name');
@@ -950,10 +1046,10 @@ test('mpr-header wires the user menu element with logout and tenant attributes',
   harness.element.connectedCallback();
 
   assert.ok(harness.userMenu, 'user menu host is available');
-  assert.equal(
-    harness.userMenu.getAttribute('tauth-tenant-id'),
-    'tenant-demo',
-    'tenant id is forwarded to the user menu',
+  assert.deepEqual(
+    JSON.parse(harness.userMenu.getAttribute('auth-config')),
+    authConfig,
+    'canonical auth config is forwarded to the user menu',
   );
   assert.equal(
     harness.userMenu.getAttribute('logout-url'),
@@ -994,7 +1090,9 @@ test('mpr-header uses a slotted mpr-user element for header menu wiring', () => 
   slottedUserMenu.tagName = 'MPR-USER';
   slottedUserMenu.setAttribute('display-mode', 'avatar');
   harness.element.__setSlotNodes({ aux: [slottedUserMenu] });
-  harness.element.setAttribute('tauth-tenant-id', 'tenant-demo');
+  const authConfig = setGoogleAuthConfig(harness.element, {
+    tenantId: 'tenant-demo',
+  });
   harness.element.setAttribute('logout-url', '/signed-out');
   harness.element.setAttribute('sign-out-label', 'Log out');
   harness.element.setAttribute('user-menu-display-mode', 'avatar-name');
@@ -1006,10 +1104,10 @@ test('mpr-header uses a slotted mpr-user element for header menu wiring', () => 
     'user-menu',
     'slotted user menu is tagged for header styling',
   );
-  assert.equal(
-    slottedUserMenu.getAttribute('tauth-tenant-id'),
-    'tenant-demo',
-    'tenant id is forwarded to the slotted user menu',
+  assert.deepEqual(
+    JSON.parse(slottedUserMenu.getAttribute('auth-config')),
+    authConfig,
+    'canonical auth config is forwarded to the slotted user menu',
   );
   assert.equal(
     slottedUserMenu.getAttribute('logout-url'),
@@ -1033,7 +1131,7 @@ test('mpr-header uses a slotted mpr-user element for header menu wiring', () => 
   );
 });
 
-test('mpr-user nested in mpr-header does not error before header wiring applies user attributes', async () => {
+test('F008: Apple-enabled header keeps its nested mpr-user on the owning auth controller', async () => {
   resetEnvironment();
   const capture = captureConsoleErrors();
   try {
@@ -1052,8 +1150,10 @@ test('mpr-user nested in mpr-header does not error before header wiring applies 
     const headerElement = headerHarness.element;
     headerElement.tagName = 'MPR-HEADER';
     headerElement.setAttribute('brand-href', '/app');
-    headerElement.setAttribute('google-site-id', 'example-site');
-    headerElement.setAttribute('tauth-tenant-id', 'tenant-alpha');
+    const authConfig = createAppleAuthConfig({
+      tenantId: 'tenant-alpha',
+    });
+    headerElement.setAttribute('auth-config', JSON.stringify(authConfig));
     headerElement.setAttribute('logout-url', '/logout');
     headerElement.setAttribute('sign-out-label', 'Log out');
     headerElement.setAttribute('user-menu-display-mode', 'avatar');
@@ -1087,10 +1187,10 @@ test('mpr-user nested in mpr-header does not error before header wiring applies 
     headerElement.connectedCallback();
     await flushAsync();
 
-    assert.equal(
-      userElement.getAttribute('tauth-tenant-id'),
-      'tenant-alpha',
-      'header still forwards the resolved tenant id onto the slotted user menu',
+    assert.deepEqual(
+      JSON.parse(userElement.getAttribute('auth-config')),
+      authConfig,
+      'header forwards the resolved auth config onto the slotted user menu',
     );
     const tenantErrors = capture.messages.filter((message) =>
       message.indexOf('mpr-ui.tenant_id_required') !== -1,
@@ -1138,7 +1238,7 @@ test('mpr-header ignores legacy attributes', async () => {
       },
     },
     {
-      name: 'auth-config',
+      name: 'flat-auth-attributes',
       setupGlobals: function setupGlobals() {
         global.google = {
           accounts: {
@@ -1151,13 +1251,8 @@ test('mpr-header ignores legacy attributes', async () => {
         };
       },
       applyAttributes: function applyAttributes(headerElement) {
-        headerElement.setAttribute(
-          'auth-config',
-          JSON.stringify({
-            googleClientId: 'legacy-site',
-            tenantId: 'legacy-tenant',
-          }),
-        );
+        headerElement.setAttribute('google-site-id', 'legacy-site');
+        headerElement.setAttribute('tauth-tenant-id', 'legacy-tenant');
       },
       assertOutcome: function assertOutcome(headerHarness, headerElement) {
         const controller = headerElement.__headerController;
@@ -1168,12 +1263,12 @@ test('mpr-header ignores legacy attributes', async () => {
         assert.equal(
           authController,
           null,
-          'auth-config attribute should be ignored',
+          'flat auth attributes should be ignored',
         );
         assert.equal(
           headerHarness.root.classList.contains('mpr-header--no-auth'),
           true,
-          'auth-config should not enable auth UI',
+          'flat auth attributes should not enable auth UI',
         );
       },
     },
@@ -1202,30 +1297,6 @@ test('mpr-header logs legacy attributes', async () => {
       expectedToken: 'settings-enabled',
       applyAttributes: function applyAttributes(headerElement) {
         headerElement.setAttribute('settings-enabled', 'true');
-      },
-    },
-    {
-      name: 'auth-config',
-      expectedToken: 'auth-config',
-      setupGlobals: function setupGlobals() {
-        global.google = {
-          accounts: {
-            id: {
-              renderButton() {},
-              initialize() {},
-              prompt() {},
-            },
-          },
-        };
-      },
-      applyAttributes: function applyAttributes(headerElement) {
-        headerElement.setAttribute(
-          'auth-config',
-          JSON.stringify({
-            googleClientId: 'legacy-site',
-            tenantId: 'legacy-tenant',
-          }),
-        );
       },
     },
     {
@@ -1299,7 +1370,7 @@ test('mpr-header projects slot content into brand, nav, and actions', () => {
   );
 });
 
-test('mpr-header tauth attributes configure auth endpoints', async () => {
+test('mpr-header auth-config configures provider endpoints', async () => {
   resetEnvironment();
   const googleStub = {
     accounts: {
@@ -1314,13 +1385,11 @@ test('mpr-header tauth attributes configure auth endpoints', async () => {
   loadLibrary();
   const harness = createHeaderElementHarness();
   const headerElement = harness.element;
-  headerElement.setAttribute('google-site-id', 'docker-demo-site');
-  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
-  headerElement.setAttribute('tauth-login-path', '/auth/google');
-  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
-  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
-  headerElement.setAttribute('tauth-session-path', '/auth/custom-session');
-  headerElement.setAttribute('tauth-tenant-id', 'tenant-demo');
+  setGoogleAuthConfig(headerElement, {
+    googleClientId: 'docker-demo-site',
+    tenantId: 'tenant-demo',
+    sessionPath: '/auth/custom-session',
+  });
 
   headerElement.connectedCallback();
   await flushAsync();
@@ -1337,12 +1406,12 @@ test('mpr-header tauth attributes configure auth endpoints', async () => {
   assert.equal(
     authOptions.tauthUrl,
     'http://localhost:8080',
-    'tauth-url attribute flows into auth options',
+    'TAuth origin flows into auth options',
   );
-  assert.equal(authOptions.tauthLoginPath, '/auth/google');
-  assert.equal(authOptions.tauthLogoutPath, '/auth/logout');
-  assert.equal(authOptions.tauthNoncePath, '/auth/nonce');
-  assert.equal(authOptions.tauthSessionPath, '/auth/custom-session');
+  assert.equal(authOptions.providers.google.loginPath, '/auth/google');
+  assert.equal(authOptions.logoutPath, '/auth/logout');
+  assert.equal(authOptions.providers.google.noncePath, '/auth/nonce');
+  assert.equal(authOptions.sessionPath, '/auth/custom-session');
   assert.equal(authOptions.tenantId, 'tenant-demo');
 });
 
@@ -1368,11 +1437,11 @@ test('mpr-header waits for user sign-in before initializing Google Identity', as
   loadLibrary();
   const harness = createHeaderElementHarness();
   const headerElement = harness.element;
-  headerElement.setAttribute('google-site-id', 'header-race-site');
-  headerElement.setAttribute('tauth-login-path', '/auth/login');
-  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
-  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
-  headerElement.setAttribute('tauth-tenant-id', 'tenant-race');
+  setGoogleAuthConfig(headerElement, {
+    googleClientId: 'header-race-site',
+    googleLoginPath: '/auth/login',
+    tenantId: 'tenant-race',
+  });
 
   headerElement.connectedCallback();
   await flushAsync();
@@ -1384,11 +1453,15 @@ test('mpr-header waits for user sign-in before initializing Google Identity', as
     'header should not initialize Google Identity during initial render',
   );
   assert.deepEqual(callOrder, [], 'header does not render a GIS button during initial render');
-  const headerSignInButton = harness.googleHost.children[0];
+  const headerSignInButton = getStubNodeByAttribute(
+    harness.authActionsHost,
+    'data-mpr-auth-action',
+    'google',
+  );
   assert.equal(headerSignInButton.tagName, 'BUTTON', 'header renders a real sign-in button');
   assert.equal(
     headerSignInButton.getAttribute('data-test'),
-    'google-signin',
+    'auth-provider-google',
     'header exposes a visible first-party sign-in control',
   );
   headerSignInButton.dispatchEvent({ type: 'click', preventDefault() {} });
@@ -1396,9 +1469,13 @@ test('mpr-header waits for user sign-in before initializing Google Identity', as
   await flushAsync();
   assert.equal(initializeCallCount, 1, 'header initializes Google Identity after click');
   assert.equal(
-    harness.googleHost.getAttribute('data-mpr-google-ready'),
-    'true',
-    'header sign-in trigger stays visible after GIS prompt starts',
+    getStubNodeByAttribute(
+      harness.authActionsHost,
+      'data-mpr-auth-actions',
+      'root',
+    ).getAttribute('data-mpr-auth-action-status'),
+    'ready',
+    'header provider actions return to the ready state after GIS prompt starts',
   );
 });
 
@@ -1428,11 +1505,11 @@ test('mpr-header disconnects cleanly without starting background nonce work', as
     loadLibrary();
     const harness = createHeaderElementHarness();
     const headerElement = harness.element;
-    headerElement.setAttribute('google-site-id', 'header-race-site');
-    headerElement.setAttribute('tauth-login-path', '/auth/login');
-    headerElement.setAttribute('tauth-logout-path', '/auth/logout');
-    headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
-    headerElement.setAttribute('tauth-tenant-id', 'tenant-race');
+    setGoogleAuthConfig(headerElement, {
+      googleClientId: 'header-race-site',
+      googleLoginPath: '/auth/login',
+      tenantId: 'tenant-race',
+    });
 
     headerElement.connectedCallback();
     await flushAsync();
@@ -1501,17 +1578,21 @@ test('mpr-header rebinds auth endpoints when tauth-url changes after first rende
   loadLibrary();
   const harness = createHeaderElementHarness();
   const headerElement = harness.element;
-  headerElement.setAttribute('google-site-id', 'docker-demo-site');
-  headerElement.setAttribute('tauth-login-path', '/auth/google');
-  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
-  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
-  headerElement.setAttribute('tauth-tenant-id', 'tenant-demo');
+  setGoogleAuthConfig(headerElement, {
+    googleClientId: 'docker-demo-site',
+    tauthUrl: '',
+    tenantId: 'tenant-demo',
+  });
 
   headerElement.connectedCallback();
   await flushAsync();
   await flushAsync();
 
-  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
+  setGoogleAuthConfig(headerElement, {
+    googleClientId: 'docker-demo-site',
+    tauthUrl: 'http://localhost:8080',
+    tenantId: 'tenant-demo',
+  });
   await flushAsync();
   await flushAsync();
 
@@ -1527,7 +1608,7 @@ test('mpr-header rebinds auth endpoints when tauth-url changes after first rende
   assert.equal(
     authOptions.tauthUrl,
     'http://localhost:8080',
-    'updated tauth-url replaces the initial fallback base URL',
+    'updated TAuth origin replaces the initial same-origin base URL',
   );
   assert.equal(
     initAuthCalls[initAuthCalls.length - 1] && initAuthCalls[initAuthCalls.length - 1].baseUrl,
@@ -1546,7 +1627,7 @@ test('mpr-header rebinds auth endpoints when tauth-url changes after first rende
   assert.deepEqual(
     fetchCalls,
     ['http://localhost:8080/auth/nonce', 'http://localhost:8080/auth/google'],
-    'credential exchange requests switch to the updated tauth-url after the attribute changes',
+    'credential exchange requests switch to the updated TAuth origin after auth-config changes',
   );
   assert.deepEqual(
     exchangePayloads,
@@ -1595,11 +1676,11 @@ test('mpr-header keeps receiving auth callbacks after tauth-url rebinding when T
   loadLibrary();
   const harness = createHeaderElementHarness();
   const headerElement = harness.element;
-  headerElement.setAttribute('google-site-id', 'docker-demo-site');
-  headerElement.setAttribute('tauth-login-path', '/auth/google');
-  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
-  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
-  headerElement.setAttribute('tauth-tenant-id', 'tenant-demo');
+  setGoogleAuthConfig(headerElement, {
+    googleClientId: 'docker-demo-site',
+    tauthUrl: '',
+    tenantId: 'tenant-demo',
+  });
 
   headerElement.connectedCallback();
   await flushAsync();
@@ -1607,7 +1688,11 @@ test('mpr-header keeps receiving auth callbacks after tauth-url rebinding when T
 
   assert.ok(retainedCallbacks, 'initial auth callbacks registered with initAuthClient');
 
-  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
+  setGoogleAuthConfig(headerElement, {
+    googleClientId: 'docker-demo-site',
+    tauthUrl: 'http://localhost:8080',
+    tenantId: 'tenant-demo',
+  });
   await flushAsync();
   await flushAsync();
 
@@ -1624,7 +1709,7 @@ test('mpr-header keeps receiving auth callbacks after tauth-url rebinding when T
   assert.deepEqual(
     authController.state.profile,
     authenticatedProfile,
-    'existing TAuth callbacks still authenticate the header after tauth-url rebinding',
+    'existing TAuth callbacks still authenticate the header after auth-config rebinding',
   );
   assert.equal(
     harness.root.classList.contains('mpr-header--authenticated'),
@@ -1680,14 +1765,12 @@ test('createAuthHeader ignores an in-flight credential exchange after tauth-url 
   };
 
   const hostElement = attachHostApi(new global.HTMLElement(), new Map());
-  const authController = library.createAuthHeader(hostElement, {
+  const authController = library.createAuthHeader(hostElement, createGoogleAuthConfig({
     googleClientId: 'credential-race-client',
     tauthUrl: 'http://localhost:8080',
-    tauthLoginPath: '/auth/login',
-    tauthLogoutPath: '/auth/logout',
-    tauthNoncePath: '/auth/nonce',
+    googleLoginPath: '/auth/login',
     tenantId: 'tenant-alpha',
-  });
+  }));
 
   await flushAsync();
   await flushAsync();
@@ -1798,14 +1881,11 @@ test('createAuthHeader initializes GIS with a nonce only for an explicit sign-in
   };
 
   const hostElement = attachHostApi(new global.HTMLElement(), new Map());
-  const authController = library.createAuthHeader(hostElement, {
+  const authController = library.createAuthHeader(hostElement, createGoogleAuthConfig({
     googleClientId: 'nonce-stability-client',
     tauthUrl: 'http://localhost:8080',
-    tauthLoginPath: '/auth/google',
-    tauthLogoutPath: '/auth/logout',
-    tauthNoncePath: '/auth/nonce',
     tenantId: 'tenant-alpha',
-  });
+  }));
 
   await flushAsync();
   await flushAsync();
@@ -1932,14 +2012,11 @@ test('createAuthHeader keeps GIS stable after four idle hours on the landing pag
     };
 
     const hostElement = attachHostApi(new global.HTMLElement(), new Map());
-    const authController = library.createAuthHeader(hostElement, {
+    const authController = library.createAuthHeader(hostElement, createGoogleAuthConfig({
       googleClientId: 'long-lived-tab-client',
       tauthUrl: 'http://localhost:8080',
-      tauthLoginPath: '/auth/google',
-      tauthLogoutPath: '/auth/logout',
-      tauthNoncePath: '/auth/nonce',
       tenantId: 'tenant-alpha',
-    });
+    }));
 
     await flushAsync();
     await flushAsync();
@@ -2014,14 +2091,11 @@ test('createAuthHeader rejects credential callbacks without an attempt nonce', a
   };
 
   const hostElement = attachHostApi(new global.HTMLElement(), new Map());
-  const authController = library.createAuthHeader(hostElement, {
+  const authController = library.createAuthHeader(hostElement, createGoogleAuthConfig({
     googleClientId: 'expired-nonce-client',
     tauthUrl: 'http://localhost:8080',
-    tauthLoginPath: '/auth/google',
-    tauthLogoutPath: '/auth/logout',
-    tauthNoncePath: '/auth/nonce',
     tenantId: 'tenant-alpha',
-  });
+  }));
 
   await flushAsync();
   await flushAsync();
@@ -2066,14 +2140,11 @@ test('createAuthHeader skips fallback profile probes for fresh anonymous config-
   };
 
   const hostElement = attachHostApi(new global.HTMLElement(), new Map());
-  const authController = library.createAuthHeader(hostElement, {
+  const authController = library.createAuthHeader(hostElement, createGoogleAuthConfig({
     googleClientId: 'anonymous-bootstrap-client',
     tauthUrl: 'http://localhost:8080',
-    tauthLoginPath: '/auth/google',
-    tauthLogoutPath: '/auth/logout',
-    tauthNoncePath: '/auth/nonce',
     tenantId: 'tenant-alpha',
-  });
+  }));
 
   await flushAsync();
   await flushAsync();
@@ -2131,14 +2202,11 @@ test('createAuthHeader restores the fallback profile from the TAuth session endp
   };
 
   const hostElement = attachHostApi(new global.HTMLElement(), new Map());
-  const authController = library.createAuthHeader(hostElement, {
+  const authController = library.createAuthHeader(hostElement, createGoogleAuthConfig({
     googleClientId: 'hinted-bootstrap-client',
     tauthUrl: 'http://localhost:8080',
-    tauthLoginPath: '/auth/google',
-    tauthLogoutPath: '/auth/logout',
-    tauthNoncePath: '/auth/nonce',
     tenantId: 'tenant-alpha',
-  });
+  }));
 
   await flushAsync();
   await flushAsync();
@@ -2214,14 +2282,11 @@ test('createAuthHeader clears a stale TAuth restore hint from an anonymous sessi
   };
 
   const hostElement = attachHostApi(new global.HTMLElement(), new Map());
-  const authController = library.createAuthHeader(hostElement, {
+  const authController = library.createAuthHeader(hostElement, createGoogleAuthConfig({
     googleClientId: 'stale-hint-bootstrap-client',
     tauthUrl: 'http://localhost:8080',
-    tauthLoginPath: '/auth/google',
-    tauthLogoutPath: '/auth/logout',
-    tauthNoncePath: '/auth/nonce',
     tenantId: 'tenant-alpha',
-  });
+  }));
 
   await flushAsync();
   await flushAsync();
@@ -2263,14 +2328,12 @@ test('createAuthHeader rejects tenant changes after initialization', async () =>
   };
 
   const hostElement = attachHostApi(new global.HTMLElement(), new Map());
-  const authController = library.createAuthHeader(hostElement, {
+  const authController = library.createAuthHeader(hostElement, createGoogleAuthConfig({
     googleClientId: 'tenant-lock-client',
     tauthUrl: 'http://localhost:8080',
-    tauthLoginPath: '/auth/login',
-    tauthLogoutPath: '/auth/logout',
-    tauthNoncePath: '/auth/nonce',
+    googleLoginPath: '/auth/login',
     tenantId: 'tenant-alpha',
-  });
+  }));
 
   await flushAsync();
   await flushAsync();
@@ -2350,14 +2413,12 @@ test('createAuthHeader ignores stale GIS callbacks after tauth-url change', asyn
   };
 
   const hostElement = attachHostApi(new global.HTMLElement(), new Map());
-  const authController = library.createAuthHeader(hostElement, {
+  const authController = library.createAuthHeader(hostElement, createGoogleAuthConfig({
     googleClientId: 'gis-race-client',
     tauthUrl: 'http://localhost:8080',
-    tauthLoginPath: '/auth/login',
-    tauthLogoutPath: '/auth/logout',
-    tauthNoncePath: '/auth/nonce',
+    googleLoginPath: '/auth/login',
     tenantId: 'tenant-alpha',
-  });
+  }));
 
   await flushAsync();
   await flushAsync();
@@ -2444,12 +2505,10 @@ test('MU-432: mpr-header recovers authenticated state from the current session o
   loadLibrary();
   const harness = createHeaderElementHarness();
   const headerElement = harness.element;
-  headerElement.setAttribute('google-site-id', 'docker-demo-site');
-  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
-  headerElement.setAttribute('tauth-login-path', '/auth/google');
-  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
-  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
-  headerElement.setAttribute('tauth-tenant-id', 'tenant-demo');
+  setGoogleAuthConfig(headerElement, {
+    googleClientId: 'docker-demo-site',
+    tenantId: 'tenant-demo',
+  });
 
   headerElement.connectedCallback();
   await flushAsync();
@@ -2523,12 +2582,10 @@ test('MU-432: mpr-header ignores a recovered profile after an unauthenticated ca
   loadLibrary();
   const harness = createHeaderElementHarness();
   const headerElement = harness.element;
-  headerElement.setAttribute('google-site-id', 'docker-demo-site');
-  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
-  headerElement.setAttribute('tauth-login-path', '/auth/google');
-  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
-  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
-  headerElement.setAttribute('tauth-tenant-id', 'tenant-demo');
+  setGoogleAuthConfig(headerElement, {
+    googleClientId: 'docker-demo-site',
+    tenantId: 'tenant-demo',
+  });
 
   headerElement.connectedCallback();
   await flushAsync();
@@ -2610,14 +2667,12 @@ test('MU-434: createAuthHeader reflects pending auth states on the host element'
   };
 
   const hostElement = attachHostApi(new global.HTMLElement(), new Map());
-  const authController = library.createAuthHeader(hostElement, {
+  const authController = library.createAuthHeader(hostElement, createGoogleAuthConfig({
     googleClientId: 'transition-site',
     tauthUrl: 'http://localhost:8080',
-    tauthLoginPath: '/auth/login',
-    tauthLogoutPath: '/auth/logout',
-    tauthNoncePath: '/auth/nonce',
+    googleLoginPath: '/auth/login',
     tenantId: 'tenant-transition',
-  });
+  }));
 
   assert.equal(
     authController.state.status,
@@ -2705,11 +2760,10 @@ test('MPRUI.testing drives mounted header auth state through the auth controller
   const library = loadLibrary();
   const harness = createHeaderElementHarness();
   const headerElement = harness.element;
-  headerElement.setAttribute('google-site-id', 'testing-client');
-  headerElement.setAttribute('tauth-login-path', '/auth/google');
-  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
-  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
-  headerElement.setAttribute('tauth-tenant-id', 'tenant-testing');
+  setGoogleAuthConfig(headerElement, {
+    googleClientId: 'testing-client',
+    tenantId: 'tenant-testing',
+  });
 
   headerElement.connectedCallback();
   await flushAsync();
@@ -2772,14 +2826,11 @@ test('MPRUI.testing rejects invalid auth test calls before mutating state', asyn
     },
   );
 
-  const authController = library.createAuthHeader(hostElement, {
+  const authController = library.createAuthHeader(hostElement, createGoogleAuthConfig({
     googleClientId: 'testing-client',
     tauthUrl: 'http://localhost:8080',
-    tauthLoginPath: '/auth/google',
-    tauthLogoutPath: '/auth/logout',
-    tauthNoncePath: '/auth/nonce',
     tenantId: 'tenant-testing',
-  });
+  }));
 
   assert.throws(
     function rejectMissingProfile() {
@@ -2887,12 +2938,10 @@ test('MU-434: mpr-header holds the auth transition screen until the configured a
   loadLibrary();
   const harness = createHeaderElementHarness();
   const headerElement = harness.element;
-  headerElement.setAttribute('google-site-id', 'transition-site');
-  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
-  headerElement.setAttribute('tauth-login-path', '/auth/google');
-  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
-  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
-  headerElement.setAttribute('tauth-tenant-id', 'tenant-transition');
+  setGoogleAuthConfig(headerElement, {
+    googleClientId: 'transition-site',
+    tenantId: 'tenant-transition',
+  });
   headerElement.setAttribute(
     'auth-transition',
     JSON.stringify({
@@ -3017,12 +3066,10 @@ test('mpr-header redirects after sign-in and holds the auth transition while nav
   loadLibrary();
   const harness = createHeaderElementHarness();
   const headerElement = harness.element;
-  headerElement.setAttribute('google-site-id', 'redirect-site');
-  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
-  headerElement.setAttribute('tauth-login-path', '/auth/google');
-  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
-  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
-  headerElement.setAttribute('tauth-tenant-id', 'tenant-redirect');
+  setGoogleAuthConfig(headerElement, {
+    googleClientId: 'redirect-site',
+    tenantId: 'tenant-redirect',
+  });
   headerElement.setAttribute('sign-in-redirect-url', '/app');
   headerElement.setAttribute(
     'auth-transition',
@@ -3106,12 +3153,10 @@ test('mpr-header does not redirect for app-dispatched auth events', async () => 
   loadLibrary();
   const harness = createHeaderElementHarness();
   const headerElement = harness.element;
-  headerElement.setAttribute('google-site-id', 'external-event-site');
-  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
-  headerElement.setAttribute('tauth-login-path', '/auth/google');
-  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
-  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
-  headerElement.setAttribute('tauth-tenant-id', 'tenant-external-event');
+  setGoogleAuthConfig(headerElement, {
+    googleClientId: 'external-event-site',
+    tenantId: 'tenant-external-event',
+  });
   headerElement.setAttribute('sign-in-redirect-url', '/app');
   headerElement.setAttribute(
     'auth-transition',
@@ -3187,12 +3232,10 @@ test('mpr-header does not apply sign-in redirect on restored authenticated sessi
   loadLibrary();
   const harness = createHeaderElementHarness();
   const headerElement = harness.element;
-  headerElement.setAttribute('google-site-id', 'restore-site');
-  headerElement.setAttribute('tauth-url', 'http://localhost:8080');
-  headerElement.setAttribute('tauth-login-path', '/auth/google');
-  headerElement.setAttribute('tauth-logout-path', '/auth/logout');
-  headerElement.setAttribute('tauth-nonce-path', '/auth/nonce');
-  headerElement.setAttribute('tauth-tenant-id', 'tenant-restore');
+  setGoogleAuthConfig(headerElement, {
+    googleClientId: 'restore-site',
+    tenantId: 'tenant-restore',
+  });
   headerElement.setAttribute('sign-in-redirect-url', '/app');
   headerElement.setAttribute(
     'auth-transition',
@@ -4150,30 +4193,34 @@ test('mpr-login-button renders a visible sign-in attempt trigger with provided s
   global.google = googleStub;
   loadLibrary();
   const { element, buttonHost, renderCalls } = createLoginButtonHarness(googleStub);
-  element.setAttribute('site-id', 'custom-site');
   element.setAttribute('button-text', 'signin_with');
-  element.setAttribute('tauth-login-path', '/auth/login');
-  element.setAttribute('tauth-logout-path', '/auth/logout');
-  element.setAttribute('tauth-nonce-path', '/auth/nonce');
-  element.setAttribute('tauth-tenant-id', 'tenant-login');
+  setGoogleAuthConfig(element, {
+    googleClientId: 'custom-site',
+    googleLoginPath: '/auth/login',
+    tenantId: 'tenant-login',
+  });
   element.connectedCallback();
   await flushAsync();
   assert.equal(
-    element.getAttribute('data-mpr-google-site-id'),
-    'custom-site',
-    'site ID attribute reflected to dataset',
+    element.getAttribute('data-mpr-auth-providers'),
+    'google',
+    'enabled provider IDs are reflected on the host',
   );
   assert.equal(renderCalls.length, 0, 'Google renderButton is not invoked during mount');
-  const loginTrigger = buttonHost.children[0];
+  const loginTrigger = getStubNodeByAttribute(
+    buttonHost,
+    'data-mpr-auth-action',
+    'google',
+  );
   assert.equal(loginTrigger.tagName, 'BUTTON', 'login button renders a real button control');
   assert.equal(
-    loginTrigger.textContent,
+    loginTrigger.getAttribute('aria-label'),
     'Sign in with Google',
     'login button maps GIS text options to human-facing labels',
   );
   assert.equal(
     loginTrigger.getAttribute('data-test'),
-    'google-signin',
+    'auth-provider-google',
     'login button exposes a visible sign-in trigger',
   );
 });
@@ -4226,16 +4273,21 @@ test('mpr-login-button rebinds auth endpoints when tauth-url changes after first
 
   loadLibrary();
   const { element } = createLoginButtonHarness(googleStub);
-  element.setAttribute('site-id', 'custom-site');
-  element.setAttribute('tauth-login-path', '/auth/login');
-  element.setAttribute('tauth-logout-path', '/auth/logout');
-  element.setAttribute('tauth-nonce-path', '/auth/nonce');
-  element.setAttribute('tauth-tenant-id', 'tenant-login');
+  setGoogleAuthConfig(element, {
+    googleClientId: 'custom-site',
+    googleLoginPath: '/auth/login',
+    tauthUrl: '',
+    tenantId: 'tenant-login',
+  });
   element.connectedCallback();
   await flushAsync();
   await flushAsync();
 
-  element.setAttribute('tauth-url', 'http://localhost:8080');
+  setGoogleAuthConfig(element, {
+    googleClientId: 'custom-site',
+    googleLoginPath: '/auth/login',
+    tenantId: 'tenant-login',
+  });
   await flushAsync();
   await flushAsync();
 
@@ -4245,7 +4297,7 @@ test('mpr-login-button rebinds auth endpoints when tauth-url changes after first
   assert.equal(
     authOptions.tauthUrl,
     'http://localhost:8080',
-    'login button auth controller adopts the updated tauth-url',
+    'login button auth controller adopts the updated TAuth origin',
   );
   assert.equal(
     initAuthCalls[initAuthCalls.length - 1] && initAuthCalls[initAuthCalls.length - 1].baseUrl,
@@ -4264,7 +4316,7 @@ test('mpr-login-button rebinds auth endpoints when tauth-url changes after first
   assert.deepEqual(
     fetchCalls,
     ['http://localhost:8080/auth/nonce', 'http://localhost:8080/auth/login'],
-    'login button credential exchange requests switch to the updated tauth-url',
+    'login button credential exchange requests switch to the updated TAuth origin',
   );
   assert.deepEqual(
     exchangePayloads,
@@ -4313,18 +4365,23 @@ test('mpr-login-button keeps receiving auth callbacks after tauth-url rebinding 
 
   loadLibrary();
   const { element } = createLoginButtonHarness(googleStub);
-  element.setAttribute('site-id', 'custom-site');
-  element.setAttribute('tauth-login-path', '/auth/login');
-  element.setAttribute('tauth-logout-path', '/auth/logout');
-  element.setAttribute('tauth-nonce-path', '/auth/nonce');
-  element.setAttribute('tauth-tenant-id', 'tenant-login');
+  setGoogleAuthConfig(element, {
+    googleClientId: 'custom-site',
+    googleLoginPath: '/auth/login',
+    tauthUrl: '',
+    tenantId: 'tenant-login',
+  });
   element.connectedCallback();
   await flushAsync();
   await flushAsync();
 
   assert.ok(retainedCallbacks, 'initial login button auth callbacks registered');
 
-  element.setAttribute('tauth-url', 'http://localhost:8080');
+  setGoogleAuthConfig(element, {
+    googleClientId: 'custom-site',
+    googleLoginPath: '/auth/login',
+    tenantId: 'tenant-login',
+  });
   await flushAsync();
   await flushAsync();
 
@@ -4348,7 +4405,7 @@ test('mpr-login-button keeps receiving auth callbacks after tauth-url rebinding 
   );
 });
 
-test('mpr-login-button reports missing tenant ID', async () => {
+test('mpr-login-button reports an invalid canonical auth config', async () => {
   resetEnvironment();
   const googleStub = {
     accounts: {
@@ -4362,24 +4419,25 @@ test('mpr-login-button reports missing tenant ID', async () => {
   global.google = googleStub;
   loadLibrary();
   const { element, renderCalls } = createLoginButtonHarness(googleStub);
-  element.setAttribute('site-id', 'custom-site');
-  element.setAttribute('tauth-login-path', '/auth/login');
-  element.setAttribute('tauth-logout-path', '/auth/logout');
-  element.setAttribute('tauth-nonce-path', '/auth/nonce');
+  setGoogleAuthConfig(element, {
+    googleClientId: 'custom-site',
+    googleLoginPath: '/auth/login',
+    tenantId: '',
+  });
   element.connectedCallback();
   await flushAsync();
   assert.equal(renderCalls.length, 0, 'Google button should not render');
   assert.equal(
-    element.getAttribute('data-mpr-google-error'),
-    'missing-tauth-tenant-id',
-    'missing tenant id captured in the error attribute',
+    element.getAttribute('data-mpr-auth-error'),
+    'mpr-ui.auth.config_value_required',
+    'invalid auth config is captured in the stable error attribute',
   );
   const lastEvent = element.__dispatchedEvents[element.__dispatchedEvents.length - 1];
   assert.equal(lastEvent.type, 'mpr-login:error');
-  assert.equal(lastEvent.detail.code, 'mpr-ui.tenant_id_required');
+  assert.equal(lastEvent.detail.code, 'mpr-ui.auth.config_value_required');
 });
 
-test('mpr-login-button rejects tauth-tenant-id changes after first render', async () => {
+test('mpr-login-button rejects tenant changes after first render', async () => {
   resetEnvironment();
   const googleStub = {
     accounts: {
@@ -4409,18 +4467,22 @@ test('mpr-login-button rejects tauth-tenant-id changes after first render', asyn
 
   loadLibrary();
   const { element } = createLoginButtonHarness(googleStub);
-  element.setAttribute('site-id', 'custom-site');
-  element.setAttribute('tauth-login-path', '/auth/login');
-  element.setAttribute('tauth-logout-path', '/auth/logout');
-  element.setAttribute('tauth-nonce-path', '/auth/nonce');
-  element.setAttribute('tauth-tenant-id', 'tenant-login');
+  setGoogleAuthConfig(element, {
+    googleClientId: 'custom-site',
+    googleLoginPath: '/auth/login',
+    tenantId: 'tenant-login',
+  });
   element.connectedCallback();
   await flushAsync();
   await flushAsync();
 
   assert.throws(
     function rejectTenantMutation() {
-      element.setAttribute('tauth-tenant-id', 'tenant-next');
+      setGoogleAuthConfig(element, {
+        googleClientId: 'custom-site',
+        googleLoginPath: '/auth/login',
+        tenantId: 'tenant-next',
+      });
     },
     function verifyTenantMutationError(error) {
       assert.equal(error.code, 'mpr-ui.auth.tenant_id_change_unsupported');
@@ -4462,16 +4524,20 @@ test('mpr-login-button initializes GSI with a nonce only after sign-in trigger c
   googleStub.accounts.id.renderButton = function renderButton() {
     callOrder.push('renderButton');
   };
-  element.setAttribute('site-id', 'race-condition-test-site');
-  element.setAttribute('tauth-login-path', '/auth/login');
-  element.setAttribute('tauth-logout-path', '/auth/logout');
-  element.setAttribute('tauth-nonce-path', '/auth/nonce');
-  element.setAttribute('tauth-tenant-id', 'tenant-race');
+  setGoogleAuthConfig(element, {
+    googleClientId: 'race-condition-test-site',
+    googleLoginPath: '/auth/login',
+    tenantId: 'tenant-race',
+  });
   element.connectedCallback();
   await flushAsync();
   assert.deepEqual(callOrder, [], 'login button does not initialize or render GIS on mount');
 
-  const loginTrigger = buttonHost.children[0];
+  const loginTrigger = getStubNodeByAttribute(
+    buttonHost,
+    'data-mpr-auth-action',
+    'google',
+  );
   assert.equal(loginTrigger.tagName, 'BUTTON', 'login button uses a real button for activation');
   loginTrigger.dispatchEvent({ type: 'click', preventDefault() {} });
   await flushAsync();
@@ -4489,9 +4555,379 @@ test('mpr-login-button initializes GSI with a nonce only after sign-in trigger c
   );
   assert.equal(callOrder.includes('renderButton'), false, 'sign-in attempt uses prompt flow');
   assert.equal(
-    buttonHost.getAttribute('data-mpr-google-ready'),
-    'true',
-    'login button remains visible after GIS prompt starts',
+    getStubNodeByAttribute(
+      buttonHost,
+      'data-mpr-auth-actions',
+      'root',
+    ).getAttribute('data-mpr-auth-action-status'),
+    'ready',
+    'login provider actions return to the ready state after GIS prompt starts',
+  );
+});
+
+test('F008: canonical auth options support Google-only, Apple-only, and combined providers', () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const providerCases = [
+    {
+      label: 'Google-only',
+      config: createGoogleAuthConfig(),
+      expectedProviders: { google: true, apple: false },
+    },
+    {
+      label: 'Apple-only',
+      config: createAppleAuthConfig(),
+      expectedProviders: { google: false, apple: true },
+    },
+    {
+      label: 'combined',
+      config: createBothAuthConfig(),
+      expectedProviders: { google: true, apple: true },
+    },
+  ];
+
+  providerCases.forEach((providerCase) => {
+    const options = library.createAuthOptions(providerCase.config);
+    assert.equal(
+      options.providers.google.enabled,
+      providerCase.expectedProviders.google,
+      `${providerCase.label}: Google provider state is explicit`,
+    );
+    assert.equal(
+      options.providers.apple.enabled,
+      providerCase.expectedProviders.apple,
+      `${providerCase.label}: Apple provider state is explicit`,
+    );
+    assert.equal(Object.isFrozen(options), true, `${providerCase.label}: options are immutable`);
+  });
+
+  assert.throws(
+    () => library.createAuthOptions({
+      ...createAppleAuthConfig(),
+      legacyClientId: 'obsolete',
+    }),
+    (error) => error.code === 'mpr-ui.auth.config_unknown_key',
+    'unknown flat auth keys are rejected',
+  );
+  assert.throws(
+    () => library.createAuthOptions(createAppleAuthConfig({
+      appleReturnTo: 'https://attacker.example/return',
+    })),
+    (error) => error.code === 'mpr-ui.auth.config_value_invalid',
+    'cross-origin return targets are rejected',
+  );
+  assert.throws(
+    () => library.createAuthOptions(createAppleAuthConfig({
+      appleStartPath: '/\\attacker.example/start',
+    })),
+    (error) => error.code === 'mpr-ui.auth.config_value_invalid',
+    'backslash authority escapes are rejected before Apple navigation',
+  );
+  assert.throws(
+    () => library.createAuthOptions(createAppleAuthConfig({
+      appleReturnTo: '/\t/attacker.example/return',
+    })),
+    (error) => error.code === 'mpr-ui.auth.config_value_invalid',
+    'URL control-character authority escapes are rejected before return target construction',
+  );
+  assert.throws(
+    () => library.createAuthOptions(createAppleAuthConfig({
+      appleLabel: 'Apple login',
+    })),
+    (error) => error.code === 'mpr-ui.auth.config_value_invalid',
+    'unapproved Apple button titles are rejected',
+  );
+  assert.throws(
+    () => library.createAuthOptions(createAppleAuthConfig({
+      tauthUrl: 'not-an-origin',
+    })),
+    (error) => error.code === 'mpr-ui.auth.config_value_invalid',
+    'malformed TAuth origins are rejected',
+  );
+  assert.throws(
+    () => library.createAuthOptions(createGoogleAuthConfig({
+      googleClientId: '',
+    })),
+    (error) => error.code === 'mpr-ui.auth.config_value_required',
+    'enabled Google requires a client ID',
+  );
+  assert.throws(
+    () => library.createAuthOptions({
+      ...createAppleAuthConfig(),
+      providers: {
+        google: { enabled: false },
+        apple: { enabled: false },
+      },
+    }),
+    (error) => error.code === 'mpr-ui.auth.enabled_provider_required',
+    'at least one explicit provider is required',
+  );
+});
+
+test('F008: provider-aware login controls render only enabled providers', () => {
+  const providerCases = [
+    {
+      label: 'Google-only',
+      config: createGoogleAuthConfig(),
+      expectedProviders: ['google'],
+    },
+    {
+      label: 'Apple-only',
+      config: createAppleAuthConfig(),
+      expectedProviders: ['apple'],
+    },
+    {
+      label: 'combined',
+      config: createBothAuthConfig(),
+      expectedProviders: ['google', 'apple'],
+    },
+  ];
+
+  providerCases.forEach((providerCase) => {
+    resetEnvironment();
+    global.location = {
+      origin: 'https://app.example.test',
+      href: 'https://app.example.test/',
+      assign() {},
+    };
+    const googleStub = {
+      accounts: {
+        id: {
+          renderButton() {},
+          initialize() {},
+          prompt() {},
+        },
+      },
+    };
+    global.google = googleStub;
+    loadLibrary();
+    const { element, buttonHost } = createLoginButtonHarness(googleStub);
+    element.setAttribute('auth-config', JSON.stringify(providerCase.config));
+    element.connectedCallback();
+
+    const providerButtons = findStubNodesByAttribute(
+      buttonHost,
+      'data-mpr-auth-action',
+    );
+    assert.deepEqual(
+      providerButtons.map((buttonElement) =>
+        buttonElement.getAttribute('data-mpr-auth-action')),
+      providerCase.expectedProviders,
+      `${providerCase.label}: only enabled provider actions render`,
+    );
+    providerButtons.forEach((buttonElement) => {
+      assert.ok(
+        buttonElement.getAttribute('aria-label'),
+        `${providerCase.label}: each provider action has an accessible label`,
+      );
+    });
+  });
+});
+
+test('F008: Apple provider action is inspectable and navigation is explicit', async () => {
+  resetEnvironment();
+  const navigationCalls = [];
+  global.location = {
+    origin: 'https://app.example.test',
+    href:
+      'https://app.example.test/workspace?view=cards&code=secret-code&state=secret-state&return_to=stale#callback',
+    assign(url) {
+      navigationCalls.push(url);
+    },
+  };
+  const storage = installStorageStub();
+  const library = loadLibrary();
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(
+    hostElement,
+    createAppleAuthConfig({ tenantId: 'tenant-apple' }),
+  );
+  hostElement.__authController = authController;
+  await flushAsync();
+
+  const providerAction = library.testing.prepareRedirectProvider(
+    hostElement,
+    'apple',
+  );
+  const providerUrl = new URL(providerAction.url);
+  const returnUrl = new URL(providerUrl.searchParams.get('return_to'));
+  assert.equal(providerUrl.origin, 'https://auth.example.test');
+  assert.equal(providerUrl.pathname, '/auth/apple/start');
+  assert.equal(providerUrl.searchParams.get('tenant_id'), 'tenant-apple');
+  assert.equal(returnUrl.origin, 'https://app.example.test');
+  assert.equal(returnUrl.pathname, '/workspace');
+  assert.equal(returnUrl.searchParams.get('view'), 'cards');
+  assert.equal(returnUrl.searchParams.has('code'), false);
+  assert.equal(returnUrl.searchParams.has('state'), false);
+  assert.equal(returnUrl.searchParams.has('return_to'), false);
+  assert.equal(returnUrl.hash, '');
+  assert.deepEqual(navigationCalls, [], 'inspection does not navigate');
+
+  const restoreHintKey =
+    'tauth.restore.v1:https%3A%2F%2Fauth.example.test:tenant-apple';
+  const navigationPromise = library.testing.navigateRedirectProvider(
+    hostElement,
+    'apple',
+  );
+  assert.equal(
+    storage.getItem(restoreHintKey),
+    '1',
+    'redirect intent records the passive session restore hint before navigation',
+  );
+  assert.equal(authController.state.status, 'authenticating');
+  await navigationPromise;
+  assert.deepEqual(navigationCalls, [providerAction.url]);
+});
+
+test('F008: obsolete Apple redirect intent is canceled before navigation', async () => {
+  resetEnvironment();
+  const navigationCalls = [];
+  global.location = {
+    origin: 'https://app.example.test',
+    href: 'https://app.example.test/',
+    assign(url) {
+      navigationCalls.push(url);
+    },
+  };
+  const storage = installStorageStub();
+  const library = loadLibrary();
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(
+    hostElement,
+    createAppleAuthConfig({ tenantId: 'tenant-apple' }),
+  );
+  await flushAsync();
+
+  const redirectPromise = authController.startAppleSignIn();
+  authController.updateOptions(
+    createAppleAuthConfig({
+      tauthUrl: 'https://next-auth.example.test',
+      tenantId: 'tenant-apple',
+    }),
+  );
+
+  await assert.rejects(
+    redirectPromise,
+    (error) => error.code === 'mpr-ui.auth.redirect_lifecycle_changed',
+  );
+  assert.deepEqual(navigationCalls, []);
+  assert.equal(
+    storage.getItem(
+      'tauth.restore.v1:https%3A%2F%2Fauth.example.test:tenant-apple',
+    ),
+    null,
+    'canceled redirect intent removes the obsolete restore hint',
+  );
+});
+
+test('F008: destroying an auth controller cancels its pending Apple redirect', async () => {
+  resetEnvironment();
+  const navigationCalls = [];
+  global.location = {
+    origin: 'https://app.example.test',
+    href: 'https://app.example.test/',
+    assign(url) {
+      navigationCalls.push(url);
+    },
+  };
+  const storage = installStorageStub();
+  const library = loadLibrary();
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(
+    hostElement,
+    createAppleAuthConfig({ tenantId: 'tenant-apple' }),
+  );
+  await flushAsync();
+
+  const redirectPromise = authController.startAppleSignIn();
+  authController.destroy();
+
+  await assert.rejects(
+    redirectPromise,
+    (error) => error.code === 'mpr-ui.auth.redirect_lifecycle_changed',
+  );
+  assert.deepEqual(navigationCalls, []);
+  assert.equal(
+    storage.getItem(
+      'tauth.restore.v1:https%3A%2F%2Fauth.example.test:tenant-apple',
+    ),
+    null,
+    'destroyed redirect intent removes its restore hint',
+  );
+});
+
+test('F008: auth diagnostics bind explicitly and expose only safe profile fields', async () => {
+  resetEnvironment();
+  global.location = {
+    origin: 'https://app.example.test',
+    href: 'https://app.example.test/',
+    assign() {},
+  };
+  installStorageStub();
+  const library = loadLibrary();
+  const authHost = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(
+    authHost,
+    createAppleAuthConfig(),
+  );
+  authHost.__authController = authController;
+  global.document.querySelector = function querySelector(selector) {
+    if (selector === '[') {
+      throw new Error('invalid selector');
+    }
+    return selector === '#auth-surface' ? authHost : null;
+  };
+
+  const DiagnosticsElement = global.customElements.get('mpr-auth-diagnostics');
+  const diagnosticsElement = attachHostApi(new DiagnosticsElement(), new Map());
+  diagnosticsElement.setAttribute('auth-target', '#auth-surface');
+  diagnosticsElement.connectedCallback();
+  await flushAsync();
+
+  library.testing.authenticate(authHost, {
+    user_id: 'user-123',
+    user_email: 'ada@example.com',
+    display: 'Ada Lovelace',
+    access_token: 'must-not-render',
+  });
+  await flushAsync();
+
+  assert.equal(
+    diagnosticsElement.getAttribute('data-mpr-auth-diagnostics-status'),
+    'authenticated',
+  );
+  assert.match(diagnosticsElement.innerHTML, /Ada Lovelace/);
+  assert.doesNotMatch(diagnosticsElement.innerHTML, /must-not-render/);
+
+  const unboundDiagnosticsElement = attachHostApi(
+    new DiagnosticsElement(),
+    new Map(),
+  );
+  unboundDiagnosticsElement.connectedCallback();
+  assert.equal(
+    unboundDiagnosticsElement.getAttribute('data-mpr-auth-diagnostics-error'),
+    'mpr-ui.auth_diagnostics.target_required',
+    'diagnostics do not discover an auth controller implicitly',
+  );
+
+  const invalidDiagnosticsElement = attachHostApi(
+    new DiagnosticsElement(),
+    new Map(),
+  );
+  invalidDiagnosticsElement.setAttribute('auth-target', '[');
+  invalidDiagnosticsElement.connectedCallback();
+  assert.equal(
+    invalidDiagnosticsElement.getAttribute('data-mpr-auth-diagnostics-error'),
+    'mpr-ui.auth_diagnostics.target_invalid',
+    'invalid selectors use the diagnostics error contract',
+  );
+  assert.equal(
+    invalidDiagnosticsElement.__dispatchedEvents.some(
+      (event) => event.type === 'mpr-auth-diagnostics:error' &&
+        event.detail.code === 'mpr-ui.auth_diagnostics.target_invalid',
+    ),
+    true,
+    'invalid selectors emit the diagnostics error event',
   );
 });
 
@@ -4820,7 +5256,7 @@ test('mpr-user renders avatar modes from TAuth profile data', () => {
     element.setAttribute('display-mode', testCase.displayMode);
     element.setAttribute('logout-url', '#signed-out');
     element.setAttribute('logout-label', 'Log out');
-    element.setAttribute('tauth-tenant-id', 'tenant-test');
+    setGoogleAuthConfig(element);
     if (testCase.customAvatarUrl) {
       element.setAttribute('avatar-url', testCase.customAvatarUrl);
     }
@@ -4866,7 +5302,7 @@ test('mpr-user renders menu items when configured', () => {
   element.setAttribute('display-mode', 'avatar-name');
   element.setAttribute('logout-url', '#signed-out');
   element.setAttribute('logout-label', 'Log out');
-  element.setAttribute('tauth-tenant-id', 'tenant-test');
+  setGoogleAuthConfig(element);
   element.setAttribute(
     'menu-items',
     JSON.stringify([
@@ -4914,7 +5350,7 @@ test('mpr-user dispatches menu-item events for action items', () => {
   element.setAttribute('display-mode', 'avatar-name');
   element.setAttribute('logout-url', '#signed-out');
   element.setAttribute('logout-label', 'Log out');
-  element.setAttribute('tauth-tenant-id', 'tenant-test');
+  setGoogleAuthConfig(element);
   element.setAttribute('menu-items', JSON.stringify(menuItems));
 
   element.connectedCallback();
@@ -4967,7 +5403,7 @@ test('mpr-user toggles menu and triggers logout redirect', async () => {
   element.setAttribute('display-mode', 'avatar');
   element.setAttribute('logout-url', '#signed-out');
   element.setAttribute('logout-label', 'Log out');
-  element.setAttribute('tauth-tenant-id', 'tenant-test');
+  setGoogleAuthConfig(element);
 
   element.connectedCallback();
 
@@ -5000,7 +5436,7 @@ test('mpr-user validates required attributes', () => {
       attributes: {
         'logout-url': '#signed-out',
         'logout-label': 'Log out',
-        'tauth-tenant-id': 'tenant-test',
+        'auth-config': JSON.stringify(createGoogleAuthConfig()),
       },
       expectedError: 'mpr-ui.user.invalid_display_mode',
     },
@@ -5009,7 +5445,7 @@ test('mpr-user validates required attributes', () => {
       attributes: {
         'display-mode': 'avatar',
         'logout-label': 'Log out',
-        'tauth-tenant-id': 'tenant-test',
+        'auth-config': JSON.stringify(createGoogleAuthConfig()),
       },
       expectedError: 'mpr-ui.user.missing_logout_url',
     },
@@ -5018,18 +5454,18 @@ test('mpr-user validates required attributes', () => {
       attributes: {
         'display-mode': 'avatar',
         'logout-url': '#signed-out',
-        'tauth-tenant-id': 'tenant-test',
+        'auth-config': JSON.stringify(createGoogleAuthConfig()),
       },
       expectedError: 'mpr-ui.user.missing_logout_label',
     },
     {
-      label: 'missing tenant id',
+      label: 'missing auth config',
       attributes: {
         'display-mode': 'avatar',
         'logout-url': '#signed-out',
         'logout-label': 'Log out',
       },
-      expectedError: 'mpr-ui.tenant_id_required',
+      expectedError: 'mpr-ui.auth.config_value_required',
     },
     {
       label: 'missing custom avatar url',
@@ -5037,7 +5473,7 @@ test('mpr-user validates required attributes', () => {
         'display-mode': 'custom-avatar',
         'logout-url': '#signed-out',
         'logout-label': 'Log out',
-        'tauth-tenant-id': 'tenant-test',
+        'auth-config': JSON.stringify(createGoogleAuthConfig()),
       },
       expectedError: 'mpr-ui.user.missing_custom_avatar',
     },
@@ -5047,7 +5483,7 @@ test('mpr-user validates required attributes', () => {
         'display-mode': 'avatar',
         'logout-url': '#signed-out',
         'logout-label': 'Log out',
-        'tauth-tenant-id': 'tenant-test',
+        'auth-config': JSON.stringify(createGoogleAuthConfig()),
         'menu-items': 'not-json',
       },
       expectedError: 'mpr-ui.user.invalid_menu_items',
@@ -5058,7 +5494,7 @@ test('mpr-user validates required attributes', () => {
         'display-mode': 'avatar',
         'logout-url': '#signed-out',
         'logout-label': 'Log out',
-        'tauth-tenant-id': 'tenant-test',
+        'auth-config': JSON.stringify(createGoogleAuthConfig()),
         'menu-items': '[{"label":"Settings"}]',
       },
       expectedError: 'mpr-ui.user.invalid_menu_items',
@@ -5069,7 +5505,7 @@ test('mpr-user validates required attributes', () => {
         'display-mode': 'avatar',
         'logout-url': '#signed-out',
         'logout-label': 'Log out',
-        'tauth-tenant-id': 'tenant-test',
+        'auth-config': JSON.stringify(createGoogleAuthConfig()),
         'menu-items': '[{"label":"Settings","href":"/settings","action":"open-settings"}]',
       },
       expectedError: 'mpr-ui.user.invalid_menu_items',

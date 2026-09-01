@@ -13,13 +13,19 @@
         var authHost = document.querySelector("#auth-host");
         window.fixtureAuthHost = authHost;
         window.fixtureAuthTarget = window.MPRUI.createAuthHeader(authHost, {
-          googleClientId: "fixture-client",
           tauthUrl: "https://auth.fixture.test",
           tenantId: "fixture-tenant",
-          tauthLoginPath: "/auth/google",
-          tauthLogoutPath: "/auth/logout",
-          tauthNoncePath: "/auth/nonce",
-          tauthSessionPath: "/auth/session",
+          logoutPath: "/auth/logout",
+          sessionPath: "/auth/session",
+          providers: {
+            google: {
+              enabled: true,
+              clientId: "fixture-client",
+              loginPath: "/auth/google",
+              noncePath: "/auth/nonce",
+            },
+            apple: { enabled: false },
+          },
         });
         window.fixtureAuthEvents = [];
         [

@@ -140,7 +140,7 @@ const LEGAL_DOCUMENT_FIXTURE_URL = pathToFileURL(
 ).href;
 
 const SELECTORS = Object.freeze({
-  googleButton: '[data-mpr-header="google-signin"] [data-test="google-signin"]',
+  googleButton: '[data-mpr-header="auth-actions"] [data-mpr-auth-action="google"]',
   headerNavLinks: '[data-mpr-header="nav"] a',
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerThemeWrapper: '[data-mpr-footer="theme-toggle"]',
@@ -169,12 +169,20 @@ const AUTH_ONLY_RUNTIME_CONFIG = String.raw`environments:
       - "https://static.fixture.test"
     auth:
       tauthUrl: "${RUNTIME_AUTH_ORIGIN}"
-      googleClientId: "fixture-config-client"
       tenantId: "${RUNTIME_AUTH_TENANT_ID}"
-      loginPath: "/auth/google"
       logoutPath: "/auth/logout"
-      noncePath: "/auth/nonce"
       sessionPath: "${RUNTIME_SESSION_PATH}"
+      providers:
+        google:
+          enabled: true
+          clientId: "fixture-config-client"
+          loginPath: "/auth/google"
+          noncePath: "/auth/nonce"
+        apple:
+          enabled: true
+          startPath: "/auth/apple/start"
+          returnTo: "current-origin"
+          label: "Sign in with Apple"
 `;
 
 /**

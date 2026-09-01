@@ -26,11 +26,7 @@
       brand-href="/"
       nav-links='[{"label": "Link 1", "href": "#"}, {"label": "Link 2", "href": "#"}]'
       settings="true"
-      google-site-id="test-site-id"
-      tauth-login-path="/auth/login"
-      tauth-logout-path="/auth/logout"
-      tauth-nonce-path="/auth/nonce"
-      tauth-tenant-id="test-tenant"
+      auth-config='{"tauthUrl":"","tenantId":"test-tenant","logoutPath":"/auth/logout","sessionPath":"/auth/session","providers":{"google":{"enabled":true,"clientId":"test-site-id","loginPath":"/auth/login","noncePath":"/auth/nonce"},"apple":{"enabled":false}}}'
     ></mpr-header>
 
     <main style="padding: 2rem;">

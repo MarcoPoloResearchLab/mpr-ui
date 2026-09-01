@@ -291,7 +291,6 @@ test('shared DOM helpers mount header and footer markup', () => {
     brand: { label: 'Demo', href: '/' },
     navLinks: [],
     settings: { enabled: true, label: 'Settings' },
-    signInLabel: 'Sign in',
     signOutLabel: 'Sign out',
     tenantId: 'tenant-demo',
     userMenu: {
