@@ -29,8 +29,10 @@
     "logoutPath",
     "sessionPath",
     "providers",
+    "password",
+    "account",
   ]);
-  var AUTH_CONFIG_PROVIDER_KEYS = Object.freeze(["google", "apple"]);
+  var AUTH_CONFIG_PROVIDER_KEYS = Object.freeze(["google", "apple", "password"]);
   var AUTH_CONFIG_GOOGLE_KEYS = Object.freeze([
     "enabled",
     "clientId",
@@ -42,6 +44,22 @@
     "startPath",
     "returnTo",
     "label",
+  ]);
+  var AUTH_CONFIG_PASSWORD_PROVIDER_KEYS = Object.freeze(["enabled"]);
+  var AUTH_CONFIG_PASSWORD_KEYS = Object.freeze([
+    "loginPath",
+    "signupPath",
+    "verifyEmailPath",
+    "resetStartPath",
+    "resetCompletePath",
+  ]);
+  var AUTH_CONFIG_ACCOUNT_KEYS = Object.freeze([
+    "passwordChangePath",
+    "passwordLinkStartPath",
+    "passwordLinkVerifyPath",
+    "googleLinkPath",
+    "unlinkPath",
+    "disablePath",
   ]);
   var APPLE_PROVIDER_LABELS = Object.freeze([
     "Sign in with Apple",
@@ -76,6 +94,8 @@
     googleFailure: "Unable to start Google sign-in. Try again.",
     applePreparing: "Opening Apple sign-in…",
     appleFailure: "Unable to open Apple sign-in. Try again.",
+    passwordPreparing: "Email sign-in is ready.",
+    passwordFailure: "Unable to open email sign-in. Try again.",
   });
   var AUTH_DIAGNOSTICS_LABELS = Object.freeze({
     heading: "Authentication diagnostics",
@@ -95,6 +115,73 @@
     "mpr-ui.auth_diagnostics.target_missing";
   var AUTH_DIAGNOSTICS_TARGET_INVALID_ERROR_CODE =
     "mpr-ui.auth_diagnostics.target_invalid";
+  var AUTH_COMPONENT_TARGET_ATTRIBUTE = "auth-target";
+  var PASSWORD_AUTH_MODE_ATTRIBUTE = "mode";
+  var ACCOUNT_PANEL_ACTION_ATTRIBUTE = "action";
+  var ACCOUNT_PANEL_IDENTITIES_ATTRIBUTE = "identities";
+  var CHALLENGE_TOKEN_DISPLAY_ATTRIBUTE = "display-challenge-token";
+  var AUTH_FORM_STYLE_ID = "mpr-ui-auth-form-styles";
+  var PASSWORD_AUTH_MODES = Object.freeze([
+    "login",
+    "signup",
+    "verify-email",
+    "reset-start",
+    "reset-complete",
+  ]);
+  var ACCOUNT_PANEL_ACTIONS = Object.freeze([
+    "password-change",
+    "password-link-start",
+    "password-link-verify",
+    "google-link",
+    "unlink",
+    "disable",
+  ]);
+  var ACCOUNT_IDENTITY_PROVIDERS = Object.freeze([
+    "apple",
+    "google",
+    "password",
+  ]);
+  var CHALLENGE_TOKEN_FIELDS = Object.freeze({
+    signup: "verification_token",
+    "reset-start": "reset_token",
+    "password-link-start": "verification_token",
+  });
+  var AUTH_FORM_LABELS = Object.freeze({
+    email: "Email",
+    password: "Password",
+    token: "Challenge token",
+    currentPassword: "Current password",
+    newPassword: "New password",
+    identity: "Sign-in method",
+    loginTitle: "Sign in with email",
+    loginSubmit: "Sign in",
+    signupTitle: "Create an account",
+    signupSubmit: "Create account",
+    verifyEmailTitle: "Verify your email",
+    verifyEmailSubmit: "Verify email",
+    resetStartTitle: "Reset your password",
+    resetStartSubmit: "Send reset instructions",
+    resetCompleteTitle: "Choose a new password",
+    resetCompleteSubmit: "Reset password",
+    passwordChangeTitle: "Change password",
+    passwordChangeSubmit: "Change password",
+    passwordLinkStartTitle: "Add email sign-in",
+    passwordLinkStartSubmit: "Send verification",
+    passwordLinkVerifyTitle: "Verify email sign-in",
+    passwordLinkVerifySubmit: "Link password",
+    googleLinkTitle: "Add Google sign-in",
+    googleLinkSubmit: "Link Google",
+    unlinkTitle: "Remove a sign-in method",
+    unlinkSubmit: "Remove identity",
+    disableTitle: "Disable account",
+    disableSubmit: "Disable account",
+    unauthenticated: "Sign in to manage this account.",
+    ready: "",
+    loading: "Working…",
+    success: "Completed.",
+    challengeToken: "Challenge token: ",
+    failure: "Unable to complete the request.",
+  });
   var normalizedAuthOptions = new WeakSet();
   var REQUESTED_WITH_HEADER = "XMLHttpRequest";
   var TAUTH_RUNTIME_SESSION_PATH = "/auth/session";
@@ -257,14 +344,28 @@
    * @typedef {"current-url"|"current-origin"|string} AppleReturnTargetPolicy
    * @typedef {{ enabled: false } | { enabled: true, clientId: string, loginPath: string, noncePath: string }} GoogleAuthProviderConfig
    * @typedef {{ enabled: false } | { enabled: true, startPath: string, returnTo: AppleReturnTargetPolicy, label: string }} AppleAuthProviderConfig
-   * @typedef {GoogleAuthProviderConfig|AppleAuthProviderConfig} AuthProviderConfig
-   * @typedef {{ google: GoogleAuthProviderConfig, apple: AppleAuthProviderConfig }} AuthProviderMap
+   * @typedef {{ enabled: boolean }} PasswordAuthProviderConfig
+   * @typedef {GoogleAuthProviderConfig|AppleAuthProviderConfig|PasswordAuthProviderConfig} AuthProviderConfig
+   * @typedef {{ google: GoogleAuthProviderConfig, apple: AppleAuthProviderConfig, password: PasswordAuthProviderConfig }} AuthProviderMap
+   * @typedef {{ loginPath: string, signupPath: string, verifyEmailPath: string, resetStartPath: string, resetCompletePath: string }} PasswordAuthPathConfig
+   * @typedef {{ passwordChangePath: string, passwordLinkStartPath: string, passwordLinkVerifyPath: string, googleLinkPath: string, unlinkPath: string, disablePath: string }} AccountAuthPathConfig
+   * @typedef {"login"|"signup"|"verify-email"|"reset-start"|"reset-complete"} PasswordAuthAction
+   * @typedef {"password-change"|"password-link-start"|"password-link-verify"|"google-link"|"unlink"|"disable"} AccountAuthAction
+   * @typedef {{ email?: string, password?: string, token?: string }} PasswordActionRequest
+   * @typedef {{ currentPassword?: string, newPassword?: string, email?: string, password?: string, token?: string, credential?: string, nonceToken?: string, provider?: string, providerId?: string }} AccountActionRequest
+   * @typedef {{ includeChallengeToken?: boolean }} AuthActionResultOptions
+   * @typedef {{ provider: "apple"|"google"|"password", providerId: string, label: string }} AccountIdentityOption
+   * @typedef {{ action: PasswordAuthAction|AccountAuthAction, status: "authenticated"|"accepted"|"updated"|"disabled", expiresUnix?: number|null, challengeToken?: string }} NormalizedAuthActionResult
+   * @typedef {{ mode: PasswordAuthAction, status: "loading"|"success"|"error", code?: string }} PasswordAuthStatusEventDetail
+   * @typedef {{ action: AccountAuthAction, status: "loading"|"success"|"error", code?: string }} AccountPanelStatusEventDetail
    * @typedef {{
    *   tauthUrl: string,
    *   tenantId: string,
    *   logoutPath: string,
    *   sessionPath: string,
    *   providers: AuthProviderMap,
+   *   password?: PasswordAuthPathConfig,
+   *   account?: AccountAuthPathConfig,
    * }} AuthOptions
    * @typedef {{
    *   provider: "apple",
@@ -593,6 +694,36 @@
     });
   }
 
+  function normalizePasswordAuthProviderConfig(providersConfig) {
+    var scope = "auth.providers.password";
+    var providerConfig = requireAuthConfigObject(providersConfig.password, scope);
+    rejectUnknownAuthConfigKeys(
+      providerConfig,
+      AUTH_CONFIG_PASSWORD_PROVIDER_KEYS,
+      scope,
+    );
+    return Object.freeze({
+      enabled: requireAuthConfigBoolean(providerConfig, "enabled", scope),
+    });
+  }
+
+  function normalizeAuthPathConfig(authConfig, key, allowedKeys, scope) {
+    if (!Object.prototype.hasOwnProperty.call(authConfig, key)) {
+      return null;
+    }
+    var pathConfig = requireAuthConfigObject(authConfig[key], scope);
+    rejectUnknownAuthConfigKeys(pathConfig, allowedKeys, scope);
+    var normalizedPaths = {};
+    allowedKeys.forEach(function normalizeConfiguredPath(pathKey) {
+      normalizedPaths[pathKey] = normalizeAuthNavigationPath(
+        pathConfig,
+        pathKey,
+        scope,
+      );
+    });
+    return Object.freeze(normalizedPaths);
+  }
+
   /**
    * Create the normalized provider-aware authentication options.
    *
@@ -620,14 +751,32 @@
     );
     var googleProvider = normalizeGoogleAuthProviderConfig(providersConfig);
     var appleProvider = normalizeAppleAuthProviderConfig(providersConfig);
-    if (!googleProvider.enabled && !appleProvider.enabled) {
+    var passwordProvider = normalizePasswordAuthProviderConfig(providersConfig);
+    if (!googleProvider.enabled && !appleProvider.enabled && !passwordProvider.enabled) {
       throw createAuthConfigError(
         AUTH_CONFIG_ERROR_CODES.ENABLED_PROVIDER_REQUIRED,
         "Authentication requires an enabled provider",
       );
     }
-    /** @type {AuthOptions} */
-    var normalizedOptions = Object.freeze({
+    var passwordConfig = normalizeAuthPathConfig(
+      authConfig,
+      "password",
+      AUTH_CONFIG_PASSWORD_KEYS,
+      "auth.password",
+    );
+    var accountConfig = normalizeAuthPathConfig(
+      authConfig,
+      "account",
+      AUTH_CONFIG_ACCOUNT_KEYS,
+      "auth.account",
+    );
+    if (passwordProvider.enabled && !passwordConfig) {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.VALUE_REQUIRED,
+        "auth.password is required when password authentication is enabled",
+      );
+    }
+    var normalizedOptionsPayload = {
       tauthUrl: normalizeAuthOrigin(authConfig, "tauthUrl", "auth"),
       tenantId: requireAuthConfigString(authConfig, "tenantId", "auth", false),
       logoutPath: normalizeAuthNavigationPath(authConfig, "logoutPath", "auth"),
@@ -635,8 +784,17 @@
       providers: Object.freeze({
         google: googleProvider,
         apple: appleProvider,
+        password: passwordProvider,
       }),
-    });
+    };
+    if (passwordConfig) {
+      normalizedOptionsPayload.password = passwordConfig;
+    }
+    if (accountConfig) {
+      normalizedOptionsPayload.account = accountConfig;
+    }
+    /** @type {AuthOptions} */
+    var normalizedOptions = Object.freeze(normalizedOptionsPayload);
     normalizedAuthOptions.add(normalizedOptions);
     return normalizedOptions;
   }
@@ -2538,14 +2696,25 @@
   }
 
   function enabledAuthProviderIds(authOptions) {
-    return AUTH_CONFIG_PROVIDER_KEYS.filter(function filterEnabledProvider(providerId) {
-      return authOptions.providers[providerId].enabled === true;
-    });
+    var providerIds = [];
+    if (authOptions.providers.google.enabled) {
+      providerIds.push(AUTH_PROVIDER_IDS.GOOGLE);
+    }
+    if (authOptions.providers.apple.enabled) {
+      providerIds.push(AUTH_PROVIDER_IDS.APPLE);
+    }
+    if (authOptions.providers.password.enabled) {
+      providerIds.push(AUTH_PROVIDER_IDS.EMAIL);
+    }
+    return providerIds;
   }
 
   function authProviderActionLabel(authOptions, providerId, displayOptions) {
     if (providerId === AUTH_PROVIDER_IDS.APPLE) {
       return authOptions.providers.apple.label;
+    }
+    if (providerId === AUTH_PROVIDER_IDS.EMAIL) {
+      return AUTH_PROVIDER_CHOOSER_LABELS.email;
     }
     var configuredGoogleLabel =
       displayOptions && typeof displayOptions.googleLabel === "string"
@@ -2559,6 +2728,11 @@
       return status === "error"
         ? AUTH_ACTION_LABELS.appleFailure
         : AUTH_ACTION_LABELS.applePreparing;
+    }
+    if (providerId === AUTH_PROVIDER_IDS.EMAIL) {
+      return status === "error"
+        ? AUTH_ACTION_LABELS.passwordFailure
+        : AUTH_ACTION_LABELS.passwordPreparing;
     }
     return status === "error"
       ? AUTH_ACTION_LABELS.googleFailure
@@ -2585,6 +2759,8 @@
     var providerButtons = [];
     var cleanupHandlers = [];
     var currentAttempt = 0;
+    var passwordPanelElement = null;
+    var passwordPanelId = createAuthProviderEmailPanelId();
     setAuthProviderElementClass(rootElement, "mpr-auth-actions");
     setAuthProviderElementClass(actionsElement, "mpr-auth-actions__controls");
     setAuthProviderElementClass(statusElement, "mpr-auth-actions__status");
@@ -2619,6 +2795,33 @@
         if (event && typeof event.preventDefault === "function") {
           event.preventDefault();
         }
+        if (providerId === AUTH_PROVIDER_IDS.EMAIL) {
+          if (passwordPanelElement && passwordPanelElement.parentNode) {
+            passwordPanelElement.parentNode.removeChild(passwordPanelElement);
+            passwordPanelElement = null;
+            actionButton.setAttribute("aria-expanded", "false");
+            setActionStatus("ready", providerId);
+            return;
+          }
+          passwordPanelElement = createAuthProviderElement(
+            hostElement,
+            "mpr-password-auth",
+          );
+          passwordPanelElement.id = passwordPanelId;
+          passwordPanelElement.setAttribute("mode", "login");
+          passwordPanelElement.setAttribute(
+            AUTH_CONFIG_ATTRIBUTE,
+            JSON.stringify(authOptions),
+          );
+          passwordPanelElement.__authControllerOverride = authController;
+          appendAuthProviderElement(rootElement, passwordPanelElement);
+          actionButton.setAttribute("aria-expanded", "true");
+          setActionStatus("ready", providerId);
+          if (displayOptions && typeof displayOptions.handleStart === "function") {
+            displayOptions.handleStart(providerId);
+          }
+          return;
+        }
         currentAttempt += 1;
         var attempt = currentAttempt;
         setActionStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATING, providerId);
@@ -2651,6 +2854,9 @@
         handleProviderAction,
         providerLabel,
       );
+      if (providerId === AUTH_PROVIDER_IDS.EMAIL) {
+        actionButton.setAttribute("aria-controls", passwordPanelId);
+      }
       actionButton.setAttribute("data-mpr-auth-action", providerId);
       actionButton.setAttribute("data-mpr-auth-provider", providerId);
       providerButtons.push(actionButton);
@@ -2668,6 +2874,10 @@
       buttons: providerButtons,
       cleanup: function cleanupAuthProviderActions() {
         currentAttempt += 1;
+        if (passwordPanelElement && passwordPanelElement.parentNode) {
+          passwordPanelElement.parentNode.removeChild(passwordPanelElement);
+        }
+        passwordPanelElement = null;
         cleanupHandlers.forEach(function runCleanup(cleanup) {
           cleanup();
         });
@@ -4476,7 +4686,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         leftOptions.logoutPath === rightOptions.logoutPath &&
         leftOptions.sessionPath === rightOptions.sessionPath &&
         leftOptions.tenantId === rightOptions.tenantId &&
-        JSON.stringify(leftOptions.providers) === JSON.stringify(rightOptions.providers)
+        JSON.stringify(leftOptions.providers) === JSON.stringify(rightOptions.providers) &&
+        JSON.stringify(leftOptions.password) === JSON.stringify(rightOptions.password) &&
+        JSON.stringify(leftOptions.account) === JSON.stringify(rightOptions.account)
       );
     }
 
@@ -4492,6 +4704,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var lastAuthenticatedSignature = null;
     var nonceRequestPromise = null;
     var googleSignInAttemptPromise = null;
+    var googleLinkAttemptPromise = null;
+    var rejectGoogleLinkAttempt = null;
     var appleSignInAttemptPromise = null;
     var appleSignInHintOptions = null;
     var authSignalVersion = 0;
@@ -4503,6 +4717,21 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     function isCurrentLifecycleVersion(candidateVersion) {
       return candidateVersion === lifecycleVersion;
+    }
+
+    function invalidateAuthLifecycle() {
+      lifecycleVersion += 1;
+      if (typeof rejectGoogleLinkAttempt !== "function") {
+        return;
+      }
+      var rejectAttempt = rejectGoogleLinkAttempt;
+      rejectGoogleLinkAttempt = null;
+      rejectAttempt(
+        createAuthRecoveryError(
+          AUTH_RECOVERY_LIFECYCLE_CHANGED_ERROR_CODE,
+          "Google account linking belongs to an obsolete auth controller lifecycle",
+        ),
+      );
     }
 
     function requireCurrentAuthRecoveryLifecycle(candidateVersion) {
@@ -4684,7 +4913,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return nonceRequestPromise;
     }
 
-    function configureGoogleIdentityClient(nonceToken) {
+    function configureGoogleIdentityClient(nonceToken, credentialHandler) {
       var googleProvider = options.providers.google;
       var clientIdValue = googleProvider.enabled
         ? normalizeGoogleSiteId(googleProvider.clientId)
@@ -4703,6 +4932,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         callback: function (payload) {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
             return;
+          }
+          if (typeof credentialHandler === "function") {
+            return credentialHandler(payload, nonceToken);
           }
           return handleCredential(payload, nonceToken);
         },
@@ -4723,14 +4955,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         });
     }
 
-    function prepareGoogleNonce() {
+    function prepareGoogleNonce(credentialHandler) {
       var currentLifecycleVersion = lifecycleVersion;
       return requestNonceToken()
         .then(function configureNonceBoundGoogleClient(nonceToken) {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
             throw new Error("mpr-ui.auth.stale_google_identity");
           }
-          return configureGoogleIdentityClient(nonceToken).then(function () {
+          return configureGoogleIdentityClient(nonceToken, credentialHandler).then(function () {
             return nonceToken;
           });
         });
@@ -5118,6 +5350,558 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return exchangeCredentialWithFetch(credential, nonceToken);
     }
 
+    function createTAuthActionError(code, message, status) {
+      /** @type {MprUiError} */
+      var actionError = new Error(message);
+      actionError.code = code;
+      if (typeof status === "number") {
+        actionError.status = status;
+      }
+      return actionError;
+    }
+
+    function requireActionString(request, key, code) {
+      var value = request && typeof request === "object" ? request[key] : null;
+      if (typeof value !== "string" || value.trim() === "") {
+        throw createTAuthActionError(code, key + " is required");
+      }
+      return value;
+    }
+
+    function readTAuthActionPayload(response, failureCode, acceptsNoContent) {
+      if (acceptsNoContent && response && response.status === 204) {
+        return Promise.resolve(null);
+      }
+      if (!response || typeof response.json !== "function") {
+        return Promise.reject(
+          createTAuthActionError(failureCode, "TAuth returned an invalid response"),
+        );
+      }
+      return response.json().catch(function invalidActionPayload() {
+        throw createTAuthActionError(
+          failureCode,
+          "TAuth returned an invalid JSON response",
+          response.status,
+        );
+      });
+    }
+
+    function postTAuthAction(path, requestBody, failureCode, acceptsNoContent) {
+      var requestLifecycleVersion = lifecycleVersion;
+      configureTenantId();
+      if (typeof global.fetch !== "function") {
+        return Promise.reject(
+          createTAuthActionError(
+            "mpr-ui.auth.fetch_unavailable",
+            "TAuth actions require the Fetch API",
+          ),
+        );
+      }
+      return global.fetch(joinUrl(options.tauthUrl, path), {
+        method: "POST",
+        credentials: "include",
+        headers: withTenantHeader({
+          "Content-Type": "application/json",
+          "X-Requested-With": REQUESTED_WITH_HEADER,
+        }),
+        body: requestBody === null ? undefined : JSON.stringify(requestBody),
+      }).then(function parseTAuthActionResponse(response) {
+        return readTAuthActionPayload(
+          response,
+          failureCode,
+          acceptsNoContent,
+        ).then(function validateTAuthActionResponse(payload) {
+          requireCurrentAuthRecoveryLifecycle(requestLifecycleVersion);
+          if (!response.ok) {
+            var responseCode =
+              payload && typeof payload.error === "string"
+                ? payload.error
+                : failureCode;
+            throw createTAuthActionError(
+              responseCode,
+              "TAuth action failed",
+              response.status,
+            );
+          }
+          if (!acceptsNoContent && (!payload || typeof payload !== "object")) {
+            throw createTAuthActionError(
+              failureCode,
+              "TAuth action returned an invalid payload",
+              response.status,
+            );
+          }
+          return payload;
+        });
+      });
+    }
+
+    /**
+     * @param {PasswordAuthAction|AccountAuthAction} action
+     * @param {object|null} payload
+     * @returns {NormalizedAuthActionResult}
+     */
+    function safeChallengeResult(action, payload) {
+      return Object.freeze({
+        action: action,
+        status:
+          payload && typeof payload.status === "string"
+            ? payload.status
+            : "accepted",
+        expiresUnix:
+          payload && typeof payload.expires_unix === "number"
+            ? payload.expires_unix
+            : null,
+      });
+    }
+
+    /**
+     * @param {PasswordAuthAction|AccountAuthAction} action
+     * @param {object|null} payload
+     * @param {AuthActionResultOptions|undefined} resultOptions
+     * @returns {NormalizedAuthActionResult}
+     */
+    function challengeActionResult(action, payload, resultOptions) {
+      var safeResult = safeChallengeResult(action, payload);
+      if (!resultOptions || resultOptions.includeChallengeToken !== true) {
+        return safeResult;
+      }
+      var tokenField = CHALLENGE_TOKEN_FIELDS[action];
+      var challengeToken =
+        tokenField && payload && typeof payload[tokenField] === "string"
+          ? payload[tokenField]
+          : "";
+      if (!challengeToken) {
+        return safeResult;
+      }
+      return Object.freeze({
+        action: safeResult.action,
+        status: safeResult.status,
+        expiresUnix: safeResult.expiresUnix,
+        challengeToken: challengeToken,
+      });
+    }
+
+    /**
+     * @param {PasswordAuthAction} action
+     * @param {PasswordActionRequest} request
+     * @param {AuthActionResultOptions} [resultOptions]
+     * @returns {Promise<NormalizedAuthActionResult>}
+     */
+    function performPasswordAction(action, request, resultOptions) {
+      if (!options.providers.password.enabled || !options.password) {
+        return Promise.reject(
+          createAuthConfigError(
+            AUTH_CONFIG_ERROR_CODES.PROVIDER_DISABLED,
+            "Password authentication is not configured",
+          ),
+        );
+      }
+      var actionDefinitions = {
+        login: {
+          path: options.password.loginPath,
+          body: function createLoginBody() {
+            return {
+              email: requireActionString(request, "email", "mpr-ui.auth.email_required"),
+              password: requireActionString(request, "password", "mpr-ui.auth.password_required"),
+            };
+          },
+          profile: true,
+          failureCode: "mpr-ui.auth.password_login_failed",
+        },
+        signup: {
+          path: options.password.signupPath,
+          body: function createSignupBody() {
+            return {
+              email: requireActionString(request, "email", "mpr-ui.auth.email_required"),
+              password: requireActionString(request, "password", "mpr-ui.auth.password_required"),
+              display_name: "",
+              avatar_url: "",
+            };
+          },
+          profile: false,
+          failureCode: "mpr-ui.auth.password_signup_failed",
+        },
+        "verify-email": {
+          path: options.password.verifyEmailPath,
+          body: function createVerifyEmailBody() {
+            return {
+              token: requireActionString(request, "token", "mpr-ui.auth.challenge_required"),
+            };
+          },
+          profile: true,
+          failureCode: "mpr-ui.auth.password_verify_failed",
+        },
+        "reset-start": {
+          path: options.password.resetStartPath,
+          body: function createResetStartBody() {
+            return {
+              email: requireActionString(request, "email", "mpr-ui.auth.email_required"),
+            };
+          },
+          profile: false,
+          failureCode: "mpr-ui.auth.password_reset_start_failed",
+        },
+        "reset-complete": {
+          path: options.password.resetCompletePath,
+          body: function createResetCompleteBody() {
+            return {
+              token: requireActionString(request, "token", "mpr-ui.auth.challenge_required"),
+              password: requireActionString(request, "password", "mpr-ui.auth.password_required"),
+            };
+          },
+          profile: true,
+          failureCode: "mpr-ui.auth.password_reset_complete_failed",
+        },
+      };
+      var definition = actionDefinitions[action];
+      if (!definition) {
+        return Promise.reject(
+          createTAuthActionError(
+            "mpr-ui.auth.password_action_invalid",
+            "Password action is invalid",
+          ),
+        );
+      }
+      var requestBody;
+      try {
+        requestBody = definition.body();
+      } catch (error) {
+        return Promise.reject(error);
+      }
+      if (definition.profile) {
+        updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATING, {
+          source: "password",
+          action: action,
+        });
+      }
+      return postTAuthAction(
+        definition.path,
+        requestBody,
+        definition.failureCode,
+        false,
+      ).then(function applyPasswordAction(payload) {
+        if (definition.profile) {
+          markAuthenticated(payload);
+          return Object.freeze({ action: action, status: "authenticated" });
+        }
+        var publicChallengeResult = safeChallengeResult(action, payload);
+        dispatchEvent(
+          rootElement,
+          "mpr-ui:account:challenge-issued",
+          publicChallengeResult,
+        );
+        return challengeActionResult(action, payload, resultOptions);
+      }).catch(function handlePasswordActionFailure(error) {
+        if (error && error.code === AUTH_RECOVERY_LIFECYCLE_CHANGED_ERROR_CODE) {
+          throw error;
+        }
+        emitError(
+          error && error.code ? error.code : definition.failureCode,
+          {
+            action: action,
+            status: error && typeof error.status === "number" ? error.status : null,
+          },
+        );
+        if (definition.profile && state.status !== AUTH_CONTROLLER_STATUS.AUTHENTICATED) {
+          markUnauthenticated({ prompt: false });
+        }
+        throw error;
+      });
+    }
+
+    /**
+     * @param {AccountAuthAction} action
+     * @param {AccountActionRequest} request
+     * @param {AuthActionResultOptions} [resultOptions]
+     * @returns {Promise<NormalizedAuthActionResult>}
+     */
+    function performAccountAction(action, request, resultOptions) {
+      if (!options.account) {
+        return Promise.reject(
+          createAuthConfigError(
+            AUTH_CONFIG_ERROR_CODES.VALUE_REQUIRED,
+            "Account management endpoints are not configured",
+          ),
+        );
+      }
+      if (state.status !== AUTH_CONTROLLER_STATUS.AUTHENTICATED || !state.profile) {
+        return Promise.reject(
+          createTAuthActionError(
+            "mpr-ui.auth.authenticated_state_required",
+            "Account management requires an authenticated session",
+          ),
+        );
+      }
+      var actionDefinitions = {
+        "password-change": {
+          path: options.account.passwordChangePath,
+          body: function createPasswordChangeBody() {
+            return {
+              current_password: requireActionString(
+                request,
+                "currentPassword",
+                "mpr-ui.auth.current_password_required",
+              ),
+              new_password: requireActionString(
+                request,
+                "newPassword",
+                "mpr-ui.auth.new_password_required",
+              ),
+            };
+          },
+          challenge: false,
+          failureCode: "mpr-ui.account.password_change_failed",
+        },
+        "password-link-start": {
+          path: options.account.passwordLinkStartPath,
+          body: function createPasswordLinkStartBody() {
+            return {
+              email: requireActionString(request, "email", "mpr-ui.auth.email_required"),
+              password: requireActionString(request, "password", "mpr-ui.auth.password_required"),
+              display_name: "",
+              avatar_url: "",
+            };
+          },
+          challenge: true,
+          failureCode: "mpr-ui.account.password_link_start_failed",
+        },
+        "password-link-verify": {
+          path: options.account.passwordLinkVerifyPath,
+          body: function createPasswordLinkVerifyBody() {
+            return {
+              token: requireActionString(request, "token", "mpr-ui.auth.challenge_required"),
+            };
+          },
+          challenge: false,
+          failureCode: "mpr-ui.account.password_link_verify_failed",
+        },
+        "google-link": {
+          path: options.account.googleLinkPath,
+          body: function createGoogleLinkBody() {
+            return {
+              google_id_token: requireActionString(
+                request,
+                "credential",
+                "mpr-ui.auth.missing_credential",
+              ),
+              nonce_token: requireActionString(
+                request,
+                "nonceToken",
+                "mpr-ui.auth.missing_nonce",
+              ),
+            };
+          },
+          challenge: false,
+          failureCode: "mpr-ui.account.google_link_failed",
+        },
+        unlink: {
+          path: options.account.unlinkPath,
+          body: function createUnlinkBody() {
+            return {
+              provider: requireActionString(request, "provider", "mpr-ui.account.provider_required"),
+              provider_id: requireActionString(request, "providerId", "mpr-ui.account.provider_id_required"),
+            };
+          },
+          challenge: false,
+          failureCode: "mpr-ui.account.unlink_failed",
+        },
+        disable: {
+          path: options.account.disablePath,
+          body: function createDisableBody() {
+            return null;
+          },
+          challenge: false,
+          disable: true,
+          failureCode: "mpr-ui.account.disable_failed",
+        },
+      };
+      var definition = actionDefinitions[action];
+      if (!definition) {
+        return Promise.reject(
+          createTAuthActionError(
+            "mpr-ui.account.action_invalid",
+            "Account action is invalid",
+          ),
+        );
+      }
+      var requestBody;
+      try {
+        requestBody = definition.body();
+      } catch (error) {
+        return Promise.reject(error);
+      }
+      return postTAuthAction(
+        definition.path,
+        requestBody,
+        definition.failureCode,
+        definition.disable === true,
+      ).then(function applyAccountAction(payload) {
+        if (definition.disable) {
+          clearAuthRestoreHint(options);
+          markUnauthenticated({ prompt: false });
+          var disabledResult = Object.freeze({ action: action, status: "disabled" });
+          dispatchEvent(rootElement, "mpr-ui:account:disabled", disabledResult);
+          return disabledResult;
+        }
+        if (definition.challenge) {
+          var publicChallengeResult = safeChallengeResult(action, payload);
+          dispatchEvent(
+            rootElement,
+            "mpr-ui:account:challenge-issued",
+            publicChallengeResult,
+          );
+          return challengeActionResult(action, payload, resultOptions);
+        }
+        markAuthenticated(payload);
+        var updatedResult = Object.freeze({ action: action, status: "updated" });
+        dispatchEvent(rootElement, "mpr-ui:account:updated", updatedResult);
+        return updatedResult;
+      }).catch(function handleAccountActionFailure(error) {
+        if (error && error.code === AUTH_RECOVERY_LIFECYCLE_CHANGED_ERROR_CODE) {
+          throw error;
+        }
+        emitError(
+          error && error.code ? error.code : definition.failureCode,
+          {
+            action: action,
+            status: error && typeof error.status === "number" ? error.status : null,
+          },
+        );
+        throw error;
+      });
+    }
+
+    function startGoogleLink() {
+      if (!options.providers.google.enabled || !options.account) {
+        return Promise.reject(
+          createAuthConfigError(
+            AUTH_CONFIG_ERROR_CODES.PROVIDER_DISABLED,
+            "Google account linking is not configured",
+          ),
+        );
+      }
+      if (googleLinkAttemptPromise) {
+        return googleLinkAttemptPromise;
+      }
+      var currentLifecycleVersion = lifecycleVersion;
+      var currentAttemptRejector = null;
+      var promptCompletionPromise = new Promise(function completeGoogleLinkAttempt(
+        resolve,
+        reject,
+      ) {
+        var isSettled = false;
+        var hasReceivedCredential = false;
+
+        function resolveAttempt(result) {
+          if (isSettled) {
+            return;
+          }
+          isSettled = true;
+          resolve(result);
+        }
+
+        function rejectAttempt(error) {
+          if (isSettled) {
+            return;
+          }
+          isSettled = true;
+          reject(error);
+        }
+
+        currentAttemptRejector = rejectAttempt;
+        rejectGoogleLinkAttempt = rejectAttempt;
+        prepareGoogleNonce(function handleGoogleLinkCredential(
+          credentialResponse,
+          nonceToken,
+        ) {
+          if (isSettled) {
+            return Promise.resolve(null);
+          }
+          if (!credentialResponse || !credentialResponse.credential) {
+            rejectAttempt(
+              createTAuthActionError(
+                "mpr-ui.auth.missing_credential",
+                "Google account linking did not return a credential",
+              ),
+            );
+            return Promise.resolve(null);
+          }
+          hasReceivedCredential = true;
+          return performAccountAction("google-link", {
+            credential: credentialResponse.credential,
+            nonceToken: nonceToken,
+          }).then(
+            function resolveGoogleLink(result) {
+              resolveAttempt(result);
+              return result;
+            },
+            function rejectGoogleLink(error) {
+              rejectAttempt(error);
+              return null;
+            },
+          );
+        }).then(function promptGoogleLink() {
+          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+            rejectAttempt(
+              createAuthRecoveryError(
+                AUTH_RECOVERY_LIFECYCLE_CHANGED_ERROR_CODE,
+                "Google account linking belongs to an obsolete auth controller lifecycle",
+              ),
+            );
+            return;
+          }
+          var googleId =
+            global.google && global.google.accounts && global.google.accounts.id
+              ? global.google.accounts.id
+              : null;
+          if (!googleId || typeof googleId.prompt !== "function") {
+            rejectAttempt(
+              createTAuthActionError(
+                "mpr-ui.account.google_prompt_unavailable",
+                "Google identity prompt is unavailable",
+              ),
+            );
+            return;
+          }
+          googleId.prompt(function handleGoogleLinkPromptMoment(notification) {
+            if (isSettled || hasReceivedCredential) {
+              return;
+            }
+            var promptEndedWithoutCredential =
+              notification &&
+              ((typeof notification.isNotDisplayed === "function" &&
+                notification.isNotDisplayed()) ||
+                (typeof notification.isSkippedMoment === "function" &&
+                  notification.isSkippedMoment()) ||
+                (typeof notification.isDismissedMoment === "function" &&
+                  notification.isDismissedMoment()));
+            if (!promptEndedWithoutCredential) {
+              return;
+            }
+            rejectAttempt(
+              createTAuthActionError(
+                "mpr-ui.account.google_prompt_incomplete",
+                "Google account linking ended before a credential was returned",
+              ),
+            );
+          });
+        }).catch(rejectAttempt);
+      });
+      var trackedGoogleLinkPromise;
+      trackedGoogleLinkPromise = promptCompletionPromise.finally(
+        function clearGoogleLinkAttempt() {
+          if (rejectGoogleLinkAttempt === currentAttemptRejector) {
+            rejectGoogleLinkAttempt = null;
+          }
+          if (googleLinkAttemptPromise === trackedGoogleLinkPromise) {
+            googleLinkAttemptPromise = null;
+          }
+        },
+      );
+      googleLinkAttemptPromise = trackedGoogleLinkPromise;
+      return googleLinkAttemptPromise;
+    }
+
     /**
      * @param {{ scope: string, generation: number }} observedRecovery
      * @param {number} recoveryLifecycleVersion
@@ -5313,7 +6097,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         state.options = options;
         return;
       }
-      lifecycleVersion += 1;
+      invalidateAuthLifecycle();
       detachSessionSyncListeners();
       if (appleSignInHintOptions) {
         clearAuthRestoreHint(appleSignInHintOptions);
@@ -5324,6 +6108,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       pendingProfile = null;
       nonceRequestPromise = null;
       googleSignInAttemptPromise = null;
+      googleLinkAttemptPromise = null;
       appleSignInAttemptPromise = null;
       hasCompletedInitialBootstrap = false;
       markUnauthenticated({ emit: false, prompt: false });
@@ -5332,7 +6117,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     function destroy() {
       isDestroyed = true;
-      lifecycleVersion += 1;
+      invalidateAuthLifecycle();
       if (appleSignInHintOptions) {
         clearAuthRestoreHint(appleSignInHintOptions);
         appleSignInHintOptions = null;
@@ -5340,6 +6125,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       pendingProfile = null;
       nonceRequestPromise = null;
       googleSignInAttemptPromise = null;
+      googleLinkAttemptPromise = null;
       appleSignInAttemptPromise = null;
       detachSessionSyncListeners();
       setAttributeOrRemove(rootElement, "data-mpr-auth-status", null);
@@ -5396,6 +6182,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function signOut() {
+      invalidateAuthLifecycle();
       return performLogout().then(function () {
         clearAuthRestoreHint(options);
         pendingProfile = null;
@@ -5420,6 +6207,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       startAppleSignIn: startAppleSignIn,
       startProvider: startAuthProvider,
       handleCredential: handleCredential,
+      performPasswordAction: performPasswordAction,
+      performAccountAction: performAccountAction,
+      startGoogleLink: startGoogleLink,
       authenticatedFetch: authenticatedFetchWithController,
       signOut: signOut,
       updateOptions: updateOptions,
@@ -7713,7 +8503,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         nextStatus === AUTH_CONTROLLER_STATUS.AUTHENTICATING &&
         eventObject &&
         eventObject.detail &&
-        eventObject.detail.source === "credential"
+        (eventObject.detail.source === "credential" ||
+          eventObject.detail.source === "password")
       ) {
         markSignInRedirectPending();
       }
@@ -14571,6 +15362,824 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     });
   }
 
+  var PASSWORD_AUTH_FORM_DEFINITIONS = Object.freeze({
+    login: Object.freeze({
+      title: AUTH_FORM_LABELS.loginTitle,
+      submit: AUTH_FORM_LABELS.loginSubmit,
+      fields: Object.freeze([
+        Object.freeze({ key: "email", label: AUTH_FORM_LABELS.email, type: "email", autocomplete: "email" }),
+        Object.freeze({ key: "password", label: AUTH_FORM_LABELS.password, type: "password", autocomplete: "current-password", secret: true }),
+      ]),
+    }),
+    signup: Object.freeze({
+      title: AUTH_FORM_LABELS.signupTitle,
+      submit: AUTH_FORM_LABELS.signupSubmit,
+      fields: Object.freeze([
+        Object.freeze({ key: "email", label: AUTH_FORM_LABELS.email, type: "email", autocomplete: "email" }),
+        Object.freeze({ key: "password", label: AUTH_FORM_LABELS.password, type: "password", autocomplete: "new-password", secret: true }),
+      ]),
+    }),
+    "verify-email": Object.freeze({
+      title: AUTH_FORM_LABELS.verifyEmailTitle,
+      submit: AUTH_FORM_LABELS.verifyEmailSubmit,
+      fields: Object.freeze([
+        Object.freeze({ key: "token", label: AUTH_FORM_LABELS.token, type: "text", autocomplete: "one-time-code", secret: true }),
+      ]),
+    }),
+    "reset-start": Object.freeze({
+      title: AUTH_FORM_LABELS.resetStartTitle,
+      submit: AUTH_FORM_LABELS.resetStartSubmit,
+      fields: Object.freeze([
+        Object.freeze({ key: "email", label: AUTH_FORM_LABELS.email, type: "email", autocomplete: "email" }),
+      ]),
+    }),
+    "reset-complete": Object.freeze({
+      title: AUTH_FORM_LABELS.resetCompleteTitle,
+      submit: AUTH_FORM_LABELS.resetCompleteSubmit,
+      fields: Object.freeze([
+        Object.freeze({ key: "token", label: AUTH_FORM_LABELS.token, type: "text", autocomplete: "one-time-code", secret: true }),
+        Object.freeze({ key: "password", label: AUTH_FORM_LABELS.newPassword, type: "password", autocomplete: "new-password", secret: true }),
+      ]),
+    }),
+  });
+
+  var ACCOUNT_PANEL_FORM_DEFINITIONS = Object.freeze({
+    "password-change": Object.freeze({
+      title: AUTH_FORM_LABELS.passwordChangeTitle,
+      submit: AUTH_FORM_LABELS.passwordChangeSubmit,
+      fields: Object.freeze([
+        Object.freeze({ key: "currentPassword", label: AUTH_FORM_LABELS.currentPassword, type: "password", autocomplete: "current-password", secret: true }),
+        Object.freeze({ key: "newPassword", label: AUTH_FORM_LABELS.newPassword, type: "password", autocomplete: "new-password", secret: true }),
+      ]),
+    }),
+    "password-link-start": Object.freeze({
+      title: AUTH_FORM_LABELS.passwordLinkStartTitle,
+      submit: AUTH_FORM_LABELS.passwordLinkStartSubmit,
+      fields: Object.freeze([
+        Object.freeze({ key: "email", label: AUTH_FORM_LABELS.email, type: "email", autocomplete: "email" }),
+        Object.freeze({ key: "password", label: AUTH_FORM_LABELS.password, type: "password", autocomplete: "new-password", secret: true }),
+      ]),
+    }),
+    "password-link-verify": Object.freeze({
+      title: AUTH_FORM_LABELS.passwordLinkVerifyTitle,
+      submit: AUTH_FORM_LABELS.passwordLinkVerifySubmit,
+      fields: Object.freeze([
+        Object.freeze({ key: "token", label: AUTH_FORM_LABELS.token, type: "text", autocomplete: "one-time-code", secret: true }),
+      ]),
+    }),
+    "google-link": Object.freeze({
+      title: AUTH_FORM_LABELS.googleLinkTitle,
+      submit: AUTH_FORM_LABELS.googleLinkSubmit,
+      fields: Object.freeze([]),
+    }),
+    unlink: Object.freeze({
+      title: AUTH_FORM_LABELS.unlinkTitle,
+      submit: AUTH_FORM_LABELS.unlinkSubmit,
+      fields: Object.freeze([
+        Object.freeze({ key: "identity", label: AUTH_FORM_LABELS.identity, type: "select", autocomplete: "off", options: Object.freeze([]) }),
+      ]),
+    }),
+    disable: Object.freeze({
+      title: AUTH_FORM_LABELS.disableTitle,
+      submit: AUTH_FORM_LABELS.disableSubmit,
+      fields: Object.freeze([]),
+    }),
+  });
+
+  var AUTH_FORM_STYLE_MARKUP =
+    "mpr-password-auth,mpr-account-panel{display:block;inline-size:100%;max-inline-size:26rem}" +
+    ".mpr-auth-form{display:grid;gap:.75rem;padding:1rem;border:1px solid var(--mpr-color-border,rgba(148,163,184,.35));border-radius:.75rem;background:var(--mpr-color-surface,rgba(15,23,42,.92));color:var(--mpr-color-text-primary,#e2e8f0)}" +
+    ".mpr-auth-form__title{margin:0;font-size:1.05rem}" +
+    ".mpr-auth-form__field{display:grid;gap:.3rem;font-weight:600}" +
+    ".mpr-auth-form__input{min-block-size:2.5rem;padding:.55rem .7rem;border:1px solid var(--mpr-color-border,rgba(148,163,184,.5));border-radius:.5rem;background:var(--mpr-color-surface-elevated,#fff);color:#111827;font:inherit}" +
+    ".mpr-auth-form__submit{min-block-size:2.5rem;padding:.55rem .9rem;border:0;border-radius:.5rem;background:var(--mpr-color-accent,#2563eb);color:#fff;font:inherit;font-weight:700;cursor:pointer}" +
+    ".mpr-auth-form__submit:disabled,.mpr-auth-form__input:disabled{cursor:not-allowed;opacity:.65}" +
+    ".mpr-auth-form__status{min-block-size:1.25rem;margin:0}" +
+    ".mpr-auth-form[data-status='error'] .mpr-auth-form__status{color:var(--mpr-color-error,#ef4444)}" +
+    ".mpr-auth-form__unauthenticated{margin:0;padding:1rem;border:1px solid var(--mpr-color-border,rgba(148,163,184,.35));border-radius:.75rem}";
+
+  function ensureAuthFormStyles(documentObject) {
+    if (
+      !documentObject ||
+      !documentObject.head ||
+      typeof documentObject.createElement !== "function" ||
+      documentObject.getElementById(AUTH_FORM_STYLE_ID)
+    ) {
+      return;
+    }
+    var styleElement = documentObject.createElement("style");
+    styleElement.id = AUTH_FORM_STYLE_ID;
+    styleElement.type = "text/css";
+    styleElement.appendChild(documentObject.createTextNode(AUTH_FORM_STYLE_MARKUP));
+    documentObject.head.appendChild(styleElement);
+  }
+
+  function createAuthComponentError(code, message) {
+    /** @type {MprUiError} */
+    var componentError = new Error(message);
+    componentError.code = code;
+    return componentError;
+  }
+
+  /**
+   * @param {Element} hostElement
+   * @returns {readonly AccountIdentityOption[]}
+   */
+  function parseAccountIdentityOptions(hostElement) {
+    var rawValue = hostElement.getAttribute(ACCOUNT_PANEL_IDENTITIES_ATTRIBUTE);
+    if (typeof rawValue !== "string" || rawValue.trim() === "") {
+      throw createAuthComponentError(
+        "mpr-ui.account_panel.identities_required",
+        "unlink requires at least one linked identity",
+      );
+    }
+    var parsedValue;
+    try {
+      parsedValue = JSON.parse(rawValue);
+    } catch (_error) {
+      throw createAuthComponentError(
+        "mpr-ui.account_panel.identities_invalid",
+        "identities must be valid JSON",
+      );
+    }
+    if (!Array.isArray(parsedValue) || parsedValue.length === 0) {
+      throw createAuthComponentError(
+        "mpr-ui.account_panel.identities_required",
+        "unlink requires at least one linked identity",
+      );
+    }
+    var seenIdentityKeys = Object.create(null);
+    return Object.freeze(
+      parsedValue.map(function normalizeAccountIdentity(identity) {
+        if (!identity || typeof identity !== "object" || Array.isArray(identity)) {
+          throw createAuthComponentError(
+            "mpr-ui.account_panel.identity_invalid",
+            "each linked identity must be an object",
+          );
+        }
+        var identityKeys = Object.keys(identity).sort();
+        if (identityKeys.join(",") !== "label,provider,providerId") {
+          throw createAuthComponentError(
+            "mpr-ui.account_panel.identity_invalid",
+            "each linked identity requires provider, providerId, and label",
+          );
+        }
+        var provider = typeof identity.provider === "string" ? identity.provider.trim() : "";
+        var providerId =
+          typeof identity.providerId === "string" ? identity.providerId.trim() : "";
+        var label = typeof identity.label === "string" ? identity.label.trim() : "";
+        if (
+          ACCOUNT_IDENTITY_PROVIDERS.indexOf(provider) === -1 ||
+          !providerId ||
+          !label
+        ) {
+          throw createAuthComponentError(
+            "mpr-ui.account_panel.identity_invalid",
+            "linked identities require a supported provider, providerId, and label",
+          );
+        }
+        var identityKey = provider + "\u0000" + providerId;
+        if (seenIdentityKeys[identityKey]) {
+          throw createAuthComponentError(
+            "mpr-ui.account_panel.identity_duplicate",
+            "linked identities must be unique",
+          );
+        }
+        seenIdentityKeys[identityKey] = true;
+        return Object.freeze({
+          provider: provider,
+          providerId: providerId,
+          label: label,
+        });
+      }),
+    );
+  }
+
+  function accountPanelFormDefinition(action, identityOptions) {
+    var definition = ACCOUNT_PANEL_FORM_DEFINITIONS[action];
+    if (action !== "unlink") {
+      return definition;
+    }
+    return Object.freeze({
+      title: definition.title,
+      submit: definition.submit,
+      fields: Object.freeze([
+        Object.freeze({
+          key: "identity",
+          label: AUTH_FORM_LABELS.identity,
+          type: "select",
+          autocomplete: "off",
+          options: Object.freeze(
+            identityOptions.map(function createIdentitySelectOption(identity, index) {
+              return Object.freeze({ value: String(index), label: identity.label });
+            }),
+          ),
+        }),
+      ]),
+    });
+  }
+
+  function readAccountPanelRequest(action, definition, inputs, identityOptions) {
+    if (action !== "unlink") {
+      return readAuthFormRequest(definition, inputs);
+    }
+    var selectedIdentityValue = inputs.identity.value;
+    var selectedIdentityIndex = Number(selectedIdentityValue);
+    var selectedIdentity = identityOptions[selectedIdentityIndex];
+    if (
+      typeof selectedIdentityValue !== "string" ||
+      String(selectedIdentityIndex) !== selectedIdentityValue ||
+      !Number.isInteger(selectedIdentityIndex) ||
+      !selectedIdentity
+    ) {
+      throw createAuthComponentError(
+        "mpr-ui.account_panel.identity_selection_invalid",
+        "a configured linked identity must be selected",
+      );
+    }
+    return {
+      provider: selectedIdentity.provider,
+      providerId: selectedIdentity.providerId,
+    };
+  }
+
+  function resolveControllerFromAuthSurface(authSurface) {
+    if (!authSurface || typeof authSurface !== "object") {
+      return null;
+    }
+    if (
+      typeof authSurface.performPasswordAction === "function" &&
+      typeof authSurface.performAccountAction === "function"
+    ) {
+      return authSurface;
+    }
+    if (
+      authSurface.__headerController &&
+      typeof authSurface.__headerController.getAuthController === "function"
+    ) {
+      return authSurface.__headerController.getAuthController();
+    }
+    return authSurface.__authController || null;
+  }
+
+  function resolveAuthComponentController(hostElement) {
+    if (hostElement.__authControllerOverride) {
+      return hostElement.__authControllerOverride;
+    }
+    var targetSelector = hostElement.getAttribute(AUTH_COMPONENT_TARGET_ATTRIBUTE);
+    if (typeof targetSelector === "string" && targetSelector.trim()) {
+      var documentObject =
+        hostElement.ownerDocument || global.document || null;
+      var targetElement;
+      try {
+        targetElement = documentObject.querySelector(targetSelector.trim());
+      } catch (_error) {
+        throw createAuthComponentError(
+          "mpr-ui.auth_component.target_invalid",
+          "auth-target must be a valid selector",
+        );
+      }
+      var selectedController = resolveControllerFromAuthSurface(targetElement);
+      if (!selectedController) {
+        throw createAuthComponentError(
+          "mpr-ui.auth_component.controller_missing",
+          "auth-target does not own an auth controller",
+        );
+      }
+      return selectedController;
+    }
+    var ancestor = hostElement.parentNode;
+    while (ancestor) {
+      var ancestorController = resolveControllerFromAuthSurface(ancestor);
+      if (ancestorController) {
+        return ancestorController;
+      }
+      ancestor = ancestor.parentNode;
+    }
+    throw createAuthComponentError(
+      "mpr-ui.auth_component.target_required",
+      "auth-target or an owning auth surface is required",
+    );
+  }
+
+  function requireAuthComponentOptions(hostElement, requiredSection) {
+    var componentOptions = parseAuthConfigAttribute(hostElement);
+    if (!componentOptions[requiredSection]) {
+      throw createAuthComponentError(
+        "mpr-ui.auth_component.config_required",
+        "auth." + requiredSection + " configuration is required",
+      );
+    }
+    var authController = resolveAuthComponentController(hostElement);
+    if (
+      !authController ||
+      !authController.state ||
+      JSON.stringify(authController.state.options) !== JSON.stringify(componentOptions)
+    ) {
+      throw createAuthComponentError(
+        "mpr-ui.auth_component.config_mismatch",
+        "The component auth configuration must match its owning controller",
+      );
+    }
+    return { options: componentOptions, controller: authController };
+  }
+
+  function createAuthFormField(documentObject, fieldDefinition, disabled) {
+    var fieldElement = documentObject.createElement("label");
+    var labelElement = documentObject.createElement("span");
+    var inputElement = documentObject.createElement(
+      fieldDefinition.type === "select" ? "select" : "input",
+    );
+    fieldElement.className = "mpr-auth-form__field";
+    labelElement.textContent = fieldDefinition.label;
+    inputElement.className = "mpr-auth-form__input";
+    inputElement.name = fieldDefinition.key;
+    inputElement.autocomplete = fieldDefinition.autocomplete;
+    inputElement.required = true;
+    inputElement.disabled = disabled;
+    if (fieldDefinition.type === "select") {
+      fieldDefinition.options.forEach(function appendAuthFieldOption(optionDefinition) {
+        var optionElement = documentObject.createElement("option");
+        optionElement.value = optionDefinition.value;
+        optionElement.textContent = optionDefinition.label;
+        inputElement.appendChild(optionElement);
+      });
+      inputElement.value = fieldDefinition.options[0].value;
+    } else {
+      inputElement.type = fieldDefinition.type;
+    }
+    fieldElement.appendChild(labelElement);
+    fieldElement.appendChild(inputElement);
+    return { element: fieldElement, input: inputElement };
+  }
+
+  function createAuthForm(documentObject, definition, disabled) {
+    var formElement = documentObject.createElement("form");
+    var titleElement = documentObject.createElement("h2");
+    var submitButton = documentObject.createElement("button");
+    var statusElement = documentObject.createElement("p");
+    var inputs = {};
+    formElement.className = "mpr-auth-form";
+    formElement.setAttribute("data-status", "ready");
+    titleElement.className = "mpr-auth-form__title";
+    titleElement.textContent = definition.title;
+    formElement.appendChild(titleElement);
+    definition.fields.forEach(function appendAuthField(fieldDefinition) {
+      var field = createAuthFormField(documentObject, fieldDefinition, disabled);
+      inputs[fieldDefinition.key] = field.input;
+      formElement.appendChild(field.element);
+    });
+    submitButton.className = "mpr-auth-form__submit";
+    submitButton.type = "submit";
+    submitButton.disabled = disabled;
+    submitButton.textContent = definition.submit;
+    statusElement.className = "mpr-auth-form__status";
+    statusElement.setAttribute("role", "status");
+    statusElement.setAttribute("aria-live", "polite");
+    statusElement.textContent = AUTH_FORM_LABELS.ready;
+    formElement.appendChild(submitButton);
+    formElement.appendChild(statusElement);
+    return {
+      form: formElement,
+      inputs: inputs,
+      submitButton: submitButton,
+      statusElement: statusElement,
+    };
+  }
+
+  function readAuthFormRequest(definition, inputs) {
+    var request = {};
+    definition.fields.forEach(function readAuthField(fieldDefinition) {
+      request[fieldDefinition.key] = inputs[fieldDefinition.key].value;
+    });
+    return request;
+  }
+
+  function clearAuthFormSecrets(definition, inputs) {
+    definition.fields.forEach(function clearSecretField(fieldDefinition) {
+      if (fieldDefinition.secret) {
+        inputs[fieldDefinition.key].value = "";
+      }
+    });
+  }
+
+  function setAuthFormStatus(formElements, status, message, disabled) {
+    formElements.form.setAttribute("data-status", status);
+    formElements.statusElement.textContent = message;
+    formElements.submitButton.disabled = disabled;
+    Object.keys(formElements.inputs).forEach(function updateAuthInput(key) {
+      formElements.inputs[key].disabled = disabled;
+    });
+  }
+
+  function renderAuthComponentError(hostElement, attributeName, error) {
+    clearNodeContents(hostElement);
+    var documentObject = hostElement.ownerDocument || global.document;
+    var errorElement = documentObject.createElement("p");
+    var errorCode =
+      error && error.code ? error.code : "mpr-ui.auth_component.config_invalid";
+    errorElement.className = "mpr-auth-form__unauthenticated";
+    errorElement.setAttribute("role", "alert");
+    errorElement.textContent = AUTH_FORM_LABELS.failure;
+    hostElement.setAttribute(attributeName, errorCode);
+    hostElement.appendChild(errorElement);
+    dispatchEvent(hostElement, "mpr-ui:auth:error", { code: errorCode });
+  }
+
+  function definePasswordAuthElement(registry) {
+    registry.define("mpr-password-auth", function setupPasswordAuthElement(Base) {
+      return class MprPasswordAuthElement extends Base {
+        constructor() {
+          super();
+          this.__passwordSubmitHandler = null;
+          this.__passwordForm = null;
+          this.__passwordAttempt = 0;
+        }
+        static get observedAttributes() {
+          return [
+            AUTH_CONFIG_ATTRIBUTE,
+            PASSWORD_AUTH_MODE_ATTRIBUTE,
+            AUTH_COMPONENT_TARGET_ATTRIBUTE,
+            CHALLENGE_TOKEN_DISPLAY_ATTRIBUTE,
+            "disabled",
+          ];
+        }
+        render() {
+          this.__renderPasswordAuth();
+        }
+        update() {
+          this.__renderPasswordAuth();
+        }
+        destroy() {
+          this.__passwordAttempt += 1;
+          if (this.__passwordForm && this.__passwordSubmitHandler) {
+            this.__passwordForm.removeEventListener(
+              "submit",
+              this.__passwordSubmitHandler,
+            );
+          }
+          this.__passwordForm = null;
+          this.__passwordSubmitHandler = null;
+          clearNodeContents(this);
+        }
+        __renderPasswordAuth() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          this.__passwordAttempt += 1;
+          if (this.__passwordForm && this.__passwordSubmitHandler) {
+            this.__passwordForm.removeEventListener(
+              "submit",
+              this.__passwordSubmitHandler,
+            );
+          }
+          clearNodeContents(this);
+          var mode = this.getAttribute(PASSWORD_AUTH_MODE_ATTRIBUTE);
+          if (PASSWORD_AUTH_MODES.indexOf(mode) === -1) {
+            renderAuthComponentError(
+              this,
+              "data-mpr-password-auth-error",
+              createAuthComponentError(
+                "mpr-ui.password_auth.mode_invalid",
+                "A supported password auth mode is required",
+              ),
+            );
+            return;
+          }
+          var authContext;
+          try {
+            authContext = requireAuthComponentOptions(this, "password");
+          } catch (error) {
+            renderAuthComponentError(this, "data-mpr-password-auth-error", error);
+            return;
+          }
+          var documentObject = this.ownerDocument || global.document;
+          ensureAuthFormStyles(documentObject);
+          var definition = PASSWORD_AUTH_FORM_DEFINITIONS[mode];
+          var hostDisabled = this.hasAttribute("disabled");
+          var formElements = createAuthForm(documentObject, definition, hostDisabled);
+          var passwordElement = this;
+          var currentAttempt = this.__passwordAttempt;
+          this.__passwordSubmitHandler = function handlePasswordSubmit(event) {
+            event.preventDefault();
+            if (hostDisabled) {
+              return;
+            }
+            var request = readAuthFormRequest(definition, formElements.inputs);
+            clearAuthFormSecrets(definition, formElements.inputs);
+            setAuthFormStatus(
+              formElements,
+              "loading",
+              AUTH_FORM_LABELS.loading,
+              true,
+            );
+            passwordElement.setAttribute("data-mpr-password-auth-status", "loading");
+            dispatchEvent(passwordElement, "mpr-ui:password-auth:submit", { mode: mode });
+            dispatchEvent(passwordElement, "mpr-ui:password-auth:status", {
+              mode: mode,
+              status: "loading",
+            });
+            var resultOptions = {
+              includeChallengeToken: passwordElement.hasAttribute(
+                CHALLENGE_TOKEN_DISPLAY_ATTRIBUTE,
+              ),
+            };
+            Promise.resolve(
+              authContext.controller.performPasswordAction(
+                mode,
+                request,
+                resultOptions,
+              ),
+            ).then(
+              function handlePasswordSuccess(result) {
+                if (currentAttempt !== passwordElement.__passwordAttempt) {
+                  return;
+                }
+                var successMessage =
+                  result && typeof result.challengeToken === "string"
+                    ? AUTH_FORM_LABELS.challengeToken + result.challengeToken
+                    : AUTH_FORM_LABELS.success;
+                setAuthFormStatus(
+                  formElements,
+                  "success",
+                  successMessage,
+                  hostDisabled,
+                );
+                passwordElement.removeAttribute("data-mpr-password-auth-error");
+                passwordElement.setAttribute("data-mpr-password-auth-status", "success");
+                dispatchEvent(passwordElement, "mpr-ui:password-auth:status", {
+                  mode: mode,
+                  status: "success",
+                });
+              },
+              function handlePasswordFailure(error) {
+                if (currentAttempt !== passwordElement.__passwordAttempt) {
+                  return;
+                }
+                var errorCode =
+                  error && error.code
+                    ? error.code
+                    : "mpr-ui.password_auth.action_failed";
+                setAuthFormStatus(
+                  formElements,
+                  "error",
+                  AUTH_FORM_LABELS.failure,
+                  hostDisabled,
+                );
+                passwordElement.setAttribute("data-mpr-password-auth-error", errorCode);
+                passwordElement.setAttribute("data-mpr-password-auth-status", "error");
+                dispatchEvent(passwordElement, "mpr-ui:password-auth:status", {
+                  mode: mode,
+                  status: "error",
+                  code: errorCode,
+                });
+              },
+            );
+          };
+          formElements.form.addEventListener("submit", this.__passwordSubmitHandler);
+          this.__passwordForm = formElements.form;
+          this.removeAttribute("data-mpr-password-auth-error");
+          this.setAttribute("data-mpr-password-auth-status", "ready");
+          this.appendChild(formElements.form);
+        }
+      };
+    });
+  }
+
+  function defineAccountPanelElement(registry) {
+    registry.define("mpr-account-panel", function setupAccountPanelElement(Base) {
+      return class MprAccountPanelElement extends Base {
+        constructor() {
+          super();
+          this.__accountSubmitHandler = null;
+          this.__accountForm = null;
+          this.__accountAuthTarget = null;
+          this.__accountAttempt = 0;
+          this.__accountAuthEventHandler = this.__handleAccountAuthEvent.bind(this);
+        }
+        static get observedAttributes() {
+          return [
+            AUTH_CONFIG_ATTRIBUTE,
+            ACCOUNT_PANEL_ACTION_ATTRIBUTE,
+            AUTH_COMPONENT_TARGET_ATTRIBUTE,
+            ACCOUNT_PANEL_IDENTITIES_ATTRIBUTE,
+            CHALLENGE_TOKEN_DISPLAY_ATTRIBUTE,
+            "disabled",
+          ];
+        }
+        render() {
+          this.__renderAccountPanel();
+        }
+        update() {
+          this.__renderAccountPanel();
+        }
+        destroy() {
+          this.__accountAttempt += 1;
+          this.__detachAccountAuthEvents();
+          if (this.__accountForm && this.__accountSubmitHandler) {
+            this.__accountForm.removeEventListener("submit", this.__accountSubmitHandler);
+          }
+          this.__accountForm = null;
+          this.__accountSubmitHandler = null;
+          clearNodeContents(this);
+        }
+        __handleAccountAuthEvent() {
+          this.__renderAccountPanel();
+        }
+        __detachAccountAuthEvents() {
+          if (!this.__accountAuthTarget) {
+            return;
+          }
+          ["mpr-ui:auth:authenticated", "mpr-ui:auth:unauthenticated"].forEach(
+            (eventName) => {
+              this.__accountAuthTarget.removeEventListener(
+                eventName,
+                this.__accountAuthEventHandler,
+              );
+            },
+          );
+          this.__accountAuthTarget = null;
+        }
+        __attachAccountAuthEvents(authController) {
+          this.__detachAccountAuthEvents();
+          var authTarget = authController.host;
+          if (!authTarget || typeof authTarget.addEventListener !== "function") {
+            return;
+          }
+          this.__accountAuthTarget = authTarget;
+          ["mpr-ui:auth:authenticated", "mpr-ui:auth:unauthenticated"].forEach(
+            (eventName) => {
+              authTarget.addEventListener(eventName, this.__accountAuthEventHandler);
+            },
+          );
+        }
+        __renderAccountPanel() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          this.__accountAttempt += 1;
+          if (this.__accountForm && this.__accountSubmitHandler) {
+            this.__accountForm.removeEventListener("submit", this.__accountSubmitHandler);
+          }
+          clearNodeContents(this);
+          var action = this.getAttribute(ACCOUNT_PANEL_ACTION_ATTRIBUTE);
+          if (ACCOUNT_PANEL_ACTIONS.indexOf(action) === -1) {
+            renderAuthComponentError(
+              this,
+              "data-mpr-account-panel-error",
+              createAuthComponentError(
+                "mpr-ui.account_panel.action_invalid",
+                "A supported account action is required",
+              ),
+            );
+            return;
+          }
+          var authContext;
+          var identityOptions = Object.freeze([]);
+          try {
+            authContext = requireAuthComponentOptions(this, "account");
+          } catch (error) {
+            renderAuthComponentError(this, "data-mpr-account-panel-error", error);
+            return;
+          }
+          this.__attachAccountAuthEvents(authContext.controller);
+          var documentObject = this.ownerDocument || global.document;
+          ensureAuthFormStyles(documentObject);
+          if (
+            authContext.controller.state.status !== AUTH_CONTROLLER_STATUS.AUTHENTICATED ||
+            !authContext.controller.state.profile
+          ) {
+            var unauthenticatedElement = documentObject.createElement("p");
+            unauthenticatedElement.className = "mpr-auth-form__unauthenticated";
+            unauthenticatedElement.textContent = AUTH_FORM_LABELS.unauthenticated;
+            this.setAttribute("data-mpr-account-panel-status", "unauthenticated");
+            this.appendChild(unauthenticatedElement);
+            return;
+          }
+          if (action === "unlink") {
+            try {
+              identityOptions = parseAccountIdentityOptions(this);
+            } catch (error) {
+              renderAuthComponentError(this, "data-mpr-account-panel-error", error);
+              return;
+            }
+          }
+          var definition = accountPanelFormDefinition(action, identityOptions);
+          var hostDisabled = this.hasAttribute("disabled");
+          var formElements = createAuthForm(documentObject, definition, hostDisabled);
+          var accountElement = this;
+          var currentAttempt = this.__accountAttempt;
+          this.__accountSubmitHandler = function handleAccountSubmit(event) {
+            event.preventDefault();
+            if (hostDisabled) {
+              return;
+            }
+            var request;
+            try {
+              request = readAccountPanelRequest(
+                action,
+                definition,
+                formElements.inputs,
+                identityOptions,
+              );
+            } catch (error) {
+              var selectionErrorCode =
+                error && error.code
+                  ? error.code
+                  : "mpr-ui.account_panel.identity_selection_invalid";
+              setAuthFormStatus(
+                formElements,
+                "error",
+                AUTH_FORM_LABELS.failure,
+                hostDisabled,
+              );
+              accountElement.setAttribute(
+                "data-mpr-account-panel-error",
+                selectionErrorCode,
+              );
+              accountElement.setAttribute("data-mpr-account-panel-status", "error");
+              dispatchEvent(accountElement, "mpr-ui:account-panel:status", {
+                action: action,
+                status: "error",
+                code: selectionErrorCode,
+              });
+              return;
+            }
+            clearAuthFormSecrets(definition, formElements.inputs);
+            setAuthFormStatus(
+              formElements,
+              "loading",
+              AUTH_FORM_LABELS.loading,
+              true,
+            );
+            accountElement.setAttribute("data-mpr-account-panel-status", "loading");
+            dispatchEvent(accountElement, "mpr-ui:account-panel:submit", {
+              action: action,
+            });
+            var actionPromise =
+              action === "google-link"
+                ? authContext.controller.startGoogleLink()
+                : authContext.controller.performAccountAction(action, request, {
+                    includeChallengeToken: accountElement.hasAttribute(
+                      CHALLENGE_TOKEN_DISPLAY_ATTRIBUTE,
+                    ),
+                  });
+            Promise.resolve(actionPromise).then(
+              function handleAccountSuccess(result) {
+                if (currentAttempt !== accountElement.__accountAttempt) {
+                  return;
+                }
+                var successMessage =
+                  result && typeof result.challengeToken === "string"
+                    ? AUTH_FORM_LABELS.challengeToken + result.challengeToken
+                    : AUTH_FORM_LABELS.success;
+                setAuthFormStatus(
+                  formElements,
+                  "success",
+                  successMessage,
+                  hostDisabled,
+                );
+                accountElement.removeAttribute("data-mpr-account-panel-error");
+                accountElement.setAttribute("data-mpr-account-panel-status", "success");
+                dispatchEvent(accountElement, "mpr-ui:account-panel:status", {
+                  action: action,
+                  status: "success",
+                });
+              },
+              function handleAccountFailure(error) {
+                if (currentAttempt !== accountElement.__accountAttempt) {
+                  return;
+                }
+                var errorCode =
+                  error && error.code
+                    ? error.code
+                    : "mpr-ui.account_panel.action_failed";
+                setAuthFormStatus(
+                  formElements,
+                  "error",
+                  AUTH_FORM_LABELS.failure,
+                  hostDisabled,
+                );
+                accountElement.setAttribute("data-mpr-account-panel-error", errorCode);
+                accountElement.setAttribute("data-mpr-account-panel-status", "error");
+                dispatchEvent(accountElement, "mpr-ui:account-panel:status", {
+                  action: action,
+                  status: "error",
+                  code: errorCode,
+                });
+              },
+            );
+          };
+          formElements.form.addEventListener("submit", this.__accountSubmitHandler);
+          this.__accountForm = formElements.form;
+          this.removeAttribute("data-mpr-account-panel-error");
+          this.setAttribute("data-mpr-account-panel-status", "ready");
+          this.appendChild(formElements.form);
+        }
+      };
+    });
+  }
+
   function defineLoginButtonElement(registry) {
     registry.define("mpr-login-button", function setupLoginElement(Base) {
       return class MprLoginButtonElement extends Base {
@@ -17116,6 +18725,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     defineThemeToggleElement(registry);
     defineLoginButtonElement(registry);
     defineAuthProviderChooserElement(registry);
+    definePasswordAuthElement(registry);
+    defineAccountPanelElement(registry);
     defineAuthDiagnosticsElement(registry);
     defineUserMenuElement(registry);
     defineSettingsElement(registry);
