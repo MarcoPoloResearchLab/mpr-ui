@@ -5,18 +5,99 @@
   "use strict";
 
   var DEFAULT_OPTIONS = {
-    tauthUrl: "",
-    tauthLoginPath: "/auth/google",
-    tauthLogoutPath: "/auth/logout",
-    tauthNoncePath: "/auth/nonce",
-    tauthSessionPath: "/auth/session",
-    tauthBootstrapMode: "restore-if-hinted",
-    googleClientId: "",
-    tenantId: "",
     siteName: "",
     siteLink: "",
   };
+  var AUTH_CONFIG_ATTRIBUTE = "auth-config";
+  var AUTH_PATH_VALIDATION_ORIGIN = "https://mpr-ui.invalid";
+  var AUTH_CONFIG_ERROR_CODES = Object.freeze({
+    REQUIRED: "mpr-ui.auth.config_required",
+    INVALID_JSON: "mpr-ui.auth.config_invalid_json",
+    UNKNOWN_KEY: "mpr-ui.auth.config_unknown_key",
+    VALUE_REQUIRED: "mpr-ui.auth.config_value_required",
+    VALUE_INVALID: "mpr-ui.auth.config_value_invalid",
+    PROVIDER_REQUIRED: "mpr-ui.auth.provider_required",
+    PROVIDER_SETTINGS_DISABLED: "mpr-ui.auth.provider_settings_disabled",
+    ENABLED_PROVIDER_REQUIRED: "mpr-ui.auth.enabled_provider_required",
+    PROVIDER_DISABLED: "mpr-ui.auth.provider_disabled",
+    REDIRECT_NAVIGATION_UNAVAILABLE: "mpr-ui.auth.redirect_navigation_unavailable",
+    REDIRECT_LIFECYCLE_CHANGED: "mpr-ui.auth.redirect_lifecycle_changed",
+  });
+  var AUTH_CONFIG_KEYS = Object.freeze([
+    "tauthUrl",
+    "tenantId",
+    "logoutPath",
+    "sessionPath",
+    "providers",
+  ]);
+  var AUTH_CONFIG_PROVIDER_KEYS = Object.freeze(["google", "apple"]);
+  var AUTH_CONFIG_GOOGLE_KEYS = Object.freeze([
+    "enabled",
+    "clientId",
+    "loginPath",
+    "noncePath",
+  ]);
+  var AUTH_CONFIG_APPLE_KEYS = Object.freeze([
+    "enabled",
+    "startPath",
+    "returnTo",
+    "label",
+  ]);
+  var APPLE_PROVIDER_LABELS = Object.freeze([
+    "Sign in with Apple",
+    "Sign up with Apple",
+    "Continue with Apple",
+  ]);
+  var APPLE_RETURN_TARGET_POLICY = Object.freeze({
+    CURRENT_URL: "current-url",
+    CURRENT_ORIGIN: "current-origin",
+  });
+  var APPLE_RETURN_QUERY_KEYS = Object.freeze([
+    "code",
+    "state",
+    "id_token",
+    "access_token",
+    "refresh_token",
+    "client_secret",
+    "user",
+    "error",
+    "error_description",
+    "session_state",
+    "tenant_id",
+    "return_to",
+  ]);
+  var AUTH_REDIRECT_QUERY_KEYS = Object.freeze({
+    TENANT_ID: "tenant_id",
+    RETURN_TO: "return_to",
+  });
+  var AUTH_ACTION_LABELS = Object.freeze({
+    google: "Sign in with Google",
+    googlePreparing: "Starting Google sign-in…",
+    googleFailure: "Unable to start Google sign-in. Try again.",
+    applePreparing: "Opening Apple sign-in…",
+    appleFailure: "Unable to open Apple sign-in. Try again.",
+  });
+  var AUTH_DIAGNOSTICS_LABELS = Object.freeze({
+    heading: "Authentication diagnostics",
+    status: "Status",
+    user: "User",
+    noUser: "No authenticated user",
+    bootstrapping: "Bootstrapping",
+    authenticating: "Authenticating",
+    authenticated: "Authenticated",
+    unauthenticated: "Unauthenticated",
+    error: "Error",
+  });
+  var AUTH_DIAGNOSTICS_TARGET_ATTRIBUTE = "auth-target";
+  var AUTH_DIAGNOSTICS_TARGET_REQUIRED_ERROR_CODE =
+    "mpr-ui.auth_diagnostics.target_required";
+  var AUTH_DIAGNOSTICS_TARGET_MISSING_ERROR_CODE =
+    "mpr-ui.auth_diagnostics.target_missing";
+  var AUTH_DIAGNOSTICS_TARGET_INVALID_ERROR_CODE =
+    "mpr-ui.auth_diagnostics.target_invalid";
+  var normalizedAuthOptions = new WeakSet();
   var REQUESTED_WITH_HEADER = "XMLHttpRequest";
+  var TAUTH_RUNTIME_SESSION_PATH = "/auth/session";
   var AUTH_RESTORE_HINT_PREFIX = "tauth.restore.v1:";
   var AUTH_RECOVERY_RECORD_PREFIX = "mpr-ui.auth.recovery.v2:";
   var AUTH_RECOVERY_LOCK_PREFIX = "mpr-ui:auth:recovery:v2:";
@@ -28,10 +109,7 @@
     maximumDelayMs: 5000,
     multiplier: 2,
   });
-  var AUTH_BOOTSTRAP_MODE = Object.freeze({
-    EAGER: "eager",
-    RESTORE_IF_HINTED: "restore-if-hinted",
-  });
+  var AUTH_BOOTSTRAP_RESTORE_IF_HINTED = "restore-if-hinted";
   var authSessionRecoveryPromises = Object.create(null);
   var AUTH_CONTROLLER_STATUS = Object.freeze({
     BOOTSTRAPPING: "bootstrapping",
@@ -40,12 +118,6 @@
     UNAUTHENTICATED: "unauthenticated",
   });
   var GOOGLE_SIGNIN_TEST_ID = "google-signin";
-  var GOOGLE_SIGNIN_READY_STATE = Object.freeze({
-    READY: "true",
-    PREPARING: "preparing",
-    ERROR: "error",
-    FALLBACK: "fallback",
-  });
   var GOOGLE_SIGNIN_TEXT_OPTION = Object.freeze({
     SIGN_IN_WITH: "signin_with",
     SIGN_UP_WITH: "signup_with",
@@ -63,23 +135,12 @@
     })()
   );
   var LOGIN_BUTTON_ROOT_CLASS = "mpr-login-button";
-  var LOGIN_BUTTON_CONTROL_CLASS = LOGIN_BUTTON_ROOT_CLASS + "__control";
-  var LOGIN_BUTTON_MARK_CLASS = LOGIN_BUTTON_ROOT_CLASS + "__mark";
-  var LOGIN_BUTTON_LABEL_CLASS = LOGIN_BUTTON_ROOT_CLASS + "__label";
-  var LOGIN_BUTTON_SPINNER_CLASS = LOGIN_BUTTON_ROOT_CLASS + "__spinner";
-  var LOGIN_BUTTON_STATUS_CLASS = LOGIN_BUTTON_ROOT_CLASS + "__status";
   var LOGIN_BUTTON_STYLE_ID = "mpr-ui-login-button-styles";
-  var LOGIN_BUTTON_CONTAINER_SELECTOR = '[data-mpr-login="google-button"]';
+  var LOGIN_BUTTON_CONTAINER_SELECTOR = '[data-mpr-login="auth-actions"]';
   var LOGIN_BUTTON_MOUNTED_ATTRIBUTE = "data-mpr-login-mounted";
-  var LOGIN_BUTTON_STATE_ATTRIBUTE = "data-mpr-login-state";
   var LOGIN_BUTTON_THEME_ATTRIBUTE = "data-mpr-login-theme";
   var LOGIN_BUTTON_SIZE_ATTRIBUTE = "data-mpr-login-size";
   var LOGIN_BUTTON_SHAPE_ATTRIBUTE = "data-mpr-login-shape";
-  var LOGIN_BUTTON_PRESENTATION_STATE = Object.freeze({
-    READY: "ready",
-    PREPARING: "preparing",
-    ERROR: "error",
-  });
   var LOGIN_BUTTON_THEME = Object.freeze({
     OUTLINE: "outline",
     FILLED_BLUE: "filled_blue",
@@ -119,16 +180,10 @@
     size: "mpr-ui.login_button.invalid_size",
     shape: "mpr-ui.login_button.invalid_shape",
   });
-  var LOGIN_BUTTON_NATIVE_CONTROL_ERROR =
-    "mpr-ui.login_button.native_control_unavailable";
   var LOGIN_BUTTON_PRESENTATION_DEFAULTS = Object.freeze({
     theme: LOGIN_BUTTON_THEME.OUTLINE,
     size: LOGIN_BUTTON_SIZE.MEDIUM,
     shape: LOGIN_BUTTON_SHAPE.RECTANGULAR,
-  });
-  var LOGIN_BUTTON_LABELS = Object.freeze({
-    preparing: "Starting Google sign-in…",
-    attemptFailed: "Unable to start Google sign-in. Try again.",
   });
   var AUTH_PROVIDER_CHOOSER_ROOT_CLASS = "mpr-auth-provider-chooser";
   var AUTH_PROVIDER_CHOOSER_STYLE_ID = "mpr-ui-auth-provider-chooser-styles";
@@ -199,18 +254,25 @@
    * @typedef {{ code?: string, status?: number }} MprUiErrorMetadata
    * @typedef {Error & MprUiErrorMetadata} MprUiError
    * @typedef {"apple"|"google"|"email"} AuthProviderId
+   * @typedef {"current-url"|"current-origin"|string} AppleReturnTargetPolicy
+   * @typedef {{ enabled: false } | { enabled: true, clientId: string, loginPath: string, noncePath: string }} GoogleAuthProviderConfig
+   * @typedef {{ enabled: false } | { enabled: true, startPath: string, returnTo: AppleReturnTargetPolicy, label: string }} AppleAuthProviderConfig
+   * @typedef {GoogleAuthProviderConfig|AppleAuthProviderConfig} AuthProviderConfig
+   * @typedef {{ google: GoogleAuthProviderConfig, apple: AppleAuthProviderConfig }} AuthProviderMap
+   * @typedef {{
+   *   tauthUrl: string,
+   *   tenantId: string,
+   *   logoutPath: string,
+   *   sessionPath: string,
+   *   providers: AuthProviderMap,
+   * }} AuthOptions
+   * @typedef {{
+   *   provider: "apple",
+   *   url: string,
+   *   pendingRestore: true,
+   * }} NormalizedProviderActionOptions
    * @typedef {"stack"|"icon-row"} AuthProviderChooserVariant
    * @typedef {{ providers: readonly AuthProviderId[], variant: AuthProviderChooserVariant }} AuthProviderChooserOptions
-   * @typedef {{
-   *   tauthUrl?: string,
-   *   tauthLoginPath?: string,
-   *   tauthLogoutPath?: string,
-   *   tauthNoncePath?: string,
-   *   tauthSessionPath?: string,
-   *   tauthBootstrapMode?: "eager"|"restore-if-hinted",
-   *   googleClientId?: string,
-   *   tenantId?: string,
-   * }} AuthOptions
    * @typedef {{
    *   mutationReplay?: "authorization-before-domain-work",
    * }} AuthenticatedFetchPolicy
@@ -278,6 +340,16 @@
     display: "data-user-display",
     avatar_url: "data-user-avatar-url",
   };
+  var SAFE_AUTH_PROFILE_FIELDS = Object.freeze([
+    "user_id",
+    "user_email",
+    "display",
+    "avatar_url",
+    "given_name",
+    "first_name",
+    "full_name",
+    "name",
+  ]);
 
   var GOOGLE_IDENTITY_SCRIPT_URL = "https://accounts.google.com/gsi/client";
   var GOOGLE_SITE_ID_ERROR_CODE = "mpr-ui.google_site_id_required";
@@ -305,14 +377,6 @@
     return error;
   }
 
-  function requireGoogleSiteId(value) {
-    var normalized = normalizeGoogleSiteId(value);
-    if (!normalized) {
-      throw createGoogleSiteIdError();
-    }
-    return normalized;
-  }
-
   function normalizeTenantId(value) {
     if (typeof value !== "string") {
       return null;
@@ -338,6 +402,263 @@
       throw createTenantIdError();
     }
     return normalized;
+  }
+
+  /**
+   * @param {string} code
+   * @param {string} message
+   * @returns {MprUiError}
+   */
+  function createAuthConfigError(code, message) {
+    /** @type {MprUiError} */
+    var error = new Error(message);
+    error.code = code;
+    return error;
+  }
+
+  function requireAuthConfigObject(value, scope) {
+    if (!value || typeof value !== "object" || Array.isArray(value)) {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.VALUE_REQUIRED,
+        scope + " must be an object",
+      );
+    }
+    return value;
+  }
+
+  function rejectUnknownAuthConfigKeys(value, allowedKeys, scope) {
+    Object.keys(value).forEach(function rejectUnknownAuthConfigKey(key) {
+      if (allowedKeys.indexOf(key) === -1) {
+        throw createAuthConfigError(
+          AUTH_CONFIG_ERROR_CODES.UNKNOWN_KEY,
+          "Unknown " + scope + "." + key,
+        );
+      }
+    });
+  }
+
+  function requireAuthConfigString(value, key, scope, allowEmpty) {
+    if (!Object.prototype.hasOwnProperty.call(value, key)) {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.VALUE_REQUIRED,
+        scope + "." + key + " is required",
+      );
+    }
+    var rawValue = value[key];
+    if (typeof rawValue !== "string") {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.VALUE_REQUIRED,
+        scope + "." + key + " is required",
+      );
+    }
+    var normalizedValue = rawValue.trim();
+    if (!allowEmpty && !normalizedValue) {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.VALUE_REQUIRED,
+        scope + "." + key + " is required",
+      );
+    }
+    return normalizedValue;
+  }
+
+  function requireAuthConfigBoolean(value, key, scope) {
+    if (typeof value[key] !== "boolean") {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.VALUE_REQUIRED,
+        scope + "." + key + " is required",
+      );
+    }
+    return value[key];
+  }
+
+  function normalizeAuthOrigin(value, key, scope) {
+    var normalizedValue = requireAuthConfigString(value, key, scope, true);
+    if (!normalizedValue) {
+      return "";
+    }
+    var parsedUrl;
+    try {
+      parsedUrl = new URL(normalizedValue);
+    } catch (_error) {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.VALUE_INVALID,
+        scope + "." + key + " must be an HTTP origin",
+      );
+    }
+    if (
+      (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") ||
+      parsedUrl.username ||
+      parsedUrl.password ||
+      parsedUrl.pathname !== "/" ||
+      parsedUrl.search ||
+      parsedUrl.hash
+    ) {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.VALUE_INVALID,
+        scope + "." + key + " must be an HTTP origin",
+      );
+    }
+    return parsedUrl.origin;
+  }
+
+  function normalizeAuthNavigationPath(value, key, scope) {
+    var normalizedValue = requireAuthConfigString(value, key, scope, false);
+    if (!isSameOriginAuthNavigationPath(normalizedValue)) {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.VALUE_INVALID,
+        scope + "." + key + " must be a same-origin path",
+      );
+    }
+    return normalizedValue;
+  }
+
+  function isSameOriginAuthNavigationPath(value) {
+    if (
+      value.charAt(0) !== "/" ||
+      value.indexOf("//") === 0 ||
+      value.indexOf("\\") !== -1 ||
+      value.indexOf("?") !== -1 ||
+      value.indexOf("#") !== -1
+    ) {
+      return false;
+    }
+    return new URL(value, AUTH_PATH_VALIDATION_ORIGIN).origin ===
+      AUTH_PATH_VALIDATION_ORIGIN;
+  }
+
+  function normalizeAppleReturnTargetPolicy(value, key, scope) {
+    var normalizedValue = requireAuthConfigString(value, key, scope, false);
+    if (
+      normalizedValue === APPLE_RETURN_TARGET_POLICY.CURRENT_URL ||
+      normalizedValue === APPLE_RETURN_TARGET_POLICY.CURRENT_ORIGIN
+    ) {
+      return normalizedValue;
+    }
+    if (isSameOriginAuthNavigationPath(normalizedValue)) {
+      return normalizedValue;
+    }
+    throw createAuthConfigError(
+      AUTH_CONFIG_ERROR_CODES.VALUE_INVALID,
+      scope + "." + key + " must be current-url, current-origin, or a same-origin path",
+    );
+  }
+
+  function requireDisabledProviderShape(providerConfig, scope) {
+    if (Object.keys(providerConfig).length !== 1) {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.PROVIDER_SETTINGS_DISABLED,
+        scope + " cannot include settings when disabled",
+      );
+    }
+  }
+
+  function normalizeGoogleAuthProviderConfig(providersConfig) {
+    var scope = "auth.providers.google";
+    var providerConfig = requireAuthConfigObject(providersConfig.google, scope);
+    rejectUnknownAuthConfigKeys(providerConfig, AUTH_CONFIG_GOOGLE_KEYS, scope);
+    var enabled = requireAuthConfigBoolean(providerConfig, "enabled", scope);
+    if (!enabled) {
+      requireDisabledProviderShape(providerConfig, scope);
+      return Object.freeze({ enabled: false });
+    }
+    return Object.freeze({
+      enabled: true,
+      clientId: requireAuthConfigString(providerConfig, "clientId", scope, false),
+      loginPath: normalizeAuthNavigationPath(providerConfig, "loginPath", scope),
+      noncePath: normalizeAuthNavigationPath(providerConfig, "noncePath", scope),
+    });
+  }
+
+  function normalizeAppleAuthProviderConfig(providersConfig) {
+    var scope = "auth.providers.apple";
+    var providerConfig = requireAuthConfigObject(providersConfig.apple, scope);
+    rejectUnknownAuthConfigKeys(providerConfig, AUTH_CONFIG_APPLE_KEYS, scope);
+    var enabled = requireAuthConfigBoolean(providerConfig, "enabled", scope);
+    if (!enabled) {
+      requireDisabledProviderShape(providerConfig, scope);
+      return Object.freeze({ enabled: false });
+    }
+    var label = requireAuthConfigString(providerConfig, "label", scope, false);
+    if (APPLE_PROVIDER_LABELS.indexOf(label) === -1) {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.VALUE_INVALID,
+        scope + ".label must use an Apple-approved title",
+      );
+    }
+    return Object.freeze({
+      enabled: true,
+      startPath: normalizeAuthNavigationPath(providerConfig, "startPath", scope),
+      returnTo: normalizeAppleReturnTargetPolicy(providerConfig, "returnTo", scope),
+      label: label,
+    });
+  }
+
+  /**
+   * Create the normalized provider-aware authentication options.
+   *
+   * @param {unknown} rawValue
+   * @returns {AuthOptions}
+   */
+  function createAuthOptions(rawValue) {
+    if (
+      rawValue &&
+      typeof rawValue === "object" &&
+      normalizedAuthOptions.has(/** @type {object} */ (rawValue))
+    ) {
+      return /** @type {AuthOptions} */ (rawValue);
+    }
+    var authConfig = requireAuthConfigObject(rawValue, "auth");
+    rejectUnknownAuthConfigKeys(authConfig, AUTH_CONFIG_KEYS, "auth");
+    var providersConfig = requireAuthConfigObject(
+      authConfig.providers,
+      "auth.providers",
+    );
+    rejectUnknownAuthConfigKeys(
+      providersConfig,
+      AUTH_CONFIG_PROVIDER_KEYS,
+      "auth.providers",
+    );
+    var googleProvider = normalizeGoogleAuthProviderConfig(providersConfig);
+    var appleProvider = normalizeAppleAuthProviderConfig(providersConfig);
+    if (!googleProvider.enabled && !appleProvider.enabled) {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.ENABLED_PROVIDER_REQUIRED,
+        "Authentication requires an enabled provider",
+      );
+    }
+    /** @type {AuthOptions} */
+    var normalizedOptions = Object.freeze({
+      tauthUrl: normalizeAuthOrigin(authConfig, "tauthUrl", "auth"),
+      tenantId: requireAuthConfigString(authConfig, "tenantId", "auth", false),
+      logoutPath: normalizeAuthNavigationPath(authConfig, "logoutPath", "auth"),
+      sessionPath: normalizeAuthNavigationPath(authConfig, "sessionPath", "auth"),
+      providers: Object.freeze({
+        google: googleProvider,
+        apple: appleProvider,
+      }),
+    });
+    normalizedAuthOptions.add(normalizedOptions);
+    return normalizedOptions;
+  }
+
+  function parseAuthConfigAttribute(hostElement) {
+    var rawValue = hostElement.getAttribute(AUTH_CONFIG_ATTRIBUTE);
+    if (typeof rawValue !== "string" || !rawValue.trim()) {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.REQUIRED,
+        "auth-config is required",
+      );
+    }
+    var parsedValue;
+    try {
+      parsedValue = JSON.parse(rawValue);
+    } catch (_error) {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.INVALID_JSON,
+        "auth-config must be valid JSON",
+      );
+    }
+    return createAuthOptions(parsedValue);
   }
 
   /**
@@ -475,22 +796,15 @@
   function hasConfiguredAuthSessionPath(authOptions) {
     return Boolean(
       authOptions &&
-        typeof authOptions.tauthSessionPath === "string" &&
-        authOptions.tauthSessionPath.trim(),
+        typeof authOptions.sessionPath === "string" &&
+        authOptions.sessionPath.trim(),
     );
   }
 
   function usesDefaultAuthSessionPath(authOptions) {
     return (
       authOptions &&
-      authOptions.tauthSessionPath === DEFAULT_OPTIONS.tauthSessionPath
-    );
-  }
-
-  function requiresEagerSessionVerification(authOptions) {
-    return Boolean(
-      authOptions &&
-        authOptions.tauthBootstrapMode === AUTH_BOOTSTRAP_MODE.EAGER,
+      authOptions.sessionPath === TAUTH_RUNTIME_SESSION_PATH
     );
   }
 
@@ -530,20 +844,6 @@
     return isRetryableAuthSessionStatus(
       error && typeof error.status === "number" ? error.status : undefined,
     );
-  }
-
-  function normalizeAuthBootstrapMode(value) {
-    var normalized = typeof value === "string" ? value.trim() : "";
-    if (
-      normalized !== AUTH_BOOTSTRAP_MODE.EAGER &&
-      normalized !== AUTH_BOOTSTRAP_MODE.RESTORE_IF_HINTED
-    ) {
-      throw createAuthRecoveryError(
-        "mpr-ui.auth.bootstrap_mode_invalid",
-        "Authentication bootstrap mode is invalid",
-      );
-    }
-    return normalized;
   }
 
   function hasAuthRestoreHint(authOptions) {
@@ -591,6 +891,79 @@
     }
   }
 
+  function requireLocationForRedirect() {
+    var locationObject = global.location ||
+      (global.window && global.window.location) ||
+      (global.document && global.document.location) ||
+      null;
+    if (
+      !locationObject ||
+      typeof locationObject.origin !== "string" ||
+      !locationObject.origin.trim()
+    ) {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.REDIRECT_NAVIGATION_UNAVAILABLE,
+        "Apple sign-in requires a browser location",
+      );
+    }
+    return locationObject;
+  }
+
+  function buildSafeCurrentReturnUrl(locationObject) {
+    var currentUrl = new URL(
+      typeof locationObject.href === "string" && locationObject.href
+        ? locationObject.href
+        : locationObject.origin + "/",
+    );
+    APPLE_RETURN_QUERY_KEYS.forEach(function removeSensitiveReturnValue(key) {
+      currentUrl.searchParams.delete(key);
+    });
+    currentUrl.hash = "";
+    return currentUrl.toString();
+  }
+
+  function resolveAppleReturnTarget(returnTargetPolicy, locationObject) {
+    if (returnTargetPolicy === APPLE_RETURN_TARGET_POLICY.CURRENT_ORIGIN) {
+      return locationObject.origin;
+    }
+    if (returnTargetPolicy === APPLE_RETURN_TARGET_POLICY.CURRENT_URL) {
+      return buildSafeCurrentReturnUrl(locationObject);
+    }
+    return new URL(returnTargetPolicy, locationObject.origin).toString();
+  }
+
+  /**
+   * Build a redirect-provider action from normalized authentication options.
+   *
+   * @param {AuthOptions} authOptions
+   * @returns {NormalizedProviderActionOptions}
+   */
+  function buildAppleProviderAction(authOptions) {
+    var appleProvider = authOptions.providers.apple;
+    if (!appleProvider.enabled) {
+      throw createAuthConfigError(
+        AUTH_CONFIG_ERROR_CODES.PROVIDER_DISABLED,
+        "Apple authentication is disabled",
+      );
+    }
+    var locationObject = requireLocationForRedirect();
+    var authBaseUrl = authOptions.tauthUrl || locationObject.origin;
+    var startUrl = new URL(appleProvider.startPath, authBaseUrl);
+    startUrl.searchParams.set(
+      AUTH_REDIRECT_QUERY_KEYS.TENANT_ID,
+      authOptions.tenantId,
+    );
+    startUrl.searchParams.set(
+      AUTH_REDIRECT_QUERY_KEYS.RETURN_TO,
+      resolveAppleReturnTarget(appleProvider.returnTo, locationObject),
+    );
+    return Object.freeze({
+      provider: "apple",
+      url: startUrl.toString(),
+      pendingRestore: true,
+    });
+  }
+
   /**
    * @param {string} message
    * @param {{ status?: number } | null | undefined} response
@@ -625,8 +998,8 @@
     var baseUrl = resolveAuthRestoreBaseUrl(authOptions);
     var tenantId = normalizeTenantId(authOptions && authOptions.tenantId) || "";
     var sessionPath =
-      authOptions && typeof authOptions.tauthSessionPath === "string"
-        ? authOptions.tauthSessionPath.trim()
+      authOptions && typeof authOptions.sessionPath === "string"
+        ? authOptions.sessionPath.trim()
         : "";
     if (!baseUrl || !tenantId || !sessionPath) {
       throw createAuthRecoveryError(
@@ -749,7 +1122,7 @@
       });
     }
     return global
-      .fetch(joinUrl(authOptions.tauthUrl, authOptions.tauthSessionPath), {
+      .fetch(joinUrl(authOptions.tauthUrl, authOptions.sessionPath), {
         method: "GET",
         credentials: "include",
         headers: withTenantHeaderValue(authOptions.tenantId, {
@@ -915,7 +1288,6 @@
 
   function requestCurrentProfileWithFetch(authOptions) {
     if (
-      !requiresEagerSessionVerification(authOptions) &&
       !hasAuthRestoreHint(authOptions)
     ) {
       return Promise.resolve(null);
@@ -924,7 +1296,7 @@
       return Promise.reject(new Error("fetch is required to load auth profile"));
     }
     return global
-      .fetch(joinUrl(authOptions.tauthUrl, authOptions.tauthSessionPath), {
+      .fetch(joinUrl(authOptions.tauthUrl, authOptions.sessionPath), {
         method: "GET",
         credentials: "include",
         headers: withTenantHeaderValue(authOptions.tenantId, {
@@ -966,9 +1338,6 @@
           if (profile) {
             return profile;
           }
-          if (requiresEagerSessionVerification(authOptions)) {
-            return requestCurrentProfileWithFetch(authOptions);
-          }
           return null;
         }).catch(function (error) {
           if (!shouldFallbackToFetch(error)) {
@@ -976,9 +1345,6 @@
           }
           return requestCurrentProfileWithFetch(authOptions);
         });
-      }
-      if (!helperResult && requiresEagerSessionVerification(authOptions)) {
-        return requestCurrentProfileWithFetch(authOptions);
       }
       return helperResult;
     }
@@ -990,7 +1356,7 @@
       return Promise.reject(new Error("fetch is required to log out"));
     }
     return global
-      .fetch(joinUrl(authOptions.tauthUrl, authOptions.tauthLogoutPath), {
+      .fetch(joinUrl(authOptions.tauthUrl, authOptions.logoutPath), {
         method: "POST",
         credentials: "include",
         headers: withTenantHeaderValue(authOptions.tenantId, {
@@ -1120,8 +1486,6 @@
   var LEGACY_DSL_THEME_MODE_REPLACEMENT = '"theme-config" with "initialMode"';
   var LEGACY_DSL_SETTINGS_REPLACEMENT = '"settings"';
   var LEGACY_DSL_LINKS_REPLACEMENT = '"links-collection"';
-  var LEGACY_DSL_TAUTH_REPLACEMENT =
-    '"tauth-url"/"tauth-login-path"/"tauth-logout-path"/"tauth-nonce-path"/"tauth-session-path"';
   var LEGACY_DSL_THEME_VARIANT_REPLACEMENT =
     '"themeToggle.variant" or "theme-switcher"';
   var HORIZONTAL_LINKS_ALIGNMENT_ERROR_CODE =
@@ -1304,10 +1668,7 @@
     "auth-transition": "authTransition",
     "settings-label": "settingsLabel",
     "settings": "settingsEnabled",
-    "google-site-id": "siteId",
-    "tauth-tenant-id": "tenantId",
     "theme-config": "themeToggle",
-    "sign-in-label": "signInLabel",
     "sign-out-label": "signOutLabel",
     "sign-in-redirect-url": "signInRedirectUrl",
     "logout-url": "logoutUrl",
@@ -1319,14 +1680,7 @@
   });
 
   var HEADER_ATTRIBUTE_OBSERVERS = Object.freeze(
-    Object.keys(HEADER_ATTRIBUTE_DATASET_MAP).concat([
-      "tauth-bootstrap-mode",
-      "tauth-login-path",
-      "tauth-logout-path",
-      "tauth-nonce-path",
-      "tauth-session-path",
-      "tauth-url",
-    ]),
+    Object.keys(HEADER_ATTRIBUTE_DATASET_MAP).concat([AUTH_CONFIG_ATTRIBUTE]),
   );
 
   var FOOTER_ATTRIBUTE_DATASET_MAP = Object.freeze({
@@ -1374,14 +1728,7 @@
     "theme-config",
   ]);
   var LOGIN_BUTTON_ATTRIBUTE_NAMES = Object.freeze([
-    "site-id",
-    "tauth-bootstrap-mode",
-    "tauth-tenant-id",
-    "tauth-login-path",
-    "tauth-logout-path",
-    "tauth-nonce-path",
-    "tauth-session-path",
-    "tauth-url",
+    AUTH_CONFIG_ATTRIBUTE,
     "button-text",
     "button-theme",
     "button-size",
@@ -1395,10 +1742,7 @@
     "display-mode",
     "logout-url",
     "logout-label",
-    "tauth-tenant-id",
-    "tauth-url",
-    "tauth-logout-path",
-    "tauth-session-path",
+    AUTH_CONFIG_ATTRIBUTE,
     "avatar-url",
     "avatar-label",
     "menu-items",
@@ -1612,28 +1956,7 @@
   }
 
   function buildLoginAuthOptionsFromAttributes(hostElement) {
-    var sessionPath = hostElement.getAttribute("tauth-session-path");
-    return {
-      tauthUrl: hostElement.getAttribute("tauth-url") || "",
-      tauthLoginPath:
-        hostElement.getAttribute("tauth-login-path") ||
-        DEFAULT_OPTIONS.tauthLoginPath,
-      tauthLogoutPath:
-        hostElement.getAttribute("tauth-logout-path") ||
-        DEFAULT_OPTIONS.tauthLogoutPath,
-      tauthNoncePath:
-        hostElement.getAttribute("tauth-nonce-path") ||
-        DEFAULT_OPTIONS.tauthNoncePath,
-      tauthSessionPath:
-        sessionPath === null ? DEFAULT_OPTIONS.tauthSessionPath : sessionPath,
-      tauthBootstrapMode:
-        hostElement.getAttribute("tauth-bootstrap-mode") ||
-        DEFAULT_OPTIONS.tauthBootstrapMode,
-      googleClientId:
-        hostElement.getAttribute("site-id") || DEFAULT_OPTIONS.googleClientId,
-      tenantId:
-        hostElement.getAttribute("tauth-tenant-id") || DEFAULT_OPTIONS.tenantId,
-    };
+    return parseAuthConfigAttribute(hostElement);
   }
 
   function buildLoginButtonDisplayOptions(hostElement) {
@@ -1687,7 +2010,7 @@
     if (!container) {
       return null;
     }
-    container.setAttribute("data-mpr-login", "google-button");
+    container.setAttribute("data-mpr-login", "auth-actions");
     container.setAttribute("class", LOGIN_BUTTON_ROOT_CLASS);
     hostElement.innerHTML = "";
     hostElement.appendChild(container);
@@ -1759,91 +2082,12 @@
     );
   }
 
-  function createLoginButtonTriggerContent(buttonElement, buttonLabel) {
-    if (!buttonElement || typeof buttonElement.appendChild !== "function") {
-      return;
-    }
-    if (typeof buttonElement.innerHTML === "string") {
-      buttonElement.innerHTML = "";
-    }
-    var markElement = createElementNear(buttonElement, "span");
-    var labelElement = createElementNear(buttonElement, "span");
-    var spinnerElement = createElementNear(buttonElement, "span");
-    if (!markElement || !labelElement || !spinnerElement) {
-      return;
-    }
-    markElement.setAttribute("class", LOGIN_BUTTON_MARK_CLASS);
-    markElement.setAttribute("aria-hidden", "true");
-    markElement.setAttribute("data-mpr-login", "google-mark");
-    markElement.innerHTML = AUTH_PROVIDER_CHOOSER_MARKUP.google;
-    labelElement.setAttribute("class", LOGIN_BUTTON_LABEL_CLASS);
-    labelElement.setAttribute("data-mpr-login", "label");
-    labelElement.textContent = buttonLabel;
-    spinnerElement.setAttribute("class", LOGIN_BUTTON_SPINNER_CLASS);
-    spinnerElement.setAttribute("aria-hidden", "true");
-    spinnerElement.setAttribute("data-mpr-login", "spinner");
-    buttonElement.setAttribute("aria-label", buttonLabel);
-    buttonElement.appendChild(markElement);
-    buttonElement.appendChild(labelElement);
-    buttonElement.appendChild(spinnerElement);
-  }
-
-  function createLoginButtonStatus(containerElement) {
-    var statusElement = createElementNear(containerElement, "p");
-    if (!statusElement || typeof containerElement.appendChild !== "function") {
-      return null;
-    }
-    statusElement.setAttribute("class", LOGIN_BUTTON_STATUS_CLASS);
-    statusElement.setAttribute("data-mpr-login", "status");
-    statusElement.setAttribute("role", "status");
-    statusElement.setAttribute("aria-live", "polite");
-    statusElement.textContent = "";
-    containerElement.appendChild(statusElement);
-    return statusElement;
-  }
-
-  function setLoginButtonPresentationState(
-    containerElement,
-    loginControl,
-    presentationState,
-  ) {
-    if (!containerElement || typeof containerElement.setAttribute !== "function") {
-      return;
-    }
-    var isPreparing = presentationState === LOGIN_BUTTON_PRESENTATION_STATE.PREPARING;
-    containerElement.setAttribute(LOGIN_BUTTON_STATE_ATTRIBUTE, presentationState);
-    if (loginControl && loginControl.target) {
-      loginControl.target.disabled = isPreparing;
-      if (typeof loginControl.target.setAttribute === "function") {
-        loginControl.target.setAttribute("aria-busy", isPreparing ? "true" : "false");
-      }
-    }
-    if (!loginControl || !loginControl.statusElement) {
-      return;
-    }
-    if (presentationState === LOGIN_BUTTON_PRESENTATION_STATE.PREPARING) {
-      loginControl.statusElement.textContent = LOGIN_BUTTON_LABELS.preparing;
-      return;
-    }
-    loginControl.statusElement.textContent =
-      presentationState === LOGIN_BUTTON_PRESENTATION_STATE.ERROR
-        ? LOGIN_BUTTON_LABELS.attemptFailed
-        : "";
-  }
-
   function buildHeaderOptionsFromAttributes(hostElement) {
     if (hasAttributeValue(hostElement, "settings-enabled")) {
       logLegacyAttribute(
         "<mpr-header>",
         "settings-enabled",
         LEGACY_DSL_SETTINGS_REPLACEMENT,
-      );
-    }
-    if (hasAttributeValue(hostElement, "auth-config")) {
-      logLegacyAttribute(
-        "<mpr-header>",
-        "auth-config",
-        LEGACY_DSL_TAUTH_REPLACEMENT,
       );
     }
     if (hasAttributeValue(hostElement, "theme-mode")) {
@@ -1854,53 +2098,9 @@
       );
     }
     var datasetOptions = readHeaderOptionsFromDataset(hostElement);
-    /** @type {AuthOptions | null} */
-    var authOptions = null;
-    var loginPath = hostElement.getAttribute
-      ? hostElement.getAttribute("tauth-login-path")
-      : null;
-    if (loginPath) {
-      authOptions = authOptions || {};
-      authOptions.tauthLoginPath = loginPath;
-    }
-    var logoutPath = hostElement.getAttribute
-      ? hostElement.getAttribute("tauth-logout-path")
-      : null;
-    if (logoutPath) {
-      authOptions = authOptions || {};
-      authOptions.tauthLogoutPath = logoutPath;
-    }
-    var noncePath = hostElement.getAttribute
-      ? hostElement.getAttribute("tauth-nonce-path")
-      : null;
-    if (noncePath) {
-      authOptions = authOptions || {};
-      authOptions.tauthNoncePath = noncePath;
-    }
-    var sessionPath = hostElement.getAttribute
-      ? hostElement.getAttribute("tauth-session-path")
-      : null;
-    if (sessionPath !== null) {
-      authOptions = authOptions || {};
-      authOptions.tauthSessionPath = sessionPath;
-    }
-    var bootstrapMode = hostElement.getAttribute
-      ? hostElement.getAttribute("tauth-bootstrap-mode")
-      : null;
-    if (bootstrapMode) {
-      authOptions = authOptions || {};
-      authOptions.tauthBootstrapMode = bootstrapMode;
-    }
-    var tauthUrl = hostElement.getAttribute
-      ? hostElement.getAttribute("tauth-url")
-      : null;
-    if (tauthUrl) {
-      authOptions = authOptions || {};
-      authOptions.tauthUrl = tauthUrl;
-    }
     var externalOptions = {};
-    if (authOptions) {
-      externalOptions.auth = authOptions;
+    if (hasAttributeValue(hostElement, AUTH_CONFIG_ATTRIBUTE)) {
+      externalOptions.auth = parseAuthConfigAttribute(hostElement);
     }
     return deepMergeOptions({}, datasetOptions, externalOptions);
   }
@@ -2202,7 +2402,10 @@
     });
   }
 
-  function getAuthProviderLabel(providerId) {
+  function getAuthProviderLabel(providerId, labelOverride) {
+    if (typeof labelOverride === "string" && labelOverride.trim()) {
+      return labelOverride.trim();
+    }
     return AUTH_PROVIDER_CHOOSER_LABELS[providerId];
   }
 
@@ -2275,13 +2478,16 @@
     return markElement;
   }
 
-  function createAuthProviderLabel(hostElement, providerId) {
+  function createAuthProviderLabel(hostElement, providerId, labelOverride) {
     var labelElement = createAuthProviderElement(hostElement, "span");
     setAuthProviderElementClass(
       labelElement,
       AUTH_PROVIDER_CHOOSER_ROOT_CLASS + "__label",
     );
-    setAuthProviderElementText(labelElement, getAuthProviderLabel(providerId));
+    setAuthProviderElementText(
+      labelElement,
+      getAuthProviderLabel(providerId, labelOverride),
+    );
     if (typeof labelElement.setAttribute === "function") {
       labelElement.setAttribute("data-mpr-auth-provider-label", providerId);
     }
@@ -2294,6 +2500,7 @@
     emailPanelId,
     emailExpanded,
     handleClick,
+    labelOverride,
   ) {
     var buttonElement = createAuthProviderElement(hostElement, "button");
     buttonElement.type = "button";
@@ -2309,7 +2516,10 @@
       buttonElement.setAttribute("type", "button");
       buttonElement.setAttribute("data-mpr-auth-provider", providerId);
       buttonElement.setAttribute("data-test", "auth-provider-" + providerId);
-      buttonElement.setAttribute("aria-label", getAuthProviderLabel(providerId));
+      buttonElement.setAttribute(
+        "aria-label",
+        getAuthProviderLabel(providerId, labelOverride),
+      );
       if (providerId === AUTH_PROVIDER_IDS.EMAIL) {
         buttonElement.setAttribute("aria-expanded", emailExpanded ? "true" : "false");
         buttonElement.setAttribute("aria-controls", emailPanelId);
@@ -2321,10 +2531,149 @@
     );
     appendAuthProviderElement(
       buttonElement,
-      createAuthProviderLabel(hostElement, providerId),
+      createAuthProviderLabel(hostElement, providerId, labelOverride),
     );
     buttonElement.addEventListener("click", handleClick);
     return buttonElement;
+  }
+
+  function enabledAuthProviderIds(authOptions) {
+    return AUTH_CONFIG_PROVIDER_KEYS.filter(function filterEnabledProvider(providerId) {
+      return authOptions.providers[providerId].enabled === true;
+    });
+  }
+
+  function authProviderActionLabel(authOptions, providerId, displayOptions) {
+    if (providerId === AUTH_PROVIDER_IDS.APPLE) {
+      return authOptions.providers.apple.label;
+    }
+    var configuredGoogleLabel =
+      displayOptions && typeof displayOptions.googleLabel === "string"
+        ? displayOptions.googleLabel.trim()
+        : "";
+    return configuredGoogleLabel || AUTH_ACTION_LABELS.google;
+  }
+
+  function authProviderActionStatus(providerId, status) {
+    if (providerId === AUTH_PROVIDER_IDS.APPLE) {
+      return status === "error"
+        ? AUTH_ACTION_LABELS.appleFailure
+        : AUTH_ACTION_LABELS.applePreparing;
+    }
+    return status === "error"
+      ? AUTH_ACTION_LABELS.googleFailure
+      : AUTH_ACTION_LABELS.googlePreparing;
+  }
+
+  function mountAuthProviderActions(
+    hostElement,
+    containerElement,
+    authOptions,
+    authController,
+    displayOptions,
+  ) {
+    clearNodeContents(containerElement);
+    var documentObject =
+      hostElement.ownerDocument ||
+      global.document ||
+      (global.window && global.window.document) ||
+      null;
+    ensureAuthProviderChooserStyles(documentObject);
+    var rootElement = createAuthProviderElement(hostElement, "div");
+    var actionsElement = createAuthProviderElement(hostElement, "div");
+    var statusElement = createAuthProviderElement(hostElement, "p");
+    var providerButtons = [];
+    var cleanupHandlers = [];
+    var currentAttempt = 0;
+    setAuthProviderElementClass(rootElement, "mpr-auth-actions");
+    setAuthProviderElementClass(actionsElement, "mpr-auth-actions__controls");
+    setAuthProviderElementClass(statusElement, "mpr-auth-actions__status");
+    rootElement.setAttribute("data-mpr-auth-actions", "root");
+    actionsElement.setAttribute("data-mpr-auth-actions", "controls");
+    actionsElement.setAttribute("role", "group");
+    actionsElement.setAttribute("aria-label", AUTH_PROVIDER_CHOOSER_LABELS.group);
+    statusElement.setAttribute("data-mpr-auth-actions", "status");
+    statusElement.setAttribute("role", "status");
+    statusElement.setAttribute("aria-live", "polite");
+    statusElement.textContent = "";
+
+    function setActionStatus(status, providerId) {
+      rootElement.setAttribute("data-mpr-auth-action-status", status);
+      rootElement.setAttribute("data-mpr-auth-action-provider", providerId);
+      var isPending = status === AUTH_CONTROLLER_STATUS.AUTHENTICATING;
+      providerButtons.forEach(function updateProviderButton(buttonElement) {
+        buttonElement.disabled = isPending;
+        buttonElement.setAttribute("aria-busy", isPending ? "true" : "false");
+      });
+      statusElement.textContent =
+        status === "ready" ? "" : authProviderActionStatus(providerId, status);
+    }
+
+    enabledAuthProviderIds(authOptions).forEach(function mountProviderAction(providerId) {
+      var providerLabel = authProviderActionLabel(
+        authOptions,
+        providerId,
+        displayOptions,
+      );
+      function handleProviderAction(event) {
+        if (event && typeof event.preventDefault === "function") {
+          event.preventDefault();
+        }
+        currentAttempt += 1;
+        var attempt = currentAttempt;
+        setActionStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATING, providerId);
+        if (displayOptions && typeof displayOptions.handleStart === "function") {
+          displayOptions.handleStart(providerId);
+        }
+        Promise.resolve(authController.startProvider(providerId)).then(
+          function handleProviderActionReady() {
+            if (attempt !== currentAttempt || providerId === AUTH_PROVIDER_IDS.APPLE) {
+              return;
+            }
+            setActionStatus("ready", providerId);
+          },
+          function handleProviderActionFailure(error) {
+            if (attempt !== currentAttempt) {
+              return;
+            }
+            setActionStatus("error", providerId);
+            if (displayOptions && typeof displayOptions.handleError === "function") {
+              displayOptions.handleError(providerId, error);
+            }
+          },
+        );
+      }
+      var actionButton = createAuthProviderActionButton(
+        hostElement,
+        providerId,
+        "",
+        false,
+        handleProviderAction,
+        providerLabel,
+      );
+      actionButton.setAttribute("data-mpr-auth-action", providerId);
+      actionButton.setAttribute("data-mpr-auth-provider", providerId);
+      providerButtons.push(actionButton);
+      cleanupHandlers.push(function cleanupProviderAction() {
+        actionButton.removeEventListener("click", handleProviderAction);
+      });
+      appendAuthProviderElement(actionsElement, actionButton);
+    });
+    appendAuthProviderElement(rootElement, actionsElement);
+    appendAuthProviderElement(rootElement, statusElement);
+    appendAuthProviderElement(containerElement, rootElement);
+    setActionStatus("ready", enabledAuthProviderIds(authOptions)[0]);
+    return {
+      root: rootElement,
+      buttons: providerButtons,
+      cleanup: function cleanupAuthProviderActions() {
+        currentAttempt += 1;
+        cleanupHandlers.forEach(function runCleanup(cleanup) {
+          cleanup();
+        });
+        clearNodeContents(containerElement);
+      },
+    };
   }
 
   function createAuthProviderField(
@@ -3970,17 +4319,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       options.settings = options.settings || {};
       options.settings.enabled = String(datasetSettingsFlag).toLowerCase() === "true";
     }
-    if (dataset.siteId) {
-      options.siteId = dataset.siteId;
-    }
-    if (dataset.tenantId) {
-      options.tenantId = dataset.tenantId;
-    }
     if (dataset.themeToggle) {
       options.themeToggle = parseJsonValue(dataset.themeToggle, {});
-    }
-    if (dataset.signInLabel) {
-      options.signInLabel = dataset.signInLabel;
     }
     if (dataset.signOutLabel) {
       options.signOutLabel = dataset.signOutLabel;
@@ -4124,19 +4464,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function normalizeAuthControllerOptions(optionsInput) {
-      var normalizedOptions = Object.assign({}, DEFAULT_OPTIONS, optionsInput || {});
-      normalizedOptions.googleClientId = requireGoogleSiteId(
-        normalizedOptions.googleClientId,
-      );
-      normalizedOptions.tenantId = requireTenantId(normalizedOptions.tenantId);
-      normalizedOptions.tauthSessionPath =
-        typeof normalizedOptions.tauthSessionPath === "string"
-          ? normalizedOptions.tauthSessionPath.trim()
-          : DEFAULT_OPTIONS.tauthSessionPath;
-      normalizedOptions.tauthBootstrapMode = normalizeAuthBootstrapMode(
-        normalizedOptions.tauthBootstrapMode,
-      );
-      return normalizedOptions;
+      return createAuthOptions(optionsInput);
     }
 
     function authControllerOptionsMatch(leftOptions, rightOptions) {
@@ -4145,13 +4473,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       return (
         leftOptions.tauthUrl === rightOptions.tauthUrl &&
-        leftOptions.tauthLoginPath === rightOptions.tauthLoginPath &&
-        leftOptions.tauthLogoutPath === rightOptions.tauthLogoutPath &&
-        leftOptions.tauthNoncePath === rightOptions.tauthNoncePath &&
-        leftOptions.tauthSessionPath === rightOptions.tauthSessionPath &&
-        leftOptions.tauthBootstrapMode === rightOptions.tauthBootstrapMode &&
-        leftOptions.googleClientId === rightOptions.googleClientId &&
-        leftOptions.tenantId === rightOptions.tenantId
+        leftOptions.logoutPath === rightOptions.logoutPath &&
+        leftOptions.sessionPath === rightOptions.sessionPath &&
+        leftOptions.tenantId === rightOptions.tenantId &&
+        JSON.stringify(leftOptions.providers) === JSON.stringify(rightOptions.providers)
       );
     }
 
@@ -4167,6 +4492,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var lastAuthenticatedSignature = null;
     var nonceRequestPromise = null;
     var googleSignInAttemptPromise = null;
+    var appleSignInAttemptPromise = null;
+    var appleSignInHintOptions = null;
     var authSignalVersion = 0;
     var lifecycleVersion = 0;
     var isDestroyed = false;
@@ -4294,8 +4621,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function requestNonceTokenWithFetch() {
+      var googleProvider = options.providers.google;
+      if (!googleProvider.enabled) {
+        return Promise.reject(
+          createAuthConfigError(
+            AUTH_CONFIG_ERROR_CODES.PROVIDER_DISABLED,
+            "Google authentication is disabled",
+          ),
+        );
+      }
       return global
-        .fetch(joinUrl(options.tauthUrl, options.tauthNoncePath), {
+        .fetch(joinUrl(options.tauthUrl, googleProvider.noncePath), {
           method: "POST",
           credentials: "include",
           headers: withTenantHeader({
@@ -4349,7 +4685,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function configureGoogleIdentityClient(nonceToken) {
-      var clientIdValue = normalizeGoogleSiteId(options.googleClientId);
+      var googleProvider = options.providers.google;
+      var clientIdValue = googleProvider.enabled
+        ? normalizeGoogleSiteId(googleProvider.clientId)
+        : null;
       var currentLifecycleVersion = lifecycleVersion;
       if (!clientIdValue) {
         throw createGoogleSiteIdError();
@@ -4398,6 +4737,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function startGoogleSignIn() {
+      if (!options.providers.google.enabled) {
+        return Promise.reject(
+          createAuthConfigError(
+            AUTH_CONFIG_ERROR_CODES.PROVIDER_DISABLED,
+            "Google authentication is disabled",
+          ),
+        );
+      }
       if (googleSignInAttemptPromise) {
         return googleSignInAttemptPromise;
       }
@@ -4434,6 +4781,77 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           googleSignInAttemptPromise = null;
         });
       return googleSignInAttemptPromise;
+    }
+
+    function prepareAppleSignIn() {
+      return buildAppleProviderAction(options);
+    }
+
+    function startAppleSignIn() {
+      if (appleSignInAttemptPromise) {
+        return appleSignInAttemptPromise;
+      }
+      var currentLifecycleVersion = lifecycleVersion;
+      var providerAction = prepareAppleSignIn();
+      appleSignInHintOptions = options;
+      rememberAuthRestoreHint(options);
+      updateAuthStatus(AUTH_CONTROLLER_STATUS.AUTHENTICATING, {
+        source: "redirect-provider",
+        provider: AUTH_PROVIDER_IDS.APPLE,
+      });
+      appleSignInAttemptPromise = Promise.resolve().then(function navigateToApple() {
+        if (isDestroyed || !isCurrentLifecycleVersion(currentLifecycleVersion)) {
+          throw createAuthConfigError(
+            AUTH_CONFIG_ERROR_CODES.REDIRECT_LIFECYCLE_CHANGED,
+            "Apple sign-in belongs to an obsolete auth controller lifecycle",
+          );
+        }
+        if (!global.location || typeof global.location.assign !== "function") {
+          throw createAuthConfigError(
+            AUTH_CONFIG_ERROR_CODES.REDIRECT_NAVIGATION_UNAVAILABLE,
+            "Apple sign-in requires top-level navigation",
+          );
+        }
+        global.location.assign(providerAction.url);
+        return providerAction;
+      }).catch(function handleAppleSignInFailure(error) {
+        if (appleSignInHintOptions) {
+          clearAuthRestoreHint(appleSignInHintOptions);
+        }
+        if (
+          !isDestroyed &&
+          isCurrentLifecycleVersion(currentLifecycleVersion) &&
+          (!error || error.code !== AUTH_CONFIG_ERROR_CODES.REDIRECT_LIFECYCLE_CHANGED)
+        ) {
+          emitError(
+            error && error.code
+              ? error.code
+              : AUTH_CONFIG_ERROR_CODES.REDIRECT_NAVIGATION_UNAVAILABLE,
+            { message: error && error.message ? error.message : String(error) },
+          );
+          markUnauthenticated({ prompt: false });
+        }
+        throw error;
+      }).finally(function clearAppleSignInAttempt() {
+        appleSignInHintOptions = null;
+        appleSignInAttemptPromise = null;
+      });
+      return appleSignInAttemptPromise;
+    }
+
+    function startAuthProvider(providerId) {
+      if (providerId === AUTH_PROVIDER_IDS.GOOGLE) {
+        return startGoogleSignIn();
+      }
+      if (providerId === AUTH_PROVIDER_IDS.APPLE) {
+        return startAppleSignIn();
+      }
+      return Promise.reject(
+        createAuthConfigError(
+          AUTH_CONFIG_ERROR_CODES.PROVIDER_DISABLED,
+          "Authentication provider is not enabled",
+        ),
+      );
     }
 
     function updateDatasetFromProfile(profile) {
@@ -4574,7 +4992,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           bootstrapPromise = Promise.resolve(
             global.initAuthClient({
               baseUrl: resolvedBaseUrl,
-              bootstrapMode: options.tauthBootstrapMode,
+              bootstrapMode: AUTH_BOOTSTRAP_RESTORE_IF_HINTED,
               tenantId: options.tenantId,
               onAuthenticated: handleAuthenticatedCallback,
               onUnauthenticated: handleUnauthenticatedCallback,
@@ -4614,6 +5032,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             return;
           }
           if (!isRetryableAuthSessionError(error)) {
+            clearAuthRestoreHint(options);
             markUnauthenticated({ emit: false, prompt: false });
             emitError("mpr-ui.auth.bootstrap_failed", {
               message: error && error.message ? error.message : String(error),
@@ -4641,12 +5060,21 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     function exchangeCredentialWithFetch(credential, nonceToken) {
+      var googleProvider = options.providers.google;
+      if (!googleProvider.enabled) {
+        return Promise.reject(
+          createAuthConfigError(
+            AUTH_CONFIG_ERROR_CODES.PROVIDER_DISABLED,
+            "Google authentication is disabled",
+          ),
+        );
+      }
       var payload = JSON.stringify({
         google_id_token: credential,
         nonce_token: nonceToken,
       });
       return global
-        .fetch(joinUrl(options.tauthUrl, options.tauthLoginPath), {
+        .fetch(joinUrl(options.tauthUrl, googleProvider.loginPath), {
           method: "POST",
           credentials: "include",
           headers: withTenantHeader({
@@ -4887,11 +5315,16 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       lifecycleVersion += 1;
       detachSessionSyncListeners();
+      if (appleSignInHintOptions) {
+        clearAuthRestoreHint(appleSignInHintOptions);
+        appleSignInHintOptions = null;
+      }
       options = nextOptions;
       state.options = options;
       pendingProfile = null;
       nonceRequestPromise = null;
       googleSignInAttemptPromise = null;
+      appleSignInAttemptPromise = null;
       hasCompletedInitialBootstrap = false;
       markUnauthenticated({ emit: false, prompt: false });
       bootstrapSession();
@@ -4900,9 +5333,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     function destroy() {
       isDestroyed = true;
       lifecycleVersion += 1;
+      if (appleSignInHintOptions) {
+        clearAuthRestoreHint(appleSignInHintOptions);
+        appleSignInHintOptions = null;
+      }
       pendingProfile = null;
       nonceRequestPromise = null;
       googleSignInAttemptPromise = null;
+      appleSignInAttemptPromise = null;
       detachSessionSyncListeners();
       setAttributeOrRemove(rootElement, "data-mpr-auth-status", null);
     }
@@ -4978,6 +5416,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       prepareGoogleNonce: prepareGoogleNonce,
       refreshGoogleNonce: prepareGoogleNonce,
       startGoogleSignIn: startGoogleSignIn,
+      prepareAppleSignIn: prepareAppleSignIn,
+      startAppleSignIn: startAppleSignIn,
+      startProvider: startAuthProvider,
       handleCredential: handleCredential,
       authenticatedFetch: authenticatedFetchWithController,
       signOut: signOut,
@@ -5084,6 +5525,54 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       "mpr-ui.testing.auth_controller_missing",
       "MPRUI.testing auth helpers require a mounted mpr-ui auth controller",
     );
+  }
+
+  function safeAuthProfile(profile) {
+    if (!profile || typeof profile !== "object" || Array.isArray(profile)) {
+      return null;
+    }
+    var snapshot = {};
+    SAFE_AUTH_PROFILE_FIELDS.forEach(function copySafeProfileField(fieldName) {
+      if (Object.prototype.hasOwnProperty.call(profile, fieldName)) {
+        snapshot[fieldName] = profile[fieldName];
+      }
+    });
+    return Object.freeze(snapshot);
+  }
+
+  function resolveAuthProfileSnapshot(authTarget) {
+    var resolvedTarget = resolveHost(authTarget);
+    var authController = resolveTestingAuthController(resolvedTarget);
+    return Promise.resolve(Object.freeze({
+      status: authController.state.status,
+      profile: safeAuthProfile(authController.state.profile),
+    }));
+  }
+
+  function prepareRedirectProviderForTesting(authTarget, providerId) {
+    var resolvedTarget = resolveHost(authTarget);
+    var authController = resolveTestingAuthController(resolvedTarget);
+    if (providerId !== AUTH_PROVIDER_IDS.APPLE) {
+      throw createTestingError(
+        "mpr-ui.testing.redirect_provider_unsupported",
+        "MPRUI.testing redirect helpers support Apple sign-in",
+      );
+    }
+    return authController.prepareAppleSignIn();
+  }
+
+  function navigateRedirectProviderForTesting(authTarget, providerId) {
+    var resolvedTarget = resolveHost(authTarget);
+    var authController = resolveTestingAuthController(resolvedTarget);
+    if (providerId !== AUTH_PROVIDER_IDS.APPLE) {
+      return Promise.reject(
+        createTestingError(
+          "mpr-ui.testing.redirect_provider_unsupported",
+          "MPRUI.testing redirect helpers support Apple sign-in",
+        ),
+      );
+    }
+    return authController.startAppleSignIn();
   }
 
   function authenticateForTesting(authTarget, profile) {
@@ -5289,10 +5778,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "__auth-transition-message:empty{display:none}" +
     "." +
     HEADER_ROOT_CLASS +
-    "__google{display:none;align-items:center}" +
+    "__auth-actions{display:none;align-items:center}" +
     "." +
     HEADER_ROOT_CLASS +
-    "__google[data-mpr-google-ready]{display:inline-flex}" +
+    "__auth-actions:has([data-mpr-auth-actions]){display:inline-flex}" +
     "." +
     HEADER_ROOT_CLASS +
     "__user{display:none;align-items:center}" +
@@ -5316,21 +5805,20 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "--authenticated [data-mpr-header=\"user-menu\"]{display:inline-flex}" +
     "." +
     HEADER_ROOT_CLASS +
-    "--authenticated [data-mpr-header=\"google-signin\"]{display:none}" +
+    "--authenticated [data-mpr-header=\"auth-actions\"]{display:none}" +
     "." +
     HEADER_ROOT_CLASS +
     "--no-settings [data-mpr-header=\"settings-button\"]{display:none}" +
     "." +
     HEADER_ROOT_CLASS +
-    "--no-auth [data-mpr-header=\"google-signin\"]{display:none}" +
+    "--no-auth [data-mpr-header=\"auth-actions\"]{display:none}" +
     "." +
     HEADER_ROOT_CLASS +
     "__nav:empty{display:none}" +
     "." +
     HEADER_ROOT_CLASS +
     "__horizontal-links:empty{display:none}" +
-    ".mpr-header__google .g_id_signin iframe{transform:scale(var(--mpr-header-google-scale,1));transform-origin:right center}" +
-    ".mpr-header--small{--mpr-header-scale:0.6;--mpr-header-google-scale:0.6}" +
+    ".mpr-header--small{--mpr-header-scale:0.6}" +
     "@keyframes mpr-header-auth-transition-spin{to{transform:rotate(360deg)}}";
 
   var HEADER_SETTINGS_PLACEHOLDER_MARKUP =
@@ -5350,7 +5838,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "display-mode",
     "logout-url",
     "logout-label",
-    "tauth-tenant-id",
+    AUTH_CONFIG_ATTRIBUTE,
     "avatar-url",
     "avatar-label",
   ]);
@@ -5381,7 +5869,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       modes: DEFAULT_THEME_MODES,
       initialMode: null,
     }),
-    signInLabel: "Sign in",
     signOutLabel: "Sign out",
     signInRedirectUrl: "",
     profileLabel: "",
@@ -5718,7 +6205,20 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "__link-button{border:none;background:transparent;color:var(--mpr-color-text-muted,#cbd5f5);font:inherit;font-size:calc(0.78rem * var(--mpr-auth-provider-scale,1));font-weight:700;padding:0;cursor:pointer}" +
     "." +
     AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
-    "__link-button:hover{color:var(--mpr-color-text-primary,#e2e8f0);text-decoration:underline}";
+    "__link-button:hover{color:var(--mpr-color-text-primary,#e2e8f0);text-decoration:underline}" +
+    ".mpr-auth-actions{display:grid;gap:.35rem;min-inline-size:0;padding:4.4px}" +
+    ".mpr-auth-actions__controls{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}" +
+    ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple{min-inline-size:140px;min-block-size:44px;padding:4.4px;border-color:#000;background:#fff;color:#000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:19px}" +
+    ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple:hover{background:#f5f5f5}" +
+    ".mpr-auth-actions__status{min-block-size:1.2em;margin:0;color:var(--mpr-color-text-muted,#cbd5f5);font-size:.78rem;line-height:1.2}" +
+    "mpr-header .mpr-auth-actions{--mpr-auth-provider-scale:var(--mpr-header-scale,1)}" +
+    "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple{min-inline-size:140px;min-block-size:44px;font-size:19px}" +
+    ".mpr-auth-diagnostics{display:grid;gap:.5rem;padding:1rem;border:1px solid var(--mpr-color-border,rgba(148,163,184,.35));border-radius:.75rem;background:var(--mpr-color-surface-elevated,rgba(15,23,42,.9));color:var(--mpr-color-text-primary,#e2e8f0)}" +
+    ".mpr-auth-diagnostics__heading{margin:0;font-size:1rem}" +
+    ".mpr-auth-diagnostics__list{display:grid;gap:.35rem;margin:0}" +
+    ".mpr-auth-diagnostics__list>div{display:grid;grid-template-columns:minmax(7rem,auto) minmax(0,1fr);gap:.5rem}" +
+    ".mpr-auth-diagnostics__list dt{font-weight:700}" +
+    ".mpr-auth-diagnostics__list dd{margin:0;overflow-wrap:anywhere}";
 
   function ensureAuthProviderChooserStyles(documentObject) {
     if (
@@ -5747,139 +6247,36 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
   var LOGIN_BUTTON_STYLE_MARKUP =
     'mpr-login-button[data-mpr-login-mounted="true"]{display:contents}' +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    "{display:inline-flex;flex-direction:column;gap:0.5rem;inline-size:var(--mpr-login-button-inline-size,auto);max-inline-size:100%;--mpr-login-button-theme-background:#fff;--mpr-login-button-theme-border-color:#dadce0;--mpr-login-button-theme-color:#1f1f1f;--mpr-login-button-theme-hover-background:#f8faff;--mpr-login-button-focus-color:rgba(66,133,244,0.5);--mpr-login-button-radius:0.5rem;--mpr-login-button-height:2.75rem;--mpr-login-button-padding-inline:0.95rem;--mpr-login-button-font-size:0.95rem}" +
-    "." +
-    LOGIN_BUTTON_CONTROL_CLASS +
-    "{display:inline-grid;grid-template-columns:1.15rem minmax(0,1fr) 1.15rem;align-items:center;column-gap:0.5rem;inline-size:100%;min-inline-size:0;min-block-size:var(--mpr-login-button-height);padding:0 var(--mpr-login-button-padding-inline);border:1px solid var(--mpr-login-button-border-color,var(--mpr-login-button-theme-border-color));border-radius:var(--mpr-login-button-radius);background:var(--mpr-login-button-background,var(--mpr-login-button-theme-background));color:var(--mpr-login-button-color,var(--mpr-login-button-theme-color));font:inherit;font-size:var(--mpr-login-button-font-size);font-weight:700;line-height:1.2;text-align:center;text-decoration:none;cursor:pointer;box-sizing:border-box;appearance:none;-webkit-appearance:none;transition:background-color 140ms ease,border-color 140ms ease,box-shadow 140ms ease}" +
-    "." +
-    LOGIN_BUTTON_CONTROL_CLASS +
-    ":hover{background:var(--mpr-login-button-hover-background,var(--mpr-login-button-theme-hover-background))}" +
-    "." +
-    LOGIN_BUTTON_CONTROL_CLASS +
-    ":focus-visible{outline:3px solid var(--mpr-login-button-focus-color);outline-offset:2px}" +
-    "." +
-    LOGIN_BUTTON_CONTROL_CLASS +
-    ":disabled{cursor:progress;opacity:0.82}" +
-    "." +
-    LOGIN_BUTTON_MARK_CLASS +
-    "{display:inline-flex;grid-column:1;align-items:center;justify-content:center;inline-size:1.15rem;block-size:1.15rem}" +
-    "." +
-    LOGIN_BUTTON_MARK_CLASS +
-    " svg{display:block;inline-size:100%;block-size:100%}" +
-    "." +
-    LOGIN_BUTTON_LABEL_CLASS +
-    "{grid-column:2;min-inline-size:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}" +
-    "." +
-    LOGIN_BUTTON_SPINNER_CLASS +
-    "{grid-column:3;justify-self:center;inline-size:0.9rem;block-size:0.9rem;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;visibility:hidden}" +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-state="preparing"] .' +
-    LOGIN_BUTTON_SPINNER_CLASS +
-    "{visibility:visible;animation:mpr-login-button-spin 0.7s linear infinite}" +
-    "." +
-    LOGIN_BUTTON_STATUS_CLASS +
-    "{margin:0;color:var(--mpr-color-text-muted,#64748b);font:inherit;font-size:0.84rem;line-height:1.35}" +
-    "." +
-    LOGIN_BUTTON_STATUS_CLASS +
-    ":empty{display:none}" +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-state="preparing"] .' +
-    LOGIN_BUTTON_STATUS_CLASS +
-    "{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}" +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-state="error"] .' +
-    LOGIN_BUTTON_STATUS_CLASS +
-    "{color:var(--mpr-color-error,#dc2626)}" +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
+    ".mpr-login-button{display:inline-flex;flex-direction:column;gap:0.5rem;inline-size:var(--mpr-login-button-inline-size,auto);max-inline-size:100%;--mpr-login-button-theme-background:#fff;--mpr-login-button-theme-border-color:#dadce0;--mpr-login-button-theme-color:#1f1f1f;--mpr-login-button-theme-hover-background:#f8faff;--mpr-login-button-focus-color:rgba(66,133,244,0.5);--mpr-login-button-radius:0.5rem;--mpr-login-button-height:2.75rem;--mpr-login-button-padding-inline:0.95rem;--mpr-login-button-font-size:0.95rem}" +
+    ".mpr-login-button .mpr-auth-actions{inline-size:100%;padding:0}" +
+    ".mpr-login-button .mpr-auth-actions__controls{inline-size:100%}" +
+    ".mpr-login-button .mpr-auth-provider-chooser__action{inline-size:100%;min-inline-size:0;min-block-size:var(--mpr-login-button-height);padding:0 var(--mpr-login-button-padding-inline);border-radius:var(--mpr-login-button-radius);font-size:var(--mpr-login-button-font-size);transition:background-color 140ms ease,border-color 140ms ease,box-shadow 140ms ease}" +
+    ".mpr-login-button .mpr-auth-provider-chooser__action--apple{min-inline-size:140px;min-block-size:44px;padding:4.4px}" +
+    ".mpr-login-button .mpr-auth-provider-chooser__action--google{border-color:var(--mpr-login-button-border-color,var(--mpr-login-button-theme-border-color));background:var(--mpr-login-button-background,var(--mpr-login-button-theme-background));color:var(--mpr-login-button-color,var(--mpr-login-button-theme-color))}" +
+    ".mpr-login-button .mpr-auth-provider-chooser__action--google:hover{background:var(--mpr-login-button-hover-background,var(--mpr-login-button-theme-hover-background))}" +
+    ".mpr-login-button .mpr-auth-provider-chooser__action:focus-visible{outline:3px solid var(--mpr-login-button-focus-color);outline-offset:2px}" +
+    ".mpr-login-button .mpr-auth-provider-chooser__action:disabled{cursor:progress;opacity:0.82}" +
+    ".mpr-login-button .mpr-auth-actions[data-mpr-auth-action-status='error'] .mpr-auth-actions__status{color:var(--mpr-color-error,#dc2626)}" +
+    ".mpr-login-button" +
     '[data-mpr-login-theme="outline"]{--mpr-login-button-theme-background:#fff;--mpr-login-button-theme-border-color:#dadce0;--mpr-login-button-theme-color:#1f1f1f;--mpr-login-button-theme-hover-background:#f8faff}' +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
+    ".mpr-login-button" +
     '[data-mpr-login-theme="filled_blue"]{--mpr-login-button-theme-background:#4285f4;--mpr-login-button-theme-border-color:#4285f4;--mpr-login-button-theme-color:#fff;--mpr-login-button-theme-hover-background:#1a73e8}' +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
+    ".mpr-login-button" +
     '[data-mpr-login-theme="filled_black"]{--mpr-login-button-theme-background:#202124;--mpr-login-button-theme-border-color:#202124;--mpr-login-button-theme-color:#fff;--mpr-login-button-theme-hover-background:#000}' +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
+    ".mpr-login-button" +
     '[data-mpr-login-size="small"]{--mpr-login-button-height:2.25rem;--mpr-login-button-padding-inline:0.7rem;--mpr-login-button-font-size:0.84rem}' +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
+    ".mpr-login-button" +
     '[data-mpr-login-size="large"]{--mpr-login-button-height:3rem;--mpr-login-button-padding-inline:1.1rem;--mpr-login-button-font-size:1rem}' +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
+    ".mpr-login-button" +
     '[data-mpr-login-shape="pill"]{--mpr-login-button-radius:999px}' +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
+    "mpr-login-button[data-mpr-auth-providers='google'] .mpr-login-button" +
     '[data-mpr-login-shape="square"]{--mpr-login-button-radius:0.4rem;inline-size:var(--mpr-login-button-height)}' +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
+    "mpr-login-button[data-mpr-auth-providers='google'] .mpr-login-button" +
     '[data-mpr-login-shape="circle"]{--mpr-login-button-radius:50%;inline-size:var(--mpr-login-button-height)}' +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-shape="square"] .' +
-    LOGIN_BUTTON_CONTROL_CLASS +
-    ",." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-shape="circle"] .' +
-    LOGIN_BUTTON_CONTROL_CLASS +
-    "{inline-size:var(--mpr-login-button-height);min-inline-size:var(--mpr-login-button-height);padding:0}" +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-shape="square"] .' +
-    LOGIN_BUTTON_CONTROL_CLASS +
-    ",." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-shape="circle"] .' +
-    LOGIN_BUTTON_CONTROL_CLASS +
-    "{grid-template-columns:1fr;place-items:center;column-gap:0}" +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-shape="square"] .' +
-    LOGIN_BUTTON_MARK_CLASS +
-    ",." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-shape="circle"] .' +
-    LOGIN_BUTTON_MARK_CLASS +
-    ",." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-shape="square"] .' +
-    LOGIN_BUTTON_SPINNER_CLASS +
-    ",." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-shape="circle"] .' +
-    LOGIN_BUTTON_SPINNER_CLASS +
-    "{grid-column:1;grid-row:1}" +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-state="preparing"][data-mpr-login-shape="square"] .' +
-    LOGIN_BUTTON_MARK_CLASS +
-    ",." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-state="preparing"][data-mpr-login-shape="circle"] .' +
-    LOGIN_BUTTON_MARK_CLASS +
-    "{visibility:hidden}" +
-    "." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-shape="square"] .' +
-    LOGIN_BUTTON_LABEL_CLASS +
-    ",." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-shape="circle"] .' +
-    LOGIN_BUTTON_LABEL_CLASS +
-    "{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}" +
-    "@media (prefers-reduced-motion:reduce){." +
-    LOGIN_BUTTON_CONTROL_CLASS +
-    "{transition:none}." +
-    LOGIN_BUTTON_ROOT_CLASS +
-    '[data-mpr-login-state="preparing"] .' +
-    LOGIN_BUTTON_SPINNER_CLASS +
-    "{animation:none}}" +
-    "@keyframes mpr-login-button-spin{to{transform:rotate(360deg)}}";
+    ".mpr-login-button[data-mpr-login-shape='square'] .mpr-auth-provider-chooser__action--google,.mpr-login-button[data-mpr-login-shape='circle'] .mpr-auth-provider-chooser__action--google{inline-size:var(--mpr-login-button-height);min-inline-size:var(--mpr-login-button-height);padding:0;grid-template-columns:1fr;place-items:center;column-gap:0}" +
+    ".mpr-login-button[data-mpr-login-shape='square'] .mpr-auth-provider-chooser__mark--google,.mpr-login-button[data-mpr-login-shape='circle'] .mpr-auth-provider-chooser__mark--google{grid-column:1;grid-row:1}" +
+    ".mpr-login-button[data-mpr-login-shape='square'] .mpr-auth-provider-chooser__action--google .mpr-auth-provider-chooser__label,.mpr-login-button[data-mpr-login-shape='circle'] .mpr-auth-provider-chooser__action--google .mpr-auth-provider-chooser__label{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}" +
+    "@media (prefers-reduced-motion:reduce){.mpr-login-button .mpr-auth-provider-chooser__action{transition:none}}";
 
   function ensureLoginButtonStyles(documentObject) {
     if (
@@ -5890,6 +6287,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return;
     }
     ensureThemeTokenStyles(documentObject);
+    ensureAuthProviderChooserStyles(documentObject);
     if (documentObject.getElementById(LOGIN_BUTTON_STYLE_ID)) {
       return;
     }
@@ -5970,34 +6368,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     );
     var authTransition = normalizeHeaderAuthTransition(options.authTransition);
 
-    var authOptions =
-      options.auth && typeof options.auth === "object" ? options.auth : null;
-    var derivedSiteId = normalizeGoogleSiteId(options.siteId);
-    var derivedTenantId = normalizeTenantId(options.tenantId);
-    if (authOptions) {
-      var authSiteId = normalizeGoogleSiteId(authOptions.googleClientId);
-      if (!authSiteId && derivedSiteId) {
-        authOptions.googleClientId = derivedSiteId;
-        authSiteId = derivedSiteId;
-      }
-      if (!authSiteId) {
-        throw createGoogleSiteIdError();
-      }
-      if (!derivedSiteId && authSiteId) {
-        derivedSiteId = authSiteId;
-      }
-      var authTenantId = normalizeTenantId(authOptions.tenantId);
-      if (!authTenantId && derivedTenantId) {
-        authOptions.tenantId = derivedTenantId;
-        authTenantId = derivedTenantId;
-      }
-      if (!authTenantId) {
-        throw createTenantIdError();
-      }
-      if (!derivedTenantId && authTenantId) {
-        derivedTenantId = authTenantId;
-      }
-    }
+    var authOptions = options.auth ? createAuthOptions(options.auth) : null;
+    var derivedTenantId = authOptions ? authOptions.tenantId : null;
 
     var themeDefaults = {
       enabled: true,
@@ -6019,10 +6391,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       typeof brandSource.href === "string" && brandSource.href.trim()
         ? brandSource.href.trim()
         : HEADER_DEFAULTS.brand.href;
-    var signInLabel =
-      typeof options.signInLabel === "string" && options.signInLabel.trim()
-        ? options.signInLabel.trim()
-        : HEADER_DEFAULTS.signInLabel;
     var signOutLabel =
       typeof options.signOutLabel === "string" && options.signOutLabel.trim()
         ? options.signOutLabel.trim()
@@ -6073,7 +6441,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         modes: themeNormalized.modes,
         initialMode: themeNormalized.initialMode,
       },
-      signInLabel: signInLabel,
       signOutLabel: signOutLabel,
       profileLabel: profileLabel,
       userMenu: {
@@ -6083,7 +6450,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         avatarUrl: userMenuAvatarUrl,
         avatarLabel: userMenuAvatarLabel,
       },
-      siteId: derivedSiteId,
       tenantId: derivedTenantId,
       auth: authOptions,
       sticky: stickyValue,
@@ -6185,8 +6551,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         escapeHtml(options.userMenu.logoutUrl) +
         '" logout-label="' +
         escapeHtml(options.userMenu.logoutLabel) +
-        '" tauth-tenant-id="' +
-        escapeHtml(options.tenantId) +
+        '" auth-config="' +
+        escapeHtml(JSON.stringify(options.auth)) +
         '"';
       if (options.userMenu.avatarUrl) {
         userMenuAttributes +=
@@ -6242,7 +6608,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       '__button" data-mpr-header="settings-button">Settings</button>' +
       '<div class="' +
       HEADER_ROOT_CLASS +
-      '__google" data-mpr-header="google-signin"></div>' +
+      '__auth-actions" data-mpr-header="auth-actions"></div>' +
       userMenuMarkup +
       "</div>" +
       "</div>" +
@@ -6321,8 +6687,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       horizontalLinks: hostElement.querySelector('[data-mpr-header="horizontal-links"]'),
       brand: hostElement.querySelector('[data-mpr-header="brand"]'),
       brandContainer: hostElement.querySelector("." + HEADER_ROOT_CLASS + "__brand"),
-      googleSignin: hostElement.querySelector(
-        '[data-mpr-header="google-signin"]',
+      authActions: hostElement.querySelector(
+        '[data-mpr-header="auth-actions"]',
       ),
       settingsButton: hostElement.querySelector(
         '[data-mpr-header="settings-button"]',
@@ -7014,8 +7380,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     );
     setHeaderUserMenuAttribute(
       userMenuElement,
-      "tauth-tenant-id",
-      options.tenantId,
+      AUTH_CONFIG_ATTRIBUTE,
+      options.auth ? JSON.stringify(options.auth) : null,
       overrideEntries,
     );
     setHeaderUserMenuAttribute(
@@ -7108,18 +7474,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var authTransitionReady = false;
     var authTransitionEventTarget = null;
     var authTransitionEventName = "";
-    var googleButtonCleanup = null;
-    var googleButtonRenderSequence = 0;
-    var fallbackSigninTarget = null;
+    var providerActionsCleanup = null;
     var signInRedirectPending = false;
     var signInRedirectTarget = "";
     var isDestroyed = false;
-    var googleSiteId = normalizeGoogleSiteId(options.siteId);
-    if (googleSiteId) {
-      hostElement.setAttribute("data-mpr-google-site-id", googleSiteId);
-    } else {
-      hostElement.removeAttribute("data-mpr-google-site-id");
-    }
 
     var headerThemeConfig = options.themeToggle;
 
@@ -7133,44 +7491,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       hostElement.setAttribute("data-mpr-theme-mode", modeValue);
     }
 
-    function destroyGoogleButton(state, detail) {
-      var reason = state || null;
-      var errorCode = detail && detail.code ? detail.code : null;
-      if (googleButtonCleanup) {
-        googleButtonCleanup();
-        googleButtonCleanup = null;
+    function destroyProviderActions() {
+      if (providerActionsCleanup) {
+        providerActionsCleanup();
+        providerActionsCleanup = null;
       }
-      if (
-        fallbackSigninTarget &&
-        typeof fallbackSigninTarget.removeEventListener === "function"
-      ) {
-        fallbackSigninTarget.removeEventListener("click", handleFallbackSigninClick);
-        fallbackSigninTarget.removeEventListener("click", handleGoogleSigninClick);
-      }
-      if (fallbackSigninTarget) {
-        fallbackSigninTarget = null;
-      }
-      if (elements.googleSignin) {
-        clearNodeContents(elements.googleSignin);
-        if (reason === "error") {
-          elements.googleSignin.setAttribute(
-            "data-mpr-google-ready",
-            GOOGLE_SIGNIN_READY_STATE.ERROR,
-          );
-          if (errorCode) {
-            elements.googleSignin.setAttribute("data-mpr-google-error", errorCode);
-          } else {
-            elements.googleSignin.removeAttribute("data-mpr-google-error");
-          }
-        } else {
-          elements.googleSignin.removeAttribute("data-mpr-google-ready");
-          elements.googleSignin.removeAttribute("data-mpr-google-error");
-        }
-        elements.googleSignin.removeAttribute("data-mpr-signin-fallback");
+      if (elements.authActions) {
+        clearNodeContents(elements.authActions);
       }
     }
 
-    cleanupHandlers.push(destroyGoogleButton);
+    cleanupHandlers.push(destroyProviderActions);
     cleanupHandlers.push(function destroySettingsModal() {
       if (settingsModalController) {
         settingsModalController.destroy();
@@ -7180,19 +7511,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     cleanupHandlers.push(function destroyAuthTransitionListener() {
       detachAuthTransitionCompletionListener();
     });
-
-    function dispatchSigninFallback(reason, extraDetail) {
-      markSignInRedirectPending();
-      var detail = {
-        reason: reason || "manual",
-      };
-      if (extraDetail && typeof extraDetail === "object") {
-        Object.keys(extraDetail).forEach(function assignDetail(key) {
-          detail[key] = extraDetail[key];
-        });
-      }
-      dispatchHeaderEvent("mpr-ui:header:signin-click", detail);
-    }
 
     function markSignInRedirectPending() {
       if (!options.signInRedirectUrl) {
@@ -7223,134 +7541,46 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       global.location.assign(options.signInRedirectUrl);
     }
 
-    function handleFallbackSigninClick(event) {
-      if (event && typeof event.preventDefault === "function") {
-        event.preventDefault();
-      }
-      dispatchSigninFallback("manual");
-    }
-
-    function handleGoogleSigninClick(event) {
-      if (event && typeof event.preventDefault === "function") {
-        event.preventDefault();
-      }
-      if (!authController || typeof authController.startGoogleSignIn !== "function") {
-        dispatchSigninFallback("disabled");
+    function mountProviderActions() {
+      destroyProviderActions();
+      if (!elements.authActions || !options.auth || !authController) {
         return;
       }
-      if (elements.googleSignin) {
-        elements.googleSignin.setAttribute(
-          "data-mpr-google-ready",
-          GOOGLE_SIGNIN_READY_STATE.PREPARING,
-        );
-        elements.googleSignin.removeAttribute("data-mpr-google-error");
-      }
-      dispatchHeaderEvent("mpr-ui:header:signin-click", {
-        reason: "google-attempt",
-      });
-      authController.startGoogleSignIn().then(function handleGooglePromptReady() {
-        if (isDestroyed || !elements.googleSignin) {
-          return;
-        }
-        elements.googleSignin.setAttribute(
-          "data-mpr-google-ready",
-          GOOGLE_SIGNIN_READY_STATE.READY,
-        );
-      }).catch(function handleGoogleSigninFailure(error) {
-        if (isDestroyed) {
-          return;
-        }
-        if (elements.googleSignin) {
-          elements.googleSignin.setAttribute(
-            "data-mpr-google-ready",
-            GOOGLE_SIGNIN_READY_STATE.ERROR,
-          );
-          elements.googleSignin.setAttribute(
-            "data-mpr-google-error",
-            "google-attempt-failed",
-          );
-        }
-        dispatchHeaderEvent("mpr-ui:header:error", {
-          code: "mpr-ui.header.google_attempt_failed",
-          message:
-            error && error.message ? String(error.message) : "google sign-in failed",
-        });
-      });
-    }
-
-    function mountFallbackSigninButton(reason) {
-      if (!elements.googleSignin) {
-        dispatchSigninFallback(reason || "disabled");
-        return;
-      }
-      var fallbackLabel =
-        (options.signInLabel && options.signInLabel.trim()) || HEADER_DEFAULTS.signInLabel;
-      var fallbackControl = createSignInTriggerControl(elements.googleSignin, {
-        label: fallbackLabel,
-        clickHandler: handleFallbackSigninClick,
-        className: HEADER_ROOT_CLASS + "__button " + HEADER_ROOT_CLASS + "__button--primary",
-        dataRoleName: "data-mpr-header",
-        dataRoleValue: "google-signin-button",
-      });
-      fallbackSigninTarget = fallbackControl ? fallbackControl.target : null;
-      googleButtonCleanup = fallbackControl ? fallbackControl.cleanup : null;
-      elements.googleSignin.setAttribute(
-        "data-mpr-google-ready",
-        GOOGLE_SIGNIN_READY_STATE.FALLBACK,
+      var providerActions = mountAuthProviderActions(
+        hostElement,
+        elements.authActions,
+        options.auth,
+        authController,
+        {
+          googleLabel: AUTH_ACTION_LABELS.google,
+          handleStart: function handleProviderStart(providerId) {
+            if (providerId === AUTH_PROVIDER_IDS.GOOGLE) {
+              markSignInRedirectPending();
+            }
+            dispatchHeaderEvent("mpr-ui:header:signin-click", {
+              provider: providerId,
+              reason: providerId + "-attempt",
+            });
+          },
+          handleError: function handleProviderError(providerId, error) {
+            if (isDestroyed) {
+              return;
+            }
+            dispatchHeaderEvent("mpr-ui:header:error", {
+              code:
+                error && error.code
+                  ? error.code
+                  : "mpr-ui.header.provider_attempt_failed",
+              provider: providerId,
+              message:
+                error && error.message
+                  ? String(error.message)
+                  : "Authentication provider action failed",
+            });
+          },
+        },
       );
-      elements.googleSignin.removeAttribute("data-mpr-google-error");
-      if (reason) {
-        elements.googleSignin.setAttribute("data-mpr-signin-fallback", reason);
-      } else {
-        elements.googleSignin.removeAttribute("data-mpr-signin-fallback");
-      }
-    }
-
-    function mountGoogleSignInButton() {
-      destroyGoogleButton();
-      googleButtonRenderSequence += 1;
-      var renderSequenceNumber = googleButtonRenderSequence;
-      if (!elements.googleSignin) {
-        return;
-      }
-      if (!options.auth) {
-        mountFallbackSigninButton("disabled");
-        return;
-      }
-      if (!googleSiteId) {
-        mountFallbackSigninButton("missing-site-id");
-        dispatchHeaderEvent("mpr-ui:header:error", {
-          code: "mpr-ui.header.google_site_id_missing",
-          message: "Google client ID is required",
-        });
-        return;
-      }
-      elements.googleSignin.setAttribute("data-mpr-google-site-id", googleSiteId);
-      elements.googleSignin.removeAttribute("data-mpr-google-error");
-      if (!authController || typeof authController.prepareGoogleNonce !== "function") {
-        mountFallbackSigninButton("disabled");
-        return;
-      }
-      if (isDestroyed || renderSequenceNumber !== googleButtonRenderSequence) {
-        return;
-      }
-      var googleButtonLabel =
-        (options.signInLabel && options.signInLabel.trim()) || HEADER_DEFAULTS.signInLabel;
-      var googleControl = createSignInTriggerControl(elements.googleSignin, {
-        label: googleButtonLabel,
-        clickHandler: handleGoogleSigninClick,
-        className: HEADER_ROOT_CLASS + "__button " + HEADER_ROOT_CLASS + "__button--primary",
-        dataRoleName: "data-mpr-header",
-        dataRoleValue: "google-signin-button",
-      });
-      fallbackSigninTarget = googleControl ? googleControl.target : null;
-      googleButtonCleanup = googleControl ? googleControl.cleanup : null;
-      elements.googleSignin.setAttribute(
-        "data-mpr-google-ready",
-        GOOGLE_SIGNIN_READY_STATE.READY,
-      );
-      elements.googleSignin.removeAttribute("data-mpr-google-error");
-      elements.googleSignin.removeAttribute("data-mpr-signin-fallback");
+      providerActionsCleanup = providerActions.cleanup;
     }
 
     if (options.auth) {
@@ -7366,7 +7596,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       themeManager.setMode(headerThemeConfig.initialMode, "header:init");
     }
 
-    mountGoogleSignInButton();
+    mountProviderActions();
     updateThemeHost(themeManager.getMode());
 
     var unsubscribeTheme = themeManager.on(function handleThemeChange(detail) {
@@ -7585,12 +7815,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           );
         }
         headerThemeConfig = options.themeToggle;
-        googleSiteId = normalizeGoogleSiteId(options.siteId);
-        if (googleSiteId) {
-          hostElement.setAttribute("data-mpr-google-site-id", googleSiteId);
-        } else {
-          hostElement.removeAttribute("data-mpr-google-site-id");
-        }
         applyHeaderOptions(hostElement, elements, options);
         if (!options.settings.enabled && settingsModalController) {
           settingsModalController.close();
@@ -7622,7 +7846,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           authTransitionReady = false;
         }
         ensureAuthTransitionCompletionListener();
-        mountGoogleSignInButton();
+        mountProviderActions();
         updateThemeHost(themeManager.getMode());
         if (options.auth && elements.root) {
           elements.root.classList.remove(HEADER_ROOT_CLASS + "--no-auth");
@@ -7648,7 +7872,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       },
       destroy: function destroy() {
         isDestroyed = true;
-        googleButtonRenderSequence += 1;
         cleanupHandlers.forEach(function invoke(handler) {
           if (typeof handler === "function") {
             handler();
@@ -7796,21 +8019,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (logoutLabel !== null) {
       options.logoutLabel = logoutLabel;
     }
-    var tenantId = hostElement.getAttribute("tauth-tenant-id");
-    if (tenantId !== null) {
-      options.tenantId = tenantId;
-    }
-    var tauthUrl = hostElement.getAttribute("tauth-url");
-    if (tauthUrl !== null) {
-      options.tauthUrl = tauthUrl;
-    }
-    var tauthLogoutPath = hostElement.getAttribute("tauth-logout-path");
-    if (tauthLogoutPath !== null) {
-      options.tauthLogoutPath = tauthLogoutPath;
-    }
-    var tauthSessionPath = hostElement.getAttribute("tauth-session-path");
-    if (tauthSessionPath !== null) {
-      options.tauthSessionPath = tauthSessionPath;
+    if (hasAttributeValue(hostElement, AUTH_CONFIG_ATTRIBUTE)) {
+      options.auth = parseAuthConfigAttribute(hostElement);
     }
     var avatarUrl = hostElement.getAttribute("avatar-url");
     if (avatarUrl !== null) {
@@ -7835,17 +8045,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       if (!Object.prototype.hasOwnProperty.call(options, "logoutLabel")) {
         options.logoutLabel = inheritedOptions.logoutLabel;
       }
-      if (!Object.prototype.hasOwnProperty.call(options, "tenantId")) {
-        options.tenantId = inheritedOptions.tenantId;
-      }
-      if (!Object.prototype.hasOwnProperty.call(options, "tauthUrl")) {
-        options.tauthUrl = inheritedOptions.tauthUrl;
-      }
-      if (!Object.prototype.hasOwnProperty.call(options, "tauthLogoutPath")) {
-        options.tauthLogoutPath = inheritedOptions.tauthLogoutPath;
-      }
-      if (!Object.prototype.hasOwnProperty.call(options, "tauthSessionPath")) {
-        options.tauthSessionPath = inheritedOptions.tauthSessionPath;
+      if (!Object.prototype.hasOwnProperty.call(options, "auth")) {
+        options.auth = inheritedOptions.auth;
       }
       if (!Object.prototype.hasOwnProperty.call(options, "avatarUrl")) {
         options.avatarUrl = inheritedOptions.avatarUrl;
@@ -7882,13 +8083,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (logoutLabel === null && headerDataset.signOutLabel) {
       logoutLabel = headerDataset.signOutLabel;
     }
-    var tenantId = headerElement.getAttribute("tauth-tenant-id");
-    if (tenantId === null && headerDataset.tenantId) {
-      tenantId = headerDataset.tenantId;
-    }
-    var tauthUrl = headerElement.getAttribute("tauth-url");
-    var tauthLogoutPath = headerElement.getAttribute("tauth-logout-path");
-    var tauthSessionPath = headerElement.getAttribute("tauth-session-path");
+    var authOptions = parseAuthConfigAttribute(headerElement);
     var avatarUrl = headerElement.getAttribute("user-menu-avatar-url");
     if (avatarUrl === null && headerDataset.userMenuAvatarUrl) {
       avatarUrl = headerDataset.userMenuAvatarUrl;
@@ -7909,10 +8104,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         typeof logoutLabel === "string" && logoutLabel.trim()
           ? logoutLabel.trim()
           : HEADER_DEFAULTS.signOutLabel,
-      tenantId: tenantId,
-      tauthUrl: tauthUrl,
-      tauthLogoutPath: tauthLogoutPath,
-      tauthSessionPath: tauthSessionPath,
+      auth: authOptions,
       avatarUrl: normalizeHeaderUserMenuOptionalValue(avatarUrl),
       avatarLabel: normalizeHeaderUserMenuOptionalValue(avatarLabel),
     };
@@ -8108,20 +8300,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         "User menu display mode is required",
       );
     }
-    var tenantId = normalizeTenantId(options.tenantId);
-    if (!tenantId) {
-      throw createTenantIdError();
-    }
-    var tauthUrl =
-      typeof options.tauthUrl === "string" ? options.tauthUrl.trim() : "";
-    var tauthLogoutPath =
-      typeof options.tauthLogoutPath === "string" && options.tauthLogoutPath.trim()
-        ? options.tauthLogoutPath.trim()
-        : DEFAULT_OPTIONS.tauthLogoutPath;
-    var tauthSessionPath =
-      typeof options.tauthSessionPath === "string"
-        ? options.tauthSessionPath.trim()
-        : DEFAULT_OPTIONS.tauthSessionPath;
+    var authOptions = createAuthOptions(options.auth);
     var logoutUrl = normalizeUserMenuLogoutUrl(options.logoutUrl);
     var logoutLabel = normalizeUserMenuLabel(options.logoutLabel);
     var avatarUrl = null;
@@ -8139,10 +8318,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var menuItems = normalizeUserMenuItems(options.menuItems);
     return {
       displayMode: displayMode,
-      tenantId: tenantId,
-      tauthUrl: tauthUrl,
-      tauthLogoutPath: tauthLogoutPath,
-      tauthSessionPath: tauthSessionPath,
+      auth: authOptions,
+      tenantId: authOptions.tenantId,
+      tauthUrl: authOptions.tauthUrl,
+      logoutPath: authOptions.logoutPath,
+      sessionPath: authOptions.sessionPath,
+      providers: authOptions.providers,
       logoutUrl: logoutUrl,
       logoutLabel: logoutLabel,
       avatarUrl: avatarUrl,
@@ -8454,7 +8635,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         "User menu auth configuration is required",
       );
     }
-    return requestCurrentProfileFromRuntime(config);
+    return requestCurrentProfileFromRuntime(config.auth);
   }
 
   function requestTauthLogout(config) {
@@ -8464,7 +8645,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         "User menu auth configuration is required",
       );
     }
-    return performLogoutFromRuntime(config);
+    return performLogoutFromRuntime(config.auth);
   }
 
   function configureAuthTenant(tenantId) {
@@ -13970,6 +14151,232 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     };
   }
 
+  function authDiagnosticsStatusLabel(status) {
+    return AUTH_DIAGNOSTICS_LABELS[status] || AUTH_DIAGNOSTICS_LABELS.error;
+  }
+
+  function authDiagnosticsUserLabel(profile) {
+    if (!profile) {
+      return AUTH_DIAGNOSTICS_LABELS.noUser;
+    }
+    var candidateFields = [
+      "display",
+      "full_name",
+      "name",
+      "user_email",
+      "user_id",
+    ];
+    for (var index = 0; index < candidateFields.length; index += 1) {
+      var value = profile[candidateFields[index]];
+      if (typeof value === "string" && value.trim()) {
+        return value.trim();
+      }
+    }
+    return AUTH_DIAGNOSTICS_LABELS.noUser;
+  }
+
+  function buildAuthDiagnosticsMarkup(status, profile) {
+    return (
+      '<section class="mpr-auth-diagnostics" data-mpr-auth-diagnostics="root" aria-label="' +
+      escapeHtml(AUTH_DIAGNOSTICS_LABELS.heading) +
+      '">' +
+      '<h2 class="mpr-auth-diagnostics__heading">' +
+      escapeHtml(AUTH_DIAGNOSTICS_LABELS.heading) +
+      "</h2>" +
+      '<dl class="mpr-auth-diagnostics__list">' +
+      '<div><dt>' +
+      escapeHtml(AUTH_DIAGNOSTICS_LABELS.status) +
+      "</dt><dd data-mpr-auth-diagnostics=\"status\">" +
+      escapeHtml(authDiagnosticsStatusLabel(status)) +
+      "</dd></div>" +
+      '<div><dt>' +
+      escapeHtml(AUTH_DIAGNOSTICS_LABELS.user) +
+      "</dt><dd data-mpr-auth-diagnostics=\"user\">" +
+      escapeHtml(authDiagnosticsUserLabel(profile)) +
+      "</dd></div>" +
+      "</dl>" +
+      "</section>"
+    );
+  }
+
+  function defineAuthDiagnosticsElement(registry) {
+    registry.define(
+      "mpr-auth-diagnostics",
+      function setupAuthDiagnosticsElement(Base) {
+        return class MprAuthDiagnosticsElement extends Base {
+          constructor() {
+            super();
+            this.__authDiagnosticsTarget = null;
+            this.__authDiagnosticsEventHandler =
+              this.__handleAuthDiagnosticsEvent.bind(this);
+          }
+          static get observedAttributes() {
+            return [AUTH_DIAGNOSTICS_TARGET_ATTRIBUTE];
+          }
+          render() {
+            this.__bindAuthDiagnosticsTarget();
+          }
+          update() {
+            this.__bindAuthDiagnosticsTarget();
+          }
+          destroy() {
+            this.__detachAuthDiagnosticsTarget();
+            clearNodeContents(this);
+            this.removeAttribute("data-mpr-auth-diagnostics-status");
+            this.removeAttribute("data-mpr-auth-diagnostics-last-event");
+            this.removeAttribute("data-mpr-auth-diagnostics-provider");
+            this.removeAttribute("data-mpr-auth-diagnostics-error");
+          }
+          __detachAuthDiagnosticsTarget() {
+            if (
+              this.__authDiagnosticsTarget &&
+              typeof this.__authDiagnosticsTarget.removeEventListener === "function"
+            ) {
+              [
+                "mpr-ui:auth:authenticated",
+                "mpr-ui:auth:unauthenticated",
+                "mpr-ui:auth:status-change",
+                "mpr-ui:auth:error",
+              ].forEach((eventName) => {
+                this.__authDiagnosticsTarget.removeEventListener(
+                  eventName,
+                  this.__authDiagnosticsEventHandler,
+                );
+              });
+            }
+            this.__authDiagnosticsTarget = null;
+          }
+          __bindAuthDiagnosticsTarget() {
+            if (!this.__mprConnected) {
+              return;
+            }
+            this.__detachAuthDiagnosticsTarget();
+            var targetSelector = this.getAttribute(
+              AUTH_DIAGNOSTICS_TARGET_ATTRIBUTE,
+            );
+            if (typeof targetSelector !== "string" || !targetSelector.trim()) {
+              this.__renderAuthDiagnosticsError(
+                AUTH_DIAGNOSTICS_TARGET_REQUIRED_ERROR_CODE,
+                "auth-target is required",
+              );
+              return;
+            }
+            var documentObject =
+              this.ownerDocument ||
+              global.document ||
+              (global.window && global.window.document) ||
+              null;
+            var targetElement = null;
+            if (
+              documentObject &&
+              typeof documentObject.querySelector === "function"
+            ) {
+              try {
+                targetElement = documentObject.querySelector(
+                  targetSelector.trim(),
+                );
+              } catch (_error) {
+                this.__renderAuthDiagnosticsError(
+                  AUTH_DIAGNOSTICS_TARGET_INVALID_ERROR_CODE,
+                  "auth-target must be a valid selector",
+                );
+                return;
+              }
+            }
+            if (!targetElement) {
+              this.__renderAuthDiagnosticsError(
+                AUTH_DIAGNOSTICS_TARGET_MISSING_ERROR_CODE,
+                "auth-target does not match an auth surface",
+              );
+              return;
+            }
+            this.removeAttribute("data-mpr-auth-diagnostics-error");
+            this.__authDiagnosticsTarget = targetElement;
+            [
+              "mpr-ui:auth:authenticated",
+              "mpr-ui:auth:unauthenticated",
+              "mpr-ui:auth:status-change",
+              "mpr-ui:auth:error",
+            ].forEach((eventName) => {
+              targetElement.addEventListener(
+                eventName,
+                this.__authDiagnosticsEventHandler,
+              );
+            });
+            resolveAuthProfileSnapshot(targetElement).then((snapshot) => {
+              if (this.__authDiagnosticsTarget !== targetElement) {
+                return;
+              }
+              this.__renderAuthDiagnostics(snapshot.status, snapshot.profile);
+            }).catch((error) => {
+              if (this.__authDiagnosticsTarget !== targetElement) {
+                return;
+              }
+              this.__renderAuthDiagnosticsError(
+                error && error.code
+                  ? error.code
+                  : AUTH_DIAGNOSTICS_TARGET_MISSING_ERROR_CODE,
+                error && error.message ? error.message : String(error),
+              );
+            });
+          }
+          __handleAuthDiagnosticsEvent(eventObject) {
+            if (!this.__authDiagnosticsTarget) {
+              return;
+            }
+            this.setAttribute(
+              "data-mpr-auth-diagnostics-last-event",
+              eventObject.type,
+            );
+            var provider =
+              eventObject &&
+              eventObject.detail &&
+              typeof eventObject.detail.provider === "string"
+                ? eventObject.detail.provider
+                : "";
+            if (provider) {
+              this.setAttribute("data-mpr-auth-diagnostics-provider", provider);
+            }
+            if (eventObject.type === "mpr-ui:auth:error") {
+              this.__renderAuthDiagnostics("error", null);
+              return;
+            }
+            var targetElement = this.__authDiagnosticsTarget;
+            resolveAuthProfileSnapshot(targetElement).then((snapshot) => {
+              if (this.__authDiagnosticsTarget !== targetElement) {
+                return;
+              }
+              this.__renderAuthDiagnostics(snapshot.status, snapshot.profile);
+            }).catch((error) => {
+              if (this.__authDiagnosticsTarget !== targetElement) {
+                return;
+              }
+              this.__renderAuthDiagnosticsError(
+                error && error.code
+                  ? error.code
+                  : AUTH_DIAGNOSTICS_TARGET_MISSING_ERROR_CODE,
+                error && error.message ? error.message : String(error),
+              );
+            });
+          }
+          __renderAuthDiagnostics(status, profile) {
+            this.setAttribute("data-mpr-auth-diagnostics-status", status);
+            this.innerHTML = buildAuthDiagnosticsMarkup(status, profile);
+          }
+          __renderAuthDiagnosticsError(code, message) {
+            this.setAttribute("data-mpr-auth-diagnostics-error", code);
+            this.setAttribute("data-mpr-auth-diagnostics-status", "error");
+            this.innerHTML = buildAuthDiagnosticsMarkup("error", null);
+            dispatchEvent(this, "mpr-auth-diagnostics:error", {
+              code: code,
+              message: message,
+            });
+          }
+        };
+      },
+    );
+  }
+
   function defineHeaderElement(registry) {
     registry.define("mpr-header", function setupHeaderElement(Base) {
       return class MprHeaderElement extends Base {
@@ -14020,7 +14427,35 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           if (!this.__mprConnected) {
             return;
           }
-          var options = buildHeaderOptionsFromAttributes(this);
+          var options;
+          try {
+            options = buildHeaderOptionsFromAttributes(this);
+          } catch (error) {
+            if (
+              this.__headerController &&
+              typeof this.__headerController.destroy === "function"
+            ) {
+              this.__headerController.destroy();
+            }
+            this.__headerController = null;
+            this.setAttribute(
+              "data-mpr-auth-error",
+              error && error.code
+                ? error.code
+                : "mpr-ui.auth.config_invalid",
+            );
+            this.setAttribute("data-mpr-auth-status", "error");
+            this.innerHTML = "";
+            dispatchEvent(this, "mpr-ui:header:error", {
+              code:
+                error && error.code
+                  ? error.code
+                  : "mpr-ui.auth.config_invalid",
+              message: error && error.message ? error.message : String(error),
+            });
+            return;
+          }
+          this.removeAttribute("data-mpr-auth-error");
           var userMenuElement = this.__headerUserMenuElement;
           if (this.__headerController) {
             this.__headerController.update(options);
@@ -14142,9 +14577,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         constructor() {
           super();
           this.__authController = null;
-          this.__googleCleanup = null;
-          this.__googleHost = null;
-          this.__renderSequenceNumber = 0;
+          this.__providerActionsCleanup = null;
+          this.__providerActionsHost = null;
         }
         static get observedAttributes() {
           return LOGIN_BUTTON_ATTRIBUTE_NAMES;
@@ -14156,15 +14590,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__renderLoginButton();
         }
         destroy() {
-          if (this.__googleCleanup) {
-            this.__googleCleanup();
-            this.__googleCleanup = null;
+          if (this.__providerActionsCleanup) {
+            this.__providerActionsCleanup();
+            this.__providerActionsCleanup = null;
           }
           if (this.__authController && typeof this.__authController.destroy === "function") {
             this.__authController.destroy();
           }
           this.__authController = null;
-          this.__googleHost = null;
+          this.__providerActionsHost = null;
         }
         __renderLoginButton() {
           if (!this.__mprConnected) {
@@ -14181,9 +14615,38 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           if (!container) {
             return;
           }
-          this.__googleHost = container;
-          var authOptions = buildLoginAuthOptionsFromAttributes(this);
-          var siteId = normalizeGoogleSiteId(authOptions.googleClientId);
+          this.__providerActionsHost = container;
+          var authOptions;
+          try {
+            authOptions = buildLoginAuthOptionsFromAttributes(this);
+          } catch (error) {
+            if (this.__providerActionsCleanup) {
+              this.__providerActionsCleanup();
+              this.__providerActionsCleanup = null;
+            }
+            if (
+              this.__authController &&
+              typeof this.__authController.destroy === "function"
+            ) {
+              this.__authController.destroy();
+            }
+            this.__authController = null;
+            clearNodeContents(container);
+            this.setAttribute(
+              "data-mpr-auth-error",
+              error && error.code
+                ? error.code
+                : "mpr-ui.auth.config_invalid",
+            );
+            dispatchEvent(this, "mpr-login:error", {
+              code:
+                error && error.code
+                  ? error.code
+                  : "mpr-ui.auth.config_invalid",
+              message: error && error.message ? error.message : String(error),
+            });
+            return;
+          }
           var tenantId = normalizeTenantId(authOptions.tenantId);
           var currentTenantId =
             this.__authController &&
@@ -14194,147 +14657,54 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           if (currentTenantId && currentTenantId !== tenantId) {
             throw createAuthTenantIdChangeError(currentTenantId, tenantId);
           }
-          if (!siteId || !tenantId) {
-            if (
-              this.__authController &&
-              typeof this.__authController.signOut === "function"
-            ) {
-              this.__authController.signOut();
-            }
-            if (this.__authController && typeof this.__authController.destroy === "function") {
-              this.__authController.destroy();
-            }
-            this.__authController = null;
-            if (this.__googleCleanup) {
-              this.__googleCleanup();
-              this.__googleCleanup = null;
-            }
-            this.__googleHost = null;
-            this.removeAttribute("data-mpr-google-site-id");
-            this.removeAttribute("data-mpr-google-ready");
-            var missingError = !siteId
-              ? createGoogleSiteIdError()
-              : createTenantIdError();
-            this.setAttribute(
-              "data-mpr-google-error",
-              !siteId ? "missing-site-id" : "missing-tauth-tenant-id",
-            );
-            dispatchEvent(this, "mpr-login:error", {
-              code: missingError.code,
-              message: missingError.message,
-            });
-            return;
-          }
-          this.removeAttribute("data-mpr-google-error");
-          authOptions.googleClientId = siteId;
-          authOptions.tenantId = tenantId;
-          this.setAttribute("data-mpr-google-site-id", siteId);
           if (this.__authController && typeof this.__authController.updateOptions === "function") {
             this.__authController.updateOptions(authOptions);
           } else if (!this.__authController) {
             this.__authController = createAuthHeader(this, authOptions);
           }
-          if (this.__googleCleanup) {
-            this.__googleCleanup();
-            this.__googleCleanup = null;
+          if (this.__providerActionsCleanup) {
+            this.__providerActionsCleanup();
+            this.__providerActionsCleanup = null;
           }
-          var renderSequenceNumber = ++this.__renderSequenceNumber;
           var loginElement = this;
-          var authControllerRef = this.__authController;
           var buttonOptions = buildLoginButtonDisplayOptions(loginElement);
           var buttonLabel = normalizeGoogleSignInButtonLabel(
             buttonOptions.text,
-            HEADER_DEFAULTS.signInLabel,
+            AUTH_ACTION_LABELS.google,
           );
           applyLoginButtonPresentation(container, buttonOptions);
-          var loginControl = null;
-          function handleLoginAttemptClick(event) {
-            if (event && typeof event.preventDefault === "function") {
-              event.preventDefault();
-            }
-            if (
-              !loginElement.__mprConnected ||
-              loginElement.__renderSequenceNumber !== renderSequenceNumber
-            ) {
-              return;
-            }
-            loginElement.removeAttribute("data-mpr-google-error");
-            container.setAttribute(
-              "data-mpr-google-ready",
-              GOOGLE_SIGNIN_READY_STATE.PREPARING,
-            );
-            setLoginButtonPresentationState(
-              container,
-              loginControl,
-              LOGIN_BUTTON_PRESENTATION_STATE.PREPARING,
-            );
-            authControllerRef.startGoogleSignIn().then(function handleLoginPromptReady() {
-              if (
-                !loginElement.__mprConnected ||
-                loginElement.__renderSequenceNumber !== renderSequenceNumber
-              ) {
-                return;
-              }
-              container.setAttribute(
-                "data-mpr-google-ready",
-                GOOGLE_SIGNIN_READY_STATE.READY,
-              );
-              setLoginButtonPresentationState(
-                container,
-                loginControl,
-                LOGIN_BUTTON_PRESENTATION_STATE.READY,
-              );
-            }).catch(function handleLoginAttemptError(error) {
-              if (
-                !loginElement.__mprConnected ||
-                loginElement.__renderSequenceNumber !== renderSequenceNumber
-              ) {
-                return;
-              }
-              loginElement.setAttribute("data-mpr-google-error", "attempt-failed");
-              container.setAttribute(
-                "data-mpr-google-ready",
-                GOOGLE_SIGNIN_READY_STATE.ERROR,
-              );
-              setLoginButtonPresentationState(
-                container,
-                loginControl,
-                LOGIN_BUTTON_PRESENTATION_STATE.ERROR,
-              );
-              dispatchEvent(loginElement, "mpr-login:error", {
-                code: "mpr-ui.auth.google_attempt_failed",
-                message: error && error.message ? error.message : String(error),
-              });
-            });
-          }
-          loginControl = createSignInTriggerControl(container, {
-            label: buttonLabel,
-            clickHandler: handleLoginAttemptClick,
-            className: LOGIN_BUTTON_CONTROL_CLASS,
-            contentBuilder: createLoginButtonTriggerContent,
-            requireNativeButton: true,
-            nativeControlErrorCode: LOGIN_BUTTON_NATIVE_CONTROL_ERROR,
-          });
-          if (loginControl) {
-            loginControl.statusElement = createLoginButtonStatus(container);
-          }
-          container.setAttribute(
-            "data-mpr-google-ready",
-            GOOGLE_SIGNIN_READY_STATE.READY,
-          );
-          container.removeAttribute("data-mpr-google-error");
-          setLoginButtonPresentationState(
+          var providerActions = mountAuthProviderActions(
+            loginElement,
             container,
-            loginControl,
-            LOGIN_BUTTON_PRESENTATION_STATE.READY,
+            authOptions,
+            this.__authController,
+            {
+              googleLabel: buttonLabel,
+              handleError: function handleLoginProviderError(providerId, error) {
+                loginElement.setAttribute(
+                  "data-mpr-auth-error",
+                  error && error.code
+                    ? error.code
+                    : "mpr-ui.auth.provider_attempt_failed",
+                );
+                dispatchEvent(loginElement, "mpr-login:error", {
+                  code:
+                    error && error.code
+                      ? error.code
+                      : "mpr-ui.auth.provider_attempt_failed",
+                  provider: providerId,
+                  message: error && error.message ? error.message : String(error),
+                });
+              },
+            },
           );
-          this.__googleCleanup = function cleanupLoginAttemptButton() {
-            if (loginControl && typeof loginControl.cleanup === "function") {
-              loginControl.cleanup();
-            }
-            container.removeAttribute("data-mpr-google-ready");
-            container.removeAttribute("data-mpr-google-error");
-            container.removeAttribute(LOGIN_BUTTON_STATE_ATTRIBUTE);
+          this.removeAttribute("data-mpr-auth-error");
+          this.setAttribute(
+            "data-mpr-auth-providers",
+            enabledAuthProviderIds(authOptions).join(","),
+          );
+          this.__providerActionsCleanup = function cleanupLoginProviderActions() {
+            providerActions.cleanup();
           };
         }
       };
@@ -14580,9 +14950,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             (global.window && global.window.document) ||
             null;
           ensureUserMenuStyles(documentObject);
-          var rawOptions = buildUserMenuOptionsFromAttributes(this);
           var config = null;
           try {
+            var rawOptions = buildUserMenuOptionsFromAttributes(this);
             config = normalizeUserMenuOptions(rawOptions);
           } catch (error) {
             this.__applyUserMenuError(error);
@@ -16746,6 +17116,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     defineThemeToggleElement(registry);
     defineLoginButtonElement(registry);
     defineAuthProviderChooserElement(registry);
+    defineAuthDiagnosticsElement(registry);
     defineUserMenuElement(registry);
     defineSettingsElement(registry);
     defineDetailDrawerElement(registry);
@@ -16900,7 +17271,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
   var namespace = ensureNamespace(global);
   namespace.createAuthHeader = createAuthHeader;
+  namespace.createAuthOptions = createAuthOptions;
   namespace.authenticatedFetch = authenticatedFetch;
+  namespace.resolveAuthProfileSnapshot = resolveAuthProfileSnapshot;
   namespace.renderAuthHeader = renderAuthHeader;
   namespace.getFooterSiteCatalog = getFooterSiteCatalog;
   namespace.getLegalProfile = getLegalProfile;
@@ -16923,6 +17296,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   }
   namespace.testing.authenticate = authenticateForTesting;
   namespace.testing.unauthenticate = unauthenticateForTesting;
+  namespace.testing.prepareRedirectProvider = prepareRedirectProviderForTesting;
+  namespace.testing.navigateRedirectProvider = navigateRedirectProviderForTesting;
   namespace.testing.googleIdentity = {
     isDriverAvailable: isGoogleIdentityTestingDriverAvailable,
     isInitialized: isGoogleIdentityTestingInitialized,
