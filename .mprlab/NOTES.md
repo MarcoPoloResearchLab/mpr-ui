@@ -212,3 +212,9 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 ## 2026-07-23
 
 - B045: upgraded Playwright from `1.56.1` to `1.61.1`, made the Node tooling package explicitly CommonJS, and aligned the release contract test so Node 26 no longer emits repeated `DEP0205` or ambiguous-module warnings during release validation. Tests: `NODE_OPTIONS=--trace-warnings node --test tests/release-contract.test.js`; `NODE_OPTIONS=--trace-warnings npx playwright test --list`; warning-traced `make ci` with 167 Node tests and both 71-test browser runs passing.
+
+## 2026-09-01
+
+- F008: added the explicit Google and Apple provider map. Apple uses a validated TAuth redirect and the shared session lifecycle.
+- F008: added shared provider controls, diagnostics, redirect test helpers, local provider configs, and MPR Integration contract updates.
+- F008: verified Apple-only, Google-only, and combined controls. Tests: `make ci` with 180 Node tests and two 95-test browser runs.
