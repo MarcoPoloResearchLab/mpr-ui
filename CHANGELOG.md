@@ -15,6 +15,7 @@
 - Updated Playwright to `1.61.1` and made the Node tooling module type explicit. Node 26 checks ran without loader warnings.
 
 ### Bug Fixes 🐛
+- Replaced `js-yaml` 4.1.1 and `brace-expansion` 5.0.5 with fixed versions. The browser loader now uses the js-yaml 5.4.1 UMD build.
 - Preserved methods and bodies for `Request` inputs created in another same-origin browser context.
 - Renewed expired access sessions through the configured TAuth session endpoint before a protected request retry.
 - Kept `<mpr-login-button>` geometry stable during Google sign-in preparation. Retained the accessible status announcement outside the visible layout flow.
