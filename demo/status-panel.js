@@ -2,6 +2,9 @@
 'use strict';
 
 const STATUS_HOST_SELECTOR = '[data-demo-auth-status]';
+const ACCOUNT_UNLINK_PANEL_SELECTOR = 'mpr-account-panel[action="unlink"]';
+const PASSWORD_IDENTITY_PROVIDER = 'password';
+const PASSWORD_IDENTITY_LABEL_PREFIX = 'Email sign-in (';
 const AUTH_PROFILE_SOURCE_SELECTORS = Object.freeze([
   'mpr-user[data-mpr-user-status="authenticated"]',
   'mpr-header[data-user-display]',
@@ -157,13 +160,46 @@ function renderSession(profile) {
   host.append(profileContainer, expiryParagraph, refreshParagraph);
 }
 
+/**
+ * Sets the demo unlink choice from the authenticated profile.
+ * @param {AuthProfile | null | undefined} profile
+ * @returns {void}
+ */
+function syncDemoUnlinkIdentity(profile) {
+  const unlinkPanel = document.querySelector(ACCOUNT_UNLINK_PANEL_SELECTOR);
+  if (!unlinkPanel) {
+    return;
+  }
+  const userEmail =
+    typeof profile?.user_email === 'string' ? profile.user_email.trim() : '';
+  if (!userEmail) {
+    unlinkPanel.removeAttribute('identities');
+    return;
+  }
+  unlinkPanel.setAttribute(
+    'identities',
+    JSON.stringify([
+      {
+        provider: PASSWORD_IDENTITY_PROVIDER,
+        providerId: userEmail,
+        label: `${PASSWORD_IDENTITY_LABEL_PREFIX}${userEmail})`,
+      },
+    ]),
+  );
+}
+
 function initSessionPanel() {
-  renderSession(resolveInitialProfileSnapshot());
+  const initialProfile = resolveInitialProfileSnapshot();
+  renderSession(initialProfile);
+  syncDemoUnlinkIdentity(initialProfile);
   document.addEventListener('mpr-ui:auth:authenticated', (event) => {
-    renderSession(event?.detail?.profile ?? null);
+    const profile = event?.detail?.profile ?? null;
+    renderSession(profile);
+    syncDemoUnlinkIdentity(profile);
   });
   document.addEventListener('mpr-ui:auth:unauthenticated', () => {
     renderSession(null);
+    syncDemoUnlinkIdentity(null);
   });
 }
 

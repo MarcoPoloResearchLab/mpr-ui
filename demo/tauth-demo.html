@@ -36,6 +36,12 @@
       .demo-section {
         margin-top: 2rem;
       }
+      .auth-demo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1rem;
+        align-items: start;
+      }
       .session-card {
         border: 1px solid var(--card-border);
         border-radius: 0.75rem;
@@ -182,18 +188,18 @@
       <h1>TAuth demo</h1>
       <p>
         This page connects the <code>mpr-header</code> web component to a local
-        TAuth service running under Docker Compose. Sign in with Google, observe
-        the authenticated profile state, and use the header profile menu to
-        clear your session.
+        TAuth service running under Docker Compose. Use Google or password
+        authentication, observe the shared profile state, and manage the
+        current account through the configured forms.
       </p>
 
       <section aria-labelledby="profile-status-title" class="demo-section">
         <h2 id="profile-status-title">Current session</h2>
         <p>
-          Google sign-in requests are exchanged via the TAuth service configured
-          in <code>./config-ui.yaml</code>. <code>mpr-ui</code> reads that
-          config, talks directly to the same-origin auth routes, and keeps the
-          shell state aligned with the session cookie.
+          Provider, password, and account requests use the TAuth service
+          configured in <code>./config-ui.yaml</code>. <code>mpr-ui</code>
+          keeps every form on the shared auth controller and aligns the shell
+          state with the session cookie.
         </p>
         <div
           class="session-card"
@@ -202,6 +208,43 @@
           aria-atomic="true"
         >
           <p>Awaiting connection to the TAuth service…</p>
+        </div>
+      </section>
+
+      <section aria-labelledby="password-flows-title" class="demo-section">
+        <h2 id="password-flows-title">Email and password flows</h2>
+        <p>
+          These forms call the configured TAuth endpoints through the shared
+          header auth controller. This local fixture displays returned challenge
+          tokens so verification and reset flows can be completed without email.
+          The page contains no app-owned request code.
+        </p>
+        <div class="auth-demo-grid">
+          <mpr-password-auth mode="login" auth-target="#demo-header"></mpr-password-auth>
+          <mpr-password-auth mode="signup" auth-target="#demo-header" display-challenge-token></mpr-password-auth>
+          <mpr-password-auth mode="verify-email" auth-target="#demo-header"></mpr-password-auth>
+          <mpr-password-auth mode="reset-start" auth-target="#demo-header" display-challenge-token></mpr-password-auth>
+          <mpr-password-auth mode="reset-complete" auth-target="#demo-header"></mpr-password-auth>
+        </div>
+      </section>
+
+      <section aria-labelledby="account-flows-title" class="demo-section">
+        <h2 id="account-flows-title">Account management</h2>
+        <p>
+          Sign in first. Each panel uses the same authenticated state and does
+          not probe TAuth independently. The unlink selector targets the seeded
+          password identity; link Google before removing that sign-in method.
+        </p>
+        <div class="auth-demo-grid">
+          <mpr-account-panel action="password-change" auth-target="#demo-header"></mpr-account-panel>
+          <mpr-account-panel action="password-link-start" auth-target="#demo-header" display-challenge-token></mpr-account-panel>
+          <mpr-account-panel action="password-link-verify" auth-target="#demo-header"></mpr-account-panel>
+          <mpr-account-panel action="google-link" auth-target="#demo-header"></mpr-account-panel>
+          <mpr-account-panel
+            action="unlink"
+            auth-target="#demo-header"
+          ></mpr-account-panel>
+          <mpr-account-panel action="disable" auth-target="#demo-header"></mpr-account-panel>
         </div>
       </section>
 
@@ -215,15 +258,14 @@
           <li>
             Auth configuration is loaded from <code>./config-ui.yaml</code>
             via the <code>mpr-ui-config.js</code> loader, which applies one
-            validated <code>auth-config</code> provider map to
-            <code>&lt;mpr-header&gt;</code> and
-            <code>&lt;mpr-user&gt;</code> elements.
+            validated <code>auth-config</code> contract to the header, user,
+            password-auth, and account-panel elements.
           </li>
           <li>
             The browser only needs the same-origin auth routes:
             <code>/auth/nonce</code>, <code>/auth/google</code>,
-            <code>/auth/logout</code>, <code>/auth/session</code>, and
-            <code>/auth/apple/start</code> when Apple is enabled.
+            <code>/auth/logout</code>, <code>/auth/session</code>, the configured
+            password endpoints, and the configured account endpoints.
           </li>
           <li>
             The header component requests <code>/auth/nonce</code> after the

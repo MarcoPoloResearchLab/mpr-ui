@@ -18,6 +18,20 @@ tenants:
       - "${TAUTH_CORS_ORIGIN_2}"
       - "${TAUTH_CORS_ORIGIN_3}"
     google_web_client_id: "${TAUTH_GOOGLE_WEB_CLIENT_ID}"
+    password_auth:
+      enabled: true
+      users:
+        - email: "${TAUTH_PASSWORD_USER_EMAIL}"
+          display_name: "MPR UI Demo User"
+          avatar_url: ""
+          password_hash: "${TAUTH_PASSWORD_HASH}"
+    account_management:
+      enabled: true
+      password_signup:
+        enabled: true
+      return_challenge_tokens: true
+      email_verification_ttl: "30m"
+      password_reset_ttl: "15m"
     jwt_signing_key: "${TAUTH_JWT_SIGNING_KEY}"
     cookie_domain: ""
     session_cookie_name: "app_session"
