@@ -66,9 +66,24 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
              startPath: "/auth/apple/start"
              returnTo: "current-origin"
              label: "Sign in with Apple"
+           password:
+             enabled: true
+         password:
+           loginPath: "/auth/password/login"
+           signupPath: "/auth/password/signup"
+           verifyEmailPath: "/auth/password/verify-email"
+           resetStartPath: "/auth/password/reset/start"
+           resetCompletePath: "/auth/password/reset/complete"
+         account:
+           passwordChangePath: "/auth/account/password/change"
+           passwordLinkStartPath: "/auth/account/password/link/start"
+           passwordLinkVerifyPath: "/auth/account/password/link/verify"
+           googleLinkPath: "/auth/account/google/link"
+           unlinkPath: "/auth/account/unlink"
+           disablePath: "/auth/account/disable"
    ```
 
-   The loader matches the environment by `window.location.origin` and validates the payload. It applies one `auth-config` provider map to each auth component. Set a disabled provider to exactly `{ enabled: false }`. An Apple-only tenant has no Google client ID or Google paths.
+   The loader matches the environment by `window.location.origin` and validates the payload. It applies one `auth-config` contract to the auth shell, password forms, account panels, and user menu. Set a disabled provider to exactly `{ enabled: false }`.
 
 3. **Render the shell declaratively**.
 
@@ -125,7 +140,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 1. Load `mpr-ui.css` before any `mpr-ui` scripts.
 2. Load `js-yaml` and `mpr-ui-config.js`. Load GIS only when Google is enabled.
 3. Serve `/config-ui.yaml` from the app itself.
-4. Put `tauthUrl`, `tenantId`, `logoutPath`, `sessionPath`, and both explicit provider entries in `/config-ui.yaml`.
+4. Put `tauthUrl`, `tenantId`, `logoutPath`, `sessionPath`, and all three explicit provider entries in `/config-ui.yaml`.
 5. Render `<mpr-header data-config-url="/config-ui.yaml">`, or render `<mpr-login-button data-config-url="/config-ui.yaml">` when the page only needs the configured provider controls.
 6. Express shell composition through the DSL, not host CSS overrides into `mpr-ui` internals.
 7. Listen for `mpr-ui:auth:authenticated` and `mpr-ui:auth:unauthenticated` in app code.
@@ -137,16 +152,18 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 
 ### Login-only button presentation
 
-`<mpr-login-button>` renders one component-owned action for each enabled provider. Keep the element empty. Declare its `button-*` presentation in static markup. Runtime YAML contains only auth data. Google begins its nonce-bound GIS flow on click. Apple performs validated top-level navigation to TAuth on click. See the [integration guide](docs/integration-guide.md#login-only-button-presentation) for accepted values.
+`<mpr-login-button>` renders one component-owned action for each enabled provider. Keep the element empty. Declare its `button-*` presentation in static markup. Runtime YAML contains only auth data. Google begins its nonce-bound GIS flow on click. Apple performs validated top-level navigation to TAuth on click. Password opens the shared login form on the same owning controller. See the [integration guide](docs/integration-guide.md#login-only-button-presentation) for accepted values.
 
 ## `/config-ui.yaml` Rules
 
 - `tauthUrl` is required and may be an empty string. Use `""` for same-origin auth.
 - `tenantId` is required and must match the backend tenant.
 - `logoutPath` and `sessionPath` are required and explicit.
-- `providers.google` and `providers.apple` are both required. At least one must be enabled.
+- `providers.google`, `providers.apple`, and `providers.password` are required. At least one must be enabled.
 - Enabled Google requires `clientId`, `loginPath`, and `noncePath`.
 - Enabled Apple requires `startPath`, `returnTo`, and an Apple-approved `label`.
+- Enabled password auth requires the five explicit paths in `auth.password`.
+- `<mpr-account-panel>` requires the six explicit paths in `auth.account`.
 - Disabled providers contain only `enabled: false`.
 - Apple `returnTo` accepts `current-url`, `current-origin`, or a same-origin path. It never accepts an external URL, protocol-relative URL, query, or fragment.
 - Protected apps must configure a non-empty `sessionPath` for `MPRUI.authenticatedFetch()`.
@@ -154,6 +171,30 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 - Each browser origin must appear in exactly one environment entry.
 
 If no environment matches, if multiple environments match, or if required auth fields are missing, `mpr-ui-config.js` throws and the app halts rather than guessing.
+
+## Password and account components
+
+`<mpr-password-auth>` uses one explicit `mode`: `login`, `signup`, `verify-email`, `reset-start`, or `reset-complete`. `<mpr-account-panel>` uses one explicit `action`: `password-change`, `password-link-start`, `password-link-verify`, `google-link`, `unlink`, or `disable`. Set `auth-target` to the owning header or login button when the component is not nested inside that surface.
+
+```html
+<mpr-password-auth
+  mode="login"
+  auth-target="#site-header"
+></mpr-password-auth>
+
+<mpr-account-panel
+  action="password-change"
+  auth-target="#site-header"
+></mpr-account-panel>
+```
+
+The `unlink` action requires an `identities` JSON array with exact `provider`,
+`providerId`, and user-facing `label` fields, and renders those identities as a
+selection control. Local fixtures with TAuth `return_challenge_tokens` enabled
+can add `display-challenge-token` to `signup`, `reset-start`, or
+`password-link-start`; the token stays out of public events and profiles.
+
+TAuth owns password policy, challenges, cookies, and account state. `mpr-ui` owns the form controls, request headers, status UI, and auth events. Host apps own route protection and app-specific profile settings. Credentials and challenge tokens stay out of attributes, local storage, logs, diagnostics, and event details.
 
 ## Protected requests and session recovery
 
@@ -247,10 +288,10 @@ Rules:
 - Unknown, missing, or duplicate providers and unsupported variants fail loudly through `mpr-auth-provider:error`.
 - `mpr-auth-provider:select` only identifies the chosen provider; it is not an authenticated state.
 - `mpr-auth-provider:email-submit` intentionally omits raw email and password values. The owning action layer must handle credentials without persisting or redispatching secrets.
-- Google, Apple, and email actions render compact provider marks. Treat chooser marks as UI cues; use the provider-aware header or login button for the canonical Google and Apple auth actions.
+- Google, Apple, and email actions render compact provider marks. Treat chooser marks as UI cues; use the provider-aware header or login button for canonical provider actions.
 - Auth completion must still be proven through the existing `mpr-ui:auth:*` lifecycle from an owning auth controller.
 
-Email/password submission remains separate from this chooser and is tracked under F007.
+Email/password submission remains separate from this chooser. The owning header or login button opens `<mpr-password-auth mode="login">` on its shared controller.
 
 ## Migration
 
@@ -268,9 +309,13 @@ Need a working authentication backend without wiring your own server? The bundle
    install -m 0600 /dev/null demo/.env.tauth
    # Replace TAUTH_GOOGLE_WEB_CLIENT_ID with your OAuth Web Client ID
    # Replace TAUTH_JWT_SIGNING_KEY (generate with: openssl rand -base64 48)
+   # Set TAUTH_PASSWORD_USER_EMAIL to the local password-login address
+   # Set TAUTH_PASSWORD_HASH to a bcrypt hash enclosed in single quotes
    ```
 
    Use `.env.tauth.example` only to review variable names. Its values are intentionally unusable; never copy or source it.
+   Generate the password hash with a bcrypt-capable tool and keep the single
+   quotes so Docker Compose preserves every `$` character.
 
    Review `demo/tauth-config.yaml` so the tenant origins and IDs match your local ports.
 
