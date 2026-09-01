@@ -5,7 +5,8 @@
 
   var DEFAULT_CONFIG_URL = "/config-ui.yaml";
   var CONFIG_FILE_LABEL = "config-ui.yaml";
-  var DEFAULT_YAML_PARSER_URL = "https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js";
+  var DEFAULT_YAML_PARSER_URL =
+    "https://cdn.jsdelivr.net/npm/js-yaml@5.4.1/dist/browser/js-yaml.umd.min.js";
   var DEFAULT_HEADER_SELECTOR = "mpr-header";
   var DEFAULT_LOGIN_BUTTON_SELECTOR = "mpr-login-button";
   var DEFAULT_USER_SELECTOR = "mpr-user";
