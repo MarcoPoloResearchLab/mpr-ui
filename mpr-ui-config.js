@@ -13,7 +13,46 @@
 
   var SECTION_ENVIRONMENTS = "environments";
   var SECTION_AUTH = "auth";
+  var SECTION_AUTH_PROVIDERS = "auth.providers";
   var SECTION_ORIGINS = "origins";
+  var AUTH_CONFIG_ATTRIBUTE = "auth-config";
+  var AUTH_PATH_VALIDATION_ORIGIN = "https://mpr-ui.invalid";
+  var AUTH_PROVIDER_IDS = Object.freeze({
+    GOOGLE: "google",
+    APPLE: "apple",
+  });
+  var APPLE_RETURN_TARGET_POLICIES = Object.freeze({
+    CURRENT_URL: "current-url",
+    CURRENT_ORIGIN: "current-origin",
+  });
+  var AUTH_CONFIG_KEYS = Object.freeze([
+    "tauthUrl",
+    "tenantId",
+    "logoutPath",
+    "sessionPath",
+    "providers",
+  ]);
+  var AUTH_PROVIDER_KEYS = Object.freeze([
+    AUTH_PROVIDER_IDS.GOOGLE,
+    AUTH_PROVIDER_IDS.APPLE,
+  ]);
+  var GOOGLE_PROVIDER_KEYS = Object.freeze([
+    "enabled",
+    "clientId",
+    "loginPath",
+    "noncePath",
+  ]);
+  var APPLE_PROVIDER_KEYS = Object.freeze([
+    "enabled",
+    "startPath",
+    "returnTo",
+    "label",
+  ]);
+  var APPLE_PROVIDER_LABELS = Object.freeze([
+    "Sign in with Apple",
+    "Sign up with Apple",
+    "Continue with Apple",
+  ]);
   var BUNDLE_MARKER_SELECTOR = "script[data-mpr-ui-bundle-src]";
   var BUNDLE_MARKER_ERROR_MESSAGE =
     "mpr-ui auto-orchestration requires data-mpr-ui-bundle-src";
@@ -132,6 +171,148 @@
     return value;
   }
 
+  function rejectUnknownKeys(source, allowedKeys, scope) {
+    Object.keys(source).forEach(function rejectUnknownKey(key) {
+      if (allowedKeys.indexOf(key) === -1) {
+        throw new Error(CONFIG_FILE_LABEL + " unknown " + scope + "." + key);
+      }
+    });
+  }
+
+  function requireBoolean(source, key, scope) {
+    var value = source[key];
+    if (typeof value !== "boolean") {
+      throw new Error(CONFIG_FILE_LABEL + " missing " + scope + "." + key);
+    }
+    return value;
+  }
+
+  function isSameOriginNavigationPath(value) {
+    if (
+      value.charAt(0) !== "/" ||
+      value.indexOf("//") === 0 ||
+      value.indexOf("\\") !== -1 ||
+      value.indexOf("?") !== -1 ||
+      value.indexOf("#") !== -1
+    ) {
+      return false;
+    }
+    return new URL(value, AUTH_PATH_VALIDATION_ORIGIN).origin ===
+      AUTH_PATH_VALIDATION_ORIGIN;
+  }
+
+  function requireBrowserAuthOrigin(source, key, scope) {
+    var value = requireStringAllowEmpty(source, key, scope);
+    if (!value) {
+      return "";
+    }
+    var parsedUrl;
+    try {
+      parsedUrl = new URL(value);
+    } catch (_error) {
+      throw new Error(CONFIG_FILE_LABEL + " invalid " + scope + "." + key);
+    }
+    if (
+      (parsedUrl.protocol !== "http:" && parsedUrl.protocol !== "https:") ||
+      parsedUrl.username ||
+      parsedUrl.password ||
+      parsedUrl.pathname !== "/" ||
+      parsedUrl.search ||
+      parsedUrl.hash
+    ) {
+      throw new Error(CONFIG_FILE_LABEL + " invalid " + scope + "." + key);
+    }
+    return parsedUrl.origin;
+  }
+
+  function requireNavigationPath(source, key, scope) {
+    var value = requireString(source, key, scope);
+    if (!isSameOriginNavigationPath(value)) {
+      throw new Error(CONFIG_FILE_LABEL + " invalid " + scope + "." + key);
+    }
+    return value;
+  }
+
+  function requireAppleReturnTargetPolicy(source, key, scope) {
+    var value = requireString(source, key, scope);
+    if (
+      value === APPLE_RETURN_TARGET_POLICIES.CURRENT_URL ||
+      value === APPLE_RETURN_TARGET_POLICIES.CURRENT_ORIGIN
+    ) {
+      return value;
+    }
+    if (isSameOriginNavigationPath(value)) {
+      return value;
+    }
+    throw new Error(CONFIG_FILE_LABEL + " invalid " + scope + "." + key);
+  }
+
+  function rejectDisabledProviderSettings(providerPayload, scope) {
+    if (Object.keys(providerPayload).length !== 1) {
+      throw new Error(CONFIG_FILE_LABEL + " disabled " + scope + " has settings");
+    }
+  }
+
+  function buildGoogleProviderConfig(providersPayload) {
+    var scope = SECTION_AUTH_PROVIDERS + "." + AUTH_PROVIDER_IDS.GOOGLE;
+    var providerPayload = requireObject(
+      providersPayload,
+      AUTH_PROVIDER_IDS.GOOGLE,
+      SECTION_AUTH_PROVIDERS,
+    );
+    rejectUnknownKeys(providerPayload, GOOGLE_PROVIDER_KEYS, scope);
+    var enabled = requireBoolean(providerPayload, "enabled", scope);
+    if (!enabled) {
+      rejectDisabledProviderSettings(providerPayload, scope);
+      return Object.freeze({ enabled: false });
+    }
+    return Object.freeze({
+      enabled: true,
+      clientId: requireString(providerPayload, "clientId", scope),
+      loginPath: requireNavigationPath(providerPayload, "loginPath", scope),
+      noncePath: requireNavigationPath(providerPayload, "noncePath", scope),
+    });
+  }
+
+  function buildAppleProviderConfig(providersPayload) {
+    var scope = SECTION_AUTH_PROVIDERS + "." + AUTH_PROVIDER_IDS.APPLE;
+    var providerPayload = requireObject(
+      providersPayload,
+      AUTH_PROVIDER_IDS.APPLE,
+      SECTION_AUTH_PROVIDERS,
+    );
+    rejectUnknownKeys(providerPayload, APPLE_PROVIDER_KEYS, scope);
+    var enabled = requireBoolean(providerPayload, "enabled", scope);
+    if (!enabled) {
+      rejectDisabledProviderSettings(providerPayload, scope);
+      return Object.freeze({ enabled: false });
+    }
+    var label = requireString(providerPayload, "label", scope);
+    if (APPLE_PROVIDER_LABELS.indexOf(label) === -1) {
+      throw new Error(CONFIG_FILE_LABEL + " invalid " + scope + ".label");
+    }
+    return Object.freeze({
+      enabled: true,
+      startPath: requireNavigationPath(providerPayload, "startPath", scope),
+      returnTo: requireAppleReturnTargetPolicy(providerPayload, "returnTo", scope),
+      label: label,
+    });
+  }
+
+  function buildAuthProvidersConfig(authPayload) {
+    var providersPayload = requireObject(authPayload, "providers", SECTION_AUTH);
+    rejectUnknownKeys(providersPayload, AUTH_PROVIDER_KEYS, SECTION_AUTH_PROVIDERS);
+    var googleProvider = buildGoogleProviderConfig(providersPayload);
+    var appleProvider = buildAppleProviderConfig(providersPayload);
+    if (!googleProvider.enabled && !appleProvider.enabled) {
+      throw new Error(CONFIG_FILE_LABEL + " requires an enabled auth provider");
+    }
+    return Object.freeze({
+      google: googleProvider,
+      apple: appleProvider,
+    });
+  }
+
   function readStringArray(source, key) {
     var value = source[key];
     if (!Array.isArray(value)) {
@@ -197,14 +378,13 @@
 
   function buildAuthConfig(environment) {
     var authPayload = requireObject(environment, SECTION_AUTH, SECTION_AUTH);
+    rejectUnknownKeys(authPayload, AUTH_CONFIG_KEYS, SECTION_AUTH);
     return Object.freeze({
-      tauthUrl: requireStringAllowEmpty(authPayload, "tauthUrl", SECTION_AUTH),
-      googleClientId: requireString(authPayload, "googleClientId", SECTION_AUTH),
+      tauthUrl: requireBrowserAuthOrigin(authPayload, "tauthUrl", SECTION_AUTH),
       tenantId: requireString(authPayload, "tenantId", SECTION_AUTH),
-      loginPath: requireString(authPayload, "loginPath", SECTION_AUTH),
-      logoutPath: requireString(authPayload, "logoutPath", SECTION_AUTH),
-      noncePath: requireString(authPayload, "noncePath", SECTION_AUTH),
-      sessionPath: requireStringAllowEmpty(authPayload, "sessionPath", SECTION_AUTH),
+      logoutPath: requireNavigationPath(authPayload, "logoutPath", SECTION_AUTH),
+      sessionPath: requireNavigationPath(authPayload, "sessionPath", SECTION_AUTH),
+      providers: buildAuthProvidersConfig(authPayload),
     });
   }
 
@@ -347,33 +527,15 @@
     targetElement.setAttribute(attributeName, String(attributeValue));
   }
 
-  function removeAttributeValue(targetElement, attributeName) {
-    if (!targetElement || typeof targetElement.removeAttribute !== "function") {
-      return;
-    }
-    targetElement.removeAttribute(attributeName);
-  }
-
   function applyAuthAttributes(targetElement, authConfig) {
-    setAttributeValue(targetElement, "tauth-tenant-id", authConfig.tenantId);
-    setAttributeValue(targetElement, "tauth-login-path", authConfig.loginPath);
-    setAttributeValue(targetElement, "tauth-logout-path", authConfig.logoutPath);
-    setAttributeValue(targetElement, "tauth-nonce-path", authConfig.noncePath);
-    setAttributeValue(targetElement, "tauth-session-path", authConfig.sessionPath);
-    if (authConfig.tauthUrl && authConfig.tauthUrl.trim().length > 0) {
-      setAttributeValue(targetElement, "tauth-url", authConfig.tauthUrl);
-      return;
-    }
-    removeAttributeValue(targetElement, "tauth-url");
+    setAttributeValue(targetElement, AUTH_CONFIG_ATTRIBUTE, JSON.stringify(authConfig));
   }
 
   function applyHeaderAttributes(headerElement, authConfig) {
-    setAttributeValue(headerElement, "google-site-id", authConfig.googleClientId);
     applyAuthAttributes(headerElement, authConfig);
   }
 
   function applyLoginButtonAttributes(loginButton, authConfig) {
-    setAttributeValue(loginButton, "site-id", authConfig.googleClientId);
     applyAuthAttributes(loginButton, authConfig);
   }
 
