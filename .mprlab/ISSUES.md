@@ -1,6 +1,7 @@
 # ISSUES
 
-Entries record newly discovered requests or changes.
+This active issue tracker contains unresolved, blocked, planning, and recurring work.
+Resolved history is in `.mprlab/ISSUES-ARCHIVE.md`.
 
 Read @AGENTS.md (Workflow section), @POLICY.md, and relevant stack guides before implementing changes.
 
@@ -11,156 +12,12 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
-- [x] [B053] (P1) The project catalog uses obsolete LoopAware site identifiers.
-  Goal: The project catalog uses the current production site identifiers.
-  Expected: The LoopAware, Gravity, and Ledger Service subscription URLs use their current identifiers.
-  Actual: The LoopAware and Gravity URLs used obsolete identifiers. Ledger Service had no subscription URL.
-  Resolution: The catalog now uses the current identifiers for all three projects.
-  Validation: The focused catalog test passed. `make ci` passed 170 unit tests and two browser runs of 93 tests.
-
-- [x] [B052] (P2) A cross-realm `Request` input loses its request body.
-  Goal: The authenticated fetch API sends a body-bearing `Request` from another same-origin browser context.
-  Expected: The first protected request contains the original method and body.
-  Actual: A realm-sensitive type check sends the consumed input after local request construction.
-  Resolution: A Fetch API brand check now recognizes `Request` inputs across browser contexts.
-  The first request uses the local `Request` and preserves its method and body.
-  Validation: The focused browser regression passed. `make ci` passed 169 unit tests and two browser runs of 93 tests.
-
-- [x] [B051] (P0) The mutable latest URL can return an old bundle.
-  Summary: Chrome kept the `mpr-ui@latest` bundle response from `v3.11.5`
-  after `v3.11.8` was available.
-  Expected: the shared loader revalidates a mutable bundle URL and verifies the
-  required public API before authentication orchestration is ready.
-  Actual: the old bundle verified the session but did not supply
-  `MPRUI.authenticatedFetch()`.
-  Resolution: the loader now adds a unique request parameter to each mutable
-  bundle request. It rejects a loaded bundle that does not supply the required
-  public API.
-  Validation: the final `make ci` passed 169 unit tests and two browser runs of
-  88 tests. The focused configuration-loader browser test also passed.
-
-- [x] [B050] (P1) A temporary bundle load failure stops authentication orchestration.
-  Summary: One bundle load failure rejected the shared orchestration promise.
-  Expected: The shared config loader retries a temporary bundle load failure without app code.
-  Actual: The shared config loader cached the rejected bundle promise.
-  Resolution: The shared config loader now retries temporary config and bundle failures with bounded delay.
-  Permanent config errors still reject the orchestration promise.
-  Validation: The unit suite proved that a failed bundle request succeeds on its next attempt.
-
-- [x] [B049] (P0) Session verification retries permanent TAuth responses.
-  Summary: The session operation retried every response that was not a valid session response.
-  Expected: The session operation retries only temporary failures.
-  Actual: An HTTP 403 response kept the auth state in `bootstrapping` or `authenticating`.
-  Resolution: Network failures and temporary HTTP responses continue to retry.
-  Permanent HTTP responses now stop after one request and publish the unauthenticated state.
-  Protected request recovery also removes the prior authenticated state after a permanent failure.
-  Validation: The final CI gate passed 168 unit tests and two browser runs of 88 tests.
-
-- [x] [B001] (P0) Bind browser Google sign-in attempts to a fresh nonce claim without idle GIS work.
-  Summary: The B012 no-background-work fix removed console-noisy nonce refreshes by initializing GIS once without a nonce and moving TAuth nonce issuance into `/auth/google` exchange. The security audit rejected that shape because the Google ID token is no longer cryptographically bound to the issued nonce. Long-lived public pages still need console-clean idle behavior. Each user sign-in attempt must initialize Google with the issued nonce and exchange the credential with the same nonce token.
-  Expected: public page bootstrap and focus/visibility recovery do not call `/auth/nonce` or reinitialize GIS. User-initiated sign-in prepares one visible nonce-bound Google attempt. Nonce and GIS failures emit visible auth/header error events. Credential exchange never proceeds without an attempt nonce.
-  Resolved 2026-06-07: moved GIS initialization and nonce issuance into the explicit sign-in attempt. Credential callbacks close over the attempt nonce and reject callbacks without it. Header and `<mpr-login-button>` now render first-party sign-in triggers on public bootstrap and start the nonce-bound GIS prompt only on user action. Updated the Google Identity testing adapter so integration stubs can enable auto credential behavior without requiring an initialized GIS instance. Updated unit/browser/E2E coverage for four-hour idle pages, stale callbacks, endpoint rebinding, missing nonce rejection, and click-time GIS initialization. Tests: focused Playwright regressions. `make ci`.
-- [x] [B002] (P0) Long-idle auth surfaces must not emit console errors or hide auth failures.
-  Summary: Production LoopAware tabs left open for hours show browser-visible `/me` and `/auth/refresh` 401 resource errors. They also show repeated Google Identity `initialize()` warnings and a Google popup COOP `postMessage` warning. Shared `mpr-ui` auth control flow creates the first two problems. Stale restore hints drive protected endpoint probes during public bootstrap. The B011 fix refreshes GIS nonces through repeated `google.accounts.id.initialize()` calls. The console noise makes expected anonymous/expired states look broken and hides which failure actually needs user action.
-  Expected: Public auth bootstrap does not use expected 401 responses as control flow. Mounted Google controls do not reinitialize GIS in background timers, focus handlers, or intent hooks. Nonce, bootstrap, and Google Identity failures reach a visible auth error state or event for the host app.
-  Resolved 2026-06-07: replaced hinted restore probes with `/auth/session` and removed prepared GIS nonce caches, timers, and focus refresh. Initialized GIS once without a Google nonce and moved TAuth nonce issuance into credential exchange. Legacy nonce callbacks now emit `mpr-ui.auth.stale_nonce` without hidden exchange attempts. Google initialize failures now produce auth error events. Added regressions for four-hour idle landing-page sign-in, quiet stale restore hints, actual endpoint rebinding during exchange, and test-global cleanup. Tests: `make ci`.
-- [x] [B003] (P0) Four-hour stale Google sign-in clicks must complete on the first attempt.
-  Summary: Downstream LoopAware coverage proves that a four-hour-old `/login` page can leave the first returned Google sign-in click stuck on the landing page. Prior B009 handling rejected expired callbacks and prepared a nonce for the next click. Users must not need a second click after returning to a stale page.
-  Expected: Shared `mpr-ui` Google button intent handling refreshes an expired prepared GIS nonce before the same user click emits a credential. The first visible sign-in attempt after a long idle period exchanges the fresh nonce and reaches the authenticated handoff.
-  Resolved 2026-06-05: scheduled prepared GIS nonce refresh before the freshness window expires while auth controls remain mounted, with cleanup on authentication/destroy and stale prepared-token changes. Added an auth-controller regression proving the scheduled refresh reinitializes GIS with a fresh nonce before the next visible sign-in click exchanges credentials. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "fresh GIS nonces|expired GIS nonce"`. `make ci`.
-- [x] [B004] (P0) Long-lived login pages can reuse an expired GIS nonce.
-  Summary: Apps such as LoopAware keep `/login` open for days. TAuth then rejects `POST /auth/google` with `401` after a user clicks Google sign-in. The failure continues until the page refreshes. Current `mpr-ui` primes one nonce during auth control setup and reuses it for the later credential exchange. TAuth requires a fresh nonce for every sign-in attempt and expires nonce tokens after the tenant TTL.
-  Expected: User sign-in refreshes a stale GIS nonce before exchange. The refreshed value does not reintroduce the prior nonce mismatch between GIS and `/auth/google`.
-  Resolved 2026-06-01: auth controllers now refresh the prepared GIS nonce when long-lived tabs regain focus or become visible. Rendered Google controls also request a fresh nonce on pointer, focus, or touch intent. The previous nonce remains active until the refresh completes, so fast clicks do not pair an old Google credential with a new `nonce_token`. Added a regression covering a long-lived tab focus refresh before credential exchange. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "long-lived tab|prepared GIS nonce|Google button|mpr-login-button renders"`. `make ci`.
-- [x] [B005] (P0) Apps need `mpr-ui` to own the post-sign-in redirect and transition handoff.
-  Summary: LoopAware's landing/login pages implemented local `data-loopaware-auth-redirect` state and redirected after `mpr-ui:auth:authenticated`, while dashboard pages also used app-owned transition completion events. That made the login flow show duplicate transition surfaces and put shared auth lifecycle responsibilities in the app.
-  Expected: `<mpr-header>` exposes a declarative authenticated destination and redirects only after an interactive sign-in succeeds from that header. It keeps the shared `auth-transition` visible during navigation. It does not redirect restored authenticated sessions.
-  Resolved 2026-06-01: added `sign-in-redirect-url` to `<mpr-header>` and connected the redirect to the credential-exchange lifecycle. Kept `auth-transition` visible during the navigation handoff. Ignored app-dispatched generic auth events for redirect decisions and rejected unsafe redirect URLs. Documented the new contract as the preferred shared post-login navigation path. Tests: `node --test tests/custom-elements-header-footer.test.js`. `make ci`.
-- [x] [B006] (P0) Long-idle Google buttons can exchange a nonce that is already expired.
-  Summary: B007 refreshed prepared GIS nonces on focus, visibility, or button intent. A user can still click a long-lived Google button before the fresh nonce request completes. That stale GIS callback can post the expired nonce to `/auth/google`. The popup then completes, but LoopAware stays unauthenticated.
-  Expected: Auth controllers reject stale GIS callback nonces before they call `/auth/google`. They keep the app in a recoverable unauthenticated state and immediately prepare a fresh nonce for the next sign-in attempt.
-  Resolved 2026-06-02: auth controllers now timestamp prepared GIS nonces and reject expired callback nonces before credential exchange. They emit `mpr-ui.auth.stale_nonce` and prime a fresh nonce for the next sign-in attempt. Added a regression proving an expired callback does not call `/auth/google` and verified the full `make ci` gate.
-- [x] [B007] (P1) Expose Google Identity test driver helpers through `MPRUI.testing`.
-  Summary: Consumer integration suites that stub Google Identity still reach into app-local globals to toggle fake credential emission and inspect initialized nonce state.
-  Expected: `mpr-ui` owns a test-only Google Identity driver API under `MPRUI.testing`. An explicit GIS stub adapter backs the API, so app specs do not access private stub globals.
-  Resolved 2026-06-05: added `MPRUI.testing.googleIdentity` with driver-backed helpers for initialized-state checks, initialized nonce reads, initialize-call counts, and auto credential-on-click toggling. Documented the `google.accounts.id.__mprUiTesting` adapter contract, added regression coverage, and verified `make ci`.
-- [ ] [B008] (P1) mpr-ui: `base-class` utilities like `mt-auto` are ineffective for flexbox layout when `sticky="false"`.
-  ### Summary
-  When `<mpr-footer sticky="false">` is used inside a flex column layout (e.g., Bootstrap `d-flex flex-column min-vh-100`), putting `mt-auto` in the `base-class` attribute has no effect on the footer's position. The `base-class` is applied to an inner `<footer>` element inside shadow DOM, not to the `<mpr-footer>` host element. Since the host is the actual flex item, `margin-top: auto` on the inner element does not push the component to the bottom of the viewport.
-  ### Workaround
-  Add `class="mt-auto"` directly on the `<mpr-footer>` host element and remove `mt-auto` from `base-class`.
-  ### Expected behavior
-  Reflect box-model `base-class` utilities on the host element. Otherwise, document that `base-class` only applies inside shadow DOM and requires host layout utilities.
-  ### Affected version
-  mpr-ui v3.8.2
-- [x] [B009] `mpr-ui:auth:authenticated` event not dispatched after successful credential exchange when TAuth's `initAuthClient` is present.
-  Resolved: `handleCredential` now calls `markAuthenticated(profile)` directly after successful credential exchange instead of relying on `bootstrapSession()` → `initAuthClient()` → `onAuthenticated` callback chain (which fails because TAuth does not call callbacks on subsequent `initAuthClient` invocations). Tests: `node --test tests/auth-credential-exchange.test.js`.
-- [x] [B010] `<mpr-login-button>` calls `renderGoogleButton()` before GSI `initialize()` due to async nonce fetch race condition.
-  Resolved: added synchronous `enqueueGoogleInitialize()` call before `renderGoogleButton()` in `MprLoginButtonElement.__renderLoginButton`, matching the pattern used by `<mpr-header>`. Tests: `npm test`.
-- [x] [B011] fix invalid TAUTH_CORS_ORIGIN_2 example URL in `.env.tauth.example`.
-  Resolved: corrected the sample origin URL. Tests: `node --test tests/tauth-demo.test.js`.
-- [x] [B012] load tauth.js from a CDN-hosted URL while serving mpr-ui assets from the local filesystem in the TAuth demo.
-  Resolved: updated demo HTML and docker-compose mounts to use local mpr-ui assets with a CDN tauth.js script, plus regression coverage in tauth-demo tests. Tests: `node --test tests/tauth-demo.test.js`.
-- [x] [B013] allow slotted `<mpr-user>` display-mode overrides so header wiring does not force the default avatar-name.
-  Resolved: header preserves explicit slotted menu attributes and still applies defaults for missing values. Updated unit coverage. Tests: `node --test tests/custom-elements-header-footer.test.js`.
-- [x] [B014] remove the avatar-only halo and add an outlined hover ring for the `<mpr-user>` avatar mode.
-  Resolved: avatar-only mode removes trigger pill styling, adds outline + hover ring, updates demo avatar mode, and adds Playwright coverage. Tests: `npx playwright test tests/e2e/user-menu.spec.js`.
-- [x] [B015] Footer `horizontal-links` must align in the main footer row with theme switcher and links menu.
-  Summary: ProductScanner showed footer legal links from `horizontal-links` on a separate full-width row. The product expects one aligned row with legal links, theme switcher, and "Built by ..." menu.
-  Context:
-  - Current footer markup builds `horizontal-links` as a dedicated `<nav data-mpr-footer="horizontal-links">` after `[data-mpr-footer="layout"]`.
-  - CSS sets `.mpr-footer__horizontal-links { width: 100%; ... }`, forcing a second row even for short legal link sets.
-  Expected:
-  - Footer legal links can be rendered in the same row as privacy/theme/menu controls without consumer-specific CSS/layout hacks.
-  Proposed direction:
-  - Add a first-class footer option that renders `horizontal-links` inline within `[data-mpr-footer="layout"]`.
-  - Keep the current dedicated-row behavior as an explicit mode for existing consumers.
-  Status 2026-02-12: logged from ProductScanner B050 investigation. ProductScanner temporarily uses `slot="legal"` links to keep one-row alignment until mpr-ui exposes a canonical single-row horizontal-links mode.
-  Resolved 2026-02-12: verified current `mpr-ui.js` + `mpr-ui.css` render `horizontal-links` inside `[data-mpr-footer="layout"]` with no dedicated second row, and Playwright regression passes (`npx playwright test tests/e2e/horizontal-links.spec.js`). B050 was a stale report from pre-inline behavior.
-- [x] [B016] `horizontal-links` must render inline in the header/footer chrome instead of a second row.
-  Resolved 2026-02-10: moved `horizontal-links` into the primary header/footer layout rows, enforced nowrap single-row chrome styling, and added Playwright coverage to prevent regressions. Tests: `npm test`.
-- [x] [B017] Restore `horizontal-links.alignment` behavior in `<mpr-header>` after moving links into the primary header row.
-  Resolved 2026-02-10: header `horizontal-links` now flexes to fill remaining space inside `.mpr-header__inner` so `alignment` (left|center|right) produces distinct layouts again. Added Playwright regression coverage. Tests: `npm test`.
-- [x] [B018] Restore `horizontal-links.alignment` behavior in `<mpr-footer>` after moving links into the primary footer row.
-  Resolved 2026-02-11: footer `horizontal-links` now flexes to fill remaining space inside `[data-mpr-footer="layout"]` so `alignment` (left|center|right) produces distinct layouts again. Added Playwright regression coverage. Tests: `npm test`.
-- [x] [B019] `mpr-user` dropdown opens underneath the header and menu actions become unreachable.
-  Resolved 2026-02-17: removed `overflow-x:auto` clipping from `.mpr-header__inner` (now `overflow:visible`) so the absolutely positioned `mpr-user` flyout can render and receive pointer events outside the header bounds. Added Playwright regression coverage (`MU-431`) with a header fixture that verifies menu hit-testing below the header boundary. Tests: `make ci`.
-- [ ] [B020] (P1) Footer/Header runtime theme update path must be explicit after `theme-mode` deprecation.
-  Summary: ProductScanner integration surfaced console warnings from mpr-ui when legacy `theme-mode` is set dynamically on `<mpr-footer>` (for example `element.setAttribute("theme-mode", preferredTheme)`), after MU-425 removed legacy DSL support.
-  Context:
-  - mpr-ui logs `mpr-ui.dsl.legacy_attribute Unsupported legacy attribute "theme-mode" on <mpr-footer>`.
-  - Old DSL integrations can still update runtime attributes and receive noisy warnings without a clear replacement flow.
-  Expected:
-  - Document and expose a canonical runtime API for header and footer theme updates beyond static `theme-config.initialMode`.
-  - Map runtime `theme-mode` updates to supported theme state only if that API remains canonical.
-  - Keep strict deprecation logging, but include migration guidance in docs/examples so consumers prevent trial-and-error.
-  Status 2026-02-17: logged from ProductScanner billing/settings integration cleanup.
-- [x] [B021] `<mpr-header>` can call `google.accounts.id.initialize()` multiple times during initial Google button bootstrap.
-  Resolved 2026-03-20: made Google nonce preparation single-flight inside the shared auth controller. Created the controller before the header Google button, so the button reuses that nonce and bootstrap path. Kept a nonce-free path for failed nonce preparation. Added regression coverage and fixture nonce support, so the workbench renders the button without a live backend. Tests: `node --test tests/custom-elements-header-footer.test.js tests/auth-credential-exchange.test.js`. `npx --yes --package typescript tsc --noEmit`. `npm test`.
-- [x] [B022] `<mpr-login-button>` loses the GIS-prepared nonce after unauthenticated bootstrap.
-  Summary: A config-first `<mpr-login-button>` can prepare a nonce for `google.accounts.id.initialize()`, then clear that nonce when the initial `/me` + `/auth/refresh` bootstrap settles unauthenticated. Clicking the rendered Google button then posts a newly requested `nonce_token` to TAuth while the Google credential was minted for the older nonce. TAuth rejects the exchange as an invalid credential, leaving consumers such as LoopAware stuck on the login page.
-  Expected: Unauthenticated bootstrap does not invalidate the nonce that GIS received. Auth option changes, controller destruction, or a completed credential exchange can invalidate it.
-  Resolved 2026-05-08: preserved the prepared GIS nonce after unauthenticated bootstrap reconciliation. Auth option changes, teardown, logout, missing credentials, exchange failure, and successful authentication still clear it. Added a focused regression proving `/auth/google` receives the same nonce handed to `google.accounts.id.initialize()`. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "preserves the prepared GIS nonce"`. `make ci`.
-- [x] [B023] `<mpr-login-button data-config-url>` is ignored by config auto-orchestration.
-  Summary: `mpr-ui-config.js` only watched `mpr-header[data-config-url]`. Login-only pages could not put the Google control inside a header slot without header-owned authentication or app-owned bootstrap code.
-  Expected: a login-only `<mpr-login-button data-config-url="/config-ui.yaml">` must use the same config-first orchestration path as `<mpr-header data-config-url>`.
-  Resolved 2026-05-09: auto-orchestration now uses `mpr-login-button[data-config-url]` when no configured header is present. It applies `/config-ui.yaml` auth and button attributes before bundle load. Documentation now describes the slotted header login-button pattern. Tests: `node --test tests/yaml-config-loader.test.js --test-name-pattern "autoOrchestrate"`. `make ci`.
-- [x] [B024] `<mpr-header>` built-in user menu starts a second profile bootstrap beside header auth.
-  Summary: Consumers with the canonical `<mpr-header data-config-url>` path get the header-owned Google sign-in button and a header-owned user menu. The user menu still called `getCurrentUser()` / profile fetch on connect, so the header auth controller and nested user menu could both probe `/me`.
-  Expected: when `<mpr-user>` is nested inside an auth-owning `<mpr-header>`, it must mirror header auth events and host profile state instead of independently bootstrapping TAuth.
-  Resolved 2026-05-09: nested user menus now synchronize from the closest header/login auth host and skip direct profile fetching. The header auth controller remains the single profile request owner. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "nested user menu"`. `make ci`.
-- [x] [B025] Config-first auth bootstrap probes `/me` and `/auth/refresh` for fresh anonymous users.
-  Summary: The canonical `/config-ui.yaml` path does not load `tauth.js`, so `mpr-ui` falls back to its own session fetch layer. That layer still eagerly calls `/me` and then `/auth/refresh` on first render, producing noisy unauthorized console requests for users who have no restorable session.
-  Expected: Config-first auth bootstrap mirrors TAuth passive restore semantics. Fresh anonymous pages skip session probes. Pages with a restore hint try `/me` and one refresh before they settle as unauthenticated.
-  Resolved 2026-05-14: the fallback auth fetch layer now uses the shared TAuth restore-hint key. It skips `/me` and `/auth/refresh` when no hint exists, preserves hinted profile restoration, and clears stale hints after unauthorized refresh. Tests: `node --test tests/custom-elements-header-footer.test.js --test-name-pattern "fallback profile|restore hint|fresh anonymous|prepared GIS nonce"`. `make test-unit`. `make ci`.
-- [x] [B026] Expose auth test helpers for config-first app integration suites.
-  Summary: Apps that seed backend sessions in browser tests need a public `mpr-ui` testing surface. The surface synchronizes the mounted auth controller without changes to DOM internals or private auth state in app harnesses.
-  Expected: `mpr-ui` exposes test-only methods that drive the normal auth controller and lifecycle events. Consumer tests do not directly change `data-mpr-auth-status` or emit `mpr-ui:auth:*` events.
-  Resolved 2026-05-14: added `MPRUI.testing.authenticate()` and `MPRUI.testing.unauthenticate()` as public test helpers for the mounted auth controller. Documented the integration-test contract. Verified the change with `make test-unit` and `make ci`.
-- [ ] [B027] (P1) gix sync: prevent creating a new branch when an explicit target branch is provided.
+- [!] [B027] (P1) gix sync: prevent creating a new branch when an explicit target branch is provided.
   Goal:
   Make `gix sync <branch>` commit and push uncommitted changes to the named branch. Do not create a new branch in this mode.
-  
+
+  Blocked: The Gix repository owns this command. File this work in the Gix tracker before implementation.
+
   Requirements:
   - Preserve the current new-work-branch behavior when the user runs `gix sync` without a branch argument.
   - Commit working-copy changes to the named branch when the user runs `gix sync <existing-branch-name>`.
@@ -169,7 +26,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Do not silently discard or stash changes. All uncommitted changes at sync time must end up in commits on the target branch.
   - Error clearly if the specified branch does not exist or cannot be checked out, without making partial or unexpected changes.
   - Preserve existing logging and UX patterns. Do not report branch creation in explicit target branch mode.
-  
+
   Deliverables:
   - Updated `gix sync` implementation (and any related helpers) that distinguishes between `gix sync` and `gix sync <branch>` semantics as described.
   - Any new or updated configuration or flags needed to support the clarified behavior, documented inline in code comments.
@@ -177,7 +34,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Updated user-facing help/usage text for `gix sync` to describe behavior with and without an explicit branch argument.
   - Unit or integration coverage for `gix sync` on master and `gix sync master` on master.
   - Coverage for `gix sync master` from another branch and for the absence of unintended branch creation.
-  
+
   Validation:
   - Reproduce the original scenario:
     - Start on `master` with uncommitted changes.
@@ -192,122 +49,29 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Verify that attempting `gix sync <nonexistent-branch>` produces a clear error and leaves the repository state unchanged apart from any safe checks performed.
   - Confirm logs and CLI output no longer describe branch creation when an explicit existing target branch is provided.
 
-- [x] [B044] (P1) Session-first `<mpr-login-button>` renders an unstyled nested browser button and discards the consumer CTA presentation.
-  Summary:
-  The session-first auth implementation replaced eager Google `renderButton()` setup with a first-party trigger. The trigger obtains a fresh TAuth nonce and starts the Google prompt only after an explicit click. Its current login-button renderer clears the custom-element host contents, creates a `data-mpr-login="google-button"` wrapper, and appends a plain native `<button>` containing only the configured label. The generated button has neither component-owned presentation nor a documented appearance hook.
-
-  Affected consumer evidence:
-  PoodleScanner's static landing page styles the `<mpr-login-button>` host as a branded CTA and supplies Google mark/label fallback markup. After `mpr-ui@v3.11.1` hydrates it, the host retains the branded outer shell while the injected child remains browser-default, producing a visibly nested "Sign in with Google" button. The component also removes the supplied Google mark and label markup. This violates the documented integration boundary that consumers must not style `mpr-ui` internals, leaving no supported way to render the canonical control correctly.
-
-  Goal:
-  Make `<mpr-login-button>` own one polished, accessible visual control while retaining the session-first authentication lifecycle.
-
-  Requirements:
-  - Keep the canonical click-time sequence before explicit sign-in. Do not initialize GIS or request a nonce, `/me`, or `/auth/refresh`.
-  - Bind the Google prompt to its fresh nonce after the explicit sign-in action.
-  - Render exactly one component-owned, visibly styled button with the configured label, Google affordance, keyboard/focus behavior, loading/error state, and accessible name.
-  - Do not require consumer CSS to select or restyle injected descendants.
-  - Define and document the canonical declarative presentation contract for `<mpr-login-button>`. Child CTA markup must not remain an undocumented second presentation path.
-  - Do not reintroduce eager GIS `renderButton()` rendering, stale-nonce preparation, or a compatibility fallback to the former control lifecycle.
-
-  Deliverables:
-  - Component-owned markup and CSS for the session-first login trigger.
-  - Updated integration documentation describing the supported `<mpr-login-button>` appearance and the treatment of consumer-provided child content.
-  - A consumer-facing browser fixture that demonstrates the control in a branded host without styling component internals.
-
-  Validation:
-  - Playwright proves a configured `<mpr-login-button>` exposes one visible, accessible, styled sign-in control.
-  - The control is not a browser-default button inside a separately styled host.
-  - Playwright proves no GIS initialization, nonce request, or protected-session request occurs before a sign-in click. One click performs the existing fresh-nonce Google prompt flow.
-  - Regression coverage proves rerenders, error handling, and teardown preserve the canonical visual and auth contracts.
-  Resolved: moved login-button presentation to static `button-*` attributes, removed `authButton` from the runtime YAML contract, and made obsolete presentation configuration fail explicitly. Added a browser fixture that loads auth-only YAML across origins while preserving the static presentation contract. Tests: `make ci`.
-  Resolved 2026-07-23 follow-up: wired required `sessionPath` config through `tauth-session-path` into header, login-button, user-menu, and auth-controller session restoration. The cross-origin browser fixture now proves hinted restore uses the configured endpoint and explicit empty paths disable fallback restore requests.
-
-- [x] [B048] (P0) Protected requests fail after the access session expires while the TAuth refresh cookie remains valid.
-  Summary: PoodleScanner returned `Unauthorized` when a signed-in user opened the product Edit tab after session expiry.
-  Expected:
-  - Keep TAuth as the server session and refresh authority.
-  - Provide `MPRUI.authenticatedFetch()` as the only shared protected-request API.
-  - On an HTTP 401 response, run one single-flight recovery through the configured `/auth/session` endpoint.
-  - Update the shared auth lifecycle and retry a replayable request exactly one time.
-  - Share one recovery operation between concurrent requests and browser tabs.
-  - Emit `mpr-ui:auth:unauthenticated` when TAuth rejects the refresh cookie.
-  - Emit `mpr-ui:auth:error` when the recovery request fails because of a network or server error.
-  - Require apps to wait for `mpr-ui:auth:authenticated` before they send a protected request.
-  - Require apps to use `MPRUI.authenticatedFetch()` without local redirect, refresh, or login-state logic.
-  - Permit mutation replay only after the app declares authorization-before-domain-work semantics.
-  - Permit mutation replay only when the Fetch API can clone the request body.
-  Actual:
-  - `mpr-ui` only restores a session during auth bootstrap and focus or visibility changes.
-  - Apps use direct Fetch API calls for protected domain requests.
-  - A protected HTTP 401 response does not start shared TAuth session recovery.
-  Acceptance:
-  - Verify an expired access session with a valid refresh cookie.
-  - Verify concurrent protected requests use one recovery operation.
-  - Verify protected requests in multiple browser tabs use one recovery operation.
-  - Verify TAuth refresh rejection and refresh-cookie expiry emit the unauthenticated event.
-  - Verify a recovery network failure emits the auth error event.
-  - Verify a non-replayable request does not run a second domain request.
-  - Verify a replayable mutation runs a second domain request only with the required policy declaration.
-  - Verify a second HTTP 401 response does not start another recovery operation.
-  - Run `make ci` after the last source or test change.
-  Resolved 2026-08-11: added `MPRUI.authenticatedFetch()` with one Web Lock and one generation record for each auth scope. The API updates auth lifecycle state. It retries one permitted request after TAuth session recovery. The browser suite covers all B048 acceptance conditions. Tests: focused Playwright suite (12 passed). `make ci` passed 167 Node tests, 84 browser-coverage tests, and 84 E2E tests.
-
-
 ## Improvements
 
-- [x] [I007] (P2) Normalize historical technical prose.
-  Goal: The issue tracker and changelog obey the repository language rules.
+- [ ] [I008] (P1) Define one runtime theme update contract for shell components.
+  Goal:
+  Header and footer consumers can update the active theme through one public runtime contract.
+
   Requirements:
-  - Preserve each fact, identifier, command, path, and ownership boundary.
-  - Correct all historical ASD-STE100 violations in both documents.
+  - Define one public API that updates the shared theme state.
+  - Keep `theme-config.initialMode` as the startup value only.
+  - Reject the obsolete `theme-mode` attribute with the current error.
+  - Use the shared theme manager for the header, footer, and `<mpr-theme-toggle>`.
+  - Emit the current `mpr-ui:theme-change` event after a successful update.
+
   Deliverables:
-  - Normalize `.mprlab/ISSUES.md`.
-  - Normalize `CHANGELOG.md`.
+  - Add the runtime theme update API and public documentation.
+  - Update component examples that change a theme after startup.
+  - Remove obsolete runtime attribute instructions from repository documents.
+
   Validation:
-  - Run the language checker on both documents.
-  - Run the repository document checks.
-  Resolution: Rewrote historical tracker and changelog prose with short active sentences and controlled vocabulary.
-  Preserved technical facts, identifiers, commands, paths, and ownership boundaries.
-  Validation: The language checker reported zero findings for both documents. `git diff --check` passed.
-  The governor check reported only unrelated existing managed-content drift in `.mprlab/POLICY.md`.
-
-- [x] [I001] Add a TAuth demo settings modal from the `<mpr-user>` menu. Remove the header settings button.
-  Resolved: added menu action + modal demo wiring and removed header settings button. Tests: `node --test tests/tauth-demo.test.js`, `npx --yes --package typescript tsc --noEmit`.
-- [x] [I002] Orchestrate standalone TAuth HTML demo with ghttp as a reverse proxy to a local TAuth instance.
-  Resolved: updated the standalone demo footer links to use relative URLs (no `/demo/` prefix) so navigation works when gHTTP serves `demo/` as the web root. Added regression tests. Tests: `npm test`, `npx --yes --package typescript tsc --noEmit`.
-- [x] [I003] update TAuth demo configuration to the current YAML-based config with TAUTH_* env variables and explicit tenant ID wiring.
-  Resolved: added YAML config, updated compose/env/docs to TAUTH_* variables, and enforced tenant header override. Tests: `npm test`.
-- [x] [I004] replace the legacy signed-in header layout with the `<mpr-user>` avatar + dropdown menu.
-  Resolved: header now renders `<mpr-user>` and forwards logout/menu/tenant attributes. Demo config/docs updated with current TAuth defaults and local URLs. Tests: `npm test`.
-- [x] [I005] allow slotted `<mpr-user>` inside `<mpr-header>` actions so the demo can nest the menu in the header layout.
-  Resolved: header reuses slotted user menus (wiring attributes + logout events) and the demo nests `<mpr-user>` in the header. Tests: `npm test`.
-- [x] [I006] Support horizontal link lists in both `<mpr-header>` and `<mpr-footer>` DSL (no slots).
-  Context: product teams need small sets of always-visible links (Privacy, Terms, Pricing, Docs, etc.) in the shared chrome. Today consumers either:
-  - use `<mpr-footer>` `links-collection` (drop-up) which hides links behind a menu, or
-  - inject custom markup via slots (commonly `slot="legal"`) plus per-app CSS to force a second row.
-  This slot-based approach is fragile. Footer slot content joins the same flex row (`[data-mpr-footer="layout"]`) as the privacy link, dropdown, and theme toggle. Multiple links often require `flex: 1 1 100%` and `order` workarounds, but still wrap unevenly across products.
-  Goal: Add a declarative horizontal link list API for both the header and footer. It must wrap evenly and use theme tokens without consumer CSS.
-  Suggested implementation path:
-  - Add a shared inline link renderer (either a new `<mpr-links>` element or an `inline`/`row` variant on `<mpr-sites>`), accepting `links` JSON (array of `{ label, href/url, target?, rel? }`) and optional alignment/class overrides.
-  - Expose a single, consistent DSL surface on both components (e.g. `horizontal-links='{\"alignment\":\"right\",\"links\":[...]}'`), rather than component-specific names, so consumers can copy/paste chrome configuration across products.
-  - `<mpr-footer>`: render the inline links in a dedicated full-width row inside `[data-mpr-footer="inner"]`.
-  - Keep link wrapping and alignment independent from the dropdown, theme, and privacy layout.
-  - `<mpr-header>`: render the inline links into a dedicated row inside the header chrome (placement TBD: beside `nav-links` or in the actions area). Keep `nav-links` as the primary navigation surface. The inline list is for low-emphasis secondary links.
-  - Reuse `normalizeLinkForRendering` and `sanitizeHref` so protocol allowlists stay consistent.
-  - Support per-link `target` and `rel` values, including `_self` for internal routes.
-  - CSS: ship styles in `mpr-ui.css` and injected style tags. Support consumers that use only injected styles.
-  - Use `display:flex; flex-wrap:wrap; justify-content:center; gap:...; font-size:...; color: var(--mpr-color-text-muted)` and `:empty{display:none}`.
-  - Tests: add unit coverage for parsing, normalization, and attribute reflection.
-  - Use Playwright to prove that multiple inline links wrap cleanly at narrow widths.
-  - Prove that links do not break the drop-up menu, theme toggle, privacy modal, or user menu.
-  Consumer example:
-  ```html
-  <mpr-header horizontal-links='{"alignment":"right","links":[{ "label": "Pricing", "href": "/pricing", "target": "_self" }]}'></mpr-header>
-  <mpr-footer horizontal-links='{"alignment":"left","links":[{ "label": "Privacy", "url": "/privacy", "target": "_self" }, { "label": "Terms", "url": "/tos", "target": "_self" }]}'></mpr-footer>
-  ```
-  Resolved 2026-02-09: added `horizontal-links` attribute support to both components (object DSL with `alignment` + `links`), rendering into dedicated flex-wrap rows without slot/CSS hacks. Added unit + Playwright coverage. Tests: `make ci`.
-
+  - Verify one runtime update changes all configured theme targets.
+  - Verify shell components and `<mpr-theme-toggle>` show the same active mode.
+  - Verify the obsolete `theme-mode` attribute remains rejected.
+  - Run `make ci` after the final source and documentation changes.
 
 ## Maintenance
 
@@ -333,6 +97,9 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Re-read `ISSUES.md` after edits and confirm every issue is under the right section with a unique section-aware ID.
   - Confirm recurring entries remain open and keep the `R` suffix.
   - Confirm no active, blocked, recurring, or planning work was archived.
+  Last run 2026-09-01: Archived 73 resolved non-recurring issues.
+  Reclassified the theme update issue as I008. Marked B027 as blocked by Gix ownership.
+  Replaced two obsolete external references with F007. Found no duplicate IDs.
 
 - [ ] [M401R] (P2) Polish open issues
   Goal:
@@ -354,6 +121,8 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Sample the open entries after the pass and confirm each has clear next actions and validation expectations.
   - Confirm no recurring runbook was marked complete.
   - Confirm duplicates were merged or explicitly cross-referenced.
+  Last run 2026-09-01: Reviewed five unresolved non-recurring issues.
+  Polished I008, F007, F008, and F009. B027 remains blocked by Gix ownership.
 
 - [ ] [M402R] (P2) Architecture and policy review
   Goal:
@@ -481,46 +250,22 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Confirm docs describe the current canonical path only.
   - Confirm issue archive and active tracker references remain consistent.
 
-- [x] [M001] Add `horizontal-links` examples to demo pages and document the DSL across guides.
-  Resolved 2026-02-10: added `horizontal-links` usage to demo pages (index/local/tauth/standalone) and documented the attribute shape + examples in README and `docs/` guides. Tests: `npm test`.
-  Resolved 2026-02-12 follow-up: added regression coverage in `tests/demo-page.test.js` to enforce that all shipped demos keep footer `horizontal-links` examples. Tests: `node --test tests/demo-page.test.js`.
-
 ## Features
 
-- [x] [F001] add an element to display logged in user.
-  The element must support avatar-only, avatar-and-name, avatar-and-full-name, and custom-avatar modes. A click must open a dropdown with a logoff button. The logoff button must send the user to a configured URL after logout. Tests must work with TAuth. The element must work alone or inside `mpr-header` and `mpr-footer`. It must use TAuth for user information and logout.
-  Resolved: added `<mpr-user>` element with avatar display modes, TAuth logout redirect, and event hooks. Covered by unit and Playwright tests. Tests: `npm test`.
-- [x] [F002] add `<mpr-user>` to `demo/tauth-demo.html` so the profile menu is visible in the TAuth demo.
-  Resolved: added the user menu section and aligned demo config updates for tenant ID. Tests: `npm test`.
-- [x] [F003] add `menu-items` attribute to `<mpr-user>` to render menu links above the logout action.
-  Resolved: parsed/validated menu-items JSON, rendered menu links with styling, and added unit + Playwright coverage. Tests: `node --test tests/custom-elements-header-footer.test.js`, `npx playwright test tests/e2e/user-menu.spec.js`.
-- [x] [F004] add action-driven menu items to `<mpr-user>` so menu entries can dispatch events for modals/actions.
-  Resolved: validated `{ label, action }` items, dispatched `mpr-user:menu-item`, updated docs and tests. Tests: `node --test tests/custom-elements-header-footer.test.js`, `npx playwright test tests/e2e/user-menu.spec.js`, `npx --yes --package typescript tsc --noEmit`.
-  Use the current Gravity signed-in user style as inspiration. The element must support theming and all four light switches.
-- [x] [F005] Add ability to hide/disable the privacy link in `<mpr-footer>`.
-  Resolved: added `privacy-link-hidden` (boolean) which omits the privacy link and privacy modal markup when enabled. Tests: `npm test`, `npx --yes --package typescript tsc --noEmit`.
-- [x] [F006] Add reusable MPR Lab legal document templates and a custom element for cross-app Terms and Privacy pages.
-  Summary: PoodleScanner now has mature Terms and Privacy pages with the Marco Polo Research Lab LLC identity and contact details. The pages cover indemnification, governing law, refunds, billing, OAuth, analytics, and data retention. Other MPR Lab apps need the same legal foundation without copied static HTML in every repository.
-  Expected:
-  - Export a shared MPR Lab legal profile containing company identity, website, support/legal emails, and phone details.
-  - Provide reusable Terms and Privacy document builders that render escaped, product-configurable sections.
-  - Register a `<mpr-legal-document>` element for JS/CDN consumers and expose an imperative rendering helper for frameworks.
-  - Keep product-specific clauses configurable so apps can add domain language without changing shared company/contact defaults.
-  Resolved 2026-04-28: added `MPRUI.getLegalProfile()`, `MPRUI.getLegalDocument()`, `MPRUI.renderLegalDocument()`, and `<mpr-legal-document>` with shared MPR Lab LLC contact defaults, escaped Terms/Privacy rendering, product-specific section overrides, docs, and unit/Playwright coverage. Tests: `node --test tests/legal-document.test.js tests/custom-elements-header-footer.test.js`. `npx playwright test tests/e2e/legal-document.spec.js`. `npx --yes --package typescript@5.9.2 tsc --noEmit`. `make ci`.
 - [ ] [F007] (P1) Add config-driven TAuth email/password authentication and account-management forms to `mpr-ui`.
-  Summary: TAuth now exposes first-party email/password authentication and account-management endpoints in addition to Google Identity Services. `mpr-ui` still provides only config-first Google sign-in controls. Apps must create their own password and account forms. This fragments the shared auth lifecycle and duplicates TAuth request semantics across products.
-  Context:
-  - Canonical `mpr-ui` integrations load `/config-ui.yaml`, run `mpr-ui-config.js`, and let configured web components own the shared auth lifecycle. Direct `tauth.js` usage is compatibility-only and must not become the new integration path for password/account forms.
+  Goal: TAuth supplies email and password endpoints. `mpr-ui` supplies shared forms and one auth lifecycle for these endpoints.
+  Requirements:
+  - Canonical `mpr-ui` integrations load `/config-ui.yaml`, run `mpr-ui-config.js`, and let configured web components own the shared auth lifecycle. Direct `tauth.js` usage is obsolete and must not become the integration path for password or account forms.
   - Current auth config covers `auth.tauthUrl`, `auth.googleClientId`, `auth.tenantId`, `auth.loginPath`, `auth.logoutPath`, and `auth.noncePath`. There is no explicit password provider or account-management endpoint contract.
   - `<mpr-login-button>` and the header-owned auth controller are Google-oriented. Successful password auth must drive the same profile/session state, `mpr-ui:auth:*` events, and `<mpr-user>` mirroring that Google auth already uses.
   - TAuth owns endpoint behavior, session cookies, challenge-token rules, and account policy. `mpr-ui` must own shared forms, client request wiring, validation at the UI/config edge, accessibility, status rendering, and auth-event synchronization.
-  Current gap:
+  Requirements:
   - No reusable password login/signup/reset/verification forms exist in `mpr-ui`.
   - No reusable account panel exists for password change, identity linking, identity unlinking, or account disablement.
   - No config schema exposes the required TAuth endpoint paths, provider enablement, copy, or post-action redirects.
   - App teams cannot rely on one `mpr-ui` event contract for both Google and email/password sessions.
   - Existing docs and demos describe Google/TAuth shell integration but not the new account-management surface.
-  Expected:
+  Requirements:
   - `mpr-ui` exposes config-first custom elements for password auth and account management that talk to TAuth through one shared client/action layer.
   - The feature is explicitly configured from `/config-ui.yaml`. Missing required endpoint config fails loudly when a password/account component is present.
   - Successful password authentication produces the same profile state as Google sign-in.
@@ -528,7 +273,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Account actions update or clear the shared auth controller state as required.
   - They do not expose secrets, passwords, challenge tokens, provider credentials, or reset and link tokens.
   - Do not write these values to attributes, events, local storage, logs, or rendered debug output.
-  Technical plan:
+  Deliverables:
   - Extend the `/config-ui.yaml` contract in `mpr-ui-config.js` with explicit auth provider/account-management sections. Prefer a shape equivalent to:
     - `auth.providers.google.enabled`
     - `auth.providers.password.enabled`
@@ -543,7 +288,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
     - `auth.account.googleLinkPath`
     - `auth.account.unlinkPath`
     - `auth.account.disablePath`
-  - Preserve the existing Google config path while making provider selection explicit for new components. Do not introduce hidden default endpoint paths in code. Demo/test config can carry default values.
+  - Replace the Google config path with the explicit provider contract. Do not add hidden endpoint paths. Demo and test config can contain explicit values.
   - Add config validation that rejects password/account components when required endpoint paths, `auth.tauthUrl`, or `auth.tenantId` are absent or malformed. Validation belongs at config/component boundaries. Action helpers must assume validated options.
   - Add a shared TAuth client layer inside `mpr-ui` for password and account POST requests.
   - Use `credentials: "include"`, `X-Requested-With`, `X-TAuth-Tenant`, and stable error codes.
@@ -562,18 +307,18 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Make sure `<mpr-user>` mirrors only the nearest owning auth host.
   - Prevent independent bootstrap when `<mpr-user>` is inside a header or account shell.
   - Document component boundaries clearly: TAuth owns account policy and cookies. `mpr-ui` owns shared UI controls and auth events. Host apps own route protection, app-specific profile fields, and any bespoke account-policy decisions.
-  Config/demo fixtures:
+  Deliverables:
   - Extend `demo/config-ui.yaml` with explicit password provider and account-management endpoint config.
   - Extend `demo/tauth-config.yaml` and `.env.tauth.example` with local TAuth password and account settings.
   - Include password auth, account management, signup, and test-only challenge-token return settings.
   - Add demos for login, signup, email verification, password reset, password change, identity linking, unlinking, and account disablement.
   - Do not require app-owned fetch code in these demos.
-  Documentation plan:
+  Deliverables:
   - Update `README.md`, `docs/custom-elements.md`, and `docs/integration-guide.md` with the new config schema and component contract.
   - Document events, endpoints, security constraints, and migration from app-owned forms.
-  - Call out that direct `tauth.js` integration remains compatibility-only and is not the canonical path for new `mpr-ui` consumers.
+  - State that direct `tauth.js` integration is obsolete and is not the canonical path for `mpr-ui` consumers.
   - Update `mpr-integration` contracts after implementation. Remove claims that apps must own password forms after the component release.
-  Verification plan:
+  Validation:
   - Add YAML/config loader coverage for accepted password/account config, missing required fields, malformed paths, unknown keys, and component attribute application.
   - Add black-box component tests for each password-auth mode and account action.
   - Verify rendered state, disabled and loading behavior, request shape, stable errors, and events.
@@ -583,21 +328,22 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Cover signup, email verification, login, password reset and change, identity linking and unlinking, and account disablement.
   - Prove that attributes, local storage, auth events, logs, and persistent profiles contain no raw credentials or tokens.
   - Run the repo validation gate with `make ci` before marking the issue resolved.
-  Out of scope:
+  Requirements:
   - Do not implement new TAuth backend endpoints in `mpr-ui`.
   - Do not add app-specific account settings, billing, profile editing, organization membership, or route-guard policy.
   - Do not make direct `tauth.js` loading the canonical integration path.
   - Do not add silent endpoint defaults, legacy aliases, or compatibility fallbacks for unconfigured password/account actions.
-  Acceptance criteria:
+  Validation:
   - `/config-ui.yaml` can explicitly enable Google, password, or both providers and can configure all account-management endpoint paths without hidden code defaults.
   - Shared password/auth components authenticate through TAuth and drive the existing `mpr-ui` auth state/events/profile contract.
   - Account-management components do password change, password link, Google link, identity unlink, and account disable through validated TAuth endpoints.
   - Disabled accounts clear local auth state and render unauthenticated UI consistently.
   - Docs, demos, and integration contracts explain the new canonical path and the app/TAuth/`mpr-ui` boundary.
   - `make ci` passes with the new tests.
+
 - [ ] [F008] (P1) Add config-driven Apple Sign In redirect-provider support to `mpr-ui`.
-  Summary: TAuth now has an Apple OAuth implementation path for browser apps. `mpr-ui` still treats shared auth as a Google Identity Services-only surface. Canonical consumers use `/config-ui.yaml`, `mpr-ui-config.js`, `mpr-header[data-config-url]`, and the shared auth controller instead of direct `tauth.js` calls. Apple Sign In must become a first-class config-driven redirect provider in the same shared shell. Apple-only tenants such as Kamu and Kamu Tales can then authenticate without app-owned login wiring.
-  Context:
+  Goal: Add Apple Sign In to the config-driven shared auth lifecycle. Support Apple-only tenants without app-owned login code.
+  Requirements:
   - Current `mpr-ui` auth config is Google-centric.
   - It applies `auth.googleClientId`, `auth.tenantId`, `auth.loginPath`, `auth.logoutPath`, and `auth.noncePath` to the auth controls.
   - `<mpr-header>` and `<mpr-login-button>` currently initiate Google sign-in through Google Identity Services, nonce issuance, and `POST /auth/google`. Apple web sign-in is a top-level browser redirect to TAuth, not a Google-style credential callback or an app-owned form POST.
@@ -607,9 +353,9 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - TAuth validates `return_to` against the tenant's registered origins. `mpr-ui` must still construct the return target deliberately and reject unsafe or unsupported app handoff targets at the browser/config edge.
   - Apple-only tenants must be representable. Requiring `googleClientId` globally makes a valid Apple-only config impossible even when Google is intentionally disabled.
   - The MPR Integration contract prohibits direct `tauth.js` loads or manual `tauth-*` wiring when `/config-ui.yaml` is available.
-  - Apple support must extend that canonical path without a compatibility-only shortcut.
-  - MU-500 covers email/password and account-management forms. Apple redirect-provider support is a separate provider/lifecycle feature and must not wait for password/account-management forms.
-  Current gap:
+  - Apple support must extend that canonical path without a second integration path.
+  - F007 covers email/password and account-management forms. Apple redirect-provider support is a separate provider/lifecycle feature and must not wait for password/account-management forms.
+  Requirements:
   - `/config-ui.yaml` has no explicit auth-provider model and no Apple provider section.
   - `mpr-ui-config.js` cannot express an Apple redirect start endpoint, Apple provider enablement, Apple button placement, or Apple-only auth configuration.
   - Existing auth controls render Google actions only. There is no shared Apple Sign In action in the header, login button, diagnostics page, demos, or tests.
@@ -617,7 +363,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Apple redirects away from the app. The shared shell must mark a pending restore and reconcile the returned session.
   - Existing docs and contracts do not define Apple login UI ownership or `return_to` selection.
   - They also do not define Apple-only tenant config or events after the user returns.
-  Expected:
+  Requirements:
   - `mpr-ui` exposes a first-class config-driven Apple provider that participates in the same shared auth lifecycle as Google.
   - Apps can enable Google, Apple, or both providers through `/config-ui.yaml` without hidden endpoint defaults and without direct `tauth.js` script loading.
   - Apple-only configs do not require a Google client ID, Google nonce path, or Google login path when Google is disabled.
@@ -626,8 +372,8 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - The Apple return hydrates the same profile and session state as Google login.
   - It emits the existing `mpr-ui:auth:*` lifecycle events.
   - Unknown providers, missing paths, unsafe targets, malformed auth URLs, and disabled-provider controls fail at the config boundary.
-  Proposed config contract:
-  - Extend auth config with an explicit provider map while preserving the current released Google config contract for existing Google-only consumers:
+  Requirements:
+  - Replace the current auth config with this explicit provider map:
     - `auth.tauthUrl`
     - `auth.tenantId`
     - `auth.logoutPath`
@@ -646,7 +392,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Do not expose Apple service IDs, team IDs, key IDs, private keys, client secrets, codes, tokens, or callback paths.
   - Browser config needs only provider enablement, start path, tenant ID, and return-target policy.
   - Keep tenant ID immutable for the component/controller lifetime, matching the existing auth tenant invariant.
-  Technical plan:
+  Deliverables:
   - Add JSDoc domain types and smart-constructor-style validators for `AuthProviderId`, `AuthProviderConfig`, `GoogleAuthProviderConfig`, `AppleAuthProviderConfig`, `AppleReturnTargetPolicy`, and normalized provider action options.
   - Validate provider config in `mpr-ui-config.js` and component attribute parsing only. After validation, shared auth controller/provider action helpers must operate on normalized provider objects and must not repeat edge validation.
   - Refactor the current Google-specific auth options into a provider-aware auth options object without duplicating Google nonce/login logic.
@@ -661,7 +407,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Multiple providers must not create duplicate session or profile probes.
   - Nested `<mpr-user>` must continue to mirror the nearest owning auth host.
   - After return from Apple, use the same passive restore/session path as the existing shared auth stack. The shell must emit `mpr-ui:auth:authenticated`, `mpr-ui:auth:unauthenticated`, `mpr-ui:auth:error`, and `mpr-ui:auth:status-change` exactly as it does for other session-changing auth outcomes.
-  - Add provider metadata only where it is useful and non-breaking. Existing consumers must not have to branch on provider to observe authenticated state.
+  - Add provider metadata only where it is necessary. Consumers must not branch on provider to observe authenticated state.
   - Extend `<mpr-auth-diagnostics>` so a non-production page can prove that an Apple redirect-backed login restored the intended auth surface. The diagnostics surface must bind through `auth-target`, not by probing internals.
   - Add `MPRUI.testing` support for redirect providers.
   - Let tests inspect the Apple start URL and pending restore without page navigation.
@@ -671,22 +417,22 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Verify current official Apple Sign In button requirements during implementation.
   - Encode those requirements as component tests or visual assertions where feasible.
   - Update demos so at least one local config shows Google-only, Apple-only, and Google-plus-Apple auth configuration. The Apple demo may use a route stub for local browser tests. Real Apple Developer credentials must not be required for default `make ci`.
-  Security and privacy requirements:
+  Requirements:
   - Never store Apple codes, tokens, state, keys, or secrets in browser-visible surfaces.
   - These surfaces include DOM attributes, local storage, events, logs, test helper output, and rendered diagnostics.
   - Do not include raw Apple callback query parameters in app return URLs. Apple callback handling remains TAuth-owned.
   - Do not silently continue when Apple provider config is incomplete. Missing start path, missing tenant ID, malformed `tauthUrl`, or unsafe `return_to` policy must produce stable explicit errors.
   - Do not create a popup or iframe Apple flow. Apple Sign In must use top-level navigation through TAuth so cookies, callback routing, and `return_to` behavior remain consistent.
   - Do not infer production hostnames, callback URLs, cookie domains, or provider secrets from repo names. Hosted rollout must use app profile/deployment literals.
-  Documentation plan:
+  Deliverables:
   - Update `README.md`, `docs/custom-elements.md`, and `docs/integration-guide.md` with the provider config schema and Apple requirements.
   - Document Apple-only config, multi-provider rendering, event lifecycle, and migration guidance.
-  - Explicitly document that direct `tauth.js` usage remains compatibility-only for normal integrations.
+  - State that direct `tauth.js` usage is obsolete for normal integrations.
   - Update MPR Integration contracts after implementation to describe Apple as a supported shared auth provider.
   - Update `references/contracts/mpr-ui.md` and `references/contracts/tauth.md`.
   - Identify the TAuth, app, and `mpr-ui` ownership boundary.
   - Document that Apple Developer portal configuration and server-to-server notification endpoints are TAuth/deployment concerns, not browser config fields.
-  Verification plan:
+  Validation:
   - Add YAML/config loader coverage for Google-only, Apple-only, and Google-plus-Apple configs.
   - Add negative config tests for unknown or disabled providers and missing Apple settings.
   - Cover malformed `tauthUrl`, unsafe `return_to`, and invalid Google client ID requirements.
@@ -701,14 +447,14 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Add Playwright coverage for Apple-only and multi-provider controls with local route stubs.
   - Verify the top-level navigation target without live Apple credentials.
   - Run `make ci` before marking the issue resolved.
-  Out of scope:
+  Requirements:
   - Do not implement or modify TAuth Apple backend endpoints in `mpr-ui`.
   - Do not configure Apple Developer portal IDs, keys, callback URLs, notification endpoints, or private keys from browser code.
-  - Do not implement password, signup, reset, linking, unlinking, or account-disable forms as part of this issue. Those remain under MU-500.
+  - Do not implement password, signup, reset, linking, unlinking, or account-disable forms as part of this issue. Those remain under F007.
   - Do not add app-specific route guards, billing/account settings, profile editing, organization membership, or product-specific login pages.
   - Do not make direct `tauth.js` loading, manual `tauth-*` wiring, or app-owned fetch wrappers the canonical Apple integration path.
   - Do not introduce silent endpoint defaults, legacy aliases, provider fallbacks, or compatibility shims for incomplete Apple config.
-  Acceptance criteria:
+  Validation:
   - `/config-ui.yaml` can explicitly enable Apple, Google, or both providers through a validated provider config.
   - Apple-only tenants can render and start login without requiring Google client ID, Google nonce path, or Google login path.
   - Apple sign-in controls navigate to the configured TAuth Apple start endpoint with the configured tenant ID and a validated `return_to`.
@@ -717,7 +463,8 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Security regressions prove no Apple secrets, callback tokens, authorization codes, ID tokens, or raw state are exposed through browser-visible surfaces.
   - MPR Integration contracts are updated to describe Apple as a canonical shared-shell provider.
   - `make ci` passes with the new tests.
-- [ ] [F009] Add a reusable custom element that puts menu links into sections.
+
+- [ ] [F009] (P1) Add a reusable custom element that puts menu links into sections.
   Goal:
   A reusable `<mpr-dropdown>` supplies link menu sections. `<mpr-footer>` uses this element as an upward menu for site links.
 
@@ -761,94 +508,6 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Verify `<mpr-footer>` uses the shared element and has no second dropdown interaction path.
   - Run `make ci` after the final source and documentation changes.
 
-
 ## Planning
-*do not implement yet*
 
-- [x] [P001] Define a reusable entity-workspace kit for cross-app collection/detail layouts.
-  Summary: ProductScanner now demonstrates a reusable operational layout made of a left sidebar, horizontal collection rail, detail workspace, selectable media cards, and a side drawer. We want that layout grammar in `mpr-ui` so both ProductScanner and a future YouTube-style app can reuse the same primitives without exporting ProductScanner business logic.
-  Deliverables:
-  - Architecture proposal: document the reusable layout grammar shared by ProductScanner and a video-oriented app.
-  - `mpr-ui` API proposal: define the recommended shell/headless surface (`workspace layout`, `sidebar nav`, `entity rail`, `entity tile`, `entity workspace`, `entity card`, `detail drawer`, selection helper).
-  - Boundaries: explicitly identify ProductScanner-specific behaviors that must not move into `mpr-ui`.
-  - Migration strategy: define a staged extraction order that starts with low-risk headless/layout primitives before card composition.
-  - Cross-app mapping: include a concrete mapping from ProductScanner catalogs/products to YouTube collections/videos.
-  Reference: `docs/entity-workspace-proposal.md`
-  Resolved 2026-03-09: rewrote the proposal around the actual `tools/PoodleScanner` source seams. It defines the workspace grammar, proposed `mpr-ui` surface, boundaries, extraction order, and PoodleScanner-to-video mapping.
-  Resolved 2026-03-09 follow-up: implemented `MPRUI.createSelectionState()` plus the proposed workspace/drawer/rail/tile/card/layout custom elements in `mpr-ui.js`, added unit coverage in `tests/entity-workspace.test.js`, and added browser coverage in `tests/e2e/entity-workspace.spec.js`. Tests: `npm test`.
-  Resolved 2026-03-09 demo follow-up: added `demo/entity-workspace.html` with local JSON data (`demo/entity-workspace.json`) and host-side wiring in `demo/entity-workspace.js`, plus Playwright coverage for the runnable example. Tests: targeted JS typecheck, unit suite, and Playwright specs.
-- [x] [P002] Remove legacy footer DSL ("links" fallback, theme-switcher aliasing, settings/settings-enabled aliasing, auth-config overrides) so each feature has a single canonical attribute/config path.
-  Removed legacy DSL inputs (`settings-enabled`, `auth-config`, `links`, `themeToggle.themeSwitcher`, `theme-mode`), updated docs/fixtures/tests. Tests: `npm run test:unit`, `npm run test:e2e`.
-- [x] [P003] Log a JS console error via utils/logging.js when unrecognized/unsupported DSL attributes or config keys are encountered on mpr-ui components.
-  Added legacy DSL logging for header/footer/theme-toggle attributes + footer theme config keys. Tests: `npm run test:unit`, `npm run test:e2e`.
-  Discovery details for MU-425/MU-426 (legacy or redundant DSL paths observed):
-  - Footer menu links can be supplied via `links-collection` (preferred) or legacy `links` attribute/config. `links-collection.text` also overwrites `prefix-text` and `toggle-label` when explicit values are absent.
-  - Footer theme switcher variant can be set by `theme-switcher` attribute, `theme-config.themeToggle.variant`, or legacy `themeToggle.themeSwitcher`.
-  - Header settings boolean accepts both `settings` and `settings-enabled` attributes (aliasing the same behavior).
-  - Header auth wiring can be supplied via `auth-config` JSON or the individual `tauth-*` attributes. Auth `googleClientId`/`tenantId` can be supplied via `google-site-id`/`tauth-tenant-id` or inside `auth-config`.
-  - Theme initial mode can be set via `theme-mode` attribute or `theme-config.initialMode` across header/footer/theme toggle.
-- [x] [P004] `mpr-header` can appear unauthenticated when TAuth has a current session and `mpr-user` recovers it.
-  Resolved 2026-03-19: updated `createAuthHeader` bootstrap to reconcile auth state from `getCurrentUser()` after `initAuthClient()`. Reconciliation occurs when no authenticated callback fires. This keeps `<mpr-header>` and `mpr-ui:auth:authenticated` synchronized with existing-session recovery. Added unit regression coverage in `tests/custom-elements-header-footer.test.js`. Tests: `node --test tests/custom-elements-header-footer.test.js`. `node --test tests/auth-credential-exchange.test.js`. `npx --yes --package typescript tsc --noEmit`. `npm test`.
-- [x] [P005] `mpr-header` bootstrap must not let a stale `getCurrentUser()` result override an explicit `initAuthClient()` unauthenticated callback.
-  Resolved 2026-03-19: tracked auth callback status for each bootstrap inside `createAuthHeader`. Recovery from `getCurrentUser()` now occurs only if `initAuthClient()` fired no auth callback. This rule includes a pending `getCurrentUser()` race. Added regression coverage in `tests/custom-elements-header-footer.test.js`. Tests: `node --test tests/custom-elements-header-footer.test.js`. `node --test tests/auth-credential-exchange.test.js`. `npx --yes --package typescript tsc --noEmit`.
-- [x] [P006] Add an optional shared auth transition between session recovery and the authenticated app UI.
-  Resolved 2026-04-12: added `auth-transition` support to `<mpr-header>` and reflected shared auth phases through the status contract. Held the transition screen until an optional document event fires. Added unit and Playwright regression coverage. Tests: `npm run test:unit`. `npx playwright test tests/e2e/auth-transition.spec.js`. `npx --yes --package typescript@5.9.2 tsc --noEmit`.
-- [x] [P007] Add a real 100% coverage gate to `make ci` for the shipped browser JavaScript sources.
-  Resolved 2026-04-15: added `npm run test:coverage` with 100% line, function, and branch thresholds for shipped browser JS entrypoints. Wired `make ci` to run the gate before E2E and routed GitHub Actions through `make ci`. Expanded `mpr-ui-config.js` loader coverage. Added Node coverage pragmas so Node metrics count only paths that the Node harness executes. Playwright still validates browser behavior. Tests: `npm run test:unit`. `npm run test:coverage`. `make ci`.
-- [x] [P008] The shipped browser JavaScript sources do not yet satisfy the new 100% coverage gate.
-  Resolved 2026-04-15: `mpr-ui.js` and `mpr-ui-config.js` now have Node coverage pragmas for browser-only bundle code. The YAML config loader has full Node coverage. The combined coverage and CI contract reached 100% for lines, branches, and functions. The existing Playwright suite still covers browser UI behavior.
-- [x] [P009] `mpr-entity-rail` and `mpr-entity-workspace` can drop tiles/cards appended after the initial render.
-  Resolved 2026-03-19: updated `mpr-ui.js` so the rail and workspace keep captured slot nodes across rerenders. They also absorb new direct child nodes after mount. Added regression coverage in `tests/entity-workspace.test.js` and `tests/e2e/entity-workspace.spec.js`. Tests: `node --test tests/entity-workspace.test.js`. `npx playwright test tests/e2e/entity-workspace.spec.js`. `npx playwright test tests/e2e/entity-workspace-demo.spec.js`. `npm test`.
-- [x] [P010] Post-render `tauth-url` rebinding can silence session updates when `initAuthClient()` keeps the original callbacks.
-  Resolved 2026-03-20: kept the TAuth auth callback pair stable for each auth controller lifetime. Tracked callback activity separately from bootstrap lifecycle, so `getCurrentUser()` recovery ignores later auth signals. Added retained-callback regression coverage for `<mpr-header>` and `<mpr-login-button>`. Tests: `node --test tests/custom-elements-header-footer.test.js tests/auth-credential-exchange.test.js`. `npx --yes --package typescript tsc --noEmit`. `npm test`.
-- [x] [P011] In-flight Google credential exchanges can still authenticate stale auth config after `tauth-url` or tenant rebinding.
-  Resolved 2026-03-20: captured the auth controller lifecycle version when `handleCredential()` starts. The controller now ignores stale completions after auth options change. Added regression coverage for a tenant rebind during an in-flight credential exchange. Tests: `node --test tests/custom-elements-header-footer.test.js tests/auth-credential-exchange.test.js`. `npx --yes --package typescript tsc --noEmit`. `npm test`.
-- [x] [P012] Stale GIS callbacks prepared before an auth config change can still start sign-in under the current controller lifecycle.
-  Resolved 2026-03-20: captured the auth controller lifecycle version during GIS nonce configuration. The controller now ignores old GIS callbacks after `tauth-url` or tenant rebinding. Regression coverage proves that stale callbacks do not start credential exchange. The current callback still authenticates normally. Tests: `node --test tests/custom-elements-header-footer.test.js tests/auth-credential-exchange.test.js`. `npx --yes --package typescript tsc --noEmit`. `npm test`.
-- [x] [P013] Post-init tenant rebinding is unsupported and must be rejected explicitly by `mpr-ui`.
-  Resolved 2026-03-20: `createAuthHeader.updateOptions()` now throws `mpr-ui.auth.tenant_id_change_unsupported` for post-initialization tenant changes. `<mpr-login-button>` and header updates reject live `tauth-tenant-id` changes before new auth state applies. Auth docs now declare tenant IDs immutable for the component lifetime. Stale auth-race regressions now target supported `tauth-url` rebinding. Tests: `node --test tests/custom-elements-header-footer.test.js tests/auth-credential-exchange.test.js`. `npx --yes --package typescript tsc --noEmit`. `npm test` failed because `https://localhost:4443` was unavailable. Playwright reported `ERR_CONNECTION_REFUSED` in `tests/e2e/demo-stack.spec.js` and `tests/e2e/entity-workspace-demo.spec.js`.
-- [x] [P014] Optional live-demo smoke tests must not break default `make ci` when the Docker stack is absent.
-  Resolved 2026-03-20: updated `playwright.config.js` to ignore `demo-stack.spec.js` and `entity-workspace-demo.spec.js` unless `MPR_UI_DEMO_BASE_URL` is set. This matches the documented optional live demo workflow. It restores `make ci` for environments that run only the fixture-backed Playwright suite. Tests: `npm run test:e2e`. `make ci`.
-- [x] [P015] `mpr-ui-config.js` must apply YAML config before it loads `mpr-ui.js` for auth-bearing elements.
-  Resolved 2026-03-20: changed auto-orchestration to apply config before bundle load. The bundle loads from an inert `data-mpr-ui-bundle-src` marker. Exposed `MPRUI.whenAutoOrchestrationReady()` and updated demo pages to use config-first bundle markers. `demo/entity-workspace.js` now waits for orchestration readiness. Tests: `node --test tests/yaml-config-loader.test.js tests/demo-page.test.js tests/tauth-demo.test.js tests/standalone-demo.test.js`. `npx --yes --package typescript tsc --noEmit`. `make ci`.
-- [x] [P016] The entity-workspace video drawer must keep the `.entity-demo__drawer-tags` wrapper so tag pills retain spacing and wrapping.
-  Resolved 2026-03-20: restored the wrapper in `demo/entity-workspace.js` and added a focused source-level regression in `tests/entity-workspace-demo-source.test.js`. Tests: `node --test tests/entity-workspace-demo-source.test.js`. `make ci`.
-- [x] [P017] Restrict footer host-class mirroring to non-sticky layouts and preserve caller-owned host classes across updates/teardown.
-  Resolved 2026-04-02: gated `<mpr-footer base-class>` host mirroring behind `sticky="false"`. Host class tracking now removes only component-added tokens. Updated footer docs and plan notes. Added unit regressions with the existing Playwright flex-layout test. Tests: `node --test tests/custom-elements-header-footer.test.js`. `npx playwright test tests/e2e/footer-layout.spec.js`.
-- [x] [P018] Header updates can restart a completed auth transition before auto-orchestration attaches its listener.
-  Resolved 2026-04-15: preserved `authTransitionReady` across non-transition header updates. Standalone and TAuth demos now wait for `MPRUI.whenAutoOrchestrationReady()` before they dispatch ready events. Added focused regressions in `tests/custom-elements-header-footer.test.js` and `tests/demo-auth-bootstrap.test.js`. Tests: `npm run test:unit`.
-- [x] [P019] The Node 100% coverage gate must describe only browser sources that the Node test runner actually executes.
-  Resolved 2026-04-15: removed file-wide `node:coverage` pragmas from `mpr-ui.js` and `mpr-ui-config.js`. Narrowed Node coverage to `mpr-ui-config.js`, `demo/entity-workspace.js`, and `demo/status-panel.js`. Expanded loader tests to close the remaining paths. Updated the static gate regression and changelog to describe the actual CI contract. Tests: `npm run test:unit`. `npm run test:coverage`. `make ci`.
-- [x] [P020] Demo VM tests do not produce full V8 coverage, so the Node gate must not claim it.
-  Resolved 2026-04-15: verified the demo VM fixtures with absolute-path filenames. Confirmed that `demo/entity-workspace.js` and `demo/status-panel.js` remain below 100% Node V8 coverage. Narrowed `npm run test:coverage` to `mpr-ui-config.js`, which the Node harness measures completely. Tests: `npm run test:coverage`. `make ci`.
-- [x] [P021] Add real browser-side coverage reporting for the shipped bundle instead of relying only on the Node gate.
-  Resolved 2026-04-15: added a Playwright page fixture that captures V8 coverage. Merged the run into a source-level `mpr-ui.js` browser report through `v8-to-istanbul`. Wired `npm run test:coverage` to run the Node gate and browser report. The command emits `coverage/browser-summary.json`. Tests: `npm run test:coverage:browser`. `npm run test:coverage`. `make ci`.
-- [x] [P022] The Node coverage gate must run on the workflow's Node 20 toolchain instead of requiring newer test-runner flags.
-  Resolved 2026-04-15: replaced unsupported built-in `node --test` coverage flags with a `c8` gate for `mpr-ui-config.js`. Updated the static contract regression. Verified the script under Node 20 and through `make ci`. Tests: `npx --yes --package node@20 --package c8 -c 'c8 --reporter=text --include=mpr-ui-config.js --check-coverage --lines 100 --functions 100 --branches 100 node --test tests/*.test.js'`. Also ran `npm run test:coverage` and `make ci`.
-- [x] [P023] Release-facing package metadata and pinned docs drifted behind the tagged CDN release line.
-  Resolved 2026-04-17: aligned `package.json` and lockfile root metadata to `3.9.0`. Updated pinned CDN examples in `README.md` and `docs/integration-guide.md` to `v3.9.0`. Added a static regression that keeps package metadata and the documented CDN version aligned. Tests: `make test-unit`.
-
-
-
-- [ ] [B043] Release and publish depended on sibling agentSkills/gitrelease. Vendor the canonical core bundle, route those targets locally, preserve jsDelivr deploy, and validate the observable Make contract.
-- [x] [B045] Node 26 repeats Playwright `module.register()` deprecation warnings for the coordinator and every browser worker during `make release`.
-  Resolved 2026-07-23: upgraded `@playwright/test`, `playwright`, and `playwright-core` from `1.56.1` to `1.61.1`. Declared the Node tooling package as CommonJS and converted the release contract test. Tests: warning-traced Playwright discovery. Warning-traced `make ci` passed 167 Node tests and two 71-test browser runs.
-- [x] [B046] (P1) `npm audit` reports high-severity denial-of-service advisories in the direct `js-yaml` development dependency and transitive `brace-expansion` dependency.
-  Discovered 2026-07-23 while refreshing the Playwright lockfile. Dependency and browser-CDN parser ownership need a separate focused update and validation.
-  Resolved 2026-09-01: The repository now uses `js-yaml` 5.4.1 and `brace-expansion` 5.0.9.
-  The browser loader, documentation, demos, and tests use the current UMD path.
-  `npm audit` found zero vulnerabilities. The parser contract and repository CI passed.
-
-- [x] [B047] `<mpr-login-button>` grows while its click-driven Google sign-in preparation is in progress.
-  Summary: A Google login control adds preparation status to the component layout after activation. The status changes the visible control height during the nonce request.
-  Expected:
-  - Clicking a Google login control preserves the rendered width, height, border radius, and border geometry of the visible control group.
-  - The preparing state remains available to assistive technology and communicates progress without causing layout movement.
-  - Error feedback continues to remain visibly rendered after a failed preparation attempt.
-  Actual:
-  - The click-driven preparing status increases the visible component height until the nonce request completes.
-  Deliverables:
-  - Add a fixture-backed Playwright regression that measures the public Google control before and during the held preparation state.
-  - Keep preparing feedback accessible while taking it out of the visible layout flow.
-  - Pass the complete repository CI gate without reducing coverage requirements.
-  Resolved 2026-07-28: retained the visible in-control spinner and `aria-busy` state while moving only the transient `role="status"` preparing announcement out of normal layout flow. Error feedback remains visibly rendered. The fixture-backed B047 regression failed before the fix when the control group grew from 48px to 74.140625px, then passed after the change. Tests: `make test-e2e` (72 passed). `make ci` (167 Node tests, 72 browser coverage tests, and 72 browser tests passed).
+No active issues.
