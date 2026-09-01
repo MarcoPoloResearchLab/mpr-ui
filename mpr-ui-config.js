@@ -10,16 +10,21 @@
   var DEFAULT_HEADER_SELECTOR = "mpr-header";
   var DEFAULT_LOGIN_BUTTON_SELECTOR = "mpr-login-button";
   var DEFAULT_USER_SELECTOR = "mpr-user";
+  var DEFAULT_PASSWORD_AUTH_SELECTOR = "mpr-password-auth";
+  var DEFAULT_ACCOUNT_PANEL_SELECTOR = "mpr-account-panel";
 
   var SECTION_ENVIRONMENTS = "environments";
   var SECTION_AUTH = "auth";
   var SECTION_AUTH_PROVIDERS = "auth.providers";
+  var SECTION_AUTH_PASSWORD = "auth.password";
+  var SECTION_AUTH_ACCOUNT = "auth.account";
   var SECTION_ORIGINS = "origins";
   var AUTH_CONFIG_ATTRIBUTE = "auth-config";
   var AUTH_PATH_VALIDATION_ORIGIN = "https://mpr-ui.invalid";
   var AUTH_PROVIDER_IDS = Object.freeze({
     GOOGLE: "google",
     APPLE: "apple",
+    PASSWORD: "password",
   });
   var APPLE_RETURN_TARGET_POLICIES = Object.freeze({
     CURRENT_URL: "current-url",
@@ -31,10 +36,13 @@
     "logoutPath",
     "sessionPath",
     "providers",
+    "password",
+    "account",
   ]);
   var AUTH_PROVIDER_KEYS = Object.freeze([
     AUTH_PROVIDER_IDS.GOOGLE,
     AUTH_PROVIDER_IDS.APPLE,
+    AUTH_PROVIDER_IDS.PASSWORD,
   ]);
   var GOOGLE_PROVIDER_KEYS = Object.freeze([
     "enabled",
@@ -47,6 +55,22 @@
     "startPath",
     "returnTo",
     "label",
+  ]);
+  var PASSWORD_PROVIDER_KEYS = Object.freeze(["enabled"]);
+  var AUTH_PASSWORD_KEYS = Object.freeze([
+    "loginPath",
+    "signupPath",
+    "verifyEmailPath",
+    "resetStartPath",
+    "resetCompletePath",
+  ]);
+  var AUTH_ACCOUNT_KEYS = Object.freeze([
+    "passwordChangePath",
+    "passwordLinkStartPath",
+    "passwordLinkVerifyPath",
+    "googleLinkPath",
+    "unlinkPath",
+    "disablePath",
   ]);
   var APPLE_PROVIDER_LABELS = Object.freeze([
     "Sign in with Apple",
@@ -138,6 +162,8 @@
         headerSelector: DEFAULT_HEADER_SELECTOR,
         loginButtonSelector: DEFAULT_LOGIN_BUTTON_SELECTOR,
         userSelector: DEFAULT_USER_SELECTOR,
+        passwordAuthSelector: DEFAULT_PASSWORD_AUTH_SELECTOR,
+        accountPanelSelector: DEFAULT_ACCOUNT_PANEL_SELECTOR,
       },
       options || {},
     );
@@ -299,17 +325,45 @@
     });
   }
 
+  function buildPasswordProviderConfig(providersPayload) {
+    var scope = SECTION_AUTH_PROVIDERS + "." + AUTH_PROVIDER_IDS.PASSWORD;
+    var providerPayload = requireObject(
+      providersPayload,
+      AUTH_PROVIDER_IDS.PASSWORD,
+      SECTION_AUTH_PROVIDERS,
+    );
+    rejectUnknownKeys(providerPayload, PASSWORD_PROVIDER_KEYS, scope);
+    return Object.freeze({
+      enabled: requireBoolean(providerPayload, "enabled", scope),
+    });
+  }
+
+  function buildAuthPathConfig(authPayload, sectionKey, allowedKeys, scope) {
+    if (!Object.prototype.hasOwnProperty.call(authPayload, sectionKey)) {
+      return null;
+    }
+    var sectionPayload = requireObject(authPayload, sectionKey, SECTION_AUTH);
+    rejectUnknownKeys(sectionPayload, allowedKeys, scope);
+    var normalizedPaths = {};
+    allowedKeys.forEach(function buildPath(key) {
+      normalizedPaths[key] = requireNavigationPath(sectionPayload, key, scope);
+    });
+    return Object.freeze(normalizedPaths);
+  }
+
   function buildAuthProvidersConfig(authPayload) {
     var providersPayload = requireObject(authPayload, "providers", SECTION_AUTH);
     rejectUnknownKeys(providersPayload, AUTH_PROVIDER_KEYS, SECTION_AUTH_PROVIDERS);
     var googleProvider = buildGoogleProviderConfig(providersPayload);
     var appleProvider = buildAppleProviderConfig(providersPayload);
-    if (!googleProvider.enabled && !appleProvider.enabled) {
+    var passwordProvider = buildPasswordProviderConfig(providersPayload);
+    if (!googleProvider.enabled && !appleProvider.enabled && !passwordProvider.enabled) {
       throw new Error(CONFIG_FILE_LABEL + " requires an enabled auth provider");
     }
     return Object.freeze({
       google: googleProvider,
       apple: appleProvider,
+      password: passwordProvider,
     });
   }
 
@@ -379,13 +433,36 @@
   function buildAuthConfig(environment) {
     var authPayload = requireObject(environment, SECTION_AUTH, SECTION_AUTH);
     rejectUnknownKeys(authPayload, AUTH_CONFIG_KEYS, SECTION_AUTH);
-    return Object.freeze({
+    var providers = buildAuthProvidersConfig(authPayload);
+    var password = buildAuthPathConfig(
+      authPayload,
+      "password",
+      AUTH_PASSWORD_KEYS,
+      SECTION_AUTH_PASSWORD,
+    );
+    var account = buildAuthPathConfig(
+      authPayload,
+      "account",
+      AUTH_ACCOUNT_KEYS,
+      SECTION_AUTH_ACCOUNT,
+    );
+    if (providers.password.enabled && !password) {
+      throw new Error(CONFIG_FILE_LABEL + " missing auth.password");
+    }
+    var normalizedConfig = {
       tauthUrl: requireBrowserAuthOrigin(authPayload, "tauthUrl", SECTION_AUTH),
       tenantId: requireString(authPayload, "tenantId", SECTION_AUTH),
       logoutPath: requireNavigationPath(authPayload, "logoutPath", SECTION_AUTH),
       sessionPath: requireNavigationPath(authPayload, "sessionPath", SECTION_AUTH),
-      providers: buildAuthProvidersConfig(authPayload),
-    });
+      providers: providers,
+    };
+    if (password) {
+      normalizedConfig.password = password;
+    }
+    if (account) {
+      normalizedConfig.account = account;
+    }
+    return Object.freeze(normalizedConfig);
   }
 
   function buildRuntimeConfig(environment) {
@@ -547,6 +624,12 @@
     var headers = Array.from(global.document.querySelectorAll(options.headerSelector));
     var loginButtons = Array.from(global.document.querySelectorAll(options.loginButtonSelector));
     var userMenus = Array.from(global.document.querySelectorAll(options.userSelector));
+    var passwordForms = Array.from(
+      global.document.querySelectorAll(options.passwordAuthSelector),
+    );
+    var accountPanels = Array.from(
+      global.document.querySelectorAll(options.accountPanelSelector),
+    );
     if (headers.length > 0) {
       headers.forEach(function updateHeader(headerElement) {
         applyHeaderAttributes(headerElement, runtimeConfig.auth);
@@ -562,6 +645,12 @@
         applyUserAttributes(userElement, runtimeConfig.auth);
       });
     }
+    passwordForms.forEach(function updatePasswordForm(passwordForm) {
+      applyAuthAttributes(passwordForm, runtimeConfig.auth);
+    });
+    accountPanels.forEach(function updateAccountPanel(accountPanel) {
+      applyAuthAttributes(accountPanel, runtimeConfig.auth);
+    });
     return runtimeConfig;
   }
 
