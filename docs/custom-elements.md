@@ -6,26 +6,27 @@ The header/footer sections below reflect current LoopAware usage. The entity-wor
 
 ## mpr-header
 
-The header integrates Google Identity Services with TAuth and emits auth events used by LoopAware.
+The header integrates configured Google and Apple providers with TAuth and emits the shared auth lifecycle events.
 
 ### Primary integration path
 
-Serve `/config-ui.yaml`, render `<mpr-header data-config-url="/config-ui.yaml">`, and let `mpr-ui-config.js` apply auth attributes before it loads the bundle. New integrations should not wire `tauth-*` attributes manually.
+Serve `/config-ui.yaml`. Render `<mpr-header data-config-url="/config-ui.yaml">`. Let `mpr-ui-config.js` apply one validated `auth-config` provider map before it loads the bundle.
 
-### Auth attributes owned by the config loader
-- `google-site-id`: Google OAuth web client ID.
-- `tauth-tenant-id`: TAuth tenant identifier.
-- `tauth-login-path`: TAuth login endpoint, typically `/auth/google`.
-- `tauth-logout-path`: TAuth logout endpoint, typically `/auth/logout`.
-- `tauth-nonce-path`: TAuth nonce endpoint, typically `/auth/nonce`.
-- `tauth-session-path`: TAuth session recovery endpoint, typically `/auth/session`.
+### Auth config owned by the config loader
+
+- `tauthUrl`: Browser-facing TAuth origin. An empty string selects the same-origin proxy.
+- `tenantId`: Immutable TAuth tenant identifier.
+- `logoutPath`: Same-origin logout path.
+- `sessionPath`: Same-origin passive session restore path.
+- `providers.google`: Explicit Google provider object. Enabled Google requires `clientId`, `loginPath`, and `noncePath`.
+- `providers.apple`: Explicit Apple provider object. Enabled Apple requires `startPath`, `returnTo`, and an Apple-approved `label`.
+
+Both provider keys are required. A disabled provider contains only `{ "enabled": false }`. `returnTo` accepts `current-url`, `current-origin`, or a same-origin path. The config edge rejects unsafe targets, unknown fields, and incomplete provider settings.
 
 ### Optional attributes
-- `tauth-url`: Base URL of the TAuth service. When omitted, the current origin is used.
 - `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders an inline utility link list inside the same row as the other header controls.
 - `auth-transition`: JSON string `{ title, message, completionEvent }` that enables the built-in full-screen auth transition surface. The screen appears during auth bootstrap and credential exchange. If `completionEvent` is non-empty, the screen stays visible after authentication until that event is dispatched on `document`.
 - `sign-in-redirect-url`: URL that `mpr-ui` navigates to after an interactive sign-in succeeds. When paired with `auth-transition`, the transition stays visible while that navigation is pending. Restored authenticated sessions do not trigger this redirect.
-- `sign-in-label`: Text for the fallback sign-in button.
 - `sign-out-label`: Text for the sign-out button.
 - `sticky`: `true` or `false` to toggle sticky positioning.
 
@@ -52,8 +53,8 @@ The auth controller also reflects the current auth phase on the host as `data-mp
 - `mpr-ui:auth:unauthenticated`.
 - `mpr-ui:auth:status-change` (detail includes `status`, `previousStatus`, and `profile`).
 - `mpr-ui:auth:error` (detail includes `code`, optional `message`).
-- `mpr-ui:header:error` (header or Google Sign-In render failures).
-- `mpr-ui:header:signin-click` (fallback sign-in button clicked).
+- `mpr-ui:header:error` (header or provider-action failures).
+- `mpr-ui:header:signin-click` (detail includes the selected provider).
 - `mpr-ui:header:settings-click` (settings button clicked).
 
 ### Example (landing)
@@ -73,7 +74,6 @@ The auth controller also reflects the current auth phase on the host as `data-mp
       { "label": "Status", "href": "https://status.example.com", "target": "_blank" }
     ]
   }'
-  sign-in-label="Sign in"
   sign-out-label="Sign out"
 >
   <span slot="brand">LoopAware</span>
@@ -96,7 +96,24 @@ document.addEventListener('mpr-ui:auth:authenticated', function () {
 ```
 
 ### Script order
-Load `mpr-ui.css`, GIS, `js-yaml`, and `mpr-ui-config.js`, then expose the bundle through `data-mpr-ui-bundle-src`. The config loader applies `/config-ui.yaml` first and then loads `mpr-ui.js`.
+Load `mpr-ui.css`, `js-yaml`, and `mpr-ui-config.js`. Expose the bundle through `data-mpr-ui-bundle-src`. Load GIS when Google is enabled. The config loader applies `/config-ui.yaml` before it loads `mpr-ui.js`.
+
+### Apple redirect lifecycle
+
+The Apple action builds the configured TAuth `startPath` with `tenant_id` and a validated `return_to`. It records a restore hint and emits `authenticating`. It then performs top-level navigation. TAuth owns Apple callback handling and session cookies. After return, the owning controller reads `sessionPath`. It emits the same auth events used by Google.
+
+Browser config and diagnostics contain no Apple service IDs, team IDs, key IDs, private keys, client secrets, callback paths, authorization codes, tokens, or raw state. Apple Developer portal values and server-to-server notifications belong to TAuth and deployment configuration.
+
+## mpr-auth-diagnostics
+
+Use `<mpr-auth-diagnostics>` only on non-production diagnostic pages. Set its required `auth-target` selector to the owning auth surface. The element does not discover or create an auth controller. It displays the target status and safe profile identity fields.
+
+```html
+<mpr-login-button id="auth-surface" data-config-url="/config-ui.yaml"></mpr-login-button>
+<mpr-auth-diagnostics auth-target="#auth-surface"></mpr-auth-diagnostics>
+```
+
+`MPRUI.testing.prepareRedirectProvider(target, "apple")` returns the validated start action without navigation. `MPRUI.testing.navigateRedirectProvider(target, "apple")` starts navigation explicitly.
 
 ### Protected requests
 
@@ -115,7 +132,7 @@ For a mutation, pass `mutationReplay: "authorization-before-domain-work"` only w
 
 The provider chooser renders a compact ordered set of provider actions. It is the shared primitive for pages that need Google, Apple, and email entry points without expanding into separate login panels by default.
 
-This element is a UI and event primitive. It does not create a shared auth controller, start Apple redirects, call Google Identity Services, submit email/password credentials to TAuth, or mark the user authenticated. The surrounding page or a future provider-aware auth controller owns those mechanics and must still prove completion through the existing `mpr-ui:auth:*` lifecycle.
+This element is a UI and event primitive. It does not create an auth controller or start provider auth. It does not submit credentials or mark the user authenticated. Use the config-driven header or login button for Google or Apple authentication.
 
 ### Required attributes
 - `providers`: JSON array ordered from `apple`, `google`, and `email`. The array is explicit and must be non-empty; unknown or duplicate providers fail on `mpr-auth-provider:error`.
@@ -131,7 +148,7 @@ Supported provider IDs:
 
 Missing, malformed, unknown, or duplicate provider lists and unsupported variants fail on the host with `data-mpr-auth-provider-error` and emit `mpr-auth-provider:error`.
 
-Provider actions include compact decorative marks for Google, Apple, and email. They make the choice scannable, but they do not certify the final sign-in flow as provider-brand compliant; use provider-owned Google and Apple sign-in button guidance when the selected provider action starts real authentication.
+Provider actions include compact decorative marks for Google, Apple, and email. They make the choice scannable. The owning header and login button supply the shared provider action styling for real auth.
 
 Stable error codes:
 
@@ -170,7 +187,7 @@ When vertical space is tighter and the surrounding login surface already names t
 ></mpr-auth-provider-chooser>
 ```
 
-Selecting `email` expands the email/password form in place. Selecting Apple or Google emits the provider selection event and leaves provider-specific auth mechanics to the owning auth controller. Email form submit events deliberately omit raw input values; if an owning controller reads the fields, it must send credentials directly to the configured auth action without storing them in attributes, local storage, logs, or secondary events.
+Selecting `email` expands the email/password form in place. Selecting Apple or Google emits the provider selection event only. Email form submit events deliberately omit raw input values; an owning controller sends credentials directly to the configured auth action without storing them in attributes, local storage, logs, or secondary events.
 
 ## mpr-footer
 
