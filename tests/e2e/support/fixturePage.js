@@ -7,7 +7,8 @@ const { pathToFileURL } = require('node:url');
 const CDN_BUNDLE_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js';
 const CDN_STYLES_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css';
 const CDN_CONFIG_URL = 'https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js';
-const YAML_PARSER_URL = 'https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js';
+const YAML_PARSER_URL =
+  'https://cdn.jsdelivr.net/npm/js-yaml@5.4.1/dist/browser/js-yaml.umd.min.js';
 const GOOGLE_IDENTITY_URL = 'https://accounts.google.com/gsi/client';
 const RUNTIME_CONFIG_URL = 'https://api.fixture.test/config-ui.yaml';
 const RUNTIME_AUTH_ORIGIN = 'https://auth.fixture.test';
@@ -158,7 +159,7 @@ const LOCAL_ASSETS = Object.freeze({
   bundle: readLocalAsset('mpr-ui.js'),
   styles: readLocalAsset('mpr-ui.css'),
   config: readLocalAsset('mpr-ui-config.js'),
-  yamlParser: readLocalAsset('node_modules/js-yaml/dist/js-yaml.min.js'),
+  yamlParser: readLocalAsset('node_modules/js-yaml/dist/browser/js-yaml.umd.min.js'),
   configLoaderFixture: readLocalAsset('tests/e2e/fixtures/config-loader.html'),
 });
 

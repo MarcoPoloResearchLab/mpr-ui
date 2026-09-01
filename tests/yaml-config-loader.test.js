@@ -486,7 +486,7 @@ test('loadYamlConfig rejects boundary failures, shares in-flight parser loads, a
     namespaceWithoutDocument.loadYamlConfig({ configUrl: '/config-ui.yaml' }),
     {
       message:
-        'document is required to load https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js',
+        'document is required to load https://cdn.jsdelivr.net/npm/js-yaml@5.4.1/dist/browser/js-yaml.umd.min.js',
     },
   );
 
@@ -607,7 +607,7 @@ test('loadYamlConfig rejects boundary failures, shares in-flight parser loads, a
 
   await assert.rejects(
     namespaceWithoutHead.loadYamlConfig({ configUrl: '/config-ui.yaml' }),
-    { message: 'document.head is required to load https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js' },
+    { message: 'document.head is required to load https://cdn.jsdelivr.net/npm/js-yaml@5.4.1/dist/browser/js-yaml.umd.min.js' },
   );
 });
 

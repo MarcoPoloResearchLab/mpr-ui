@@ -717,6 +717,49 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Security regressions prove no Apple secrets, callback tokens, authorization codes, ID tokens, or raw state are exposed through browser-visible surfaces.
   - MPR Integration contracts are updated to describe Apple as a canonical shared-shell provider.
   - `make ci` passes with the new tests.
+- [ ] [F009] Add a reusable custom element that puts menu links into sections.
+  Goal:
+  A reusable `<mpr-dropdown>` supplies link menu sections. `<mpr-footer>` uses this element as an upward menu for site links.
+
+  Requirements:
+  - Make `<mpr-dropdown>` the only owner of menu display, local state, focus, and dismissal behavior.
+  - Use one `menu` JSON attribute with `label`, `placement`, and `sections` fields.
+  - Support `top` and `bottom` placement values. Use `top` for the footer menu.
+  - Give each section a stable `id`, a `label`, a `mode`, and a `links` array.
+  - Support `static`, `expanded`, and `collapsed` section modes.
+  - Render a heading for `static` mode. Render an accessible disclosure button for the other modes.
+  - Give each link a `label`, an `href`, and optional `target` and `rel` values.
+  - Validate the complete menu contract at the custom element boundary. Reject unknown fields and invalid values.
+  - Keep section state local to each element. Remove all event listeners when the element disconnects.
+  - Use button, navigation, list, and disclosure semantics for assistive technology.
+  - Return focus to the trigger when Escape closes the menu.
+  - Move focus to a section button when that button closes its focused section.
+  - Close the menu after an outside pointer action or a link action.
+  - Emit `mpr-dropdown:toggle`, `mpr-dropdown:section-toggle`, and `mpr-dropdown:link-click` events.
+  - Include the section ID and link data in each link action event.
+  - Make long menus scroll inside the available viewport without footer or page clipping.
+  - Make `<mpr-footer>` delegate its menu rendering and interaction to `<mpr-dropdown>`.
+  - Give `<mpr-footer>` the same `menu` JSON attribute as `<mpr-dropdown>`.
+  - Replace the footer `links-collection` contract with the canonical `menu` contract.
+  - Remove the footer-specific flat link renderer, dropdown listeners, and unused `style` field.
+  - Update all repository consumers to the current contract. Keep no flat-link alias or compatibility path.
+
+  Deliverables:
+  - Add the `<mpr-dropdown>` custom element, styles, typed data contract, and public events.
+  - Add the canonical `menu` attribute to `<mpr-footer>`.
+  - Add a footer example with Platform, Products, and Tools sections.
+  - Update the component reference, architecture document, demos, fixtures, and release notes.
+  - Remove obsolete footer menu code and obsolete public documentation.
+
+  Validation:
+  - Use Playwright to verify the element alone with `top` and `bottom` placement.
+  - Verify static, initially expanded, and initially collapsed sections.
+  - Verify pointer, keyboard, Escape, outside-action, focus-return, and section-focus behavior.
+  - Verify section and link events contain the documented data.
+  - Verify malformed menus fail at the element boundary with stable errors.
+  - Verify a long footer menu stays visible, reachable, and scrollable in a small viewport.
+  - Verify `<mpr-footer>` uses the shared element and has no second dropdown interaction path.
+  - Run `make ci` after the final source and documentation changes.
 
 
 ## Planning
@@ -790,8 +833,11 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 - [ ] [B043] Release and publish depended on sibling agentSkills/gitrelease. Vendor the canonical core bundle, route those targets locally, preserve jsDelivr deploy, and validate the observable Make contract.
 - [x] [B045] Node 26 repeats Playwright `module.register()` deprecation warnings for the coordinator and every browser worker during `make release`.
   Resolved 2026-07-23: upgraded `@playwright/test`, `playwright`, and `playwright-core` from `1.56.1` to `1.61.1`. Declared the Node tooling package as CommonJS and converted the release contract test. Tests: warning-traced Playwright discovery. Warning-traced `make ci` passed 167 Node tests and two 71-test browser runs.
-- [ ] [B046] `npm audit` reports high-severity denial-of-service advisories in the direct `js-yaml` development dependency and transitive `brace-expansion` dependency.
+- [x] [B046] (P1) `npm audit` reports high-severity denial-of-service advisories in the direct `js-yaml` development dependency and transitive `brace-expansion` dependency.
   Discovered 2026-07-23 while refreshing the Playwright lockfile. Dependency and browser-CDN parser ownership need a separate focused update and validation.
+  Resolved 2026-09-01: The repository now uses `js-yaml` 5.4.1 and `brace-expansion` 5.0.9.
+  The browser loader, documentation, demos, and tests use the current UMD path.
+  `npm audit` found zero vulnerabilities. The parser contract and repository CI passed.
 
 - [x] [B047] `<mpr-login-button>` grows while its click-driven Google sign-in preparation is in progress.
   Summary: A Google login control adds preparation status to the component layout after activation. The status changes the visible control height during the nonce request.
