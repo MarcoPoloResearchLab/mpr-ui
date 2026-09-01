@@ -53,7 +53,7 @@ Example:
 
 ```html
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@5.4.1/dist/browser/js-yaml.umd.min.js"></script>
 <script src="../mpr-ui-config.js" defer></script>
 <script
   id="mpr-ui-bundle"
