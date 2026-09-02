@@ -250,6 +250,9 @@ p {
 
 .entity-demo__sidebar-button {
   width: 100%;
+  min-height: 0;
+  padding: 0.3rem 0.45rem;
+  line-height: 1.2;
   text-align: left;
 }
 
@@ -260,6 +263,11 @@ p {
 .entity-demo__swatch-label {
   color: #c4c7d1;
   font-size: 0.72rem;
+}
+
+.entity-demo__sidebar-description {
+  font-size: 0.67rem;
+  line-height: 1.2;
 }
 
 .entity-demo__tile,
