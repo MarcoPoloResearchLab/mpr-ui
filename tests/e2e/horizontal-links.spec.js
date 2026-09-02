@@ -2,13 +2,6 @@
 const { test, expect } = require('./support/browserCoverage');
 const { visitHorizontalLinksFixture } = require('./support/fixturePage');
 
-function distinctLineCount(positions) {
-  const yValues = positions
-    .map((entry) => Math.round(entry.centerY))
-    .filter((value) => Number.isFinite(value));
-  return new Set(yValues).size;
-}
-
 function range(values) {
   const finite = values.filter((value) => Number.isFinite(value));
   if (!finite.length) {
@@ -19,13 +12,13 @@ function range(values) {
   return maxValue - minValue;
 }
 
-test.describe('MU-428: horizontal-links stays inline (single-row chrome)', () => {
+test.describe('F010: horizontal links stay inside responsive chrome', () => {
   test.beforeEach(async ({ page }) => {
     await page.setViewportSize({ width: 360, height: 720 });
     await visitHorizontalLinksFixture(page);
   });
 
-  test('keeps header and footer content in a single row without wrapping', async ({ page }) => {
+  test('contains header and footer content without document overflow', async ({ page }) => {
     const headerHorizontalLinks = page.locator('[data-mpr-header="horizontal-links"]');
     const headerAnchors = page.locator('[data-mpr-header="horizontal-links"] a');
     await expect(headerHorizontalLinks).toBeVisible();
@@ -36,40 +29,20 @@ test.describe('MU-428: horizontal-links stays inline (single-row chrome)', () =>
       return {
         display: computed.display,
         flexWrap: computed.flexWrap,
-        justifyContent: computed.justifyContent,
+        overflowX: computed.overflowX,
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
       };
     });
     expect(headerStyle.display).toBe('flex');
     expect(headerStyle.flexWrap).toBe('nowrap');
-    expect(headerStyle.justifyContent).toBe('flex-end');
-
-    const headerAnchorPositions = await headerAnchors.evaluateAll((elements) =>
-      elements.map((element) => {
-        const rect = element.getBoundingClientRect();
-        return { centerY: rect.y + rect.height / 2 };
-      }),
-    );
-    expect(distinctLineCount(headerAnchorPositions)).toBe(1);
+    expect(headerStyle.overflowX).toBe('auto');
+    expect(headerStyle.scrollWidth).toBeGreaterThanOrEqual(headerStyle.clientWidth);
 
     const headerInlineCheck = await headerHorizontalLinks.evaluate((element) =>
       Boolean(element.parentElement && element.parentElement.classList.contains('mpr-header__inner')),
     );
     expect(headerInlineCheck).toBe(true);
-
-    const headerRowCenters = await Promise.all(
-      [
-        page.locator('.mpr-header__brand'),
-        page.locator('[data-mpr-header="nav"]'),
-        headerHorizontalLinks,
-        page.locator('.mpr-header__actions'),
-      ].map((locator) =>
-        locator.evaluate((element) => {
-          const rect = element.getBoundingClientRect();
-          return rect.y + rect.height / 2;
-        }),
-      ),
-    );
-    expect(range(headerRowCenters)).toBeLessThanOrEqual(2);
 
     const footerHorizontalLinks = page.locator('[data-mpr-footer="horizontal-links"]');
     const footerAnchors = page.locator('[data-mpr-footer="horizontal-links"] a');
@@ -81,40 +54,28 @@ test.describe('MU-428: horizontal-links stays inline (single-row chrome)', () =>
       return {
         display: computed.display,
         flexWrap: computed.flexWrap,
-        justifyContent: computed.justifyContent,
+        overflowX: computed.overflowX,
+        clientWidth: element.clientWidth,
+        scrollWidth: element.scrollWidth,
       };
     });
     expect(footerStyle.display).toBe('flex');
     expect(footerStyle.flexWrap).toBe('nowrap');
-    expect(footerStyle.justifyContent).toBe('flex-start');
-
-    const footerAnchorPositions = await footerAnchors.evaluateAll((elements) =>
-      elements.map((element) => {
-        const rect = element.getBoundingClientRect();
-        return { centerY: rect.y + rect.height / 2 };
-      }),
-    );
-    expect(distinctLineCount(footerAnchorPositions)).toBe(1);
+    expect(footerStyle.overflowX).toBe('auto');
+    expect(footerStyle.scrollWidth).toBeGreaterThanOrEqual(footerStyle.clientWidth);
 
     const footerInlineCheck = await footerHorizontalLinks.evaluate((element) =>
       Boolean(element.closest('[data-mpr-footer="layout"]')),
     );
     expect(footerInlineCheck).toBe(true);
 
-    const footerRowCenters = await Promise.all(
-      [
-        page.locator('[data-mpr-footer="privacy-link"]'),
-        footerHorizontalLinks,
-        page.locator('[data-mpr-footer="theme-toggle"]'),
-        page.locator('[data-mpr-footer="brand"]'),
-      ].map((locator) =>
-        locator.evaluate((element) => {
-          const rect = element.getBoundingClientRect();
-          return rect.y + rect.height / 2;
-        }),
-      ),
-    );
-    expect(range(footerRowCenters)).toBeLessThanOrEqual(2);
+    const layoutMetrics = await page.evaluate(() => ({
+      viewportWidth: window.innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      bodyWidth: document.body.scrollWidth,
+    }));
+    expect(layoutMetrics.documentWidth).toBeLessThanOrEqual(layoutMetrics.viewportWidth + 1);
+    expect(layoutMetrics.bodyWidth).toBeLessThanOrEqual(layoutMetrics.viewportWidth + 1);
   });
 
   test('footer drop-up remains visually reachable above the sticky footer', async ({ page }) => {

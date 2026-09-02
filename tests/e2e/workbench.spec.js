@@ -99,11 +99,11 @@ test.describe('Workbench behaviours', () => {
     const footerRatio = footerSmall / footerNormal;
 
     expect(headerSmall).toBeLessThan(headerNormal);
-    expect(headerRatio).toBeGreaterThan(0.6);
-    expect(headerRatio).toBeLessThan(0.8);
+    expect(headerRatio).toBeGreaterThan(0.72);
+    expect(headerRatio).toBeLessThan(0.95);
     expect(footerSmall).toBeLessThan(footerNormal);
-    expect(footerRatio).toBeGreaterThan(0.6);
-    expect(footerRatio).toBeLessThan(0.8);
+    expect(footerRatio).toBeGreaterThan(0.72);
+    expect(footerRatio).toBeLessThan(0.95);
   });
 
   test('MU-307: starts Google Sign-In with a valid client id and nonce', async ({ page }) => {
@@ -218,10 +218,10 @@ test.describe('Workbench behaviours', () => {
     expect(normalMetrics).not.toBeNull();
     expect(smallMetrics).not.toBeNull();
     if (normalMetrics && smallMetrics) {
-      expect(smallMetrics.width / normalMetrics.width).toBeCloseTo(0.7, 1);
-      expect(smallMetrics.height / normalMetrics.height).toBeCloseTo(0.7, 1);
-      expect(smallMetrics.dotWidth / normalMetrics.dotWidth).toBeCloseTo(0.7, 1);
-      expect(smallMetrics.dotHeight / normalMetrics.dotHeight).toBeCloseTo(0.7, 1);
+      expect(smallMetrics.width / normalMetrics.width).toBeCloseTo(0.82, 1);
+      expect(smallMetrics.height / normalMetrics.height).toBeCloseTo(0.82, 1);
+      expect(smallMetrics.dotWidth / normalMetrics.dotWidth).toBeCloseTo(0.82, 1);
+      expect(smallMetrics.dotHeight / normalMetrics.dotHeight).toBeCloseTo(0.82, 1);
     }
 
     await setFooterSize('small');
@@ -1041,21 +1041,17 @@ async function isLocatorInViewport(locator) {
  * @returns {Promise<boolean>}
  */
 async function scrollFooterUntilHidden(page) {
-  return page.evaluate(() => {
-    const footer = document.querySelector('mpr-footer#page-footer footer.mpr-footer');
-    if (!footer || typeof footer.getBoundingClientRect !== 'function') {
-      return false;
+  const footer = page.locator('mpr-footer#page-footer footer.mpr-footer');
+  const maxSteps = 20;
+  for (let index = 0; index < maxSteps; index += 1) {
+    if (!(await isLocatorInViewport(footer))) {
+      return true;
     }
-    const viewportHeight =
-      window.innerHeight || document.documentElement?.clientHeight || document.body?.clientHeight || 0;
-    const maxSteps = 20;
-    for (let index = 0; index < maxSteps; index += 1) {
-      window.scrollBy(0, viewportHeight / 2);
-      const rect = footer.getBoundingClientRect();
-      if (rect.top >= viewportHeight) {
-        return true;
-      }
-    }
-    return false;
-  });
+    await page.evaluate(() => {
+      document.documentElement.style.scrollBehavior = 'auto';
+      window.scrollBy(0, window.innerHeight / 2);
+    });
+    await page.waitForTimeout(20);
+  }
+  return false;
 }

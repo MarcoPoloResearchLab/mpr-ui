@@ -28,6 +28,18 @@ test.describe('Entity workspace primitives', () => {
       'false',
     );
 
+    const closedDrawerMetrics = await page.evaluate(() => ({
+      viewportWidth: window.innerWidth,
+      documentWidth: document.documentElement.scrollWidth,
+      bodyWidth: document.body.scrollWidth,
+    }));
+    expect(closedDrawerMetrics.documentWidth).toBeLessThanOrEqual(
+      closedDrawerMetrics.viewportWidth + 1,
+    );
+    expect(closedDrawerMetrics.bodyWidth).toBeLessThanOrEqual(
+      closedDrawerMetrics.viewportWidth + 1,
+    );
+
     const logEntries = page.locator('[data-test="workspace-event-entry"]');
     await expect(logEntries).toHaveCount(4);
     await expect(logEntries.nth(0)).toContainText('mpr-sidebar-nav:change');

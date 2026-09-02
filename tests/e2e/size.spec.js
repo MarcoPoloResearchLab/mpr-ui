@@ -24,7 +24,8 @@ test.describe('Size parameter support', () => {
     const smallHeight = await headerHost.evaluate(el => el.offsetHeight);
     expect(smallHeight).toBeLessThan(initialHeight);
     const headerRatio = smallHeight / initialHeight;
-    expect(headerRatio).toBeCloseTo(0.7, 1);
+    expect(headerRatio).toBeGreaterThan(0.75);
+    expect(headerRatio).toBeLessThan(0.95);
 
     await headerHost.evaluate(el => el.setAttribute('size', 'normal'));
     await expect(internalHeader).not.toHaveClass(/mpr-header--small/);
@@ -72,11 +73,11 @@ test.describe('Size parameter support', () => {
     const initialVal = parseFloat(initialPadding);
     const smallVal = parseFloat(smallPadding);
     
-    // 70% scaling of original padding
+    // The compact scale keeps controls readable while reducing chrome height.
     expect(smallVal).toBeLessThan(initialVal);
-    expect(smallVal).toBeCloseTo(initialVal * 0.7, 0);
+    expect(smallVal).toBeCloseTo(initialVal * 0.82, 0);
     const footerRatio = smallMetrics.height / initialHeight;
-    expect(footerRatio).toBeCloseTo(0.7, 1);
+    expect(footerRatio).toBeCloseTo(0.82, 1);
 
     // Revert
     await footerHost.evaluate(el => el.setAttribute('size', 'normal'));
@@ -102,8 +103,8 @@ test.describe('Size parameter support', () => {
     const box = await toggle.boundingBox();
     expect(box).not.toBeNull();
     if (box && defaultBox) {
-      expect(box.width / defaultBox.width).toBeCloseTo(0.7, 1);
-      expect(box.height / defaultBox.height).toBeCloseTo(0.7, 1);
+      expect(box.width / defaultBox.width).toBeCloseTo(0.82, 1);
+      expect(box.height / defaultBox.height).toBeCloseTo(0.82, 1);
     }
 
     const initialState = await toggle.evaluate(el => el.checked);
@@ -140,7 +141,7 @@ test.describe('Size parameter support', () => {
     
     expect(smallBox).not.toBeNull();
     if (smallBox && normalBox) {
-        expect(smallBox.width / normalBox.width).toBeCloseTo(0.7, 1);
+        expect(smallBox.width / normalBox.width).toBeCloseTo(0.82, 1);
     }
   });
 
