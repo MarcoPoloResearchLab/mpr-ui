@@ -14,7 +14,7 @@ Do not introduce a second path through direct `tauth.js` loading or template-lev
 ## Principles
 
 - One path: `/config-ui.yaml` is the browser-facing config surface. The URL may be absolute when the config backend grants the page origin CORS access.
-- DSL first: use `<mpr-*>` attributes, slots, `horizontal-links`, `links-collection`, `theme-switcher`, and `theme-config`.
+- DSL first: use `<mpr-*>` attributes, slots, `horizontal-links`, `menu`, `theme-switcher`, and `theme-config`.
 - Backend owns config: your app serves `/config-ui.yaml`, browser-facing `/auth/*` routes, and protected domain routes.
 - `mpr-ui` owns auth lifecycle: it handles Google nonce preparation and credential exchange, Apple redirect initiation, password and account requests, shell state, and auth events.
 - `mpr-ui` owns protected requests: it coordinates TAuth session recovery and one permitted request retry.

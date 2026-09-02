@@ -253,12 +253,56 @@ When vertical space is tighter and the surrounding login surface already names t
 
 Selecting `email` expands the email/password form in place. Selecting Apple or Google emits the provider selection event only. Email form submit events deliberately omit raw input values; an owning controller sends credentials directly to the configured auth action without storing them in attributes, local storage, logs, or secondary events.
 
+## mpr-dropdown
+
+The dropdown element renders a sectioned link menu. It can open above or below its trigger.
+
+### Required attribute
+
+- `menu`: JSON object with `label`, `placement`, and `sections`.
+
+Each section requires `id`, `label`, `mode`, and a nonempty `links` array. `mode` accepts `static`, `expanded`, or `collapsed`. Each link requires `label` and `href`. Optional link fields are `target` and `rel`.
+
+The parser rejects unknown fields, duplicate section IDs, invalid values, and unsupported link protocols. The element reports a rejected menu through `data-mpr-dropdown-error` and `mpr-dropdown:error`.
+
+### Events
+
+- `mpr-dropdown:toggle`: The detail has `open` and `source`.
+- `mpr-dropdown:section-toggle`: The detail has `sectionId` and `expanded`.
+- `mpr-dropdown:link-click`: The detail identifies the section, link index, and normalized link.
+- `mpr-dropdown:error`: The detail has the stable error `code` and `message`.
+
+### Example
+
+```html
+<mpr-dropdown
+  menu='{
+    "label": "Explore",
+    "placement": "bottom",
+    "sections": [
+      {
+        "id": "platform",
+        "label": "Platform",
+        "mode": "static",
+        "links": [{ "label": "Docs", "href": "/docs" }]
+      },
+      {
+        "id": "tools",
+        "label": "Tools",
+        "mode": "collapsed",
+        "links": [{ "label": "MPR UI", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui", "target": "_blank" }]
+      }
+    ]
+  }'
+></mpr-dropdown>
+```
+
 ## mpr-footer
 
 The footer renders product links, privacy links, and an optional theme switch.
 
 ### Common attributes used by LoopAware
-- `links-collection`: JSON string containing link text, style, and URLs.
+- `menu`: Sectioned dropdown JSON. It uses the `<mpr-dropdown>` schema and requires `placement: "top"` in a footer.
 - `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders an inline utility link list inside the same row as the other footer controls.
 - `privacy-link-href`: URL for the privacy page.
 - `privacy-link-label`: Label for the privacy link.
@@ -284,7 +328,18 @@ The footer renders product links, privacy links, and an optional theme switch.
       { "label": "GitHub", "href": "https://github.com/MarcoPoloResearchLab", "target": "_blank" }
     ]
   }'
-  links-collection='{"style":"drop-up","text":"LoopAware","links":[{"label":"LoopAware","url":"https://loopaware.mprlab.com"}]}'
+  menu='{
+    "label": "Explore",
+    "placement": "top",
+    "sections": [
+      {
+        "id": "products",
+        "label": "Products",
+        "mode": "expanded",
+        "links": [{ "label": "LoopAware", "href": "https://loopaware.mprlab.com" }]
+      }
+    ]
+  }'
   theme-switcher="toggle"
   theme-config='{"attribute":"data-bs-theme","modes":["light","dark"],"initialMode":"dark"}'
   sticky="false"
