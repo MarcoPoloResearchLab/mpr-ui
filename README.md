@@ -12,7 +12,7 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
 ## Integration Principles
 
 - One path: serve `/config-ui.yaml`, point the auth-owning `<mpr-header>` or `<mpr-login-button>` at it with `data-config-url`, and let `mpr-ui-config.js` apply one validated `auth-config` provider map before the bundle boots.
-- DSL first: configure shell structure and appearance through `<mpr-*>` attributes, slots, `horizontal-links`, `links-collection`, `theme-switcher`, and `theme-config`.
+- DSL first: configure shell structure and appearance through `<mpr-*>` attributes, slots, `horizontal-links`, `menu`, `theme-switcher`, and `theme-config`.
 - Backend owns config: your app owns `/config-ui.yaml` plus the browser-facing auth routes; `mpr-ui` owns shell bootstrap, Google credential exchange, Apple redirect initiation, and auth lifecycle events.
 - Shared protected requests: app code waits for authenticated state and sends protected requests through `MPRUI.authenticatedFetch()`.
 - No alternate paths in normal integrations: do not load `tauth.js`, do not hand-wire `tauth-*` attributes in templates, and do not style `mpr-ui` internals from local CSS.
@@ -126,7 +126,18 @@ Web components for Marco Polo Research Lab projects, delivered as a single CDN-h
          { "label": "GitHub", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui", "target": "_blank" }
        ]
      }'
-     links-collection='{"style":"drop-up","text":"Explore","links":[{ "label": "Docs", "url": "#docs" }]}'
+     menu='{
+       "label": "Explore",
+       "placement": "top",
+       "sections": [
+         {
+           "id": "platform",
+           "label": "Platform",
+           "mode": "static",
+           "links": [{ "label": "Docs", "href": "#docs" }]
+         }
+       ]
+     }'
      theme-switcher="square"
    ></mpr-footer>
    ```
@@ -403,13 +414,42 @@ The tags above replace the retired imperative helpers. See the example below for
       { "label": "GitHub", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui", "target": "_blank" }
     ]
   }'
-  links-collection='{"style":"drop-up","text":"Built by Marco Polo Research Lab","links":[{ "label": "Docs", "url": "#docs" }]}'
+  menu='{
+    "label": "Explore",
+    "placement": "top",
+    "sections": [
+      {
+        "id": "platform",
+        "label": "Platform",
+        "mode": "static",
+        "links": [{ "label": "Docs", "href": "#docs" }]
+      },
+      {
+        "id": "tools",
+        "label": "Tools",
+        "mode": "collapsed",
+        "links": [{ "label": "MPR Lab", "href": "https://mprlab.com", "target": "_blank" }]
+      }
+    ]
+  }'
 >
   <span slot="menu-prefix">Explore</span>
-  <a slot="menu-links" href="https://mprlab.com" target="_blank" rel="noopener noreferrer">
-    Visit mprlab.com
-  </a>
 </mpr-footer>
+
+<mpr-dropdown
+  menu='{
+    "label": "Resources",
+    "placement": "bottom",
+    "sections": [
+      {
+        "id": "products",
+        "label": "Products",
+        "mode": "expanded",
+        "links": [{ "label": "LoopAware", "href": "https://loopaware.mprlab.com" }]
+      }
+    ]
+  }'
+></mpr-dropdown>
 
 <mpr-theme-toggle theme-config='{"initialMode":"light"}'></mpr-theme-toggle>
 
@@ -458,7 +498,8 @@ The tags above replace the retired imperative helpers. See the example below for
 | Element | Primary attributes | Slots | Key events |
 | --- | --- | --- | --- |
 | `<mpr-header>` | `auth-config`, `brand-label`, `nav-links`, `horizontal-links` (JSON object with `{ alignment, links }`), `auth-transition` (JSON object with `{ title, message, completionEvent }`), `sign-in-redirect-url`, `logout-url`, `user-menu-display-mode`, `user-menu-avatar-url`, `user-menu-avatar-label`, `theme-config`, `settings-label`, `settings`, `sign-out-label`, `size`, `sticky` | `brand`, `nav-left`, `nav-right`, `aux` | `mpr-ui:auth:*`, `mpr-ui:auth:status-change`, `mpr-ui:header:update`, `mpr-ui:header:settings-click`, `mpr-ui:theme-change` |
-| `<mpr-footer>` | `prefix-text`, `horizontal-links` (JSON object with `{ alignment, links }`), `links-collection` (JSON with `{ style, text, links }`), `toggle-label`, `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-switcher`, `theme-config`, `size`, `sticky`, dataset-driven class overrides | `menu-prefix`, `menu-links`, `legal` | `mpr-footer:theme-change` |
+| `<mpr-footer>` | `prefix-text`, `horizontal-links` (JSON object with `{ alignment, links }`), `menu` (sectioned dropdown JSON with `placement: "top"`), `privacy-link-label`, `privacy-link-href`, `privacy-modal-content`, `theme-switcher`, `theme-config`, `size`, `sticky`, dataset-driven class overrides | `menu-prefix`, `legal` | `mpr-footer:theme-change` |
+| `<mpr-dropdown>` | `menu` (JSON object with `{ label, placement, sections }`) | — | `mpr-dropdown:toggle`, `mpr-dropdown:section-toggle`, `mpr-dropdown:link-click`, `mpr-dropdown:error` |
 | `<mpr-theme-toggle>` | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config` | — | `mpr-ui:theme-change` |
 | `<mpr-login-button>` | `auth-config`, `button-text`, `button-size`, `button-theme`, `button-shape` | — | `mpr-ui:auth:*`, `mpr-login:error` |
 | `<mpr-auth-diagnostics>` | `auth-target` | — | `mpr-auth-diagnostics:error` |
@@ -486,7 +527,7 @@ Auth components allow provider-map updates that keep the tenant fixed. Create a 
 Slots let you inject custom markup without leaving declarative mode:
 
 - Header slots: `brand`, `nav-left`, `nav-right`, `aux`
-- Footer slots: `menu-prefix`, `menu-links`, `legal`
+- Footer slots: `menu-prefix`, `legal`
 - Login button inherits the global `mpr-ui:auth:*` events dispatched by `createAuthHeader` and emits `mpr-login:error` when GIS cannot load, so you can listen for authentication without writing any extra glue.
 - Auth provider chooser requires an explicit ordered `providers` JSON array. Use `variant="icon-row"` for horizontal square icon buttons; when `email` is selected it expands the email form in place and submit/mode events intentionally omit raw email and password values.
 
