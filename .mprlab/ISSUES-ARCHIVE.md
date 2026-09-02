@@ -6,6 +6,39 @@ Archived 2026-09-01 by M400R.
 
 ## BugFixes
 
+- [x] [B056] (P1) Four-mode demo footers show a two-position switch.
+  Goal:
+  Each demo footer supplies one selectable point for each configured theme mode.
+
+  Expected:
+  Each footer with four theme modes renders the square four-point control.
+
+  Actual:
+  Five demo footers request the binary toggle control. The control makes only two of the four configured modes selectable.
+
+  Requirements:
+  - Use `theme-switcher="square"` on each demo footer that configures four theme modes.
+  - Preserve the configured theme mode order.
+  - Preserve the compact footer control scale.
+  - Preserve the binary toggle examples that configure two theme modes.
+  - Verify four enabled points on each affected demo route.
+
+  Deliverables:
+  - Update the five affected demo footers.
+  - Add browser acceptance coverage for the four-point control.
+
+  Validation:
+  - Verify the five affected demo routes at desktop and phone widths.
+  - Verify each control has four enabled points.
+  - Verify each point selects its configured theme mode.
+  - Run `make ci` after the final source and test changes.
+
+  Resolution:
+  The five demo footers now use the square control. Each control shows four points for the four configured theme modes.
+
+  Validation result:
+  The focused browser run passed 23 tests. The headed browser check showed the four-point control without browser errors. `make ci` passed 204 unit tests and two browser runs of 124 tests.
+
 - [x] [B055] (P1) Header provider controls use different border colors.
   Goal:
   All header provider controls use one border treatment.

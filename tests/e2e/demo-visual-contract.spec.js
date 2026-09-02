@@ -49,6 +49,24 @@ const VIEWPORTS = Object.freeze([
   Object.freeze({ name: 'phone', width: 390, height: 844 }),
 ]);
 
+const FOUR_MODE_FOOTER_ROUTES = Object.freeze([
+  Object.freeze({ name: 'demo hub', path: '/' }),
+  Object.freeze({ name: 'provider chooser', path: '/demo/auth-provider-chooser.html' }),
+  Object.freeze({ name: 'TAuth flow', path: '/demo/tauth-demo.html' }),
+  Object.freeze({ name: 'standalone auth', path: '/demo/standalone.html' }),
+  Object.freeze({
+    name: 'entity workspace',
+    path: '/demo/entity-workspace.html?entity-demo-docker=2',
+  }),
+]);
+
+const FOUR_POINT_SELECTIONS = Object.freeze([
+  Object.freeze({ mode: 'default-light', xRatio: 0.25, yRatio: 0.25 }),
+  Object.freeze({ mode: 'sunrise-light', xRatio: 0.75, yRatio: 0.25 }),
+  Object.freeze({ mode: 'default-dark', xRatio: 0.25, yRatio: 0.75 }),
+  Object.freeze({ mode: 'forest-dark', xRatio: 0.75, yRatio: 0.75 }),
+]);
+
 test.describe('F010: public demos keep the compact MPR visual contract', () => {
   for (const demoRoute of DEMO_ROUTES) {
     for (const viewport of VIEWPORTS) {
@@ -202,4 +220,54 @@ test.describe('F010: public demos keep the compact MPR visual contract', () => {
       drawerMetrics.viewportWidth + MAX_DOCUMENT_OVERFLOW_PIXELS,
     );
   });
+});
+
+test.describe('B056: four-mode demo footers use four-point controls', () => {
+  for (const demoRoute of FOUR_MODE_FOOTER_ROUTES) {
+    for (const viewport of VIEWPORTS) {
+      test(`${demoRoute.name} exposes four points at ${viewport.name} width`, async ({ page }) => {
+        await page.setViewportSize(viewport);
+        await page.goto(`${DEMO_BASE_URL}${demoRoute.path}`, {
+          waitUntil: 'domcontentloaded',
+        });
+        await page.waitForFunction(() => Boolean(customElements.get('mpr-footer')));
+
+        const toggleHost = page.locator(
+          'mpr-footer [data-mpr-footer="theme-toggle"]',
+        );
+        const control = toggleHost.locator(
+          'button[data-mpr-theme-toggle="control"][data-variant="square"]',
+        );
+        const grid = control.locator('[data-mpr-theme-toggle="grid"]');
+        const points = grid.locator('[data-mpr-theme-toggle="quad"]');
+
+        await expect(toggleHost).toHaveAttribute(
+          'data-mpr-theme-toggle-variant',
+          'square',
+        );
+        await expect(control).toBeVisible();
+        await expect(points).toHaveCount(4);
+        for (const point of await points.all()) {
+          await expect(point).toHaveAttribute('data-quad-enabled', 'true');
+        }
+
+        await control.scrollIntoViewIfNeeded();
+        const controlBox = await control.boundingBox();
+        const gridBox = await grid.boundingBox();
+        if (!controlBox || !gridBox) {
+          throw new Error('B056: four-point control geometry is unavailable');
+        }
+
+        for (const selection of FOUR_POINT_SELECTIONS) {
+          await control.click({
+            position: {
+              x: gridBox.x - controlBox.x + gridBox.width * selection.xRatio,
+              y: gridBox.y - controlBox.y + gridBox.height * selection.yRatio,
+            },
+          });
+          await expect(control).toHaveAttribute('data-square-mode', selection.mode);
+        }
+      });
+    }
+  }
 });
