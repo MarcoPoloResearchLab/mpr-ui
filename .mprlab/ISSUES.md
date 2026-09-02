@@ -254,7 +254,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 
 
-- [ ] [F009] (P1) Add a reusable custom element that puts menu links into sections.
+- [x] [F009] (P1) Add a reusable custom element that puts menu links into sections.
   Goal:
   A reusable `<mpr-dropdown>` supplies link menu sections. `<mpr-footer>` uses this element as an upward menu for site links.
 

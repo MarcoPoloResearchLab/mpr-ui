@@ -81,6 +81,8 @@ Add repository-specific technical nouns below this line.
 
 ```text
 - `authenticated fetch`: The `MPRUI.authenticatedFetch()` API that sends a protected request and coordinates TAuth session recovery.
+- `disclosure button`: A button that expands or collapses one dropdown menu section.
+- `dropdown menu`: A custom element that shows sectioned links above or below its trigger.
 - `generation record`: A local storage record that identifies the result of one completed session recovery operation.
 - `mutation replay`: A second request for a mutation after TAuth confirms a renewed session.
 - `single-flight recovery`: One shared session recovery operation for concurrent protected requests.
