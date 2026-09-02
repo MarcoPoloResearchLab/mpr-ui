@@ -374,6 +374,11 @@
    * }} NormalizedProviderActionOptions
    * @typedef {"stack"|"icon-row"} AuthProviderChooserVariant
    * @typedef {{ providers: readonly AuthProviderId[], variant: AuthProviderChooserVariant }} AuthProviderChooserOptions
+   * @typedef {"top"|"bottom"} DropdownPlacement
+   * @typedef {"static"|"expanded"|"collapsed"} DropdownSectionMode
+   * @typedef {{ label: string, href: string, target: string, rel: string }} DropdownLink
+   * @typedef {{ id: string, label: string, mode: DropdownSectionMode, links: readonly DropdownLink[] }} DropdownSection
+   * @typedef {{ label: string, placement: DropdownPlacement, sections: readonly DropdownSection[] }} DropdownMenu
    * @typedef {{
    *   mutationReplay?: "authorization-before-domain-work",
    * }} AuthenticatedFetchPolicy
@@ -1643,7 +1648,7 @@
   var LEGACY_DSL_CONFIG_ERROR_CODE = "mpr-ui.dsl.legacy_config";
   var LEGACY_DSL_THEME_MODE_REPLACEMENT = '"theme-config" with "initialMode"';
   var LEGACY_DSL_SETTINGS_REPLACEMENT = '"settings"';
-  var LEGACY_DSL_LINKS_REPLACEMENT = '"links-collection"';
+  var LEGACY_DSL_LINKS_REPLACEMENT = '"menu"';
   var LEGACY_DSL_THEME_VARIANT_REPLACEMENT =
     '"themeToggle.variant" or "theme-switcher"';
   var HORIZONTAL_LINKS_ALIGNMENT_ERROR_CODE =
@@ -1848,14 +1853,8 @@
     "inner-class": "innerClass",
     "wrapper-class": "wrapperClass",
     "brand-wrapper-class": "brandWrapperClass",
-    "menu-wrapper-class": "menuWrapperClass",
     "prefix-class": "prefixClass",
     "prefix-text": "prefixText",
-    "toggle-button-id": "toggleButtonId",
-    "toggle-button-class": "toggleButtonClass",
-    "toggle-label": "toggleLabel",
-    "menu-class": "menuClass",
-    "menu-item-class": "menuItemClass",
     "horizontal-links": "horizontalLinks",
     "privacy-link-class": "privacyLinkClass",
     "privacy-link-href": "privacyLinkHref",
@@ -1864,7 +1863,7 @@
     "privacy-modal-content": "privacyModalContent",
     "theme-config": "themeToggle",
     "theme-switcher": "themeSwitcher",
-    "links-collection": "linksCollection",
+    menu: "menu",
     sticky: "sticky",
     size: "size",
   });
@@ -1874,7 +1873,8 @@
   );
 
   var HEADER_SLOT_NAMES = Object.freeze(["brand", "nav-left", "nav-right", "aux"]);
-  var FOOTER_SLOT_NAMES = Object.freeze(["menu-prefix", "menu-links", "legal"]);
+  var FOOTER_SLOT_NAMES = Object.freeze(["menu-prefix", "legal"]);
+  var DROPDOWN_ATTRIBUTE_NAMES = Object.freeze(["menu"]);
   var THEME_TOGGLE_ATTRIBUTE_NAMES = Object.freeze([
     "variant",
     "label",
@@ -2264,13 +2264,24 @@
   }
 
   function buildFooterOptionsFromAttributes(hostElement) {
-    if (hasAttributeValue(hostElement, "links")) {
-      logLegacyAttribute(
-        "<mpr-footer>",
-        "links",
-        LEGACY_DSL_LINKS_REPLACEMENT,
-      );
-    }
+    [
+      "links",
+      "links-collection",
+      "menu-wrapper-class",
+      "toggle-button-id",
+      "toggle-button-class",
+      "toggle-label",
+      "menu-class",
+      "menu-item-class",
+    ].forEach(function reportObsoleteFooterMenuAttribute(attributeName) {
+      if (hasAttributeValue(hostElement, attributeName)) {
+        logLegacyAttribute(
+          "<mpr-footer>",
+          attributeName,
+          LEGACY_DSL_LINKS_REPLACEMENT,
+        );
+      }
+    });
     if (hasAttributeValue(hostElement, "theme-mode")) {
       logLegacyAttribute(
         "<mpr-footer>",
@@ -9844,13 +9855,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     '.mpr-footer__spacer{display:block;flex:1 1 auto;min-width:1px}' +
     'footer.mpr-footer [data-mpr-footer="brand"]{display:flex;flex-wrap:nowrap;align-items:center;gap:calc(0.75rem * var(--mpr-footer-scale,1));font-size:calc(0.95rem * var(--mpr-footer-scale,1));margin-left:auto;white-space:nowrap}' +
     '.mpr-footer__prefix{font-weight:600;color:var(--mpr-color-accent,#38bdf8)}' +
-    '.mpr-footer__menu-wrapper{position:relative}' +
-    '.mpr-footer__menu-button{background:var(--mpr-chip-bg,rgba(148,163,184,0.18));color:var(--mpr-color-text-primary,#e2e8f0);border:none;border-radius:999px;padding:calc(0.35rem * var(--mpr-footer-scale,1)) calc(0.85rem * var(--mpr-footer-scale,1));font-weight:600;font-size:calc(0.85rem * var(--mpr-footer-scale,1));cursor:pointer}' +
-    '.mpr-footer__menu-button:hover{background:var(--mpr-chip-hover-bg,rgba(148,163,184,0.32))}' +
-    '.mpr-footer__menu{list-style:none;margin:0;padding:calc(0.5rem * var(--mpr-footer-scale,1)) 0;position:absolute;bottom:calc(100% + (8px * var(--mpr-footer-scale,1)));right:0;min-width:calc(220px * var(--mpr-footer-scale,1));background:var(--mpr-color-surface-elevated,rgba(15,23,42,0.98));border-radius:0.75rem;border:1px solid var(--mpr-color-border,rgba(148,163,184,0.25));box-shadow:var(--mpr-shadow-flyout,0 12px 24px rgba(15,23,42,0.45));display:none}' +
-    '.mpr-footer__menu--open{display:block}' +
-    '.mpr-footer__menu-item{display:block;padding:calc(0.5rem * var(--mpr-footer-scale,1)) calc(0.9rem * var(--mpr-footer-scale,1));color:var(--mpr-color-text-primary,#e2e8f0);text-decoration:none;font-weight:500;font-size:calc(1rem * var(--mpr-footer-scale,1))}' +
-    '.mpr-footer__menu-item:hover{background:var(--mpr-menu-hover-bg,rgba(148,163,184,0.25))}' +
     '.mpr-footer__privacy{color:var(--mpr-color-text-muted,#cbd5f5);text-decoration:none;font-size:calc(0.85rem * var(--mpr-footer-scale,1))}' +
     '.mpr-footer__privacy:hover{text-decoration:underline}' +
     'footer.mpr-footer [data-mpr-footer="theme-toggle"]{display:inline-flex;align-items:center;gap:calc(0.6rem * var(--mpr-footer-scale,1));background:transparent;border-radius:0;padding:0;color:var(--mpr-color-text-primary,#e2e8f0);font-size:calc(0.85rem * var(--mpr-footer-scale,1));cursor:pointer;box-shadow:none;border:none}' +
@@ -13449,6 +13453,745 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     };
   }
 
+  var DROPDOWN_ROOT_CLASS = "mpr-dropdown";
+  var DROPDOWN_STYLE_ID = "mpr-ui-dropdown-styles";
+  var DROPDOWN_ERROR_CODES = Object.freeze({
+    REQUIRED: "mpr-ui.dropdown.menu_required",
+    INVALID_JSON: "mpr-ui.dropdown.menu_invalid_json",
+    UNKNOWN_KEY: "mpr-ui.dropdown.menu_unknown_key",
+    VALUE_REQUIRED: "mpr-ui.dropdown.menu_value_required",
+    VALUE_INVALID: "mpr-ui.dropdown.menu_value_invalid",
+    DUPLICATE_SECTION_ID: "mpr-ui.dropdown.section_id_duplicate",
+  });
+  var DROPDOWN_MENU_KEYS = Object.freeze(["label", "placement", "sections"]);
+  var DROPDOWN_SECTION_KEYS = Object.freeze(["id", "label", "mode", "links"]);
+  var DROPDOWN_LINK_KEYS = Object.freeze(["label", "href", "target", "rel"]);
+  var DROPDOWN_PLACEMENTS = Object.freeze(["top", "bottom"]);
+  var DROPDOWN_SECTION_MODES = Object.freeze(["static", "expanded", "collapsed"]);
+  var DROPDOWN_SECTION_ID_PATTERN = /^[A-Za-z][A-Za-z0-9_-]*$/;
+  var DROPDOWN_LINK_DEFAULT_REL = "noopener noreferrer";
+  var DROPDOWN_VIEWPORT_MARGIN_PIXELS = 8;
+  var DROPDOWN_VIEWPORT_OFFSET_PROPERTY = "--mpr-dropdown-viewport-offset-x";
+  var DROPDOWN_STYLE_MARKUP =
+    "mpr-dropdown{position:relative;display:inline-block;white-space:normal}" +
+    ".mpr-dropdown__trigger{display:inline-flex;align-items:center;justify-content:center;gap:0.45rem;background:var(--mpr-chip-bg,rgba(148,163,184,0.18));color:var(--mpr-color-text-primary,#e2e8f0);border:0;border-radius:999px;padding:calc(0.35rem * var(--mpr-footer-scale,1)) calc(0.85rem * var(--mpr-footer-scale,1));font:inherit;font-weight:600;font-size:calc(0.85rem * var(--mpr-footer-scale,1));cursor:pointer}" +
+    ".mpr-dropdown__trigger:hover,.mpr-dropdown__trigger:focus-visible{background:var(--mpr-chip-hover-bg,rgba(148,163,184,0.32));outline:2px solid transparent}" +
+    ".mpr-dropdown__indicator{font-size:0.75em;line-height:1;transition:transform 0.16s ease}" +
+    'mpr-dropdown[data-mpr-dropdown-open="true"] .mpr-dropdown__indicator{transform:rotate(180deg)}' +
+    ".mpr-dropdown__panel{position:absolute;inset-inline-end:0;z-index:20;display:flex;flex-direction:column;gap:0.35rem;box-sizing:border-box;inline-size:max-content;min-inline-size:min(20rem,calc(100vw - 2rem));max-inline-size:min(28rem,calc(100vw - 2rem));max-block-size:min(70vh,32rem);overflow:auto;padding:0.6rem;transform:translateX(var(--mpr-dropdown-viewport-offset-x,0));background:var(--mpr-color-surface-elevated,rgba(15,23,42,0.98));color:var(--mpr-color-text-primary,#e2e8f0);border:1px solid var(--mpr-color-border,rgba(148,163,184,0.25));border-radius:0.85rem;box-shadow:var(--mpr-shadow-flyout,0 12px 24px rgba(15,23,42,0.45))}" +
+    'mpr-dropdown[data-mpr-dropdown-placement="top"] .mpr-dropdown__panel{bottom:calc(100% + 0.5rem)}' +
+    'mpr-dropdown[data-mpr-dropdown-placement="bottom"] .mpr-dropdown__panel{top:calc(100% + 0.5rem)}' +
+    ".mpr-dropdown__panel[hidden],.mpr-dropdown__links[hidden]{display:none}" +
+    ".mpr-dropdown__section{display:flex;flex-direction:column;gap:0.2rem}" +
+    ".mpr-dropdown__section+.mpr-dropdown__section{border-top:1px solid var(--mpr-color-border,rgba(148,163,184,0.2));padding-top:0.35rem}" +
+    ".mpr-dropdown__heading,.mpr-dropdown__section-button{margin:0;padding:0.45rem 0.55rem;color:var(--mpr-color-text-muted,#cbd5f5);font:inherit;font-size:0.78rem;font-weight:700;letter-spacing:0.06em;text-align:start;text-transform:uppercase}" +
+    ".mpr-dropdown__section-button{display:flex;inline-size:100%;align-items:center;justify-content:space-between;border:0;border-radius:0.5rem;background:transparent;cursor:pointer}" +
+    ".mpr-dropdown__section-button:hover,.mpr-dropdown__section-button:focus-visible{background:var(--mpr-menu-hover-bg,rgba(148,163,184,0.18));color:var(--mpr-color-text-primary,#e2e8f0);outline:2px solid transparent}" +
+    ".mpr-dropdown__section-indicator{font-size:0.8rem;transition:transform 0.16s ease}" +
+    '.mpr-dropdown__section-button[aria-expanded="true"] .mpr-dropdown__section-indicator{transform:rotate(180deg)}' +
+    ".mpr-dropdown__links{display:flex;flex-direction:column;gap:0.1rem;list-style:none;margin:0;padding:0}" +
+    ".mpr-dropdown__link{display:block;padding:0.5rem 0.65rem;border-radius:0.55rem;color:var(--mpr-color-text-primary,#e2e8f0);font-weight:500;font-size:calc(0.95rem * var(--mpr-footer-scale,1));text-decoration:none}" +
+    ".mpr-dropdown__link:hover,.mpr-dropdown__link:focus-visible{background:var(--mpr-menu-hover-bg,rgba(148,163,184,0.25));outline:2px solid transparent}" +
+    "@media (max-width:32rem){.mpr-dropdown__panel{min-inline-size:min(18rem,calc(100vw - 1rem));max-inline-size:calc(100vw - 1rem);max-block-size:60vh}}";
+  var dropdownInstanceCounter = 0;
+
+  /**
+   * @param {string} code
+   * @param {string} message
+   * @returns {MprUiError}
+   */
+  function createDropdownError(code, message) {
+    /** @type {MprUiError} */
+    var error = new Error(message);
+    error.code = code;
+    return error;
+  }
+
+  function assertDropdownKeys(candidate, allowedKeys, subject) {
+    Object.keys(candidate).forEach(function validateDropdownKey(key) {
+      if (allowedKeys.indexOf(key) === -1) {
+        throw createDropdownError(
+          DROPDOWN_ERROR_CODES.UNKNOWN_KEY,
+          subject + ' contains the unknown field "' + key + '"',
+        );
+      }
+    });
+  }
+
+  function requireDropdownString(value, subject) {
+    if (typeof value !== "string" || !value.trim()) {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.VALUE_REQUIRED,
+        subject + " is required",
+      );
+    }
+    return value.trim();
+  }
+
+  function normalizeDropdownLink(candidateLink, sectionId, linkIndex) {
+    var subject = 'Dropdown link "' + sectionId + '"[' + String(linkIndex) + "]";
+    if (!candidateLink || typeof candidateLink !== "object" || Array.isArray(candidateLink)) {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.VALUE_INVALID,
+        subject + " must be an object",
+      );
+    }
+    assertDropdownKeys(candidateLink, DROPDOWN_LINK_KEYS, subject);
+    var label = requireDropdownString(candidateLink.label, subject + ".label");
+    var rawHref = requireDropdownString(candidateLink.href, subject + ".href");
+    var href = sanitizeHref(rawHref);
+    if (href === "#" && rawHref !== "#") {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.VALUE_INVALID,
+        subject + ".href uses an unsupported protocol",
+      );
+    }
+    if (
+      candidateLink.target !== undefined &&
+      typeof candidateLink.target !== "string"
+    ) {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.VALUE_INVALID,
+        subject + ".target must be a string",
+      );
+    }
+    if (candidateLink.rel !== undefined && typeof candidateLink.rel !== "string") {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.VALUE_INVALID,
+        subject + ".rel must be a string",
+      );
+    }
+    var target = typeof candidateLink.target === "string"
+      ? candidateLink.target.trim()
+      : "";
+    var rel = typeof candidateLink.rel === "string" ? candidateLink.rel.trim() : "";
+    if (target === "_blank" && !rel) {
+      rel = DROPDOWN_LINK_DEFAULT_REL;
+    }
+    return Object.freeze({
+      label: label,
+      href: href,
+      target: target,
+      rel: rel,
+    });
+  }
+
+  function normalizeDropdownSection(candidateSection, sectionIndex, sectionIds) {
+    var subject = "Dropdown section[" + String(sectionIndex) + "]";
+    if (
+      !candidateSection ||
+      typeof candidateSection !== "object" ||
+      Array.isArray(candidateSection)
+    ) {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.VALUE_INVALID,
+        subject + " must be an object",
+      );
+    }
+    assertDropdownKeys(candidateSection, DROPDOWN_SECTION_KEYS, subject);
+    var sectionId = requireDropdownString(candidateSection.id, subject + ".id");
+    if (!DROPDOWN_SECTION_ID_PATTERN.test(sectionId)) {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.VALUE_INVALID,
+        subject + ".id is invalid",
+      );
+    }
+    if (sectionIds[sectionId]) {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.DUPLICATE_SECTION_ID,
+        'Dropdown section ID "' + sectionId + '" is not unique',
+      );
+    }
+    sectionIds[sectionId] = true;
+    var label = requireDropdownString(candidateSection.label, subject + ".label");
+    var mode = requireDropdownString(candidateSection.mode, subject + ".mode").toLowerCase();
+    if (DROPDOWN_SECTION_MODES.indexOf(mode) === -1) {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.VALUE_INVALID,
+        subject + ".mode is invalid",
+      );
+    }
+    if (!Array.isArray(candidateSection.links) || candidateSection.links.length === 0) {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.VALUE_REQUIRED,
+        subject + ".links must contain one or more links",
+      );
+    }
+    var links = candidateSection.links.map(function normalizeSectionLink(link, linkIndex) {
+      return normalizeDropdownLink(link, sectionId, linkIndex);
+    });
+    return Object.freeze({
+      id: sectionId,
+      label: label,
+      mode: /** @type {DropdownSectionMode} */ (mode),
+      links: Object.freeze(links),
+    });
+  }
+
+  /**
+   * @param {unknown} candidateMenu
+   * @returns {DropdownMenu}
+   */
+  function normalizeDropdownMenu(candidateMenu) {
+    if (!candidateMenu || typeof candidateMenu !== "object" || Array.isArray(candidateMenu)) {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.VALUE_INVALID,
+        "Dropdown menu must be an object",
+      );
+    }
+    var menuObject = /** @type {{ label?: unknown, placement?: unknown, sections?: unknown }} */ (
+      candidateMenu
+    );
+    assertDropdownKeys(menuObject, DROPDOWN_MENU_KEYS, "Dropdown menu");
+    var label = requireDropdownString(menuObject.label, "Dropdown menu.label");
+    var placement = requireDropdownString(
+      menuObject.placement,
+      "Dropdown menu.placement",
+    ).toLowerCase();
+    if (DROPDOWN_PLACEMENTS.indexOf(placement) === -1) {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.VALUE_INVALID,
+        "Dropdown menu.placement is invalid",
+      );
+    }
+    if (!Array.isArray(menuObject.sections) || menuObject.sections.length === 0) {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.VALUE_REQUIRED,
+        "Dropdown menu.sections must contain one or more sections",
+      );
+    }
+    var sectionIds = Object.create(null);
+    var sections = menuObject.sections.map(function normalizeMenuSection(
+      section,
+      sectionIndex,
+    ) {
+      return normalizeDropdownSection(section, sectionIndex, sectionIds);
+    });
+    return Object.freeze({
+      label: label,
+      placement: /** @type {DropdownPlacement} */ (placement),
+      sections: Object.freeze(sections),
+    });
+  }
+
+  function parseDropdownMenuValue(rawValue) {
+    if (rawValue === null || rawValue === undefined || rawValue === "") {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.REQUIRED,
+        "The dropdown menu is required",
+      );
+    }
+    if (rawValue && typeof rawValue === "object") {
+      return normalizeDropdownMenu(rawValue);
+    }
+    if (typeof rawValue !== "string") {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.VALUE_INVALID,
+        "The dropdown menu must be JSON",
+      );
+    }
+    var parsedMenu;
+    try {
+      parsedMenu = JSON.parse(rawValue);
+    } catch (_error) {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.INVALID_JSON,
+        "The dropdown menu contains invalid JSON",
+      );
+    }
+    return normalizeDropdownMenu(parsedMenu);
+  }
+
+  function ensureDropdownStyles(documentObject) {
+    if (
+      !documentObject ||
+      typeof documentObject.createElement !== "function" ||
+      !documentObject.head
+    ) {
+      return;
+    }
+    ensureThemeTokenStyles(documentObject);
+    if (documentObject.getElementById(DROPDOWN_STYLE_ID)) {
+      return;
+    }
+    var styleElement = documentObject.createElement("style");
+    styleElement.type = "text/css";
+    styleElement.id = DROPDOWN_STYLE_ID;
+    if (styleElement.styleSheet) {
+      styleElement.styleSheet.cssText = DROPDOWN_STYLE_MARKUP;
+    } else {
+      styleElement.appendChild(documentObject.createTextNode(DROPDOWN_STYLE_MARKUP));
+    }
+    documentObject.head.appendChild(styleElement);
+  }
+
+  function createDropdownDomId() {
+    dropdownInstanceCounter += 1;
+    return "mpr-dropdown-" + String(dropdownInstanceCounter);
+  }
+
+  function buildDropdownLinkAttributes(link) {
+    var attributes = ' href="' + escapeHtml(link.href) + '"';
+    if (link.target) {
+      attributes += ' target="' + escapeHtml(link.target) + '"';
+    }
+    if (link.rel) {
+      attributes += ' rel="' + escapeHtml(link.rel) + '"';
+    }
+    return attributes;
+  }
+
+  function buildDropdownSectionMarkup(section, dropdownId) {
+    var sectionLabelId = dropdownId + "-section-" + section.id + "-label";
+    var sectionContentId = dropdownId + "-section-" + section.id + "-links";
+    var linksMarkup = section.links
+      .map(function renderDropdownLink(link, linkIndex) {
+        return (
+          '<li><a class="mpr-dropdown__link" data-mpr-dropdown="link" data-mpr-dropdown-section-id="' +
+          escapeHtml(section.id) +
+          '" data-mpr-dropdown-link-index="' +
+          String(linkIndex) +
+          '"' +
+          buildDropdownLinkAttributes(link) +
+          ">" +
+          escapeHtml(link.label) +
+          "</a></li>"
+        );
+      })
+      .join("");
+    var labelMarkup = section.mode === "static"
+      ? '<div class="mpr-dropdown__heading" id="' +
+        sectionLabelId +
+        '" role="heading" aria-level="2">' +
+        escapeHtml(section.label) +
+        "</div>"
+      : '<button class="mpr-dropdown__section-button" type="button" data-mpr-dropdown="section-trigger" data-mpr-dropdown-section-id="' +
+        escapeHtml(section.id) +
+        '" id="' +
+        sectionLabelId +
+        '" aria-controls="' +
+        sectionContentId +
+        '" aria-expanded="' +
+        (section.mode === "expanded" ? "true" : "false") +
+        '"><span>' +
+        escapeHtml(section.label) +
+        '</span><span class="mpr-dropdown__section-indicator" aria-hidden="true">⌃</span></button>';
+    return (
+      '<div class="mpr-dropdown__section" data-mpr-dropdown="section" data-mpr-dropdown-section-id="' +
+      escapeHtml(section.id) +
+      '" role="group" aria-labelledby="' +
+      sectionLabelId +
+      '">' +
+      labelMarkup +
+      '<ul class="mpr-dropdown__links" data-mpr-dropdown="section-links" data-mpr-dropdown-section-id="' +
+      escapeHtml(section.id) +
+      '" id="' +
+      sectionContentId +
+      '"' +
+      (section.mode === "collapsed" ? ' hidden="hidden"' : "") +
+      ">" +
+      linksMarkup +
+      "</ul></div>"
+    );
+  }
+
+  function buildDropdownMarkup(menu, dropdownId) {
+    var panelId = dropdownId + "-panel";
+    return (
+      '<button class="mpr-dropdown__trigger" type="button" data-mpr-dropdown="trigger" aria-haspopup="true" aria-controls="' +
+      panelId +
+      '" aria-expanded="false"><span>' +
+      escapeHtml(menu.label) +
+      '</span><span class="mpr-dropdown__indicator" aria-hidden="true">⌃</span></button>' +
+      '<nav class="mpr-dropdown__panel" data-mpr-dropdown="panel" id="' +
+      panelId +
+      '" aria-label="' +
+      escapeHtml(menu.label) +
+      '" hidden="hidden">' +
+      menu.sections
+        .map(function renderDropdownSection(section) {
+          return buildDropdownSectionMarkup(section, dropdownId);
+        })
+        .join("") +
+      "</nav>"
+    );
+  }
+
+  /**
+   * Registers the reusable sectioned link menu custom element.
+   * @param {object} registry
+   * @returns {void}
+   */
+  function defineDropdownElement(registry) {
+    registry.define("mpr-dropdown", function setupDropdownElement(Base) {
+      return class MprDropdownElement extends Base {
+        constructor() {
+          super();
+          this.__dropdownId = createDropdownDomId();
+          this.__dropdownMenu = null;
+          this.__dropdownOpen = false;
+          this.__dropdownSectionState = Object.create(null);
+          this.__dropdownListeners = [];
+          this.__dropdownDocument = null;
+          this.__dropdownWindow = null;
+          this.__boundDropdownTrigger = this.__handleDropdownTrigger.bind(this);
+          this.__boundDropdownOutsidePointer = this.__handleDropdownOutsidePointer.bind(this);
+          this.__boundDropdownEscape = this.__handleDropdownEscape.bind(this);
+          this.__boundDropdownViewportResize = this.__handleDropdownViewportResize.bind(this);
+        }
+        static get observedAttributes() {
+          return DROPDOWN_ATTRIBUTE_NAMES;
+        }
+        render() {
+          this.__renderDropdown();
+        }
+        update() {
+          this.__renderDropdown();
+        }
+        destroy() {
+          this.__detachDropdownListeners();
+          this.__dropdownMenu = null;
+          this.__dropdownSectionState = Object.create(null);
+          this.__dropdownOpen = false;
+          this.innerHTML = "";
+        }
+        __renderDropdown() {
+          if (!this.__mprConnected) {
+            return;
+          }
+          this.__detachDropdownListeners();
+          var documentObject =
+            this.ownerDocument ||
+            global.document ||
+            (global.window && global.window.document) ||
+            null;
+          ensureDropdownStyles(documentObject);
+          var menu;
+          try {
+            menu = parseDropdownMenuValue(this.getAttribute("menu"));
+          } catch (error) {
+            var errorObject = /** @type {MprUiError} */ (error);
+            var errorCode = errorObject && errorObject.code
+              ? errorObject.code
+              : DROPDOWN_ERROR_CODES.VALUE_INVALID;
+            this.__dropdownMenu = null;
+            this.__dropdownOpen = false;
+            this.__dropdownSectionState = Object.create(null);
+            this.setAttribute("data-mpr-dropdown-error", errorCode);
+            this.removeAttribute("data-mpr-dropdown-placement");
+            this.setAttribute("data-mpr-dropdown-open", "false");
+            this.innerHTML = "";
+            logError(errorCode, errorObject && errorObject.message ? errorObject.message : String(error));
+            dispatchEvent(this, "mpr-dropdown:error", {
+              code: errorCode,
+              message: errorObject && errorObject.message ? errorObject.message : String(error),
+            });
+            return;
+          }
+          this.removeAttribute("data-mpr-dropdown-error");
+          this.classList.add(DROPDOWN_ROOT_CLASS);
+          this.__dropdownMenu = menu;
+          this.__dropdownOpen = false;
+          this.__dropdownSectionState = Object.create(null);
+          menu.sections.forEach(
+            function initializeDropdownSectionState(section) {
+              this.__dropdownSectionState[section.id] = section.mode !== "collapsed";
+            }.bind(this),
+          );
+          this.setAttribute("data-mpr-dropdown-placement", menu.placement);
+          this.setAttribute("data-mpr-dropdown-open", "false");
+          this.setAttribute("data-mpr-dropdown-section-count", String(menu.sections.length));
+          this.innerHTML = buildDropdownMarkup(menu, this.__dropdownId);
+          this.__attachDropdownListeners(documentObject);
+        }
+        __listenDropdown(element, eventName, handler) {
+          if (!element || typeof element.addEventListener !== "function") {
+            return;
+          }
+          element.addEventListener(eventName, handler);
+          this.__dropdownListeners.push({
+            element: element,
+            eventName: eventName,
+            handler: handler,
+          });
+        }
+        __attachDropdownListeners(documentObject) {
+          var trigger = this.querySelector('[data-mpr-dropdown="trigger"]');
+          this.__listenDropdown(trigger, "click", this.__boundDropdownTrigger);
+          var sectionTriggers = this.querySelectorAll(
+            '[data-mpr-dropdown="section-trigger"]',
+          );
+          for (
+            var sectionTriggerIndex = 0;
+            sectionTriggerIndex < sectionTriggers.length;
+            sectionTriggerIndex += 1
+          ) {
+            this.__listenDropdown(
+              sectionTriggers[sectionTriggerIndex],
+              "click",
+              this.__handleDropdownSectionToggle.bind(this),
+            );
+          }
+          var links = this.querySelectorAll('[data-mpr-dropdown="link"]');
+          for (var linkIndex = 0; linkIndex < links.length; linkIndex += 1) {
+            this.__listenDropdown(
+              links[linkIndex],
+              "click",
+              this.__handleDropdownLinkClick.bind(this),
+            );
+          }
+          if (documentObject && typeof documentObject.addEventListener === "function") {
+            this.__dropdownDocument = documentObject;
+            documentObject.addEventListener("pointerdown", this.__boundDropdownOutsidePointer);
+            documentObject.addEventListener("keydown", this.__boundDropdownEscape);
+          }
+          this.__dropdownWindow = resolveOwnerWindow(this);
+          if (
+            this.__dropdownWindow &&
+            typeof this.__dropdownWindow.addEventListener === "function"
+          ) {
+            this.__dropdownWindow.addEventListener(
+              "resize",
+              this.__boundDropdownViewportResize,
+            );
+          }
+        }
+        __detachDropdownListeners() {
+          this.__dropdownListeners.forEach(function detachDropdownListener(listener) {
+            if (
+              listener.element &&
+              typeof listener.element.removeEventListener === "function"
+            ) {
+              listener.element.removeEventListener(
+                listener.eventName,
+                listener.handler,
+              );
+            }
+          });
+          this.__dropdownListeners = [];
+          if (
+            this.__dropdownDocument &&
+            typeof this.__dropdownDocument.removeEventListener === "function"
+          ) {
+            this.__dropdownDocument.removeEventListener(
+              "pointerdown",
+              this.__boundDropdownOutsidePointer,
+            );
+            this.__dropdownDocument.removeEventListener(
+              "keydown",
+              this.__boundDropdownEscape,
+            );
+          }
+          this.__dropdownDocument = null;
+          if (
+            this.__dropdownWindow &&
+            typeof this.__dropdownWindow.removeEventListener === "function"
+          ) {
+            this.__dropdownWindow.removeEventListener(
+              "resize",
+              this.__boundDropdownViewportResize,
+            );
+          }
+          this.__dropdownWindow = null;
+        }
+        __handleDropdownTrigger(eventObject) {
+          if (eventObject && typeof eventObject.preventDefault === "function") {
+            eventObject.preventDefault();
+          }
+          this.__setDropdownOpen(!this.__dropdownOpen, "trigger", false);
+        }
+        __handleDropdownOutsidePointer(eventObject) {
+          if (!this.__dropdownOpen || !eventObject) {
+            return;
+          }
+          var target = eventObject.target || null;
+          if (target && typeof this.contains === "function" && this.contains(target)) {
+            return;
+          }
+          this.__setDropdownOpen(false, "outside", false);
+        }
+        __handleDropdownEscape(eventObject) {
+          if (!this.__dropdownOpen || !eventObject) {
+            return;
+          }
+          var key = eventObject.key || eventObject.keyCode || "";
+          if (key === "Escape" || key === "Esc" || key === 27) {
+            if (typeof eventObject.preventDefault === "function") {
+              eventObject.preventDefault();
+            }
+            this.__setDropdownOpen(false, "escape", true);
+          }
+        }
+        __handleDropdownViewportResize() {
+          if (this.__dropdownOpen) {
+            this.__positionDropdownPanel();
+          }
+        }
+        __handleDropdownSectionToggle(eventObject) {
+          var sectionTrigger =
+            eventObject && eventObject.currentTarget ? eventObject.currentTarget : null;
+          if (!sectionTrigger || typeof sectionTrigger.getAttribute !== "function") {
+            return;
+          }
+          var sectionId = sectionTrigger.getAttribute("data-mpr-dropdown-section-id");
+          if (!sectionId) {
+            return;
+          }
+          this.__setDropdownSectionOpen(
+            sectionId,
+            !this.__dropdownSectionState[sectionId],
+          );
+        }
+        __handleDropdownLinkClick(eventObject) {
+          if (!this.__dropdownMenu) {
+            return;
+          }
+          var linkElement =
+            eventObject && eventObject.currentTarget ? eventObject.currentTarget : null;
+          if (!linkElement || typeof linkElement.getAttribute !== "function") {
+            return;
+          }
+          var sectionId = linkElement.getAttribute("data-mpr-dropdown-section-id");
+          var linkIndex = Number(
+            linkElement.getAttribute("data-mpr-dropdown-link-index"),
+          );
+          var sectionIndex = this.__dropdownMenu.sections.findIndex(
+            function findDropdownSection(section) {
+              return section.id === sectionId;
+            },
+          );
+          if (
+            sectionIndex < 0 ||
+            !Number.isInteger(linkIndex) ||
+            linkIndex < 0 ||
+            linkIndex >= this.__dropdownMenu.sections[sectionIndex].links.length
+          ) {
+            return;
+          }
+          var link = this.__dropdownMenu.sections[sectionIndex].links[linkIndex];
+          dispatchEvent(this, "mpr-dropdown:link-click", {
+            sectionId: sectionId,
+            sectionIndex: sectionIndex,
+            linkIndex: linkIndex,
+            link: {
+              label: link.label,
+              href: link.href,
+              target: link.target,
+              rel: link.rel,
+            },
+          });
+          this.__setDropdownOpen(false, "link", false);
+        }
+        __setDropdownOpen(nextOpen, source, returnFocus) {
+          var nextState = Boolean(nextOpen);
+          if (nextState === this.__dropdownOpen) {
+            return;
+          }
+          this.__dropdownOpen = nextState;
+          var trigger = this.querySelector('[data-mpr-dropdown="trigger"]');
+          var panel = this.querySelector('[data-mpr-dropdown="panel"]');
+          if (trigger && typeof trigger.setAttribute === "function") {
+            trigger.setAttribute("aria-expanded", nextState ? "true" : "false");
+          }
+          setHiddenState(panel, !nextState);
+          this.setAttribute("data-mpr-dropdown-open", nextState ? "true" : "false");
+          if (nextState) {
+            this.__positionDropdownPanel();
+          }
+          if (
+            !nextState &&
+            returnFocus &&
+            trigger &&
+            typeof trigger.focus === "function"
+          ) {
+            trigger.focus();
+          }
+          dispatchEvent(this, "mpr-dropdown:toggle", {
+            open: nextState,
+            source: source,
+          });
+        }
+        __positionDropdownPanel() {
+          var panel = this.querySelector('[data-mpr-dropdown="panel"]');
+          var ownerWindow = this.__dropdownWindow || resolveOwnerWindow(this);
+          if (
+            !panel ||
+            !panel.style ||
+            typeof panel.style.setProperty !== "function" ||
+            typeof panel.getBoundingClientRect !== "function" ||
+            !ownerWindow ||
+            typeof ownerWindow.innerWidth !== "number"
+          ) {
+            return;
+          }
+          panel.style.setProperty(DROPDOWN_VIEWPORT_OFFSET_PROPERTY, "0px");
+          var panelRect = panel.getBoundingClientRect();
+          var viewportRightEdge =
+            ownerWindow.innerWidth - DROPDOWN_VIEWPORT_MARGIN_PIXELS;
+          var horizontalOffset = 0;
+          if (panelRect.left < DROPDOWN_VIEWPORT_MARGIN_PIXELS) {
+            horizontalOffset = DROPDOWN_VIEWPORT_MARGIN_PIXELS - panelRect.left;
+          } else if (panelRect.right > viewportRightEdge) {
+            horizontalOffset = viewportRightEdge - panelRect.right;
+          }
+          panel.style.setProperty(
+            DROPDOWN_VIEWPORT_OFFSET_PROPERTY,
+            String(horizontalOffset) + "px",
+          );
+        }
+        __setDropdownSectionOpen(sectionId, nextOpen) {
+          if (!this.__dropdownMenu) {
+            return;
+          }
+          var section = this.__dropdownMenu.sections.find(
+            function findDropdownSection(candidateSection) {
+              return candidateSection.id === sectionId;
+            },
+          );
+          if (!section || section.mode === "static") {
+            return;
+          }
+          var nextState = Boolean(nextOpen);
+          var sectionTrigger = this.querySelector(
+            '[data-mpr-dropdown="section-trigger"][data-mpr-dropdown-section-id="' +
+              sectionId +
+              '"]',
+          );
+          var sectionLinks = this.querySelector(
+            '[data-mpr-dropdown="section-links"][data-mpr-dropdown-section-id="' +
+              sectionId +
+              '"]',
+          );
+          var documentObject = this.ownerDocument || this.__dropdownDocument;
+          var activeElement = documentObject ? documentObject.activeElement : null;
+          var focusInsideSection = Boolean(
+            !nextState &&
+              sectionLinks &&
+              activeElement &&
+              typeof sectionLinks.contains === "function" &&
+              sectionLinks.contains(activeElement),
+          );
+          this.__dropdownSectionState[sectionId] = nextState;
+          if (sectionTrigger && typeof sectionTrigger.setAttribute === "function") {
+            sectionTrigger.setAttribute("aria-expanded", nextState ? "true" : "false");
+          }
+          setHiddenState(sectionLinks, !nextState);
+          if (
+            focusInsideSection &&
+            sectionTrigger &&
+            typeof sectionTrigger.focus === "function"
+          ) {
+            sectionTrigger.focus();
+          }
+          dispatchEvent(this, "mpr-dropdown:section-toggle", {
+            sectionId: sectionId,
+            expanded: nextState,
+          });
+        }
+      };
+    });
+  }
+
   var FOOTER_THEME_SWITCHER_ERROR_CODE = "mpr-ui.footer.theme-switcher";
   var FOOTER_ROOT_CLASS = "mpr-footer";
   var FOOTER_SMALL_CLASS = FOOTER_ROOT_CLASS + "--small";
@@ -13460,15 +14203,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     innerClass: "mpr-footer__inner",
     wrapperClass: "mpr-footer__layout",
     brandWrapperClass: "mpr-footer__brand",
-    menuWrapperClass: "mpr-footer__menu-wrapper",
     spacerClass: "mpr-footer__spacer",
     prefixClass: "mpr-footer__prefix",
-    prefixText: "",
-    toggleButtonId: "",
-    toggleButtonClass: "mpr-footer__menu-button",
-    toggleLabel: "Build by Marco Polo Research Lab",
-    menuClass: "mpr-footer__menu",
-    menuItemClass: "mpr-footer__menu-item",
+    prefixText: "Built by Marco Polo Research Lab",
+    menu: null,
     horizontalLinks: HORIZONTAL_LINKS_DEFAULTS,
     privacyLinkClass: "mpr-footer__privacy",
     privacyLinkHref: "#",
@@ -13485,8 +14223,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       inputId: "mpr-footer-theme-toggle",
       ariaLabel: "Toggle theme",
     }),
-    links: [],
-    linksCollection: null,
     sticky: true,
   });
 
@@ -13541,52 +14277,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
   function sanitizeFooterHref(inputValue) {
     return sanitizeHref(inputValue);
-  }
-
-  function normalizeFooterLinks(candidateLinks) {
-    if (!Array.isArray(candidateLinks)) {
-      return [];
-    }
-    return candidateLinks
-      .map(function normalizeSingleLink(singleLink) {
-        if (!singleLink || typeof singleLink !== "object") {
-          return null;
-        }
-        var normalizedLink = normalizeLinkForRendering(
-          {
-            label: singleLink.label || singleLink.Label,
-            href: singleLink.url || singleLink.URL,
-            target: singleLink.target || singleLink.Target,
-            rel: singleLink.rel || singleLink.Rel,
-          },
-          {
-            target: FOOTER_LINK_DEFAULT_TARGET,
-            rel: FOOTER_LINK_DEFAULT_REL,
-          },
-        );
-        return normalizedLink;
-      })
-      .filter(Boolean);
-  }
-
-  function normalizeFooterLinksCollection(candidateCollection) {
-    if (!candidateCollection || typeof candidateCollection !== "object") {
-      return null;
-    }
-    var style =
-      typeof candidateCollection.style === "string" && candidateCollection.style.trim()
-        ? candidateCollection.style.trim().toLowerCase()
-        : "drop-up";
-    var text =
-      typeof candidateCollection.text === "string" && candidateCollection.text.trim()
-        ? candidateCollection.text.trim()
-        : "";
-    var links = normalizeFooterLinks(candidateCollection.links);
-    return {
-      style: style,
-      text: text,
-      links: links,
-    };
   }
 
   function normalizeFooterThemeToggle(themeToggleInput) {
@@ -13687,9 +14377,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   function normalizeFooterConfig() {
     var providedConfigs = Array.prototype.slice.call(arguments);
     var mergedConfig = mergeFooterObjects({}, FOOTER_DEFAULTS);
-    var hasExplicitPrefix = providedConfigs.some(function hasPrefix(candidate) {
-      return candidate && typeof candidate.prefixText === "string";
-    });
     providedConfigs.forEach(function apply(config) {
       if (!config || typeof config !== "object") {
         return;
@@ -13704,22 +14391,25 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         return current;
       }, mergedConfig.themeToggle),
     );
-
-    var resolvedCollection = providedConfigs.reduce(function reduceCollection(current, candidate) {
-      if (candidate && typeof candidate === "object" && candidate.linksCollection) {
-        return candidate.linksCollection;
+    var resolvedMenu = providedConfigs.reduce(function reduceFooterMenu(current, candidate) {
+      if (
+        candidate &&
+        typeof candidate === "object" &&
+        Object.prototype.hasOwnProperty.call(candidate, "menu")
+      ) {
+        return candidate.menu;
       }
       return current;
-    }, mergedConfig.linksCollection);
-
-    var normalizedCollection = normalizeFooterLinksCollection(resolvedCollection);
-    var collectionLinks =
-      normalizedCollection && Array.isArray(normalizedCollection.links)
-        ? normalizedCollection.links
-        : [];
-    mergedConfig.links = collectionLinks;
-    mergedConfig.linksCollection = normalizedCollection;
-    mergedConfig.linksMenuEnabled = collectionLinks.length > 0;
+    }, mergedConfig.menu);
+    mergedConfig.menu = resolvedMenu !== null && resolvedMenu !== undefined
+      ? parseDropdownMenuValue(resolvedMenu)
+      : null;
+    if (mergedConfig.menu && mergedConfig.menu.placement !== "top") {
+      throw createDropdownError(
+        DROPDOWN_ERROR_CODES.VALUE_INVALID,
+        "The footer menu placement must be top",
+      );
+    }
     mergedConfig.privacyModalContent =
       typeof mergedConfig.privacyModalContent === "string" &&
       mergedConfig.privacyModalContent.trim()
@@ -13733,25 +14423,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       mergedConfig.horizontalLinks,
       FOOTER_DEFAULTS.horizontalLinks,
     );
-
-    if (normalizedCollection && normalizedCollection.text) {
-      if (!hasExplicitPrefix) {
-        mergedConfig.prefixText = normalizedCollection.text;
-      }
-      if (mergedConfig.linksMenuEnabled) {
-        mergedConfig.toggleLabel = normalizedCollection.text;
-      }
-    }
-    if (!mergedConfig.linksMenuEnabled) {
-      mergedConfig.links = [];
-      if (
-        !hasExplicitPrefix &&
-        (!mergedConfig.prefixText ||
-          (typeof mergedConfig.prefixText === "string" && !mergedConfig.prefixText.trim()))
-      ) {
-        mergedConfig.prefixText = FOOTER_DEFAULTS.toggleLabel;
-      }
-    }
+    mergedConfig.prefixText =
+      typeof mergedConfig.prefixText === "string"
+        ? mergedConfig.prefixText.trim()
+        : FOOTER_DEFAULTS.prefixText;
     mergedConfig.sticky = normalizeBooleanAttribute(
       mergedConfig.sticky,
       FOOTER_DEFAULTS.sticky,
@@ -13810,7 +14485,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return {
       root: root,
       brand: footerQuery(root, '[data-mpr-footer="brand"]'),
-      menu: footerQuery(root, '[data-mpr-footer="menu"]'),
       layout: footerQuery(root, '[data-mpr-footer="layout"]'),
     };
   }
@@ -13828,13 +14502,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       slotMap["menu-prefix"].forEach(function appendBrandSlot(node) {
         if (node && typeof elements.brand.appendChild === "function") {
           elements.brand.appendChild(node);
-        }
-      });
-    }
-    if (elements.menu && slotMap["menu-links"] && slotMap["menu-links"].length) {
-      slotMap["menu-links"].forEach(function appendMenuSlot(node) {
-        if (node && typeof elements.menu.appendChild === "function") {
-          elements.menu.appendChild(node);
         }
       });
     }
@@ -14033,11 +14700,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         ' aria-hidden="true"></span>'
       : "";
 
-    var dropdownMarkup = config.linksMenuEnabled
-      ? '<div data-mpr-footer="menu-wrapper">' +
-        '<button type="button" data-mpr-footer="toggle-button" aria-haspopup="true" aria-expanded="false"></button>' +
-        '<ul data-mpr-footer="menu"></ul>' +
-        "</div>"
+    var dropdownMarkup = config.menu
+      ? '<mpr-dropdown data-mpr-footer="dropdown" menu="' +
+        escapeFooterHtml(JSON.stringify(config.menu)) +
+        '"></mpr-dropdown>'
       : "";
 
     var privacyHeading = escapeFooterHtml(
@@ -14060,7 +14726,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         "</div>"
       : "";
 
-    var prefixMarkup = !config.linksMenuEnabled
+    var prefixMarkup = config.prefixText
       ? '<span data-mpr-footer="prefix"></span>'
       : "";
 
@@ -14265,62 +14931,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     prefixElement.textContent = config.prefixText || "";
   }
 
-  function updateFooterToggleButton(containerElement, config) {
-    var toggleButton = config.toggleButtonId
-      ? containerElement.querySelector('#' + sanitizeFooterAttribute(config.toggleButtonId))
-      : footerQuery(containerElement, '[data-mpr-footer="toggle-button"]');
-    if (!toggleButton) {
-      return;
-    }
-    if (config.toggleButtonClass) {
-      toggleButton.className = config.toggleButtonClass;
-    }
-    if (config.toggleLabel) {
-      toggleButton.textContent = config.toggleLabel;
-    }
-    if (config.toggleButtonId) {
-      toggleButton.id = config.toggleButtonId;
-    }
-    if (toggleButton.hasAttribute("data-bs-toggle")) {
-      toggleButton.removeAttribute("data-bs-toggle");
-    }
-    toggleButton.setAttribute("aria-expanded", "false");
-  }
-
-  function updateFooterMenuLinks(containerElement, config) {
-    var menuContainer = footerQuery(containerElement, '[data-mpr-footer="menu"]');
-    if (!menuContainer) {
-      return;
-    }
-    if (config.menuClass) {
-      menuContainer.className = config.menuClass;
-    }
-    var items = Array.isArray(config.links) ? config.links : [];
-    var menuItemClass = config.menuItemClass || "";
-    var markup = items
-      .map(function renderSingle(link) {
-        var hrefValue = escapeFooterHtml(sanitizeFooterHref(link.href || link.url));
-        var labelValue = escapeFooterHtml(link.label);
-        var targetValue = sanitizeFooterAttribute(link.target || FOOTER_LINK_DEFAULT_TARGET);
-        var relValue = sanitizeFooterAttribute(link.rel || FOOTER_LINK_DEFAULT_REL);
-        return (
-          '<li><a class="' +
-          sanitizeFooterAttribute(menuItemClass) +
-          '" data-mpr-footer="menu-link" href="' +
-          hrefValue +
-          '" target="' +
-          targetValue +
-          '" rel="' +
-          relValue +
-          '">' +
-          labelValue +
-          "</a></li>"
-        );
-      })
-      .join("");
-    menuContainer.innerHTML = markup;
-  }
-
   function updateFooterHorizontalLinks(containerElement, config) {
     var horizontalLinksContainer = footerQuery(
       containerElement,
@@ -14396,10 +15006,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (brandElement && config.brandWrapperClass) {
       setFooterClass(brandElement, config.brandWrapperClass);
     }
-    var menuWrapper = footerQuery(containerElement, '[data-mpr-footer="menu-wrapper"]');
-    if (menuWrapper && config.menuWrapperClass) {
-      setFooterClass(menuWrapper, config.menuWrapperClass);
-    }
   }
 
   function readFooterOptionsFromDataset(rootElement) {
@@ -14426,29 +15032,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (dataset.brandWrapperClass) {
       options.brandWrapperClass = dataset.brandWrapperClass;
     }
-    if (dataset.menuWrapperClass) {
-      options.menuWrapperClass = dataset.menuWrapperClass;
-    }
     if (dataset.prefixClass) {
       options.prefixClass = dataset.prefixClass;
     }
     if (dataset.prefixText) {
       options.prefixText = dataset.prefixText;
-    }
-    if (dataset.toggleButtonId) {
-      options.toggleButtonId = dataset.toggleButtonId;
-    }
-    if (dataset.toggleButtonClass) {
-      options.toggleButtonClass = dataset.toggleButtonClass;
-    }
-    if (dataset.toggleLabel) {
-      options.toggleLabel = dataset.toggleLabel;
-    }
-    if (dataset.menuClass) {
-      options.menuClass = dataset.menuClass;
-    }
-    if (dataset.menuItemClass) {
-      options.menuItemClass = dataset.menuItemClass;
     }
     if (dataset.horizontalLinks) {
       options.horizontalLinks = parseJsonValue(dataset.horizontalLinks, {});
@@ -14489,8 +15077,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       options.themeToggle = options.themeToggle || {};
       options.themeToggle.variant = themeSwitcherValue;
     }
-    if (dataset.linksCollection) {
-      options.linksCollection = parseJsonValue(dataset.linksCollection, {});
+    if (dataset.menu !== undefined) {
+      options.menu = parseDropdownMenuValue(dataset.menu);
     }
     if (dataset.sticky !== undefined) {
       options.sticky = normalizeBooleanAttribute(dataset.sticky, true);
@@ -14499,97 +15087,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       options.size = dataset.size;
     }
     return options;
-  }
-
-  function initializeFooterDropdown(footerRoot) {
-    var toggleButton = footerQuery(footerRoot, '[data-mpr-footer="toggle-button"]');
-    var menuElement = footerQuery(footerRoot, '[data-mpr-footer="menu"]');
-    if (!toggleButton || !menuElement) {
-      return null;
-    }
-    var ownerDocument =
-      (toggleButton && toggleButton.ownerDocument) ||
-      (menuElement && menuElement.ownerDocument) ||
-      global.document ||
-      (global.window && global.window.document) ||
-      null;
-    var openClass = "mpr-footer__menu--open";
-    var isOpen = false;
-
-    function elementContains(host, target) {
-      if (!host || !target) {
-        return false;
-      }
-      if (typeof host.contains === "function") {
-        return host.contains(target);
-      }
-      return host === target;
-    }
-
-    function closeMenu() {
-      if (!isOpen) {
-        return;
-      }
-      isOpen = false;
-      menuElement.classList.remove(openClass);
-      toggleButton.setAttribute("aria-expanded", "false");
-    }
-
-    function openMenu() {
-      if (isOpen) {
-        return;
-      }
-      isOpen = true;
-      menuElement.classList.add(openClass);
-      toggleButton.setAttribute("aria-expanded", "true");
-    }
-
-    function handleToggle(eventObject) {
-      if (eventObject && typeof eventObject.preventDefault === "function") {
-        eventObject.preventDefault();
-      }
-      if (isOpen) {
-        closeMenu();
-      } else {
-        openMenu();
-      }
-    }
-
-    function handleDocumentClick(eventObject) {
-      if (!isOpen || !eventObject) {
-        return;
-      }
-      var target = eventObject.target || null;
-      if (elementContains(toggleButton, target) || elementContains(menuElement, target)) {
-        return;
-      }
-      closeMenu();
-    }
-
-    function handleDocumentKeydown(eventObject) {
-      if (!isOpen || !eventObject) {
-        return;
-      }
-      var key = eventObject.key || eventObject.keyCode || "";
-      if (key === "Escape" || key === "Esc" || key === 27) {
-        closeMenu();
-      }
-    }
-
-    toggleButton.addEventListener("click", handleToggle);
-    if (ownerDocument && typeof ownerDocument.addEventListener === "function") {
-      ownerDocument.addEventListener("click", handleDocumentClick);
-      ownerDocument.addEventListener("keydown", handleDocumentKeydown);
-    }
-
-    return function cleanupDropdown() {
-      toggleButton.removeEventListener("click", handleToggle);
-      if (ownerDocument && typeof ownerDocument.removeEventListener === "function") {
-        ownerDocument.removeEventListener("click", handleDocumentClick);
-        ownerDocument.removeEventListener("keydown", handleDocumentKeydown);
-      }
-      closeMenu();
-    };
   }
 
   function initializeFooterPrivacyModal(containerElement, config) {
@@ -14831,14 +15328,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           privacyModalLifecycle && privacyModalLifecycle.controller,
         );
         updateFooterPrefix(footerRoot, this.config);
-        updateFooterToggleButton(footerRoot, this.config);
-        updateFooterMenuLinks(footerRoot, this.config);
         updateFooterHorizontalLinks(footerRoot, this.config);
-
-        var dropdownCleanup = initializeFooterDropdown(footerRoot);
-        if (dropdownCleanup) {
-          this.cleanupHandlers.push(dropdownCleanup);
-        }
 
         if (
           privacyModalLifecycle &&
@@ -15307,7 +15797,39 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           if (!this.__mprConnected) {
             return;
           }
-          var options = buildFooterOptionsFromAttributes(this);
+          var options;
+          try {
+            options = buildFooterOptionsFromAttributes(this);
+          } catch (error) {
+            var errorObject = /** @type {MprUiError} */ (error);
+            var errorCode = errorObject && errorObject.code
+              ? errorObject.code
+              : DROPDOWN_ERROR_CODES.VALUE_INVALID;
+            if (
+              this.__footerController &&
+              typeof this.__footerController.destroy === "function"
+            ) {
+              this.__footerController.destroy();
+            }
+            this.__footerController = null;
+            this.setAttribute("data-mpr-footer-error", errorCode);
+            this.innerHTML = "";
+            logError(
+              errorCode,
+              errorObject && errorObject.message
+                ? errorObject.message
+                : String(error),
+            );
+            dispatchEvent(this, "mpr-footer:error", {
+              code: errorCode,
+              message:
+                errorObject && errorObject.message
+                  ? errorObject.message
+                  : String(error),
+            });
+            return;
+          }
+          this.removeAttribute("data-mpr-footer-error");
           if (this.__footerController) {
             this.__footerController.update(options);
           } else {
@@ -18721,6 +19243,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return;
     }
     defineHeaderElement(registry);
+    defineDropdownElement(registry);
     defineFooterElement(registry);
     defineThemeToggleElement(registry);
     defineLoginButtonElement(registry);
