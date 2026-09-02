@@ -1,8 +1,15 @@
 # mpr-ui custom elements
 
-This document summarizes the supported `mpr-ui` custom elements and their integration patterns.
+This document defines the supported `mpr-ui` custom elements and their integration patterns. The runnable coverage map is in [`../README.md`](../README.md#component-catalog), and the general visual components are collected in [`../demo/components.html`](../demo/components.html).
 
-The header/footer sections below reflect current LoopAware usage. The entity-workspace section documents the newer generic collection/detail shells intended for cross-app reuse.
+## Component index
+
+| Family | Elements |
+| --- | --- |
+| Shell | `<mpr-header>`, `<mpr-footer>`, `<mpr-dropdown>`, `<mpr-theme-toggle>` |
+| Authentication | `<mpr-login-button>`, `<mpr-auth-provider-chooser>`, `<mpr-password-auth>`, `<mpr-account-panel>`, `<mpr-auth-diagnostics>`, `<mpr-user>` |
+| General content | `<mpr-settings>`, `<mpr-sites>`, `<mpr-legal-document>`, `<mpr-band>`, `<mpr-card>` |
+| Entity workspace | `<mpr-workspace-layout>`, `<mpr-sidebar-nav>`, `<mpr-entity-rail>`, `<mpr-entity-tile>`, `<mpr-entity-workspace>`, `<mpr-entity-card>`, `<mpr-detail-drawer>` |
 
 ## mpr-header
 
@@ -29,7 +36,7 @@ All three provider keys are required. A disabled provider contains only `{ "enab
 ### Optional attributes
 - `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders an inline utility link list inside the same row as the other header controls.
 - `auth-transition`: JSON string `{ title, message, completionEvent }` that enables the built-in full-screen auth transition surface. The screen appears during auth bootstrap and credential exchange. If `completionEvent` is non-empty, the screen stays visible after authentication until that event is dispatched on `document`.
-- `sign-in-redirect-url`: URL that `mpr-ui` navigates to after an interactive sign-in succeeds. When paired with `auth-transition`, the transition stays visible while that navigation is pending. Restored authenticated sessions do not trigger this redirect.
+- `sign-in-redirect-url`: URL that `mpr-ui` navigates to after an interactive sign-in succeeds. With `auth-transition`, the transition remains visible until navigation starts. Restored authenticated sessions do not trigger this redirect.
 - `sign-out-label`: Text for the sign-out button.
 - `sticky`: `true` or `false` to toggle sticky positioning.
 
@@ -146,7 +153,7 @@ Required attributes:
 
 The `unlink` action also requires an `identities` JSON array. Each entry has an
 exact `provider`, `providerId`, and user-facing `label`. The panel renders these
-canonical identities as a selection control; it never asks the user to enter a
+canonical identities as a selection control. It never asks the user to enter a
 provider subject. Obtain the array from the account data owned by the host and
 TAuth integration.
 
@@ -166,7 +173,7 @@ Local fixtures can add `display-challenge-token` to the
 `password-link-start` action under the same restrictions as
 `<mpr-password-auth>`.
 
-TAuth owns password policy, challenge delivery, linked-identity rules, cookies, and account state. `mpr-ui` owns the shared forms and browser auth events. Host apps own route protection, app-specific profile fields, and bespoke account-policy decisions. Direct `tauth.js` loading and app-owned password fetch code are obsolete integration paths.
+TAuth owns password policy, challenge delivery, linked-identity rules, cookies, and account state. `mpr-ui` owns the shared forms and browser auth events. Host apps own route protection, app-specific profile fields, and bespoke account-policy decisions.
 
 ## mpr-auth-diagnostics
 
@@ -199,7 +206,7 @@ The provider chooser renders a compact ordered set of provider actions. It is th
 This element is a UI and event primitive. It does not create an auth controller or start provider auth. It does not submit credentials or mark the user authenticated. Use the config-driven header or login button for Google or Apple authentication.
 
 ### Required attributes
-- `providers`: JSON array ordered from `apple`, `google`, and `email`. The array is explicit and must be non-empty; unknown or duplicate providers fail on `mpr-auth-provider:error`.
+- `providers`: JSON array ordered from `apple`, `google`, and `email`. The array must be explicit and non-empty. Unknown or duplicate providers fail on `mpr-auth-provider:error`.
 
 ### Optional attributes
 - `variant`: `stack` by default, or `icon-row` for a horizontal row of square icon buttons. The icon-row variant visually hides provider text labels while preserving accessible button names.
@@ -228,7 +235,7 @@ Stable error codes:
 - `mpr-auth-provider:email-mode` (detail includes `mode`, currently `reset-start` or `signup`).
 - `mpr-auth-provider:error` (detail includes `code` and `message`).
 
-Provider events are DOM-scoped control events. They are not `mpr-ui:auth:*` lifecycle events and should not be used as proof that a session exists.
+Provider events are DOM-scoped control events. They are not `mpr-ui:auth:*` lifecycle events. They must not prove that a session exists.
 
 ### Example
 ```html
@@ -251,7 +258,7 @@ When vertical space is tighter and the surrounding login surface already names t
 ></mpr-auth-provider-chooser>
 ```
 
-Selecting `email` expands the email/password form in place. Selecting Apple or Google emits the provider selection event only. Email form submit events deliberately omit raw input values; an owning controller sends credentials directly to the configured auth action without storing them in attributes, local storage, logs, or secondary events.
+Selecting `email` expands the email/password form in place. Selecting Apple or Google emits only the provider selection event. Email submit events omit raw input values. An owning controller sends credentials directly to the configured auth action. It does not store them in attributes, local storage, logs, or secondary events.
 
 ## mpr-dropdown
 
@@ -308,7 +315,7 @@ The footer renders product links, privacy links, and an optional theme switch.
 - `privacy-link-label`: Label for the privacy link.
 - `theme-switcher`: `toggle` to enable the theme switch.
 - `theme-config`: JSON with `attribute`, `modes`, and `initialMode`.
-- `base-class`: Optional space-separated classes applied to the internal footer root and mirrored to the `<mpr-footer>` host only when `sticky="false"`; use it for host-level utilities like `mt-auto` in in-flow layouts.
+- `base-class`: Optional space-separated classes for the internal footer root. The component mirrors them to the host only when `sticky="false"`. Use them for host utilities such as `mt-auto` in in-flow layouts.
 - `sticky`: `true` or `false`.
 - `size`: Optional size preset used by some layouts.
 
@@ -344,6 +351,160 @@ The footer renders product links, privacy links, and an optional theme switch.
   theme-config='{"attribute":"data-bs-theme","modes":["light","dark"],"initialMode":"dark"}'
   sticky="false"
 ></mpr-footer>
+```
+
+## mpr-theme-toggle
+
+`<mpr-theme-toggle>` writes through the shared theme manager. Header, footer, document root, body, and configured targets stay on the same mode.
+
+Attributes:
+
+- `variant`: `switch`, `button`, or `square`.
+- `label`: Visible control copy.
+- `aria-label`: Accessible control name.
+- `show-label`: Shows the visible label when true.
+- `wrapper-class`, `control-class`, `icon-class`: Optional classes for the component-owned nodes.
+- `theme-config`: JSON with `attribute`, `targets`, `modes`, and `initialMode`.
+
+The component emits the shared `mpr-ui:theme-change` event through the theme manager.
+
+```html
+<mpr-theme-toggle
+  variant="button"
+  label="Change theme"
+  show-label="true"
+  theme-config='{
+    "targets": ["body"],
+    "initialMode": "light",
+    "modes": [
+      { "value": "light", "classList": ["theme-light"] },
+      { "value": "dark", "classList": ["theme-dark"] }
+    ]
+  }'
+></mpr-theme-toggle>
+```
+
+## mpr-login-button
+
+`<mpr-login-button>` is the login-only auth owner. Put `data-config-url="/config-ui.yaml"` on the element so the config loader applies one `auth-config` contract before bundle startup. The component renders one action for each enabled Google, Apple, and password provider.
+
+Presentation attributes are static page data:
+
+- `button-text`
+- `button-theme`
+- `button-size`
+- `button-shape`
+
+It emits the shared `mpr-ui:auth:*` lifecycle and `mpr-login:error`. Password selection expands the shared login form on this controller. Apple selection starts the validated redirect flow. Google selection starts the nonce-bound GIS flow.
+
+```html
+<mpr-login-button
+  id="login-surface"
+  data-config-url="/config-ui.yaml"
+  button-text="signin_with"
+  button-theme="outline"
+  button-size="large"
+  button-shape="pill"
+></mpr-login-button>
+```
+
+## mpr-user
+
+`<mpr-user>` displays the safe profile snapshot from its owning auth controller and performs configured logout. The config loader supplies `auth-config`. The element does not own a separate browser auth path.
+
+Attributes:
+
+- `display-mode`: `avatar`, `avatar-name`, `avatar-full-name`, or `custom-avatar`.
+- `logout-url` and `logout-label`.
+- `avatar-url` and `avatar-label` for a presentation override.
+- `menu-items`: JSON array of links or action items. A link has `label` and `href`. An action has `label` and `action`.
+
+Events:
+
+- `mpr-user:toggle`
+- `mpr-user:logout`
+- `mpr-user:menu-item`
+- `mpr-user:error`
+
+```html
+<mpr-user
+  slot="aux"
+  display-mode="avatar-name"
+  logout-url="/"
+  logout-label="Log out"
+  menu-items='[
+    { "label": "Account", "href": "/account" },
+    { "label": "Open settings", "action": "open-settings" }
+  ]'
+></mpr-user>
+```
+
+## mpr-settings
+
+`<mpr-settings>` owns disclosure state for host-supplied settings content. The `panel` slot and default content render inside the controlled panel. A custom trigger can use the `trigger` slot.
+
+Attributes are `label`, `icon`, `panel-id`, `button-class`, `panel-class`, and `open`. The public `open` property and `toggle(force?)` method update the same state. `mpr-settings:toggle` reports `panelId`, `open`, and `source`.
+
+```html
+<mpr-settings label="Preferences">
+  <div slot="panel">Application-owned settings controls.</div>
+</mpr-settings>
+```
+
+## mpr-sites
+
+`<mpr-sites>` renders the packaged MPR Lab catalog or an explicit `links` JSON array. Each link uses `label`, `url`, and optional `target` and `rel` fields.
+
+Attributes:
+
+- `variant`: `list`, `grid`, or `menu`.
+- `columns`: Grid column count from one through four.
+- `heading`: Optional list heading.
+- `links`: Explicit link array. Omit it to use `MPRUI.getFooterSiteCatalog()`.
+
+`mpr-sites:link-click` emits the normalized label, URL, target, relation, and index.
+
+```html
+<mpr-sites
+  variant="grid"
+  columns="2"
+  heading="MPR Lab network"
+  links='[
+    { "label": "MPR Lab", "url": "https://mprlab.com", "target": "_blank" },
+    { "label": "LoopAware", "url": "https://loopaware.mprlab.com", "target": "_blank" }
+  ]'
+></mpr-sites>
+```
+
+## mpr-band
+
+`<mpr-band>` is a passive themed container. `category` selects `research`, `tools`, `platform`, `products`, or `custom`. The optional `theme` JSON object can set `background`, `panel`, `panelAlt`, `text`, `muted`, `accent`, `border`, `shadow`, `lineTop`, and `lineBottom`. The element preserves its child layout.
+
+```html
+<mpr-band category="tools">
+  <mpr-card card='{ "id": "tool", "title": "Tool", "description": "Reusable card." }'></mpr-card>
+</mpr-band>
+```
+
+## mpr-card
+
+`<mpr-card>` renders one project card. Its required `card` JSON object uses `id`, `title`, and `description`, with optional `status`, `icon`, `url`, and `subscribe` data. `theme` applies card-specific palette values.
+
+Events:
+
+- `mpr-card:card-toggle` when the card changes face.
+- `mpr-card:subscribe-ready` after optional subscription content is ready.
+
+```html
+<mpr-card
+  card='{
+    "id": "project-card",
+    "title": "Project",
+    "description": "A reusable project summary.",
+    "status": "production",
+    "url": "https://mprlab.com"
+  }'
+></mpr-card>
 ```
 
 ## mpr-legal-document
@@ -623,7 +784,7 @@ Example:
 - Events: `mpr-detail-drawer:open`, `mpr-detail-drawer:close`.
 - Default light DOM content becomes the `body` region.
 
-Use it for richer detail that should not replace the main workspace. In a YouTube-style app that usually means:
+Use it for richer detail that must not replace the main workspace. In a YouTube-style app, this usually means:
 
 - playlist metadata
 - playlist actions
@@ -660,7 +821,7 @@ The common pattern is:
 - each video rendered as `<mpr-entity-card>`
 - selected video ids tracked by `MPRUI.createSelectionState()`
 
-A runnable companion lives in `demo/entity-workspace.html`. It is intentionally Docker-gated: start `./up.sh tauth`, open `https://localhost:4443/`, and use the shared header to open `Entity workspace`.
+A runnable companion lives in `demo/entity-workspace.html`. It is intentionally Docker-gated: start `./up.sh`, open `https://localhost:4443/`, and use the shared header to open `Entity workspace`.
 
 ### Markup skeleton
 
@@ -782,5 +943,5 @@ async function loadPlaylistVideos(playlistId, pageToken) {
 - Treat YouTube playlists as the rail-level collection and videos as the workspace-level entities.
 - Keep pagination state such as `nextPageToken` in your app code, not in the custom elements.
 - Re-render `selection-count` from `MPRUI.createSelectionState()` after every video checkbox change.
-- Open the drawer for playlist metadata or for one selected video; the drawer shell is reusable either way.
+- Open the drawer for playlist metadata or one selected video. The drawer shell supports both cases.
 - If a playlist has no videos, set `empty` on `<mpr-entity-workspace>` and render your empty-state content through the `empty` slot.

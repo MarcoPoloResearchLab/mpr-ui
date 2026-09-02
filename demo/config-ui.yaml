@@ -40,7 +40,7 @@ environments:
         disablePath: "/auth/account/disable"
 
   # Lightweight no-store static preview served with `npm run demo:serve`.
-  # This origin renders the demo chrome and components; authenticated sign-in still requires `./up.sh tauth`.
+  # This origin renders the demo chrome and components; authenticated sign-in still requires `./up.sh`.
   - description: "Static HTTP preview"
     origins:
       - "http://127.0.0.1:4177"

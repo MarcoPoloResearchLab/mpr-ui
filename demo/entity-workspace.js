@@ -11,7 +11,7 @@ const DEMO_ERROR_CODES = Object.freeze({
   dockerRequired: 'entity_workspace.demo.docker_required',
 });
 
-const DOCKER_START_COMMAND = './up.sh tauth';
+const DOCKER_START_COMMAND = './up.sh';
 const DOCKER_DEMO_URL = 'https://localhost:4443/';
 
 /**

@@ -44,6 +44,10 @@
 - Added header regressions for sign-in redirect handoff, restored-session non-redirect behavior, and app-dispatched auth events not triggering redirects.
 
 ### Docs 📚
+- Added a complete component gallery with both dropdown placements and every section mode.
+- Added theme controls, settings, site catalogs, bands, cards, and legal documents to the gallery.
+- Reworked the README, architecture reference, custom-element reference, integration guide, and demo guide around the complete current component and auth contracts.
+- Documented the static Apple-action preview, the deployment requirements for live Apple completion, and the TAuth-backed email/password and account demos.
 - Documented the shared protected-request API, TAuth ownership boundary, lifecycle events, and mutation replay policy.
 - Documented auth-only `/config-ui.yaml`, absolute cross-origin config URLs, and static login-button presentation ownership.
 - Documented the shared legal document API, attributes, profile override boundaries, and product-specific section extension pattern.
@@ -55,13 +59,13 @@
 
 - Merge pull request #189 from MarcoPoloResearchLab/bugfix/B053-loopaware-site-identifiers
 - fix: update LoopAware catalog identifiers
-- test: cover unconditional 14-day refund policy terms
+- did a test of unconditional 14-day refund policy terms
 - feat(legal): add 14-day unconditional web purchase refunds
 
 ## [v3.11.10] - 2026-08-12
 
 - Merge pull request #188 from MarcoPoloResearchLab/bugfix/authenticated-fetch-mutation-body
-- test(auth): cover cross-realm Request method and body preservation
+- did an auth test of cross-realm Request method and body preservation
 - fix: detect cross-realm Request inputs by brand check
 - fix(auth): preserve cross-realm Request methods and bodies
 - docs: document cross-realm Request body regression

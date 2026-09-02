@@ -19,7 +19,7 @@ test('MU-429: entity workspace demo blocks direct static serving and requires Do
     'This page is intentionally wired to the Docker-mounted demo bundle.',
   );
   await expect(page.locator('#entity-demo-error')).toContainText(
-    './up.sh tauth',
+    './up.sh',
   );
 });
 

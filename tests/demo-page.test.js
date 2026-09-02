@@ -293,6 +293,68 @@ test('demo config supports the lightweight static preview origin', () => {
   );
 });
 
+test('component gallery shows every general component and the complete dropdown modes', () => {
+  const galleryHtml = readDemoFile('components.html');
+  const expectedElements = [
+    'mpr-header',
+    'mpr-footer',
+    'mpr-dropdown',
+    'mpr-theme-toggle',
+    'mpr-settings',
+    'mpr-sites',
+    'mpr-legal-document',
+    'mpr-band',
+    'mpr-card',
+  ];
+
+  expectedElements.forEach((tagName) => {
+    assert.match(
+      galleryHtml,
+      new RegExp(`<${tagName}\\b`, 'i'),
+      `Expected the component gallery to include <${tagName}>`,
+    );
+  });
+
+  assert.match(galleryHtml, /"placement"\s*:\s*"top"/);
+  assert.match(galleryHtml, /"placement"\s*:\s*"bottom"/);
+  assert.match(galleryHtml, /"mode"\s*:\s*"static"/);
+  assert.match(galleryHtml, /"mode"\s*:\s*"expanded"/);
+  assert.match(galleryHtml, /"mode"\s*:\s*"collapsed"/);
+});
+
+test('TAuth demo includes every password mode, account action, and safe diagnostics', () => {
+  const tauthDemoHtml = readDemoFile('tauth-demo.html');
+  const passwordModes = ['login', 'signup', 'verify-email', 'reset-start', 'reset-complete'];
+  const accountActions = [
+    'password-change',
+    'password-link-start',
+    'password-link-verify',
+    'google-link',
+    'unlink',
+    'disable',
+  ];
+
+  passwordModes.forEach((mode) => {
+    assert.match(
+      tauthDemoHtml,
+      new RegExp(`<mpr-password-auth\\b[^>]*\\bmode="${mode}"`, 'i'),
+      `Expected the TAuth demo to include password mode ${mode}`,
+    );
+  });
+  accountActions.forEach((action) => {
+    assert.match(
+      tauthDemoHtml,
+      new RegExp(`<mpr-account-panel\\b[^>]*\\baction="${action}"`, 'i'),
+      `Expected the TAuth demo to include account action ${action}`,
+    );
+  });
+  assert.match(
+    tauthDemoHtml,
+    /<mpr-auth-diagnostics\b[^>]*\bauth-target="#demo-header"/i,
+    'Expected the TAuth demo to include safe auth diagnostics',
+  );
+});
+
 test('entity workspace demo uses Web Component orchestration', () => {
   const html = readDemoFile('entity-workspace.html');
   assert.match(

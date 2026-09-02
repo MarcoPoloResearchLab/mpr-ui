@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>mpr-ui Component Gallery</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="../mpr-ui.css" />
+    <link rel="stylesheet" href="./demo.css" />
+    <script defer src="../mpr-ui.js"></script>
+    <style>
+      body {
+        min-height: 100vh;
+        margin: 0;
+        background: var(--mpr-color-surface-primary, #f8fafc);
+        color: var(--mpr-color-text-primary, #0f172a);
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      }
+
+      .component-gallery {
+        width: min(100% - 2rem, 72rem);
+        margin: 0 auto;
+        padding: 3rem 0 8rem;
+      }
+
+      .component-gallery__hero,
+      .component-gallery__section {
+        margin-bottom: 2rem;
+      }
+
+      .component-gallery__section--menus {
+        position: relative;
+        z-index: 2101;
+      }
+
+      .component-gallery__hero h1,
+      .component-gallery__section h2,
+      .component-gallery__card h3 {
+        margin-top: 0;
+      }
+
+      .component-gallery__hero p,
+      .component-gallery__section > p,
+      .component-gallery__card > p {
+        color: var(--mpr-color-text-muted, #64748b);
+      }
+
+      .component-gallery__grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(17rem, 1fr));
+        gap: 1rem;
+        align-items: start;
+      }
+
+      .component-gallery__card {
+        min-width: 0;
+        border: 1px solid var(--mpr-color-border, rgba(148, 163, 184, 0.35));
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        background: var(--mpr-color-surface-elevated, #ffffff);
+        box-shadow: var(--mpr-shadow-elevated, 0 8px 16px rgba(15, 23, 42, 0.12));
+      }
+
+      .component-gallery__card--wide {
+        grid-column: 1 / -1;
+      }
+
+      .component-gallery__links {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.75rem;
+        padding: 0;
+        list-style: none;
+      }
+
+      .component-gallery__links a {
+        color: var(--mpr-color-accent, #0ea5e9);
+        font-weight: 700;
+      }
+
+      .component-gallery__settings-copy {
+        margin: 0;
+        padding: 0.75rem;
+        border-radius: 0.5rem;
+        background: var(--mpr-chip-bg, rgba(148, 163, 184, 0.14));
+      }
+
+      .component-gallery__legal {
+        max-height: 32rem;
+        overflow: auto;
+      }
+    </style>
+  </head>
+  <body class="theme-light" data-demo-palette="default">
+    <mpr-header
+      brand-label="mpr-ui component gallery"
+      brand-href="./components.html"
+      horizontal-links='{
+        "alignment": "right",
+        "links": [
+          { "label": "Demo hub", "href": "../index.html" },
+          { "label": "TAuth", "href": "./tauth-demo.html" },
+          { "label": "Provider chooser", "href": "./auth-provider-chooser.html" },
+          { "label": "Entity workspace", "href": "./entity-workspace.html?entity-demo-docker=2" }
+        ]
+      }'
+      sticky="false"
+    ></mpr-header>
+
+    <main class="component-gallery">
+      <section class="component-gallery__hero">
+        <p>Reusable visual primitives</p>
+        <h1>Component gallery</h1>
+        <p>
+          This page exercises the general-purpose shell, menu, theme, settings, site,
+          card, band, and legal-document components. Auth and collection components
+          link to their focused interactive demos below.
+        </p>
+      </section>
+
+      <section class="component-gallery__section component-gallery__section--menus" aria-labelledby="gallery-menu-title">
+        <h2 id="gallery-menu-title">Sectioned dropdown menus</h2>
+        <p>Both placements and all three section modes use the same validated <code>menu</code> contract.</p>
+        <div class="component-gallery__grid">
+          <article class="component-gallery__card">
+            <h3>Open below</h3>
+            <mpr-dropdown
+              id="gallery-dropdown-bottom"
+              menu='{
+                "label": "Explore products",
+                "placement": "bottom",
+                "sections": [
+                  { "id": "platform", "label": "Platform", "mode": "static", "links": [
+                    { "label": "MPR Lab", "href": "https://mprlab.com", "target": "_blank" }
+                  ] },
+                  { "id": "products", "label": "Products", "mode": "expanded", "links": [
+                    { "label": "LoopAware", "href": "https://loopaware.mprlab.com", "target": "_blank" },
+                    { "label": "Gravity Notes", "href": "https://gravity.mprlab.com", "target": "_blank" }
+                  ] },
+                  { "id": "tools", "label": "Tools", "mode": "collapsed", "links": [
+                    { "label": "Prompt Bubbles", "href": "https://prompts.mprlab.com", "target": "_blank" }
+                  ] }
+                ]
+              }'
+            ></mpr-dropdown>
+          </article>
+
+          <article class="component-gallery__card">
+            <h3>Open above</h3>
+            <mpr-dropdown
+              id="gallery-dropdown-top"
+              menu='{
+                "label": "Open resources",
+                "placement": "top",
+                "sections": [
+                  { "id": "documentation", "label": "Documentation", "mode": "static", "links": [
+                    { "label": "Component reference", "href": "../docs/custom-elements.md" },
+                    { "label": "Integration guide", "href": "../docs/integration-guide.md" }
+                  ] }
+                ]
+              }'
+            ></mpr-dropdown>
+          </article>
+        </div>
+      </section>
+
+      <section class="component-gallery__section" aria-labelledby="gallery-controls-title">
+        <h2 id="gallery-controls-title">Theme, settings, and site links</h2>
+        <div class="component-gallery__grid">
+          <article class="component-gallery__card">
+            <h3>Theme toggle</h3>
+            <mpr-theme-toggle
+              variant="button"
+              label="Change theme"
+              show-label="true"
+              theme-config='{
+                "targets": ["body"],
+                "initialMode": "light",
+                "modes": [
+                  { "value": "light", "classList": ["theme-light"] },
+                  { "value": "dark", "classList": ["theme-dark"] }
+                ]
+              }'
+            ></mpr-theme-toggle>
+          </article>
+
+          <article class="component-gallery__card">
+            <h3>Settings disclosure</h3>
+            <mpr-settings label="Demo preferences">
+              <p slot="panel" class="component-gallery__settings-copy">
+                Host-owned settings content stays inside the component panel.
+              </p>
+            </mpr-settings>
+          </article>
+
+          <article class="component-gallery__card component-gallery__card--wide">
+            <h3>Site catalog</h3>
+            <mpr-sites
+              heading="MPR Lab network"
+              variant="grid"
+              columns="3"
+              links='[
+                { "label": "MPR Lab", "url": "https://mprlab.com", "target": "_blank" },
+                { "label": "LoopAware", "url": "https://loopaware.mprlab.com", "target": "_blank" },
+                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com", "target": "_blank" }
+              ]'
+            ></mpr-sites>
+          </article>
+        </div>
+      </section>
+
+      <section class="component-gallery__section" aria-labelledby="gallery-content-title">
+        <h2 id="gallery-content-title">Bands, cards, and legal documents</h2>
+        <div class="component-gallery__grid">
+          <mpr-band class="component-gallery__card component-gallery__card--wide" category="tools">
+            <mpr-card
+              card='{
+                "id": "gallery-card",
+                "title": "Composable project card",
+                "description": "Cards can live inside themed bands or stand alone and expose flip and action events.",
+                "status": "production",
+                "url": "https://mprlab.com"
+              }'
+            ></mpr-card>
+          </mpr-band>
+
+          <article class="component-gallery__card component-gallery__card--wide component-gallery__legal">
+            <mpr-legal-document
+              type="privacy"
+              product-name="mpr-ui Gallery"
+              service-data-description="component preferences and local demo interactions"
+              effective-date-text="Demonstration copy"
+            ></mpr-legal-document>
+          </article>
+        </div>
+      </section>
+
+      <section class="component-gallery__section" aria-labelledby="gallery-specialized-title">
+        <h2 id="gallery-specialized-title">Focused interactive demos</h2>
+        <ul class="component-gallery__links">
+          <li><a href="../index.html">Provider-aware header and footer</a></li>
+          <li><a href="./tauth-demo.html">Email/password and account management</a></li>
+          <li><a href="./auth-provider-chooser.html">Apple, Google, and email chooser</a></li>
+          <li><a href="./standalone.html">Login button and user menu</a></li>
+          <li><a href="./entity-workspace.html?entity-demo-docker=2">Entity workspace kit and detail drawer</a></li>
+        </ul>
+      </section>
+    </main>
+
+    <mpr-footer
+      prefix-text="mpr-ui gallery"
+      privacy-link-label="Component reference"
+      privacy-link-href="../docs/custom-elements.md"
+      menu='{
+        "label": "Library demos",
+        "placement": "top",
+        "sections": [
+          { "id": "platform", "label": "Platform", "mode": "static", "links": [
+            { "label": "Demo hub", "href": "../index.html" }
+          ] },
+          { "id": "capabilities", "label": "Capabilities", "mode": "expanded", "links": [
+            { "label": "Authentication", "href": "./tauth-demo.html" },
+            { "label": "Entity workspace", "href": "./entity-workspace.html?entity-demo-docker=2" }
+          ] },
+          { "id": "references", "label": "References", "mode": "collapsed", "links": [
+            { "label": "Custom elements", "href": "../docs/custom-elements.md" },
+            { "label": "Architecture", "href": "../ARCHITECTURE.md" }
+          ] }
+        ]
+      }'
+      sticky="true"
+    ></mpr-footer>
+  </body>
+</html>

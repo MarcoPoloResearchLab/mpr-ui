@@ -249,6 +249,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Examine links, command names, paths, and public contract descriptions touched by the pass.
   - Confirm docs describe the current canonical path only.
   - Confirm issue archive and active tracker references remain consistent.
+  Last run 2026-09-01: Reworked README, architecture, component, integration, and demo references. Added one component gallery, current demo navigation, auth diagnostics, and explicit Apple versus TAuth-fixture acceptance boundaries. Removed two superseded planning and migration documents.
 
 ## Features
 
@@ -297,6 +298,80 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Verify a long footer menu stays visible, reachable, and scrollable in a small viewport.
   - Verify `<mpr-footer>` uses the shared element and has no second dropdown interaction path.
   - Run `make ci` after the final source and documentation changes.
+
+- [ ] [F010] (P1) Publish the public component demo site at `ui.mprlab.com`.
+  Goal:
+  A public site shows the current released library, its components, its authentication controls, and its integration documentation.
+
+  Requirements:
+  - Use `https://ui.mprlab.com/` as the canonical public URL.
+  - Use `.mprlab/deploy/resources.yml` as the only production manifest.
+  - Make `release`, `publish`, and `deploy` delegate to the sibling `mprlab-gateway` repository.
+  - Preserve `up.sh`, `down.sh`, `docker-compose.yml`, and `npm run demo:serve` as local contracts.
+  - Declare one `github_pages` resource for `MarcoPoloResearchLab/mpr-ui` and the `gh-pages` branch.
+  - Set the Pages verification path to `/.mprlab/release.json`.
+  - Build a curated Pages artifact from the exact committed application source.
+  - Use a container source to prevent duplicate library and demo files in the repository.
+  - Copy only the public library assets, demo assets, documentation pages, and required static data.
+  - Exclude local environment files, tests, release tools, repository guidance, and private deployment inputs.
+  - Configure the `ui.mprlab.com` CNAME record for `marcopoloresearchlab.github.io`.
+  - Verify the `mprlab.com` domain for the `MarcoPoloResearchLab` GitHub organization.
+  - Configure the Pages custom domain before the first public activation.
+  - Enforce HTTPS after GitHub supplies the certificate.
+  - Add `https://ui.mprlab.com` to the canonical browser config.
+  - Add one dedicated TAuth tenant for the public demo site.
+  - Use a tenant ID that is reserved for the MPR UI demo site.
+  - Read provider secrets only from the canonical private deployment input.
+  - Keep all provider secrets out of the Pages artifact and Git history.
+  - Configure the browser-facing TAuth origin from active deployed state.
+  - Enable Google, Apple, and password providers only with complete provider config.
+  - Use disposable demo identities for public password and account actions.
+  - State which authentication actions are live on each public page.
+  - Keep the provider chooser independent from authenticated session state.
+  - Show every registered custom element in the public gallery.
+  - Show dropdown menus with top and bottom placement values.
+  - Show static, expanded, and collapsed dropdown menu sections.
+  - Show Google, Apple, email, password, account, and authentication diagnostics components.
+  - Give every demo page the same navigation, page title, introduction, and source link.
+  - Show the released version and source commit on the site.
+  - Remove local-only instructions from the primary public page content.
+  - Keep local setup instructions in a separate contributor section.
+  - Give each interactive example a clear purpose and a visible expected result.
+  - Make all demos usable on small and large viewports.
+  - Use accessible names, focus order, disclosure state, and keyboard behavior.
+  - Use current Google and Apple authentication presentation requirements.
+  - Make each public route load without browser errors or failed asset requests.
+  - Add a public acceptance check for the exact released Pages marker.
+  - Run public browser checks only after the exact Pages deployment reaches its terminal result.
+
+  Deliverables:
+  - Add the canonical production manifest and the curated Pages container source.
+  - Add the `ui.mprlab.com` DNS record, Pages domain config, and HTTPS activation.
+  - Add the dedicated TAuth tenant contribution and its public browser config.
+  - Polish the index, component, provider, authentication, workspace, and standalone demo pages.
+  - Add public documentation navigation and release identity presentation.
+  - Add Playwright coverage for the built Pages artifact and the deployed public site.
+  - Update README, architecture, integration, demo, release, and operator documentation.
+
+  Validation:
+  - Run `make ci` after the final source, config, test, and documentation changes.
+  - Build the Pages container output and inspect its complete file inventory.
+  - Confirm the artifact contains no secret, local environment file, test, or release tool.
+  - Confirm two builds from the same commit produce the same public file content.
+  - Run `make release`, `make publish`, and `make deploy` as separate lifecycle phases.
+  - Confirm the sealed release contains the Pages artifact for the exact application commit.
+  - Confirm publication creates the immutable `gh-pages` commit for that release.
+  - Confirm deployment activates that commit for `ui.mprlab.com`.
+  - Verify the DNS record, GitHub Pages result, TLS certificate, HTTPS URL, and release marker separately.
+  - Verify the public marker contains the expected source commit and release version.
+  - Run Playwright against every public demo route on desktop and mobile viewports.
+  - Verify section controls, keyboard behavior, focus behavior, and menu placement on the public site.
+  - Verify the provider chooser emits Google, Apple, and email intent without session changes.
+  - Verify password signup, verification, login, session, reset, and logout with a disposable identity.
+  - Verify each enabled external provider starts its configured TAuth authorization flow.
+  - Complete one real login for each enabled external provider before public acceptance.
+  - Confirm every public page has no browser error, failed asset request, or mixed content.
+  - Repeat deployment without source changes and verify an idempotent result.
 
 ## Planning
 
