@@ -148,7 +148,7 @@ test.describe('Size parameter support', () => {
 });
 
 test.describe('Authentication provider control sizing', () => {
-  test('B054: provider controls stay aligned and contained at wide and narrow header widths', async ({
+  test('B054 and B055: provider controls stay aligned and contained at wide and narrow header widths', async ({
     page,
   }) => {
     await visitFullLayoutFixture(page);
@@ -228,6 +228,8 @@ test.describe('Authentication provider control sizing', () => {
               containerRight: controlsBounds.right,
               backgroundColor: buttonStyle.backgroundColor,
               borderColor: buttonStyle.borderTopColor,
+              borderStyle: buttonStyle.borderTopStyle,
+              borderWidth: buttonStyle.borderTopWidth,
               labelPosition: labelStyle ? labelStyle.position : '',
               labelWidth: labelStyle ? Number.parseFloat(labelStyle.width) : 0,
             };
@@ -240,6 +242,18 @@ test.describe('Authentication provider control sizing', () => {
       );
       expect(
         new Set(metrics.buttons.map((buttonMetrics) => buttonMetrics.height)).size,
+        viewportCase.name,
+      ).toBe(1);
+      expect(
+        new Set(metrics.buttons.map((buttonMetrics) => buttonMetrics.borderColor)).size,
+        viewportCase.name,
+      ).toBe(1);
+      expect(
+        new Set(metrics.buttons.map((buttonMetrics) => buttonMetrics.borderStyle)).size,
+        viewportCase.name,
+      ).toBe(1);
+      expect(
+        new Set(metrics.buttons.map((buttonMetrics) => buttonMetrics.borderWidth)).size,
         viewportCase.name,
       ).toBe(1);
 
@@ -255,6 +269,9 @@ test.describe('Authentication provider control sizing', () => {
         expect(buttonMetrics.width, viewportCase.name).toBe(30);
         expect(buttonMetrics.labelPosition, viewportCase.name).toBe('absolute');
         expect(buttonMetrics.labelWidth, viewportCase.name).toBe(1);
+        expect(buttonMetrics.borderColor, viewportCase.name).toBe('rgb(142, 145, 143)');
+        expect(buttonMetrics.borderStyle, viewportCase.name).toBe('solid');
+        expect(buttonMetrics.borderWidth, viewportCase.name).toBe('1px');
       }
 
       const appleMetrics = metrics.buttons.find(

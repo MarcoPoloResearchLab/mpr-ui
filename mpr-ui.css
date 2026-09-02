@@ -142,6 +142,9 @@ mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__action {
   inline-size: var(--mpr-auth-action-block-size);
   min-inline-size: var(--mpr-auth-action-block-size);
   padding: 0;
+  border-color: #8e918f;
+  border-style: solid;
+  border-width: 1px;
   aspect-ratio: 1 / 1;
   overflow: hidden;
 }

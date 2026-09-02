@@ -6,6 +6,37 @@ Archived 2026-09-01 by M400R.
 
 ## BugFixes
 
+- [x] [B055] (P1) Header provider controls use different border colors.
+  Goal:
+  All header provider controls use one border treatment.
+
+  Expected:
+  Google, Apple, and email controls use the same border color, style, and width.
+
+  Actual:
+  The three controls use three different border colors.
+
+  Requirements:
+  - Use the Google dark-theme border color for all header provider controls.
+  - Use a solid one-pixel border for all header provider controls.
+  - Preserve each provider background and mark.
+  - Preserve the provider-specific style of full login controls.
+
+  Deliverables:
+  - Update the shared header control styles.
+  - Add browser acceptance coverage for border equality.
+
+  Validation:
+  - Verify border color, style, and width at large and small header widths.
+  - Verify the complete repository CI after the final source change.
+
+  Resolution:
+  All three header provider controls now use the Google dark-theme border.
+  Full login controls retain their provider-specific styles.
+
+  Validation result:
+  The focused browser tests passed. `make ci` passed 203 unit tests and two browser runs of 114 tests.
+
 - [x] [B054] (P1) Authentication provider controls use different sizes and can extend past their container.
   Goal:
   Authentication provider actions form one compact control group at each supported header width.
