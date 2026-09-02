@@ -3,9 +3,9 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
     <title>Auth Provider Chooser Demo</title>
     <link rel="stylesheet" href="../mpr-ui.css" />
-    <link rel="stylesheet" href="./demo.css" />
     <script id="mpr-ui-bundle" defer src="../mpr-ui.js"></script>
     <style>
       body {
@@ -216,9 +216,10 @@
         }
       }
     </style>
+    <link rel="stylesheet" href="./demo.css" />
     <script defer src="./auth-provider-chooser.js"></script>
   </head>
-  <body class="theme-light" data-demo-palette="default">
+  <body class="theme-dark" data-demo-palette="default" data-mpr-theme="dark">
     <header class="provider-demo__chrome">
       <a class="provider-demo__brand" href="https://mprlab.com/">Marco Polo Research Lab</a>
       <nav class="provider-demo__nav" aria-label="Demo pages">
@@ -372,7 +373,7 @@
         ]
       }'
       theme-switcher="toggle"
-      theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-light","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
+      theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-dark","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
     ></mpr-footer>
   </body>
 </html>

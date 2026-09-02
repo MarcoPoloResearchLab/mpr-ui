@@ -150,16 +150,16 @@ test('landing page uses Web Component orchestration for config', () => {
   );
 });
 
-test('landing page pulls Bootstrap assets for the layout showcase', () => {
-  assert.match(
+test('landing page uses the compact dependency-free demo shell', () => {
+  assert.doesNotMatch(
     landingHtml,
-    /<link[^>]+href="https:\/\/cdn\.jsdelivr\.net\/npm\/bootstrap@[^/]+\/dist\/css\/bootstrap\.min\.css"/i,
-    'Expected the landing page to load Bootstrap CSS for the grid layout',
+    /bootstrap(?:\.min)?\.(?:css|js)/i,
+    'Expected the public demo shell to avoid framework presentation dependencies',
   );
   assert.match(
     landingHtml,
-    /<script[^>]+src="https:\/\/cdn\.jsdelivr\.net\/npm\/bootstrap@[^/]+\/dist\/js\/bootstrap\.bundle\.min\.js"/i,
-    'Expected the landing page to load the Bootstrap bundle',
+    /class="demo-hub__grid"/,
+    'Expected the landing page to expose the shared compact demo grid',
   );
 });
 
@@ -182,25 +182,12 @@ test('sticky layout helpers live inside the components, not demo CSS', () => {
   });
 });
 
-test('palette-specific overrides live in the demo stylesheet only', () => {
-  const paletteSelectors = [
-    /body\[data-demo-palette='sunrise'\]\.theme-light[^{]*\{/,
-    /body\[data-demo-palette='sunrise'\]\.theme-dark[^{]*\{/,
-    /body\[data-demo-palette='forest'\]\.theme-light[^{]*\{/,
-    /body\[data-demo-palette='forest'\]\.theme-dark[^{]*\{/,
-  ];
-  paletteSelectors.forEach((selector) => {
-    assert.doesNotMatch(
-      sharedCss,
-      selector,
-      'Packaged stylesheet should not include demo palette selectors',
-    );
-    assert.match(
-      demoCss,
-      selector,
-      'Demo stylesheet should include palette overrides for showcase themes',
-    );
-  });
+test('demo stylesheet applies one compact MPR visual contract', () => {
+  assert.match(demoCss, /--demo-canvas: #0f1114;/);
+  assert.match(demoCss, /--demo-control-radius: 6px;/);
+  assert.match(demoCss, /background-image: none;/);
+  assert.doesNotMatch(demoCss, /linear-gradient|radial-gradient/);
+  assert.doesNotMatch(entityWorkspaceCss, /linear-gradient|radial-gradient|backdrop-filter/);
 });
 
 test('all demo footers include horizontal-links DSL examples', () => {
@@ -216,11 +203,6 @@ test('all demo footers include horizontal-links DSL examples', () => {
 });
 
 test('demo pages share the same header navigation links', () => {
-  const canonicalNavLinks = extractSingleQuotedAttribute(
-    landingHtml,
-    'mpr-header',
-    'nav-links',
-  );
   const canonicalHeaderLinks = extractSingleQuotedAttribute(
     landingHtml,
     'mpr-header',
@@ -235,11 +217,6 @@ test('demo pages share the same header navigation links', () => {
       'horizontal-links',
     );
 
-    assert.strictEqual(
-      normalizeAttributeValue(extractSingleQuotedAttribute(demoHtmlFile, 'mpr-header', 'nav-links')),
-      normalizeAttributeValue(canonicalNavLinks),
-      `Expected ${demoFileName} to keep the shared demo nav links`,
-    );
     assert.strictEqual(
       normalizeAttributeValue(demoHeaderLinks),
       normalizeAttributeValue(canonicalHeaderLinks.replace(/\.\/index\.html/g, '../index.html').replace(/\.\/demo\//g, './')),

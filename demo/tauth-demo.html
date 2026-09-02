@@ -3,12 +3,12 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
     <title>TAuth + mpr-ui (Docker Compose)</title>
     <link
       rel="stylesheet"
       href="../mpr-ui.css"
     />
-    <link rel="stylesheet" href="./demo.css" />
     <script
       defer
       src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
@@ -146,17 +146,14 @@
         margin-top: 0.5rem;
       }
     </style>
+    <link rel="stylesheet" href="./demo.css" />
   </head>
-  <body class="theme-light" data-demo-palette="default">
+  <body class="theme-dark" data-demo-palette="default" data-mpr-theme="dark">
     <!-- MPR UI orchestration via Web Components DSL -->
     <mpr-header
       id="demo-header"
       brand-label="Marco Polo Research Lab"
       brand-href="https://mprlab.com/"
-      nav-links='[
-        { "label": "Docs", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/README.md" },
-        { "label": "Architecture", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/ARCHITECTURE.md" }
-      ]'
       horizontal-links='{
         "alignment": "right",
         "links": [
@@ -321,7 +318,7 @@
 
     <mpr-footer
       id="page-footer"
-      sticky="true"
+      sticky="false"
       size="small"
       privacy-link-label="Privacy &amp; Terms"
       privacy-link-href="#privacy"
@@ -366,7 +363,7 @@
         ]
       }'
       theme-switcher="toggle"
-      theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-light","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
+      theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-dark","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
     ></mpr-footer>
     <script defer src="./tauth-settings-modal.js"></script>
     <script defer src="./status-panel.js"></script>

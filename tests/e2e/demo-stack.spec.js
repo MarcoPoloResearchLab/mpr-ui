@@ -41,7 +41,9 @@ test('root / serves the demo hub landing page with local assets and DSL orchestr
 
   // 1. Verify Hub Identity
   await expect(page).toHaveTitle('mpr-ui Demo');
-  await expect(page.locator('[data-layout-section="hero-title"] h1')).toContainText('MPR-UI Demo');
+  await expect(page.locator('[data-layout-section="hero-title"] h1')).toContainText(
+    'Small components. Complete product flows.',
+  );
 
   // 2. Verify DSL Orchestration (no manual config scripts)
   const header = page.locator('mpr-header#demo-header');
@@ -88,8 +90,10 @@ test('sub-demos provide consistent navigation and local asset loading', async ({
     // Navigation back to root landing page
     const indexLink = header.locator('a:has-text("Index demo")');
     await expect(indexLink).toBeVisible();
-    await indexLink.click();
-    
+    const indexHref = await indexLink.getAttribute('href');
+    expect(indexHref).toBe('../index.html');
+    await page.goto(`${BASE_URL.replace(/\/$/, '')}/index.html`, { waitUntil: 'networkidle' });
+
     await expect(page).toHaveURL(
       new RegExp(`${BASE_URL.replace(/\/$/, '')}/(?:index\\.html)?$`),
     );

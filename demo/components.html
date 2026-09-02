@@ -3,10 +3,10 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
     <title>mpr-ui Component Gallery</title>
     <link rel="icon" href="data:," />
     <link rel="stylesheet" href="../mpr-ui.css" />
-    <link rel="stylesheet" href="./demo.css" />
     <script defer src="../mpr-ui.js"></script>
     <style>
       body {
@@ -90,8 +90,9 @@
         overflow: auto;
       }
     </style>
+    <link rel="stylesheet" href="./demo.css" />
   </head>
-  <body class="theme-light" data-demo-palette="default">
+  <body class="theme-dark" data-demo-palette="default" data-mpr-theme="dark">
     <mpr-header
       brand-label="mpr-ui component gallery"
       brand-href="./components.html"
@@ -268,7 +269,7 @@
           ] }
         ]
       }'
-      sticky="true"
+      sticky="false"
     ></mpr-footer>
   </body>
 </html>
