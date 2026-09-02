@@ -192,6 +192,8 @@ The loader applies only `/config-ui.yaml` auth attributes to the button before l
 
 The owning header or login button renders the provider set from `/config-ui.yaml`. Google, Apple, and password can be enabled independently or together. The surface uses one auth controller, and provider actions do not create duplicate session or profile probes.
 
+The header uses compact square provider actions with accessible names. The login button uses full provider text and its configured presentation.
+
 Apple is a redirect provider. The action builds the configured TAuth `startPath` with `tenant_id` and a validated `return_to`. It records a restore hint and emits an authenticating status. It then navigates the top-level page. TAuth handles the callback and session cookies. The returned page uses `sessionPath` and emits the ordinary `mpr-ui:auth:*` lifecycle.
 
 Apple Developer portal values belong to TAuth and deployment configuration. Browser config contains only enablement, start path, tenant ID, return policy, and approved label.

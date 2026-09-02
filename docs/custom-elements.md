@@ -15,6 +15,8 @@ This document defines the supported `mpr-ui` custom elements and their integrati
 
 The header integrates configured Google, Apple, and password providers with TAuth and emits the shared auth lifecycle events.
 
+The header uses one compact square action for each provider. Each action keeps its full accessible name.
+
 ### Primary integration path
 
 Serve `/config-ui.yaml`. Render `<mpr-header data-config-url="/config-ui.yaml">`. Let `mpr-ui-config.js` apply one validated `auth-config` provider map before it loads the bundle.

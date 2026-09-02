@@ -68,28 +68,51 @@ mpr-header mpr-auth-provider-chooser {
   gap: 0.25rem;
   min-inline-size: 0;
   max-inline-size: 100%;
+  --mpr-auth-action-block-size: 1.875rem;
+  --mpr-auth-action-inline-size: 11.25rem;
 }
 
 .mpr-auth-actions__controls {
   display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  align-items: center;
+  flex-wrap: nowrap;
+  gap: 0.35rem;
+  align-items: stretch;
+  min-inline-size: 0;
+  max-inline-size: 100%;
+}
+
+.mpr-auth-actions__controls .mpr-auth-provider-chooser__action {
+  inline-size: var(--mpr-auth-action-inline-size);
+  min-inline-size: var(--mpr-auth-action-inline-size);
+  block-size: var(--mpr-auth-action-block-size);
+  min-block-size: var(--mpr-auth-action-block-size);
+  padding: 0.1875rem 0.5rem;
 }
 
 .mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple {
-  min-inline-size: 140px;
-  min-block-size: 44px;
-  padding: 4.4px;
+  padding: 0.1875rem 0.5rem;
   border-color: #000;
-  background: #fff;
-  color: #000;
+  background: #000;
+  color: #fff;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-  font-size: 19px;
+  font-size: 0.8125rem;
 }
 
 .mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple:hover {
-  background: #f5f5f5;
+  background: #111;
+}
+
+.mpr-auth-actions__controls .mpr-auth-provider-chooser__action--google {
+  border-color: #8e918f;
+  background: #131314;
+  color: #e3e3e3;
+  font-family: "Google Sans", Roboto, Arial, sans-serif;
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
+
+.mpr-auth-actions__controls .mpr-auth-provider-chooser__action--google:hover {
+  background: #202124;
 }
 
 .mpr-auth-actions__status {
@@ -100,14 +123,41 @@ mpr-header mpr-auth-provider-chooser {
   line-height: 1.2;
 }
 
+mpr-header .mpr-auth-actions__status:empty {
+  display: none;
+}
+
 mpr-header .mpr-auth-actions {
   --mpr-auth-provider-scale: var(--mpr-header-scale, 1);
 }
 
-mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple {
-  min-inline-size: 140px;
-  min-block-size: 44px;
-  font-size: 19px;
+mpr-header .mpr-auth-actions__controls {
+  overflow: visible;
+}
+
+mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__action {
+  position: relative;
+  grid-template-columns: 1fr;
+  place-items: center;
+  inline-size: var(--mpr-auth-action-block-size);
+  min-inline-size: var(--mpr-auth-action-block-size);
+  padding: 0;
+  aspect-ratio: 1 / 1;
+  overflow: hidden;
+}
+
+mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__mark {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__label {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .mpr-auth-diagnostics {

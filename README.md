@@ -111,6 +111,8 @@ Render the shell:
 
 `<mpr-header>` and `<mpr-login-button>` are the auth-owning surfaces. Each creates one controller and renders the enabled Google, Apple, and password actions from `/config-ui.yaml`.
 
+The header uses compact square provider actions with accessible names. The login button uses full provider text and its configured presentation.
+
 - Google requests a fresh TAuth nonce for each attempt. It initializes Google Identity Services and exchanges the credential through the configured login path.
 - Apple builds a validated TAuth redirect action and navigates the top-level page. TAuth owns the Apple callback, credentials, session cookie, and server configuration.
 - Password opens the shared login form on the same controller.

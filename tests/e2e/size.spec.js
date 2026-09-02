@@ -147,6 +147,129 @@ test.describe('Size parameter support', () => {
 
 });
 
+test.describe('Authentication provider control sizing', () => {
+  test('B054: provider controls stay aligned and contained at wide and narrow header widths', async ({
+    page,
+  }) => {
+    await visitFullLayoutFixture(page);
+
+    const headerHost = page.locator('mpr-header#test-header');
+    await headerHost.evaluate((headerElement) => {
+      headerElement.setAttribute(
+        'auth-config',
+        JSON.stringify({
+          tauthUrl: 'https://auth.fixture.test',
+          tenantId: 'test-tenant',
+          logoutPath: '/auth/logout',
+          sessionPath: '/auth/session',
+          providers: {
+            google: {
+              enabled: true,
+              clientId: 'fixture-google-client',
+              loginPath: '/auth/google',
+              noncePath: '/auth/nonce',
+            },
+            apple: {
+              enabled: true,
+              startPath: '/auth/apple/start',
+              returnTo: 'current-url',
+              label: 'Sign in with Apple',
+            },
+            password: { enabled: true },
+          },
+          password: {
+            loginPath: '/auth/password/login',
+            signupPath: '/auth/password/signup',
+            verifyEmailPath: '/auth/password/verify-email',
+            resetStartPath: '/auth/password/reset/start',
+            resetCompletePath: '/auth/password/reset/complete',
+          },
+        }),
+      );
+    });
+
+    const controls = headerHost.locator('.mpr-auth-actions__controls');
+    const providerButtons = controls.locator('[data-mpr-auth-action]');
+    await expect(providerButtons).toHaveCount(3);
+
+    const viewportCases = [
+      { name: 'wide header', width: 1280, height: 800 },
+      { name: 'narrow header', width: 390, height: 844 },
+    ];
+
+    for (const viewportCase of viewportCases) {
+      await page.setViewportSize({ width: viewportCase.width, height: viewportCase.height });
+
+      const metrics = await controls.evaluate((controlsElement) => {
+        const controlsBounds = controlsElement.getBoundingClientRect();
+        const buttons = Array.from(
+          controlsElement.querySelectorAll('[data-mpr-auth-action]'),
+        );
+        return {
+          clientWidth: controlsElement.clientWidth,
+          scrollWidth: controlsElement.scrollWidth,
+          buttons: buttons.map((buttonElement) => {
+            const buttonBounds = buttonElement.getBoundingClientRect();
+            const labelElement = buttonElement.querySelector(
+              '[data-mpr-auth-provider-label]',
+            );
+            const labelStyle = labelElement
+              ? window.getComputedStyle(labelElement)
+              : null;
+            const buttonStyle = window.getComputedStyle(buttonElement);
+            return {
+              provider: buttonElement.getAttribute('data-mpr-auth-action'),
+              ariaLabel: buttonElement.getAttribute('aria-label'),
+              left: buttonBounds.left,
+              right: buttonBounds.right,
+              width: buttonBounds.width,
+              height: buttonBounds.height,
+              containerLeft: controlsBounds.left,
+              containerRight: controlsBounds.right,
+              backgroundColor: buttonStyle.backgroundColor,
+              borderColor: buttonStyle.borderTopColor,
+              labelPosition: labelStyle ? labelStyle.position : '',
+              labelWidth: labelStyle ? Number.parseFloat(labelStyle.width) : 0,
+            };
+          }),
+        };
+      });
+
+      expect(metrics.scrollWidth, viewportCase.name).toBeLessThanOrEqual(
+        metrics.clientWidth + 1,
+      );
+      expect(
+        new Set(metrics.buttons.map((buttonMetrics) => buttonMetrics.height)).size,
+        viewportCase.name,
+      ).toBe(1);
+
+      for (const buttonMetrics of metrics.buttons) {
+        expect(buttonMetrics.ariaLabel, viewportCase.name).toBeTruthy();
+        expect(buttonMetrics.left, viewportCase.name).toBeGreaterThanOrEqual(
+          buttonMetrics.containerLeft - 1,
+        );
+        expect(buttonMetrics.right, viewportCase.name).toBeLessThanOrEqual(
+          buttonMetrics.containerRight + 1,
+        );
+        expect(buttonMetrics.height, viewportCase.name).toBe(30);
+        expect(buttonMetrics.width, viewportCase.name).toBe(30);
+        expect(buttonMetrics.labelPosition, viewportCase.name).toBe('absolute');
+        expect(buttonMetrics.labelWidth, viewportCase.name).toBe(1);
+      }
+
+      const appleMetrics = metrics.buttons.find(
+        (buttonMetrics) => buttonMetrics.provider === 'apple',
+      );
+      const googleMetrics = metrics.buttons.find(
+        (buttonMetrics) => buttonMetrics.provider === 'google',
+      );
+      expect(appleMetrics?.backgroundColor, viewportCase.name).toBe('rgb(0, 0, 0)');
+      expect(googleMetrics?.backgroundColor, viewportCase.name).toBe('rgb(19, 19, 20)');
+      expect(googleMetrics?.borderColor, viewportCase.name).toBe('rgb(142, 145, 143)');
+    }
+  });
+});
+
 test.describe('Theme toggle travel', () => {
   test.beforeEach(async ({ page }) => {
     await visitThemeFixturePage(page);

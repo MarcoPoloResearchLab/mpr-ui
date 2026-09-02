@@ -6,6 +6,34 @@ Archived 2026-09-01 by M400R.
 
 ## BugFixes
 
+- [x] [B054] (P1) Authentication provider controls use different sizes and can extend past their container.
+  Goal:
+  Authentication provider actions form one compact control group at each supported header width.
+
+  Requirements:
+  - Give text controls equal heights and similar visual weight.
+  - Use the compact black Apple presentation with the approved button proportions.
+  - Use the dark Google presentation with the standard multicolor mark.
+  - Use logo-only controls in headers.
+  - Keep each action inside its control group without horizontal scrolling.
+  - Preserve an accessible name for each logo-only control.
+  - Preserve provider labels and authentication behavior.
+
+  Deliverables:
+  - Update the shared authentication action styles.
+  - Add browser acceptance coverage for large and small headers.
+
+  Validation:
+  - Verify equal control heights at each supported header width.
+  - Verify that each control stays inside the authentication action group.
+  - Verify the complete repository CI after the final change.
+
+  Resolution:
+  The header now uses three compact square provider actions with accessible names. Full login surfaces keep their text and stable status space.
+
+  Validation result:
+  The focused browser tests passed. `make ci` passed 203 unit tests and two browser runs of 114 tests.
+
 - [x] [B053] (P1) The project catalog uses obsolete LoopAware site identifiers.
   Goal: The project catalog uses the current production site identifiers.
   Expected: The LoopAware, Gravity, and Ledger Service subscription URLs use their current identifiers.

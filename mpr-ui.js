@@ -6623,7 +6623,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     HEADER_ROOT_CLASS +
     "__horizontal-links:empty{display:none}" +
     ".mpr-header--small{--mpr-header-scale:0.82}" +
-    "@media(max-width:48rem){.mpr-header__inner{flex-wrap:wrap}.mpr-header__brand{flex:0 0 auto}.mpr-header__nav{margin-left:0;flex:1 1 10rem}.mpr-header__horizontal-links{order:3;flex-basis:100%;justify-content:flex-start}.mpr-header__actions{order:4;flex-basis:100%}.mpr-header__actions .mpr-auth-actions{inline-size:100%}.mpr-header__actions .mpr-auth-actions__controls{flex-wrap:nowrap;max-width:100%;overflow-x:auto}.mpr-header__actions .mpr-auth-provider-chooser__action{inline-size:auto;flex:0 0 auto}}" +
+    "@media(max-width:48rem){.mpr-header__inner{flex-wrap:wrap}.mpr-header__brand{flex:0 0 auto}.mpr-header__nav{margin-left:0;flex:1 1 10rem}.mpr-header__horizontal-links{order:3;flex-basis:100%;justify-content:flex-start}.mpr-header__actions{order:4;flex-basis:100%}.mpr-header__actions .mpr-auth-actions{inline-size:100%}.mpr-header__actions .mpr-auth-actions__controls{max-width:100%;overflow:visible}}" +
     "@keyframes mpr-header-auth-transition-spin{to{transform:rotate(360deg)}}";
 
   var HEADER_SETTINGS_PLACEHOLDER_MARKUP =
@@ -7011,14 +7011,20 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "." +
     AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
     "__link-button:hover{color:var(--mpr-color-text-primary,#e2e8f0);text-decoration:underline}" +
-    ".mpr-auth-actions{display:grid;gap:.25rem;min-inline-size:0;max-inline-size:100%}" +
-    ".mpr-auth-actions__controls{display:flex;flex-wrap:wrap;gap:.5rem;align-items:center}" +
-    ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple{min-inline-size:140px;min-block-size:44px;padding:4.4px;border-color:#000;background:#fff;color:#000;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:19px}" +
-    ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple:hover{background:#f5f5f5}" +
+    ".mpr-auth-actions{display:grid;gap:.25rem;min-inline-size:0;max-inline-size:100%;--mpr-auth-action-block-size:1.875rem;--mpr-auth-action-inline-size:11.25rem}" +
+    ".mpr-auth-actions__controls{display:flex;flex-wrap:nowrap;gap:.35rem;align-items:stretch;min-inline-size:0;max-inline-size:100%}" +
+    ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action{inline-size:var(--mpr-auth-action-inline-size);min-inline-size:var(--mpr-auth-action-inline-size);block-size:var(--mpr-auth-action-block-size);min-block-size:var(--mpr-auth-action-block-size);padding:.1875rem .5rem}" +
+    ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple{padding:.1875rem .5rem;border-color:#000;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:.8125rem}" +
+    ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple:hover{background:#111}" +
+    ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--google{border-color:#8e918f;background:#131314;color:#e3e3e3;font-family:'Google Sans',Roboto,Arial,sans-serif;font-size:.875rem;line-height:1.25rem}" +
+    ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--google:hover{background:#202124}" +
     ".mpr-auth-actions__status{min-block-size:1.2em;margin:0;color:var(--mpr-color-text-muted,#cbd5f5);font-size:.78rem;line-height:1.2}" +
+    "mpr-header .mpr-auth-actions__status:empty{display:none}" +
     "mpr-header .mpr-auth-actions{--mpr-auth-provider-scale:var(--mpr-header-scale,1);max-inline-size:100%}" +
-    "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__action{inline-size:auto;flex:0 0 auto}" +
-    "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple{min-inline-size:140px;min-block-size:44px;font-size:19px}" +
+    "mpr-header .mpr-auth-actions__controls{overflow:visible}" +
+    "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__action{position:relative;grid-template-columns:1fr;place-items:center;inline-size:var(--mpr-auth-action-block-size);min-inline-size:var(--mpr-auth-action-block-size);padding:0;aspect-ratio:1/1;overflow:hidden}" +
+    "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__mark{grid-column:1;grid-row:1}" +
+    "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__label{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}" +
     ".mpr-auth-diagnostics{display:grid;gap:.5rem;padding:.75rem;border:1px solid var(--mpr-color-border,#2c2f36);border-radius:var(--mpr-radius-control,6px);background:var(--mpr-color-surface-elevated,#1f2126);color:var(--mpr-color-text-primary,#e3e5ec)}" +
     ".mpr-auth-diagnostics__heading{margin:0;font-size:.86rem}" +
     ".mpr-auth-diagnostics__list{display:grid;gap:.35rem;margin:0}" +
