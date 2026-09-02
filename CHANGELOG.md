@@ -3,6 +3,8 @@
 ## [Unreleased]
 
 ### Features ✨
+- Added `<mpr-dropdown>` with section headings, disclosure modes, top or bottom placement, strict menu validation, accessible focus behavior, and public events.
+- Added the shared sectioned `menu` contract to `<mpr-footer>`.
 - Added `MPRUI.getLegalProfile()`, `MPRUI.getLegalDocument()`, `MPRUI.renderLegalDocument()`, and `<mpr-legal-document>` for reusable MPR Lab Terms and Privacy pages.
 
 ### Improvements ⚙️
@@ -27,6 +29,7 @@
 - Rejected credential callbacks that are missing an attempt nonce and surface nonce/GIS preparation failures through auth and header error events.
 
 ### Testing 🧪
+- Added browser coverage for dropdown placement, section modes, focus return, closure behavior, events, and footer composition.
 - Added a same-origin iframe regression for cross-realm `Request` method and body preservation.
 - Added browser acceptance for session expiry, concurrent requests, two tabs, refresh rejection, network failure, request replay, and refresh-cookie expiry.
 - Added a fixture-backed browser regression that holds Google sign-in preparation. It verifies stable control-group and button geometry.
