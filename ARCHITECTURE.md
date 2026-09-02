@@ -1,11 +1,12 @@
 # ARCHITECTURE
 
-`mpr-ui` is delivered as a browser-ready bundle (`mpr-ui.js`) that attaches helpers to the global `window.MPRUI` namespace. The project currently ships two behaviours:
+`mpr-ui` is delivered as a browser-ready bundle (`mpr-ui.js`) that attaches helpers to the global `window.MPRUI` namespace. Its shell components include these controls:
 
 - An authentication header controller that orchestrates Google Identity Services (GIS) sign-in flows.
-- A sticky footer renderer with dropdown navigation, privacy link, and theme toggle support.
+- A reusable sectioned dropdown menu.
+- A sticky footer renderer that composes the dropdown menu, privacy link, and theme toggle.
 
-The library assumes a CDN delivery model and no build tooling. Everything runs in the browser with optional Alpine.js convenience factories. The bundle auto-registers `<mpr-*>` custom elements (header, footer, login button, user menu, theme toggle, settings, sites) on load; those declarative tags form the primary public API and the declarative DSL of the package, while the namespace functions documented below exist for frameworks that need imperative mounting or advanced integration.
+The library assumes a CDN delivery model and no build tooling. Everything runs in the browser with optional Alpine.js convenience factories. The bundle auto-registers `<mpr-*>` custom elements on load. These declarative tags form the primary public API and the package DSL. The namespace functions below support frameworks that need imperative mounting or advanced integration.
 
 ## Files and Responsibilities
 
@@ -44,7 +45,8 @@ The bundle auto-registers modern HTML custom elements when `window.customElement
 | Tag               | Backing Helper(s)                              | Key Attributes                                                                                                                        | Emitted Events                                            |
 | ----------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
 | `<mpr-header>`    | Header controller + `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `horizontal-links` (JSON object with `{ alignment, links }`), `google-site-id`, `tauth-tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `logout-url`, `user-menu-display-mode`, `user-menu-avatar-url`, `user-menu-avatar-label`, `theme-config`, `size`, `sticky` (default `true`)   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
-| `<mpr-footer>`    | Footer controller (internal)                   | `prefix-text`, `horizontal-links` (JSON object with `{ alignment, links }`), `links-collection`, `toggle-label`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides, `size`, `sticky` (default `true`)     | `mpr-footer:theme-change`                                 |
+| `<mpr-footer>`    | Footer controller (internal)                   | `prefix-text`, `horizontal-links` (JSON object with `{ alignment, links }`), `menu`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides, `size`, `sticky` (default `true`)     | `mpr-footer:theme-change`                                 |
+| `<mpr-dropdown>`  | Sectioned dropdown menu                        | `menu` (JSON object with `{ label, placement, sections }`)                                                                                                                   | `mpr-dropdown:toggle`, `mpr-dropdown:section-toggle`, `mpr-dropdown:link-click`, `mpr-dropdown:error` |
 | `<mpr-theme-toggle>` | Theme manager (`configureTheme`)            | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`          | `mpr-ui:theme-change` (via the shared theme manager)      |
 | `<mpr-login-button>` | `createAuthHeader`, shared GIS helper       | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape`        | `mpr-ui:auth:*`, `mpr-login:error`                        |
 | `<mpr-user>`      | TAuth profile + menu renderer                  | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `avatar-url`, `avatar-label`                                                                   | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:menu-item`, `mpr-user:error`    |
@@ -57,7 +59,7 @@ The bundle auto-registers modern HTML custom elements when `window.customElement
 Slots:
 
 - `<mpr-header>`: `brand`, `nav-left`, `nav-right`, `aux`
-- `<mpr-footer>`: `menu-prefix`, `menu-links`, `legal`
+- `<mpr-footer>`: `menu-prefix`, `legal`
 - `<mpr-theme-toggle>` / `<mpr-login-button>` / `<mpr-user>` render controlled content and do not expose slots.
 
 When `customElements.define` is unavailable the helpers fall back gracefully: the registry caches null definitions and no DOM is mutated until the host polyfills the API. The registry performs three key tasks:
@@ -173,9 +175,32 @@ Declarative overrides: apply `data-theme-toggle` (JSON) to the header host eleme
 - Declarative configuration is supported via `data-theme-toggle` (JSON) attributes on header/footer hosts. Include `initialMode` in the JSON to set the starting mode; imperative options and dataset values are merged.
 - Consumers can observe theme changes with `MPRUI.onThemeChange(listener)` or by listening for the bubbling `mpr-ui:theme-change` event (detail `{ mode, source }`).
 
+## Dropdown Menu
+
+`<mpr-dropdown>` owns the sectioned link menu. The required `menu` attribute uses this schema:
+
+```json
+{
+  "label": "Explore",
+  "placement": "bottom",
+  "sections": [
+    {
+      "id": "platform",
+      "label": "Platform",
+      "mode": "static",
+      "links": [{ "label": "Docs", "href": "/docs" }]
+    }
+  ]
+}
+```
+
+`placement` accepts `top` or `bottom`. A section `mode` accepts `static`, `expanded`, or `collapsed`. Each link accepts `label`, `href`, and optional `target` and `rel` fields. Validation rejects missing values, duplicate section IDs, unsupported protocols, and unknown fields.
+
+The element keeps open and section state local to its instance. It closes after an outside pointer action, Escape, or link activation. Escape returns focus to the menu trigger. A section collapse returns focus to its disclosure button when focus was inside that section. The element removes its document and element listeners during an update or disconnect.
+
 ## Footer Controller (Internal)
 
-The footer controller bundles the dropdown/theme implementation, injects styles via `<style id="mpr-ui-footer-styles">`, and pins the footer to the bottom of the viewport (`position: sticky` by default). In sticky mode the component renders the footer as a viewport-fixed bar plus a spacer element to preserve the document flow, so the footer is always visible. When `sticky` is set to `false` the footer root falls back to normal in-flow positioning and the spacer collapses.
+The footer controller composes `<mpr-dropdown>`, injects footer styles through `<style id="mpr-ui-footer-styles">`, and pins the footer to the bottom of the viewport (`position: sticky` by default). In sticky mode, the component renders the footer as a viewport-fixed bar and a spacer element. The spacer preserves the document flow. When `sticky` is `false`, the footer root uses normal in-flow positioning and the spacer collapses.
 
 ### Controller Options
 
@@ -188,15 +213,9 @@ The footer controller bundles the dropdown/theme implementation, injects styles 
 | `innerClass`               | `string`                               | Wrapper class for the inner flex container.                                   |
 | `wrapperClass`             | `string`                               | Class applied to the layout wrapper around brand/menu/privacy.                |
 | `brandWrapperClass`        | `string`                               | Class for the brand/prefix container.                                         |
-| `menuWrapperClass`         | `string`                               | Class for the dropdown wrapper.                                               |
 | `prefixClass`              | `string`                               | Class applied to the prefix span (default highlights in blue).                |
-| `prefixText`               | `string`                               | Text preceding the dropdown toggle (default "Built by").                     |
-| `toggleButtonId`           | `string`                               | Optional id forwarded to the dropdown trigger button.                         |
-| `toggleButtonClass`        | `string`                               | Class for the dropdown trigger button.                                        |
-| `toggleLabel`              | `string`                               | Text rendered on the dropdown trigger (defaults to "Marco Polo Research Lab"). |
-| `menuClass`                | `string`                               | Class for the `<ul>` menu container.                                          |
-| `menuItemClass`            | `string`                               | Class for each `<a>` inside the menu.                                         |
-| `linksCollection`         | `{ style, text, links }` JSON          | Drives the drop-up menu; omit or leave `links` empty to show text-only footer.|
+| `prefixText`               | `string`                               | Text before the dropdown menu (default "Built by Marco Polo Research Lab").  |
+| `menu`                     | `{ label, placement, sections }`       | Configures the shared dropdown. Footer placement must be `top`.                |
 | `privacyLinkClass`         | `string`                               | Class applied to the privacy link.                                            |
 | `privacyLinkHref`          | `string`                               | Destination for the privacy link (`#` default).                               |
 | `privacyLinkLabel`         | `string`                               | Copy for the privacy link (default "Privacy • Terms").                        |
@@ -213,7 +232,7 @@ The footer controller bundles the dropdown/theme implementation, injects styles 
 | `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Theme options toggled by the footer switch.             |
 | `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
 
-If `linksCollection` is omitted (or its `links` array is empty), the footer renders the prefix text only—no drop-up menu is shown.
+If `menu` is omitted, the footer renders the prefix text without a dropdown menu.
 
 If `privacyModalContent` is provided, the privacy link becomes a button that opens an almost full-screen modal with focus capture, ESC/backdrop/click-to-close, and body scroll locking.
 
@@ -223,10 +242,10 @@ Declarative attribute `theme-switcher` controls `themeToggle.variant` and implic
 
 ### Behaviour
 
-- Dropdown menu prefers Bootstrap’s `Dropdown` if available; otherwise a light-weight native toggle keeps `aria-expanded` in sync.
+- The footer uses `<mpr-dropdown>` for menu state, markup, accessibility, and events.
 - Theme toggle emits `mpr-footer:theme-change` with `{ theme }` and forwards the mode through the shared theme manager for `<mpr-theme-toggle>` / `<mpr-header>` to consume.
-- All strings are escaped; dangerous schemes for links fall back to `#`.
-- The drop-up toggle uses internal click/outside/Escape listeners and never applies `data-bs-*` attributes, so Bootstrap or other dropdown frameworks cannot hijack the control.
+- All strings are escaped. Dropdown validation rejects unsupported link protocols.
+- The dropdown does not apply `data-bs-*` attributes.
 
 ## Legal Document Component
 
