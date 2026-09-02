@@ -119,6 +119,9 @@ const FULL_LAYOUT_FIXTURE_URL = pathToFileURL(
 const HORIZONTAL_LINKS_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/horizontal-links.html'),
 ).href;
+const DROPDOWN_FIXTURE_URL = pathToFileURL(
+  join(REPOSITORY_ROOT, 'tests/e2e/fixtures/dropdown.html'),
+).href;
 const USER_MENU_FIXTURE_URL = pathToFileURL(
   join(REPOSITORY_ROOT, 'tests/e2e/fixtures/user-menu.html'),
 ).href;
@@ -144,8 +147,8 @@ const SELECTORS = Object.freeze({
   headerNavLinks: '[data-mpr-header="nav"] a',
   footerThemeControl: '[data-mpr-footer="theme-toggle"] [data-mpr-theme-toggle="control"]',
   footerThemeWrapper: '[data-mpr-footer="theme-toggle"]',
-  footerDropupButton: '[data-mpr-footer="toggle-button"]',
-  footerMenu: '[data-mpr-footer="menu"]',
+  footerDropupButton: '[data-mpr-footer="dropdown"] [data-mpr-dropdown="trigger"]',
+  footerMenu: '[data-mpr-footer="dropdown"] [data-mpr-dropdown="panel"]',
   footerPrefix: '[data-mpr-footer="prefix"]',
   eventLogEntries: '#event-log [data-test="event-log-entry"]',
   bootstrapGrid: '[data-test="bootstrap-grid"]',
@@ -243,6 +246,17 @@ async function visitHorizontalLinksFixture(page) {
   ]);
   await page.goto(HORIZONTAL_LINKS_FIXTURE_URL, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
+}
+
+/**
+ * Loads the standalone and footer dropdown fixture with local assets.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function visitDropdownFixture(page) {
+  await routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript');
+  await routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css');
+  await page.goto(DROPDOWN_FIXTURE_URL);
 }
 
 /**
@@ -640,7 +654,9 @@ function captureDropUpMetrics(page) {
   return page.evaluate(() => {
     const footer = document.querySelector('footer.mpr-footer');
     const inner = document.querySelector('[data-mpr-footer="inner"]');
-    const button = document.querySelector('[data-mpr-footer="toggle-button"]');
+    const button = document.querySelector(
+      '[data-mpr-footer="dropdown"] [data-mpr-dropdown="trigger"]',
+    );
     if (!footer || !inner || !button) {
       return null;
     }
@@ -728,6 +744,7 @@ module.exports = {
   visitWorkbenchFixture,
   visitFullLayoutFixture,
   visitHorizontalLinksFixture,
+  visitDropdownFixture,
   visitThemeFixturePage,
   visitFooterTextFixturePage,
   visitFooterPrivacyHiddenFixturePage,

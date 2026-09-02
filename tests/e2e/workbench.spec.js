@@ -332,7 +332,7 @@ test.describe('Workbench behaviours', () => {
   test('MU-311: footer drop-up aligns correctly and toggles interactivity', async ({ page }) => {
     const dropupButton = page.locator(footerDropupButton);
     await expect(dropupButton).toBeVisible();
-    await expect(dropupButton).toContainText('Built by Marco Polo Research Lab');
+    await expect(dropupButton).toContainText('MPR Lab sites');
     await expect(dropupButton).toHaveAttribute('aria-expanded', 'false');
 
     const metrics = await captureDropUpMetrics(page);
@@ -347,16 +347,16 @@ test.describe('Workbench behaviours', () => {
 
     await dropupButton.click();
     await expect(dropupButton).toHaveAttribute('aria-expanded', 'true');
-    await expect(page.locator(footerMenu)).toHaveClass(/mpr-footer__menu--open/);
-    await expect(page.locator(footerPrefix)).toHaveCount(0);
+    await expect(page.locator(footerMenu)).toBeVisible();
+    await expect(page.locator(footerPrefix)).toContainText('Built by Marco Polo Research Lab');
   });
 
   test('MU-203: footer drop-up toggles even when Bootstrap namespace exists', async ({ page }) => {
     const dropupButton = page.locator(footerDropupButton);
     await dropupButton.click();
-    await expect(page.locator(footerMenu)).toHaveClass(/mpr-footer__menu--open/);
+    await expect(page.locator(footerMenu)).toBeVisible();
     await dropupButton.click();
-    await expect(page.locator(footerMenu)).not.toHaveClass(/mpr-footer__menu--open/);
+    await expect(page.locator(footerMenu)).toBeHidden();
     const bootstrapCalls = await page.evaluate(() => window.__bootstrapDropdownCalled);
     expect(bootstrapCalls).toBe(0);
   });
@@ -376,9 +376,9 @@ test.describe('Workbench behaviours', () => {
 
     const dropupButton = page.locator(footerDropupButton);
     await dropupButton.click();
-    await expect(page.locator(footerMenu)).toHaveClass(/mpr-footer__menu--open/);
+    await expect(page.locator(footerMenu)).toBeVisible();
     await dropupButton.click();
-    await expect(page.locator(footerMenu)).not.toHaveClass(/mpr-footer__menu--open/);
+    await expect(page.locator(footerMenu)).toBeHidden();
   });
 
   test('MU-204: hero title and manual bands render as top-level siblings', async ({ page }) => {

@@ -120,12 +120,18 @@ test.describe('MU-428: horizontal-links stays inline (single-row chrome)', () =>
   test('footer drop-up remains visually reachable above the sticky footer', async ({ page }) => {
     await page.setViewportSize({ width: 1280, height: 720 });
 
-    const toggleButton = page.locator('[data-mpr-footer="toggle-button"]');
-    const menu = page.locator('[data-mpr-footer="menu"]');
+    const toggleButton = page.locator(
+      '[data-mpr-footer="dropdown"] [data-mpr-dropdown="trigger"]',
+    );
+    const menu = page.locator(
+      '[data-mpr-footer="dropdown"] [data-mpr-dropdown="panel"]',
+    );
 
     await expect(toggleButton).toBeVisible();
     const clickApplied = await page.evaluate(() => {
-      const target = document.querySelector('[data-mpr-footer="toggle-button"]');
+      const target = document.querySelector(
+        '[data-mpr-footer="dropdown"] [data-mpr-dropdown="trigger"]',
+      );
       if (!target || typeof target.click !== 'function') {
         return false;
       }
@@ -133,12 +139,16 @@ test.describe('MU-428: horizontal-links stays inline (single-row chrome)', () =>
       return true;
     });
     expect(clickApplied).toBe(true);
-    await expect(menu).toHaveClass(/mpr-footer__menu--open/);
+    await expect(menu).toBeVisible();
 
     const menuVisibility = await page.evaluate(() => {
       const footerRoot = document.querySelector('footer.mpr-footer');
-      const menuElement = document.querySelector('[data-mpr-footer="menu"]');
-      const firstMenuLink = document.querySelector('[data-mpr-footer="menu-link"]');
+      const menuElement = document.querySelector(
+        '[data-mpr-footer="dropdown"] [data-mpr-dropdown="panel"]',
+      );
+      const firstMenuLink = document.querySelector(
+        '[data-mpr-footer="dropdown"] [data-mpr-dropdown="link"]',
+      );
 
       if (!footerRoot || !menuElement || !firstMenuLink) {
         return null;
@@ -174,7 +184,7 @@ test.describe('MU-428: horizontal-links stays inline (single-row chrome)', () =>
     });
 
     expect(menuVisibility).not.toBeNull();
-    expect(menuVisibility.menuDisplay).toBe('block');
+    expect(menuVisibility.menuDisplay).toBe('flex');
     expect(menuVisibility.linkHasVisiblePixels).toBe(true);
     expect(menuVisibility.linkCenterAboveFooter).toBe(true);
     expect(menuVisibility.linkPointPaintedByMenu).toBe(true);
@@ -267,11 +277,18 @@ test.describe('MU-428: horizontal-links stays inline (single-row chrome)', () =>
 
       footer.removeAttribute('theme-switcher');
       footer.setAttribute(
-        'links-collection',
+        'menu',
         JSON.stringify({
-          style: 'drop-up',
-          text: 'Explore',
-          links: [{ label: 'Test Link', url: '#test-link' }],
+          label: 'Explore',
+          placement: 'top',
+          sections: [
+            {
+              id: 'links',
+              label: 'Links',
+              mode: 'static',
+              links: [{ label: 'Test Link', href: '#test-link' }],
+            },
+          ],
         }),
       );
     });

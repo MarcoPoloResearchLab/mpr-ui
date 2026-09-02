@@ -62,10 +62,12 @@
             {"value": "dark", "classList": ["theme-dark"]}
         ]
       }'
-      links-collection='{
-        "style": "drop-up",
-        "text": "Explore",
-        "links": [{"label": "Test Link", "url": "#"}]
+      menu='{
+        "label": "Explore",
+        "placement": "top",
+        "sections": [
+          {"id": "links", "label": "Links", "mode": "static", "links": [{"label": "Test Link", "href": "#"}]}
+        ]
       }'
     ></mpr-footer>
   </body>

@@ -693,8 +693,7 @@ function createHeaderElementHarness(options) {
   };
 }
 
-function createFooterElementHarness(options) {
-  const settings = Object.assign({ includeMenu: true }, options);
+function createFooterElementHarness() {
   const FooterElement = global.customElements.get('mpr-footer');
   assert.ok(FooterElement, 'mpr-footer is defined');
 
@@ -707,9 +706,6 @@ function createFooterElementHarness(options) {
   const layout = createStubNode({});
   const brandContainer = createStubNode({});
   const prefix = createStubNode({});
-  const menuWrapper = settings.includeMenu ? createStubNode({}) : null;
-  const menu = settings.includeMenu ? createStubNode({ classList: true, attributes: true }) : null;
-  const toggleButton = createStubNode({ attributes: true, supportsEvents: true });
   const themeToggleHost = createStubNode({ attributes: true });
   const privacyLink = createStubNode({ attributes: true });
   const horizontalLinks = createStubNode({ attributes: true });
@@ -724,15 +720,10 @@ function createFooterElementHarness(options) {
     ['[data-mpr-footer="brand"]', brandContainer],
     ['[data-mpr-footer="horizontal-links"]', horizontalLinks],
     ['[data-mpr-footer="prefix"]', prefix],
-    ['[data-mpr-footer="toggle-button"]', toggleButton],
     ['[data-mpr-footer="theme-toggle"]', themeToggleHost],
     ['[data-mpr-footer="privacy-link"]', privacyLink],
     ['[data-mpr-footer="sticky-spacer"]', stickySpacer],
   ]);
-  if (settings.includeMenu) {
-    selectorMap.set('[data-mpr-footer="menu-wrapper"]', menuWrapper);
-    selectorMap.set('[data-mpr-footer="menu"]', menu);
-  }
 
   root.querySelector = function query(selector) {
     return selectorMap.has(selector) ? selectorMap.get(selector) : null;
@@ -747,11 +738,8 @@ function createFooterElementHarness(options) {
     layout,
     brandContainer,
     prefix,
-    menu: settings.includeMenu ? menu : null,
-    menuWrapper: settings.includeMenu ? menuWrapper : null,
     privacyLink,
     horizontalLinks,
-    toggleButton,
     selectorMap,
   };
 }
@@ -3427,25 +3415,28 @@ test('mpr-footer reflects attributes and slot content', () => {
   const footerElement = harness.element;
 
   const menuPrefixSlot = createSlotNode('Menu Prefix Slot');
-  const menuLinksSlot = createSlotNode('Menu Link Slot');
   const legalSlot = createSlotNode('Legal Slot');
   footerElement.__setSlotNodes({
     'menu-prefix': [menuPrefixSlot],
-    'menu-links': [menuLinksSlot],
     legal: [legalSlot],
   });
 
+  const menu = {
+    label: 'Sites',
+    placement: 'top',
+    sections: [
+      {
+        id: 'platform',
+        label: 'Platform',
+        mode: 'static',
+        links: [{ label: 'Docs', href: '#docs' }],
+      },
+    ],
+  };
+
   footerElement.setAttribute('prefix-text', 'Crafted by');
   footerElement.setAttribute('privacy-link-label', 'Policy Center');
-  footerElement.setAttribute('toggle-label', 'Sites');
-  footerElement.setAttribute(
-    'links-collection',
-    JSON.stringify({
-      style: 'drop-up',
-      text: 'Crafted by',
-      links: [{ label: 'Docs', url: '#docs' }],
-    }),
-  );
+  footerElement.setAttribute('menu', JSON.stringify(menu));
   footerElement.setAttribute(
     'horizontal-links',
     JSON.stringify({
@@ -3463,10 +3454,7 @@ test('mpr-footer reflects attributes and slot content', () => {
   assert.equal(footerElement.attributes['prefix-text'], 'Crafted by');
   assert.equal(footerElement.getAttribute('prefix-text'), 'Crafted by');
   assert.equal(footerElement.dataset.prefixText, 'Crafted by');
-  assert.ok(
-    footerElement.dataset.linksCollection,
-    'links-collection attribute should reflect into dataset',
-  );
+  assert.ok(footerElement.dataset.menu, 'menu attribute should reflect into dataset');
   const controllerConfig =
     footerElement.__footerController &&
     footerElement.__footerController.getConfig
@@ -3478,28 +3466,24 @@ test('mpr-footer reflects attributes and slot content', () => {
     'Crafted by',
     'controller config reflects custom prefix text',
   );
-  assert.deepEqual(
-    controllerConfig && controllerConfig.links,
-    [
-      {
-        label: 'Docs',
-        href: '#docs',
-        url: '#docs',
-        target: '_blank',
-        rel: 'noopener noreferrer',
-      },
-    ],
-    'links-collection parsed into controller config',
+  assert.equal(controllerConfig && controllerConfig.menu.label, 'Sites');
+  assert.equal(controllerConfig && controllerConfig.menu.placement, 'top');
+  assert.equal(controllerConfig && controllerConfig.menu.sections.length, 1);
+  assert.equal(controllerConfig && controllerConfig.menu.sections[0].id, 'platform');
+  assert.equal(controllerConfig && controllerConfig.menu.sections[0].mode, 'static');
+  assert.equal(
+    controllerConfig && controllerConfig.menu.sections[0].links[0].href,
+    '#docs',
   );
   assert.equal(
     controllerConfig && controllerConfig.privacyModalContent,
     '<p>Policy</p>',
     'privacy modal content reflected into controller config',
   );
-  assert.strictEqual(
-    controllerConfig && controllerConfig.linksMenuEnabled,
-    true,
-    'linksCollection should enable the drop-up by default',
+  assert.match(
+    footerElement.innerHTML,
+    /<mpr-dropdown data-mpr-footer="dropdown"/,
+    'footer renders the shared dropdown element',
   );
   assert.deepEqual(
     controllerConfig && controllerConfig.horizontalLinks,
@@ -3553,10 +3537,6 @@ test('mpr-footer reflects attributes and slot content', () => {
   assert.ok(
     harness.brandContainer.children.indexOf(menuPrefixSlot) !== -1,
     'menu-prefix slot appended to brand container',
-  );
-  assert.ok(
-    harness.menu.children.indexOf(menuLinksSlot) !== -1,
-    'menu-links slot appended to menu list',
   );
   assert.ok(
     harness.layout.children.indexOf(legalSlot) !== -1,
@@ -3701,7 +3681,7 @@ test('MU-133: mpr-footer suppresses privacy link markup when privacy-link-hidden
   );
 });
 
-test('mpr-footer renders static text when links collection is missing', () => {
+test('mpr-footer renders static text when menu is missing', () => {
   resetEnvironment();
   loadLibrary();
   const harness = createFooterElementHarness({ includeMenu: false });
@@ -3715,15 +3695,11 @@ test('mpr-footer renders static text when links collection is missing', () => {
       : null;
 
   assert.ok(controllerConfig, 'controller config should be available');
-  assert.strictEqual(
-    controllerConfig.linksMenuEnabled,
-    false,
-    'links menu should be disabled when no collection is provided',
-  );
-  assert.deepEqual(
-    controllerConfig.links,
-    [],
-    'no links should be rendered when the collection is missing',
+  assert.strictEqual(controllerConfig.menu, null, 'menu should be disabled');
+  assert.doesNotMatch(
+    footerElement.innerHTML,
+    /<mpr-dropdown/,
+    'shared dropdown should be omitted when the menu is missing',
   );
   assert.ok(
     controllerConfig.prefixText && controllerConfig.prefixText.length > 0,
@@ -3742,16 +3718,7 @@ test('mpr-footer ignores legacy attributes', () => {
         );
       },
       assertOutcome: function assertOutcome(controllerConfig) {
-        assert.equal(
-          controllerConfig.linksMenuEnabled,
-          false,
-          'links attribute should not enable the links menu',
-        );
-        assert.deepEqual(
-          controllerConfig.links,
-          [],
-          'links attribute should not populate menu links',
-        );
+        assert.strictEqual(controllerConfig.menu, null, 'links should not set menu');
       },
     },
     {
@@ -3858,7 +3825,7 @@ test('mpr-footer logs legacy attributes and config keys', () => {
   }
 });
 
-test('mpr-footer drop-up toggles without Bootstrap dependencies', () => {
+test('mpr-footer renders a shared dropdown without Bootstrap integration', () => {
   resetEnvironment();
   loadLibrary();
   let bootstrapCalls = 0;
@@ -3872,34 +3839,23 @@ test('mpr-footer drop-up toggles without Bootstrap dependencies', () => {
   const harness = createFooterElementHarness();
   const footerElement = harness.element;
   footerElement.setAttribute(
-    'links-collection',
+    'menu',
     JSON.stringify({
-      style: 'drop-up',
-      text: 'Built by',
-      links: [{ label: 'Docs', url: '#docs' }],
+      label: 'Sites',
+      placement: 'top',
+      sections: [
+        {
+          id: 'platform',
+          label: 'Platform',
+          mode: 'static',
+          links: [{ label: 'Docs', href: '#docs' }],
+        },
+      ],
     }),
   );
   footerElement.connectedCallback();
-  assert.strictEqual(
-    harness.toggleButton.attributes && harness.toggleButton.attributes['data-bs-toggle'],
-    undefined,
-    'Bootstrap data attribute should not be set on the toggle button',
-  );
-  const clickEvent = { type: 'click', preventDefault() {} };
-  harness.toggleButton.dispatchEvent(clickEvent);
-  assert.equal(
-    harness.menu.classList.contains('mpr-footer__menu--open'),
-    true,
-    'menu opens on first click even when Bootstrap namespace exists',
-  );
-  assert.equal(harness.toggleButton.getAttribute('aria-expanded'), 'true');
-  harness.toggleButton.dispatchEvent(clickEvent);
-  assert.equal(
-    harness.menu.classList.contains('mpr-footer__menu--open'),
-    false,
-    'menu closes on second click',
-  );
-  assert.equal(harness.toggleButton.getAttribute('aria-expanded'), 'false');
+  assert.match(footerElement.innerHTML, /<mpr-dropdown/);
+  assert.doesNotMatch(footerElement.innerHTML, /data-bs-toggle/);
   assert.strictEqual(bootstrapCalls, 0, 'Bootstrap dropdown helper should not be invoked');
   delete global.bootstrap;
 });

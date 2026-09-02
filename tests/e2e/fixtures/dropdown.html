@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Dropdown Fixture</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+    ></script>
+    <style>
+      body {
+        min-height: 100vh;
+        margin: 0;
+        padding: 2rem;
+      }
+
+      main {
+        min-height: 40rem;
+      }
+
+      #outside-target {
+        margin-top: 2rem;
+      }
+    </style>
+  </head>
+  <body class="theme-dark">
+    <main>
+      <h1>Dropdown Fixture</h1>
+      <mpr-dropdown
+        id="bottom-dropdown"
+        menu='{
+          "label":"Explore",
+          "placement":"bottom",
+          "sections":[
+            {
+              "id":"platform",
+              "label":"Platform",
+              "mode":"static",
+              "links":[{"label":"Overview","href":"#overview"}]
+            },
+            {
+              "id":"products",
+              "label":"Products",
+              "mode":"expanded",
+              "links":[{"label":"Product One","href":"#product-one"}]
+            },
+            {
+              "id":"tools",
+              "label":"Tools",
+              "mode":"collapsed",
+              "links":[
+                {"label":"Tool One","href":"#tool-one"},
+                {"label":"Tool Two","href":"#tool-two"}
+              ]
+            }
+          ]
+        }'
+      ></mpr-dropdown>
+      <button id="outside-target" type="button">Outside target</button>
+    </main>
+
+    <mpr-footer
+      id="fixture-footer"
+      sticky="false"
+      prefix-text="Built by Test"
+      privacy-link-hidden="true"
+      menu='{
+        "label":"MPR Lab sites",
+        "placement":"top",
+        "sections":[
+          {
+            "id":"platform",
+            "label":"Platform",
+            "mode":"static",
+            "links":[
+              {"label":"MPR Lab","href":"#mpr-lab"},
+              {"label":"Documentation","href":"#documentation"},
+              {"label":"Status","href":"#status"},
+              {"label":"Security","href":"#security"}
+            ]
+          },
+          {
+            "id":"products",
+            "label":"Products",
+            "mode":"expanded",
+            "links":[
+              {"label":"TAuth","href":"#tauth"},
+              {"label":"LoopAware","href":"#loopaware"},
+              {"label":"Gravity Notes","href":"#gravity-notes"},
+              {"label":"Social Threader","href":"#social-threader"},
+              {"label":"Allergy Wheel","href":"#allergy-wheel"},
+              {"label":"Countdown Calendar","href":"#countdown-calendar"},
+              {"label":"Prompt Bubbles","href":"#prompt-bubbles"},
+              {"label":"Wallpapers","href":"#wallpapers"}
+            ]
+          },
+          {
+            "id":"tools",
+            "label":"Tools",
+            "mode":"expanded",
+            "links":[
+              {"label":"MPR UI","href":"#mpr-ui"},
+              {"label":"LLM Proxy","href":"#llm-proxy"},
+              {"label":"MediaOps","href":"#mediaops"},
+              {"label":"Gix","href":"#gix"},
+              {"label":"Gateway","href":"#gateway"},
+              {"label":"Telltale","href":"#telltale"},
+              {"label":"Open Horizon","href":"#open-horizon"},
+              {"label":"Family Home","href":"#family-home"}
+            ]
+          }
+        ]
+      }'
+    ></mpr-footer>
+
+    <script>
+      window.__dropdownEvents = [];
+      ['mpr-dropdown:toggle', 'mpr-dropdown:section-toggle', 'mpr-dropdown:link-click'].forEach(
+        function registerDropdownEvent(eventName) {
+          document.addEventListener(eventName, function recordDropdownEvent(eventObject) {
+            window.__dropdownEvents.push({
+              name: eventName,
+              detail: eventObject.detail,
+            });
+          });
+        },
+      );
+    </script>
+  </body>
+</html>

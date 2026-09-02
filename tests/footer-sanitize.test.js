@@ -12,9 +12,11 @@ function loadFooterHooks() {
   const injection =
     '\n  global.__TEST_HOOKS__ = {\n' +
     '    buildFooterMarkup: buildFooterMarkup,\n' +
+    '    buildDropdownMarkup: buildDropdownMarkup,\n' +
+    '    normalizeDropdownMenu: normalizeDropdownMenu,\n' +
     '    normalizeFooterConfig: normalizeFooterConfig,\n' +
+    '    parseDropdownMenuValue: parseDropdownMenuValue,\n' +
     '    sanitizeFooterHref: sanitizeFooterHref,\n' +
-    '    updateFooterMenuLinks: updateFooterMenuLinks,\n' +
     '  };\n';
   const instrumented = source.replace(
     '})(typeof window !== "undefined" ? window : globalThis);',
@@ -27,10 +29,6 @@ function loadFooterHooks() {
 
   vm.runInNewContext(instrumented, sandbox, { filename: 'mpr-ui.js' });
   return sandbox.__TEST_HOOKS__;
-}
-
-function cloneIntoCurrentRealm(value) {
-  return JSON.parse(JSON.stringify(value));
 }
 
 test('privacy link rewrites disallowed protocols', () => {
@@ -58,64 +56,157 @@ test('privacy link keeps allowed protocols', () => {
   );
 });
 
-test('menu links rewrite disallowed protocols', () => {
+test('dropdown links reject disallowed protocols', () => {
   const hooks = loadFooterHooks();
-  const menuElement = { className: '', innerHTML: '' };
-  const container = {
-    querySelector(selector) {
-      if (selector === '[data-mpr-footer="menu"]') {
-        return menuElement;
-      }
-      return null;
+  assert.throws(
+    function normalizeUnsafeDropdown() {
+      hooks.normalizeDropdownMenu({
+        label: 'Sites',
+        placement: 'top',
+        sections: [
+          {
+            id: 'platform',
+            label: 'Platform',
+            mode: 'static',
+            links: [
+              {
+                label: 'Dangerous',
+                href: 'data:text/html,<svg/onload=alert(1)>',
+              },
+            ],
+          },
+        ],
+      });
     },
-  };
-  hooks.updateFooterMenuLinks(container, {
-    links: [{ label: 'Dangerous', url: 'data:text/html,<svg/onload=alert(1)>' }],
-  });
-  assert.strictEqual(
-    menuElement.innerHTML.includes('href="#"'),
-    true,
-    'Menu links should rewrite disallowed protocols to "#"',
+    { message: /unsupported protocol/ },
   );
 });
 
-test('menu links keep allowed protocols', () => {
+test('dropdown links keep allowed protocols', () => {
   const hooks = loadFooterHooks();
-  const menuElement = { className: '', innerHTML: '' };
-  const container = {
-    querySelector(selector) {
-      if (selector === '[data-mpr-footer="menu"]') {
-        return menuElement;
-      }
-      return null;
-    },
-  };
-  hooks.updateFooterMenuLinks(container, {
-    links: [{ label: 'Email', url: 'mailto:support@example.com' }],
+  const menu = hooks.normalizeDropdownMenu({
+    label: 'Sites',
+    placement: 'top',
+    sections: [
+      {
+        id: 'tools',
+        label: 'Tools',
+        mode: 'static',
+        links: [{ label: 'Email', href: 'mailto:support@example.com' }],
+      },
+    ],
   });
+  const markup = hooks.buildDropdownMarkup(menu, 'test-dropdown');
   assert.strictEqual(
-    menuElement.innerHTML.includes('href="mailto:support@example.com"'),
+    markup.includes('href="mailto:support@example.com"'),
     true,
-    'Menu links should keep allowed protocols untouched',
+    'Dropdown links should keep allowed protocols untouched',
   );
 });
 
-test('default footer configuration renders text-only when links are missing', () => {
+test('default footer configuration renders text-only when menu is missing', () => {
   const hooks = loadFooterHooks();
   const config = hooks.normalizeFooterConfig();
-  const normalizedLinks = cloneIntoCurrentRealm(config.links);
-  assert.deepStrictEqual(
-    normalizedLinks,
-    [],
-    'Footer defaults should not render any links when linksCollection is missing',
-  );
-  assert.strictEqual(
-    config.linksMenuEnabled,
-    false,
-    'Drop-up menu should be disabled by default',
-  );
+  const markup = hooks.buildFooterMarkup(config);
+  assert.strictEqual(config.menu, null, 'Footer menu should be disabled by default');
   assert.ok(
     config.prefixText && config.prefixText.length > 0,
     'Prefix text should still render when no menu entries are available',
+  );
+  assert.doesNotMatch(markup, /<mpr-dropdown/, 'Footer should omit the dropdown');
+});
+
+test('dropdown menu rejects unknown fields', () => {
+  const hooks = loadFooterHooks();
+  assert.throws(
+    function normalizeDropdownWithUnknownField() {
+      hooks.normalizeDropdownMenu({
+        label: 'Sites',
+        placement: 'top',
+        style: 'drop-up',
+        sections: [],
+      });
+    },
+    { message: /unknown field "style"/ },
+  );
+});
+
+test('dropdown menu rejects invalid JSON and empty input with stable codes', () => {
+  const hooks = loadFooterHooks();
+  const invalidCases = [
+    {
+      name: 'invalid JSON',
+      value: '{',
+      expectedCode: 'mpr-ui.dropdown.menu_invalid_json',
+    },
+    {
+      name: 'empty input',
+      value: '',
+      expectedCode: 'mpr-ui.dropdown.menu_required',
+    },
+  ];
+
+  invalidCases.forEach((invalidCase) => {
+    assert.throws(
+      function parseInvalidDropdownMenu() {
+        hooks.parseDropdownMenuValue(invalidCase.value);
+      },
+      function assertStableDropdownError(error) {
+        return error && error.code === invalidCase.expectedCode;
+      },
+      invalidCase.name,
+    );
+  });
+});
+
+test('dropdown menu rejects duplicate section identifiers', () => {
+  const hooks = loadFooterHooks();
+  assert.throws(
+    function normalizeDuplicateDropdownSections() {
+      hooks.normalizeDropdownMenu({
+        label: 'Sites',
+        placement: 'top',
+        sections: [
+          {
+            id: 'platform',
+            label: 'Platform',
+            mode: 'static',
+            links: [{ label: 'Docs', href: '#docs' }],
+          },
+          {
+            id: 'platform',
+            label: 'Products',
+            mode: 'expanded',
+            links: [{ label: 'Product', href: '#product' }],
+          },
+        ],
+      });
+    },
+    function assertDuplicateSectionError(error) {
+      return error && error.code === 'mpr-ui.dropdown.section_id_duplicate';
+    },
+  );
+});
+
+test('footer requires top placement for its shared dropdown', () => {
+  const hooks = loadFooterHooks();
+  assert.throws(
+    function normalizeBottomFooterMenu() {
+      hooks.normalizeFooterConfig({
+        menu: {
+          label: 'Sites',
+          placement: 'bottom',
+          sections: [
+            {
+              id: 'platform',
+              label: 'Platform',
+              mode: 'static',
+              links: [{ label: 'Docs', href: '#docs' }],
+            },
+          ],
+        },
+      });
+    },
+    { message: 'The footer menu placement must be top' },
   );
 });

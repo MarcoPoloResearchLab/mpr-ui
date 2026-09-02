@@ -27,11 +27,13 @@
     <mpr-footer
       id="fixture-footer-square"
       prefix-text="Fixture Footer"
-      links-collection='{
-        "style": "drop-up",
-        "text": "Explore",
-        "links": [
-          { "label": "Docs", "url": "#docs" }
+      menu='{
+        "label": "Explore",
+        "placement": "top",
+        "sections": [
+          { "id": "links", "label": "Links", "mode": "static", "links": [
+            { "label": "Docs", "href": "#docs" }
+          ] }
         ]
       }'
       theme-switcher="square"

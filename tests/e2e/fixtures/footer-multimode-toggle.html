@@ -30,12 +30,14 @@
     <mpr-footer
       id="fixture-footer"
       prefix-text="Fixture Footer"
-      links-collection='{
-        "style": "drop-up",
-        "text": "Explore",
-        "links": [
-          { "label": "Docs", "url": "#docs" },
-          { "label": "Support", "url": "#support" }
+      menu='{
+        "label": "Explore",
+        "placement": "top",
+        "sections": [
+          { "id": "links", "label": "Links", "mode": "static", "links": [
+            { "label": "Docs", "href": "#docs" },
+            { "label": "Support", "href": "#support" }
+          ] }
         ]
       }'
       theme-switcher="toggle"
