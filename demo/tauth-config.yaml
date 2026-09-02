@@ -23,7 +23,7 @@ tenants:
       users:
         - email: "${TAUTH_PASSWORD_USER_EMAIL}"
           display_name: "MPR UI Demo User"
-          avatar_url: ""
+          avatar_url: "/demo/demo-user.svg"
           password_hash: "${TAUTH_PASSWORD_HASH}"
     account_management:
       enabled: true

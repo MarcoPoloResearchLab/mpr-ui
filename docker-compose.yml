@@ -5,14 +5,14 @@ services:
     depends_on:
       tauth:
         condition: service_started
-    env_file:
-      - ./demo/.env.ghttp
+    environment:
+      GHTTP_SERVE_PORT: "8000"
+      GHTTP_SERVE_DIRECTORY: "/app/www"
+      GHTTP_SERVE_PROXIES: "/auth=http://tauth:8080"
     ports:
-      - "4443:8443"
+      - "4443:8000"
     volumes:
       - ./:/app/www:ro
-      - /media/share/Drive/exchange/certs/computercat/computercat-cert.pem:/certs/cert.pem:ro
-      - /media/share/Drive/exchange/certs/computercat/computercat-key.pem:/certs/key.pem:ro
     restart: unless-stopped
 
   tauth:
@@ -20,6 +20,13 @@ services:
     pull_policy: always
     env_file:
       - ./demo/.env.tauth
+    environment:
+      TAUTH_CORS_ORIGIN_1: "http://localhost:4443"
+      TAUTH_CORS_ORIGIN_2: "http://127.0.0.1:4443"
+      TAUTH_CORS_ORIGIN_3: "http://computercat.tyemirov.net:4443"
+      TAUTH_ALLOW_INSECURE_HTTP: "true"
+      TAUTH_PASSWORD_USER_EMAIL: "demo@mprlab.local"
+      TAUTH_PASSWORD_HASH: "$$2y$$12$$UihC9c7inwl90d3iKzlH3OPsrJn2OIGhgAT/TkOHbcueVdNrkf0zS"
     ports:
       - "8080:8080"
     volumes:

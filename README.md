@@ -235,19 +235,22 @@ Open `http://127.0.0.1:4177/`.
 | [`/index.html`](index.html) | Provider-aware header, Apple/Google/email actions, bands, cards, sectioned footer, theme switcher | Static preview. Auth completion needs TAuth |
 | [`/demo/components.html`](demo/components.html) | General component gallery, both dropdown placements, all section modes | None |
 | [`/demo/auth-provider-chooser.html`](demo/auth-provider-chooser.html) | Apple/Google/email chooser variants and safe event details | None. The chooser is intent-only |
-| [`/demo/tauth-demo.html`](demo/tauth-demo.html) | Google and email/password sign-in, all password modes, all account actions, auth diagnostics | `./up.sh` |
-| [`/demo/standalone.html`](demo/standalone.html) | Login-only surface and authenticated user menu | `./up.sh` |
-| [`/demo/entity-workspace.html`](demo/entity-workspace.html) | Full collection/detail workspace kit | `./up.sh` |
+| [`/demo/tauth-demo.html`](demo/tauth-demo.html) | Google and email/password sign-in, all password modes, all account actions, auth diagnostics | `make up` |
+| [`/demo/standalone.html`](demo/standalone.html) | Login-only surface and authenticated user menu | `make up` |
+| [`/demo/entity-workspace.html`](demo/entity-workspace.html) | Full collection/detail workspace kit | `make up` |
 
 The static config displays Apple for action and presentation inspection. Live Apple completion also requires TAuth Apple credentials. It requires a registered origin, callback, and server routes. The TAuth fixture enables Google and password. It does not contain Apple credentials.
 
-To run the HTTPS TAuth fixture, create the private files described by [`docs/demo-index-auth.md`](docs/demo-index-auth.md), then run:
+To run the HTTP TAuth fixture, create the private TAuth file described by [`docs/demo-index-auth.md`](docs/demo-index-auth.md), then run:
 
 ```bash
-./up.sh
+make up
 ```
 
-Open `https://localhost:4443/`. Stop the stack with `./down.sh`.
+Open `http://localhost:4443/`. Stop the stack with `make down`.
+
+`make up` starts the gHTTP frontend and the TAuth service. The frontend serves the current repository source and proxies the authentication routes.
+The disposable local account uses `demo@mprlab.local` and `mpr-ui-demo`.
 
 ## Development and validation
 
@@ -256,7 +259,7 @@ npm install
 make ci
 ```
 
-`make ci` runs the Node suite, browser coverage gate, and Playwright acceptance suite. Use `npm run demo:serve` for local visual inspection.
+`make ci` runs the Node suite, browser coverage gate, and Playwright acceptance suite. Use `npm run demo:serve` for static visual inspection.
 
 ## Documentation
 

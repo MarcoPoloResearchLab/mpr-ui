@@ -823,7 +823,7 @@ The common pattern is:
 - each video rendered as `<mpr-entity-card>`
 - selected video ids tracked by `MPRUI.createSelectionState()`
 
-A runnable companion lives in `demo/entity-workspace.html`. It is intentionally Docker-gated: start `./up.sh`, open `https://localhost:4443/`, and use the shared header to open `Entity workspace`.
+A runnable companion lives in `demo/entity-workspace.html`. It is intentionally Docker-gated: start `make up`, open `http://localhost:4443/`, and use the shared header to open `Entity workspace`.
 
 ### Markup skeleton
 

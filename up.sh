@@ -14,10 +14,9 @@ require_private_environment() {
   chmod 0600 "${environment_path}"
 }
 
-require_private_environment demo/.env.ghttp
 require_private_environment demo/.env.tauth
 
-ENTRY_URL="$(sed -n 's/^[[:space:]]*-[[:space:]]*"\(https:\/\/[^"]*\)".*/\1/p' demo/config-ui.yaml | head -n 1)"
+ENTRY_URL="$(sed -n 's/^[[:space:]]*-[[:space:]]*"\(http:\/\/[^"]*\)".*/\1/p' demo/config-ui.yaml | head -n 1)"
 
 echo ""
 echo "Starting single demo stack"

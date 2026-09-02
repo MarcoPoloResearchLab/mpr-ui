@@ -253,8 +253,6 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## Features
 
-
-
 - [x] [F009] (P1) Add a reusable custom element that puts menu links into sections.
   Goal:
   A reusable `<mpr-dropdown>` supplies link menu sections. `<mpr-footer>` uses this element as an upward menu for site links.
@@ -307,7 +305,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Use `https://ui.mprlab.com/` as the canonical public URL.
   - Use `.mprlab/deploy/resources.yml` as the only production manifest.
   - Make `release`, `publish`, and `deploy` delegate to the sibling `mprlab-gateway` repository.
-  - Preserve `up.sh`, `down.sh`, `docker-compose.yml`, and `npm run demo:serve` as local contracts.
+  - Preserve `make up`, `make down`, `up.sh`, `down.sh`, `docker-compose.yml`, and `npm run demo:serve` as local contracts.
   - Declare one `github_pages` resource for `MarcoPoloResearchLab/mpr-ui` and the `gh-pages` branch.
   - Set the Pages verification path to `/.mprlab/release.json`.
   - Build a curated Pages artifact from the exact committed application source.

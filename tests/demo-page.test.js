@@ -1,7 +1,9 @@
+// @ts-check
 'use strict';
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const { execFileSync } = require('node:child_process');
 const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 const yaml = require('js-yaml');
@@ -107,6 +109,16 @@ test('local demo preview uses the no-store demo server', () => {
     /const DEFAULT_PORT = 4177;/,
     'Expected the no-store demo server to use the documented preview port',
   );
+});
+
+test('make exposes the complete local demo lifecycle', () => {
+  const makeArguments = ['--no-builtin-rules', '--dry-run'];
+  const executionOptions = Object.freeze({ cwd: repoRoot, encoding: 'utf8' });
+  const upOutput = execFileSync('make', [...makeArguments, 'up'], executionOptions);
+  const downOutput = execFileSync('make', [...makeArguments, 'down'], executionOptions);
+
+  assert.match(upOutput, /^\.\/up\.sh$/m, 'Expected make up to run the full demo stack');
+  assert.match(downOutput, /^\.\/down\.sh$/m, 'Expected make down to stop the full demo stack');
 });
 
 test('auth provider chooser icon-row CSS is compact and declarative', () => {
@@ -247,6 +259,23 @@ test('docker compose keeps the index demo as the single root entrypoint', () => 
     dockerCompose,
     /- \.\/:[^\s]*\/app\/www/,
     'Expected docker-compose.yml to mount the repository as the app root',
+  );
+  assert.match(dockerCompose, /GHTTP_SERVE_PORT:\s+"8000"/);
+  assert.match(dockerCompose, /- "4443:8000"/);
+  assert.match(
+    dockerCompose,
+    /GHTTP_SERVE_DIRECTORY:\s+"\/app\/www"/,
+    'Expected gHTTP to serve the complete repository-mounted demo suite',
+  );
+  assert.match(
+    dockerCompose,
+    /GHTTP_SERVE_PROXIES:\s+"\/auth=http:\/\/tauth:8080"/,
+    'Expected gHTTP to proxy the complete authentication route prefix',
+  );
+  assert.doesNotMatch(
+    dockerCompose,
+    /GHTTP_SERVE_TLS_|\/certs\//,
+    'Expected the local demo stack to use HTTP without certificate configuration',
   );
 });
 

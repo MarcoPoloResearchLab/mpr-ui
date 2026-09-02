@@ -13,6 +13,7 @@ DEPLOY_ARGS ?=
 RELEASE_TOOL_DIR := $(abspath $(CURDIR)/scripts/release)
 
 .PHONY: test test-unit test-coverage test-e2e lint format ci
+.PHONY: up down
 .PHONY: release publish deploy
 
 test:
@@ -34,6 +35,12 @@ format:
 	timeout -k $(FORMAT_TIMEOUT)s -s SIGKILL $(FORMAT_TIMEOUT)s npm run format --if-present
 
 ci: lint format test-coverage test-e2e
+
+up:
+	@./up.sh
+
+down:
+	@./down.sh
 
 release:
 	@RELEASE_HELPER="$(RELEASE_HELPER)" "$(RELEASE_TOOL_DIR)/prepare_release.sh" $(RELEASE_ARGS)

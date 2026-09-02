@@ -2,14 +2,12 @@
 
 const { test, expect } = require('./support/browserCoverage');
 
-const BASE_URL = process.env.MPR_UI_DEMO_BASE_URL || 'https://localhost:4443';
+const BASE_URL = process.env.MPR_UI_DEMO_BASE_URL || 'http://localhost:4443';
 
 // Suffixes to identify local bundle loads
 const LOCAL_JS_SUFFIX = '/mpr-ui.js';
 const LOCAL_CSS_SUFFIX = '/mpr-ui.css';
 const LEGACY_TAUTH_HELPER_SUFFIX = '/tauth.js';
-
-test.use({ ignoreHTTPSErrors: true });
 
 /**
  * Waits for the semantic orchestration-ready event before proceeding.
@@ -99,4 +97,31 @@ test('sub-demos provide consistent navigation and local asset loading', async ({
     );
     await expect(page.locator('[data-layout-section="hero-title"]')).toBeVisible();
   }
+});
+
+test('local email fixture signs in without browser errors', async ({ page }) => {
+  const browserErrors = [];
+  page.on('console', (message) => {
+    if (message.type() === 'error') {
+      browserErrors.push(message.text());
+    }
+  });
+  page.on('pageerror', (error) => {
+    browserErrors.push(error.message);
+  });
+
+  await page.goto(`${BASE_URL.replace(/\/$/, '')}/demo/tauth-demo.html`, {
+    waitUntil: 'networkidle',
+  });
+  await page.getByRole('textbox', { name: 'Email', exact: true }).first().fill('demo@mprlab.local');
+  await page.getByRole('textbox', { name: 'Password', exact: true }).first().fill('mpr-ui-demo');
+  await page.getByRole('button', { name: 'Sign in', exact: true }).click();
+
+  await expect(page.getByText('Authenticated', { exact: true })).toBeVisible();
+  await expect(page.getByText('MPR UI Demo User', { exact: true }).first()).toBeVisible();
+  await expect(page.locator('mpr-user[slot="aux"] img')).toHaveAttribute(
+    'src',
+    '/demo/demo-user.svg',
+  );
+  expect(browserErrors).toEqual([]);
 });

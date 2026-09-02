@@ -25,32 +25,32 @@ The static environment in [`../demo/config-ui.yaml`](../demo/config-ui.yaml) ena
 
 The provider chooser is an intent-only component. It emits provider and email-mode events, but it does not create an auth controller or authenticate a user.
 
-## HTTPS TAuth stack
+## HTTP TAuth stack
 
 The bundled stack uses gHTTP as the same-origin frontend and auth proxy, plus the TAuth container as the session authority.
 
-Create private environment files. Review the matching `.example` files for required variable names, but supply private operational values:
+Create the private TAuth environment file. Review `.env.tauth.example` for the required variable names, but supply private operational values:
 
 ```bash
-install -m 0600 /dev/null demo/.env.ghttp
 install -m 0600 /dev/null demo/.env.tauth
 ```
 
-Configure the Google client ID, TAuth signing key, seeded password user, bcrypt password hash, tenant, origins, and local TLS files. Keep `demo/config-ui.yaml` and `demo/tauth-config.yaml` tenant and origin values aligned.
+Configure the Google client ID, TAuth signing key, tenant, and origins. Keep `demo/config-ui.yaml` and `demo/tauth-config.yaml` tenant and origin values aligned.
 
 Start the stack:
 
 ```bash
-./up.sh
+make up
 ```
 
-Open `https://localhost:4443/`. Stop it with:
+Open `http://localhost:4443/`. Stop it with:
 
 ```bash
-./down.sh
+make down
 ```
 
-`up.sh` starts one shared stack. The header, standalone, password/account, and entity-workspace pages are navigation targets inside that stack.
+`make up` starts one shared stack. The header, standalone, password/account, and entity-workspace pages are navigation targets inside that stack.
+The disposable local account uses `demo@mprlab.local` and `mpr-ui-demo`.
 
 ## Canonical browser contract
 
@@ -158,7 +158,7 @@ Every form uses `auth-target="#demo-header"`. The page contains no duplicate aut
 1. Open `/index.html` and confirm Google, Apple, and email actions are visible in the static environment.
 2. Open `/demo/components.html` and exercise both dropdown placements plus static, expanded, and collapsed sections.
 3. Open `/demo/auth-provider-chooser.html`, choose each provider, and confirm the event output contains no email or password values.
-4. Start `./up.sh` and confirm `/config-ui.yaml` loads before `mpr-ui.js` on an auth-bearing page.
+4. Start `make up` and confirm `/config-ui.yaml` loads before `mpr-ui.js` on an auth-bearing page.
 5. Confirm the page loads no direct TAuth browser client.
 6. Complete Google or password sign-in and confirm `mpr-ui:auth:authenticated` updates the user menu and diagnostics.
 7. Complete password verification and reset flows through the shared forms.

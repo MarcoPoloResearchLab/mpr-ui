@@ -2,7 +2,7 @@
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { readFileSync } = require('node:fs');
+const { existsSync, readFileSync } = require('node:fs');
 const { join } = require('node:path');
 
 const fixtureRoot = join(__dirname, 'fixtures', 'tauth-config');
@@ -11,13 +11,16 @@ const composePath = join(fixtureRoot, 'docker-compose.yml');
 const configPath = join(fixtureRoot, 'tauth-config.yaml');
 const repositoryRoot = join(__dirname, '..');
 const demoConfigPath = join(repositoryRoot, 'demo', 'tauth-config.yaml');
+const demoUserAvatarPath = join(repositoryRoot, 'demo', 'demo-user.svg');
 const repositoryEnvExamplePath = join(repositoryRoot, '.env.tauth.example');
+const repositoryComposePath = join(repositoryRoot, 'docker-compose.yml');
 
 const envExampleFixtureContents = readFileSync(envExamplePath, 'utf8');
 const composeFixtureContents = readFileSync(composePath, 'utf8');
 const configFixtureContents = readFileSync(configPath, 'utf8');
 const demoConfigContents = readFileSync(demoConfigPath, 'utf8');
 const repositoryEnvExampleContents = readFileSync(repositoryEnvExamplePath, 'utf8');
+const repositoryComposeContents = readFileSync(repositoryComposePath, 'utf8');
 
 test('tauth env example uses TAUTH_* variables', () => {
   const requiredVariables = [
@@ -86,10 +89,16 @@ test('F007: demo TAuth config enables password and account policies explicitly',
   assert.match(demoConfigContents, /account_management:\s*\n\s+enabled:\s+true/);
   assert.match(demoConfigContents, /password_signup:\s*\n\s+enabled:\s+true/);
   assert.match(demoConfigContents, /return_challenge_tokens:\s+true/);
-  assert.match(repositoryEnvExampleContents, /^TAUTH_PASSWORD_USER_EMAIL=/m);
-  const passwordHashMatch = repositoryEnvExampleContents.match(
-    /^TAUTH_PASSWORD_HASH='(\$2[aby]\$\d{2}\$[./A-Za-z0-9]{53})'$/m,
+  assert.doesNotMatch(repositoryEnvExampleContents, /^TAUTH_PASSWORD_(?:USER_EMAIL|HASH)=/m);
+  assert.match(
+    repositoryComposeContents,
+    /TAUTH_PASSWORD_USER_EMAIL:\s+"demo@mprlab\.local"/,
   );
-  assert.ok(passwordHashMatch, 'Expected the bcrypt hash to be single-quoted');
-  assert.equal(passwordHashMatch[1].length, 60);
+  const passwordHashMatch = repositoryComposeContents.match(
+    /TAUTH_PASSWORD_HASH:\s+"((?:\$\$)2[aby](?:\$\$)\d{2}(?:\$\$)[./A-Za-z0-9]{53})"/,
+  );
+  assert.ok(passwordHashMatch, 'Expected Compose to define the disposable bcrypt hash');
+  assert.equal(passwordHashMatch[1].replaceAll('$$', '$').length, 60);
+  assert.match(demoConfigContents, /avatar_url:\s+"\/demo\/demo-user\.svg"/);
+  assert.equal(existsSync(demoUserAvatarPath), true);
 });

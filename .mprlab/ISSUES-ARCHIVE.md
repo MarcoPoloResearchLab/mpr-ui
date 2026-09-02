@@ -383,6 +383,40 @@ Archived 2026-09-01 by M400R.
 
 ## Features
 
+- [x] [F011] (P1) Add Make targets for the complete local demo runtime.
+  Goal:
+  `make up` starts the complete local demo runtime. `make down` stops this runtime.
+
+  Requirements:
+  - Declare explicit phony `up` and `down` Make targets.
+  - Run the current `up.sh` and `down.sh` scripts from the Make targets.
+  - Start the gHTTP frontend and the TAuth service with `make up`.
+  - Serve the current repository source through the gHTTP frontend.
+  - Keep the gHTTP local config in the Compose file.
+  - Read TAuth secrets only from the private TAuth environment file.
+  - Serve the complete local demo runtime over HTTP.
+  - Remove certificate configuration from the local Compose file.
+  - Supply one disposable local email account through the Compose config.
+  - Keep `npm run demo:serve` as the separate static preview command.
+  - Prevent Make from generating `up` or `down` executable files.
+
+  Deliverables:
+  - Add the Make targets and CLI acceptance coverage.
+  - Update the local demo documentation.
+
+  Validation:
+  - Verify both targets with Make built-in rules disabled.
+  - Start the complete local demo runtime.
+  - Verify the HTTP demo pages and the authentication route boundary.
+  - Stop the complete local demo runtime.
+  - Run `make ci` after the final source and documentation changes.
+
+  Resolution:
+  The Make targets now start and stop the complete HTTP demo runtime. The runtime serves every demo page and the local TAuth flows.
+
+  Validation result:
+  The Make target checks passed with built-in rules disabled. Six HTTP demo routes returned HTTP 200. The anonymous session, email login, authenticated session, logout, and local avatar flows passed through the gHTTP proxy. Six live runtime browser tests passed without browser errors. `make ci` passed 204 unit tests and two browser runs of 114 tests.
+
 - [x] [F001] add an element to display logged in user.
   The element must support avatar-only, avatar-and-name, avatar-and-full-name, and custom-avatar modes. A click must open a dropdown with a logoff button. The logoff button must send the user to a configured URL after logout. Tests must work with TAuth. The element must work alone or inside `mpr-header` and `mpr-footer`. It must use TAuth for user information and logout.
   Resolved: added `<mpr-user>` element with avatar display modes, TAuth logout redirect, and event hooks. Covered by unit and Playwright tests. Tests: `npm test`.
