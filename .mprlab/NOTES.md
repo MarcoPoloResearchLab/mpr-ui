@@ -223,3 +223,11 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - F007 review follow-up: made sign-out invalidate pending account work, made Google linking report the completed credential exchange or prompt failure, replaced manual provider-subject entry with configured identity selection, added explicit local-fixture challenge-token display, and preserved bcrypt hashes through Docker Compose parsing. Tests: `node --check mpr-ui.js`; focused Node and Playwright regressions; `docker compose --env-file .env.tauth.example config --environment` confirmed a 60-character hash; `make ci` passed 196 Node tests and two 96-test browser runs with browser coverage at 76.70% lines, 98.77% branches, and 81.00% functions.
 - F009: added the reusable sectioned `<mpr-dropdown>` and made `<mpr-footer>` use its canonical `menu` contract.
 - F009 validation: `make ci` passed 200 Node tests and two 100-test browser runs. Browser coverage was 76.55% lines, 98.79% branches, and 81.33% functions.
+
+## 2026-09-03
+
+- B057: enabled Apple in the complete local demo.
+- Added a local service for TAuth redirect, token, and public-key flows.
+- Added a default avatar for provider profiles without an avatar URL.
+- Validation: `make ci` passed 206 Node tests and two browser runs of 131 tests.
+- Apple service format, vet, and test checks passed.

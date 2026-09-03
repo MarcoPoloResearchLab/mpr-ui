@@ -7,7 +7,7 @@ The repository demos divide the public library into focused, runnable surfaces.
 | [`/index.html`](../index.html) | Config-driven header with Google, Apple, and email actions. Bands, cards, footer sections, and theme switcher | Static preview or TAuth stack |
 | [`/demo/components.html`](../demo/components.html) | Header, footer, standalone dropdowns, both placements, all section modes, theme toggle, settings, sites, band, card, legal document | Static preview |
 | [`/demo/auth-provider-chooser.html`](../demo/auth-provider-chooser.html) | Google, Apple, and email chooser in icon-row and stack variants. Safe event output | Static preview |
-| [`/demo/tauth-demo.html`](../demo/tauth-demo.html) | Google and password auth, all password modes, all account actions, user menu, auth diagnostics | TAuth stack |
+| [`/demo/tauth-demo.html`](../demo/tauth-demo.html) | Google, local Apple redirect, password auth, account actions, user menu, auth diagnostics | TAuth stack |
 | [`/demo/standalone.html`](../demo/standalone.html) | Provider-aware login-only owner and authenticated user menu | TAuth stack |
 | [`/demo/entity-workspace.html`](../demo/entity-workspace.html) | Workspace layout, sidebar, rail, tiles, workspace, entity cards, selection state, and detail drawer | TAuth stack |
 
@@ -27,7 +27,7 @@ The provider chooser is an intent-only component. It emits provider and email-mo
 
 ## HTTP TAuth stack
 
-The bundled stack uses gHTTP as the same-origin frontend and auth proxy, plus the TAuth container as the session authority.
+The bundled stack uses gHTTP as the same-origin frontend and auth proxy. TAuth is the session authority. A local service simulates the Apple provider.
 
 Create the private TAuth environment file. Review `.env.tauth.example` for the required variable names, but supply private operational values:
 
@@ -49,7 +49,11 @@ Open `http://localhost:4443/`. Stop it with:
 make down
 ```
 
-`make up` starts one shared stack. The header, standalone, password/account, and entity-workspace pages are navigation targets inside that stack.
+`make up` starts one shared stack. It starts gHTTP, TAuth, and the local Apple test service.
+
+The Apple test service uses only local fixture identities and keys. It does not use Apple Developer credentials or contact Apple.
+
+The header, standalone, password/account, and entity-workspace pages are navigation targets inside that stack.
 The disposable local account uses `demo@mprlab.local` and `mpr-ui-demo`.
 
 ## Canonical browser contract
@@ -72,6 +76,8 @@ The full fixture exposes these same-origin routes:
 
 - `POST /auth/nonce`
 - `POST /auth/google`
+- `GET /auth/apple/start`
+- `GET /auth/apple/callback`
 - `POST /auth/logout`
 - `GET /auth/session`
 - `POST /auth/password/login`
@@ -103,7 +109,10 @@ auth:
       loginPath: "/auth/google"
       noncePath: "/auth/nonce"
     apple:
-      enabled: false
+      enabled: true
+      startPath: "/auth/apple/start"
+      returnTo: "current-url"
+      label: "Sign in with Apple"
     password:
       enabled: true
   password:
@@ -123,14 +132,16 @@ auth:
 
 ## Apple demonstration boundary
 
-The static preview and provider chooser show Apple presentation and intent. Live Apple completion requires a TAuth deployment with:
+The static preview and provider chooser show Apple presentation and intent. The local stack also completes a simulated Apple redirect and creates a TAuth session.
+
+The local test service does not prove an Apple deployment. Live Apple acceptance requires a TAuth deployment with:
 
 - Apple credentials and provider settings.
 - An Apple-registered web origin and callback.
 - The configured browser `startPath`.
 - A working session cookie and `sessionPath` restore after return.
 
-The bundled TAuth fixture contains no Apple credentials and keeps Apple disabled. This preserves a truthful separation between a visual action demo and a completed external-provider integration.
+The local stack uses fixture endpoints and a non-production signing key. It keeps all real Apple credentials outside the repository.
 
 ## Email and account demonstration
 
@@ -160,8 +171,8 @@ Every form uses `auth-target="#demo-header"`. The page contains no duplicate aut
 3. Open `/demo/auth-provider-chooser.html`, choose each provider, and confirm the event output contains no email or password values.
 4. Start `make up` and confirm `/config-ui.yaml` loads before `mpr-ui.js` on an auth-bearing page.
 5. Confirm the page loads no direct TAuth browser client.
-6. Complete Google or password sign-in and confirm `mpr-ui:auth:authenticated` updates the user menu and diagnostics.
+6. Complete Google, local Apple, or password sign-in and confirm `mpr-ui:auth:authenticated` updates the user menu and diagnostics.
 7. Complete password verification and reset flows through the shared forms.
 8. Sign in, exercise account actions, and confirm they use the same profile state.
 9. Log out and confirm `/auth/logout` clears the shell state.
-10. Treat live Apple acceptance as a deployment test only after the required Apple/TAuth configuration exists.
+10. Treat real Apple acceptance as a deployment test only after the required Apple and TAuth configuration exists.

@@ -1699,6 +1699,8 @@
     "avatar_url",
     "avatarUrl",
   ]);
+  var USER_MENU_DEFAULT_AVATAR_URL =
+    "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='16' fill='%231f2126'/%3E%3Ccircle cx='16' cy='11.5' r='5' fill='%23e3e5ec'/%3E%3Cpath d='M7 28c1-6 4-9 9-9s8 3 9 9' fill='%23e3e5ec'/%3E%3C/svg%3E";
 
   function logLegacyAttribute(componentLabel, attributeName, replacement) {
     if (!attributeName) {
@@ -9300,9 +9302,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       config.displayMode === USER_MENU_DISPLAY_MODES.CUSTOM_AVATAR
         ? config.avatarUrl
         : normalizeUserMenuAvatarUrl(
-            resolveProfileAvatar(profile),
+            resolveProfileAvatar(profile) || USER_MENU_DEFAULT_AVATAR_URL,
             USER_MENU_PROFILE_ERROR_CODE,
-            "Profile avatar URL is required",
+            "Profile avatar URL is invalid",
           );
     if (
       config.displayMode === USER_MENU_DISPLAY_MODES.AVATAR_NAME &&

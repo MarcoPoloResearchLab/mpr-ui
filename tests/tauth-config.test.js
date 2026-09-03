@@ -102,3 +102,23 @@ test('F007: demo TAuth config enables password and account policies explicitly',
   assert.match(demoConfigContents, /avatar_url:\s+"\/demo\/demo-user\.svg"/);
   assert.equal(existsSync(demoUserAvatarPath), true);
 });
+
+test('B057: demo TAuth config enables the local Apple provider explicitly', () => {
+  assert.match(demoConfigContents, /apple_oauth:\s*\n\s+enabled:\s+true/);
+  assert.match(
+    demoConfigContents,
+    /authorization_endpoint:\s+"http:\/\/localhost:4443\/apple-provider\/authorize"/,
+  );
+  assert.match(
+    demoConfigContents,
+    /token_endpoint:\s+"http:\/\/apple-provider:8090\/token"/,
+  );
+  assert.match(
+    demoConfigContents,
+    /jwks_url:\s+"http:\/\/apple-provider:8090\/keys"/,
+  );
+  assert.match(
+    repositoryComposeContents,
+    /TAUTH_APPLE_PRIVATE_KEY_BASE64:\s+"[A-Za-z0-9+/=]+"/,
+  );
+});

@@ -13,6 +13,7 @@ DEPLOY_ARGS ?=
 RELEASE_TOOL_DIR := $(abspath $(CURDIR)/scripts/release)
 
 .PHONY: test test-unit test-coverage test-e2e lint format ci
+.PHONY: test-apple-provider
 .PHONY: up down
 .PHONY: release publish deploy
 
@@ -25,8 +26,13 @@ test-unit:
 test-coverage:
 	timeout -k $(COVERAGE_TIMEOUT)s -s SIGKILL $(COVERAGE_TIMEOUT)s npm run test:coverage
 
-test-e2e:
+test-e2e: test-apple-provider
 	timeout -k $(E2E_TIMEOUT)s -s SIGKILL $(E2E_TIMEOUT)s npm run test:e2e
+
+test-apple-provider:
+	cd demo/apple-provider && test -z "$$(gofmt -l .)"
+	cd demo/apple-provider && go vet ./...
+	cd demo/apple-provider && go test ./...
 
 lint:
 	timeout -k $(LINT_TIMEOUT)s -s SIGKILL $(LINT_TIMEOUT)s npm run lint --if-present

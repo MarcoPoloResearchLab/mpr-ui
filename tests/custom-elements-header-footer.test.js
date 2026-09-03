@@ -5324,6 +5324,37 @@ test('mpr-user renders avatar modes from TAuth profile data', () => {
   });
 });
 
+test('mpr-user renders its default avatar for a provider profile without an avatar', () => {
+  resetEnvironment();
+  loadLibrary();
+  global.getCurrentUser = function getCurrentUser() {
+    return {
+      display: 'MPR UI Apple Demo User',
+      user_email: 'apple-demo@mprlab.local',
+    };
+  };
+  global.logout = function logout() {
+    return Promise.resolve();
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+
+  const harness = createUserElementHarness();
+  const element = harness.element;
+  element.setAttribute('display-mode', 'avatar');
+  element.setAttribute('logout-url', '#signed-out');
+  element.setAttribute('logout-label', 'Log out');
+  setGoogleAuthConfig(element);
+
+  element.connectedCallback();
+
+  assert.equal(element.getAttribute('data-mpr-user-status'), 'authenticated');
+  assert.match(
+    harness.avatarImage.attributes && harness.avatarImage.attributes.src,
+    /^data:image\/svg\+xml,/,
+  );
+  assert.equal(element.getAttribute('data-mpr-user-error'), null);
+});
+
 test('mpr-user renders menu items when configured', () => {
   resetEnvironment();
   loadLibrary();

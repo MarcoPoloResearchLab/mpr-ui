@@ -22,7 +22,10 @@ environments:
           loginPath: "/auth/google"
           noncePath: "/auth/nonce"
         apple:
-          enabled: false
+          enabled: true
+          startPath: "/auth/apple/start"
+          returnTo: "current-url"
+          label: "Sign in with Apple"
         password:
           enabled: true
       password:

@@ -414,6 +414,8 @@ It emits the shared `mpr-ui:auth:*` lifecycle and `mpr-login:error`. Password se
 
 `<mpr-user>` displays the safe profile snapshot from its owning auth controller and performs configured logout. The config loader supplies `auth-config`. The element does not own a separate browser auth path.
 
+The element uses its default avatar when the authenticated provider profile has no avatar URL. `custom-avatar` mode still requires `avatar-url`.
+
 Attributes:
 
 - `display-mode`: `avatar`, `avatar-name`, `avatar-full-name`, or `custom-avatar`.

@@ -6,6 +6,43 @@ Archived 2026-09-01 by M400R.
 
 ## BugFixes
 
+- [x] [B057] (P1) The complete local demo does not show the Apple provider.
+  Goal:
+  The complete local demo shows and exercises Google, Apple, and email authentication controls.
+
+  Expected:
+  The header shows an Apple control. The local Apple test flow returns an authenticated demo profile.
+
+  Actual:
+  The local config disables Apple. The header shows only Google and email controls.
+
+  Requirements:
+  - Enable Apple in the local browser config.
+  - Keep the browser flow on `http://localhost:4443`.
+  - Add a local Apple test service for the redirect, token, and public-key endpoints.
+  - Keep the local test service separate from a real Apple deployment.
+  - Keep real Apple Developer credentials out of the repository.
+  - Render the default user avatar when an Apple profile has no avatar URL.
+  - Preserve Google and email authentication.
+
+  Deliverables:
+  - Add the local Apple test service to the Compose runtime.
+  - Add browser acceptance coverage for Apple control visibility and authentication.
+  - Update the demo documentation with the local and hosted Apple boundaries.
+
+  Validation:
+  - Start the complete local demo runtime.
+  - Verify that the header shows Google, Apple, and email controls.
+  - Complete the local Apple test flow.
+  - Verify the authenticated profile and the absence of browser errors.
+  - Run `make ci` after the final source, config, and documentation changes.
+
+  Resolution:
+  The local header now shows Google, Apple, and email controls. The local Apple service exercises the redirect, token, and public-key flow through TAuth. The user menu supplies a default avatar when the authenticated provider profile has no avatar URL.
+
+  Validation result:
+  The live Apple flow returned an authenticated profile without browser errors. The Compose Apple service reported healthy. `make ci` passed 206 Node tests, two browser runs of 131 tests, and the Apple service format, vet, and test checks.
+
 - [x] [B056] (P1) Four-mode demo footers show a two-position switch.
   Goal:
   Each demo footer supplies one selectable point for each configured theme mode.

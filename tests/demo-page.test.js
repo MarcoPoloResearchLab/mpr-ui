@@ -16,6 +16,7 @@ const sharedCssPath = join(repoRoot, 'mpr-ui.css');
 const demoCssPath = join(demoDir, 'demo.css');
 const entityWorkspaceCssPath = join(demoDir, 'entity-workspace.css');
 const dockerComposePath = join(repoRoot, 'docker-compose.yml');
+const makefilePath = join(repoRoot, 'Makefile');
 const demoConfigPath = join(demoDir, 'config-ui.yaml');
 const demoServerPath = join(repoRoot, 'scripts', 'serve-demo.mjs');
 
@@ -24,6 +25,7 @@ const sharedCss = readFileSync(sharedCssPath, 'utf8');
 const demoCss = readFileSync(demoCssPath, 'utf8');
 const entityWorkspaceCss = readFileSync(entityWorkspaceCssPath, 'utf8');
 const dockerCompose = readFileSync(dockerComposePath, 'utf8');
+const makefile = readFileSync(makefilePath, 'utf8');
 const demoConfig = yaml.load(readFileSync(demoConfigPath, 'utf8'));
 const demoServer = readFileSync(demoServerPath, 'utf8');
 
@@ -119,6 +121,11 @@ test('make exposes the complete local demo lifecycle', () => {
 
   assert.match(upOutput, /^\.\/up\.sh$/m, 'Expected make up to run the full demo stack');
   assert.match(downOutput, /^\.\/down\.sh$/m, 'Expected make down to stop the full demo stack');
+  assert.match(
+    makefile,
+    /^test-e2e:\s+test-apple-provider$/m,
+    'Expected CI to compile and validate the local Apple test service',
+  );
 });
 
 test('auth provider chooser icon-row CSS is compact and declarative', () => {
@@ -269,8 +276,13 @@ test('docker compose keeps the index demo as the single root entrypoint', () => 
   );
   assert.match(
     dockerCompose,
-    /GHTTP_SERVE_PROXIES:\s+"\/auth=http:\/\/tauth:8080"/,
+    /GHTTP_SERVE_PROXIES:\s+"\/auth=http:\/\/tauth:8080,/,
     'Expected gHTTP to proxy the complete authentication route prefix',
+  );
+  assert.match(
+    dockerCompose,
+    /\/apple-provider=http:\/\/apple-provider:8090/,
+    'Expected gHTTP to proxy the local Apple provider',
   );
   assert.doesNotMatch(
     dockerCompose,
