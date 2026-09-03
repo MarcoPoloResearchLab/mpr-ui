@@ -239,9 +239,7 @@ Open `http://127.0.0.1:4177/`.
 | [`/demo/standalone.html`](demo/standalone.html) | Login-only surface and authenticated user menu | `make up` |
 | [`/demo/entity-workspace.html`](demo/entity-workspace.html) | Full collection/detail workspace kit | `make up` |
 
-The static config displays Apple for action and presentation inspection. The local stack completes Apple redirects through a local provider test service. The service uses only fixture identities and keys.
-
-A real Apple completion requires TAuth Apple credentials. It also requires a registered origin, callback, and server routes. The local service does not prove this deployment acceptance.
+The static config displays Apple for action and presentation inspection. Live Apple completion requires TAuth Apple credentials. It requires an HTTPS callback on the TAuth domain. The public tenant must allow `https://ui.mprlab.com` and the documented localhost origins.
 
 To run the HTTP TAuth fixture, create the private TAuth file described by [`docs/demo-index-auth.md`](docs/demo-index-auth.md), then run:
 
@@ -251,7 +249,7 @@ make up
 
 Open `http://localhost:4443/`. Stop the stack with `make down`.
 
-`make up` starts the gHTTP frontend, TAuth, and the local Apple test service. The frontend serves the current repository source and proxies the authentication routes.
+`make up` starts the gHTTP frontend and the local TAuth service. The frontend serves the current repository source and proxies the authentication routes.
 The disposable local account uses `demo@mprlab.local` and `mpr-ui-demo`.
 
 ## Development and validation

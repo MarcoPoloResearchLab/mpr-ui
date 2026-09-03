@@ -14,6 +14,7 @@ const demoConfigPath = join(repositoryRoot, 'demo', 'tauth-config.yaml');
 const demoUserAvatarPath = join(repositoryRoot, 'demo', 'demo-user.svg');
 const repositoryEnvExamplePath = join(repositoryRoot, '.env.tauth.example');
 const repositoryComposePath = join(repositoryRoot, 'docker-compose.yml');
+const appleProviderPath = join(repositoryRoot, 'demo', 'apple-provider');
 
 const envExampleFixtureContents = readFileSync(envExamplePath, 'utf8');
 const composeFixtureContents = readFileSync(composePath, 'utf8');
@@ -103,22 +104,9 @@ test('F007: demo TAuth config enables password and account policies explicitly',
   assert.equal(existsSync(demoUserAvatarPath), true);
 });
 
-test('B057: demo TAuth config enables the local Apple provider explicitly', () => {
-  assert.match(demoConfigContents, /apple_oauth:\s*\n\s+enabled:\s+true/);
-  assert.match(
-    demoConfigContents,
-    /authorization_endpoint:\s+"http:\/\/localhost:4443\/apple-provider\/authorize"/,
-  );
-  assert.match(
-    demoConfigContents,
-    /token_endpoint:\s+"http:\/\/apple-provider:8090\/token"/,
-  );
-  assert.match(
-    demoConfigContents,
-    /jwks_url:\s+"http:\/\/apple-provider:8090\/keys"/,
-  );
-  assert.match(
-    repositoryComposeContents,
-    /TAUTH_APPLE_PRIVATE_KEY_BASE64:\s+"[A-Za-z0-9+/=]+"/,
-  );
+test('B058: local runtime contains no simulated Apple provider', () => {
+  assert.equal(existsSync(appleProviderPath), false);
+  assert.doesNotMatch(repositoryComposeContents, /apple-provider/);
+  assert.doesNotMatch(repositoryComposeContents, /TAUTH_APPLE_PRIVATE_KEY/);
+  assert.doesNotMatch(demoConfigContents, /authorization_endpoint|token_endpoint|jwks_url/);
 });

@@ -148,7 +148,7 @@ test('B046: the current parser preserves the canonical provider maps', () => {
       };
     }),
     [
-      { google: true, apple: true, password: true },
+      { google: true, apple: false, password: true },
       { google: true, apple: true, password: true },
       { google: false, apple: true, password: false },
     ],

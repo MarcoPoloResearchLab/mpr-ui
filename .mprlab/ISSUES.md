@@ -12,6 +12,42 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [!] [B058] (P1) {F010} The local demo uses a simulated Apple provider.
+  Goal:
+  The public and local demos use the real Apple provider through one hosted TAuth callback.
+
+  Expected:
+  The Apple control opens Apple. TAuth creates a session only after it validates the Apple response.
+
+  Actual:
+  The local Apple service accepts the action without an Apple request. The service then creates a fixture identity.
+
+  Blocked: The private deployment input has no Apple Service ID or private key for the MPR UI demo tenant.
+
+  Requirements:
+  - Remove the simulated Apple service and its fixture key.
+  - Use `https://tauth-api.mprlab.com/auth/apple/callback` as the Apple callback.
+  - Allow `https://ui.mprlab.com` as a TAuth tenant origin.
+  - Allow `http://localhost:4443` and `http://127.0.0.1:4443` as TAuth tenant origins.
+  - Keep the local browser URL on HTTP.
+  - Keep Apple credentials in the canonical private deployment input.
+  - Enable the Apple control only after the real provider config is completed.
+  - Preserve Google and password authentication.
+
+  Deliverables:
+  - Remove the simulated provider from the local Compose runtime.
+  - Add the real Apple settings to the F010 TAuth tenant.
+  - Configure the public and local browser environments to use the hosted TAuth tenant.
+  - Add browser acceptance coverage for each allowed demo origin.
+
+  Validation:
+  - Start the local demo at `http://localhost:4443`.
+  - Select the Apple control and verify that Apple receives the authorization request.
+  - Complete Apple authentication and verify that the local demo restores the hosted TAuth session.
+  - Repeat the authentication at `https://ui.mprlab.com`.
+  - Verify that no simulated provider code or fixture key remains.
+  - Run `make ci` after the final source, config, and documentation changes.
+
 - [!] [B027] (P1) gix sync: prevent creating a new branch when an explicit target branch is provided.
   Goal:
   Make `gix sync <branch>` commit and push uncommitted changes to the named branch. Do not create a new branch in this mode.
@@ -319,8 +355,12 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Add `https://ui.mprlab.com` to the canonical browser config.
   - Add one dedicated TAuth tenant for the public demo site.
   - Use a tenant ID that is reserved for the MPR UI demo site.
+  - Use `https://tauth-api.mprlab.com/auth/apple/callback` as the Apple callback.
+  - Allow `https://ui.mprlab.com` as a TAuth tenant origin.
+  - Allow `http://localhost:4443` and `http://127.0.0.1:4443` as TAuth tenant origins.
   - Read provider secrets only from the canonical private deployment input.
   - Keep all provider secrets out of the Pages artifact and Git history.
+  - Do not use a simulated external provider.
   - Configure the browser-facing TAuth origin from active deployed state.
   - Enable Google, Apple, and password providers only with complete provider config.
   - Use disposable demo identities for public password and account actions.

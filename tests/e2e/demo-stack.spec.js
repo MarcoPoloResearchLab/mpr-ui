@@ -58,11 +58,7 @@ test('root / serves the demo hub landing page with local assets and DSL orchestr
   // 4. Verify User Menu Presence (Orchestrated by component)
   await expect(header.locator('mpr-user[slot="aux"]')).toBeAttached();
 
-  const providerControls = [
-    'Sign in with Google',
-    'Sign in with Apple',
-    'Continue with email',
-  ];
+  const providerControls = ['Sign in with Google', 'Continue with email'];
   for (const providerControl of providerControls) {
     await expect(page.getByRole('button', { name: providerControl })).toBeVisible();
   }
@@ -132,31 +128,5 @@ test('local email fixture signs in without browser errors', async ({ page }) => 
     'src',
     '/demo/demo-user.svg',
   );
-  expect(browserErrors).toEqual([]);
-});
-
-test('local Apple fixture completes the redirect flow without browser errors', async ({ page }) => {
-  const browserErrors = [];
-  page.on('console', (message) => {
-    if (message.type() === 'error') {
-      browserErrors.push(message.text());
-    }
-  });
-  page.on('pageerror', (error) => {
-    browserErrors.push(error.message);
-  });
-
-  await page.goto(`${BASE_URL.replace(/\/$/, '')}/demo/tauth-demo.html`, {
-    waitUntil: 'networkidle',
-  });
-  const appleControl = page.getByRole('button', { name: 'Sign in with Apple' });
-  await expect(appleControl).toBeVisible();
-  await appleControl.click();
-
-  await expect(page).toHaveURL(
-    `${BASE_URL.replace(/\/$/, '')}/demo/tauth-demo.html`,
-  );
-  await expect(page.getByText('Authenticated', { exact: true })).toBeVisible();
-  await expect(page.getByText('MPR UI Apple Demo User', { exact: true }).first()).toBeVisible();
   expect(browserErrors).toEqual([]);
 });

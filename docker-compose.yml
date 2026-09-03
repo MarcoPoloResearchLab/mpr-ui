@@ -3,36 +3,21 @@ services:
     image: ghcr.io/tyemirov/ghttp:latest
     pull_policy: always
     depends_on:
-      apple-provider:
-        condition: service_healthy
       tauth:
         condition: service_started
     environment:
       GHTTP_SERVE_PORT: "8000"
       GHTTP_SERVE_DIRECTORY: "/app/www"
-      GHTTP_SERVE_PROXIES: "/auth=http://tauth:8080,/apple-provider=http://apple-provider:8090"
+      GHTTP_SERVE_PROXIES: "/auth=http://tauth:8080"
     ports:
       - "4443:8000"
     volumes:
       - ./:/app/www:ro
     restart: unless-stopped
 
-  apple-provider:
-    build:
-      context: ./demo/apple-provider
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:8090/apple-provider/healthz"]
-      interval: 2s
-      timeout: 1s
-      retries: 10
-    restart: unless-stopped
-
   tauth:
     image: ghcr.io/tyemirov/tauth:latest
     pull_policy: always
-    depends_on:
-      apple-provider:
-        condition: service_healthy
     env_file:
       - ./demo/.env.tauth
     environment:
@@ -40,7 +25,6 @@ services:
       TAUTH_CORS_ORIGIN_2: "http://127.0.0.1:4443"
       TAUTH_CORS_ORIGIN_3: "http://computercat.tyemirov.net:4443"
       TAUTH_ALLOW_INSECURE_HTTP: "true"
-      TAUTH_APPLE_PRIVATE_KEY_BASE64: "LS0tLS1CRUdJTiBQUklWQVRFIEtFWS0tLS0tCk1JR0hBZ0VBTUJNR0J5cUdTTTQ5QWdFR0NDcUdTTTQ5QXdFSEJHMHdhd0lCQVFRZ2NwMytscHdmRFdISVA0aU8KajlMVkp5eHBTMjMrb3RpN0FVckdtZllrbGp5aFJBTkNBQVJ4T1NYQTVWK0lQQkJZeS9hT0FCV0RwVnRPZGpNcwo1S0ZvdTZMaSs5ZlRlWVlCRXk0NFN6Ykt4bkp0ei9qcVNsVFpJMldtVzFEamxwaVNMeTBRYlpGbAotLS0tLUVORCBQUklWQVRFIEtFWS0tLS0tCg=="
       TAUTH_PASSWORD_USER_EMAIL: "demo@mprlab.local"
       TAUTH_PASSWORD_HASH: "$$2y$$12$$UihC9c7inwl90d3iKzlH3OPsrJn2OIGhgAT/TkOHbcueVdNrkf0zS"
     ports:
