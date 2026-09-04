@@ -12,6 +12,31 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [-] [B064] (P1) {B059} A Google popup attempt can lock the other auth controls.
+  Goal:
+  The provider controls stay available until Google returns a credential.
+
+  Expected:
+  A Google button click opens the provider flow. The email and Apple controls stay available if that flow does not return a credential.
+
+  Actual:
+  The Google click listener sets an authentication state before Google returns a credential. This state disables the other provider controls without an end event.
+
+  Requirements:
+  - Treat the Google button click as provider intent only.
+  - Set the authentication state when Google returns a credential.
+  - Keep the other provider controls available after a canceled or rejected Google popup.
+
+  Deliverables:
+  - Correct the Google button state transition.
+  - Add browser coverage for a Google attempt that returns no credential.
+  - Update the integration documentation and changelog.
+
+  Validation:
+  - Select the Google control without a credential callback.
+  - Verify that the email control stays available.
+  - Run `make ci` after the final source, test, and documentation changes.
+
 - [-] [B063] (P1) {F010} The header email form exceeds the available width.
   Goal:
   The header email form stays inside the browser viewport at each supported width.

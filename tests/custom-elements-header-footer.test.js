@@ -4563,7 +4563,7 @@ test('mpr-login-button rejects tenant changes after first render', async () => {
   );
 });
 
-test('B059: mpr-login-button initializes GSI before it renders the sign-in control', async () => {
+test('B059 and B064: mpr-login-button initializes GSI without locking other provider actions', async () => {
   resetEnvironment();
   const callOrder = [];
   let initializeCallCount = 0;
@@ -4626,8 +4626,8 @@ test('B059: mpr-login-button initializes GSI before it renders the sign-in contr
       'data-mpr-auth-actions',
       'root',
     ).getAttribute('data-mpr-auth-action-status'),
-    'authenticating',
-    'Google click starts the visible authentication state',
+    'ready',
+    'Google click waits for a credential before it starts the authentication state',
   );
 });
 

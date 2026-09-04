@@ -2826,16 +2826,16 @@
     }
 
     function handleGoogleButtonClick() {
-      setActionStatus(
-        AUTH_CONTROLLER_STATUS.AUTHENTICATING,
-        AUTH_PROVIDER_IDS.GOOGLE,
-      );
       if (displayOptions && typeof displayOptions.handleStart === "function") {
         displayOptions.handleStart(AUTH_PROVIDER_IDS.GOOGLE);
       }
     }
 
     function handleGoogleCredential(payload, nonceToken) {
+      setActionStatus(
+        AUTH_CONTROLLER_STATUS.AUTHENTICATING,
+        AUTH_PROVIDER_IDS.GOOGLE,
+      );
       return Promise.resolve(
         authController.handleCredential(payload, nonceToken),
       ).then(

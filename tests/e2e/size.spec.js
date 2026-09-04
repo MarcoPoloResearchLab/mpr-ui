@@ -148,7 +148,7 @@ test.describe('Size parameter support', () => {
 });
 
 test.describe('Authentication provider control sizing', () => {
-  test('B054, B055, and B063: provider controls and email form stay contained at supported widths', async ({
+  test('B054, B055, B063, and B064: provider controls stay available and contained', async ({
     page,
   }) => {
     await visitFullLayoutFixture(page);
@@ -294,6 +294,10 @@ test.describe('Authentication provider control sizing', () => {
       expect(googleMetrics?.borderColor, viewportCase.name).toBe('rgb(142, 145, 143)');
 
       const emailButton = controls.locator('[data-mpr-auth-action="email"]');
+      const googleButton = controls.locator('[data-mpr-auth-action="google"] button');
+      await googleButton.click();
+      await expect(emailButton).toBeEnabled();
+      await expect(headerHost.locator('.mpr-auth-actions__status')).toBeEmpty();
       await emailButton.click();
       const passwordForm = headerHost.locator('mpr-password-auth');
       await expect(passwordForm).toBeVisible();

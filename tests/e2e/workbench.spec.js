@@ -106,7 +106,7 @@ test.describe('Workbench behaviours', () => {
     expect(footerRatio).toBeLessThan(0.95);
   });
 
-  test('MU-307: starts Google Sign-In with a valid client id and nonce', async ({ page }) => {
+  test('MU-307 and B064: starts Google Sign-In without a premature auth state', async ({ page }) => {
     const googleControl = page.locator(googleButton).getByRole('button', {
       name: 'Sign in with Google',
     });
@@ -118,7 +118,7 @@ test.describe('Workbench behaviours', () => {
     expect(googleConfig?.client_id).toMatch(/^[0-9a-z.\-]+$/i);
     expect(googleConfig?.nonce).toBe('fixture-google-nonce');
     await googleControl.click();
-    await expect(page.getByRole('status')).toHaveText('Starting Google sign-in…');
+    await expect(page.locator('.mpr-auth-actions__status')).toBeEmpty();
     await expect(googleControl).toBeVisible();
   });
 

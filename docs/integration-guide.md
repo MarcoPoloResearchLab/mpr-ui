@@ -290,6 +290,8 @@ What your template still owns:
 
 `<mpr-login-button>` owns the complete enabled provider action set. On initialization, it renders accessible provider controls with focus and status feedback. Google uses the official GIS popup button. The controller requests and refreshes the TAuth nonce before it renders that button. The GIS JavaScript callback receives the ID token. This flow does not use a Google redirect URI. Apple starts validated top-level TAuth navigation. Password opens `<mpr-password-auth mode="login">` on the same controller.
 
+A Google button click emits provider intent. Authentication starts only when the Google JavaScript callback returns a credential. Other provider controls stay available if the popup returns no credential.
+
 Configure the standard appearance through static element attributes. `/config-ui.yaml` is auth-only and rejects `authButton`:
 
 | Setting | Values | Default |

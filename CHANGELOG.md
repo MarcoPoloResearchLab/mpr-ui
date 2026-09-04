@@ -17,6 +17,7 @@
 - Updated Playwright to `1.61.1` and made the Node tooling module type explicit. Node 26 checks ran without loader warnings.
 
 ### Bug Fixes 🐛
+- Kept the Apple and email controls available when a Google popup returned no credential.
 - Kept the header email form and its controls inside narrow browser viewports.
 - Replaced `js-yaml` 4.1.1 and `brace-expansion` 5.0.5 with fixed versions. The browser loader now uses the js-yaml 5.4.1 UMD build.
 - Preserved methods and bodies for `Request` inputs created in another same-origin browser context.
