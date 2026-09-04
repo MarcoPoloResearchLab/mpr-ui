@@ -22,6 +22,7 @@
 - Renewed expired access sessions through the configured TAuth session endpoint before a protected request retry.
 - Replaced the Google One Tap action with the official Google Identity Services popup button.
 - Bound each rendered Google button to a TAuth nonce. Refreshed the nonce before expiry and removed its timer on disconnect.
+- Prevented the Docker demo from serving cached HTML, JavaScript, or CSS files during local development.
 - Moved `<mpr-login-button>` presentation out of `/config-ui.yaml` into static `button-*` attributes. The loader rejected obsolete `authButton` input and accepted auth-only cross-origin runtime configuration.
 - Wired configured `sessionPath` values through `tauth-session-path`. Auth controllers restore from declared endpoints, and empty paths disable fallback restoration.
 - Replaced hinted auth restore probes with `/auth/session`, which returns anonymous stale-session state without browser-visible `/me` or `/auth/refresh` 401s.

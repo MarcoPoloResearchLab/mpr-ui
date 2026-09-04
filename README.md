@@ -251,7 +251,7 @@ make up
 
 Open `http://localhost:4443/`. Stop the stack with `make down`.
 
-`make up` starts the gHTTP frontend and the local TAuth service. The frontend serves the current repository source and proxies the authentication routes.
+`make up` starts the gHTTP frontend and the local TAuth service. The frontend serves the current repository source with `Cache-Control: no-store`. It proxies the authentication routes.
 The disposable local account uses `demo@mprlab.local` and `mpr-ui-demo`.
 
 ## Development and validation

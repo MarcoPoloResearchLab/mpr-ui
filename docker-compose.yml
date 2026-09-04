@@ -9,6 +9,7 @@ services:
       GHTTP_SERVE_PORT: "8000"
       GHTTP_SERVE_DIRECTORY: "/app/www"
       GHTTP_SERVE_PROXIES: "/auth=http://tauth:8080"
+      GHTTP_SERVE_RESPONSE_HEADERS: "/=Cache-Control:no-store"
     ports:
       - "4443:8000"
     volumes:

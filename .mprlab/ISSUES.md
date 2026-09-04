@@ -12,6 +12,33 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [-] [B060] (P1) {F010} The local demo can show an old component bundle.
+  Goal:
+  The Docker demo always serves the current files from the primary checkout.
+
+  Expected:
+  A browser reload shows the current HTML, JavaScript, and CSS files.
+
+  Actual:
+  gHTTP responses do not include a cache policy. The browser can reuse old demo files after the source changes.
+
+  Requirements:
+  - Set `Cache-Control: no-store` for all local frontend responses.
+  - Keep the same-origin `/auth` proxy behavior.
+  - Keep the local demo on `http://localhost:4443`.
+  - Do not add query parameters to application asset URLs.
+
+  Deliverables:
+  - Update the Docker frontend configuration.
+  - Add a unit contract for the response header policy.
+  - Update the local demo instructions and release notes.
+
+  Validation:
+  - Start the stack with `make up`.
+  - Verify that HTML, JavaScript, and CSS responses use `Cache-Control: no-store`.
+  - Change a served file and verify that a normal browser reload shows the new content.
+  - Run `make ci` after the final source, test, and documentation changes.
+
 - [-] [B059] (P1) {F010} Google sign-in does not open in the local demo.
   Goal:
   The Google control starts a real Google popup flow on the local HTTP demo and the public HTTPS demo.

@@ -272,6 +272,11 @@ test('docker compose keeps the index demo as the single root entrypoint', () => 
     /GHTTP_SERVE_PROXIES:\s+"\/auth=http:\/\/tauth:8080"/,
     'Expected gHTTP to proxy the complete authentication route prefix',
   );
+  assert.match(
+    dockerCompose,
+    /GHTTP_SERVE_RESPONSE_HEADERS:\s+"\/=Cache-Control:no-store"/,
+    'Expected gHTTP to prevent local demo response caching',
+  );
   assert.doesNotMatch(
     dockerCompose,
     /GHTTP_SERVE_TLS_|\/certs\//,
