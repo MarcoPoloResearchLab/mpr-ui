@@ -225,6 +225,11 @@ The full attribute, slot, method, and event reference is in [`docs/custom-elemen
 - `MPRUI.createSelectionState()`
 - `MPRUI.resolveAuthProfileSnapshot(authTarget)`
 
+The controller from `MPRUI.createAuthHeader()` exposes
+`startAppleSignIn()` for the Apple redirect flow. Google starts only from an
+official rendered Google Identity Services button. The controller does not
+expose a programmatic Google or One Tap start method.
+
 `MPRUI.testing` contains test-only auth, redirect-provider, and Google Identity driver helpers. Application code must use the ordinary auth lifecycle.
 
 ## Demos

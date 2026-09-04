@@ -168,6 +168,9 @@ JavaScript callback. The panel sends the ID token and nonce to
 `auth.account.googleLinkPath`. The action does not use One Tap or an OAuth
 redirect callback.
 
+The owning auth controller does not expose a programmatic Google start method.
+Google sign-in and account linking start only from their rendered buttons.
+
 ```html
 <mpr-account-panel
   action="unlink"

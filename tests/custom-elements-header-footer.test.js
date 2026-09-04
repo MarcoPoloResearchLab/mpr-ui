@@ -1838,7 +1838,24 @@ test('createAuthHeader ignores an in-flight credential exchange after tauth-url 
   );
 });
 
-test('createAuthHeader initializes GIS with a nonce only for an explicit sign-in attempt', async () => {
+test('B062: public auth controller omits programmatic Google One Tap methods', () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(
+    hostElement,
+    createGoogleAuthConfig(),
+  );
+
+  assert.equal(authController.startGoogleSignIn, undefined);
+  assert.equal(authController.startProvider, undefined);
+  assert.equal(typeof authController.startAppleSignIn, 'function');
+  assert.equal(typeof authController.prepareGoogleNonce, 'function');
+  assert.equal(typeof authController.handleCredential, 'function');
+  authController.destroy();
+});
+
+test('createAuthHeader prepares GIS with a nonce only when a Google button requests it', async () => {
   resetEnvironment();
   delete global.initAuthClient;
   delete global.getCurrentUser;
@@ -1908,10 +1925,10 @@ test('createAuthHeader initializes GIS with a nonce only for an explicit sign-in
   assert.equal(initializeCalls.length, 0, 'GIS does not initialize during bootstrap');
   assert.deepEqual(requestedPaths, [], 'bootstrap does not issue background nonce requests');
 
-  await authController.startGoogleSignIn();
+  await authController.prepareGoogleNonce();
   await flushAsync();
 
-  assert.equal(initializeCalls.length, 1, 'explicit sign-in attempt initializes GIS once');
+  assert.equal(initializeCalls.length, 1, 'button nonce preparation initializes GIS once');
   assert.equal(initializeCalls[0].client_id, 'nonce-stability-client');
   assert.equal(
     initializeCalls[0].nonce,
@@ -1926,7 +1943,7 @@ test('createAuthHeader initializes GIS with a nonce only for an explicit sign-in
   assert.deepEqual(
     requestedPaths,
     ['/auth/nonce', '/auth/google'],
-    'sign-in attempt requests one TAuth nonce before credential exchange',
+    'button preparation requests one TAuth nonce before credential exchange',
   );
   assert.deepEqual(
     exchangePayloads,
@@ -1943,7 +1960,7 @@ test('createAuthHeader initializes GIS with a nonce only for an explicit sign-in
   assert.deepEqual(authController.state.profile, authenticatedProfile);
 });
 
-test('createAuthHeader keeps GIS stable after four idle hours on the landing page', async () => {
+test('createAuthHeader stays idle until a Google button requests a nonce', async () => {
   resetEnvironment();
   delete global.initAuthClient;
   delete global.getCurrentUser;
@@ -2051,9 +2068,9 @@ test('createAuthHeader keeps GIS stable after four idle hours on the landing pag
     assert.equal(scheduledTimers.size, 0, 'idle focus does not schedule nonce refresh timers');
     assert.deepEqual(requestedPaths, [], 'idle focus does not issue background nonce requests');
 
-    await authController.startGoogleSignIn();
+    await authController.prepareGoogleNonce();
     await flushAsync();
-    assert.equal(initializeCalls.length, 1, 'post-idle sign-in initializes GIS once');
+    assert.equal(initializeCalls.length, 1, 'post-idle button preparation initializes GIS once');
     assert.equal(initializeCalls[0].nonce, 'nonce-token-1');
 
     await initializeCalls[0].callback({ credential: 'post-idle-google-token' });
@@ -2061,13 +2078,13 @@ test('createAuthHeader keeps GIS stable after four idle hours on the landing pag
     assert.deepEqual(
       requestedPaths,
       ['/auth/nonce', '/auth/google'],
-      'post-idle sign-in requests nonce only for the explicit attempt',
+      'post-idle button preparation requests one nonce',
     );
     assert.deepEqual(
       exchangePayloads,
       [{ google_id_token: 'post-idle-google-token', nonce_token: 'nonce-token-1' }],
     );
-    assert.equal(initializeCalls.length, 1, 'post-idle sign-in does not reinitialize GIS');
+    assert.equal(initializeCalls.length, 1, 'post-idle credential return does not reinitialize GIS');
     assert.deepEqual(authController.state.profile, authenticatedProfile);
   } finally {
     Date.now = originalDateNow;
@@ -2438,7 +2455,7 @@ test('createAuthHeader ignores stale GIS callbacks after tauth-url change', asyn
   await flushAsync();
   await flushAsync();
 
-  await authController.startGoogleSignIn();
+  await authController.prepareGoogleNonce();
   await flushAsync();
   assert.ok(initializeCalls.length >= 1, 'initial GIS callback registered');
   const staleCallback = initializeCalls[0].callback;
@@ -2451,7 +2468,7 @@ test('createAuthHeader ignores stale GIS callbacks after tauth-url change', asyn
   await flushAsync();
   await flushAsync();
 
-  await authController.startGoogleSignIn();
+  await authController.prepareGoogleNonce();
   await flushAsync();
   assert.ok(initializeCalls.length >= 2, 'updated GIS callback registered after auth options change');
   const currentCallback = initializeCalls[initializeCalls.length - 1].callback;

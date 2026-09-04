@@ -12,6 +12,34 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [-] [B062] (P1) {B059,B061} The public auth controller retains the obsolete Google One Tap methods.
+  Goal:
+  The public auth controller exposes only the current button-based Google authentication contract.
+
+  Expected:
+  Google authentication starts only from an official Google Identity Services button.
+
+  Actual:
+  `startGoogleSignIn()` and `startProvider("google")` still call the Google One Tap prompt.
+
+  Requirements:
+  - Remove the programmatic Google One Tap methods from the auth controller.
+  - Remove the unused Google prompt attempt state.
+  - Keep Apple redirect actions available through `startAppleSignIn()`.
+  - Keep the official Google button and JavaScript credential callback as the only Google start and return paths.
+  - Remove obsolete prompt options from unauthenticated state updates.
+
+  Deliverables:
+  - Remove the obsolete controller methods and state.
+  - Replace tests that call the obsolete methods with button-lifecycle tests.
+  - Update the architecture, API, integration, and release documents.
+
+  Validation:
+  - Confirm that the public controller does not expose a Google prompt method.
+  - Confirm that Google sign-in and account linking use official rendered buttons.
+  - Confirm that Apple sign-in still uses its explicit redirect method.
+  - Run `make ci` after the final source, test, and documentation changes.
+
 - [-] [B061] (P1) {B059,F010} Google account linking uses the obsolete One Tap prompt.
   Goal:
   The account panel starts a real Google popup flow with the official Google Identity Services button.

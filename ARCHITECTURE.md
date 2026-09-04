@@ -61,6 +61,11 @@ The complete attribute, slot, method, and event matrix is in [`docs/custom-eleme
 | `createCustomElementRegistry(target?)` | Register custom-element definitions once for the target registry. |
 | `MprElement` | Shared custom-element lifecycle base. |
 
+The controller from `createAuthHeader()` exposes `startAppleSignIn()` for the
+Apple redirect flow. It does not expose a programmatic Google start method.
+Google starts only from an official rendered button. The button lifecycle uses
+the controller nonce and credential methods.
+
 `MPRUI.testing` exposes test-only auth state, Apple redirect-action, and Google Identity driver helpers. Production application behavior must use the ordinary public lifecycle.
 
 ## Authentication ownership

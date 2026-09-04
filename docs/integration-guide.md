@@ -412,6 +412,8 @@ If sign-in must open an authenticated route, set `sign-in-redirect-url` on `<mpr
 
 - Load auth configuration through `/config-ui.yaml` and `mpr-ui-config.js`.
 - Let the owning component call TAuth and Google Identity Services.
+- Start Google only from the official button that the owning component renders.
+- Use `startAppleSignIn()` only for an explicit Apple redirect action.
 - Use the single `auth-config` provider map on auth components.
 - Keep component presentation in documented attributes and custom properties.
 - Keep `<mpr-login-button>` child-free.

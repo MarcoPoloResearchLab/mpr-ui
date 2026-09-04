@@ -3022,7 +3022,7 @@
         if (displayOptions && typeof displayOptions.handleStart === "function") {
           displayOptions.handleStart(providerId);
         }
-        Promise.resolve(authController.startProvider(providerId)).then(
+        Promise.resolve(authController.startAppleSignIn()).then(
           function handleProviderActionReady() {
             if (attempt !== currentAttempt || providerId === AUTH_PROVIDER_IDS.APPLE) {
               return;
@@ -4913,7 +4913,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var hasEmittedUnauthenticated = false;
     var lastAuthenticatedSignature = null;
     var nonceRequestPromise = null;
-    var googleSignInAttemptPromise = null;
     var appleSignInAttemptPromise = null;
     var appleSignInHintOptions = null;
     var authSignalVersion = 0;
@@ -5165,53 +5164,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         });
     }
 
-    function startGoogleSignIn() {
-      if (!options.providers.google.enabled) {
-        return Promise.reject(
-          createAuthConfigError(
-            AUTH_CONFIG_ERROR_CODES.PROVIDER_DISABLED,
-            "Google authentication is disabled",
-          ),
-        );
-      }
-      if (googleSignInAttemptPromise) {
-        return googleSignInAttemptPromise;
-      }
-      var currentLifecycleVersion = lifecycleVersion;
-      googleSignInAttemptPromise = prepareGoogleNonce()
-        .then(function () {
-          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
-            throw new Error("mpr-ui.auth.stale_google_identity");
-          }
-          var googleId =
-            global.google &&
-            global.google.accounts &&
-            global.google.accounts.id
-              ? global.google.accounts.id
-              : null;
-          if (!googleId || typeof googleId.prompt !== "function") {
-            throw new Error("google identity prompt unavailable");
-          }
-          googleId.prompt();
-          return null;
-        })
-        .catch(function handleGoogleAttemptFailure(error) {
-          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
-            return null;
-          }
-          emitError("mpr-ui.auth.google_attempt_failed", {
-            message: error && error.message ? error.message : String(error),
-            status: error && error.status ? error.status : null,
-          });
-          markUnauthenticated({ prompt: false });
-          throw error;
-        })
-        .finally(function () {
-          googleSignInAttemptPromise = null;
-        });
-      return googleSignInAttemptPromise;
-    }
-
     function prepareAppleSignIn() {
       return buildAppleProviderAction(options);
     }
@@ -5258,7 +5210,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
               : AUTH_CONFIG_ERROR_CODES.REDIRECT_NAVIGATION_UNAVAILABLE,
             { message: error && error.message ? error.message : String(error) },
           );
-          markUnauthenticated({ prompt: false });
+          markUnauthenticated();
         }
         throw error;
       }).finally(function clearAppleSignInAttempt() {
@@ -5266,21 +5218,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         appleSignInAttemptPromise = null;
       });
       return appleSignInAttemptPromise;
-    }
-
-    function startAuthProvider(providerId) {
-      if (providerId === AUTH_PROVIDER_IDS.GOOGLE) {
-        return startGoogleSignIn();
-      }
-      if (providerId === AUTH_PROVIDER_IDS.APPLE) {
-        return startAppleSignIn();
-      }
-      return Promise.reject(
-        createAuthConfigError(
-          AUTH_CONFIG_ERROR_CODES.PROVIDER_DISABLED,
-          "Authentication provider is not enabled",
-        ),
-      );
     }
 
     function updateDatasetFromProfile(profile) {
@@ -5316,7 +5253,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         emitError("mpr-ui.auth.invalid_profile", {
           message: "markAuthenticated called without valid profile",
         });
-        markUnauthenticated({ prompt: false });
+        markUnauthenticated();
         return;
       }
       var signature = JSON.stringify(profile);
@@ -5339,7 +5276,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     function markUnauthenticated(config) {
       var parameters = config || {};
       var emit = parameters.emit !== false;
-      var prompt = parameters.prompt !== false;
       var shouldEmit =
         emit &&
         (state.status !== AUTH_CONTROLLER_STATUS.UNAUTHENTICATED ||
@@ -5355,8 +5291,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         });
         hasEmittedUnauthenticated = true;
       }
-      // One Tap prompt intentionally disabled - users must click the sign-in button
-      void prompt;
     }
 
     function emitError(code, extra) {
@@ -5391,7 +5325,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       authSignalVersion += 1;
       pendingProfile = null;
-      markUnauthenticated({ prompt: true });
+      markUnauthenticated();
     }
 
     function bootstrapSession() {
@@ -5454,7 +5388,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             markAuthenticated(profile);
             return;
           }
-          markUnauthenticated({ emit: false, prompt: false });
+          markUnauthenticated({ emit: false });
         })
         .catch(function handleSessionVerificationFailure(error) {
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
@@ -5462,7 +5396,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
           if (!isRetryableAuthSessionError(error)) {
             clearAuthRestoreHint(options);
-            markUnauthenticated({ emit: false, prompt: false });
+            markUnauthenticated({ emit: false });
             emitError("mpr-ui.auth.bootstrap_failed", {
               message: error && error.message ? error.message : String(error),
               status:
@@ -5800,7 +5734,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           },
         );
         if (definition.profile && state.status !== AUTH_CONTROLLER_STATUS.AUTHENTICATED) {
-          markUnauthenticated({ prompt: false });
+          markUnauthenticated();
         }
         throw error;
       });
@@ -5935,7 +5869,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       ).then(function applyAccountAction(payload) {
         if (definition.disable) {
           clearAuthRestoreHint(options);
-          markUnauthenticated({ prompt: false });
+          markUnauthenticated();
           var disabledResult = Object.freeze({ action: action, status: "disabled" });
           dispatchEvent(rootElement, "mpr-ui:account:disabled", disabledResult);
           return disabledResult;
@@ -6013,7 +5947,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
           if (result.status === "unauthenticated") {
             clearAuthRestoreHint(options);
-            markUnauthenticated({ prompt: false });
+            markUnauthenticated();
             return result;
           }
           throw createAuthRecoveryError(
@@ -6031,7 +5965,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
                   "TAuth session recovery failed",
                 );
           clearAuthRestoreHint(options);
-          markUnauthenticated({ prompt: false });
+          markUnauthenticated();
           emitError(coordinationError.code, {
             message: coordinationError.message,
             status:
@@ -6196,10 +6130,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       state.options = options;
       pendingProfile = null;
       nonceRequestPromise = null;
-      googleSignInAttemptPromise = null;
       appleSignInAttemptPromise = null;
       hasCompletedInitialBootstrap = false;
-      markUnauthenticated({ emit: false, prompt: false });
+      markUnauthenticated({ emit: false });
       bootstrapSession();
     }
 
@@ -6212,7 +6145,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       }
       pendingProfile = null;
       nonceRequestPromise = null;
-      googleSignInAttemptPromise = null;
       appleSignInAttemptPromise = null;
       detachSessionSyncListeners();
       setAttributeOrRemove(rootElement, "data-mpr-auth-status", null);
@@ -6232,7 +6164,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     function handleCredential(credentialResponse, credentialNonceToken) {
       if (!credentialResponse || !credentialResponse.credential) {
         emitError("mpr-ui.auth.missing_credential", {});
-        markUnauthenticated({ prompt: true });
+        markUnauthenticated();
         return Promise.resolve();
       }
       if (credentialNonceToken) {
@@ -6257,14 +6189,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
               message: error && error.message ? error.message : String(error),
               status: error && error.status ? error.status : null,
             });
-            markUnauthenticated({ prompt: true });
+            markUnauthenticated();
             return Promise.resolve();
           });
       }
       emitError("mpr-ui.auth.missing_nonce", {
         message: "Google credential callback is missing the sign-in attempt nonce",
       });
-      markUnauthenticated({ prompt: true });
+      markUnauthenticated();
       return Promise.resolve();
     }
 
@@ -6274,14 +6206,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         clearAuthRestoreHint(options);
         pendingProfile = null;
         if (typeof global.initAuthClient !== "function") {
-          markUnauthenticated({ prompt: true });
+          markUnauthenticated();
           return null;
         }
         return bootstrapSession();
       });
     }
 
-    markUnauthenticated({ emit: false, prompt: false });
+    markUnauthenticated({ emit: false });
     bootstrapSession();
 
     return {
@@ -6289,10 +6221,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       state: state,
       prepareGoogleNonce: prepareGoogleNonce,
       refreshGoogleNonce: prepareGoogleNonce,
-      startGoogleSignIn: startGoogleSignIn,
       prepareAppleSignIn: prepareAppleSignIn,
       startAppleSignIn: startAppleSignIn,
-      startProvider: startAuthProvider,
       handleCredential: handleCredential,
       performPasswordAction: performPasswordAction,
       performAccountAction: performAccountAction,
@@ -6307,7 +6237,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         return state;
       },
       setUnauthenticatedForTesting: function setUnauthenticatedForTesting() {
-        markUnauthenticated({ prompt: false });
+        markUnauthenticated();
         return state;
       },
     };
