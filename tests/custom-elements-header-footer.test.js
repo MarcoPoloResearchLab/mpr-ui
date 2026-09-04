@@ -5729,7 +5729,6 @@ test('F007: account panel actions require shared authenticated state and submit 
       values: { email: 'linked@example.com', password: 'link-secret' },
     },
     { action: 'password-link-verify', values: { token: 'link-token-secret' } },
-    { action: 'google-link', values: {} },
     {
       action: 'unlink',
       values: { identity: '0' },
@@ -5760,10 +5759,6 @@ test('F007: account panel actions require shared authenticated state and submit 
       performAccountAction(action, request) {
         calls.push({ action, request });
         return Promise.resolve({ action, status: 'updated' });
-      },
-      startGoogleLink() {
-        calls.push({ action: 'google-link', request: {} });
-        return Promise.resolve({ action: 'google-link', status: 'updated' });
       },
     };
     const element = attachChildTreeApi(
@@ -5825,6 +5820,89 @@ test('F007: account panel actions require shared authenticated state and submit 
     walkStubTree(unauthenticatedElement).some((node) => node.tagName === 'FORM'),
     false,
   );
+});
+
+test('B061: account panel renders the official nonce-bound Google link button', async () => {
+  resetEnvironment();
+  let credentialHandler;
+  let renderConfig;
+  let renderTarget;
+  global.google = {
+    accounts: {
+      id: {
+        initialize() {},
+        renderButton(target, config) {
+          renderTarget = target;
+          renderConfig = config;
+          target.appendChild(createStubNode({ attributes: true }));
+        },
+      },
+    },
+  };
+  const library = loadLibrary();
+  const AccountPanelElement = global.customElements.get('mpr-account-panel');
+  const authConfig = createPasswordAccountAuthConfig();
+  const normalizedOptions = library.createAuthOptions(authConfig);
+  const calls = [];
+  const controller = {
+    host: createStubNode({ supportsEvents: true }),
+    state: {
+      status: 'authenticated',
+      profile: { user_id: 'account-id', user_email: 'account@example.com' },
+      options: normalizedOptions,
+    },
+    performPasswordAction() {
+      return Promise.resolve();
+    },
+    performAccountAction() {
+      return Promise.resolve();
+    },
+    prepareGoogleNonce(handler) {
+      credentialHandler = handler;
+      return Promise.resolve('google-link-nonce');
+    },
+    startGoogleLink(credentialResponse, nonceToken) {
+      calls.push({ credentialResponse, nonceToken });
+      return Promise.resolve({ action: 'google-link', status: 'updated' });
+    },
+  };
+  const element = attachChildTreeApi(
+    attachHostApi(new AccountPanelElement(), new Map()),
+  );
+  element.ownerDocument = global.document;
+  element.__authControllerOverride = controller;
+  element.setAttribute('action', 'google-link');
+  element.setAttribute('auth-config', JSON.stringify(authConfig));
+  element.connectedCallback();
+  await flushAsync();
+
+  assert.ok(renderConfig, 'Google Identity renders the account-link button');
+  assert.equal(renderConfig.text, 'continue_with');
+  assert.equal(
+    walkStubTree(element).some(
+      (node) => node.tagName === 'BUTTON' && node.textContent === 'Link Google',
+    ),
+    false,
+    'the obsolete custom submit button is absent',
+  );
+
+  renderConfig.click_listener();
+  assert.equal(element.getAttribute('data-mpr-account-panel-status'), 'loading');
+  await credentialHandler(
+    { credential: 'google-link-credential' },
+    'google-link-nonce',
+  );
+  await flushAsync();
+
+  assert.deepEqual(calls, [
+    {
+      credentialResponse: { credential: 'google-link-credential' },
+      nonceToken: 'google-link-nonce',
+    },
+  ]);
+  assert.equal(element.getAttribute('data-mpr-account-panel-status'), 'success');
+  element.disconnectedCallback();
+  assert.equal(renderTarget.children.length, 0, 'disconnect clears the rendered GIS control');
 });
 
 test('F007: unlink requires configured identities and renders only their labels', () => {
@@ -6288,37 +6366,13 @@ test('F007: Google linking resolves only after credential exchange', async () =>
     tauthUrl: 'https://auth.example.test',
     tenantId: 'google-link-tenant',
   });
-  let googleCredentialCallback;
   let resolveGoogleLinkResponse;
-  global.requestNonce = function requestGoogleLinkNonce() {
-    return Promise.resolve('google-link-nonce');
-  };
-  global.google = {
-    accounts: {
-      id: {
-        initialize(config) {
-          googleCredentialCallback = config.callback;
-        },
-        renderButton() {},
-        prompt(handlePromptMoment) {
-          googleCredentialCallback({ credential: 'google-link-credential' });
-          handlePromptMoment({
-            isNotDisplayed() {
-              return false;
-            },
-            isSkippedMoment() {
-              return false;
-            },
-            isDismissedMoment() {
-              return true;
-            },
-          });
-        },
-      },
-    },
-  };
-  global.fetch = function holdGoogleLinkResponse(url) {
+  global.fetch = function holdGoogleLinkResponse(url, request) {
     assert.equal(String(url), 'https://auth.example.test/auth/account/google/link');
+    assert.deepEqual(JSON.parse(request.body), {
+      google_id_token: 'google-link-credential',
+      nonce_token: 'google-link-nonce',
+    });
     return new Promise((resolve) => {
       resolveGoogleLinkResponse = resolve;
     });
@@ -6330,7 +6384,10 @@ test('F007: Google linking resolves only after credential exchange', async () =>
     user_email: 'account@example.com',
   });
   let linkCompleted = false;
-  const linkPromise = controller.startGoogleLink().then((result) => {
+  const linkPromise = controller.startGoogleLink(
+    { credential: 'google-link-credential' },
+    'google-link-nonce',
+  ).then((result) => {
     linkCompleted = true;
     return result;
   });
@@ -6352,38 +6409,11 @@ test('F007: Google linking resolves only after credential exchange', async () =>
   controller.destroy();
 });
 
-test('F007: Google linking rejects a prompt that ends without a credential', async () => {
+test('B061: Google linking rejects a missing credential before a request', async () => {
   resetEnvironment();
   const library = loadLibrary();
   const authConfig = createPasswordAccountAuthConfig();
-  let googleCredentialCallback;
   let accountRequestCount = 0;
-  global.requestNonce = function requestGoogleLinkNonce() {
-    return Promise.resolve('google-link-nonce');
-  };
-  global.google = {
-    accounts: {
-      id: {
-        initialize(config) {
-          googleCredentialCallback = config.callback;
-        },
-        renderButton() {},
-        prompt(handlePromptMoment) {
-          handlePromptMoment({
-            isNotDisplayed() {
-              return false;
-            },
-            isSkippedMoment() {
-              return false;
-            },
-            isDismissedMoment() {
-              return true;
-            },
-          });
-        },
-      },
-    },
-  };
   global.fetch = function rejectUnexpectedGoogleLink() {
     accountRequestCount += 1;
     return Promise.reject(new Error('Google link request must not start'));
@@ -6396,34 +6426,29 @@ test('F007: Google linking rejects a prompt that ends without a credential', asy
   });
 
   await assert.rejects(
-    controller.startGoogleLink(),
-    (error) => error.code === 'mpr-ui.account.google_prompt_incomplete',
+    controller.startGoogleLink({}, 'google-link-nonce'),
+    (error) => error.code === 'mpr-ui.auth.missing_credential',
   );
-  await googleCredentialCallback({ credential: 'late-google-credential' });
-  await flushAsync();
   assert.equal(accountRequestCount, 0);
   assert.equal(controller.state.status, 'authenticated');
   controller.destroy();
 });
 
-test('F007: sign-out rejects a Google link prompt that is still pending', async () => {
+test('B061: sign-out rejects a Google link exchange that is still pending', async () => {
   resetEnvironment();
   const library = loadLibrary();
   const authConfig = createPasswordAccountAuthConfig();
-  global.requestNonce = function requestGoogleLinkNonce() {
-    return Promise.resolve('google-link-nonce');
-  };
-  global.google = {
-    accounts: {
-      id: {
-        initialize() {},
-        renderButton() {},
-        prompt() {},
-      },
-    },
-  };
-  global.logout = function completeLogout() {
-    return Promise.resolve();
+  let resolveGoogleLinkResponse;
+  global.fetch = function routeGoogleLinkSignOut(url) {
+    if (String(url).endsWith('/auth/account/google/link')) {
+      return new Promise((resolve) => {
+        resolveGoogleLinkResponse = resolve;
+      });
+    }
+    if (String(url).endsWith('/auth/logout')) {
+      return Promise.resolve({ ok: true, status: 204 });
+    }
+    throw new Error('Unexpected request: ' + String(url));
   };
   const host = createStubNode({ supportsEvents: true, attributes: true });
   const controller = library.createAuthHeader(host, authConfig);
@@ -6431,10 +6456,20 @@ test('F007: sign-out rejects a Google link prompt that is still pending', async 
     user_id: 'account-id',
     user_email: 'account@example.com',
   });
-  const linkPromise = controller.startGoogleLink();
+  const linkPromise = controller.startGoogleLink(
+    { credential: 'google-link-credential' },
+    'google-link-nonce',
+  );
   await flushAsync();
 
   await controller.signOut();
+  resolveGoogleLinkResponse({
+    ok: true,
+    status: 200,
+    json: async function linkedProfile() {
+      return { user_id: 'account-id', user_email: 'account@example.com' };
+    },
+  });
   await assert.rejects(
     linkPromise,
     (error) => error.code === 'mpr-ui.auth.recovery_lifecycle_changed',

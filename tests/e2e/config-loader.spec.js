@@ -303,9 +303,15 @@ test.describe('Runtime configuration presentation ownership', () => {
       window.google.accounts.id.initialize = (config) => {
         window.google.accounts.id.__callback = config.callback;
       };
-      window.google.accounts.id.renderButton = () => {};
-      window.google.accounts.id.prompt = () => {
-        window.google.accounts.id.__callback({ credential: 'google-proof-secret' });
+      window.google.accounts.id.renderButton = (target, options) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = 'Continue with Google';
+        button.addEventListener('click', () => {
+          options.click_listener();
+          window.google.accounts.id.__callback({ credential: 'google-proof-secret' });
+        });
+        target.replaceChildren(button);
       };
     });
 
@@ -350,7 +356,17 @@ test.describe('Runtime configuration presentation ownership', () => {
     await mountF007Component(page, 'mpr-account-panel', 'action', 'password-link-verify');
     await submitF007Form(page, { 'Challenge token': 'link-token-secret' }, 'Link password');
     await mountF007Component(page, 'mpr-account-panel', 'action', 'google-link');
-    await submitF007Form(page, {}, 'Link Google');
+    const googleLinkPanel = page.locator('[data-test="f007-component"]');
+    await expect(
+      googleLinkPanel.getByRole('button', { name: 'Link Google', exact: true }),
+    ).toHaveCount(0);
+    await googleLinkPanel
+      .getByRole('button', { name: 'Continue with Google', exact: true })
+      .click();
+    await expect(googleLinkPanel).toHaveAttribute(
+      'data-mpr-account-panel-status',
+      'success',
+    );
     await expect.poll(() => actionRequests.some((request) => request.path === '/auth/account/google/link')).toBe(true);
     await mountF007Component(page, 'mpr-account-panel', 'action', 'unlink', {
       identities: JSON.stringify([

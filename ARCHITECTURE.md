@@ -78,7 +78,12 @@ The loader applies the validated contract to `<mpr-header>` or `<mpr-login-butto
 
 ### Provider flows
 
-Google sign-in uses the official Google Identity Services button with popup mode. The controller requests a TAuth nonce before it renders the button. The controller refreshes the nonce every four minutes while the control remains connected. Google returns the ID token to the JavaScript callback. The controller sends the token and nonce to TAuth. This flow does not use an OAuth redirect callback.
+Google sign-in and Google account linking use the official Google Identity
+Services button with popup mode. The controller requests a TAuth nonce before
+it renders each button. The controller refreshes the nonce every four minutes
+while the control remains connected. Google returns the ID token to the
+JavaScript callback. The controller sends the token and nonce to TAuth. These
+flows do not use One Tap or an OAuth redirect callback.
 
 Apple sign-in is a redirect-provider flow. The controller validates the configured `startPath` and `returnTo`, attaches the tenant, records a restore hint, emits the authenticating lifecycle, and navigates the top-level page. TAuth and deployment configuration own Apple credentials, callback processing, session cookies, registered origins, and server-to-server notifications. The returning page restores the session through `sessionPath`.
 

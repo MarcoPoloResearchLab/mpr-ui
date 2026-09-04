@@ -161,7 +161,12 @@ TAuth integration.
 
 The panel emits `mpr-ui:account-panel:submit` and `mpr-ui:account-panel:status`. The owning auth host emits `mpr-ui:account:updated`, `mpr-ui:account:challenge-issued`, or `mpr-ui:account:disabled` after a successful action. Account disable also clears the shared profile and emits the unauthenticated lifecycle.
 
-Google linking uses the same nonce-bound Google Identity Services proof flow as Google login, then posts the credential to `auth.account.googleLinkPath`.
+The `google-link` action renders the official Google Identity Services button.
+The panel requests a TAuth nonce before it renders the button. It refreshes the
+nonce while the panel remains connected. Google returns the ID token to the
+JavaScript callback. The panel sends the ID token and nonce to
+`auth.account.googleLinkPath`. The action does not use One Tap or an OAuth
+redirect callback.
 
 ```html
 <mpr-account-panel

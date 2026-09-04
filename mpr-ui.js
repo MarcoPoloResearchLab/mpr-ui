@@ -170,7 +170,6 @@
     passwordLinkVerifyTitle: "Verify email sign-in",
     passwordLinkVerifySubmit: "Link password",
     googleLinkTitle: "Add Google sign-in",
-    googleLinkSubmit: "Link Google",
     unlinkTitle: "Remove a sign-in method",
     unlinkSubmit: "Remove identity",
     disableTitle: "Disable account",
@@ -2843,6 +2842,12 @@
         function handleGoogleCredentialComplete(result) {
           if (isActive) {
             setActionStatus("ready", AUTH_PROVIDER_IDS.GOOGLE);
+            if (
+              displayOptions &&
+              typeof displayOptions.handleSuccess === "function"
+            ) {
+              displayOptions.handleSuccess(AUTH_PROVIDER_IDS.GOOGLE, result);
+            }
           }
           return result;
         },
@@ -4909,8 +4914,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var lastAuthenticatedSignature = null;
     var nonceRequestPromise = null;
     var googleSignInAttemptPromise = null;
-    var googleLinkAttemptPromise = null;
-    var rejectGoogleLinkAttempt = null;
     var appleSignInAttemptPromise = null;
     var appleSignInHintOptions = null;
     var authSignalVersion = 0;
@@ -4926,17 +4929,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     function invalidateAuthLifecycle() {
       lifecycleVersion += 1;
-      if (typeof rejectGoogleLinkAttempt !== "function") {
-        return;
-      }
-      var rejectAttempt = rejectGoogleLinkAttempt;
-      rejectGoogleLinkAttempt = null;
-      rejectAttempt(
-        createAuthRecoveryError(
-          AUTH_RECOVERY_LIFECYCLE_CHANGED_ERROR_CODE,
-          "Google account linking belongs to an obsolete auth controller lifecycle",
-        ),
-      );
     }
 
     function requireCurrentAuthRecoveryLifecycle(candidateVersion) {
@@ -5976,7 +5968,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       });
     }
 
-    function startGoogleLink() {
+    function startGoogleLink(credentialResponse, nonceToken) {
       if (!options.providers.google.enabled || !options.account) {
         return Promise.reject(
           createAuthConfigError(
@@ -5985,126 +5977,18 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           ),
         );
       }
-      if (googleLinkAttemptPromise) {
-        return googleLinkAttemptPromise;
+      if (!credentialResponse || !credentialResponse.credential) {
+        return Promise.reject(
+          createTAuthActionError(
+            "mpr-ui.auth.missing_credential",
+            "Google account linking did not return a credential",
+          ),
+        );
       }
-      var currentLifecycleVersion = lifecycleVersion;
-      var currentAttemptRejector = null;
-      var promptCompletionPromise = new Promise(function completeGoogleLinkAttempt(
-        resolve,
-        reject,
-      ) {
-        var isSettled = false;
-        var hasReceivedCredential = false;
-
-        function resolveAttempt(result) {
-          if (isSettled) {
-            return;
-          }
-          isSettled = true;
-          resolve(result);
-        }
-
-        function rejectAttempt(error) {
-          if (isSettled) {
-            return;
-          }
-          isSettled = true;
-          reject(error);
-        }
-
-        currentAttemptRejector = rejectAttempt;
-        rejectGoogleLinkAttempt = rejectAttempt;
-        prepareGoogleNonce(function handleGoogleLinkCredential(
-          credentialResponse,
-          nonceToken,
-        ) {
-          if (isSettled) {
-            return Promise.resolve(null);
-          }
-          if (!credentialResponse || !credentialResponse.credential) {
-            rejectAttempt(
-              createTAuthActionError(
-                "mpr-ui.auth.missing_credential",
-                "Google account linking did not return a credential",
-              ),
-            );
-            return Promise.resolve(null);
-          }
-          hasReceivedCredential = true;
-          return performAccountAction("google-link", {
-            credential: credentialResponse.credential,
-            nonceToken: nonceToken,
-          }).then(
-            function resolveGoogleLink(result) {
-              resolveAttempt(result);
-              return result;
-            },
-            function rejectGoogleLink(error) {
-              rejectAttempt(error);
-              return null;
-            },
-          );
-        }).then(function promptGoogleLink() {
-          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
-            rejectAttempt(
-              createAuthRecoveryError(
-                AUTH_RECOVERY_LIFECYCLE_CHANGED_ERROR_CODE,
-                "Google account linking belongs to an obsolete auth controller lifecycle",
-              ),
-            );
-            return;
-          }
-          var googleId =
-            global.google && global.google.accounts && global.google.accounts.id
-              ? global.google.accounts.id
-              : null;
-          if (!googleId || typeof googleId.prompt !== "function") {
-            rejectAttempt(
-              createTAuthActionError(
-                "mpr-ui.account.google_prompt_unavailable",
-                "Google identity prompt is unavailable",
-              ),
-            );
-            return;
-          }
-          googleId.prompt(function handleGoogleLinkPromptMoment(notification) {
-            if (isSettled || hasReceivedCredential) {
-              return;
-            }
-            var promptEndedWithoutCredential =
-              notification &&
-              ((typeof notification.isNotDisplayed === "function" &&
-                notification.isNotDisplayed()) ||
-                (typeof notification.isSkippedMoment === "function" &&
-                  notification.isSkippedMoment()) ||
-                (typeof notification.isDismissedMoment === "function" &&
-                  notification.isDismissedMoment()));
-            if (!promptEndedWithoutCredential) {
-              return;
-            }
-            rejectAttempt(
-              createTAuthActionError(
-                "mpr-ui.account.google_prompt_incomplete",
-                "Google account linking ended before a credential was returned",
-              ),
-            );
-          });
-        }).catch(rejectAttempt);
+      return performAccountAction("google-link", {
+        credential: credentialResponse.credential,
+        nonceToken: nonceToken,
       });
-      var trackedGoogleLinkPromise;
-      trackedGoogleLinkPromise = promptCompletionPromise.finally(
-        function clearGoogleLinkAttempt() {
-          if (rejectGoogleLinkAttempt === currentAttemptRejector) {
-            rejectGoogleLinkAttempt = null;
-          }
-          if (googleLinkAttemptPromise === trackedGoogleLinkPromise) {
-            googleLinkAttemptPromise = null;
-          }
-        },
-      );
-      googleLinkAttemptPromise = trackedGoogleLinkPromise;
-      return googleLinkAttemptPromise;
     }
 
     /**
@@ -6313,7 +6197,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       pendingProfile = null;
       nonceRequestPromise = null;
       googleSignInAttemptPromise = null;
-      googleLinkAttemptPromise = null;
       appleSignInAttemptPromise = null;
       hasCompletedInitialBootstrap = false;
       markUnauthenticated({ emit: false, prompt: false });
@@ -6330,7 +6213,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       pendingProfile = null;
       nonceRequestPromise = null;
       googleSignInAttemptPromise = null;
-      googleLinkAttemptPromise = null;
       appleSignInAttemptPromise = null;
       detachSessionSyncListeners();
       setAttributeOrRemove(rootElement, "data-mpr-auth-status", null);
@@ -16166,7 +16048,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }),
     "google-link": Object.freeze({
       title: AUTH_FORM_LABELS.googleLinkTitle,
-      submit: AUTH_FORM_LABELS.googleLinkSubmit,
       fields: Object.freeze([]),
     }),
     unlink: Object.freeze({
@@ -16191,6 +16072,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ".mpr-auth-form__input{min-block-size:2.125rem;padding:.35rem .5rem;border:1px solid var(--mpr-color-border,#2c2f36);border-radius:var(--mpr-radius-control,6px);background:var(--mpr-color-surface-primary,#0f1114);color:var(--mpr-color-text-primary,#e3e5ec);font:inherit}" +
     ".mpr-auth-form__submit{min-block-size:2.125rem;padding:.35rem .55rem;border:1px solid var(--mpr-color-accent,#5d93ff);border-radius:var(--mpr-radius-control,6px);background:rgba(93,147,255,.14);color:var(--mpr-color-text-primary,#e3e5ec);font:inherit;font-weight:700;cursor:pointer}" +
     ".mpr-auth-form__submit:disabled,.mpr-auth-form__input:disabled{cursor:not-allowed;opacity:.65}" +
+    ".mpr-auth-form__google-action{display:flex;align-items:center;min-block-size:2.5rem;max-inline-size:100%;overflow:hidden}" +
+    ".mpr-auth-form__google-action[aria-disabled='true']{opacity:.65}" +
     ".mpr-auth-form__status{min-block-size:1.25rem;margin:0}" +
     ".mpr-auth-form[data-status='error'] .mpr-auth-form__status{color:var(--mpr-color-error,#ef4444)}" +
     ".mpr-auth-form__unauthenticated{margin:0;padding:.75rem;border:1px solid var(--mpr-color-border,#2c2f36);border-radius:var(--mpr-radius-control,6px)}";
@@ -16450,10 +16333,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return { element: fieldElement, input: inputElement };
   }
 
-  function createAuthForm(documentObject, definition, disabled) {
+  function createAuthForm(documentObject, definition, disabled, includeSubmitButton) {
     var formElement = documentObject.createElement("form");
     var titleElement = documentObject.createElement("h2");
-    var submitButton = documentObject.createElement("button");
+    var submitButton = null;
     var statusElement = documentObject.createElement("p");
     var inputs = {};
     formElement.className = "mpr-auth-form";
@@ -16466,15 +16349,18 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       inputs[fieldDefinition.key] = field.input;
       formElement.appendChild(field.element);
     });
-    submitButton.className = "mpr-auth-form__submit";
-    submitButton.type = "submit";
-    submitButton.disabled = disabled;
-    submitButton.textContent = definition.submit;
+    if (includeSubmitButton !== false) {
+      submitButton = documentObject.createElement("button");
+      submitButton.className = "mpr-auth-form__submit";
+      submitButton.type = "submit";
+      submitButton.disabled = disabled;
+      submitButton.textContent = definition.submit;
+      formElement.appendChild(submitButton);
+    }
     statusElement.className = "mpr-auth-form__status";
     statusElement.setAttribute("role", "status");
     statusElement.setAttribute("aria-live", "polite");
     statusElement.textContent = AUTH_FORM_LABELS.ready;
-    formElement.appendChild(submitButton);
     formElement.appendChild(statusElement);
     return {
       form: formElement,
@@ -16503,7 +16389,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   function setAuthFormStatus(formElements, status, message, disabled) {
     formElements.form.setAttribute("data-status", status);
     formElements.statusElement.textContent = message;
-    formElements.submitButton.disabled = disabled;
+    if (formElements.submitButton) {
+      formElements.submitButton.disabled = disabled;
+    }
     Object.keys(formElements.inputs).forEach(function updateAuthInput(key) {
       formElements.inputs[key].disabled = disabled;
     });
@@ -16690,6 +16578,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           super();
           this.__accountSubmitHandler = null;
           this.__accountForm = null;
+          this.__accountProviderActionCleanup = null;
           this.__accountAuthTarget = null;
           this.__accountAttempt = 0;
           this.__accountAuthEventHandler = this.__handleAccountAuthEvent.bind(this);
@@ -16716,8 +16605,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           if (this.__accountForm && this.__accountSubmitHandler) {
             this.__accountForm.removeEventListener("submit", this.__accountSubmitHandler);
           }
+          if (this.__accountProviderActionCleanup) {
+            this.__accountProviderActionCleanup();
+          }
           this.__accountForm = null;
           this.__accountSubmitHandler = null;
+          this.__accountProviderActionCleanup = null;
           clearNodeContents(this);
         }
         __handleAccountAuthEvent() {
@@ -16758,6 +16651,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           if (this.__accountForm && this.__accountSubmitHandler) {
             this.__accountForm.removeEventListener("submit", this.__accountSubmitHandler);
           }
+          if (this.__accountProviderActionCleanup) {
+            this.__accountProviderActionCleanup();
+            this.__accountProviderActionCleanup = null;
+          }
+          this.__accountForm = null;
+          this.__accountSubmitHandler = null;
           clearNodeContents(this);
           var action = this.getAttribute(ACCOUNT_PANEL_ACTION_ATTRIBUTE);
           if (ACCOUNT_PANEL_ACTIONS.indexOf(action) === -1) {
@@ -16803,9 +16702,137 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
           var definition = accountPanelFormDefinition(action, identityOptions);
           var hostDisabled = this.hasAttribute("disabled");
-          var formElements = createAuthForm(documentObject, definition, hostDisabled);
+          var formElements = createAuthForm(
+            documentObject,
+            definition,
+            hostDisabled,
+            action !== "google-link",
+          );
           var accountElement = this;
           var currentAttempt = this.__accountAttempt;
+          function handleAccountSuccess(result) {
+            if (currentAttempt !== accountElement.__accountAttempt) {
+              return;
+            }
+            var successMessage =
+              result && typeof result.challengeToken === "string"
+                ? AUTH_FORM_LABELS.challengeToken + result.challengeToken
+                : AUTH_FORM_LABELS.success;
+            setAuthFormStatus(
+              formElements,
+              "success",
+              successMessage,
+              hostDisabled,
+            );
+            accountElement.removeAttribute("data-mpr-account-panel-error");
+            accountElement.setAttribute("data-mpr-account-panel-status", "success");
+            dispatchEvent(accountElement, "mpr-ui:account-panel:status", {
+              action: action,
+              status: "success",
+            });
+          }
+
+          function handleAccountFailure(error) {
+            if (currentAttempt !== accountElement.__accountAttempt) {
+              return;
+            }
+            var errorCode =
+              error && error.code
+                ? error.code
+                : "mpr-ui.account_panel.action_failed";
+            setAuthFormStatus(
+              formElements,
+              "error",
+              AUTH_FORM_LABELS.failure,
+              hostDisabled,
+            );
+            accountElement.setAttribute("data-mpr-account-panel-error", errorCode);
+            accountElement.setAttribute("data-mpr-account-panel-status", "error");
+            dispatchEvent(accountElement, "mpr-ui:account-panel:status", {
+              action: action,
+              status: "error",
+              code: errorCode,
+            });
+          }
+
+          if (action === "google-link") {
+            var googleActionElement = documentObject.createElement("div");
+            googleActionElement.className = "mpr-auth-form__google-action";
+            googleActionElement.setAttribute(
+              "aria-disabled",
+              hostDisabled ? "true" : "false",
+            );
+            if (hostDisabled) {
+              googleActionElement.setAttribute("inert", "");
+            }
+            formElements.form.insertBefore(
+              googleActionElement,
+              formElements.statusElement,
+            );
+            var googleProviderAction = mountGoogleProviderAction(
+              accountElement,
+              googleActionElement,
+              {
+                prepareGoogleNonce: authContext.controller.prepareGoogleNonce,
+                handleCredential: function handleGoogleLinkCredential(
+                  credentialResponse,
+                  nonceToken,
+                ) {
+                  return authContext.controller.startGoogleLink(
+                    credentialResponse,
+                    nonceToken,
+                  );
+                },
+              },
+              {
+                googleButtonOptions: {
+                  theme: LOGIN_BUTTON_THEME.OUTLINE,
+                  size: LOGIN_BUTTON_SIZE.MEDIUM,
+                  text: GOOGLE_SIGNIN_TEXT_OPTION.CONTINUE_WITH,
+                  shape: LOGIN_BUTTON_SHAPE.RECTANGULAR,
+                },
+                handleStart: function handleGoogleLinkStart() {
+                  if (currentAttempt !== accountElement.__accountAttempt) {
+                    return;
+                  }
+                  setAuthFormStatus(
+                    formElements,
+                    "loading",
+                    AUTH_FORM_LABELS.loading,
+                    true,
+                  );
+                  accountElement.setAttribute(
+                    "data-mpr-account-panel-status",
+                    "loading",
+                  );
+                  dispatchEvent(accountElement, "mpr-ui:account-panel:submit", {
+                    action: action,
+                  });
+                },
+                handleSuccess: function handleGoogleLinkSuccess(
+                  _providerId,
+                  result,
+                ) {
+                  handleAccountSuccess(result);
+                },
+                handleError: function handleGoogleLinkFailure(
+                  _providerId,
+                  error,
+                ) {
+                  handleAccountFailure(error);
+                },
+              },
+              function preserveAccountPanelStatus() {
+                return null;
+              },
+            );
+            this.__accountProviderActionCleanup = googleProviderAction.cleanup;
+            this.__accountForm = formElements.form;
+            this.removeAttribute("data-mpr-account-panel-error");
+            this.setAttribute("data-mpr-account-panel-status", "ready");
+            this.appendChild(formElements.form);
+            return;
+          }
           this.__accountSubmitHandler = function handleAccountSubmit(event) {
             event.preventDefault();
             if (hostDisabled) {
@@ -16853,59 +16880,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             dispatchEvent(accountElement, "mpr-ui:account-panel:submit", {
               action: action,
             });
-            var actionPromise =
-              action === "google-link"
-                ? authContext.controller.startGoogleLink()
-                : authContext.controller.performAccountAction(action, request, {
-                    includeChallengeToken: accountElement.hasAttribute(
-                      CHALLENGE_TOKEN_DISPLAY_ATTRIBUTE,
-                    ),
-                  });
-            Promise.resolve(actionPromise).then(
-              function handleAccountSuccess(result) {
-                if (currentAttempt !== accountElement.__accountAttempt) {
-                  return;
-                }
-                var successMessage =
-                  result && typeof result.challengeToken === "string"
-                    ? AUTH_FORM_LABELS.challengeToken + result.challengeToken
-                    : AUTH_FORM_LABELS.success;
-                setAuthFormStatus(
-                  formElements,
-                  "success",
-                  successMessage,
-                  hostDisabled,
-                );
-                accountElement.removeAttribute("data-mpr-account-panel-error");
-                accountElement.setAttribute("data-mpr-account-panel-status", "success");
-                dispatchEvent(accountElement, "mpr-ui:account-panel:status", {
-                  action: action,
-                  status: "success",
-                });
-              },
-              function handleAccountFailure(error) {
-                if (currentAttempt !== accountElement.__accountAttempt) {
-                  return;
-                }
-                var errorCode =
-                  error && error.code
-                    ? error.code
-                    : "mpr-ui.account_panel.action_failed";
-                setAuthFormStatus(
-                  formElements,
-                  "error",
-                  AUTH_FORM_LABELS.failure,
-                  hostDisabled,
-                );
-                accountElement.setAttribute("data-mpr-account-panel-error", errorCode);
-                accountElement.setAttribute("data-mpr-account-panel-status", "error");
-                dispatchEvent(accountElement, "mpr-ui:account-panel:status", {
-                  action: action,
-                  status: "error",
-                  code: errorCode,
-                });
-              },
-            );
+            Promise.resolve(
+              authContext.controller.performAccountAction(action, request, {
+                includeChallengeToken: accountElement.hasAttribute(
+                  CHALLENGE_TOKEN_DISPLAY_ATTRIBUTE,
+                ),
+              }),
+            ).then(handleAccountSuccess, handleAccountFailure);
           };
           formElements.form.addEventListener("submit", this.__accountSubmitHandler);
           this.__accountForm = formElements.form;

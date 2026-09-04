@@ -154,6 +154,10 @@ It also shows all six `<mpr-account-panel>` actions:
 
 Every form uses `auth-target="#demo-header"`. The page contains no duplicate auth controller and no app-owned credential request. The local fixture can display returned challenge values for completion tests. Public events and diagnostics remain token-free.
 
+The `google-link` panel renders the official Google Identity Services popup
+button. The shared controller binds it to a TAuth nonce and sends the returned
+proof to the account link endpoint. The panel does not use One Tap.
+
 ## Verification checklist
 
 1. Open `/index.html` and confirm Google, Apple, and email actions are visible in the static environment.

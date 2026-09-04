@@ -220,6 +220,12 @@ Use `<mpr-account-panel>` for authenticated account actions. Set one explicit `a
 
 The config loader applies `auth-config` to both component types. `auth-target` names the owning header or login button when the component is outside that element. Each component uses the owning controller state and never creates a separate session probe.
 
+The `google-link` action renders the official Google Identity Services button.
+It requests and refreshes a TAuth nonce through the owning controller. Google
+returns the ID token to the JavaScript callback. The component sends the ID
+token and nonce to the configured account link endpoint. It does not use One
+Tap or a redirect callback.
+
 For `action="unlink"`, provide an `identities` JSON array containing exact
 `provider`, `providerId`, and user-facing `label` fields. The component renders
 a select control and submits the configured identity. Users do not type opaque

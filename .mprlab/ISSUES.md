@@ -12,6 +12,37 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [-] [B061] (P1) {B059,F010} Google account linking uses the obsolete One Tap prompt.
+  Goal:
+  The account panel starts a real Google popup flow with the official Google Identity Services button.
+
+  Expected:
+  An authenticated user can select the official Google button and link the returned identity through TAuth.
+
+  Actual:
+  The account panel submits a custom button and calls the One Tap prompt. This action can end without a visible Google flow.
+
+  Requirements:
+  - Render the official Google Identity Services button in the `google-link` account panel.
+  - Bind the button to a valid TAuth nonce.
+  - Send the returned ID token and nonce to `auth.account.googleLinkPath`.
+  - Refresh the nonce while the account panel remains connected.
+  - Remove the obsolete account-link prompt path.
+  - Keep account status and error events free of credentials and nonce values.
+
+  Deliverables:
+  - Reuse the shared Google button renderer in the account panel.
+  - Remove the prompt-based Google link controller state.
+  - Add unit and browser coverage for the button and identity exchange.
+  - Update the component, integration, architecture, demo, and release documents.
+
+  Validation:
+  - Sign in on the local demo.
+  - Select the account panel Google button and complete the real provider flow.
+  - Verify that TAuth records the linked identity.
+  - Verify nonce refresh and cleanup behavior.
+  - Run `make ci` after the final source, test, and documentation changes.
+
 - [-] [B060] (P1) {F010} The local demo can show an old component bundle.
   Goal:
   The Docker demo always serves the current files from the primary checkout.

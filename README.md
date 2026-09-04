@@ -154,6 +154,11 @@ Use `<mpr-account-panel>` for authenticated account work:
 <mpr-account-panel action="disable" auth-target="#site-header"></mpr-account-panel>
 ```
 
+The `google-link` panel renders the official Google Identity Services popup
+button. It binds the button to a TAuth nonce and sends the returned ID token and
+nonce to the configured account link endpoint. It does not use One Tap or a
+redirect callback.
+
 `<mpr-auth-provider-chooser>` is a UI and event primitive. It displays an explicit ordered provider set, but it does not authenticate:
 
 ```html

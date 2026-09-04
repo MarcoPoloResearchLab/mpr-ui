@@ -277,6 +277,11 @@
             Google redirect URI.
           </li>
           <li>
+            The Google account panel uses the same official popup button and
+            nonce contract. It sends the returned proof to
+            <code>/auth/account/google/link</code>.
+          </li>
+          <li>
             After a refresh, <code>mpr-ui</code> restores the profile through
             <code>/auth/session</code> before it updates the shell state.
           </li>
