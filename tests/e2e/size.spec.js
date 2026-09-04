@@ -210,6 +210,9 @@ test.describe('Authentication provider control sizing', () => {
           scrollWidth: controlsElement.scrollWidth,
           buttons: buttons.map((buttonElement) => {
             const buttonBounds = buttonElement.getBoundingClientRect();
+            const accessibleElement = buttonElement.matches('button')
+              ? buttonElement
+              : buttonElement.querySelector('button, [role="button"]');
             const labelElement = buttonElement.querySelector(
               '[data-mpr-auth-provider-label]',
             );
@@ -219,7 +222,9 @@ test.describe('Authentication provider control sizing', () => {
             const buttonStyle = window.getComputedStyle(buttonElement);
             return {
               provider: buttonElement.getAttribute('data-mpr-auth-action'),
-              ariaLabel: buttonElement.getAttribute('aria-label'),
+              accessibleName: accessibleElement
+                ? accessibleElement.getAttribute('aria-label') || accessibleElement.textContent?.trim()
+                : '',
               left: buttonBounds.left,
               right: buttonBounds.right,
               width: buttonBounds.width,
@@ -258,7 +263,7 @@ test.describe('Authentication provider control sizing', () => {
       ).toBe(1);
 
       for (const buttonMetrics of metrics.buttons) {
-        expect(buttonMetrics.ariaLabel, viewportCase.name).toBeTruthy();
+        expect(buttonMetrics.accessibleName, viewportCase.name).toBeTruthy();
         expect(buttonMetrics.left, viewportCase.name).toBeGreaterThanOrEqual(
           buttonMetrics.containerLeft - 1,
         );
@@ -267,8 +272,10 @@ test.describe('Authentication provider control sizing', () => {
         );
         expect(buttonMetrics.height, viewportCase.name).toBe(30);
         expect(buttonMetrics.width, viewportCase.name).toBe(30);
-        expect(buttonMetrics.labelPosition, viewportCase.name).toBe('absolute');
-        expect(buttonMetrics.labelWidth, viewportCase.name).toBe(1);
+        if (buttonMetrics.provider !== 'google') {
+          expect(buttonMetrics.labelPosition, viewportCase.name).toBe('absolute');
+          expect(buttonMetrics.labelWidth, viewportCase.name).toBe(1);
+        }
         expect(buttonMetrics.borderColor, viewportCase.name).toBe('rgb(142, 145, 143)');
         expect(buttonMetrics.borderStyle, viewportCase.name).toBe('solid');
         expect(buttonMetrics.borderWidth, viewportCase.name).toBe('1px');
@@ -281,7 +288,7 @@ test.describe('Authentication provider control sizing', () => {
         (buttonMetrics) => buttonMetrics.provider === 'google',
       );
       expect(appleMetrics?.backgroundColor, viewportCase.name).toBe('rgb(0, 0, 0)');
-      expect(googleMetrics?.backgroundColor, viewportCase.name).toBe('rgb(19, 19, 20)');
+      expect(googleMetrics?.backgroundColor, viewportCase.name).toBe('rgb(0, 0, 0)');
       expect(googleMetrics?.borderColor, viewportCase.name).toBe('rgb(142, 145, 143)');
     }
   });

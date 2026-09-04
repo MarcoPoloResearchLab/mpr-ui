@@ -113,7 +113,9 @@ Render the shell:
 
 The header uses compact square provider actions with accessible names. The login button uses full provider text and its configured presentation.
 
-- Google requests a fresh TAuth nonce for each attempt. It initializes Google Identity Services and exchanges the credential through the configured login path.
+- Google requests a TAuth nonce before it renders the official Google button. It refreshes the nonce while the control remains connected.
+- Google returns the ID token to the JavaScript callback. The controller sends the token and nonce to the configured login path.
+- The Google popup flow does not use an OAuth redirect callback.
 - Apple builds a validated TAuth redirect action and navigates the top-level page. TAuth owns the Apple callback, credentials, session cookie, and server configuration.
 - Password opens the shared login form on the same controller.
 - Session return and refresh use the configured `sessionPath` and emit the same `mpr-ui:auth:*` events for every provider.

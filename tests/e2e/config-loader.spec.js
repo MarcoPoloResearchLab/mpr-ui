@@ -112,6 +112,7 @@ test.describe('Runtime configuration presentation ownership', () => {
     await visitConfigLoaderFixture(page);
 
     const loginButton = page.locator('mpr-login-button#fixture-config-login-button');
+    const googleControlHost = loginButton.locator('[data-mpr-auth-action="google"]');
     const googleControl = page.getByRole('button', { name: 'Sign in with Google' });
     const appleControl = page.getByRole('button', { name: 'Sign in with Apple' });
 
@@ -160,7 +161,7 @@ test.describe('Runtime configuration presentation ownership', () => {
     await expect(loginButton).toHaveAttribute('button-shape', 'pill');
     await expect(googleControl).toBeVisible();
     await expect(appleControl).toBeVisible();
-    await expect(googleControl).toHaveCSS('display', 'grid');
+    await expect(googleControlHost).toHaveAttribute('data-mpr-google-ready', 'true');
     expect(requestedSessionUrls).toEqual([runtimeSessionUrl]);
   });
 

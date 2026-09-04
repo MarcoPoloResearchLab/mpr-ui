@@ -267,9 +267,14 @@
             password endpoints, and the configured account endpoints.
           </li>
           <li>
-            The header component requests <code>/auth/nonce</code> after the
-            user selects Google and exchanges the returned credential via
-            <code>/auth/google</code>.
+            The header requests <code>/auth/nonce</code> before it renders the
+            official Google popup button. It refreshes that nonce while the
+            control remains connected.
+          </li>
+          <li>
+            Google returns the ID token to the JavaScript callback. The header
+            sends the token and nonce to <code>/auth/google</code> without a
+            Google redirect URI.
           </li>
           <li>
             After a refresh, <code>mpr-ui</code> restores the profile through

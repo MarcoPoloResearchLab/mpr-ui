@@ -1429,7 +1429,7 @@ test('mpr-header auth-config configures provider endpoints', async () => {
   assert.equal(authOptions.tenantId, 'tenant-demo');
 });
 
-test('mpr-header waits for user sign-in before initializing Google Identity', async () => {
+test('B059: mpr-header renders a nonce-bound Google Identity button', async () => {
   resetEnvironment();
   const callOrder = [];
   let initializeCallCount = 0;
@@ -1463,25 +1463,25 @@ test('mpr-header waits for user sign-in before initializing Google Identity', as
 
   assert.equal(
     initializeCallCount,
-    0,
-    'header should not initialize Google Identity during initial render',
+    1,
+    'header initializes Google Identity with the prepared nonce',
   );
-  assert.deepEqual(callOrder, [], 'header does not render a GIS button during initial render');
+  assert.deepEqual(
+    callOrder,
+    ['initialize', 'renderButton'],
+    'header initializes Google Identity before it renders the provider button',
+  );
   const headerSignInButton = getStubNodeByAttribute(
     harness.authActionsHost,
     'data-mpr-auth-action',
     'google',
   );
-  assert.equal(headerSignInButton.tagName, 'BUTTON', 'header renders a real sign-in button');
+  assert.equal(headerSignInButton.tagName, 'DIV', 'header gives GIS a dedicated render host');
   assert.equal(
     headerSignInButton.getAttribute('data-test'),
     'auth-provider-google',
     'header exposes a visible first-party sign-in control',
   );
-  headerSignInButton.dispatchEvent({ type: 'click', preventDefault() {} });
-  await flushAsync();
-  await flushAsync();
-  assert.equal(initializeCallCount, 1, 'header initializes Google Identity after click');
   assert.equal(
     getStubNodeByAttribute(
       harness.authActionsHost,
@@ -1489,11 +1489,11 @@ test('mpr-header waits for user sign-in before initializing Google Identity', as
       'root',
     ).getAttribute('data-mpr-auth-action-status'),
     'ready',
-    'header provider actions return to the ready state after GIS prompt starts',
+    'header provider actions are ready after GIS renders the button',
   );
 });
 
-test('mpr-header disconnects cleanly without starting background nonce work', async () => {
+test('B059: mpr-header cancels Google button work when it disconnects', async () => {
   resetEnvironment();
   const callOrder = [];
   let nonceRequestCalls = 0;
@@ -1526,9 +1526,8 @@ test('mpr-header disconnects cleanly without starting background nonce work', as
     });
 
     headerElement.connectedCallback();
-    await flushAsync();
-    await flushAsync();
     headerElement.disconnectedCallback();
+    await flushAsync();
     await flushAsync();
 
     const headerErrorEvents = headerElement.__dispatchedEvents.filter(
@@ -1536,8 +1535,8 @@ test('mpr-header disconnects cleanly without starting background nonce work', as
         return entry.type === 'mpr-ui:header:error';
       },
     );
-    assert.deepEqual(callOrder, [], 'header does not initialize or render GIS during mount');
-    assert.equal(nonceRequestCalls, 0, 'header mount never starts background nonce work');
+    assert.deepEqual(callOrder, [], 'disconnected header does not initialize or render GIS');
+    assert.equal(nonceRequestCalls, 1, 'header starts one nonce request for its GIS button');
     assert.equal(headerErrorEvents.length, 0, 'disconnect emits no hidden header errors');
   } finally {
     delete global.requestNonce;
@@ -1629,18 +1628,20 @@ test('mpr-header rebinds auth endpoints when tauth-url changes after first rende
     'http://localhost:8080',
     'initAuthClient reboots with the updated base URL',
   );
-  await authController.startGoogleSignIn();
-  await flushAsync();
-  assert.equal(initializeCalls.length, 1, 'sign-in attempt initializes GIS once');
+  assert.equal(initializeCalls.length, 2, 'each rendered config initializes GIS once');
   assert.equal(
-    initializeCalls[0].nonce,
+    initializeCalls[1].nonce,
     'updated-nonce-token',
-    'sign-in attempt initializes GIS with the issued nonce',
+    'updated button initializes GIS with the issued nonce',
   );
-  await initializeCalls[0].callback({ credential: 'updated-header-token' });
+  await initializeCalls[1].callback({ credential: 'updated-header-token' });
   assert.deepEqual(
     fetchCalls,
-    ['http://localhost:8080/auth/nonce', 'http://localhost:8080/auth/google'],
+    [
+      '/auth/nonce',
+      'http://localhost:8080/auth/nonce',
+      'http://localhost:8080/auth/google',
+    ],
     'credential exchange requests switch to the updated TAuth origin after auth-config changes',
   );
   assert.deepEqual(
@@ -4221,7 +4222,7 @@ test('mpr-auth-provider-chooser rejects missing, unknown, and duplicate provider
   );
 });
 
-test('mpr-login-button renders a visible sign-in attempt trigger with provided site ID', async () => {
+test('B059: mpr-login-button renders the official Google button with a nonce', async () => {
   resetEnvironment();
   const googleStub = {
     accounts: {
@@ -4248,17 +4249,17 @@ test('mpr-login-button renders a visible sign-in attempt trigger with provided s
     'google',
     'enabled provider IDs are reflected on the host',
   );
-  assert.equal(renderCalls.length, 0, 'Google renderButton is not invoked during mount');
+  assert.equal(renderCalls.length, 1, 'Google renderButton is invoked during mount');
   const loginTrigger = getStubNodeByAttribute(
     buttonHost,
     'data-mpr-auth-action',
     'google',
   );
-  assert.equal(loginTrigger.tagName, 'BUTTON', 'login button renders a real button control');
+  assert.equal(loginTrigger.tagName, 'DIV', 'login button provides a GIS render host');
   assert.equal(
-    loginTrigger.getAttribute('aria-label'),
-    'Sign in with Google',
-    'login button maps GIS text options to human-facing labels',
+    renderCalls[0].config.text,
+    'signin_with',
+    'login button maps its label option to the GIS button text',
   );
   assert.equal(
     loginTrigger.getAttribute('data-test'),
@@ -4346,18 +4347,20 @@ test('mpr-login-button rebinds auth endpoints when tauth-url changes after first
     'http://localhost:8080',
     'login button restarts initAuthClient with the updated base URL',
   );
-  await authController.startGoogleSignIn();
-  await flushAsync();
-  assert.equal(initializeCalls.length, 1, 'login button sign-in initializes GIS once');
+  assert.equal(initializeCalls.length, 2, 'each rendered config initializes GIS once');
   assert.equal(
-    initializeCalls[0].nonce,
+    initializeCalls[1].nonce,
     'updated-login-nonce',
-    'login button sign-in initializes GIS with the updated nonce',
+    'updated login button initializes GIS with the updated nonce',
   );
-  await initializeCalls[0].callback({ credential: 'updated-login-token' });
+  await initializeCalls[1].callback({ credential: 'updated-login-token' });
   assert.deepEqual(
     fetchCalls,
-    ['http://localhost:8080/auth/nonce', 'http://localhost:8080/auth/login'],
+    [
+      '/auth/nonce',
+      'http://localhost:8080/auth/nonce',
+      'http://localhost:8080/auth/login',
+    ],
     'login button credential exchange requests switch to the updated TAuth origin',
   );
   assert.deepEqual(
@@ -4543,10 +4546,11 @@ test('mpr-login-button rejects tenant changes after first render', async () => {
   );
 });
 
-test('mpr-login-button initializes GSI with a nonce only after sign-in trigger click', async () => {
+test('B059: mpr-login-button initializes GSI before it renders the sign-in control', async () => {
   resetEnvironment();
   const callOrder = [];
   let initializeCallCount = 0;
+  let renderedButtonConfig = null;
   const googleStub = {
     accounts: {
       id: {
@@ -4563,8 +4567,9 @@ test('mpr-login-button initializes GSI with a nonce only after sign-in trigger c
     initializeCallCount += 1;
     callOrder.push('initialize');
   };
-  googleStub.accounts.id.renderButton = function renderButton() {
+  googleStub.accounts.id.renderButton = function renderButton(_target, config) {
     callOrder.push('renderButton');
+    renderedButtonConfig = config;
   };
   setGoogleAuthConfig(element, {
     googleClientId: 'race-condition-test-site',
@@ -4573,37 +4578,39 @@ test('mpr-login-button initializes GSI with a nonce only after sign-in trigger c
   });
   element.connectedCallback();
   await flushAsync();
-  assert.deepEqual(callOrder, [], 'login button does not initialize or render GIS on mount');
+  assert.deepEqual(
+    callOrder,
+    ['initialize', 'renderButton'],
+    'login button initializes GSI before rendering the button',
+  );
 
   const loginTrigger = getStubNodeByAttribute(
     buttonHost,
     'data-mpr-auth-action',
     'google',
   );
-  assert.equal(loginTrigger.tagName, 'BUTTON', 'login button uses a real button for activation');
-  loginTrigger.dispatchEvent({ type: 'click', preventDefault() {} });
-  await flushAsync();
-  await flushAsync();
+  assert.equal(loginTrigger.tagName, 'DIV', 'login button gives GSI a dedicated render host');
+  renderedButtonConfig.click_listener();
 
   const initializeIndex = callOrder.indexOf('initialize');
   assert.ok(
     initializeIndex !== -1,
-    'GSI initialize should be called after the sign-in trigger click',
+    'GSI initialize is called before the button becomes interactive',
   );
   assert.equal(
     initializeCallCount,
     1,
-    'GSI initialize should only run once during the sign-in attempt',
+    'GSI initialize runs once for the rendered button',
   );
-  assert.equal(callOrder.includes('renderButton'), false, 'sign-in attempt uses prompt flow');
+  assert.equal(callOrder.includes('renderButton'), true, 'sign-in uses the rendered GIS button');
   assert.equal(
     getStubNodeByAttribute(
       buttonHost,
       'data-mpr-auth-actions',
       'root',
     ).getAttribute('data-mpr-auth-action-status'),
-    'ready',
-    'login provider actions return to the ready state after GIS prompt starts',
+    'authenticating',
+    'Google click starts the visible authentication state',
   );
 });
 
@@ -4759,6 +4766,14 @@ test('F008: provider-aware login controls render only enabled providers', () => 
       `${providerCase.label}: only enabled provider actions render`,
     );
     providerButtons.forEach((buttonElement) => {
+      if (buttonElement.getAttribute('data-mpr-auth-action') === 'google') {
+        assert.equal(
+          buttonElement.tagName,
+          'DIV',
+          `${providerCase.label}: Google receives a dedicated GIS render host`,
+        );
+        return;
+      }
       assert.ok(
         buttonElement.getAttribute('aria-label'),
         `${providerCase.label}: each provider action has an accessible label`,

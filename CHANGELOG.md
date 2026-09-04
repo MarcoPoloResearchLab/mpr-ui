@@ -20,26 +20,25 @@
 - Replaced `js-yaml` 4.1.1 and `brace-expansion` 5.0.5 with fixed versions. The browser loader now uses the js-yaml 5.4.1 UMD build.
 - Preserved methods and bodies for `Request` inputs created in another same-origin browser context.
 - Renewed expired access sessions through the configured TAuth session endpoint before a protected request retry.
-- Kept `<mpr-login-button>` geometry stable during Google sign-in preparation. Retained the accessible status announcement outside the visible layout flow.
+- Replaced the Google One Tap action with the official Google Identity Services popup button.
+- Bound each rendered Google button to a TAuth nonce. Refreshed the nonce before expiry and removed its timer on disconnect.
 - Moved `<mpr-login-button>` presentation out of `/config-ui.yaml` into static `button-*` attributes. The loader rejected obsolete `authButton` input and accepted auth-only cross-origin runtime configuration.
 - Wired configured `sessionPath` values through `tauth-session-path`. Auth controllers restore from declared endpoints, and empty paths disable fallback restoration.
 - Replaced hinted auth restore probes with `/auth/session`, which returns anonymous stale-session state without browser-visible `/me` or `/auth/refresh` 401s.
-- Stopped public bootstrap, long-open tabs, focus/visibility sync, timers, and Google button intent from issuing background nonce requests.
-- Moved Google Identity Services initialization into the explicit user sign-in attempt. GIS and `/auth/google` received the issued TAuth nonce.
+- Kept the Google ID token return in the JavaScript callback. The mpr-ui Google flow required no OAuth redirect callback.
 - Rejected credential callbacks that are missing an attempt nonce and surface nonce/GIS preparation failures through auth and header error events.
 
 ### Testing 🧪
 - Added browser coverage for dropdown placement, section modes, focus return, closure behavior, events, and footer composition.
 - Added a same-origin iframe regression for cross-realm `Request` method and body preservation.
 - Added browser acceptance for session expiry, concurrent requests, two tabs, refresh rejection, network failure, request replay, and refresh-cookie expiry.
-- Added a fixture-backed browser regression that holds Google sign-in preparation. It verifies stable control-group and button geometry.
+- Added browser coverage for Google button rendering, popup intent, nonce refresh, retry, geometry, and timer cleanup.
 - Added a browser contract for auth-only cross-origin configuration that preserves declarative login-button presentation and restores through its configured session endpoint.
 - Added unit and Playwright coverage for legal document exports, escaping, custom-element rendering, and product-specific extra sections.
 - Added auth-controller regressions for anonymous no-probe bootstrap, `/auth/session` hinted profile restore, and stale restore-hint clearing.
 - Added auth-controller coverage for `MPRUI.testing.authenticate()` and `MPRUI.testing.unauthenticate()`.
 - Added auth-controller coverage for the `MPRUI.testing.googleIdentity` test-driver adapter.
-- Added an auth-controller regression for a four-hour idle landing page. It initializes GIS after sign-in and binds one fresh nonce.
-- Added coverage proving sign-in attempts request a fresh TAuth nonce and initialize GIS with it. Endpoint URLs rebind only during sign-in.
+- Added auth regressions that initialize GIS before button rendering and preserve updated endpoint bindings.
 - Added an auth-controller regression proving credential callbacks without an attempt nonce emit a visible auth error before `/auth/google`.
 - Added header regressions for sign-in redirect handoff, restored-session non-redirect behavior, and app-dispatched auth events not triggering redirects.
 

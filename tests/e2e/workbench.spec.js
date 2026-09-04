@@ -107,16 +107,19 @@ test.describe('Workbench behaviours', () => {
   });
 
   test('MU-307: starts Google Sign-In with a valid client id and nonce', async ({ page }) => {
-    await expect(page.locator(googleButton)).toBeVisible({ timeout: 3000 });
-    await expect.poll(() => page.evaluate(() => window.__googleInitConfig ?? null)).toBeNull();
-    await page.locator(googleButton).click();
-    await expect(page.locator(googleButton)).toBeVisible();
+    const googleControl = page.locator(googleButton).getByRole('button', {
+      name: 'Sign in with Google',
+    });
+    await expect(googleControl).toBeVisible({ timeout: 3000 });
     await page.waitForFunction(() => Boolean(window.__googleInitConfig?.nonce));
     const googleConfig = await page.evaluate(() => window.__googleInitConfig ?? null);
     expect(googleConfig).not.toBeNull();
     expect(typeof googleConfig?.client_id).toBe('string');
     expect(googleConfig?.client_id).toMatch(/^[0-9a-z.\-]+$/i);
     expect(googleConfig?.nonce).toBe('fixture-google-nonce');
+    await googleControl.click();
+    await expect(page.getByRole('status')).toHaveText('Starting Google sign-in…');
+    await expect(googleControl).toBeVisible();
   });
 
   test('MU-306: navigation links open in a new browsing context', async ({ page }) => {

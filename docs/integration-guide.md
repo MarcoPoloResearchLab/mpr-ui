@@ -282,7 +282,7 @@ What your template still owns:
 
 ## Login-only button presentation
 
-`<mpr-login-button>` owns the complete enabled provider action set. On initialization, it renders accessible provider buttons with focus and status feedback. Google starts nonce-bound GIS on activation. Apple starts validated top-level TAuth navigation. Password opens `<mpr-password-auth mode="login">` on the same controller.
+`<mpr-login-button>` owns the complete enabled provider action set. On initialization, it renders accessible provider controls with focus and status feedback. Google uses the official GIS popup button. The controller requests and refreshes the TAuth nonce before it renders that button. The GIS JavaScript callback receives the ID token. This flow does not use a Google redirect URI. Apple starts validated top-level TAuth navigation. Password opens `<mpr-password-auth mode="login">` on the same controller.
 
 Configure the standard appearance through static element attributes. `/config-ui.yaml` is auth-only and rejects `authButton`:
 

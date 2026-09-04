@@ -205,6 +205,8 @@
     UNAUTHENTICATED: "unauthenticated",
   });
   var GOOGLE_SIGNIN_TEST_ID = "google-signin";
+  var GOOGLE_NONCE_REFRESH_INTERVAL_MS = 4 * 60 * 1000;
+  var GOOGLE_NONCE_RETRY_INTERVAL_MS = 30 * 1000;
   var GOOGLE_SIGNIN_TEXT_OPTION = Object.freeze({
     SIGN_IN_WITH: "signin_with",
     SIGN_UP_WITH: "signup_with",
@@ -2752,6 +2754,178 @@
       : AUTH_ACTION_LABELS.googlePreparing;
   }
 
+  function buildGoogleButtonRenderOptions(displayOptions, handleClick) {
+    var source =
+      displayOptions &&
+      displayOptions.googleButtonOptions &&
+      typeof displayOptions.googleButtonOptions === "object"
+        ? displayOptions.googleButtonOptions
+        : {};
+    var shape = source.shape || LOGIN_BUTTON_SHAPE.RECTANGULAR;
+    return {
+      type:
+        shape === LOGIN_BUTTON_SHAPE.SQUARE ||
+        shape === LOGIN_BUTTON_SHAPE.CIRCLE
+          ? "icon"
+          : "standard",
+      theme: source.theme || LOGIN_BUTTON_THEME.OUTLINE,
+      size: source.size || LOGIN_BUTTON_SIZE.MEDIUM,
+      text: source.text || GOOGLE_SIGNIN_TEXT_OPTION.SIGN_IN_WITH,
+      shape: shape,
+      logo_alignment: "left",
+      click_listener: handleClick,
+    };
+  }
+
+  function mountGoogleProviderAction(
+    hostElement,
+    actionsElement,
+    authController,
+    displayOptions,
+    setActionStatus,
+  ) {
+    var googleButtonHost = createAuthProviderElement(hostElement, "div");
+    var isActive = true;
+    var renderSequence = 0;
+    var refreshTimerId = null;
+    setAuthProviderElementClass(
+      googleButtonHost,
+      "mpr-auth-google-button",
+    );
+    googleButtonHost.setAttribute("data-mpr-auth-action", AUTH_PROVIDER_IDS.GOOGLE);
+    googleButtonHost.setAttribute(
+      "data-mpr-auth-provider",
+      AUTH_PROVIDER_IDS.GOOGLE,
+    );
+    googleButtonHost.setAttribute("data-test", "auth-provider-google");
+    googleButtonHost.setAttribute("aria-busy", "true");
+    appendAuthProviderElement(actionsElement, googleButtonHost);
+
+    function clearRefreshTimer() {
+      if (refreshTimerId === null || typeof global.clearTimeout !== "function") {
+        return;
+      }
+      global.clearTimeout(refreshTimerId);
+      refreshTimerId = null;
+    }
+
+    function scheduleRender(delayMilliseconds) {
+      clearRefreshTimer();
+      if (!isActive || typeof global.setTimeout !== "function") {
+        return;
+      }
+      refreshTimerId = global.setTimeout(function refreshGoogleButtonNonce() {
+        refreshTimerId = null;
+        renderNonceBoundButton();
+      }, delayMilliseconds);
+      if (
+        refreshTimerId &&
+        typeof refreshTimerId.unref === "function"
+      ) {
+        refreshTimerId.unref();
+      }
+    }
+
+    function handleGoogleButtonClick() {
+      setActionStatus(
+        AUTH_CONTROLLER_STATUS.AUTHENTICATING,
+        AUTH_PROVIDER_IDS.GOOGLE,
+      );
+      if (displayOptions && typeof displayOptions.handleStart === "function") {
+        displayOptions.handleStart(AUTH_PROVIDER_IDS.GOOGLE);
+      }
+    }
+
+    function handleGoogleCredential(payload, nonceToken) {
+      return Promise.resolve(
+        authController.handleCredential(payload, nonceToken),
+      ).then(
+        function handleGoogleCredentialComplete(result) {
+          if (isActive) {
+            setActionStatus("ready", AUTH_PROVIDER_IDS.GOOGLE);
+          }
+          return result;
+        },
+        function handleGoogleCredentialFailure(error) {
+          if (isActive) {
+            setActionStatus("error", AUTH_PROVIDER_IDS.GOOGLE);
+            if (
+              displayOptions &&
+              typeof displayOptions.handleError === "function"
+            ) {
+              displayOptions.handleError(AUTH_PROVIDER_IDS.GOOGLE, error);
+            }
+          }
+          throw error;
+        },
+      );
+    }
+
+    function renderNonceBoundButton() {
+      renderSequence += 1;
+      var currentRenderSequence = renderSequence;
+      clearNodeContents(googleButtonHost);
+      googleButtonHost.removeAttribute("data-mpr-google-ready");
+      googleButtonHost.removeAttribute("data-mpr-google-error");
+      googleButtonHost.setAttribute("aria-busy", "true");
+      Promise.resolve(
+        authController.prepareGoogleNonce(handleGoogleCredential),
+      ).then(
+        function renderPreparedGoogleButton() {
+          if (!isActive || currentRenderSequence !== renderSequence) {
+            return;
+          }
+          var googleId =
+            global.google &&
+            global.google.accounts &&
+            global.google.accounts.id
+              ? global.google.accounts.id
+              : null;
+          if (!googleId || typeof googleId.renderButton !== "function") {
+            throw new Error("google identity button unavailable");
+          }
+          googleId.renderButton(
+            googleButtonHost,
+            buildGoogleButtonRenderOptions(
+              displayOptions,
+              handleGoogleButtonClick,
+            ),
+          );
+          googleButtonHost.setAttribute("data-mpr-google-ready", "true");
+          googleButtonHost.setAttribute("aria-busy", "false");
+          setActionStatus("ready", AUTH_PROVIDER_IDS.GOOGLE);
+          scheduleRender(GOOGLE_NONCE_REFRESH_INTERVAL_MS);
+        },
+        function handleGoogleButtonPreparationFailure(error) {
+          if (!isActive || currentRenderSequence !== renderSequence) {
+            return;
+          }
+          googleButtonHost.setAttribute("aria-busy", "false");
+          googleButtonHost.setAttribute("data-mpr-google-error", "nonce-failed");
+          setActionStatus("error", AUTH_PROVIDER_IDS.GOOGLE);
+          if (
+            displayOptions &&
+            typeof displayOptions.handleError === "function"
+          ) {
+            displayOptions.handleError(AUTH_PROVIDER_IDS.GOOGLE, error);
+          }
+          scheduleRender(GOOGLE_NONCE_RETRY_INTERVAL_MS);
+        },
+      );
+    }
+
+    renderNonceBoundButton();
+    return {
+      target: googleButtonHost,
+      cleanup: function cleanupGoogleProviderAction() {
+        isActive = false;
+        renderSequence += 1;
+        clearRefreshTimer();
+        clearNodeContents(googleButtonHost);
+      },
+    };
+  }
+
   function mountAuthProviderActions(
     hostElement,
     containerElement,
@@ -2798,7 +2972,9 @@
         status === "ready" ? "" : authProviderActionStatus(providerId, status);
     }
 
-    enabledAuthProviderIds(authOptions).forEach(function mountProviderAction(providerId) {
+    var providerIds = enabledAuthProviderIds(authOptions);
+    setActionStatus("ready", providerIds[0]);
+    providerIds.forEach(function mountProviderAction(providerId) {
       var providerLabel = authProviderActionLabel(
         authOptions,
         providerId,
@@ -2859,6 +3035,18 @@
           },
         );
       }
+      if (providerId === AUTH_PROVIDER_IDS.GOOGLE) {
+        var googleProviderAction = mountGoogleProviderAction(
+          hostElement,
+          actionsElement,
+          authController,
+          displayOptions,
+          setActionStatus,
+        );
+        providerButtons.push(googleProviderAction.target);
+        cleanupHandlers.push(googleProviderAction.cleanup);
+        return;
+      }
       var actionButton = createAuthProviderActionButton(
         hostElement,
         providerId,
@@ -2881,7 +3069,6 @@
     appendAuthProviderElement(rootElement, actionsElement);
     appendAuthProviderElement(rootElement, statusElement);
     appendAuthProviderElement(containerElement, rootElement);
-    setActionStatus("ready", enabledAuthProviderIds(authOptions)[0]);
     return {
       root: rootElement,
       buttons: providerButtons,
@@ -4628,6 +4815,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           client_id: config.clientId || undefined,
           callback: config.callback,
           auto_select: false,
+          ux_mode: "popup",
+          use_fedcm_for_button: false,
         };
         if (config.nonce) {
           initializeConfig.nonce = config.nonce;
@@ -7016,6 +7205,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ".mpr-auth-actions{display:grid;gap:.25rem;min-inline-size:0;max-inline-size:100%;--mpr-auth-action-block-size:1.875rem;--mpr-auth-action-inline-size:11.25rem}" +
     ".mpr-auth-actions__controls{display:flex;flex-wrap:nowrap;gap:.35rem;align-items:stretch;min-inline-size:0;max-inline-size:100%}" +
     ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action{inline-size:var(--mpr-auth-action-inline-size);min-inline-size:var(--mpr-auth-action-inline-size);block-size:var(--mpr-auth-action-block-size);min-block-size:var(--mpr-auth-action-block-size);padding:.1875rem .5rem}" +
+    ".mpr-auth-google-button{display:inline-flex;align-items:center;justify-content:center;min-inline-size:var(--mpr-auth-action-block-size);min-block-size:var(--mpr-auth-action-block-size);overflow:hidden;box-sizing:border-box}" +
+    ".mpr-auth-google-button>div{display:flex!important;align-items:center;justify-content:center}" +
+    '.mpr-auth-google-button[aria-busy="true"]:empty::before{inline-size:.75rem;block-size:.75rem;border:1px solid currentColor;border-right-color:transparent;border-radius:50%;content:"";animation:mpr-header-auth-transition-spin 700ms linear infinite}' +
     ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple{padding:.1875rem .5rem;border-color:#000;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:.8125rem}" +
     ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple:hover{background:#111}" +
     ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--google{border-color:#8e918f;background:#131314;color:#e3e3e3;font-family:'Google Sans',Roboto,Arial,sans-serif;font-size:.875rem;line-height:1.25rem}" +
@@ -7024,6 +7216,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "mpr-header .mpr-auth-actions__status:empty{display:none}" +
     "mpr-header .mpr-auth-actions{--mpr-auth-provider-scale:var(--mpr-header-scale,1);max-inline-size:100%}" +
     "mpr-header .mpr-auth-actions__controls{overflow:visible}" +
+    "mpr-header .mpr-auth-google-button{inline-size:var(--mpr-auth-action-block-size);block-size:var(--mpr-auth-action-block-size);min-inline-size:var(--mpr-auth-action-block-size);min-block-size:var(--mpr-auth-action-block-size);border:1px solid #8e918f;border-radius:var(--mpr-radius-control,6px);background:#000;color:#e3e5ec}" +
     "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__action{position:relative;grid-template-columns:1fr;place-items:center;inline-size:var(--mpr-auth-action-block-size);min-inline-size:var(--mpr-auth-action-block-size);padding:0;border-color:#8e918f;border-style:solid;border-width:1px;aspect-ratio:1/1;overflow:hidden}" +
     "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__mark{grid-column:1;grid-row:1}" +
     "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__label{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}" +
@@ -7064,6 +7257,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ".mpr-login-button{display:inline-flex;flex-direction:column;gap:0.5rem;inline-size:var(--mpr-login-button-inline-size,auto);max-inline-size:100%;--mpr-login-button-theme-background:#fff;--mpr-login-button-theme-border-color:#dadce0;--mpr-login-button-theme-color:#1f1f1f;--mpr-login-button-theme-hover-background:#f8faff;--mpr-login-button-focus-color:rgba(66,133,244,0.5);--mpr-login-button-radius:0.5rem;--mpr-login-button-height:2.75rem;--mpr-login-button-padding-inline:0.95rem;--mpr-login-button-font-size:0.95rem}" +
     ".mpr-login-button .mpr-auth-actions{inline-size:100%;padding:0}" +
     ".mpr-login-button .mpr-auth-actions__controls{inline-size:100%}" +
+    ".mpr-login-button .mpr-auth-google-button{min-block-size:var(--mpr-login-button-height);max-inline-size:100%;border-radius:var(--mpr-login-button-radius)}" +
     ".mpr-login-button .mpr-auth-provider-chooser__action{inline-size:100%;min-inline-size:0;min-block-size:var(--mpr-login-button-height);padding:0 var(--mpr-login-button-padding-inline);border-radius:var(--mpr-login-button-radius);font-size:var(--mpr-login-button-font-size);transition:background-color 140ms ease,border-color 140ms ease,box-shadow 140ms ease}" +
     ".mpr-login-button .mpr-auth-provider-chooser__action--apple{min-inline-size:140px;min-block-size:44px;padding:4.4px}" +
     ".mpr-login-button .mpr-auth-provider-chooser__action--google{border-color:var(--mpr-login-button-border-color,var(--mpr-login-button-theme-border-color));background:var(--mpr-login-button-background,var(--mpr-login-button-theme-background));color:var(--mpr-login-button-color,var(--mpr-login-button-theme-color))}" +
@@ -7088,6 +7282,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "mpr-login-button[data-mpr-auth-providers='google'] .mpr-login-button" +
     '[data-mpr-login-shape="circle"]{--mpr-login-button-radius:50%;inline-size:var(--mpr-login-button-height)}' +
     ".mpr-login-button[data-mpr-login-shape='square'] .mpr-auth-provider-chooser__action--google,.mpr-login-button[data-mpr-login-shape='circle'] .mpr-auth-provider-chooser__action--google{inline-size:var(--mpr-login-button-height);min-inline-size:var(--mpr-login-button-height);padding:0;grid-template-columns:1fr;place-items:center;column-gap:0}" +
+    ".mpr-login-button[data-mpr-login-shape='square'] .mpr-auth-google-button,.mpr-login-button[data-mpr-login-shape='circle'] .mpr-auth-google-button{inline-size:var(--mpr-login-button-height);block-size:var(--mpr-login-button-height);min-inline-size:var(--mpr-login-button-height);min-block-size:var(--mpr-login-button-height)}" +
     ".mpr-login-button[data-mpr-login-shape='square'] .mpr-auth-provider-chooser__mark--google,.mpr-login-button[data-mpr-login-shape='circle'] .mpr-auth-provider-chooser__mark--google{grid-column:1;grid-row:1}" +
     ".mpr-login-button[data-mpr-login-shape='square'] .mpr-auth-provider-chooser__action--google .mpr-auth-provider-chooser__label,.mpr-login-button[data-mpr-login-shape='circle'] .mpr-auth-provider-chooser__action--google .mpr-auth-provider-chooser__label{position:absolute;inline-size:1px;block-size:1px;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap}" +
     "@media (prefers-reduced-motion:reduce){.mpr-login-button .mpr-auth-provider-chooser__action{transition:none}}";
@@ -8365,8 +8560,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         elements.authActions,
         options.auth,
         authController,
-        {
-          googleLabel: AUTH_ACTION_LABELS.google,
+          {
+            googleLabel: AUTH_ACTION_LABELS.google,
+            googleButtonOptions: {
+              type: "icon",
+              theme: LOGIN_BUTTON_THEME.FILLED_BLACK,
+              size: LOGIN_BUTTON_SIZE.SMALL,
+              shape: LOGIN_BUTTON_SHAPE.SQUARE,
+            },
           handleStart: function handleProviderStart(providerId) {
             if (providerId === AUTH_PROVIDER_IDS.GOOGLE) {
               markSignInRedirectPending();
@@ -16825,6 +17026,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             this.__authController,
             {
               googleLabel: buttonLabel,
+              googleButtonOptions: buttonOptions,
               handleError: function handleLoginProviderError(providerId, error) {
                 loginElement.setAttribute(
                   "data-mpr-auth-error",

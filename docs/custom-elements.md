@@ -397,7 +397,7 @@ Presentation attributes are static page data:
 - `button-size`
 - `button-shape`
 
-It emits the shared `mpr-ui:auth:*` lifecycle and `mpr-login:error`. Password selection expands the shared login form on this controller. Apple selection starts the validated redirect flow. Google selection starts the nonce-bound GIS flow.
+It emits the shared `mpr-ui:auth:*` lifecycle and `mpr-login:error`. Password selection expands the shared login form on this controller. Apple selection starts the validated redirect flow. Google uses the official nonce-bound GIS popup button and its JavaScript credential callback.
 
 ```html
 <mpr-login-button

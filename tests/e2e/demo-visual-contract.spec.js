@@ -10,6 +10,7 @@ const MAX_DOCUMENT_OVERFLOW_PIXELS = 1;
 const MAX_HEADING_FONT_SIZE_PIXELS = 32;
 const MAX_CONTROL_HEIGHT_PIXELS = 48;
 const MAX_PANEL_RADIUS_PIXELS = 12;
+const GOOGLE_NONCE_PATH = '/auth/nonce';
 
 const DEMO_ROUTES = Object.freeze([
   Object.freeze({
@@ -73,6 +74,13 @@ test.describe('F010: public demos keep the compact MPR visual contract', () => {
       test(`${demoRoute.name} fits the ${viewport.name} viewport`, async ({ page }) => {
         const pageErrors = [];
         const failedLocalResponses = [];
+        await page.route(`**${GOOGLE_NONCE_PATH}`, async (route) => {
+          await route.fulfill({
+            status: 200,
+            contentType: 'application/json',
+            body: JSON.stringify({ nonce: 'visual-contract-google-nonce' }),
+          });
+        });
         page.on('pageerror', (error) => {
           pageErrors.push(error.message);
         });

@@ -12,6 +12,41 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [-] [B059] (P1) {F010} Google sign-in does not open in the local demo.
+  Goal:
+  The Google control starts a real Google popup flow on the local HTTP demo and the public HTTPS demo.
+
+  Expected:
+  The Google control opens the Google account flow. TAuth creates a session after it validates the returned ID token and nonce.
+
+  Actual:
+  The control calls the Google One Tap prompt. The local HTTP demo blinks and does not show an account flow.
+
+  Requirements:
+  - Render the official Google Identity Services button for the popup flow.
+  - Bind the rendered button to a valid TAuth nonce.
+  - Refresh the nonce before it expires while the control remains connected.
+  - Remove each nonce timer when its auth controller disconnects.
+  - Keep the JavaScript credential callback as the only Google return path.
+  - Do not add an OAuth redirect callback to the mpr-ui Google flow.
+  - Support Google-only and mixed-provider controls.
+  - Keep the provider controls compact on small and large viewports.
+  - Use real Google credentials. Do not add a simulated provider.
+
+  Deliverables:
+  - Update the auth controller and provider action renderer.
+  - Update the Google button presentation for header and standalone controls.
+  - Add browser coverage for the rendered button and nonce lifecycle.
+  - Update the integration, architecture, demo, and release documents.
+
+  Validation:
+  - Start the local demo at `http://localhost:4443`.
+  - Select the Google control and verify that Google shows the account flow.
+  - Complete Google authentication and verify that TAuth restores the session.
+  - Verify the same JavaScript callback contract at `https://ui.mprlab.com`.
+  - Verify the nonce refresh and controller cleanup behavior.
+  - Run `make ci` after the final source, config, test, and documentation changes.
+
 - [!] [B058] (P1) {F010} The local demo uses a simulated Apple provider.
   Goal:
   The public and local demos use the real Apple provider through one hosted TAuth callback.
