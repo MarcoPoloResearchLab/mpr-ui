@@ -148,13 +148,14 @@ test.describe('Size parameter support', () => {
 });
 
 test.describe('Authentication provider control sizing', () => {
-  test('B054 and B055: provider controls stay aligned and contained at wide and narrow header widths', async ({
+  test('B054, B055, and B063: provider controls and email form stay contained at supported widths', async ({
     page,
   }) => {
     await visitFullLayoutFixture(page);
 
     const headerHost = page.locator('mpr-header#test-header');
     await headerHost.evaluate((headerElement) => {
+      headerElement.setAttribute('settings', 'false');
       headerElement.setAttribute(
         'auth-config',
         JSON.stringify({
@@ -195,6 +196,7 @@ test.describe('Authentication provider control sizing', () => {
     const viewportCases = [
       { name: 'wide header', width: 1280, height: 800 },
       { name: 'narrow header', width: 390, height: 844 },
+      { name: 'compact browser panel', width: 190, height: 700 },
     ];
 
     for (const viewportCase of viewportCases) {
@@ -290,6 +292,41 @@ test.describe('Authentication provider control sizing', () => {
       expect(appleMetrics?.backgroundColor, viewportCase.name).toBe('rgb(0, 0, 0)');
       expect(googleMetrics?.backgroundColor, viewportCase.name).toBe('rgb(0, 0, 0)');
       expect(googleMetrics?.borderColor, viewportCase.name).toBe('rgb(142, 145, 143)');
+
+      const emailButton = controls.locator('[data-mpr-auth-action="email"]');
+      await emailButton.click();
+      const passwordForm = headerHost.locator('mpr-password-auth');
+      await expect(passwordForm).toBeVisible();
+      const formMetrics = await passwordForm.evaluate((formElement) => {
+        const formBounds = formElement.getBoundingClientRect();
+        const controls = Array.from(formElement.querySelectorAll('input, button'));
+        return {
+          left: formBounds.left,
+          right: formBounds.right,
+          viewportWidth: window.innerWidth,
+          controls: controls.map((controlElement) => {
+            const controlBounds = controlElement.getBoundingClientRect();
+            return {
+              left: controlBounds.left,
+              right: controlBounds.right,
+            };
+          }),
+        };
+      });
+      expect(formMetrics.left, viewportCase.name).toBeGreaterThanOrEqual(0);
+      expect(formMetrics.right, viewportCase.name).toBeLessThanOrEqual(
+        formMetrics.viewportWidth,
+      );
+      for (const controlMetrics of formMetrics.controls) {
+        expect(controlMetrics.left, viewportCase.name).toBeGreaterThanOrEqual(
+          formMetrics.left,
+        );
+        expect(controlMetrics.right, viewportCase.name).toBeLessThanOrEqual(
+          formMetrics.right,
+        );
+      }
+      await emailButton.click();
+      await expect(passwordForm).toHaveCount(0);
     }
   });
 });

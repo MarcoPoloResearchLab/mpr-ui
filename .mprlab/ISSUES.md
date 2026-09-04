@@ -12,6 +12,31 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [-] [B063] (P1) {F010} The header email form exceeds the available width.
+  Goal:
+  The header email form stays inside the browser viewport at each supported width.
+
+  Expected:
+  The header aligns the email form with the provider controls and contains each form control.
+
+  Actual:
+  The email form uses content-box width. Its padding and border can extend past the viewport edge.
+
+  Requirements:
+  - Use border-box width for the password form host and its controls.
+  - Keep the compact header provider controls unchanged.
+  - Keep the email form inside the viewport at narrow widths.
+
+  Deliverables:
+  - Correct the password form sizing rules.
+  - Add browser coverage for the header email form at narrow widths.
+  - Update the component documentation and changelog.
+
+  Validation:
+  - Open the email form in the header at each test width.
+  - Verify that the form and its controls stay inside the viewport.
+  - Run `make ci` after the final source, test, and documentation changes.
+
 - [-] [B062] (P1) {B059,B061} The public auth controller retains the obsolete Google One Tap methods.
   Goal:
   The public auth controller exposes only the current button-based Google authentication contract.
