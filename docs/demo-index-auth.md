@@ -8,7 +8,7 @@ The repository demos divide the public library into focused, runnable surfaces.
 | [`/demo/components.html`](../demo/components.html) | Header, footer, standalone dropdowns, both placements, all section modes, theme toggle, settings, sites, band, card, legal document | Static preview |
 | [`/demo/auth-provider-chooser.html`](../demo/auth-provider-chooser.html) | Google, Apple, and email chooser in icon-row and stack variants. Safe event output | Static preview |
 | [`/demo/tauth-demo.html`](../demo/tauth-demo.html) | Google and password auth, account actions, user menu, auth diagnostics | TAuth stack |
-| [`/demo/standalone.html`](../demo/standalone.html) | Provider-aware login-only owner and authenticated user menu | TAuth stack |
+| [`/demo/standalone.html`](../demo/standalone.html) | Provider-aware standalone auth owner and authenticated user menu | TAuth stack |
 | [`/demo/entity-workspace.html`](../demo/entity-workspace.html) | Workspace layout, sidebar, rail, tiles, workspace, entity cards, selection state, and detail drawer | TAuth stack |
 
 ## Static preview
@@ -153,6 +153,8 @@ It also shows all six `<mpr-account-panel>` actions:
 - `disable`
 
 Every form uses `auth-target="#demo-header"`. The page contains no duplicate auth controller and no app-owned credential request. The local fixture can display returned challenge values for completion tests. Public events and diagnostics remain token-free.
+
+The header and standalone auth owner also show sign-in and account-creation tabs in the owned email panel. The tabs use the configured password endpoints on the same controller.
 
 The `google-link` panel renders the official Google Identity Services popup
 button. The shared controller binds it to a TAuth nonce and sends the returned

@@ -117,10 +117,10 @@ The header uses compact square provider actions with accessible names. The login
 - Google returns the ID token to the JavaScript callback. The controller sends the token and nonce to the configured login path.
 - The Google popup flow does not use an OAuth redirect callback.
 - Apple builds a validated TAuth redirect action and navigates the top-level page. TAuth owns the Apple callback, credentials, session cookie, and server configuration.
-- Password opens the shared login form on the same controller.
+- Password opens one shared panel with sign-in and account-creation actions on the same controller.
 - Session return and refresh use the configured `sessionPath` and emit the same `mpr-ui:auth:*` events for every provider.
 
-Use the login-only surface when a full header is not required:
+Use the standalone authentication surface when a full header is not required:
 
 ```html
 <mpr-login-button
@@ -186,7 +186,7 @@ After HTTP 401, the helper coordinates one session recovery across concurrent re
 | `<mpr-footer>` | Sectioned drop-up, utility links, privacy action, and theme control | [`index.html`](index.html) |
 | `<mpr-dropdown>` | Top or bottom sectioned menu with static, expanded, and collapsed sections | [`demo/components.html`](demo/components.html) |
 | `<mpr-theme-toggle>` | Shared switch, button, or square theme control | [`demo/components.html`](demo/components.html) |
-| `<mpr-login-button>` | Provider-aware login-only surface | [`demo/standalone.html`](demo/standalone.html) |
+| `<mpr-login-button>` | Provider-aware standalone authentication surface | [`demo/standalone.html`](demo/standalone.html) |
 | `<mpr-auth-provider-chooser>` | Google, Apple, and email provider-choice events | [`demo/auth-provider-chooser.html`](demo/auth-provider-chooser.html) |
 | `<mpr-password-auth>` | Login, signup, verification, and reset forms | [`demo/tauth-demo.html`](demo/tauth-demo.html) |
 | `<mpr-account-panel>` | Password, identity-link, unlink, and account-disable actions | [`demo/tauth-demo.html`](demo/tauth-demo.html) |

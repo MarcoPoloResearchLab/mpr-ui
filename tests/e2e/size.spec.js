@@ -366,6 +366,105 @@ test.describe('Authentication provider control sizing', () => {
       await expect(passwordForm).toHaveCount(0);
     }
   });
+
+  test('F012: owned email panel exposes contained sign-in and account-creation flows', async ({
+    page,
+  }) => {
+    await visitFullLayoutFixture(page);
+    await page.setViewportSize({ width: 272, height: 700 });
+
+    const signupRequests = [];
+    await page.route('https://auth.fixture.test/auth/password/signup', async (route) => {
+      signupRequests.push(route.request().postDataJSON());
+      await route.fulfill({
+        status: 202,
+        contentType: 'application/json',
+        body: JSON.stringify({ account_id: 'fixture-account', expires_at: 1_800_000_000 }),
+      });
+    });
+
+    const headerHost = page.locator('mpr-header#test-header');
+    await headerHost.evaluate((headerElement) => {
+      headerElement.setAttribute('settings', 'false');
+      headerElement.setAttribute(
+        'auth-config',
+        JSON.stringify({
+          tauthUrl: 'https://auth.fixture.test',
+          tenantId: 'test-tenant',
+          logoutPath: '/auth/logout',
+          sessionPath: '/auth/session',
+          providers: {
+            google: {
+              enabled: true,
+              clientId: 'fixture-google-client',
+              loginPath: '/auth/google',
+              noncePath: '/auth/nonce',
+            },
+            apple: {
+              enabled: true,
+              startPath: '/auth/apple/start',
+              returnTo: 'current-url',
+              label: 'Sign in with Apple',
+            },
+            password: { enabled: true },
+          },
+          password: {
+            loginPath: '/auth/password/login',
+            signupPath: '/auth/password/signup',
+            verifyEmailPath: '/auth/password/verify-email',
+            resetStartPath: '/auth/password/reset/start',
+            resetCompletePath: '/auth/password/reset/complete',
+          },
+        }),
+      );
+    });
+
+    await headerHost.locator('[data-mpr-auth-action="email"]').click();
+    const emailPanel = headerHost.locator('[data-mpr-auth-email-panel]');
+    await expect(emailPanel).toBeVisible();
+    const signInTab = emailPanel.getByRole('tab', { name: 'Sign in' });
+    const createAccountTab = emailPanel.getByRole('tab', { name: 'Create account' });
+    await expect(signInTab).toHaveAttribute(
+      'aria-selected',
+      'true',
+    );
+    await expect(signInTab).toHaveAttribute('tabindex', '0');
+    await expect(createAccountTab).toHaveAttribute('tabindex', '-1');
+    await signInTab.focus();
+    await signInTab.press('ArrowRight');
+    await expect(createAccountTab).toBeFocused();
+    await expect(emailPanel.locator('mpr-password-auth')).toHaveAttribute('mode', 'signup');
+    await createAccountTab.press('ArrowLeft');
+    await expect(signInTab).toBeFocused();
+
+    const initialPanelBounds = await emailPanel.boundingBox();
+    expect(initialPanelBounds).not.toBeNull();
+    if (initialPanelBounds) {
+      expect(initialPanelBounds.x).toBeGreaterThanOrEqual(0);
+      expect(initialPanelBounds.x + initialPanelBounds.width).toBeLessThanOrEqual(272);
+    }
+
+    await createAccountTab.click();
+    const passwordAuth = emailPanel.locator('mpr-password-auth');
+    await expect(passwordAuth).toHaveAttribute('mode', 'signup');
+    await expect(emailPanel.getByRole('heading', { name: 'Create an account' })).toBeVisible();
+    await emailPanel.getByLabel('Email', { exact: true }).fill('new-user@example.com');
+    await emailPanel.getByLabel('Password', { exact: true }).fill('signup-password-secret');
+    await emailPanel.getByRole('button', { name: 'Create account' }).click();
+    await expect(passwordAuth).toHaveAttribute('data-mpr-password-auth-status', 'success');
+    expect(signupRequests).toEqual([
+      {
+        email: 'new-user@example.com',
+        password: 'signup-password-secret',
+        display_name: '',
+        avatar_url: '',
+      },
+    ]);
+
+    await signInTab.click();
+    await expect(passwordAuth).toHaveAttribute('mode', 'login');
+    await expect(emailPanel.getByRole('heading', { name: 'Sign in with email' })).toBeVisible();
+  });
 });
 
 test.describe('Theme toggle travel', () => {

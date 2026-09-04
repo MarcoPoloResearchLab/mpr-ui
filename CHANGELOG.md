@@ -3,6 +3,7 @@
 ## [Unreleased]
 
 ### Features ✨
+- Added sign-in and account-creation tabs to the email panel on each auth-owning surface.
 - Added `<mpr-dropdown>` with section headings, disclosure modes, top or bottom placement, strict menu validation, accessible focus behavior, and public events.
 - Added the shared sectioned `menu` contract to `<mpr-footer>`.
 - Added `MPRUI.getLegalProfile()`, `MPRUI.getLegalDocument()`, `MPRUI.renderLegalDocument()`, and `<mpr-legal-document>` for reusable MPR Lab Terms and Privacy pages.
@@ -35,6 +36,7 @@
 - Rejected credential callbacks that are missing an attempt nonce and surface nonce/GIS preparation failures through auth and header error events.
 
 ### Testing 🧪
+- Added browser acceptance for the owned email panel, account-creation request, mode changes, and compact viewport containment.
 - Added browser coverage for dropdown placement, section modes, focus return, closure behavior, events, and footer composition.
 - Added a same-origin iframe regression for cross-realm `Request` method and body preservation.
 - Added browser acceptance for session expiry, concurrent requests, two tabs, refresh rejection, network failure, request replay, and refresh-cookie expiry.
@@ -49,6 +51,7 @@
 - Added header regressions for sign-in redirect handoff, restored-session non-redirect behavior, and app-dispatched auth events not triggering redirects.
 
 ### Docs 📚
+- Documented account creation through the owned email panel in the component, integration, and demo guides.
 - Added a complete component gallery with both dropdown placements and every section mode.
 - Added theme controls, settings, site catalogs, bands, cards, and legal documents to the gallery.
 - Reworked the README, architecture reference, custom-element reference, integration guide, and demo guide around the complete current component and auth contracts.

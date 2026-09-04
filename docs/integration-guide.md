@@ -4,7 +4,7 @@ This guide describes the primary `mpr-ui` integration contract. Treat it like an
 
 1. expose `/config-ui.yaml`
 2. load `mpr-ui-config.js`
-3. render `<mpr-header data-config-url="/config-ui.yaml">` or a login-only `<mpr-login-button data-config-url="/config-ui.yaml">`
+3. render `<mpr-header data-config-url="/config-ui.yaml">` or a standalone `<mpr-login-button data-config-url="/config-ui.yaml">`
 4. let the loader apply the validated `auth-config` provider map and load the bundle
 5. react to `mpr-ui:auth:*` events in app code
 6. send protected requests through `MPRUI.authenticatedFetch()`
@@ -288,7 +288,7 @@ What your template still owns:
 
 ## Login-only button presentation
 
-`<mpr-login-button>` owns the complete enabled provider action set. On initialization, it renders accessible provider controls with focus and status feedback. Google uses the official GIS popup button. The controller requests and refreshes the TAuth nonce before it renders that button. The GIS JavaScript callback receives the ID token. This flow does not use a Google redirect URI. Apple starts validated top-level TAuth navigation. Password opens `<mpr-password-auth mode="login">` on the same controller.
+`<mpr-login-button>` owns the complete enabled provider action set. On initialization, it renders accessible provider controls with focus and status feedback. Google uses the official GIS popup button. The controller requests and refreshes the TAuth nonce before it renders that button. The GIS JavaScript callback receives the ID token. This flow does not use a Google redirect URI. Apple starts validated top-level TAuth navigation. Password opens one panel with sign-in and account-creation tabs on the same controller.
 
 A Google button click emits provider intent. Authentication starts only when the Google JavaScript callback returns a credential. Other provider controls stay available if the popup returns no credential.
 
@@ -468,7 +468,7 @@ If sign-in must open an authenticated route, set `sign-in-redirect-url` on `<mpr
 
 - [`../index.html`](../index.html) displays Google, Apple, and email actions from one provider map and uses the shared sectioned footer.
 - [`../demo/tauth-demo.html`](../demo/tauth-demo.html) contains every password mode, every account action, and safe auth diagnostics on one controller.
-- [`../demo/standalone.html`](../demo/standalone.html) shows the login-only owner and authenticated user menu.
+- [`../demo/standalone.html`](../demo/standalone.html) shows the standalone auth owner and authenticated user menu.
 - [`../demo/auth-provider-chooser.html`](../demo/auth-provider-chooser.html) shows provider-intent variants without claiming authenticated state.
 - [`../demo/components.html`](../demo/components.html) shows shell and content primitives, both dropdown placements, and all section modes.
 

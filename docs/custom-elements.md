@@ -128,7 +128,7 @@ Required attributes:
 
 Optional `disabled` prevents input and submission. The form exposes its current state through `data-mpr-password-auth-status`. It emits `mpr-ui:password-auth:submit` and `mpr-ui:password-auth:status`. Event details contain the mode, status, and stable error code only. They never contain email values, passwords, or challenge tokens.
 
-The form uses border-box width. It stays inside its owning auth surface at narrow browser widths. In a header, the form opens below the provider controls. It does not change the header size or page position.
+The form uses border-box width. It stays inside its owning auth surface at narrow browser widths. In an owning auth surface, the email panel provides sign-in and account-creation tabs. The panel opens below the provider controls. It does not change the header size or page position.
 
 Local fixtures that enable TAuth `return_challenge_tokens` can add the
 `display-challenge-token` attribute to `signup` and `reset-start` forms. The
@@ -398,7 +398,7 @@ The component emits the shared `mpr-ui:theme-change` event through the theme man
 
 ## mpr-login-button
 
-`<mpr-login-button>` is the login-only auth owner. Put `data-config-url="/config-ui.yaml"` on the element so the config loader applies one `auth-config` contract before bundle startup. The component renders one action for each enabled Google, Apple, and password provider.
+`<mpr-login-button>` is a standalone auth owner. Put `data-config-url="/config-ui.yaml"` on the element so the config loader applies one `auth-config` contract before bundle startup. The component renders one action for each enabled Google, Apple, and password provider.
 
 Presentation attributes are static page data:
 
@@ -407,7 +407,7 @@ Presentation attributes are static page data:
 - `button-size`
 - `button-shape`
 
-It emits the shared `mpr-ui:auth:*` lifecycle and `mpr-login:error`. Password selection expands the shared login form on this controller. Apple selection starts the validated redirect flow. Google uses the official nonce-bound GIS popup button and its JavaScript credential callback.
+It emits the shared `mpr-ui:auth:*` lifecycle and `mpr-login:error`. Password selection expands the shared email panel on this controller. The panel provides sign-in and account-creation tabs. Apple selection starts the validated redirect flow. Google uses the official nonce-bound GIS popup button and its JavaScript credential callback.
 
 ```html
 <mpr-login-button

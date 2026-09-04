@@ -153,6 +153,7 @@
     currentPassword: "Current password",
     newPassword: "New password",
     identity: "Sign-in method",
+    emailAuthModes: "Email authentication",
     loginTitle: "Sign in with email",
     loginSubmit: "Sign in",
     signupTitle: "Create an account",
@@ -2952,7 +2953,11 @@
     var cleanupHandlers = [];
     var currentAttempt = 0;
     var passwordPanelElement = null;
+    var passwordAuthElement = null;
+    var passwordModeButtons = [];
+    var passwordModeCleanupHandlers = [];
     var passwordPanelId = createAuthProviderEmailPanelId();
+    var passwordAuthId = passwordPanelId + "-form";
     setAuthProviderElementClass(rootElement, "mpr-auth-actions");
     setAuthProviderElementClass(actionsElement, "mpr-auth-actions__controls");
     setAuthProviderElementClass(statusElement, "mpr-auth-actions__status");
@@ -2977,6 +2982,118 @@
         status === "ready" ? "" : authProviderActionStatus(providerId, status);
     }
 
+    function setPasswordMode(mode) {
+      passwordAuthElement.setAttribute("mode", mode);
+      passwordPanelElement.setAttribute("data-mpr-auth-email-mode", mode);
+      passwordModeButtons.forEach(function updatePasswordModeButton(buttonElement) {
+        buttonElement.setAttribute(
+          "aria-selected",
+          buttonElement.getAttribute("data-mpr-auth-email-mode") === mode
+            ? "true"
+            : "false",
+        );
+        buttonElement.setAttribute(
+          "tabindex",
+          buttonElement.getAttribute("data-mpr-auth-email-mode") === mode
+            ? "0"
+            : "-1",
+        );
+      });
+    }
+
+    function createPasswordModeButton(mode, label) {
+      var buttonElement = createAuthProviderElement(hostElement, "button");
+      function handlePasswordModeClick(event) {
+        if (event && typeof event.preventDefault === "function") {
+          event.preventDefault();
+        }
+        setPasswordMode(mode);
+      }
+      function handlePasswordModeKeydown(event) {
+        if (!event || (event.key !== "ArrowLeft" && event.key !== "ArrowRight")) {
+          return;
+        }
+        event.preventDefault();
+        var currentIndex = passwordModeButtons.indexOf(buttonElement);
+        var offset = event.key === "ArrowRight" ? 1 : -1;
+        var nextIndex =
+          (currentIndex + offset + passwordModeButtons.length) %
+          passwordModeButtons.length;
+        var nextButton = passwordModeButtons[nextIndex];
+        setPasswordMode(nextButton.getAttribute("data-mpr-auth-email-mode"));
+        nextButton.focus();
+      }
+      setAuthProviderElementClass(
+        buttonElement,
+        "mpr-auth-actions__email-mode",
+      );
+      buttonElement.type = "button";
+      buttonElement.setAttribute("role", "tab");
+      buttonElement.setAttribute("aria-controls", passwordAuthId);
+      buttonElement.setAttribute("data-mpr-auth-email-mode", mode);
+      setAuthProviderElementText(buttonElement, label);
+      buttonElement.addEventListener("click", handlePasswordModeClick);
+      buttonElement.addEventListener("keydown", handlePasswordModeKeydown);
+      passwordModeButtons.push(buttonElement);
+      passwordModeCleanupHandlers.push(function cleanupPasswordModeButton() {
+        buttonElement.removeEventListener("click", handlePasswordModeClick);
+        buttonElement.removeEventListener("keydown", handlePasswordModeKeydown);
+      });
+      return buttonElement;
+    }
+
+    function createPasswordPanel() {
+      var panelElement = createAuthProviderElement(hostElement, "div");
+      var modeListElement = createAuthProviderElement(hostElement, "div");
+      passwordAuthElement = createAuthProviderElement(
+        hostElement,
+        "mpr-password-auth",
+      );
+      passwordModeButtons = [];
+      passwordModeCleanupHandlers = [];
+      panelElement.id = passwordPanelId;
+      panelElement.setAttribute("data-mpr-auth-email-panel", "");
+      setAuthProviderElementClass(panelElement, "mpr-auth-actions__email-panel");
+      modeListElement.setAttribute("role", "tablist");
+      modeListElement.setAttribute("aria-label", AUTH_FORM_LABELS.emailAuthModes);
+      setAuthProviderElementClass(
+        modeListElement,
+        "mpr-auth-actions__email-modes",
+      );
+      appendAuthProviderElement(
+        modeListElement,
+        createPasswordModeButton("login", AUTH_FORM_LABELS.loginSubmit),
+      );
+      appendAuthProviderElement(
+        modeListElement,
+        createPasswordModeButton("signup", AUTH_FORM_LABELS.signupSubmit),
+      );
+      passwordAuthElement.id = passwordAuthId;
+      passwordAuthElement.setAttribute(
+        AUTH_CONFIG_ATTRIBUTE,
+        JSON.stringify(authOptions),
+      );
+      passwordAuthElement.__authControllerOverride = authController;
+      appendAuthProviderElement(panelElement, modeListElement);
+      appendAuthProviderElement(panelElement, passwordAuthElement);
+      passwordPanelElement = panelElement;
+      setPasswordMode("login");
+      return panelElement;
+    }
+
+    function clearPasswordPanel() {
+      if (passwordPanelElement && passwordPanelElement.parentNode) {
+        passwordPanelElement.parentNode.removeChild(passwordPanelElement);
+      }
+      passwordModeCleanupHandlers.forEach(function cleanupPasswordMode(cleanup) {
+        cleanup();
+      });
+      passwordPanelElement = null;
+      passwordAuthElement = null;
+      passwordModeButtons = [];
+      passwordModeCleanupHandlers = [];
+    }
+
     var providerIds = enabledAuthProviderIds(authOptions);
     setActionStatus("ready", providerIds[0]);
     providerIds.forEach(function mountProviderAction(providerId) {
@@ -2991,24 +3108,12 @@
         }
         if (providerId === AUTH_PROVIDER_IDS.EMAIL) {
           if (passwordPanelElement && passwordPanelElement.parentNode) {
-            passwordPanelElement.parentNode.removeChild(passwordPanelElement);
-            passwordPanelElement = null;
+            clearPasswordPanel();
             actionButton.setAttribute("aria-expanded", "false");
             setActionStatus("ready", providerId);
             return;
           }
-          passwordPanelElement = createAuthProviderElement(
-            hostElement,
-            "mpr-password-auth",
-          );
-          passwordPanelElement.id = passwordPanelId;
-          passwordPanelElement.setAttribute("mode", "login");
-          passwordPanelElement.setAttribute(
-            AUTH_CONFIG_ATTRIBUTE,
-            JSON.stringify(authOptions),
-          );
-          passwordPanelElement.__authControllerOverride = authController;
-          appendAuthProviderElement(rootElement, passwordPanelElement);
+          appendAuthProviderElement(rootElement, createPasswordPanel());
           actionButton.setAttribute("aria-expanded", "true");
           setActionStatus("ready", providerId);
           if (displayOptions && typeof displayOptions.handleStart === "function") {
@@ -3079,10 +3184,7 @@
       buttons: providerButtons,
       cleanup: function cleanupAuthProviderActions() {
         currentAttempt += 1;
-        if (passwordPanelElement && passwordPanelElement.parentNode) {
-          passwordPanelElement.parentNode.removeChild(passwordPanelElement);
-        }
-        passwordPanelElement = null;
+        clearPasswordPanel();
         cleanupHandlers.forEach(function runCleanup(cleanup) {
           cleanup();
         });
@@ -7028,12 +7130,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "mpr-header .mpr-auth-actions__status:empty{display:none}" +
     "mpr-header .mpr-auth-actions{position:relative;--mpr-auth-provider-scale:var(--mpr-header-scale,1);max-inline-size:100%}" +
     "mpr-header .mpr-auth-actions__controls{overflow:visible}" +
-    "mpr-header .mpr-auth-actions>mpr-password-auth{position:absolute;z-index:1000;inset-block-start:calc(100% + .35rem);inset-inline-end:0;inline-size:min(20rem,calc(100vw - 1.5rem));max-inline-size:none;box-shadow:var(--mpr-shadow-flyout,0 16px 32px rgba(15,23,42,.28))}" +
+    ".mpr-auth-actions__email-panel{display:grid;box-sizing:border-box;gap:.35rem;min-inline-size:0}" +
+    ".mpr-auth-actions__email-modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.25rem}" +
+    ".mpr-auth-actions__email-mode{min-block-size:1.75rem;padding:.25rem .45rem;border:1px solid var(--mpr-color-border,#2c2f36);border-radius:var(--mpr-radius-control,6px);background:var(--mpr-color-surface-elevated,#1f2126);color:var(--mpr-color-text-muted,#cbd5f5);font:inherit;font-size:.75rem;font-weight:700;cursor:pointer}" +
+    ".mpr-auth-actions__email-mode[aria-selected='true']{border-color:var(--mpr-color-accent,#5d93ff);background:rgba(93,147,255,.14);color:var(--mpr-color-text-primary,#e3e5ec)}" +
+    ".mpr-auth-actions__email-mode:focus-visible{outline:2px solid var(--mpr-color-accent,#5d93ff);outline-offset:1px}" +
+    "mpr-header .mpr-auth-actions>.mpr-auth-actions__email-panel{position:absolute;z-index:1000;inset-block-start:calc(100% + .35rem);inset-inline-end:0;inline-size:min(20rem,calc(100vw - 1.5rem));max-inline-size:none;box-shadow:var(--mpr-shadow-flyout,0 16px 32px rgba(15,23,42,.28))}" +
     "mpr-header .mpr-auth-google-button{inline-size:var(--mpr-auth-action-block-size);block-size:var(--mpr-auth-action-block-size);min-inline-size:var(--mpr-auth-action-block-size);min-block-size:var(--mpr-auth-action-block-size);border:1px solid #8e918f;border-radius:var(--mpr-radius-control,6px);background:#000;color:#e3e5ec}" +
     "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__action{position:relative;grid-template-columns:1fr;place-items:center;inline-size:var(--mpr-auth-action-block-size);min-inline-size:var(--mpr-auth-action-block-size);padding:0;border-color:#8e918f;border-style:solid;border-width:1px;aspect-ratio:1/1;overflow:hidden}" +
     "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__mark{grid-column:1;grid-row:1}" +
     "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__label{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}" +
-    "@media(max-width:48rem){mpr-header .mpr-header__auth-actions,mpr-header .mpr-auth-actions{inline-size:100%}mpr-header .mpr-auth-actions__controls{justify-content:flex-end}mpr-header .mpr-auth-actions>mpr-password-auth{inline-size:100%}}" +
+    "@media(max-width:48rem){mpr-header .mpr-header__auth-actions,mpr-header .mpr-auth-actions{inline-size:100%}mpr-header .mpr-auth-actions__controls{justify-content:flex-end}mpr-header .mpr-auth-actions>.mpr-auth-actions__email-panel{inline-size:min(20rem,calc(100vw - 1.5rem))}}" +
     ".mpr-auth-diagnostics{display:grid;gap:.5rem;padding:.75rem;border:1px solid var(--mpr-color-border,#2c2f36);border-radius:var(--mpr-radius-control,6px);background:var(--mpr-color-surface-elevated,#1f2126);color:var(--mpr-color-text-primary,#e3e5ec)}" +
     ".mpr-auth-diagnostics__heading{margin:0;font-size:.86rem}" +
     ".mpr-auth-diagnostics__list{display:grid;gap:.35rem;margin:0}" +

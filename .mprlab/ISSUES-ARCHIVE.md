@@ -486,6 +486,37 @@ Archived 2026-09-01 by M400R.
 
 ## Features
 
+- [x] [F012] (P1) Add account creation to the owned email authentication panel.
+  Goal:
+  The owned email authentication panel lets a user sign in or create an account.
+
+  Requirements:
+  - Show sign-in and account-creation actions in the owned email panel.
+  - Use the existing password authentication component for each action.
+  - Submit account creation through the configured TAuth signup endpoint.
+  - Keep credentials and challenge tokens out of browser-visible events and storage.
+  - Keep the panel inside the viewport without a change to the header layout.
+  - Preserve the standalone password authentication modes.
+
+  Deliverables:
+  - Add browser acceptance coverage before the component change.
+  - Add the generic email authentication mode controls.
+  - Update the component reference, integration guide, demos, and release notes.
+
+  Validation:
+  - Verify the initial browser test fails because the account-creation action is absent.
+  - Verify the panel position at wide, narrow, and compact viewport widths.
+  - Verify that the account-creation action shows the signup form.
+  - Verify that the sign-in action shows the login form.
+  - Verify that signup uses the configured TAuth path.
+  - Run `make ci` after the final source and documentation changes.
+
+  Resolution:
+  The owned email panel now shows sign-in and account-creation tabs. Both tabs use the same TAuth controller and configured paths.
+
+  Validation result:
+  The test failed before implementation because the owned email panel was absent. The focused browser test and `make ci` passed.
+
 - [x] [F011] (P1) Add Make targets for the complete local demo runtime.
   Goal:
   `make up` starts the complete local demo runtime. `make down` stops this runtime.
