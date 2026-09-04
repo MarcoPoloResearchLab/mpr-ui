@@ -204,8 +204,9 @@ Use `<mpr-password-auth>` for public password flows. Set one explicit `mode`: `l
 
 ```html
 <mpr-password-auth
-  mode="login"
+  mode="verify-email"
   auth-target="#site-header"
+  token-fragment-parameter="token"
 ></mpr-password-auth>
 ```
 
@@ -233,7 +234,7 @@ provider subjects.
 
 Every password or account POST uses `credentials: "include"`, `X-Requested-With: XMLHttpRequest`, and `X-TAuth-Tenant`. Successful login, verification, and reset completion produce the same profile state and `mpr-ui:auth:*` events as Google login. Account disable clears that state.
 
-Password and token values remain local to the immediate request. Do not copy them into attributes, events, storage, logs, diagnostics, or profiles. TAuth can return challenge tokens only for a local fixture with `return_challenge_tokens` enabled. By default, the shared components discard returned token fields. TAuth delivers the challenge through email or another server-owned channel. A local fixture or trusted delivery integration can add `display-challenge-token` to applicable actions. The token appears only in that form status. It remains absent from public events and profiles.
+Password and token values remain local to the immediate request. Do not copy them into attributes, events, storage, logs, diagnostics, or profiles. TAuth sends challenge links through Pinguin and puts each token in the URL fragment. Set `token-fragment-parameter="token"` only on the matching verification form. The component takes the token, removes the fragment from browser history, and keeps the value out of public events and profiles.
 
 TAuth owns password policy, challenge lifecycle, cookie issuance, identity rules, and account state. `mpr-ui` owns controls, browser validation, request wiring, status UI, and auth events. Host apps own route protection, app-specific profile data, and bespoke account-policy decisions.
 

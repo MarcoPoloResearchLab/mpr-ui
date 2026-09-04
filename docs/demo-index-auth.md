@@ -37,6 +37,8 @@ install -m 0600 /dev/null demo/.env.tauth
 
 Configure the Google client ID, TAuth signing key, tenant, and origins. Keep `demo/config-ui.yaml` and `demo/tauth-config.yaml` tenant and origin values aligned.
 
+The stack also reads `../Pinguin/configs/.env.pinguin`. Configure its managed local SMTP values and master encryption key before startup. The script never writes the generated Pinguin API key to disk.
+
 Start the stack:
 
 ```bash
@@ -49,7 +51,7 @@ Open `http://localhost:4443/`. Stop it with:
 make down
 ```
 
-`make up` starts one shared stack. The header, standalone, password/account, and entity-workspace pages are navigation targets inside that stack.
+`make up` builds the current sibling TAuth and Pinguin sources. It creates or refreshes the managed Pinguin demo tenant, starts one shared stack, and sends password-account challenge email through the configured real SMTP relay. The header, standalone, password/account, and entity-workspace pages are navigation targets inside that stack.
 The disposable local account uses `demo@mprlab.local` and `mpr-ui-demo`.
 
 ## Canonical browser contract
@@ -152,7 +154,7 @@ It also shows all six `<mpr-account-panel>` actions:
 - `unlink`
 - `disable`
 
-Every form uses `auth-target="#demo-header"`. The page contains no duplicate auth controller and no app-owned credential request. The local fixture can display returned challenge values for completion tests. Public events and diagnostics remain token-free.
+Every form uses `auth-target="#demo-header"`. The page contains no duplicate auth controller and no app-owned credential request. TAuth keeps challenge values out of response bodies. Pinguin sends links whose fragments are read and cleared by the matching form. Public events and diagnostics remain token-free.
 
 The header and standalone auth owner also show sign-in and account-creation tabs in the owned email panel. The tabs use the configured password endpoints on the same controller.
 
@@ -168,7 +170,7 @@ proof to the account link endpoint. The panel does not use One Tap.
 4. Start `make up` and confirm `/config-ui.yaml` loads before `mpr-ui.js` on an auth-bearing page.
 5. Confirm the page loads no direct TAuth browser client.
 6. Complete Google or password sign-in and confirm `mpr-ui:auth:authenticated` updates the user menu and diagnostics.
-7. Complete password verification and reset flows through the shared forms.
+7. Complete password verification and reset from the links delivered through Pinguin.
 8. Sign in, exercise account actions, and confirm they use the same profile state.
 9. Log out and confirm `/auth/logout` clears the shell state.
 10. Verify real Apple authentication from both demo origins after the hosted TAuth tenant exists.

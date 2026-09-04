@@ -95,20 +95,20 @@ test('F007: tauth demo exposes every shared password and account action', () => 
     /fetch\s*\(/,
     'Expected shared components to own all demo password and account requests',
   );
-  assert.match(
+  assert.doesNotMatch(
     tauthDemoHtml,
-    /mode="signup"[^>]*\bdisplay-challenge-token\b/,
-    'Expected signup to display its local fixture challenge token',
+    /\bdisplay-challenge-token\b/,
+    'Expected the real delivery demo to keep challenge tokens out of rendered output',
   );
   assert.match(
     tauthDemoHtml,
-    /mode="reset-start"[^>]*\bdisplay-challenge-token\b/,
-    'Expected reset start to display its local fixture challenge token',
+    /function applyChallengeReturn\(\)/,
+    'Expected the shared demo to route a delivered challenge to its matching component',
   );
   assert.match(
     tauthDemoHtml,
-    /action="password-link-start"[^>]*\bdisplay-challenge-token\b/,
-    'Expected password linking to display its local fixture challenge token',
+    /token-fragment-parameter/,
+    'Expected the matching shared component to own the returned token',
   );
   assert.doesNotMatch(
     tauthDemoHtml,

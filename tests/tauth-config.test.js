@@ -15,6 +15,7 @@ const demoUserAvatarPath = join(repositoryRoot, 'demo', 'demo-user.svg');
 const repositoryEnvExamplePath = join(repositoryRoot, '.env.tauth.example');
 const repositoryComposePath = join(repositoryRoot, 'docker-compose.yml');
 const appleProviderPath = join(repositoryRoot, 'demo', 'apple-provider');
+const pinguinBootstrapPath = join(repositoryRoot, 'demo', 'bootstrap_pinguin.py');
 
 const envExampleFixtureContents = readFileSync(envExamplePath, 'utf8');
 const composeFixtureContents = readFileSync(composePath, 'utf8');
@@ -22,6 +23,7 @@ const configFixtureContents = readFileSync(configPath, 'utf8');
 const demoConfigContents = readFileSync(demoConfigPath, 'utf8');
 const repositoryEnvExampleContents = readFileSync(repositoryEnvExamplePath, 'utf8');
 const repositoryComposeContents = readFileSync(repositoryComposePath, 'utf8');
+const pinguinBootstrapContents = readFileSync(pinguinBootstrapPath, 'utf8');
 
 test('tauth env example uses TAUTH_* variables', () => {
   const requiredVariables = [
@@ -89,7 +91,21 @@ test('F007: demo TAuth config enables password and account policies explicitly',
   assert.match(demoConfigContents, /password_auth:\s*\n\s+enabled:\s+true/);
   assert.match(demoConfigContents, /account_management:\s*\n\s+enabled:\s+true/);
   assert.match(demoConfigContents, /password_signup:\s*\n\s+enabled:\s+true/);
-  assert.match(demoConfigContents, /return_challenge_tokens:\s+true/);
+  assert.match(demoConfigContents, /return_challenge_tokens:\s+false/);
+  assert.match(demoConfigContents, /email_delivery:/);
+  assert.match(demoConfigContents, /server_address:\s+"pinguin:50051"/);
+  assert.match(
+    demoConfigContents,
+    /email_verification_url:\s+"http:\/\/localhost:4443\/demo\/tauth-demo\.html\?auth_action=verify-email"/,
+  );
+  assert.match(
+    demoConfigContents,
+    /password_reset_url:\s+"http:\/\/localhost:4443\/demo\/tauth-demo\.html\?auth_action=reset-complete"/,
+  );
+  assert.match(
+    demoConfigContents,
+    /password_link_url:\s+"http:\/\/localhost:4443\/demo\/tauth-demo\.html\?auth_action=password-link-verify"/,
+  );
   assert.doesNotMatch(repositoryEnvExampleContents, /^TAUTH_PASSWORD_(?:USER_EMAIL|HASH)=/m);
   assert.match(
     repositoryComposeContents,
@@ -102,6 +118,19 @@ test('F007: demo TAuth config enables password and account policies explicitly',
   assert.equal(passwordHashMatch[1].replaceAll('$$', '$').length, 60);
   assert.match(demoConfigContents, /avatar_url:\s+"\/demo\/demo-user\.svg"/);
   assert.equal(existsSync(demoUserAvatarPath), true);
+});
+
+test('F010: local runtime builds current TAuth and Pinguin sources with managed delivery', () => {
+  assert.match(repositoryComposeContents, /tauth:[\s\S]*?build:[\s\S]*?context:\s+\.\.\/tauth/);
+  assert.match(repositoryComposeContents, /pinguin:[\s\S]*?build:[\s\S]*?context:\s+\.\.\/Pinguin/);
+  assert.match(repositoryComposeContents, /pinguin-bootstrap:/);
+  assert.match(repositoryComposeContents, /condition:\s+service_completed_successfully/);
+  assert.match(repositoryComposeContents, /PINGUIN_DEMO_API_KEY/);
+  assert.match(demoConfigContents, /server_address:\s+"pinguin:50051"/);
+  assert.match(pinguinBootstrapContents, /MPR UI Demo Delivery/);
+  assert.match(pinguinBootstrapContents, /TENANT_LOCAL_SMTP_HOST/);
+  assert.match(pinguinBootstrapContents, /api-credential/);
+  assert.doesNotMatch(pinguinBootstrapContents, /pgn_1_[A-Za-z0-9_-]{20,}/);
 });
 
 test('B058: local runtime contains no simulated Apple provider', () => {

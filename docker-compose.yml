@@ -3,8 +3,8 @@ services:
     image: ghcr.io/tyemirov/ghttp:latest
     pull_policy: always
     depends_on:
-      tauth:
-        condition: service_started
+      pinguin-bootstrap:
+        condition: service_completed_successfully
     environment:
       GHTTP_SERVE_PORT: "8000"
       GHTTP_SERVE_DIRECTORY: "/app/www"
@@ -17,8 +17,9 @@ services:
     restart: unless-stopped
 
   tauth:
-    image: ghcr.io/tyemirov/tauth:latest
-    pull_policy: always
+    build:
+      context: ../tauth
+      dockerfile: Dockerfile
     env_file:
       - ./demo/.env.tauth
     environment:
@@ -28,6 +29,10 @@ services:
       TAUTH_ALLOW_INSECURE_HTTP: "true"
       TAUTH_PASSWORD_USER_EMAIL: "demo@mprlab.local"
       TAUTH_PASSWORD_HASH: "$$2y$$12$$UihC9c7inwl90d3iKzlH3OPsrJn2OIGhgAT/TkOHbcueVdNrkf0zS"
+      PINGUIN_DEMO_API_KEY: "${PINGUIN_DEMO_API_KEY}"
+    depends_on:
+      pinguin:
+        condition: service_healthy
     ports:
       - "8080:8080"
     volumes:
@@ -35,5 +40,44 @@ services:
       - ./demo/tauth-config.yaml:/config.yaml:ro
     restart: unless-stopped
 
+  pinguin:
+    build:
+      context: ../Pinguin
+      dockerfile: Dockerfile
+    env_file:
+      - ../Pinguin/configs/.env.pinguin
+    environment:
+      TAUTH_SIGNING_KEY: "${TAUTH_JWT_SIGNING_KEY}"
+      TAUTH_COOKIE_NAME: "app_session"
+    ports:
+      - "8081:8081"
+    volumes:
+      - pinguin_data:/app/data
+      - ../Pinguin/configs/config.pinguin.yml:/config/config.yml:ro
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--output-document=-", "http://localhost:8081/healthz"]
+      interval: 2s
+      timeout: 2s
+      retries: 30
+    restart: unless-stopped
+
+  pinguin-bootstrap:
+    image: python:3.13-alpine
+    depends_on:
+      tauth:
+        condition: service_started
+      pinguin:
+        condition: service_healthy
+    env_file:
+      - ../Pinguin/configs/.env.pinguin
+    environment:
+      PINGUIN_DEMO_CREDENTIAL_ID: "${PINGUIN_DEMO_CREDENTIAL_ID}"
+      PINGUIN_DEMO_CREDENTIAL_DIGEST: "${PINGUIN_DEMO_CREDENTIAL_DIGEST}"
+    volumes:
+      - ./demo/bootstrap_pinguin.py:/app/bootstrap_pinguin.py:ro
+    command: ["python", "/app/bootstrap_pinguin.py"]
+    restart: "no"
+
 volumes:
   tauth_data:
+  pinguin_data:

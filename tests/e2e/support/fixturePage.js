@@ -478,9 +478,10 @@ async function visitLoginButtonFixture(page) {
 /**
  * Opens the config-loader fixture with an auth-only cross-origin runtime config.
  * @param {import('@playwright/test').Page} page
+ * @param {string} [query]
  * @returns {Promise<void>}
  */
-async function visitConfigLoaderFixture(page) {
+async function visitConfigLoaderFixture(page, query) {
   await page.addInitScript((restoreHintKey) => {
     window.localStorage.setItem(restoreHintKey, '1');
   }, RUNTIME_RESTORE_HINT_KEY);
@@ -490,12 +491,13 @@ async function visitConfigLoaderFixture(page) {
     routeLocalAsset(page, CDN_CONFIG_URL, LOCAL_ASSETS.config, 'application/javascript'),
     routeLocalAsset(page, YAML_PARSER_URL, LOCAL_ASSETS.yamlParser, 'application/javascript'),
     routeLocalAsset(page, GOOGLE_IDENTITY_URL, GOOGLE_IDENTITY_STUB, 'application/javascript'),
-    routeLocalAsset(page, CONFIG_LOADER_FIXTURE_URL, LOCAL_ASSETS.configLoaderFixture, 'text/html'),
+    routeLocalAsset(page, CONFIG_LOADER_FIXTURE_URL + '*', LOCAL_ASSETS.configLoaderFixture, 'text/html'),
     routeRuntimeConfig(page),
     routeRuntimeSession(page),
     routeRuntimeNonce(page),
   ]);
-  await page.goto(CONFIG_LOADER_FIXTURE_URL, { waitUntil: 'load' });
+  const fixtureUrl = query ? CONFIG_LOADER_FIXTURE_URL + '?' + query : CONFIG_LOADER_FIXTURE_URL;
+  await page.goto(fixtureUrl, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
 }
 

@@ -582,6 +582,9 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Confirm every public page has no browser error, failed asset request, or mixed content.
   - Repeat deployment without source changes and verify an idempotent result.
 
+  Progress 2026-09-03:
+  `make up` now builds the current sibling TAuth and Pinguin sources. It creates a managed local Pinguin tenant and sends real challenge email through its configured SMTP relay. The demo consumes fragment tokens inside the matching component. Local browser acceptance and `make ci` passed.
+
 ## Planning
 
 No active issues.

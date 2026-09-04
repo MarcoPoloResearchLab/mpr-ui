@@ -29,8 +29,16 @@ tenants:
       enabled: true
       password_signup:
         enabled: true
-      return_challenge_tokens: true
+      return_challenge_tokens: false
       email_verification_ttl: "30m"
+      email_delivery:
+        server_address: "pinguin:50051"
+        api_key: "${PINGUIN_DEMO_API_KEY}"
+        email_verification_url: "http://localhost:4443/demo/tauth-demo.html?auth_action=verify-email"
+        password_reset_url: "http://localhost:4443/demo/tauth-demo.html?auth_action=reset-complete"
+        password_link_url: "http://localhost:4443/demo/tauth-demo.html?auth_action=password-link-verify"
+        connection_timeout_seconds: 5
+        operation_timeout_seconds: 30
       password_reset_ttl: "15m"
     jwt_signing_key: "${TAUTH_JWT_SIGNING_KEY}"
     cookie_domain: ""

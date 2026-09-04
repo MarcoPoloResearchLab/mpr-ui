@@ -5993,7 +5993,7 @@ test('F007: unlink requires configured identities and renders only their labels'
   });
 });
 
-test('F007: local challenge display stays out of public component events', async () => {
+test('F010: obsolete challenge display attributes cannot expose tokens', async () => {
   resetEnvironment();
   const library = loadLibrary();
   const PasswordAuthElement = global.customElements.get('mpr-password-auth');
@@ -6033,11 +6033,11 @@ test('F007: local challenge display stays out of public component events', async
   form.dispatchEvent({ type: 'submit', preventDefault() {} });
   await flushAsync();
 
-  assert.deepEqual(capturedResultOptions, { includeChallengeToken: true });
+  assert.equal(capturedResultOptions, undefined);
   const statusElement = walkStubTree(element).find(
     (node) => node.className === 'mpr-auth-form__status',
   );
-  assert.equal(statusElement.textContent, 'Challenge token: local-fixture-token');
+  assert.equal(statusElement.textContent, 'Completed.');
   assert.equal(
     JSON.stringify(element.__dispatchedEvents).includes('local-fixture-token'),
     false,
@@ -6205,7 +6205,7 @@ test('F007: shared TAuth actions use explicit paths, tenant headers, and sanitiz
   controller.destroy();
 });
 
-test('F007: explicit local challenge results expose tokens only to the caller', async () => {
+test('F010: challenge results never expose server-returned tokens', async () => {
   resetEnvironment();
   const library = loadLibrary();
   const authConfig = createPasswordAccountAuthConfig({
@@ -6259,9 +6259,9 @@ test('F007: explicit local challenge results expose tokens only to the caller', 
     { includeChallengeToken: true },
   );
 
-  assert.equal(signupResult.challengeToken, 'signup-fixture-token');
-  assert.equal(resetResult.challengeToken, 'reset-fixture-token');
-  assert.equal(linkResult.challengeToken, 'link-fixture-token');
+  assert.equal(signupResult.challengeToken, undefined);
+  assert.equal(resetResult.challengeToken, undefined);
+  assert.equal(linkResult.challengeToken, undefined);
   const eventText = JSON.stringify(host.__dispatchedEvents || []);
   Object.values(tokenByPath).forEach((tokenEntry) => {
     assert.equal(eventText.includes(tokenEntry[1]), false);

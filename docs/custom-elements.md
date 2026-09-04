@@ -126,15 +126,11 @@ Required attributes:
 - `auth-config`: Applied by `mpr-ui-config.js`.
 - `auth-target`: Selector for the owning `<mpr-header>` or `<mpr-login-button>` when the form is not nested inside that auth surface.
 
-Optional `disabled` prevents input and submission. The form exposes its current state through `data-mpr-password-auth-status`. It emits `mpr-ui:password-auth:submit` and `mpr-ui:password-auth:status`. Event details contain the mode, status, and stable error code only. They never contain email values, passwords, or challenge tokens.
+Optional `disabled` prevents input and submission. For `verify-email` and `reset-complete`, `token-fragment-parameter="token"` reads the challenge from the URL fragment and removes it from browser history after the component takes ownership. The form exposes its current state through `data-mpr-password-auth-status`. It emits `mpr-ui:password-auth:submit` and `mpr-ui:password-auth:status`. Event details contain the mode, status, and stable error code only. They never contain email values, passwords, or challenge tokens.
 
 The form uses border-box width. It stays inside its owning auth surface at narrow browser widths. In an owning auth surface, the email panel provides sign-in and account-creation tabs. The panel opens below the provider controls. It does not change the header size or page position.
 
-Local fixtures that enable TAuth `return_challenge_tokens` can add the
-`display-challenge-token` attribute to `signup` and `reset-start` forms. The
-returned token appears only in that form's status text. Public events and the
-owning profile remain token-free. Do not set this attribute outside a local
-fixture or trusted delivery integration.
+TAuth sends signup and reset links through Pinguin. The target page selects the matching form and sets `token-fragment-parameter="token"`. The token remains absent from attributes, events, diagnostics, profiles, server requests, and response bodies.
 
 Successful `login`, `verify-email`, and `reset-complete` actions update the owning controller and emit the ordinary `mpr-ui:auth:*` lifecycle. `signup` and `reset-start` emit `mpr-ui:account:challenge-issued` from the owning auth host with only the action, accepted status, and expiry time.
 
@@ -181,9 +177,7 @@ Google sign-in and account linking start only from their rendered buttons.
 ></mpr-account-panel>
 ```
 
-Local fixtures can add `display-challenge-token` to the
-`password-link-start` action under the same restrictions as
-`<mpr-password-auth>`.
+For `password-link-verify`, `token-fragment-parameter="token"` reads and removes the Pinguin-delivered fragment token under the same rules as `<mpr-password-auth>`.
 
 TAuth owns password policy, challenge delivery, linked-identity rules, cookies, and account state. `mpr-ui` owns the shared forms and browser auth events. Host apps own route protection, app-specific profile fields, and bespoke account-policy decisions.
 

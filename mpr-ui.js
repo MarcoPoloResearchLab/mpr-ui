@@ -119,7 +119,8 @@
   var PASSWORD_AUTH_MODE_ATTRIBUTE = "mode";
   var ACCOUNT_PANEL_ACTION_ATTRIBUTE = "action";
   var ACCOUNT_PANEL_IDENTITIES_ATTRIBUTE = "identities";
-  var CHALLENGE_TOKEN_DISPLAY_ATTRIBUTE = "display-challenge-token";
+  var CHALLENGE_TOKEN_FRAGMENT_PARAMETER_ATTRIBUTE =
+    "token-fragment-parameter";
   var AUTH_FORM_STYLE_ID = "mpr-ui-auth-form-styles";
   var PASSWORD_AUTH_MODES = Object.freeze([
     "login",
@@ -141,11 +142,6 @@
     "google",
     "password",
   ]);
-  var CHALLENGE_TOKEN_FIELDS = Object.freeze({
-    signup: "verification_token",
-    "reset-start": "reset_token",
-    "password-link-start": "verification_token",
-  });
   var AUTH_FORM_LABELS = Object.freeze({
     email: "Email",
     password: "Password",
@@ -179,7 +175,6 @@
     ready: "",
     loading: "Working…",
     success: "Completed.",
-    challengeToken: "Challenge token: ",
     failure: "Unable to complete the request.",
   });
   var normalizedAuthOptions = new WeakSet();
@@ -355,9 +350,8 @@
    * @typedef {"password-change"|"password-link-start"|"password-link-verify"|"google-link"|"unlink"|"disable"} AccountAuthAction
    * @typedef {{ email?: string, password?: string, token?: string }} PasswordActionRequest
    * @typedef {{ currentPassword?: string, newPassword?: string, email?: string, password?: string, token?: string, credential?: string, nonceToken?: string, provider?: string, providerId?: string }} AccountActionRequest
-   * @typedef {{ includeChallengeToken?: boolean }} AuthActionResultOptions
    * @typedef {{ provider: "apple"|"google"|"password", providerId: string, label: string }} AccountIdentityOption
-   * @typedef {{ action: PasswordAuthAction|AccountAuthAction, status: "authenticated"|"accepted"|"updated"|"disabled", expiresUnix?: number|null, challengeToken?: string }} NormalizedAuthActionResult
+   * @typedef {{ action: PasswordAuthAction|AccountAuthAction, status: "authenticated"|"accepted"|"updated"|"disabled", expiresUnix?: number|null }} NormalizedAuthActionResult
    * @typedef {{ mode: PasswordAuthAction, status: "loading"|"success"|"error", code?: string }} PasswordAuthStatusEventDetail
    * @typedef {{ action: AccountAuthAction, status: "loading"|"success"|"error", code?: string }} AccountPanelStatusEventDetail
    * @typedef {{
@@ -5688,39 +5682,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
 
     /**
-     * @param {PasswordAuthAction|AccountAuthAction} action
-     * @param {object|null} payload
-     * @param {AuthActionResultOptions|undefined} resultOptions
-     * @returns {NormalizedAuthActionResult}
-     */
-    function challengeActionResult(action, payload, resultOptions) {
-      var safeResult = safeChallengeResult(action, payload);
-      if (!resultOptions || resultOptions.includeChallengeToken !== true) {
-        return safeResult;
-      }
-      var tokenField = CHALLENGE_TOKEN_FIELDS[action];
-      var challengeToken =
-        tokenField && payload && typeof payload[tokenField] === "string"
-          ? payload[tokenField]
-          : "";
-      if (!challengeToken) {
-        return safeResult;
-      }
-      return Object.freeze({
-        action: safeResult.action,
-        status: safeResult.status,
-        expiresUnix: safeResult.expiresUnix,
-        challengeToken: challengeToken,
-      });
-    }
-
-    /**
      * @param {PasswordAuthAction} action
      * @param {PasswordActionRequest} request
-     * @param {AuthActionResultOptions} [resultOptions]
      * @returns {Promise<NormalizedAuthActionResult>}
      */
-    function performPasswordAction(action, request, resultOptions) {
+    function performPasswordAction(action, request) {
       if (!options.providers.password.enabled || !options.password) {
         return Promise.reject(
           createAuthConfigError(
@@ -5823,7 +5789,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           "mpr-ui:account:challenge-issued",
           publicChallengeResult,
         );
-        return challengeActionResult(action, payload, resultOptions);
+        return publicChallengeResult;
       }).catch(function handlePasswordActionFailure(error) {
         if (error && error.code === AUTH_RECOVERY_LIFECYCLE_CHANGED_ERROR_CODE) {
           throw error;
@@ -5845,10 +5811,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     /**
      * @param {AccountAuthAction} action
      * @param {AccountActionRequest} request
-     * @param {AuthActionResultOptions} [resultOptions]
      * @returns {Promise<NormalizedAuthActionResult>}
      */
-    function performAccountAction(action, request, resultOptions) {
+    function performAccountAction(action, request) {
       if (!options.account) {
         return Promise.reject(
           createAuthConfigError(
@@ -5983,7 +5948,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             "mpr-ui:account:challenge-issued",
             publicChallengeResult,
           );
-          return challengeActionResult(action, payload, resultOptions);
+          return publicChallengeResult;
         }
         markAuthenticated(payload);
         var updatedResult = Object.freeze({ action: action, status: "updated" });
@@ -16409,6 +16374,42 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     };
   }
 
+  function applyChallengeTokenFragment(hostElement, inputs) {
+    var parameterName = hostElement.getAttribute(
+      CHALLENGE_TOKEN_FRAGMENT_PARAMETER_ATTRIBUTE,
+    );
+    if (parameterName === null) {
+      return;
+    }
+    if (!inputs.token || !/^[A-Za-z][A-Za-z0-9_-]*$/.test(parameterName)) {
+      throw createAuthComponentError(
+        "mpr-ui.auth_component.token_fragment_parameter_invalid",
+        "A token form and valid fragment parameter are required",
+      );
+    }
+    var documentObject = hostElement.ownerDocument || global.document;
+    var windowObject = documentObject && documentObject.defaultView;
+    if (!windowObject || !windowObject.location) {
+      return;
+    }
+    var fragmentValues = new URLSearchParams(
+      String(windowObject.location.hash || "").replace(/^#/, ""),
+    );
+    var challengeToken = fragmentValues.get(parameterName);
+    if (!challengeToken) {
+      return;
+    }
+    inputs.token.value = challengeToken;
+    fragmentValues.delete(parameterName);
+    var nextURL = new URL(windowObject.location.href);
+    nextURL.hash = fragmentValues.toString();
+    windowObject.history.replaceState(
+      windowObject.history.state,
+      "",
+      nextURL.href,
+    );
+  }
+
   function readAuthFormRequest(definition, inputs) {
     var request = {};
     definition.fields.forEach(function readAuthField(fieldDefinition) {
@@ -16464,7 +16465,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             AUTH_CONFIG_ATTRIBUTE,
             PASSWORD_AUTH_MODE_ATTRIBUTE,
             AUTH_COMPONENT_TARGET_ATTRIBUTE,
-            CHALLENGE_TOKEN_DISPLAY_ATTRIBUTE,
+            CHALLENGE_TOKEN_FRAGMENT_PARAMETER_ATTRIBUTE,
             "disabled",
           ];
         }
@@ -16522,6 +16523,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           var definition = PASSWORD_AUTH_FORM_DEFINITIONS[mode];
           var hostDisabled = this.hasAttribute("disabled");
           var formElements = createAuthForm(documentObject, definition, hostDisabled);
+          try {
+            applyChallengeTokenFragment(this, formElements.inputs);
+          } catch (error) {
+            renderAuthComponentError(this, "data-mpr-password-auth-error", error);
+            return;
+          }
           var passwordElement = this;
           var currentAttempt = this.__passwordAttempt;
           this.__passwordSubmitHandler = function handlePasswordSubmit(event) {
@@ -16543,30 +16550,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
               mode: mode,
               status: "loading",
             });
-            var resultOptions = {
-              includeChallengeToken: passwordElement.hasAttribute(
-                CHALLENGE_TOKEN_DISPLAY_ATTRIBUTE,
-              ),
-            };
             Promise.resolve(
-              authContext.controller.performPasswordAction(
-                mode,
-                request,
-                resultOptions,
-              ),
+              authContext.controller.performPasswordAction(mode, request),
             ).then(
               function handlePasswordSuccess(result) {
                 if (currentAttempt !== passwordElement.__passwordAttempt) {
                   return;
                 }
-                var successMessage =
-                  result && typeof result.challengeToken === "string"
-                    ? AUTH_FORM_LABELS.challengeToken + result.challengeToken
-                    : AUTH_FORM_LABELS.success;
                 setAuthFormStatus(
                   formElements,
                   "success",
-                  successMessage,
+                  AUTH_FORM_LABELS.success,
                   hostDisabled,
                 );
                 passwordElement.removeAttribute("data-mpr-password-auth-error");
@@ -16628,7 +16622,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             ACCOUNT_PANEL_ACTION_ATTRIBUTE,
             AUTH_COMPONENT_TARGET_ATTRIBUTE,
             ACCOUNT_PANEL_IDENTITIES_ATTRIBUTE,
-            CHALLENGE_TOKEN_DISPLAY_ATTRIBUTE,
+            CHALLENGE_TOKEN_FRAGMENT_PARAMETER_ATTRIBUTE,
             "disabled",
           ];
         }
@@ -16747,20 +16741,22 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             hostDisabled,
             action !== "google-link",
           );
+          try {
+            applyChallengeTokenFragment(this, formElements.inputs);
+          } catch (error) {
+            renderAuthComponentError(this, "data-mpr-account-panel-error", error);
+            return;
+          }
           var accountElement = this;
           var currentAttempt = this.__accountAttempt;
           function handleAccountSuccess(result) {
             if (currentAttempt !== accountElement.__accountAttempt) {
               return;
             }
-            var successMessage =
-              result && typeof result.challengeToken === "string"
-                ? AUTH_FORM_LABELS.challengeToken + result.challengeToken
-                : AUTH_FORM_LABELS.success;
             setAuthFormStatus(
               formElements,
               "success",
-              successMessage,
+              AUTH_FORM_LABELS.success,
               hostDisabled,
             );
             accountElement.removeAttribute("data-mpr-account-panel-error");
@@ -16920,11 +16916,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
               action: action,
             });
             Promise.resolve(
-              authContext.controller.performAccountAction(action, request, {
-                includeChallengeToken: accountElement.hasAttribute(
-                  CHALLENGE_TOKEN_DISPLAY_ATTRIBUTE,
-                ),
-              }),
+              authContext.controller.performAccountAction(action, request),
             ).then(handleAccountSuccess, handleAccountFailure);
           };
           formElements.form.addEventListener("submit", this.__accountSubmitHandler);

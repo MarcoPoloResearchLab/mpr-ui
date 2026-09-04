@@ -1,5 +1,8 @@
 # Changelog
 
+- Added a source-built local TAuth and Pinguin stack with managed real-SMTP tenant bootstrap. Challenge links use fragments, and responses contain no tokens.
+- Removed the public local-fixture path that exposed server-returned challenge values.
+
 ## [Unreleased]
 
 ### Features ✨

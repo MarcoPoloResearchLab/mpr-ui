@@ -463,4 +463,19 @@ test.describe('Runtime configuration presentation ownership', () => {
       expect(exposedText).not.toContain(secretValue);
     });
   });
+
+  test('F010: challenge forms read returned tokens inside the shared component boundary', async ({ page }) => {
+    await visitConfigLoaderFixture(
+      page,
+      'auth_action=verify-email#token=email-verification-secret',
+    );
+    await mountF007Component(page, 'mpr-password-auth', 'mode', 'verify-email', {
+      'token-fragment-parameter': 'token',
+    });
+
+    await expect(
+      page.locator('[data-test="f007-component"]').getByLabel('Challenge token'),
+    ).toHaveValue('email-verification-secret');
+    await expect(page).toHaveURL(/auth_action=verify-email$/);
+  });
 });
