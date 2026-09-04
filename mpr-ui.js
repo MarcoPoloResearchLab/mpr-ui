@@ -7026,12 +7026,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--google:hover{background:#202124}" +
     ".mpr-auth-actions__status{min-block-size:1.2em;margin:0;color:var(--mpr-color-text-muted,#cbd5f5);font-size:.78rem;line-height:1.2}" +
     "mpr-header .mpr-auth-actions__status:empty{display:none}" +
-    "mpr-header .mpr-auth-actions{--mpr-auth-provider-scale:var(--mpr-header-scale,1);max-inline-size:100%}" +
+    "mpr-header .mpr-auth-actions{position:relative;--mpr-auth-provider-scale:var(--mpr-header-scale,1);max-inline-size:100%}" +
     "mpr-header .mpr-auth-actions__controls{overflow:visible}" +
+    "mpr-header .mpr-auth-actions>mpr-password-auth{position:absolute;z-index:1000;inset-block-start:calc(100% + .35rem);inset-inline-end:0;inline-size:min(20rem,calc(100vw - 1.5rem));max-inline-size:none;box-shadow:var(--mpr-shadow-flyout,0 16px 32px rgba(15,23,42,.28))}" +
     "mpr-header .mpr-auth-google-button{inline-size:var(--mpr-auth-action-block-size);block-size:var(--mpr-auth-action-block-size);min-inline-size:var(--mpr-auth-action-block-size);min-block-size:var(--mpr-auth-action-block-size);border:1px solid #8e918f;border-radius:var(--mpr-radius-control,6px);background:#000;color:#e3e5ec}" +
     "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__action{position:relative;grid-template-columns:1fr;place-items:center;inline-size:var(--mpr-auth-action-block-size);min-inline-size:var(--mpr-auth-action-block-size);padding:0;border-color:#8e918f;border-style:solid;border-width:1px;aspect-ratio:1/1;overflow:hidden}" +
     "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__mark{grid-column:1;grid-row:1}" +
     "mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__label{position:absolute;inline-size:1px;block-size:1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap}" +
+    "@media(max-width:48rem){mpr-header .mpr-header__auth-actions,mpr-header .mpr-auth-actions{inline-size:100%}mpr-header .mpr-auth-actions__controls{justify-content:flex-end}mpr-header .mpr-auth-actions>mpr-password-auth{inline-size:100%}}" +
     ".mpr-auth-diagnostics{display:grid;gap:.5rem;padding:.75rem;border:1px solid var(--mpr-color-border,#2c2f36);border-radius:var(--mpr-radius-control,6px);background:var(--mpr-color-surface-elevated,#1f2126);color:var(--mpr-color-text-primary,#e3e5ec)}" +
     ".mpr-auth-diagnostics__heading{margin:0;font-size:.86rem}" +
     ".mpr-auth-diagnostics__list{display:grid;gap:.35rem;margin:0}" +

@@ -148,7 +148,7 @@ test.describe('Size parameter support', () => {
 });
 
 test.describe('Authentication provider control sizing', () => {
-  test('B054, B055, B063, and B064: provider controls stay available and contained', async ({
+  test('B054, B055, B063, B064, and B065: provider controls stay available and contained', async ({
     page,
   }) => {
     await visitFullLayoutFixture(page);
@@ -298,15 +298,37 @@ test.describe('Authentication provider control sizing', () => {
       await googleButton.click();
       await expect(emailButton).toBeEnabled();
       await expect(headerHost.locator('.mpr-auth-actions__status')).toBeEmpty();
+      const collapsedMetrics = await headerHost.evaluate((headerElement) => {
+        const headerBounds = headerElement.getBoundingClientRect();
+        const mainBounds = document.querySelector('main')?.getBoundingClientRect();
+        return {
+          documentScrollWidth: document.documentElement.scrollWidth,
+          headerHeight: headerBounds.height,
+          mainTop: mainBounds?.top ?? null,
+          scrollX: window.scrollX,
+        };
+      });
       await emailButton.click();
       const passwordForm = headerHost.locator('mpr-password-auth');
       await expect(passwordForm).toBeVisible();
       const formMetrics = await passwordForm.evaluate((formElement) => {
         const formBounds = formElement.getBoundingClientRect();
+        const headerBounds = formElement.closest('mpr-header')?.getBoundingClientRect();
+        const providerBounds = formElement
+          .closest('.mpr-auth-actions')
+          ?.querySelector('.mpr-auth-actions__controls')
+          ?.getBoundingClientRect();
+        const mainBounds = document.querySelector('main')?.getBoundingClientRect();
         const controls = Array.from(formElement.querySelectorAll('input, button'));
         return {
+          documentScrollWidth: document.documentElement.scrollWidth,
+          headerHeight: headerBounds?.height ?? null,
           left: formBounds.left,
+          mainTop: mainBounds?.top ?? null,
+          providerBottom: providerBounds?.bottom ?? null,
           right: formBounds.right,
+          scrollX: window.scrollX,
+          top: formBounds.top,
           viewportWidth: window.innerWidth,
           controls: controls.map((controlElement) => {
             const controlBounds = controlElement.getBoundingClientRect();
@@ -317,6 +339,17 @@ test.describe('Authentication provider control sizing', () => {
           }),
         };
       });
+      expect(formMetrics.documentScrollWidth, viewportCase.name).toBe(
+        collapsedMetrics.documentScrollWidth,
+      );
+      expect(formMetrics.headerHeight, viewportCase.name).toBe(
+        collapsedMetrics.headerHeight,
+      );
+      expect(formMetrics.mainTop, viewportCase.name).toBe(collapsedMetrics.mainTop);
+      expect(formMetrics.scrollX, viewportCase.name).toBe(collapsedMetrics.scrollX);
+      expect(formMetrics.top, viewportCase.name).toBeGreaterThanOrEqual(
+        formMetrics.providerBottom ?? 0,
+      );
       expect(formMetrics.left, viewportCase.name).toBeGreaterThanOrEqual(0);
       expect(formMetrics.right, viewportCase.name).toBeLessThanOrEqual(
         formMetrics.viewportWidth,

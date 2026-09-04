@@ -128,7 +128,7 @@ Required attributes:
 
 Optional `disabled` prevents input and submission. The form exposes its current state through `data-mpr-password-auth-status`. It emits `mpr-ui:password-auth:submit` and `mpr-ui:password-auth:status`. Event details contain the mode, status, and stable error code only. They never contain email values, passwords, or challenge tokens.
 
-The form uses border-box width. It stays inside its owning auth surface at narrow browser widths.
+The form uses border-box width. It stays inside its owning auth surface at narrow browser widths. In a header, the form opens below the provider controls. It does not change the header size or page position.
 
 Local fixtures that enable TAuth `return_challenge_tokens` can add the
 `display-challenge-token` attribute to `signup` and `reset-start` forms. The

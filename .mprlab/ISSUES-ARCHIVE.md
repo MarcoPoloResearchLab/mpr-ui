@@ -6,6 +6,39 @@ Archived 2026-09-01 by M400R.
 
 ## BugFixes
 
+- [x] [B065] (P1) {B063,F010} The header email form changes the page layout.
+  Goal:
+  The header email form opens above the page content and stays inside the browser viewport.
+
+  Expected:
+  The email form opens below the provider controls without a change to the header size or page position.
+
+  Actual:
+  The email form increases the header height and moves the page content.
+
+  Requirements:
+  - Position the header email form outside the header layout.
+  - Align the form with the provider controls.
+  - Keep the form inside the browser viewport at each supported width.
+  - Keep the standalone auth controls unchanged.
+
+  Deliverables:
+  - Correct the header email form position.
+  - Add browser coverage for the header and page position.
+  - Update the component documentation and changelog.
+
+  Validation:
+  - Open the email form at each test width.
+  - Verify that the header size and page position do not change.
+  - Verify that the form stays inside the browser viewport.
+  - Run `make ci` after the final source, test, and documentation changes.
+
+  Resolution:
+  The header email form now opens below the provider controls. The form does not change the header size or page position.
+
+  Validation result:
+  The browser test passed at desktop, phone, and compact browser widths. The live demo passed at a 272-pixel viewport. `make ci` passed.
+
 - [x] [B057] (P1) The complete local demo does not show the Apple provider.
   Goal:
   The complete local demo shows and exercises Google, Apple, and email authentication controls.
