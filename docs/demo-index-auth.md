@@ -54,6 +54,29 @@ make down
 `make up` builds the current sibling TAuth and Pinguin sources. It creates or refreshes the managed Pinguin demo tenant, starts one shared stack, and sends password-account challenge email through the configured real SMTP relay. The header, standalone, password/account, and entity-workspace pages are navigation targets inside that stack.
 The disposable local account uses `demo@mprlab.local` and `mpr-ui-demo`.
 
+### Private delivery owner
+
+The delivery owner uses the `mpr-ui-delivery-admin` TAuth tenant and the `mpr_ui_delivery_session` cookie.
+The browser demo account has no delivery administration access. Pinguin has no published management port.
+The frontend uses an explicit list of public files. Requests for private environment files, backend configuration, and Git metadata return `404`.
+The static preview uses the same public-file list from `docker-compose.yml`.
+
+Before `make up`, configure these values in `demo/.env.tauth`:
+
+1. Set `PINGUIN_BOOTSTRAP_PASSWORD` to a new random password.
+2. Run `htpasswd -nBC 12 delivery-owner` and enter that password at both prompts.
+3. Set `PINGUIN_BOOTSTRAP_PASSWORD_HASH` to the output after `delivery-owner:`. Keep the complete bcrypt hash in single quotes.
+4. Run `openssl rand -base64 48` to generate a separate signing key.
+5. Set `PINGUIN_BOOTSTRAP_SIGNING_KEY` to that output. This key must differ from `TAUTH_JWT_SIGNING_KEY`.
+
+The bootstrap uses `delivery-owner@mprlab.local` and the private password. TAuth disables account management for this tenant.
+On the next startup, Pinguin rejects all demo-session cookies, including cookies from the previous configuration.
+The bootstrap creates a new private tenant. The previous tenant and notification records remain in the database.
+
+Run `make test-delivery` to verify bootstrap, repeated startup, and session separation with isolated containers.
+The test sends no email. It removes only its temporary containers and volumes.
+It also verifies public pages, the authentication proxy, and rejection of private file requests.
+
 ## Canonical browser contract
 
 Auth-bearing pages load assets in this order:

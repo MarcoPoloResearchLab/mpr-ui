@@ -179,6 +179,13 @@ Google sign-in and account linking start only from their rendered buttons.
 
 For `password-link-verify`, `token-fragment-parameter="token"` reads and removes the Pinguin-delivered fragment token under the same rules as `<mpr-password-auth>`.
 
+The component keeps the token when attributes change on the same form, including when `disabled` is removed.
+Submission, a different form context, or component removal clears the token. Password values are not kept through these changes.
+
+Google controls use the GIS button `state` field to identify the selected action.
+Each pending action keeps the nonce active at the time of the click. Another control cannot replace its callback destination.
+Disconnected controls and completed actions reject subsequent credential responses.
+
 TAuth owns password policy, challenge delivery, linked-identity rules, cookies, and account state. `mpr-ui` owns the shared forms and browser auth events. Host apps own route protection, app-specific profile fields, and bespoke account-policy decisions.
 
 ## mpr-auth-diagnostics
