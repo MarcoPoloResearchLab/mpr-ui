@@ -263,6 +263,10 @@ Open `http://localhost:4443/`. Stop the stack with `make down`.
 
 `make up` builds the current sibling TAuth and Pinguin sources. It creates or refreshes one managed Pinguin tenant from the private SMTP environment, starts the gHTTP frontend, and proxies the authentication routes. The frontend serves the current repository source with `Cache-Control: no-store`.
 The disposable local account uses `demo@mprlab.local` and `mpr-ui-demo`.
+The delivery owner uses a separate TAuth tenant, password, signing key, and session cookie.
+Pinguin accepts only the delivery session for administration. Its management port is internal to the Compose network.
+The frontend mounts only public files. Private environment files and repository metadata are outside its document root.
+Configure the three `PINGUIN_BOOTSTRAP_*` values in `demo/.env.tauth` before startup. See [local delivery setup](docs/demo-index-auth.md#private-delivery-owner).
 
 ## Development and validation
 
@@ -272,6 +276,8 @@ make ci
 ```
 
 `make ci` runs the Node suite, browser coverage gate, and Playwright acceptance suite. Use `npm run demo:serve` for static visual inspection.
+`make test-delivery` builds isolated TAuth and Pinguin containers and checks delivery administration through their HTTP APIs.
+This check requires Docker, `uv`, and both sibling repositories. It uses temporary data and sends no email.
 
 ## Documentation
 
