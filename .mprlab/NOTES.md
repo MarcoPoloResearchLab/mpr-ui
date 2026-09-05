@@ -231,3 +231,20 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - Added a default avatar for provider profiles without an avatar URL.
 - Validation: `make ci` passed 206 Node tests and two browser runs of 131 tests.
 - Apple service format, vet, and test checks passed.
+
+## 2026-09-05
+
+- F010 review: integration tests first reproduced public delivery administration, incorrect Google callback routing, and lost challenge tokens.
+- The delivery test failed because a public demo session authorized the Pinguin tenant API.
+- The Google test sent account-link credentials to `/auth/google` after a login-control refresh.
+- The challenge tests received empty token fields after removal of `disabled`.
+- A separate TAuth tenant, signing key, and cookie now control delivery administration. The management port is internal.
+- Google responses use button state and the nonce from the click. Challenge forms keep tokens through same-context changes.
+- Validation passed: `make ci`, `make test-delivery`, and strict Python type checks.
+- `make ci` passed 210 Node tests and two browser runs of 132 tests.
+- The existing local services stayed unchanged. Private delivery inputs and a restart are necessary for runtime acceptance.
+- An independent security review found that the frontend served private files from the repository root.
+- The HTTP regression first reproduced access to a private environment fixture. Explicit public-file mounts closed this path.
+- The static preview now uses the same public-file list. Its HTTP regression first reproduced private-file access.
+- The preview-server TypeScript check passed. The full-library TypeScript check reported an existing `TS2345` error at `parseAccountIdentityOptions(this)`.
+- The unchanged branch head produced the same error. This check is outside `make ci`.
