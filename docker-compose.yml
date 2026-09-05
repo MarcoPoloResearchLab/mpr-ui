@@ -13,7 +13,32 @@ services:
     ports:
       - "4443:8000"
     volumes:
-      - ./:/app/www:ro
+      - ./index.html:/app/www/index.html:ro
+      - ./mpr-ui.js:/app/www/mpr-ui.js:ro
+      - ./mpr-ui.css:/app/www/mpr-ui.css:ro
+      - ./mpr-ui-config.js:/app/www/mpr-ui-config.js:ro
+      - ./README.md:/app/www/README.md:ro
+      - ./ARCHITECTURE.md:/app/www/ARCHITECTURE.md:ro
+      - ./CHANGELOG.md:/app/www/CHANGELOG.md:ro
+      - ./demo/demo.js:/app/www/demo/demo.js:ro
+      - ./demo/demo.css:/app/www/demo/demo.css:ro
+      - ./demo/demo-user.svg:/app/www/demo/demo-user.svg:ro
+      - ./demo/config-ui.yaml:/app/www/demo/config-ui.yaml:ro
+      - ./demo/components.html:/app/www/demo/components.html:ro
+      - ./demo/standalone.html:/app/www/demo/standalone.html:ro
+      - ./demo/tauth-demo.html:/app/www/demo/tauth-demo.html:ro
+      - ./demo/tauth-settings-modal.js:/app/www/demo/tauth-settings-modal.js:ro
+      - ./demo/status-panel.js:/app/www/demo/status-panel.js:ro
+      - ./demo/auth-provider-chooser.html:/app/www/demo/auth-provider-chooser.html:ro
+      - ./demo/auth-provider-chooser.js:/app/www/demo/auth-provider-chooser.js:ro
+      - ./demo/entity-workspace.html:/app/www/demo/entity-workspace.html:ro
+      - ./demo/entity-workspace.js:/app/www/demo/entity-workspace.js:ro
+      - ./demo/entity-workspace.css:/app/www/demo/entity-workspace.css:ro
+      - ./demo/entity-workspace.json:/app/www/demo/entity-workspace.json:ro
+      - ./docs/alpine.js.md:/app/www/docs/alpine.js.md:ro
+      - ./docs/custom-elements.md:/app/www/docs/custom-elements.md:ro
+      - ./docs/demo-index-auth.md:/app/www/docs/demo-index-auth.md:ro
+      - ./docs/integration-guide.md:/app/www/docs/integration-guide.md:ro
     restart: unless-stopped
 
   tauth:
@@ -30,6 +55,8 @@ services:
       TAUTH_PASSWORD_USER_EMAIL: "demo@mprlab.local"
       TAUTH_PASSWORD_HASH: "$$2y$$12$$UihC9c7inwl90d3iKzlH3OPsrJn2OIGhgAT/TkOHbcueVdNrkf0zS"
       PINGUIN_DEMO_API_KEY: "${PINGUIN_DEMO_API_KEY}"
+      PINGUIN_BOOTSTRAP_PASSWORD_HASH: "${PINGUIN_BOOTSTRAP_PASSWORD_HASH:?Set the private delivery owner bcrypt hash}"
+      PINGUIN_BOOTSTRAP_SIGNING_KEY: "${PINGUIN_BOOTSTRAP_SIGNING_KEY:?Set a separate private delivery signing key}"
     depends_on:
       pinguin:
         condition: service_healthy
@@ -47,10 +74,8 @@ services:
     env_file:
       - ../Pinguin/configs/.env.pinguin
     environment:
-      TAUTH_SIGNING_KEY: "${TAUTH_JWT_SIGNING_KEY}"
-      TAUTH_COOKIE_NAME: "app_session"
-    ports:
-      - "8081:8081"
+      TAUTH_SIGNING_KEY: "${PINGUIN_BOOTSTRAP_SIGNING_KEY:?Set a separate private delivery signing key}"
+      TAUTH_COOKIE_NAME: "mpr_ui_delivery_session"
     volumes:
       - pinguin_data:/app/data
       - ../Pinguin/configs/config.pinguin.yml:/config/config.yml:ro
@@ -73,6 +98,7 @@ services:
     environment:
       PINGUIN_DEMO_CREDENTIAL_ID: "${PINGUIN_DEMO_CREDENTIAL_ID}"
       PINGUIN_DEMO_CREDENTIAL_DIGEST: "${PINGUIN_DEMO_CREDENTIAL_DIGEST}"
+      PINGUIN_BOOTSTRAP_PASSWORD: "${PINGUIN_BOOTSTRAP_PASSWORD:?Set the private delivery owner password}"
     volumes:
       - ./demo/bootstrap_pinguin.py:/app/bootstrap_pinguin.py:ro
     command: ["python", "/app/bootstrap_pinguin.py"]
