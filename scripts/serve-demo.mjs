@@ -1,9 +1,11 @@
 #!/usr/bin/env node
+// @ts-check
 
-import { createReadStream, existsSync, statSync } from 'node:fs';
+import { createReadStream, existsSync, readFileSync, statSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { extname, join, relative, resolve, sep as pathSeparator } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { load } from 'js-yaml';
 
 const DEFAULT_HOST = '127.0.0.1';
 const DEFAULT_PORT = 4177;
@@ -22,6 +24,12 @@ const CONTENT_TYPES = Object.freeze({
 
 const scriptDirectory = fileURLToPath(new URL('.', import.meta.url));
 const repositoryRoot = resolve(scriptDirectory, '..');
+const composeConfig = /** @type {{services: {frontend: {volumes: string[]}}}} */ (
+  load(readFileSync(join(repositoryRoot, 'docker-compose.yml'), 'utf8'))
+);
+const publicFiles = new Set(
+  composeConfig.services.frontend.volumes.map((mount) => resolve(repositoryRoot, mount.split(':')[0])),
+);
 
 function readPort() {
   const rawPort =
@@ -56,7 +64,7 @@ function resolveRequestPath(requestUrl) {
   const decodedPathname = decodeURIComponent(parsedUrl.pathname);
   const requestPath = decodedPathname === '/' ? 'index.html' : decodedPathname.replace(/^\/+/, '');
   const candidatePath = resolve(repositoryRoot, requestPath);
-  if (!isInsideRepository(candidatePath)) {
+  if (!isInsideRepository(candidatePath) || !publicFiles.has(candidatePath)) {
     return null;
   }
   if (!existsSync(candidatePath)) {
