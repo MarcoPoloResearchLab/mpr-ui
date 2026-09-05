@@ -12,6 +12,17 @@ const MAX_CONTROL_HEIGHT_PIXELS = 48;
 const MAX_PANEL_RADIUS_PIXELS = 12;
 const GOOGLE_NONCE_PATH = '/auth/nonce';
 
+test('review: demo servers expose public assets without private repository files', async ({ request }) => {
+  for (const privatePath of ['/.env.tauth.example', '/demo/tauth-config.yaml', '/demo/bootstrap_pinguin.py', '/.git/config']) {
+    const response = await request.get(DEMO_BASE_URL + privatePath);
+    expect(response.status(), privatePath).toBe(404);
+  }
+  for (const publicPath of ['/', '/mpr-ui.js', '/demo/config-ui.yaml', '/docs/custom-elements.md']) {
+    const response = await request.get(DEMO_BASE_URL + publicPath);
+    expect(response.status(), publicPath).toBe(200);
+  }
+});
+
 const DEMO_ROUTES = Object.freeze([
   Object.freeze({
     name: 'demo hub',

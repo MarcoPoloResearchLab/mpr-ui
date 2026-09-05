@@ -257,15 +257,15 @@ test('demo pages keep the shared slotted avatar control in the header', () => {
 test('docker compose keeps the index demo as the single root entrypoint', () => {
   assert.match(
     dockerCompose,
-    /- \.\/:[^\s]*\/app\/www/,
-    'Expected docker-compose.yml to mount the repository as the app root',
+    /- \.\/index\.html:\/app\/www\/index\.html:ro/,
+    'Expected docker-compose.yml to mount the public index file',
   );
   assert.match(dockerCompose, /GHTTP_SERVE_PORT:\s+"8000"/);
   assert.match(dockerCompose, /- "4443:8000"/);
   assert.match(
     dockerCompose,
     /GHTTP_SERVE_DIRECTORY:\s+"\/app\/www"/,
-    'Expected gHTTP to serve the complete repository-mounted demo suite',
+    'Expected gHTTP to serve the public demo files',
   );
   assert.match(
     dockerCompose,

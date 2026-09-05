@@ -61,6 +61,7 @@ const GOOGLE_IDENTITY_STUB = String.raw`
     const buttonElement = hostDocument.createElement('button');
     buttonElement.setAttribute('type', 'button');
     buttonElement.setAttribute('data-mpr-google-sentinel', 'true');
+    buttonElement.setAttribute('data-google-state', options.state);
     const defaultLabel = options && options.text === 'signin_with'
       ? 'Sign in with Google'
       : 'Continue with Google';
@@ -438,6 +439,9 @@ async function visitUserMenuFixture(page) {
  * @returns {Promise<void>}
  */
 async function visitAuthTransitionFixture(page) {
+  await page.addInitScript(() => {
+    window.requestNonce = () => Promise.resolve('fixture-google-nonce');
+  });
   await Promise.all([
     routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),

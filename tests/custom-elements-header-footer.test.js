@@ -1549,11 +1549,12 @@ test('mpr-header rebinds auth endpoints when tauth-url changes after first rende
   const fetchCalls = [];
   const exchangePayloads = [];
   const initializeCalls = [];
+  let buttonOptions;
   global.location = { origin: 'http://fallback-origin.test' };
   global.google = {
     accounts: {
       id: {
-        renderButton() {},
+        renderButton(_target, options) { buttonOptions = options; },
         initialize(config) {
           initializeCalls.push(config);
         },
@@ -1634,7 +1635,8 @@ test('mpr-header rebinds auth endpoints when tauth-url changes after first rende
     'updated-nonce-token',
     'updated button initializes GIS with the issued nonce',
   );
-  await initializeCalls[1].callback({ credential: 'updated-header-token' });
+  buttonOptions.click_listener();
+  await initializeCalls[1].callback({ credential: 'updated-header-token', state: buttonOptions.state });
   assert.deepEqual(
     fetchCalls,
     [
@@ -4332,7 +4334,7 @@ test('mpr-login-button rebinds auth endpoints when tauth-url changes after first
   };
 
   loadLibrary();
-  const { element } = createLoginButtonHarness(googleStub);
+  const { element, renderCalls } = createLoginButtonHarness(googleStub);
   setGoogleAuthConfig(element, {
     googleClientId: 'custom-site',
     googleLoginPath: '/auth/login',
@@ -4370,7 +4372,9 @@ test('mpr-login-button rebinds auth endpoints when tauth-url changes after first
     'updated-login-nonce',
     'updated login button initializes GIS with the updated nonce',
   );
-  await initializeCalls[1].callback({ credential: 'updated-login-token' });
+  const buttonOptions = renderCalls[renderCalls.length - 1].config;
+  buttonOptions.click_listener();
+  await initializeCalls[1].callback({ credential: 'updated-login-token', state: buttonOptions.state });
   assert.deepEqual(
     fetchCalls,
     [
@@ -5847,7 +5851,7 @@ test('B061: account panel renders the official nonce-bound Google link button', 
   global.google = {
     accounts: {
       id: {
-        initialize() {},
+        initialize(config) { credentialHandler = config.callback; },
         renderButton(target, config) {
           renderTarget = target;
           renderConfig = config;
@@ -5860,6 +5864,10 @@ test('B061: account panel renders the official nonce-bound Google link button', 
   const AccountPanelElement = global.customElements.get('mpr-account-panel');
   const authConfig = createPasswordAccountAuthConfig();
   const normalizedOptions = library.createAuthOptions(authConfig);
+  global.requestNonce = () => Promise.resolve('google-link-nonce');
+  const nonceController = library.createAuthHeader(
+    attachHostApi(new global.HTMLElement(), new Map()), authConfig,
+  );
   const calls = [];
   const controller = {
     host: createStubNode({ supportsEvents: true }),
@@ -5874,10 +5882,7 @@ test('B061: account panel renders the official nonce-bound Google link button', 
     performAccountAction() {
       return Promise.resolve();
     },
-    prepareGoogleNonce(handler) {
-      credentialHandler = handler;
-      return Promise.resolve('google-link-nonce');
-    },
+    prepareGoogleNonce: nonceController.prepareGoogleNonce,
     startGoogleLink(credentialResponse, nonceToken) {
       calls.push({ credentialResponse, nonceToken });
       return Promise.resolve({ action: 'google-link', status: 'updated' });
@@ -5906,19 +5911,20 @@ test('B061: account panel renders the official nonce-bound Google link button', 
   renderConfig.click_listener();
   assert.equal(element.getAttribute('data-mpr-account-panel-status'), 'loading');
   await credentialHandler(
-    { credential: 'google-link-credential' },
+    { credential: 'google-link-credential', state: renderConfig.state },
     'google-link-nonce',
   );
   await flushAsync();
 
   assert.deepEqual(calls, [
     {
-      credentialResponse: { credential: 'google-link-credential' },
+      credentialResponse: { credential: 'google-link-credential', state: renderConfig.state },
       nonceToken: 'google-link-nonce',
     },
   ]);
   assert.equal(element.getAttribute('data-mpr-account-panel-status'), 'success');
   element.disconnectedCallback();
+  delete global.requestNonce;
   assert.equal(renderTarget.children.length, 0, 'disconnect clears the rendered GIS control');
 });
 

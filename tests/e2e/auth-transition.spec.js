@@ -21,7 +21,10 @@ test.describe('Header auth transition screen', () => {
     await page.waitForFunction(() => Boolean(window.google?.accounts?.id?.__callback));
 
     await page.evaluate(() => {
-      window.google.accounts.id.__callback({ credential: 'fixture-id-token' });
+      window.google.accounts.id.__callback({
+        credential: 'fixture-id-token',
+        state: document.querySelector('[data-mpr-google-sentinel]').getAttribute('data-google-state'),
+      });
     });
 
     await expect(transition).toHaveAttribute('data-mpr-visible', 'true');

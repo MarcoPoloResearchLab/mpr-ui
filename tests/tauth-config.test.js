@@ -139,3 +139,23 @@ test('B058: local runtime contains no simulated Apple provider', () => {
   assert.doesNotMatch(repositoryComposeContents, /TAUTH_APPLE_PRIVATE_KEY/);
   assert.doesNotMatch(demoConfigContents, /authorization_endpoint|token_endpoint|jwks_url/);
 });
+
+test('review: delivery administration uses a private signer and internal management API', () => {
+  const { load } = require('js-yaml');
+  const services = load(repositoryComposeContents).services;
+  for (const mount of services.frontend.volumes) {
+    const source = mount.split(':')[0];
+    assert.match(source, /\.(html|js|css|svg|json|md|yaml)$/);
+    assert.doesNotMatch(source, /(?:\.env|\.git|tauth-config|bootstrap_pinguin)/);
+  }
+  assert.equal(services.pinguin.ports, undefined);
+  assert.match(services.pinguin.environment.TAUTH_SIGNING_KEY, /PINGUIN_BOOTSTRAP_SIGNING_KEY/);
+  assert.equal(services.pinguin.environment.TAUTH_COOKIE_NAME, 'mpr_ui_delivery_session');
+  const tenants = load(demoConfigContents).tenants;
+  const owner = tenants.find((tenant) => tenant.id === 'mpr-ui-delivery-admin');
+  assert.deepEqual(owner.tenant_origins, ['http://pinguin-bootstrap']);
+  assert.equal(owner.account_management.enabled, false);
+  assert.equal(owner.jwt_signing_key, '${PINGUIN_BOOTSTRAP_SIGNING_KEY}');
+  assert.equal(owner.password_auth.users[0].password_hash, '${PINGUIN_BOOTSTRAP_PASSWORD_HASH}');
+  assert.doesNotMatch(pinguinBootstrapContents, /demo@mprlab\.local|mpr-ui-demo/);
+});
