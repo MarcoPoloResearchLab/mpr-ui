@@ -2771,6 +2771,20 @@
     };
   }
 
+  var googleProviderActions = new Map();
+  var googleProviderActionSequence = 0;
+  var currentGoogleNonceToken = null;
+
+  function dispatchGoogleProviderCredential(payload) {
+    var action = payload && googleProviderActions.get(payload.state);
+    if (!action || !action.nonce) {
+      return;
+    }
+    var nonceToken = action.nonce;
+    action.nonce = null;
+    return action.handleCredential(payload, nonceToken);
+  }
+
   function mountGoogleProviderAction(
     hostElement,
     actionsElement,
@@ -2782,6 +2796,9 @@
     var isActive = true;
     var renderSequence = 0;
     var refreshTimerId = null;
+    var actionState = "mpr-google-" + (++googleProviderActionSequence);
+    var googleAction = { nonce: null, handleCredential: handleGoogleCredential };
+    googleProviderActions.set(actionState, googleAction);
     setAuthProviderElementClass(
       googleButtonHost,
       "mpr-auth-google-button",
@@ -2821,6 +2838,7 @@
     }
 
     function handleGoogleButtonClick() {
+      googleAction.nonce = currentGoogleNonceToken;
       if (displayOptions && typeof displayOptions.handleStart === "function") {
         displayOptions.handleStart(AUTH_PROVIDER_IDS.GOOGLE);
       }
@@ -2869,7 +2887,7 @@
       googleButtonHost.removeAttribute("data-mpr-google-error");
       googleButtonHost.setAttribute("aria-busy", "true");
       Promise.resolve(
-        authController.prepareGoogleNonce(handleGoogleCredential),
+        authController.prepareGoogleNonce(dispatchGoogleProviderCredential),
       ).then(
         function renderPreparedGoogleButton() {
           if (!isActive || currentRenderSequence !== renderSequence) {
@@ -2884,13 +2902,12 @@
           if (!googleId || typeof googleId.renderButton !== "function") {
             throw new Error("google identity button unavailable");
           }
-          googleId.renderButton(
-            googleButtonHost,
-            buildGoogleButtonRenderOptions(
-              displayOptions,
-              handleGoogleButtonClick,
-            ),
+          var renderOptions = buildGoogleButtonRenderOptions(
+            displayOptions,
+            handleGoogleButtonClick,
           );
+          renderOptions.state = actionState;
+          googleId.renderButton(googleButtonHost, renderOptions);
           googleButtonHost.setAttribute("data-mpr-google-ready", "true");
           googleButtonHost.setAttribute("aria-busy", "false");
           setActionStatus("ready", AUTH_PROVIDER_IDS.GOOGLE);
@@ -2918,6 +2935,7 @@
     return {
       target: googleButtonHost,
       cleanup: function cleanupGoogleProviderAction() {
+        googleProviderActions.delete(actionState);
         isActive = false;
         renderSequence += 1;
         clearRefreshTimer();
@@ -4923,6 +4941,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           initializeConfig.nonce = config.nonce;
         }
         googleClient.accounts.id.initialize(initializeConfig);
+        currentGoogleNonceToken = config.nonce;
       } catch (error) {
         if (typeof config.onError === "function") {
           config.onError(error);
@@ -5222,6 +5241,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         clientId: clientIdValue,
         nonce: nonceToken,
         callback: function (payload) {
+          if (credentialHandler === dispatchGoogleProviderCredential) {
+            return dispatchGoogleProviderCredential(payload);
+          }
           if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
             return;
           }
@@ -16374,10 +16396,21 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     };
   }
 
+  var challengeTokenForms = new WeakMap();
+
   function applyChallengeTokenFragment(hostElement, inputs) {
     var parameterName = hostElement.getAttribute(
       CHALLENGE_TOKEN_FRAGMENT_PARAMETER_ATTRIBUTE,
     );
+    var context = JSON.stringify([
+      hostElement.getAttribute(PASSWORD_AUTH_MODE_ATTRIBUTE),
+      hostElement.getAttribute(ACCOUNT_PANEL_ACTION_ATTRIBUTE),
+      hostElement.getAttribute(AUTH_COMPONENT_TARGET_ATTRIBUTE),
+      hostElement.getAttribute(AUTH_CONFIG_ATTRIBUTE),
+      parameterName,
+    ]);
+    var previousForm = challengeTokenForms.get(hostElement);
+    challengeTokenForms.delete(hostElement);
     if (parameterName === null) {
       return;
     }
@@ -16397,9 +16430,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     );
     var challengeToken = fragmentValues.get(parameterName);
     if (!challengeToken) {
+      if (previousForm && previousForm.context === context) {
+        inputs.token.value = previousForm.input.value;
+        challengeTokenForms.set(hostElement, { context: context, input: inputs.token });
+      }
       return;
     }
     inputs.token.value = challengeToken;
+    challengeTokenForms.set(hostElement, { context: context, input: inputs.token });
     fragmentValues.delete(parameterName);
     var nextURL = new URL(windowObject.location.href);
     nextURL.hash = fragmentValues.toString();
@@ -16477,6 +16515,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         }
         destroy() {
           this.__passwordAttempt += 1;
+          challengeTokenForms.delete(this);
           if (this.__passwordForm && this.__passwordSubmitHandler) {
             this.__passwordForm.removeEventListener(
               "submit",
@@ -16634,6 +16673,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         }
         destroy() {
           this.__accountAttempt += 1;
+          challengeTokenForms.delete(this);
           this.__detachAccountAuthEvents();
           if (this.__accountForm && this.__accountSubmitHandler) {
             this.__accountForm.removeEventListener("submit", this.__accountSubmitHandler);
