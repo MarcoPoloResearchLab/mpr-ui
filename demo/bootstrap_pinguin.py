@@ -13,11 +13,10 @@ from typing import Any
 
 TAUTH_LOGIN_URL = "http://tauth:8080/auth/password/login"
 PINGUIN_TENANTS_URL = "http://pinguin:8081/api/tenants"
-DEMO_ORIGIN = "http://localhost:4443"
+BOOTSTRAP_ORIGIN = "http://pinguin-bootstrap"
 DEMO_TENANT_NAME = "MPR UI Demo Delivery"
-DEMO_ACCOUNT_EMAIL = "demo@mprlab.local"
-DEMO_ACCOUNT_PASSWORD = "mpr-ui-demo"
-SESSION_COOKIE_NAME = "app_session"
+BOOTSTRAP_ACCOUNT_EMAIL = "delivery-owner@mprlab.local"
+SESSION_COOKIE_NAME = "mpr_ui_delivery_session"
 REQUEST_TIMEOUT_SECONDS = 10
 STARTUP_ATTEMPTS = 30
 STARTUP_RETRY_SECONDS = 1
@@ -53,15 +52,16 @@ def json_request(
 
 
 def login_session_cookie() -> str:
-    """Wait for TAuth and return the seeded demo account session cookie."""
+    """Wait for TAuth and return the private delivery account session cookie."""
+    password = required_environment("PINGUIN_BOOTSTRAP_PASSWORD")
     last_error: Exception | None = None
     for _attempt in range(STARTUP_ATTEMPTS):
         try:
             _payload, headers = json_request(
                 TAUTH_LOGIN_URL,
                 "POST",
-                {"email": DEMO_ACCOUNT_EMAIL, "password": DEMO_ACCOUNT_PASSWORD},
-                {"Origin": DEMO_ORIGIN},
+                {"email": BOOTSTRAP_ACCOUNT_EMAIL, "password": password},
+                {"Origin": BOOTSTRAP_ORIGIN},
             )
             for cookie_header in headers.get_all("Set-Cookie", []):
                 cookie_value = cookie_header.split(";", 1)[0]
