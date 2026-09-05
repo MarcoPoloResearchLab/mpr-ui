@@ -6,6 +6,109 @@ Archived 2026-09-01 by M400R.
 
 ## BugFixes
 
+- [x] [B065] (P1) {B063,F010} The header email form changes the page layout.
+  Goal:
+  The header email form opens above the page content and stays inside the browser viewport.
+
+  Expected:
+  The email form opens below the provider controls without a change to the header size or page position.
+
+  Actual:
+  The email form increases the header height and moves the page content.
+
+  Requirements:
+  - Position the header email form outside the header layout.
+  - Align the form with the provider controls.
+  - Keep the form inside the browser viewport at each supported width.
+  - Keep the standalone auth controls unchanged.
+
+  Deliverables:
+  - Correct the header email form position.
+  - Add browser coverage for the header and page position.
+  - Update the component documentation and changelog.
+
+  Validation:
+  - Open the email form at each test width.
+  - Verify that the header size and page position do not change.
+  - Verify that the form stays inside the browser viewport.
+  - Run `make ci` after the final source, test, and documentation changes.
+
+  Resolution:
+  The header email form now opens below the provider controls. The form does not change the header size or page position.
+
+  Validation result:
+  The browser test passed at desktop, phone, and compact browser widths. The live demo passed at a 272-pixel viewport. `make ci` passed.
+
+- [x] [B057] (P1) The complete local demo does not show the Apple provider.
+  Goal:
+  The complete local demo shows and exercises Google, Apple, and email authentication controls.
+
+  Expected:
+  The header shows an Apple control. The local Apple test flow returns an authenticated demo profile.
+
+  Actual:
+  The local config disables Apple. The header shows only Google and email controls.
+
+  Requirements:
+  - Enable Apple in the local browser config.
+  - Keep the browser flow on `http://localhost:4443`.
+  - Add a local Apple test service for the redirect, token, and public-key endpoints.
+  - Keep the local test service separate from a real Apple deployment.
+  - Keep real Apple Developer credentials out of the repository.
+  - Render the default user avatar when an Apple profile has no avatar URL.
+  - Preserve Google and email authentication.
+
+  Deliverables:
+  - Add the local Apple test service to the Compose runtime.
+  - Add browser acceptance coverage for Apple control visibility and authentication.
+  - Update the demo documentation with the local and hosted Apple boundaries.
+
+  Validation:
+  - Start the complete local demo runtime.
+  - Verify that the header shows Google, Apple, and email controls.
+  - Complete the local Apple test flow.
+  - Verify the authenticated profile and the absence of browser errors.
+  - Run `make ci` after the final source, config, and documentation changes.
+
+  Resolution:
+  The local header now shows Google, Apple, and email controls. The local Apple service exercises the redirect, token, and public-key flow through TAuth. The user menu supplies a default avatar when the authenticated provider profile has no avatar URL.
+
+  Validation result:
+  The live Apple flow returned an authenticated profile without browser errors. The Compose Apple service reported healthy. `make ci` passed 206 Node tests, two browser runs of 131 tests, and the Apple service format, vet, and test checks.
+
+- [x] [B056] (P1) Four-mode demo footers show a two-position switch.
+  Goal:
+  Each demo footer supplies one selectable point for each configured theme mode.
+
+  Expected:
+  Each footer with four theme modes renders the square four-point control.
+
+  Actual:
+  Five demo footers request the binary toggle control. The control makes only two of the four configured modes selectable.
+
+  Requirements:
+  - Use `theme-switcher="square"` on each demo footer that configures four theme modes.
+  - Preserve the configured theme mode order.
+  - Preserve the compact footer control scale.
+  - Preserve the binary toggle examples that configure two theme modes.
+  - Verify four enabled points on each affected demo route.
+
+  Deliverables:
+  - Update the five affected demo footers.
+  - Add browser acceptance coverage for the four-point control.
+
+  Validation:
+  - Verify the five affected demo routes at desktop and phone widths.
+  - Verify each control has four enabled points.
+  - Verify each point selects its configured theme mode.
+  - Run `make ci` after the final source and test changes.
+
+  Resolution:
+  The five demo footers now use the square control. Each control shows four points for the four configured theme modes.
+
+  Validation result:
+  The focused browser run passed 23 tests. The headed browser check showed the four-point control without browser errors. `make ci` passed 204 unit tests and two browser runs of 124 tests.
+
 - [x] [B055] (P1) Header provider controls use different border colors.
   Goal:
   All header provider controls use one border treatment.
@@ -382,6 +485,37 @@ Archived 2026-09-01 by M400R.
   Resolved 2026-02-12 follow-up: added regression coverage in `tests/demo-page.test.js` to enforce that all shipped demos keep footer `horizontal-links` examples. Tests: `node --test tests/demo-page.test.js`.
 
 ## Features
+
+- [x] [F012] (P1) Add account creation to the owned email authentication panel.
+  Goal:
+  The owned email authentication panel lets a user sign in or create an account.
+
+  Requirements:
+  - Show sign-in and account-creation actions in the owned email panel.
+  - Use the existing password authentication component for each action.
+  - Submit account creation through the configured TAuth signup endpoint.
+  - Keep credentials and challenge tokens out of browser-visible events and storage.
+  - Keep the panel inside the viewport without a change to the header layout.
+  - Preserve the standalone password authentication modes.
+
+  Deliverables:
+  - Add browser acceptance coverage before the component change.
+  - Add the generic email authentication mode controls.
+  - Update the component reference, integration guide, demos, and release notes.
+
+  Validation:
+  - Verify the initial browser test fails because the account-creation action is absent.
+  - Verify the panel position at wide, narrow, and compact viewport widths.
+  - Verify that the account-creation action shows the signup form.
+  - Verify that the sign-in action shows the login form.
+  - Verify that signup uses the configured TAuth path.
+  - Run `make ci` after the final source and documentation changes.
+
+  Resolution:
+  The owned email panel now shows sign-in and account-creation tabs. Both tabs use the same TAuth controller and configured paths.
+
+  Validation result:
+  The test failed before implementation because the owned email panel was absent. The focused browser test and `make ci` passed.
 
 - [x] [F011] (P1) Add Make targets for the complete local demo runtime.
   Goal:

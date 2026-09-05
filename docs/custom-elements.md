@@ -126,13 +126,11 @@ Required attributes:
 - `auth-config`: Applied by `mpr-ui-config.js`.
 - `auth-target`: Selector for the owning `<mpr-header>` or `<mpr-login-button>` when the form is not nested inside that auth surface.
 
-Optional `disabled` prevents input and submission. The form exposes its current state through `data-mpr-password-auth-status`. It emits `mpr-ui:password-auth:submit` and `mpr-ui:password-auth:status`. Event details contain the mode, status, and stable error code only. They never contain email values, passwords, or challenge tokens.
+Optional `disabled` prevents input and submission. For `verify-email` and `reset-complete`, `token-fragment-parameter="token"` reads the challenge from the URL fragment and removes it from browser history after the component takes ownership. The form exposes its current state through `data-mpr-password-auth-status`. It emits `mpr-ui:password-auth:submit` and `mpr-ui:password-auth:status`. Event details contain the mode, status, and stable error code only. They never contain email values, passwords, or challenge tokens.
 
-Local fixtures that enable TAuth `return_challenge_tokens` can add the
-`display-challenge-token` attribute to `signup` and `reset-start` forms. The
-returned token appears only in that form's status text. Public events and the
-owning profile remain token-free. Do not set this attribute outside a local
-fixture or trusted delivery integration.
+The form uses border-box width. It stays inside its owning auth surface at narrow browser widths. In an owning auth surface, the email panel provides sign-in and account-creation tabs. The panel opens below the provider controls. It does not change the header size or page position.
+
+TAuth sends signup and reset links through Pinguin. The target page selects the matching form and sets `token-fragment-parameter="token"`. The token remains absent from attributes, events, diagnostics, profiles, server requests, and response bodies.
 
 Successful `login`, `verify-email`, and `reset-complete` actions update the owning controller and emit the ordinary `mpr-ui:auth:*` lifecycle. `signup` and `reset-start` emit `mpr-ui:account:challenge-issued` from the owning auth host with only the action, accepted status, and expiry time.
 
@@ -161,7 +159,15 @@ TAuth integration.
 
 The panel emits `mpr-ui:account-panel:submit` and `mpr-ui:account-panel:status`. The owning auth host emits `mpr-ui:account:updated`, `mpr-ui:account:challenge-issued`, or `mpr-ui:account:disabled` after a successful action. Account disable also clears the shared profile and emits the unauthenticated lifecycle.
 
-Google linking uses the same nonce-bound Google Identity Services proof flow as Google login, then posts the credential to `auth.account.googleLinkPath`.
+The `google-link` action renders the official Google Identity Services button.
+The panel requests a TAuth nonce before it renders the button. It refreshes the
+nonce while the panel remains connected. Google returns the ID token to the
+JavaScript callback. The panel sends the ID token and nonce to
+`auth.account.googleLinkPath`. The action does not use One Tap or an OAuth
+redirect callback.
+
+The owning auth controller does not expose a programmatic Google start method.
+Google sign-in and account linking start only from their rendered buttons.
 
 ```html
 <mpr-account-panel
@@ -171,9 +177,14 @@ Google linking uses the same nonce-bound Google Identity Services proof flow as 
 ></mpr-account-panel>
 ```
 
-Local fixtures can add `display-challenge-token` to the
-`password-link-start` action under the same restrictions as
-`<mpr-password-auth>`.
+For `password-link-verify`, `token-fragment-parameter="token"` reads and removes the Pinguin-delivered fragment token under the same rules as `<mpr-password-auth>`.
+
+The component keeps the token when attributes change on the same form, including when `disabled` is removed.
+Submission, a different form context, or component removal clears the token. Password values are not kept through these changes.
+
+Google controls use the GIS button `state` field to identify the selected action.
+Each pending action keeps the nonce active at the time of the click. Another control cannot replace its callback destination.
+Disconnected controls and completed actions reject subsequent credential responses.
 
 TAuth owns password policy, challenge delivery, linked-identity rules, cookies, and account state. `mpr-ui` owns the shared forms and browser auth events. Host apps own route protection, app-specific profile fields, and bespoke account-policy decisions.
 
@@ -388,7 +399,7 @@ The component emits the shared `mpr-ui:theme-change` event through the theme man
 
 ## mpr-login-button
 
-`<mpr-login-button>` is the login-only auth owner. Put `data-config-url="/config-ui.yaml"` on the element so the config loader applies one `auth-config` contract before bundle startup. The component renders one action for each enabled Google, Apple, and password provider.
+`<mpr-login-button>` is a standalone auth owner. Put `data-config-url="/config-ui.yaml"` on the element so the config loader applies one `auth-config` contract before bundle startup. The component renders one action for each enabled Google, Apple, and password provider.
 
 Presentation attributes are static page data:
 
@@ -397,7 +408,7 @@ Presentation attributes are static page data:
 - `button-size`
 - `button-shape`
 
-It emits the shared `mpr-ui:auth:*` lifecycle and `mpr-login:error`. Password selection expands the shared login form on this controller. Apple selection starts the validated redirect flow. Google selection starts the nonce-bound GIS flow.
+It emits the shared `mpr-ui:auth:*` lifecycle and `mpr-login:error`. Password selection expands the shared email panel on this controller. The panel provides sign-in and account-creation tabs. Apple selection starts the validated redirect flow. Google uses the official nonce-bound GIS popup button and its JavaScript credential callback.
 
 ```html
 <mpr-login-button
@@ -413,6 +424,8 @@ It emits the shared `mpr-ui:auth:*` lifecycle and `mpr-login:error`. Password se
 ## mpr-user
 
 `<mpr-user>` displays the safe profile snapshot from its owning auth controller and performs configured logout. The config loader supplies `auth-config`. The element does not own a separate browser auth path.
+
+The element uses its default avatar when the authenticated provider profile has no avatar URL. `custom-avatar` mode still requires `avatar-url`.
 
 Attributes:
 

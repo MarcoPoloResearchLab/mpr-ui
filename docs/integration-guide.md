@@ -4,7 +4,7 @@ This guide describes the primary `mpr-ui` integration contract. Treat it like an
 
 1. expose `/config-ui.yaml`
 2. load `mpr-ui-config.js`
-3. render `<mpr-header data-config-url="/config-ui.yaml">` or a login-only `<mpr-login-button data-config-url="/config-ui.yaml">`
+3. render `<mpr-header data-config-url="/config-ui.yaml">` or a standalone `<mpr-login-button data-config-url="/config-ui.yaml">`
 4. let the loader apply the validated `auth-config` provider map and load the bundle
 5. react to `mpr-ui:auth:*` events in app code
 6. send protected requests through `MPRUI.authenticatedFetch()`
@@ -204,8 +204,9 @@ Use `<mpr-password-auth>` for public password flows. Set one explicit `mode`: `l
 
 ```html
 <mpr-password-auth
-  mode="login"
+  mode="verify-email"
   auth-target="#site-header"
+  token-fragment-parameter="token"
 ></mpr-password-auth>
 ```
 
@@ -220,6 +221,12 @@ Use `<mpr-account-panel>` for authenticated account actions. Set one explicit `a
 
 The config loader applies `auth-config` to both component types. `auth-target` names the owning header or login button when the component is outside that element. Each component uses the owning controller state and never creates a separate session probe.
 
+The `google-link` action renders the official Google Identity Services button.
+It requests and refreshes a TAuth nonce through the owning controller. Google
+returns the ID token to the JavaScript callback. The component sends the ID
+token and nonce to the configured account link endpoint. It does not use One
+Tap or a redirect callback.
+
 For `action="unlink"`, provide an `identities` JSON array containing exact
 `provider`, `providerId`, and user-facing `label` fields. The component renders
 a select control and submits the configured identity. Users do not type opaque
@@ -227,7 +234,7 @@ provider subjects.
 
 Every password or account POST uses `credentials: "include"`, `X-Requested-With: XMLHttpRequest`, and `X-TAuth-Tenant`. Successful login, verification, and reset completion produce the same profile state and `mpr-ui:auth:*` events as Google login. Account disable clears that state.
 
-Password and token values remain local to the immediate request. Do not copy them into attributes, events, storage, logs, diagnostics, or profiles. TAuth can return challenge tokens only for a local fixture with `return_challenge_tokens` enabled. By default, the shared components discard returned token fields. TAuth delivers the challenge through email or another server-owned channel. A local fixture or trusted delivery integration can add `display-challenge-token` to applicable actions. The token appears only in that form status. It remains absent from public events and profiles.
+Password and token values remain local to the immediate request. Do not copy them into attributes, events, storage, logs, diagnostics, or profiles. TAuth sends challenge links through Pinguin and puts each token in the URL fragment. Set `token-fragment-parameter="token"` only on the matching verification form. The component takes the token, removes the fragment from browser history, and keeps the value out of public events and profiles.
 
 TAuth owns password policy, challenge lifecycle, cookie issuance, identity rules, and account state. `mpr-ui` owns controls, browser validation, request wiring, status UI, and auth events. Host apps own route protection, app-specific profile data, and bespoke account-policy decisions.
 
@@ -282,7 +289,9 @@ What your template still owns:
 
 ## Login-only button presentation
 
-`<mpr-login-button>` owns the complete enabled provider action set. On initialization, it renders accessible provider buttons with focus and status feedback. Google starts nonce-bound GIS on activation. Apple starts validated top-level TAuth navigation. Password opens `<mpr-password-auth mode="login">` on the same controller.
+`<mpr-login-button>` owns the complete enabled provider action set. On initialization, it renders accessible provider controls with focus and status feedback. Google uses the official GIS popup button. The controller requests and refreshes the TAuth nonce before it renders that button. The GIS JavaScript callback receives the ID token. This flow does not use a Google redirect URI. Apple starts validated top-level TAuth navigation. Password opens one panel with sign-in and account-creation tabs on the same controller.
+
+A Google button click emits provider intent. Authentication starts only when the Google JavaScript callback returns a credential. Other provider controls stay available if the popup returns no credential.
 
 Configure the standard appearance through static element attributes. `/config-ui.yaml` is auth-only and rejects `authButton`:
 
@@ -406,6 +415,8 @@ If sign-in must open an authenticated route, set `sign-in-redirect-url` on `<mpr
 
 - Load auth configuration through `/config-ui.yaml` and `mpr-ui-config.js`.
 - Let the owning component call TAuth and Google Identity Services.
+- Start Google only from the official button that the owning component renders.
+- Use `startAppleSignIn()` only for an explicit Apple redirect action.
 - Use the single `auth-config` provider map on auth components.
 - Keep component presentation in documented attributes and custom properties.
 - Keep `<mpr-login-button>` child-free.
@@ -458,7 +469,7 @@ If sign-in must open an authenticated route, set `sign-in-redirect-url` on `<mpr
 
 - [`../index.html`](../index.html) displays Google, Apple, and email actions from one provider map and uses the shared sectioned footer.
 - [`../demo/tauth-demo.html`](../demo/tauth-demo.html) contains every password mode, every account action, and safe auth diagnostics on one controller.
-- [`../demo/standalone.html`](../demo/standalone.html) shows the login-only owner and authenticated user menu.
+- [`../demo/standalone.html`](../demo/standalone.html) shows the standalone auth owner and authenticated user menu.
 - [`../demo/auth-provider-chooser.html`](../demo/auth-provider-chooser.html) shows provider-intent variants without claiming authenticated state.
 - [`../demo/components.html`](../demo/components.html) shows shell and content primitives, both dropdown placements, and all section modes.
 

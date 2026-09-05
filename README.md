@@ -113,12 +113,14 @@ Render the shell:
 
 The header uses compact square provider actions with accessible names. The login button uses full provider text and its configured presentation.
 
-- Google requests a fresh TAuth nonce for each attempt. It initializes Google Identity Services and exchanges the credential through the configured login path.
+- Google requests a TAuth nonce before it renders the official Google button. It refreshes the nonce while the control remains connected.
+- Google returns the ID token to the JavaScript callback. The controller sends the token and nonce to the configured login path.
+- The Google popup flow does not use an OAuth redirect callback.
 - Apple builds a validated TAuth redirect action and navigates the top-level page. TAuth owns the Apple callback, credentials, session cookie, and server configuration.
-- Password opens the shared login form on the same controller.
+- Password opens one shared panel with sign-in and account-creation actions on the same controller.
 - Session return and refresh use the configured `sessionPath` and emit the same `mpr-ui:auth:*` events for every provider.
 
-Use the login-only surface when a full header is not required:
+Use the standalone authentication surface when a full header is not required:
 
 ```html
 <mpr-login-button
@@ -152,6 +154,11 @@ Use `<mpr-account-panel>` for authenticated account work:
 <mpr-account-panel action="disable" auth-target="#site-header"></mpr-account-panel>
 ```
 
+The `google-link` panel renders the official Google Identity Services popup
+button. It binds the button to a TAuth nonce and sends the returned ID token and
+nonce to the configured account link endpoint. It does not use One Tap or a
+redirect callback.
+
 `<mpr-auth-provider-chooser>` is a UI and event primitive. It displays an explicit ordered provider set, but it does not authenticate:
 
 ```html
@@ -179,7 +186,7 @@ After HTTP 401, the helper coordinates one session recovery across concurrent re
 | `<mpr-footer>` | Sectioned drop-up, utility links, privacy action, and theme control | [`index.html`](index.html) |
 | `<mpr-dropdown>` | Top or bottom sectioned menu with static, expanded, and collapsed sections | [`demo/components.html`](demo/components.html) |
 | `<mpr-theme-toggle>` | Shared switch, button, or square theme control | [`demo/components.html`](demo/components.html) |
-| `<mpr-login-button>` | Provider-aware login-only surface | [`demo/standalone.html`](demo/standalone.html) |
+| `<mpr-login-button>` | Provider-aware standalone authentication surface | [`demo/standalone.html`](demo/standalone.html) |
 | `<mpr-auth-provider-chooser>` | Google, Apple, and email provider-choice events | [`demo/auth-provider-chooser.html`](demo/auth-provider-chooser.html) |
 | `<mpr-password-auth>` | Login, signup, verification, and reset forms | [`demo/tauth-demo.html`](demo/tauth-demo.html) |
 | `<mpr-account-panel>` | Password, identity-link, unlink, and account-disable actions | [`demo/tauth-demo.html`](demo/tauth-demo.html) |
@@ -218,6 +225,11 @@ The full attribute, slot, method, and event reference is in [`docs/custom-elemen
 - `MPRUI.createSelectionState()`
 - `MPRUI.resolveAuthProfileSnapshot(authTarget)`
 
+The controller from `MPRUI.createAuthHeader()` exposes
+`startAppleSignIn()` for the Apple redirect flow. Google starts only from an
+official rendered Google Identity Services button. The controller does not
+expose a programmatic Google or One Tap start method.
+
 `MPRUI.testing` contains test-only auth, redirect-provider, and Google Identity driver helpers. Application code must use the ordinary auth lifecycle.
 
 ## Demos
@@ -239,7 +251,7 @@ Open `http://127.0.0.1:4177/`.
 | [`/demo/standalone.html`](demo/standalone.html) | Login-only surface and authenticated user menu | `make up` |
 | [`/demo/entity-workspace.html`](demo/entity-workspace.html) | Full collection/detail workspace kit | `make up` |
 
-The static config displays Apple for action and presentation inspection. Live Apple completion also requires TAuth Apple credentials. It requires a registered origin, callback, and server routes. The TAuth fixture enables Google and password. It does not contain Apple credentials.
+The static config displays Apple for action and presentation inspection. Live Apple completion requires TAuth Apple credentials. It requires an HTTPS callback on the TAuth domain. The public tenant must allow `https://ui.mprlab.com` and the documented localhost origins.
 
 To run the HTTP TAuth fixture, create the private TAuth file described by [`docs/demo-index-auth.md`](docs/demo-index-auth.md), then run:
 
@@ -249,8 +261,12 @@ make up
 
 Open `http://localhost:4443/`. Stop the stack with `make down`.
 
-`make up` starts the gHTTP frontend and the TAuth service. The frontend serves the current repository source and proxies the authentication routes.
+`make up` builds the current sibling TAuth and Pinguin sources. It creates or refreshes one managed Pinguin tenant from the private SMTP environment, starts the gHTTP frontend, and proxies the authentication routes. The frontend serves the current repository source with `Cache-Control: no-store`.
 The disposable local account uses `demo@mprlab.local` and `mpr-ui-demo`.
+The delivery owner uses a separate TAuth tenant, password, signing key, and session cookie.
+Pinguin accepts only the delivery session for administration. Its management port is internal to the Compose network.
+The frontend mounts only public files. Private environment files and repository metadata are outside its document root.
+Configure the three `PINGUIN_BOOTSTRAP_*` values in `demo/.env.tauth` before startup. See [local delivery setup](docs/demo-index-auth.md#private-delivery-owner).
 
 ## Development and validation
 
@@ -260,6 +276,8 @@ make ci
 ```
 
 `make ci` runs the Node suite, browser coverage gate, and Playwright acceptance suite. Use `npm run demo:serve` for static visual inspection.
+`make test-delivery` builds isolated TAuth and Pinguin containers and checks delivery administration through their HTTP APIs.
+This check requires Docker, `uv`, and both sibling repositories. It uses temporary data and sends no email.
 
 ## Documentation
 

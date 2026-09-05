@@ -106,17 +106,20 @@ test.describe('Workbench behaviours', () => {
     expect(footerRatio).toBeLessThan(0.95);
   });
 
-  test('MU-307: starts Google Sign-In with a valid client id and nonce', async ({ page }) => {
-    await expect(page.locator(googleButton)).toBeVisible({ timeout: 3000 });
-    await expect.poll(() => page.evaluate(() => window.__googleInitConfig ?? null)).toBeNull();
-    await page.locator(googleButton).click();
-    await expect(page.locator(googleButton)).toBeVisible();
+  test('MU-307 and B064: starts Google Sign-In without a premature auth state', async ({ page }) => {
+    const googleControl = page.locator(googleButton).getByRole('button', {
+      name: 'Sign in with Google',
+    });
+    await expect(googleControl).toBeVisible({ timeout: 3000 });
     await page.waitForFunction(() => Boolean(window.__googleInitConfig?.nonce));
     const googleConfig = await page.evaluate(() => window.__googleInitConfig ?? null);
     expect(googleConfig).not.toBeNull();
     expect(typeof googleConfig?.client_id).toBe('string');
     expect(googleConfig?.client_id).toMatch(/^[0-9a-z.\-]+$/i);
     expect(googleConfig?.nonce).toBe('fixture-google-nonce');
+    await googleControl.click();
+    await expect(page.locator('.mpr-auth-actions__status')).toBeEmpty();
+    await expect(googleControl).toBeVisible();
   });
 
   test('MU-306: navigation links open in a new browsing context', async ({ page }) => {

@@ -57,6 +57,11 @@ test('root / serves the demo hub landing page with local assets and DSL orchestr
 
   // 4. Verify User Menu Presence (Orchestrated by component)
   await expect(header.locator('mpr-user[slot="aux"]')).toBeAttached();
+
+  const providerControls = ['Sign in with Google', 'Continue with email'];
+  for (const providerControl of providerControls) {
+    await expect(page.getByRole('button', { name: providerControl })).toBeVisible();
+  }
 });
 
 test('sub-demos provide consistent navigation and local asset loading', async ({ page }) => {

@@ -241,7 +241,7 @@
           <div class="auth-card" aria-live="polite" aria-atomic="true">
             <!-- Sign-in state -->
             <div class="auth-card__signin" id="signin-content">
-              <p>Click the button below to sign in with Google via TAuth.</p>
+              <p>Use Google or open the email panel to sign in or create an account through TAuth.</p>
               <!-- Auth attributes and button styling are applied by mpr-ui-config.js -->
               <mpr-login-button id="demo-login-button"></mpr-login-button>
             </div>
@@ -276,7 +276,7 @@
             aria-atomic="true"
           >
             <h3>Signed out</h3>
-            <p>Use the Google Sign-In button above to begin.</p>
+            <p>Use a provider control above to begin.</p>
           </div>
         </section>
 
@@ -284,8 +284,8 @@
           <h2>How this demo works</h2>
           <ul>
             <li>
-              <code>&lt;mpr-login-button&gt;</code> renders the Google Sign-In
-              button via GIS and handles the credential exchange with TAuth.
+              <code>&lt;mpr-login-button&gt;</code> renders provider controls and
+              sends authentication work to TAuth.
             </li>
             <li>
               <code>&lt;mpr-user&gt;</code> displays the authenticated profile
@@ -297,7 +297,7 @@
             </li>
             <li>
               YAML config from <code>./config-ui.yaml</code> applies the tenant,
-              GIS client ID, auth paths, and shared button styling before
+              provider settings, auth paths, and button styles. It loads before
               <code>mpr-ui.js</code> initializes the custom elements.
             </li>
             <li>
@@ -360,7 +360,7 @@
             ] }
           ]
         }'
-        theme-switcher="toggle"
+        theme-switcher="square"
         theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-dark","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
       ></mpr-footer>
     </div>

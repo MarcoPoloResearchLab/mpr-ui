@@ -15,6 +15,7 @@ const RUNTIME_AUTH_ORIGIN = 'https://auth.fixture.test';
 const RUNTIME_AUTH_TENANT_ID = 'fixture-config-tenant';
 const RUNTIME_SESSION_PATH = '/auth/custom-session';
 const RUNTIME_SESSION_URL = RUNTIME_AUTH_ORIGIN + RUNTIME_SESSION_PATH;
+const RUNTIME_NONCE_URL = RUNTIME_AUTH_ORIGIN + '/auth/nonce';
 const RUNTIME_RESTORE_HINT_KEY =
   'tauth.restore.v1:' +
   encodeURIComponent(RUNTIME_AUTH_ORIGIN) +
@@ -57,13 +58,18 @@ const GOOGLE_IDENTITY_STUB = String.raw`
     }
     const hostDocument = element.ownerDocument || document;
     element.innerHTML = '';
-    const buttonElement = hostDocument.createElement('div');
-    buttonElement.setAttribute('role', 'button');
+    const buttonElement = hostDocument.createElement('button');
+    buttonElement.setAttribute('type', 'button');
     buttonElement.setAttribute('data-mpr-google-sentinel', 'true');
+    buttonElement.setAttribute('data-google-state', options.state);
     const defaultLabel = options && options.text === 'signin_with'
       ? 'Sign in with Google'
       : 'Continue with Google';
     buttonElement.textContent = defaultLabel;
+    buttonElement.setAttribute('aria-label', defaultLabel);
+    if (options && typeof options.click_listener === 'function') {
+      buttonElement.addEventListener('click', options.click_listener);
+    }
     element.appendChild(buttonElement);
   };
 
@@ -433,6 +439,9 @@ async function visitUserMenuFixture(page) {
  * @returns {Promise<void>}
  */
 async function visitAuthTransitionFixture(page) {
+  await page.addInitScript(() => {
+    window.requestNonce = () => Promise.resolve('fixture-google-nonce');
+  });
   await Promise.all([
     routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
@@ -473,9 +482,10 @@ async function visitLoginButtonFixture(page) {
 /**
  * Opens the config-loader fixture with an auth-only cross-origin runtime config.
  * @param {import('@playwright/test').Page} page
+ * @param {string} [query]
  * @returns {Promise<void>}
  */
-async function visitConfigLoaderFixture(page) {
+async function visitConfigLoaderFixture(page, query) {
   await page.addInitScript((restoreHintKey) => {
     window.localStorage.setItem(restoreHintKey, '1');
   }, RUNTIME_RESTORE_HINT_KEY);
@@ -485,11 +495,13 @@ async function visitConfigLoaderFixture(page) {
     routeLocalAsset(page, CDN_CONFIG_URL, LOCAL_ASSETS.config, 'application/javascript'),
     routeLocalAsset(page, YAML_PARSER_URL, LOCAL_ASSETS.yamlParser, 'application/javascript'),
     routeLocalAsset(page, GOOGLE_IDENTITY_URL, GOOGLE_IDENTITY_STUB, 'application/javascript'),
-    routeLocalAsset(page, CONFIG_LOADER_FIXTURE_URL, LOCAL_ASSETS.configLoaderFixture, 'text/html'),
+    routeLocalAsset(page, CONFIG_LOADER_FIXTURE_URL + '*', LOCAL_ASSETS.configLoaderFixture, 'text/html'),
     routeRuntimeConfig(page),
     routeRuntimeSession(page),
+    routeRuntimeNonce(page),
   ]);
-  await page.goto(CONFIG_LOADER_FIXTURE_URL, { waitUntil: 'load' });
+  const fixtureUrl = query ? CONFIG_LOADER_FIXTURE_URL + '?' + query : CONFIG_LOADER_FIXTURE_URL;
+  await page.goto(fixtureUrl, { waitUntil: 'load' });
   await page.waitForLoadState('networkidle');
 }
 
@@ -736,6 +748,27 @@ async function routeRuntimeSession(page) {
         'access-control-allow-methods': 'GET,OPTIONS',
         'access-control-allow-origin': 'https://static.fixture.test',
       },
+    });
+  });
+}
+
+/**
+ * Serves the configured cross-origin Google nonce endpoint.
+ * @param {import('@playwright/test').Page} page
+ * @returns {Promise<void>}
+ */
+async function routeRuntimeNonce(page) {
+  await page.route(RUNTIME_NONCE_URL, (route) => {
+    route.fulfill({
+      status: 200,
+      headers: {
+        'access-control-allow-credentials': 'true',
+        'access-control-allow-headers': 'content-type,x-requested-with,x-tauth-tenant',
+        'access-control-allow-methods': 'POST,OPTIONS',
+        'access-control-allow-origin': 'https://static.fixture.test',
+        'content-type': 'application/json; charset=utf-8',
+      },
+      body: JSON.stringify({ nonce: 'fixture-google-nonce' }),
     });
   });
 }

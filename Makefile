@@ -14,6 +14,7 @@ RELEASE_TOOL_DIR := $(abspath $(CURDIR)/scripts/release)
 
 .PHONY: test test-unit test-coverage test-e2e lint format ci
 .PHONY: up down
+.PHONY: test-delivery
 .PHONY: release publish deploy
 
 test:
@@ -27,6 +28,9 @@ test-coverage:
 
 test-e2e:
 	timeout -k $(E2E_TIMEOUT)s -s SIGKILL $(E2E_TIMEOUT)s npm run test:e2e
+
+test-delivery:
+	PYTHONDONTWRITEBYTECODE=1 uv run --with pytest python -m pytest -q tests/integration/test_demo_delivery.py
 
 lint:
 	timeout -k $(LINT_TIMEOUT)s -s SIGKILL $(LINT_TIMEOUT)s npm run lint --if-present

@@ -186,9 +186,9 @@
       <h1>TAuth demo</h1>
       <p>
         This page connects the <code>mpr-header</code> web component to a local
-        TAuth service running under Docker Compose. Use Google or password
-        authentication, observe the shared profile state, and manage the
-        current account through the configured forms.
+        TAuth service running under Docker Compose. Use Google or the owned
+        email panel to sign in or create an account. Then observe the shared
+        profile state and manage the current account.
       </p>
 
       <section aria-labelledby="profile-status-title" class="demo-section">
@@ -214,15 +214,15 @@
         <h2 id="password-flows-title">Email and password flows</h2>
         <p>
           These forms call the configured TAuth endpoints through the shared
-          header auth controller. This local fixture displays returned challenge
-          tokens so verification and reset flows can be completed without email.
-          The page contains no app-owned request code.
+          header auth controller. TAuth sends challenge links through Pinguin.
+          A returned link opens its matching form and keeps the token inside the
+          shared component boundary. The page contains no app-owned request code.
         </p>
         <div class="auth-demo-grid">
           <mpr-password-auth mode="login" auth-target="#demo-header"></mpr-password-auth>
-          <mpr-password-auth mode="signup" auth-target="#demo-header" display-challenge-token></mpr-password-auth>
+          <mpr-password-auth mode="signup" auth-target="#demo-header"></mpr-password-auth>
           <mpr-password-auth mode="verify-email" auth-target="#demo-header"></mpr-password-auth>
-          <mpr-password-auth mode="reset-start" auth-target="#demo-header" display-challenge-token></mpr-password-auth>
+          <mpr-password-auth mode="reset-start" auth-target="#demo-header"></mpr-password-auth>
           <mpr-password-auth mode="reset-complete" auth-target="#demo-header"></mpr-password-auth>
         </div>
       </section>
@@ -236,7 +236,7 @@
         </p>
         <div class="auth-demo-grid">
           <mpr-account-panel action="password-change" auth-target="#demo-header"></mpr-account-panel>
-          <mpr-account-panel action="password-link-start" auth-target="#demo-header" display-challenge-token></mpr-account-panel>
+          <mpr-account-panel action="password-link-start" auth-target="#demo-header"></mpr-account-panel>
           <mpr-account-panel action="password-link-verify" auth-target="#demo-header"></mpr-account-panel>
           <mpr-account-panel action="google-link" auth-target="#demo-header"></mpr-account-panel>
           <mpr-account-panel
@@ -267,14 +267,23 @@
             password endpoints, and the configured account endpoints.
           </li>
           <li>
-            The header component requests <code>/auth/nonce</code> after the
-            user selects Google and exchanges the returned credential via
-            <code>/auth/google</code>.
+            The header requests <code>/auth/nonce</code> before it renders the
+            official Google popup button. It refreshes that nonce while the
+            control remains connected.
           </li>
           <li>
-            After a refresh or Apple redirect return, <code>mpr-ui</code>
-            restores the profile through <code>/auth/session</code> before it
-            updates the shell state.
+            Google returns the ID token to the JavaScript callback. The header
+            sends the token and nonce to <code>/auth/google</code> without a
+            Google redirect URI.
+          </li>
+          <li>
+            The Google account panel uses the same official popup button and
+            nonce contract. It sends the returned proof to
+            <code>/auth/account/google/link</code>.
+          </li>
+          <li>
+            After a refresh, <code>mpr-ui</code> restores the profile through
+            <code>/auth/session</code> before it updates the shell state.
           </li>
           <li>
             Clicking <strong>Log out</strong> in the menu invokes
@@ -362,7 +371,7 @@
           ] }
         ]
       }'
-      theme-switcher="toggle"
+      theme-switcher="square"
       theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-dark","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
     ></mpr-footer>
     <script defer src="./tauth-settings-modal.js"></script>
@@ -370,6 +379,32 @@
     <script>
       (function() {
         var READY_EVENT_NAME = 'demo:tauth-ready';
+        var CHALLENGE_TARGETS = Object.freeze({
+          'verify-email': 'mpr-password-auth[mode="verify-email"]',
+          'reset-complete': 'mpr-password-auth[mode="reset-complete"]',
+          'password-link-verify': 'mpr-account-panel[action="password-link-verify"]'
+        });
+
+        function applyChallengeReturn() {
+          if (!window.location || !window.location.hash) {
+            return;
+          }
+          var currentURL = new URL(window.location.href);
+          var authAction = currentURL.searchParams.get('auth_action');
+          var targetSelector = CHALLENGE_TARGETS[authAction];
+          if (!targetSelector) {
+            return;
+          }
+          var targetElement = document.querySelector(targetSelector);
+          if (!targetElement) {
+            return;
+          }
+          targetElement.setAttribute('token-fragment-parameter', 'token');
+          var cleanURL = new URL(window.location.href);
+          cleanURL.searchParams.delete('auth_action');
+          window.history.replaceState(window.history.state, '', cleanURL.href);
+          targetElement.scrollIntoView({ block: 'center' });
+        }
 
         function resolveInitialProfile() {
           if (
@@ -412,6 +447,7 @@
         }
 
         function init() {
+          applyChallengeReturn();
           if (resolveInitialProfile()) {
             dispatchReadyEventWhenSurfaceReady();
           }

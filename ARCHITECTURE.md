@@ -61,6 +61,11 @@ The complete attribute, slot, method, and event matrix is in [`docs/custom-eleme
 | `createCustomElementRegistry(target?)` | Register custom-element definitions once for the target registry. |
 | `MprElement` | Shared custom-element lifecycle base. |
 
+The controller from `createAuthHeader()` exposes `startAppleSignIn()` for the
+Apple redirect flow. It does not expose a programmatic Google start method.
+Google starts only from an official rendered button. The button lifecycle uses
+the controller nonce and credential methods.
+
 `MPRUI.testing` exposes test-only auth state, Apple redirect-action, and Google Identity driver helpers. Production application behavior must use the ordinary public lifecycle.
 
 ## Authentication ownership
@@ -78,7 +83,12 @@ The loader applies the validated contract to `<mpr-header>` or `<mpr-login-butto
 
 ### Provider flows
 
-Google sign-in begins only after user intent. The controller requests a fresh nonce, initializes Google Identity Services for that attempt, and exchanges the credential through TAuth. The shared GIS loader is initialized once per page and reused by header, login, and account-link actions.
+Google sign-in and Google account linking use the official Google Identity
+Services button with popup mode. The controller requests a TAuth nonce before
+it renders each button. The controller refreshes the nonce every four minutes
+while the control remains connected. Google returns the ID token to the
+JavaScript callback. The controller sends the token and nonce to TAuth. These
+flows do not use One Tap or an OAuth redirect callback.
 
 Apple sign-in is a redirect-provider flow. The controller validates the configured `startPath` and `returnTo`, attaches the tenant, records a restore hint, emits the authenticating lifecycle, and navigates the top-level page. TAuth and deployment configuration own Apple credentials, callback processing, session cookies, registered origins, and server-to-server notifications. The returning page restores the session through `sessionPath`.
 

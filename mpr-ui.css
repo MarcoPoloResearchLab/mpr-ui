@@ -89,6 +89,32 @@ mpr-header mpr-auth-provider-chooser {
   padding: 0.1875rem 0.5rem;
 }
 
+.mpr-auth-google-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-inline-size: var(--mpr-auth-action-block-size);
+  min-block-size: var(--mpr-auth-action-block-size);
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.mpr-auth-google-button > div {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+}
+
+.mpr-auth-google-button[aria-busy="true"]:empty::before {
+  inline-size: 0.75rem;
+  block-size: 0.75rem;
+  border: 1px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  content: "";
+  animation: mpr-header-auth-transition-spin 700ms linear infinite;
+}
+
 .mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple {
   padding: 0.1875rem 0.5rem;
   border-color: #000;
@@ -133,6 +159,17 @@ mpr-header .mpr-auth-actions {
 
 mpr-header .mpr-auth-actions__controls {
   overflow: visible;
+}
+
+mpr-header .mpr-auth-google-button {
+  inline-size: var(--mpr-auth-action-block-size);
+  block-size: var(--mpr-auth-action-block-size);
+  min-inline-size: var(--mpr-auth-action-block-size);
+  min-block-size: var(--mpr-auth-action-block-size);
+  border: 1px solid #8e918f;
+  border-radius: var(--mpr-radius-control, 6px);
+  background: #000;
+  color: #e3e5ec;
 }
 
 mpr-header .mpr-auth-actions__controls .mpr-auth-provider-chooser__action {
@@ -1041,6 +1078,12 @@ mpr-login-button[data-mpr-login-mounted="true"] {
   inline-size: 100%;
 }
 
+.mpr-login-button .mpr-auth-google-button {
+  min-block-size: var(--mpr-login-button-height);
+  max-inline-size: 100%;
+  border-radius: var(--mpr-login-button-radius);
+}
+
 .mpr-login-button .mpr-auth-actions {
   padding: 0;
 }
@@ -1154,6 +1197,14 @@ mpr-login-button[data-mpr-auth-providers="google"]
   grid-template-columns: 1fr;
   place-items: center;
   column-gap: 0;
+}
+
+.mpr-login-button[data-mpr-login-shape="circle"] .mpr-auth-google-button,
+.mpr-login-button[data-mpr-login-shape="square"] .mpr-auth-google-button {
+  inline-size: var(--mpr-login-button-height);
+  block-size: var(--mpr-login-button-height);
+  min-inline-size: var(--mpr-login-button-height);
+  min-block-size: var(--mpr-login-button-height);
 }
 
 .mpr-login-button[data-mpr-login-shape="square"]

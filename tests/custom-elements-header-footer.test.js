@@ -1429,7 +1429,7 @@ test('mpr-header auth-config configures provider endpoints', async () => {
   assert.equal(authOptions.tenantId, 'tenant-demo');
 });
 
-test('mpr-header waits for user sign-in before initializing Google Identity', async () => {
+test('B059: mpr-header renders a nonce-bound Google Identity button', async () => {
   resetEnvironment();
   const callOrder = [];
   let initializeCallCount = 0;
@@ -1463,25 +1463,25 @@ test('mpr-header waits for user sign-in before initializing Google Identity', as
 
   assert.equal(
     initializeCallCount,
-    0,
-    'header should not initialize Google Identity during initial render',
+    1,
+    'header initializes Google Identity with the prepared nonce',
   );
-  assert.deepEqual(callOrder, [], 'header does not render a GIS button during initial render');
+  assert.deepEqual(
+    callOrder,
+    ['initialize', 'renderButton'],
+    'header initializes Google Identity before it renders the provider button',
+  );
   const headerSignInButton = getStubNodeByAttribute(
     harness.authActionsHost,
     'data-mpr-auth-action',
     'google',
   );
-  assert.equal(headerSignInButton.tagName, 'BUTTON', 'header renders a real sign-in button');
+  assert.equal(headerSignInButton.tagName, 'DIV', 'header gives GIS a dedicated render host');
   assert.equal(
     headerSignInButton.getAttribute('data-test'),
     'auth-provider-google',
     'header exposes a visible first-party sign-in control',
   );
-  headerSignInButton.dispatchEvent({ type: 'click', preventDefault() {} });
-  await flushAsync();
-  await flushAsync();
-  assert.equal(initializeCallCount, 1, 'header initializes Google Identity after click');
   assert.equal(
     getStubNodeByAttribute(
       harness.authActionsHost,
@@ -1489,11 +1489,11 @@ test('mpr-header waits for user sign-in before initializing Google Identity', as
       'root',
     ).getAttribute('data-mpr-auth-action-status'),
     'ready',
-    'header provider actions return to the ready state after GIS prompt starts',
+    'header provider actions are ready after GIS renders the button',
   );
 });
 
-test('mpr-header disconnects cleanly without starting background nonce work', async () => {
+test('B059: mpr-header cancels Google button work when it disconnects', async () => {
   resetEnvironment();
   const callOrder = [];
   let nonceRequestCalls = 0;
@@ -1526,9 +1526,8 @@ test('mpr-header disconnects cleanly without starting background nonce work', as
     });
 
     headerElement.connectedCallback();
-    await flushAsync();
-    await flushAsync();
     headerElement.disconnectedCallback();
+    await flushAsync();
     await flushAsync();
 
     const headerErrorEvents = headerElement.__dispatchedEvents.filter(
@@ -1536,8 +1535,8 @@ test('mpr-header disconnects cleanly without starting background nonce work', as
         return entry.type === 'mpr-ui:header:error';
       },
     );
-    assert.deepEqual(callOrder, [], 'header does not initialize or render GIS during mount');
-    assert.equal(nonceRequestCalls, 0, 'header mount never starts background nonce work');
+    assert.deepEqual(callOrder, [], 'disconnected header does not initialize or render GIS');
+    assert.equal(nonceRequestCalls, 1, 'header starts one nonce request for its GIS button');
     assert.equal(headerErrorEvents.length, 0, 'disconnect emits no hidden header errors');
   } finally {
     delete global.requestNonce;
@@ -1550,11 +1549,12 @@ test('mpr-header rebinds auth endpoints when tauth-url changes after first rende
   const fetchCalls = [];
   const exchangePayloads = [];
   const initializeCalls = [];
+  let buttonOptions;
   global.location = { origin: 'http://fallback-origin.test' };
   global.google = {
     accounts: {
       id: {
-        renderButton() {},
+        renderButton(_target, options) { buttonOptions = options; },
         initialize(config) {
           initializeCalls.push(config);
         },
@@ -1629,18 +1629,21 @@ test('mpr-header rebinds auth endpoints when tauth-url changes after first rende
     'http://localhost:8080',
     'initAuthClient reboots with the updated base URL',
   );
-  await authController.startGoogleSignIn();
-  await flushAsync();
-  assert.equal(initializeCalls.length, 1, 'sign-in attempt initializes GIS once');
+  assert.equal(initializeCalls.length, 2, 'each rendered config initializes GIS once');
   assert.equal(
-    initializeCalls[0].nonce,
+    initializeCalls[1].nonce,
     'updated-nonce-token',
-    'sign-in attempt initializes GIS with the issued nonce',
+    'updated button initializes GIS with the issued nonce',
   );
-  await initializeCalls[0].callback({ credential: 'updated-header-token' });
+  buttonOptions.click_listener();
+  await initializeCalls[1].callback({ credential: 'updated-header-token', state: buttonOptions.state });
   assert.deepEqual(
     fetchCalls,
-    ['http://localhost:8080/auth/nonce', 'http://localhost:8080/auth/google'],
+    [
+      '/auth/nonce',
+      'http://localhost:8080/auth/nonce',
+      'http://localhost:8080/auth/google',
+    ],
     'credential exchange requests switch to the updated TAuth origin after auth-config changes',
   );
   assert.deepEqual(
@@ -1837,7 +1840,24 @@ test('createAuthHeader ignores an in-flight credential exchange after tauth-url 
   );
 });
 
-test('createAuthHeader initializes GIS with a nonce only for an explicit sign-in attempt', async () => {
+test('B062: public auth controller omits programmatic Google One Tap methods', () => {
+  resetEnvironment();
+  const library = loadLibrary();
+  const hostElement = attachHostApi(new global.HTMLElement(), new Map());
+  const authController = library.createAuthHeader(
+    hostElement,
+    createGoogleAuthConfig(),
+  );
+
+  assert.equal(authController.startGoogleSignIn, undefined);
+  assert.equal(authController.startProvider, undefined);
+  assert.equal(typeof authController.startAppleSignIn, 'function');
+  assert.equal(typeof authController.prepareGoogleNonce, 'function');
+  assert.equal(typeof authController.handleCredential, 'function');
+  authController.destroy();
+});
+
+test('createAuthHeader prepares GIS with a nonce only when a Google button requests it', async () => {
   resetEnvironment();
   delete global.initAuthClient;
   delete global.getCurrentUser;
@@ -1907,10 +1927,10 @@ test('createAuthHeader initializes GIS with a nonce only for an explicit sign-in
   assert.equal(initializeCalls.length, 0, 'GIS does not initialize during bootstrap');
   assert.deepEqual(requestedPaths, [], 'bootstrap does not issue background nonce requests');
 
-  await authController.startGoogleSignIn();
+  await authController.prepareGoogleNonce();
   await flushAsync();
 
-  assert.equal(initializeCalls.length, 1, 'explicit sign-in attempt initializes GIS once');
+  assert.equal(initializeCalls.length, 1, 'button nonce preparation initializes GIS once');
   assert.equal(initializeCalls[0].client_id, 'nonce-stability-client');
   assert.equal(
     initializeCalls[0].nonce,
@@ -1925,7 +1945,7 @@ test('createAuthHeader initializes GIS with a nonce only for an explicit sign-in
   assert.deepEqual(
     requestedPaths,
     ['/auth/nonce', '/auth/google'],
-    'sign-in attempt requests one TAuth nonce before credential exchange',
+    'button preparation requests one TAuth nonce before credential exchange',
   );
   assert.deepEqual(
     exchangePayloads,
@@ -1942,7 +1962,7 @@ test('createAuthHeader initializes GIS with a nonce only for an explicit sign-in
   assert.deepEqual(authController.state.profile, authenticatedProfile);
 });
 
-test('createAuthHeader keeps GIS stable after four idle hours on the landing page', async () => {
+test('createAuthHeader stays idle until a Google button requests a nonce', async () => {
   resetEnvironment();
   delete global.initAuthClient;
   delete global.getCurrentUser;
@@ -2050,9 +2070,9 @@ test('createAuthHeader keeps GIS stable after four idle hours on the landing pag
     assert.equal(scheduledTimers.size, 0, 'idle focus does not schedule nonce refresh timers');
     assert.deepEqual(requestedPaths, [], 'idle focus does not issue background nonce requests');
 
-    await authController.startGoogleSignIn();
+    await authController.prepareGoogleNonce();
     await flushAsync();
-    assert.equal(initializeCalls.length, 1, 'post-idle sign-in initializes GIS once');
+    assert.equal(initializeCalls.length, 1, 'post-idle button preparation initializes GIS once');
     assert.equal(initializeCalls[0].nonce, 'nonce-token-1');
 
     await initializeCalls[0].callback({ credential: 'post-idle-google-token' });
@@ -2060,13 +2080,13 @@ test('createAuthHeader keeps GIS stable after four idle hours on the landing pag
     assert.deepEqual(
       requestedPaths,
       ['/auth/nonce', '/auth/google'],
-      'post-idle sign-in requests nonce only for the explicit attempt',
+      'post-idle button preparation requests one nonce',
     );
     assert.deepEqual(
       exchangePayloads,
       [{ google_id_token: 'post-idle-google-token', nonce_token: 'nonce-token-1' }],
     );
-    assert.equal(initializeCalls.length, 1, 'post-idle sign-in does not reinitialize GIS');
+    assert.equal(initializeCalls.length, 1, 'post-idle credential return does not reinitialize GIS');
     assert.deepEqual(authController.state.profile, authenticatedProfile);
   } finally {
     Date.now = originalDateNow;
@@ -2437,7 +2457,7 @@ test('createAuthHeader ignores stale GIS callbacks after tauth-url change', asyn
   await flushAsync();
   await flushAsync();
 
-  await authController.startGoogleSignIn();
+  await authController.prepareGoogleNonce();
   await flushAsync();
   assert.ok(initializeCalls.length >= 1, 'initial GIS callback registered');
   const staleCallback = initializeCalls[0].callback;
@@ -2450,7 +2470,7 @@ test('createAuthHeader ignores stale GIS callbacks after tauth-url change', asyn
   await flushAsync();
   await flushAsync();
 
-  await authController.startGoogleSignIn();
+  await authController.prepareGoogleNonce();
   await flushAsync();
   assert.ok(initializeCalls.length >= 2, 'updated GIS callback registered after auth options change');
   const currentCallback = initializeCalls[initializeCalls.length - 1].callback;
@@ -4221,7 +4241,7 @@ test('mpr-auth-provider-chooser rejects missing, unknown, and duplicate provider
   );
 });
 
-test('mpr-login-button renders a visible sign-in attempt trigger with provided site ID', async () => {
+test('B059: mpr-login-button renders the official Google button with a nonce', async () => {
   resetEnvironment();
   const googleStub = {
     accounts: {
@@ -4248,17 +4268,17 @@ test('mpr-login-button renders a visible sign-in attempt trigger with provided s
     'google',
     'enabled provider IDs are reflected on the host',
   );
-  assert.equal(renderCalls.length, 0, 'Google renderButton is not invoked during mount');
+  assert.equal(renderCalls.length, 1, 'Google renderButton is invoked during mount');
   const loginTrigger = getStubNodeByAttribute(
     buttonHost,
     'data-mpr-auth-action',
     'google',
   );
-  assert.equal(loginTrigger.tagName, 'BUTTON', 'login button renders a real button control');
+  assert.equal(loginTrigger.tagName, 'DIV', 'login button provides a GIS render host');
   assert.equal(
-    loginTrigger.getAttribute('aria-label'),
-    'Sign in with Google',
-    'login button maps GIS text options to human-facing labels',
+    renderCalls[0].config.text,
+    'signin_with',
+    'login button maps its label option to the GIS button text',
   );
   assert.equal(
     loginTrigger.getAttribute('data-test'),
@@ -4314,7 +4334,7 @@ test('mpr-login-button rebinds auth endpoints when tauth-url changes after first
   };
 
   loadLibrary();
-  const { element } = createLoginButtonHarness(googleStub);
+  const { element, renderCalls } = createLoginButtonHarness(googleStub);
   setGoogleAuthConfig(element, {
     googleClientId: 'custom-site',
     googleLoginPath: '/auth/login',
@@ -4346,18 +4366,22 @@ test('mpr-login-button rebinds auth endpoints when tauth-url changes after first
     'http://localhost:8080',
     'login button restarts initAuthClient with the updated base URL',
   );
-  await authController.startGoogleSignIn();
-  await flushAsync();
-  assert.equal(initializeCalls.length, 1, 'login button sign-in initializes GIS once');
+  assert.equal(initializeCalls.length, 2, 'each rendered config initializes GIS once');
   assert.equal(
-    initializeCalls[0].nonce,
+    initializeCalls[1].nonce,
     'updated-login-nonce',
-    'login button sign-in initializes GIS with the updated nonce',
+    'updated login button initializes GIS with the updated nonce',
   );
-  await initializeCalls[0].callback({ credential: 'updated-login-token' });
+  const buttonOptions = renderCalls[renderCalls.length - 1].config;
+  buttonOptions.click_listener();
+  await initializeCalls[1].callback({ credential: 'updated-login-token', state: buttonOptions.state });
   assert.deepEqual(
     fetchCalls,
-    ['http://localhost:8080/auth/nonce', 'http://localhost:8080/auth/login'],
+    [
+      '/auth/nonce',
+      'http://localhost:8080/auth/nonce',
+      'http://localhost:8080/auth/login',
+    ],
     'login button credential exchange requests switch to the updated TAuth origin',
   );
   assert.deepEqual(
@@ -4543,10 +4567,11 @@ test('mpr-login-button rejects tenant changes after first render', async () => {
   );
 });
 
-test('mpr-login-button initializes GSI with a nonce only after sign-in trigger click', async () => {
+test('B059 and B064: mpr-login-button initializes GSI without locking other provider actions', async () => {
   resetEnvironment();
   const callOrder = [];
   let initializeCallCount = 0;
+  let renderedButtonConfig = null;
   const googleStub = {
     accounts: {
       id: {
@@ -4563,8 +4588,9 @@ test('mpr-login-button initializes GSI with a nonce only after sign-in trigger c
     initializeCallCount += 1;
     callOrder.push('initialize');
   };
-  googleStub.accounts.id.renderButton = function renderButton() {
+  googleStub.accounts.id.renderButton = function renderButton(_target, config) {
     callOrder.push('renderButton');
+    renderedButtonConfig = config;
   };
   setGoogleAuthConfig(element, {
     googleClientId: 'race-condition-test-site',
@@ -4573,29 +4599,31 @@ test('mpr-login-button initializes GSI with a nonce only after sign-in trigger c
   });
   element.connectedCallback();
   await flushAsync();
-  assert.deepEqual(callOrder, [], 'login button does not initialize or render GIS on mount');
+  assert.deepEqual(
+    callOrder,
+    ['initialize', 'renderButton'],
+    'login button initializes GSI before rendering the button',
+  );
 
   const loginTrigger = getStubNodeByAttribute(
     buttonHost,
     'data-mpr-auth-action',
     'google',
   );
-  assert.equal(loginTrigger.tagName, 'BUTTON', 'login button uses a real button for activation');
-  loginTrigger.dispatchEvent({ type: 'click', preventDefault() {} });
-  await flushAsync();
-  await flushAsync();
+  assert.equal(loginTrigger.tagName, 'DIV', 'login button gives GSI a dedicated render host');
+  renderedButtonConfig.click_listener();
 
   const initializeIndex = callOrder.indexOf('initialize');
   assert.ok(
     initializeIndex !== -1,
-    'GSI initialize should be called after the sign-in trigger click',
+    'GSI initialize is called before the button becomes interactive',
   );
   assert.equal(
     initializeCallCount,
     1,
-    'GSI initialize should only run once during the sign-in attempt',
+    'GSI initialize runs once for the rendered button',
   );
-  assert.equal(callOrder.includes('renderButton'), false, 'sign-in attempt uses prompt flow');
+  assert.equal(callOrder.includes('renderButton'), true, 'sign-in uses the rendered GIS button');
   assert.equal(
     getStubNodeByAttribute(
       buttonHost,
@@ -4603,7 +4631,7 @@ test('mpr-login-button initializes GSI with a nonce only after sign-in trigger c
       'root',
     ).getAttribute('data-mpr-auth-action-status'),
     'ready',
-    'login provider actions return to the ready state after GIS prompt starts',
+    'Google click waits for a credential before it starts the authentication state',
   );
 });
 
@@ -4759,6 +4787,14 @@ test('F008: provider-aware login controls render only enabled providers', () => 
       `${providerCase.label}: only enabled provider actions render`,
     );
     providerButtons.forEach((buttonElement) => {
+      if (buttonElement.getAttribute('data-mpr-auth-action') === 'google') {
+        assert.equal(
+          buttonElement.tagName,
+          'DIV',
+          `${providerCase.label}: Google receives a dedicated GIS render host`,
+        );
+        return;
+      }
       assert.ok(
         buttonElement.getAttribute('aria-label'),
         `${providerCase.label}: each provider action has an accessible label`,
@@ -5324,6 +5360,37 @@ test('mpr-user renders avatar modes from TAuth profile data', () => {
   });
 });
 
+test('mpr-user renders its default avatar for a provider profile without an avatar', () => {
+  resetEnvironment();
+  loadLibrary();
+  global.getCurrentUser = function getCurrentUser() {
+    return {
+      display: 'MPR UI Apple Demo User',
+      user_email: 'apple-demo@mprlab.local',
+    };
+  };
+  global.logout = function logout() {
+    return Promise.resolve();
+  };
+  global.setAuthTenantId = function setAuthTenantId() {};
+
+  const harness = createUserElementHarness();
+  const element = harness.element;
+  element.setAttribute('display-mode', 'avatar');
+  element.setAttribute('logout-url', '#signed-out');
+  element.setAttribute('logout-label', 'Log out');
+  setGoogleAuthConfig(element);
+
+  element.connectedCallback();
+
+  assert.equal(element.getAttribute('data-mpr-user-status'), 'authenticated');
+  assert.match(
+    harness.avatarImage.attributes && harness.avatarImage.attributes.src,
+    /^data:image\/svg\+xml,/,
+  );
+  assert.equal(element.getAttribute('data-mpr-user-error'), null);
+});
+
 test('mpr-user renders menu items when configured', () => {
   resetEnvironment();
   loadLibrary();
@@ -5683,7 +5750,6 @@ test('F007: account panel actions require shared authenticated state and submit 
       values: { email: 'linked@example.com', password: 'link-secret' },
     },
     { action: 'password-link-verify', values: { token: 'link-token-secret' } },
-    { action: 'google-link', values: {} },
     {
       action: 'unlink',
       values: { identity: '0' },
@@ -5714,10 +5780,6 @@ test('F007: account panel actions require shared authenticated state and submit 
       performAccountAction(action, request) {
         calls.push({ action, request });
         return Promise.resolve({ action, status: 'updated' });
-      },
-      startGoogleLink() {
-        calls.push({ action: 'google-link', request: {} });
-        return Promise.resolve({ action: 'google-link', status: 'updated' });
       },
     };
     const element = attachChildTreeApi(
@@ -5779,6 +5841,91 @@ test('F007: account panel actions require shared authenticated state and submit 
     walkStubTree(unauthenticatedElement).some((node) => node.tagName === 'FORM'),
     false,
   );
+});
+
+test('B061: account panel renders the official nonce-bound Google link button', async () => {
+  resetEnvironment();
+  let credentialHandler;
+  let renderConfig;
+  let renderTarget;
+  global.google = {
+    accounts: {
+      id: {
+        initialize(config) { credentialHandler = config.callback; },
+        renderButton(target, config) {
+          renderTarget = target;
+          renderConfig = config;
+          target.appendChild(createStubNode({ attributes: true }));
+        },
+      },
+    },
+  };
+  const library = loadLibrary();
+  const AccountPanelElement = global.customElements.get('mpr-account-panel');
+  const authConfig = createPasswordAccountAuthConfig();
+  const normalizedOptions = library.createAuthOptions(authConfig);
+  global.requestNonce = () => Promise.resolve('google-link-nonce');
+  const nonceController = library.createAuthHeader(
+    attachHostApi(new global.HTMLElement(), new Map()), authConfig,
+  );
+  const calls = [];
+  const controller = {
+    host: createStubNode({ supportsEvents: true }),
+    state: {
+      status: 'authenticated',
+      profile: { user_id: 'account-id', user_email: 'account@example.com' },
+      options: normalizedOptions,
+    },
+    performPasswordAction() {
+      return Promise.resolve();
+    },
+    performAccountAction() {
+      return Promise.resolve();
+    },
+    prepareGoogleNonce: nonceController.prepareGoogleNonce,
+    startGoogleLink(credentialResponse, nonceToken) {
+      calls.push({ credentialResponse, nonceToken });
+      return Promise.resolve({ action: 'google-link', status: 'updated' });
+    },
+  };
+  const element = attachChildTreeApi(
+    attachHostApi(new AccountPanelElement(), new Map()),
+  );
+  element.ownerDocument = global.document;
+  element.__authControllerOverride = controller;
+  element.setAttribute('action', 'google-link');
+  element.setAttribute('auth-config', JSON.stringify(authConfig));
+  element.connectedCallback();
+  await flushAsync();
+
+  assert.ok(renderConfig, 'Google Identity renders the account-link button');
+  assert.equal(renderConfig.text, 'continue_with');
+  assert.equal(
+    walkStubTree(element).some(
+      (node) => node.tagName === 'BUTTON' && node.textContent === 'Link Google',
+    ),
+    false,
+    'the obsolete custom submit button is absent',
+  );
+
+  renderConfig.click_listener();
+  assert.equal(element.getAttribute('data-mpr-account-panel-status'), 'loading');
+  await credentialHandler(
+    { credential: 'google-link-credential', state: renderConfig.state },
+    'google-link-nonce',
+  );
+  await flushAsync();
+
+  assert.deepEqual(calls, [
+    {
+      credentialResponse: { credential: 'google-link-credential', state: renderConfig.state },
+      nonceToken: 'google-link-nonce',
+    },
+  ]);
+  assert.equal(element.getAttribute('data-mpr-account-panel-status'), 'success');
+  element.disconnectedCallback();
+  delete global.requestNonce;
+  assert.equal(renderTarget.children.length, 0, 'disconnect clears the rendered GIS control');
 });
 
 test('F007: unlink requires configured identities and renders only their labels', () => {
@@ -5852,7 +5999,7 @@ test('F007: unlink requires configured identities and renders only their labels'
   });
 });
 
-test('F007: local challenge display stays out of public component events', async () => {
+test('F010: obsolete challenge display attributes cannot expose tokens', async () => {
   resetEnvironment();
   const library = loadLibrary();
   const PasswordAuthElement = global.customElements.get('mpr-password-auth');
@@ -5892,11 +6039,11 @@ test('F007: local challenge display stays out of public component events', async
   form.dispatchEvent({ type: 'submit', preventDefault() {} });
   await flushAsync();
 
-  assert.deepEqual(capturedResultOptions, { includeChallengeToken: true });
+  assert.equal(capturedResultOptions, undefined);
   const statusElement = walkStubTree(element).find(
     (node) => node.className === 'mpr-auth-form__status',
   );
-  assert.equal(statusElement.textContent, 'Challenge token: local-fixture-token');
+  assert.equal(statusElement.textContent, 'Completed.');
   assert.equal(
     JSON.stringify(element.__dispatchedEvents).includes('local-fixture-token'),
     false,
@@ -6064,7 +6211,7 @@ test('F007: shared TAuth actions use explicit paths, tenant headers, and sanitiz
   controller.destroy();
 });
 
-test('F007: explicit local challenge results expose tokens only to the caller', async () => {
+test('F010: challenge results never expose server-returned tokens', async () => {
   resetEnvironment();
   const library = loadLibrary();
   const authConfig = createPasswordAccountAuthConfig({
@@ -6118,9 +6265,9 @@ test('F007: explicit local challenge results expose tokens only to the caller', 
     { includeChallengeToken: true },
   );
 
-  assert.equal(signupResult.challengeToken, 'signup-fixture-token');
-  assert.equal(resetResult.challengeToken, 'reset-fixture-token');
-  assert.equal(linkResult.challengeToken, 'link-fixture-token');
+  assert.equal(signupResult.challengeToken, undefined);
+  assert.equal(resetResult.challengeToken, undefined);
+  assert.equal(linkResult.challengeToken, undefined);
   const eventText = JSON.stringify(host.__dispatchedEvents || []);
   Object.values(tokenByPath).forEach((tokenEntry) => {
     assert.equal(eventText.includes(tokenEntry[1]), false);
@@ -6242,37 +6389,13 @@ test('F007: Google linking resolves only after credential exchange', async () =>
     tauthUrl: 'https://auth.example.test',
     tenantId: 'google-link-tenant',
   });
-  let googleCredentialCallback;
   let resolveGoogleLinkResponse;
-  global.requestNonce = function requestGoogleLinkNonce() {
-    return Promise.resolve('google-link-nonce');
-  };
-  global.google = {
-    accounts: {
-      id: {
-        initialize(config) {
-          googleCredentialCallback = config.callback;
-        },
-        renderButton() {},
-        prompt(handlePromptMoment) {
-          googleCredentialCallback({ credential: 'google-link-credential' });
-          handlePromptMoment({
-            isNotDisplayed() {
-              return false;
-            },
-            isSkippedMoment() {
-              return false;
-            },
-            isDismissedMoment() {
-              return true;
-            },
-          });
-        },
-      },
-    },
-  };
-  global.fetch = function holdGoogleLinkResponse(url) {
+  global.fetch = function holdGoogleLinkResponse(url, request) {
     assert.equal(String(url), 'https://auth.example.test/auth/account/google/link');
+    assert.deepEqual(JSON.parse(request.body), {
+      google_id_token: 'google-link-credential',
+      nonce_token: 'google-link-nonce',
+    });
     return new Promise((resolve) => {
       resolveGoogleLinkResponse = resolve;
     });
@@ -6284,7 +6407,10 @@ test('F007: Google linking resolves only after credential exchange', async () =>
     user_email: 'account@example.com',
   });
   let linkCompleted = false;
-  const linkPromise = controller.startGoogleLink().then((result) => {
+  const linkPromise = controller.startGoogleLink(
+    { credential: 'google-link-credential' },
+    'google-link-nonce',
+  ).then((result) => {
     linkCompleted = true;
     return result;
   });
@@ -6306,38 +6432,11 @@ test('F007: Google linking resolves only after credential exchange', async () =>
   controller.destroy();
 });
 
-test('F007: Google linking rejects a prompt that ends without a credential', async () => {
+test('B061: Google linking rejects a missing credential before a request', async () => {
   resetEnvironment();
   const library = loadLibrary();
   const authConfig = createPasswordAccountAuthConfig();
-  let googleCredentialCallback;
   let accountRequestCount = 0;
-  global.requestNonce = function requestGoogleLinkNonce() {
-    return Promise.resolve('google-link-nonce');
-  };
-  global.google = {
-    accounts: {
-      id: {
-        initialize(config) {
-          googleCredentialCallback = config.callback;
-        },
-        renderButton() {},
-        prompt(handlePromptMoment) {
-          handlePromptMoment({
-            isNotDisplayed() {
-              return false;
-            },
-            isSkippedMoment() {
-              return false;
-            },
-            isDismissedMoment() {
-              return true;
-            },
-          });
-        },
-      },
-    },
-  };
   global.fetch = function rejectUnexpectedGoogleLink() {
     accountRequestCount += 1;
     return Promise.reject(new Error('Google link request must not start'));
@@ -6350,34 +6449,29 @@ test('F007: Google linking rejects a prompt that ends without a credential', asy
   });
 
   await assert.rejects(
-    controller.startGoogleLink(),
-    (error) => error.code === 'mpr-ui.account.google_prompt_incomplete',
+    controller.startGoogleLink({}, 'google-link-nonce'),
+    (error) => error.code === 'mpr-ui.auth.missing_credential',
   );
-  await googleCredentialCallback({ credential: 'late-google-credential' });
-  await flushAsync();
   assert.equal(accountRequestCount, 0);
   assert.equal(controller.state.status, 'authenticated');
   controller.destroy();
 });
 
-test('F007: sign-out rejects a Google link prompt that is still pending', async () => {
+test('B061: sign-out rejects a Google link exchange that is still pending', async () => {
   resetEnvironment();
   const library = loadLibrary();
   const authConfig = createPasswordAccountAuthConfig();
-  global.requestNonce = function requestGoogleLinkNonce() {
-    return Promise.resolve('google-link-nonce');
-  };
-  global.google = {
-    accounts: {
-      id: {
-        initialize() {},
-        renderButton() {},
-        prompt() {},
-      },
-    },
-  };
-  global.logout = function completeLogout() {
-    return Promise.resolve();
+  let resolveGoogleLinkResponse;
+  global.fetch = function routeGoogleLinkSignOut(url) {
+    if (String(url).endsWith('/auth/account/google/link')) {
+      return new Promise((resolve) => {
+        resolveGoogleLinkResponse = resolve;
+      });
+    }
+    if (String(url).endsWith('/auth/logout')) {
+      return Promise.resolve({ ok: true, status: 204 });
+    }
+    throw new Error('Unexpected request: ' + String(url));
   };
   const host = createStubNode({ supportsEvents: true, attributes: true });
   const controller = library.createAuthHeader(host, authConfig);
@@ -6385,10 +6479,20 @@ test('F007: sign-out rejects a Google link prompt that is still pending', async 
     user_id: 'account-id',
     user_email: 'account@example.com',
   });
-  const linkPromise = controller.startGoogleLink();
+  const linkPromise = controller.startGoogleLink(
+    { credential: 'google-link-credential' },
+    'google-link-nonce',
+  );
   await flushAsync();
 
   await controller.signOut();
+  resolveGoogleLinkResponse({
+    ok: true,
+    status: 200,
+    json: async function linkedProfile() {
+      return { user_id: 'account-id', user_email: 'account@example.com' };
+    },
+  });
   await assert.rejects(
     linkPromise,
     (error) => error.code === 'mpr-ui.auth.recovery_lifecycle_changed',

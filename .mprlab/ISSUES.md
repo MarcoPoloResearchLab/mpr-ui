@@ -12,6 +12,213 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [-] [B064] (P1) {B059} A Google popup attempt can lock the other auth controls.
+  Goal:
+  The provider controls stay available until Google returns a credential.
+
+  Expected:
+  A Google button click opens the provider flow. The email and Apple controls stay available if that flow does not return a credential.
+
+  Actual:
+  The Google click listener sets an authentication state before Google returns a credential. This state disables the other provider controls without an end event.
+
+  Requirements:
+  - Treat the Google button click as provider intent only.
+  - Set the authentication state when Google returns a credential.
+  - Keep the other provider controls available after a canceled or rejected Google popup.
+
+  Deliverables:
+  - Correct the Google button state transition.
+  - Add browser coverage for a Google attempt that returns no credential.
+  - Update the integration documentation and changelog.
+
+  Validation:
+  - Select the Google control without a credential callback.
+  - Verify that the email control stays available.
+  - Run `make ci` after the final source, test, and documentation changes.
+
+- [-] [B063] (P1) {F010} The header email form exceeds the available width.
+  Goal:
+  The header email form stays inside the browser viewport at each supported width.
+
+  Expected:
+  The header aligns the email form with the provider controls and contains each form control.
+
+  Actual:
+  The email form uses content-box width. Its padding and border can extend past the viewport edge.
+
+  Requirements:
+  - Use border-box width for the password form host and its controls.
+  - Keep the compact header provider controls unchanged.
+  - Keep the email form inside the viewport at narrow widths.
+
+  Deliverables:
+  - Correct the password form sizing rules.
+  - Add browser coverage for the header email form at narrow widths.
+  - Update the component documentation and changelog.
+
+  Validation:
+  - Open the email form in the header at each test width.
+  - Verify that the form and its controls stay inside the viewport.
+  - Run `make ci` after the final source, test, and documentation changes.
+
+- [-] [B062] (P1) {B059,B061} The public auth controller retains the obsolete Google One Tap methods.
+  Goal:
+  The public auth controller exposes only the current button-based Google authentication contract.
+
+  Expected:
+  Google authentication starts only from an official Google Identity Services button.
+
+  Actual:
+  `startGoogleSignIn()` and `startProvider("google")` still call the Google One Tap prompt.
+
+  Requirements:
+  - Remove the programmatic Google One Tap methods from the auth controller.
+  - Remove the unused Google prompt attempt state.
+  - Keep Apple redirect actions available through `startAppleSignIn()`.
+  - Keep the official Google button and JavaScript credential callback as the only Google start and return paths.
+  - Remove obsolete prompt options from unauthenticated state updates.
+
+  Deliverables:
+  - Remove the obsolete controller methods and state.
+  - Replace tests that call the obsolete methods with button-lifecycle tests.
+  - Update the architecture, API, integration, and release documents.
+
+  Validation:
+  - Confirm that the public controller does not expose a Google prompt method.
+  - Confirm that Google sign-in and account linking use official rendered buttons.
+  - Confirm that Apple sign-in still uses its explicit redirect method.
+  - Run `make ci` after the final source, test, and documentation changes.
+
+- [-] [B061] (P1) {B059,F010} Google account linking uses the obsolete One Tap prompt.
+  Goal:
+  The account panel starts a real Google popup flow with the official Google Identity Services button.
+
+  Expected:
+  An authenticated user can select the official Google button and link the returned identity through TAuth.
+
+  Actual:
+  The account panel submits a custom button and calls the One Tap prompt. This action can end without a visible Google flow.
+
+  Requirements:
+  - Render the official Google Identity Services button in the `google-link` account panel.
+  - Bind the button to a valid TAuth nonce.
+  - Send the returned ID token and nonce to `auth.account.googleLinkPath`.
+  - Refresh the nonce while the account panel remains connected.
+  - Remove the obsolete account-link prompt path.
+  - Keep account status and error events free of credentials and nonce values.
+
+  Deliverables:
+  - Reuse the shared Google button renderer in the account panel.
+  - Remove the prompt-based Google link controller state.
+  - Add unit and browser coverage for the button and identity exchange.
+  - Update the component, integration, architecture, demo, and release documents.
+
+  Validation:
+  - Sign in on the local demo.
+  - Select the account panel Google button and complete the real provider flow.
+  - Verify that TAuth records the linked identity.
+  - Verify nonce refresh and cleanup behavior.
+  - Run `make ci` after the final source, test, and documentation changes.
+
+- [-] [B060] (P1) {F010} The local demo can show an old component bundle.
+  Goal:
+  The Docker demo always serves the current files from the primary checkout.
+
+  Expected:
+  A browser reload shows the current HTML, JavaScript, and CSS files.
+
+  Actual:
+  gHTTP responses do not include a cache policy. The browser can reuse old demo files after the source changes.
+
+  Requirements:
+  - Set `Cache-Control: no-store` for all local frontend responses.
+  - Keep the same-origin `/auth` proxy behavior.
+  - Keep the local demo on `http://localhost:4443`.
+  - Do not add query parameters to application asset URLs.
+
+  Deliverables:
+  - Update the Docker frontend configuration.
+  - Add a unit contract for the response header policy.
+  - Update the local demo instructions and release notes.
+
+  Validation:
+  - Start the stack with `make up`.
+  - Verify that HTML, JavaScript, and CSS responses use `Cache-Control: no-store`.
+  - Change a served file and verify that a normal browser reload shows the new content.
+  - Run `make ci` after the final source, test, and documentation changes.
+
+- [-] [B059] (P1) {F010} Google sign-in does not open in the local demo.
+  Goal:
+  The Google control starts a real Google popup flow on the local HTTP demo and the public HTTPS demo.
+
+  Expected:
+  The Google control opens the Google account flow. TAuth creates a session after it validates the returned ID token and nonce.
+
+  Actual:
+  The control calls the Google One Tap prompt. The local HTTP demo blinks and does not show an account flow.
+
+  Requirements:
+  - Render the official Google Identity Services button for the popup flow.
+  - Bind the rendered button to a valid TAuth nonce.
+  - Refresh the nonce before it expires while the control remains connected.
+  - Remove each nonce timer when its auth controller disconnects.
+  - Keep the JavaScript credential callback as the only Google return path.
+  - Do not add an OAuth redirect callback to the mpr-ui Google flow.
+  - Support Google-only and mixed-provider controls.
+  - Keep the provider controls compact on small and large viewports.
+  - Use real Google credentials. Do not add a simulated provider.
+
+  Deliverables:
+  - Update the auth controller and provider action renderer.
+  - Update the Google button presentation for header and standalone controls.
+  - Add browser coverage for the rendered button and nonce lifecycle.
+  - Update the integration, architecture, demo, and release documents.
+
+  Validation:
+  - Start the local demo at `http://localhost:4443`.
+  - Select the Google control and verify that Google shows the account flow.
+  - Complete Google authentication and verify that TAuth restores the session.
+  - Verify the same JavaScript callback contract at `https://ui.mprlab.com`.
+  - Verify the nonce refresh and controller cleanup behavior.
+  - Run `make ci` after the final source, config, test, and documentation changes.
+
+- [!] [B058] (P1) {F010} The local demo uses a simulated Apple provider.
+  Goal:
+  The public and local demos use the real Apple provider through one hosted TAuth callback.
+
+  Expected:
+  The Apple control opens Apple. TAuth creates a session only after it validates the Apple response.
+
+  Actual:
+  The local Apple service accepts the action without an Apple request. The service then creates a fixture identity.
+
+  Blocked: The private deployment input has no Apple Service ID or private key for the MPR UI demo tenant.
+
+  Requirements:
+  - Remove the simulated Apple service and its fixture key.
+  - Use `https://tauth-api.mprlab.com/auth/apple/callback` as the Apple callback.
+  - Allow `https://ui.mprlab.com` as a TAuth tenant origin.
+  - Allow `http://localhost:4443` and `http://127.0.0.1:4443` as TAuth tenant origins.
+  - Keep the local browser URL on HTTP.
+  - Keep Apple credentials in the canonical private deployment input.
+  - Enable the Apple control only after the real provider config is completed.
+  - Preserve Google and password authentication.
+
+  Deliverables:
+  - Remove the simulated provider from the local Compose runtime.
+  - Add the real Apple settings to the F010 TAuth tenant.
+  - Configure the public and local browser environments to use the hosted TAuth tenant.
+  - Add browser acceptance coverage for each allowed demo origin.
+
+  Validation:
+  - Start the local demo at `http://localhost:4443`.
+  - Select the Apple control and verify that Apple receives the authorization request.
+  - Complete Apple authentication and verify that the local demo restores the hosted TAuth session.
+  - Repeat the authentication at `https://ui.mprlab.com`.
+  - Verify that no simulated provider code or fixture key remains.
+  - Run `make ci` after the final source, config, and documentation changes.
+
 - [!] [B027] (P1) gix sync: prevent creating a new branch when an explicit target branch is provided.
   Goal:
   Make `gix sync <branch>` commit and push uncommitted changes to the named branch. Do not create a new branch in this mode.
@@ -85,12 +292,13 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Cadence: run weekly during active development and before each release cut.
   - Validate section names, identifier prefixes, recurrence suffixes, priority markers, dependencies, and duplicate IDs against the current `issues-md-format.md`.
   - Reconcile stale statuses, duplicate issues, broken references, obsolete instructions, and entries filed under the wrong section.
-  - Move completed non-recurring history to the repository issue archive or durable documentation when the active tracker becomes noisy.
+  - Before archival, update source documents with durable results from each resolved non-recurring issue.
+  - Preserve the complete issue entry and its ID in the repository archive.
   - Keep active, blocked, planning, and recurring entries visible in `ISSUES.md`.
 
   Deliverables:
   - Normalized `ISSUES.md` structure and statuses.
-  - Updated issue archive or docs when completed entries are removed from the active tracker.
+  - Updated archive with complete entries removed from the active tracker.
   - A short `Last run:` note summarizing the cleanup and any follow-up issues filed.
 
   Validation:
@@ -132,11 +340,11 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Cadence: run monthly, before large refactors, and after major framework or runtime changes.
   - Review the codebase, docs, and workflow against `AGENTS.md`, `POLICY.md`, stack guides, and the current architecture notes.
   - Look for drift from forward-only contracts, edge-validation boundaries, smart-constructor usage, testing policy, and module ownership.
-  - Record findings as new Maintenance issues with concrete scope, priority, and validation.
+  - Classify each finding by its requested outcome. Record concrete scope, priority, and validation.
   - Close the pass with a no-action note only when the review finds no actionable drift.
 
   Deliverables:
-  - New Maintenance issues for each actionable architecture or policy drift finding.
+  - Correctly classified issues for each actionable architecture or policy drift finding.
   - Updated notes on areas reviewed and areas intentionally left unchanged.
   - A short `Last run:` note with the review scope and outcome.
 
@@ -152,9 +360,9 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   Requirements:
   - Cadence: run weekly for active apps and before each release cut.
   - Inspect package managers, lockfiles, language toolchains, container bases, and generated clients for known vulnerabilities or stale direct dependencies.
-  - Review auth, secret, CORS, CSP, SQL, network, and permission-sensitive configuration for drift from the current contract.
+  - Review auth, secret, CORS, CSP, SQL, network, and service-authorization configuration for drift from the current contract.
   - Prefer current supported dependencies. Do not add compatibility shims for obsolete dependency behavior.
-  - File separate Maintenance or BugFix issues for each actionable vulnerability, unsupported runtime, or security-contract gap.
+  - File each actionable vulnerability, unsupported runtime, or security-contract gap under its outcome-based issue section.
 
   Deliverables:
   - Documented audit commands or data sources used for the pass.
@@ -195,7 +403,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Cadence: run monthly and before large refactors.
   - Scan for dead code, unused exports, duplicated literals, silent fallbacks, legacy aliases, compatibility reads, and zero-but-invalid domain states.
   - Examine static analysis, coverage, schema, and contract guards that prevent drift.
-  - File focused Maintenance issues for each concrete violation instead of broad cleanup placeholders.
+  - File each concrete violation under its outcome-based issue section.
   - Keep the current canonical contract only. Do not preserve obsolete behavior unless a product requirement explicitly says so.
 
   Deliverables:
@@ -319,8 +527,12 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Add `https://ui.mprlab.com` to the canonical browser config.
   - Add one dedicated TAuth tenant for the public demo site.
   - Use a tenant ID that is reserved for the MPR UI demo site.
+  - Use `https://tauth-api.mprlab.com/auth/apple/callback` as the Apple callback.
+  - Allow `https://ui.mprlab.com` as a TAuth tenant origin.
+  - Allow `http://localhost:4443` and `http://127.0.0.1:4443` as TAuth tenant origins.
   - Read provider secrets only from the canonical private deployment input.
   - Keep all provider secrets out of the Pages artifact and Git history.
+  - Do not use a simulated external provider.
   - Configure the browser-facing TAuth origin from active deployed state.
   - Enable Google, Apple, and password providers only with complete provider config.
   - Use disposable demo identities for public password and account actions.
@@ -370,6 +582,9 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Complete one real login for each enabled external provider before public acceptance.
   - Confirm every public page has no browser error, failed asset request, or mixed content.
   - Repeat deployment without source changes and verify an idempotent result.
+
+  Progress 2026-09-03:
+  `make up` now builds the current sibling TAuth and Pinguin sources. It creates a managed local Pinguin tenant and sends real challenge email through its configured SMTP relay. The demo consumes fragment tokens inside the matching component. Local browser acceptance and `make ci` passed.
 
 ## Planning
 
