@@ -24,10 +24,6 @@ const integrationGuide = readFileSync(
   'utf8',
 );
 
-function escapeRegex(value) {
-  return String(value).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
 test('MU-435: package.json defines combined Node and browser coverage scripts', () => {
   const coverageScript = packageJson.scripts && packageJson.scripts['test:coverage'];
   const nodeCoverageScript = packageJson.scripts && packageJson.scripts['test:coverage:node'];
@@ -138,9 +134,8 @@ test('MU-435: GitHub workflow routes CI through make ci', () => {
   );
 });
 
-test('MU-436: release metadata and pinned docs stay aligned', () => {
+test('release metadata stays aligned and MPR Lab docs use the current CDN contract', () => {
   const packageVersion = packageJson.version;
-  const versionTag = `v${packageVersion}`;
 
   assert.match(
     packageVersion,
@@ -161,13 +156,13 @@ test('MU-436: release metadata and pinned docs stay aligned', () => {
     const documentLabel = index === 0 ? 'README.md' : 'docs/integration-guide.md';
     assert.match(
       documentText,
-      new RegExp(escapeRegex(`The examples below use \`${versionTag}\``)),
-      `Expected ${documentLabel} to advertise the current pinned CDN version`,
+      /MarcoPoloResearchLab\/mpr-ui@latest\/mpr-ui\.css/,
+      `Expected ${documentLabel} to use the current MPR Lab CDN stylesheet contract`,
     );
     assert.match(
       documentText,
-      new RegExp(escapeRegex(`@${versionTag}/`)),
-      `Expected ${documentLabel} to pin example asset URLs to ${versionTag}`,
+      /MarcoPoloResearchLab\/mpr-ui@latest\/mpr-ui\.js/,
+      `Expected ${documentLabel} to use the current MPR Lab CDN bundle contract`,
     );
   });
 });

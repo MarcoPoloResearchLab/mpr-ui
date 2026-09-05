@@ -2,9 +2,7 @@
 
 const { test, expect } = require('./support/browserCoverage');
 
-const BASE_URL = process.env.MPR_UI_DEMO_BASE_URL || 'https://localhost:4443';
-
-test.use({ ignoreHTTPSErrors: true });
+const BASE_URL = process.env.MPR_UI_DEMO_BASE_URL || 'http://localhost:4443';
 
 test('MU-429: entity workspace demo blocks direct static serving and requires Docker', async ({
   page,
@@ -19,7 +17,7 @@ test('MU-429: entity workspace demo blocks direct static serving and requires Do
     'This page is intentionally wired to the Docker-mounted demo bundle.',
   );
   await expect(page.locator('#entity-demo-error')).toContainText(
-    './up.sh tauth',
+    'make up',
   );
 });
 

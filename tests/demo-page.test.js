@@ -1,7 +1,9 @@
+// @ts-check
 'use strict';
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
+const { execFileSync } = require('node:child_process');
 const { readFileSync } = require('node:fs');
 const { join } = require('node:path');
 const yaml = require('js-yaml');
@@ -109,6 +111,16 @@ test('local demo preview uses the no-store demo server', () => {
   );
 });
 
+test('make exposes the complete local demo lifecycle', () => {
+  const makeArguments = ['--no-builtin-rules', '--dry-run'];
+  const executionOptions = Object.freeze({ cwd: repoRoot, encoding: 'utf8' });
+  const upOutput = execFileSync('make', [...makeArguments, 'up'], executionOptions);
+  const downOutput = execFileSync('make', [...makeArguments, 'down'], executionOptions);
+
+  assert.match(upOutput, /^\.\/up\.sh$/m, 'Expected make up to run the full demo stack');
+  assert.match(downOutput, /^\.\/down\.sh$/m, 'Expected make down to stop the full demo stack');
+});
+
 test('auth provider chooser icon-row CSS is compact and declarative', () => {
   assert.match(
     sharedCss,
@@ -150,16 +162,16 @@ test('landing page uses Web Component orchestration for config', () => {
   );
 });
 
-test('landing page pulls Bootstrap assets for the layout showcase', () => {
-  assert.match(
+test('landing page uses the compact dependency-free demo shell', () => {
+  assert.doesNotMatch(
     landingHtml,
-    /<link[^>]+href="https:\/\/cdn\.jsdelivr\.net\/npm\/bootstrap@[^/]+\/dist\/css\/bootstrap\.min\.css"/i,
-    'Expected the landing page to load Bootstrap CSS for the grid layout',
+    /bootstrap(?:\.min)?\.(?:css|js)/i,
+    'Expected the public demo shell to avoid framework presentation dependencies',
   );
   assert.match(
     landingHtml,
-    /<script[^>]+src="https:\/\/cdn\.jsdelivr\.net\/npm\/bootstrap@[^/]+\/dist\/js\/bootstrap\.bundle\.min\.js"/i,
-    'Expected the landing page to load the Bootstrap bundle',
+    /class="demo-hub__grid"/,
+    'Expected the landing page to expose the shared compact demo grid',
   );
 });
 
@@ -182,25 +194,12 @@ test('sticky layout helpers live inside the components, not demo CSS', () => {
   });
 });
 
-test('palette-specific overrides live in the demo stylesheet only', () => {
-  const paletteSelectors = [
-    /body\[data-demo-palette='sunrise'\]\.theme-light[^{]*\{/,
-    /body\[data-demo-palette='sunrise'\]\.theme-dark[^{]*\{/,
-    /body\[data-demo-palette='forest'\]\.theme-light[^{]*\{/,
-    /body\[data-demo-palette='forest'\]\.theme-dark[^{]*\{/,
-  ];
-  paletteSelectors.forEach((selector) => {
-    assert.doesNotMatch(
-      sharedCss,
-      selector,
-      'Packaged stylesheet should not include demo palette selectors',
-    );
-    assert.match(
-      demoCss,
-      selector,
-      'Demo stylesheet should include palette overrides for showcase themes',
-    );
-  });
+test('demo stylesheet applies one compact MPR visual contract', () => {
+  assert.match(demoCss, /--demo-canvas: #0f1114;/);
+  assert.match(demoCss, /--demo-control-radius: 6px;/);
+  assert.match(demoCss, /background-image: none;/);
+  assert.doesNotMatch(demoCss, /linear-gradient|radial-gradient/);
+  assert.doesNotMatch(entityWorkspaceCss, /linear-gradient|radial-gradient|backdrop-filter/);
 });
 
 test('all demo footers include horizontal-links DSL examples', () => {
@@ -216,11 +215,6 @@ test('all demo footers include horizontal-links DSL examples', () => {
 });
 
 test('demo pages share the same header navigation links', () => {
-  const canonicalNavLinks = extractSingleQuotedAttribute(
-    landingHtml,
-    'mpr-header',
-    'nav-links',
-  );
   const canonicalHeaderLinks = extractSingleQuotedAttribute(
     landingHtml,
     'mpr-header',
@@ -235,11 +229,6 @@ test('demo pages share the same header navigation links', () => {
       'horizontal-links',
     );
 
-    assert.strictEqual(
-      normalizeAttributeValue(extractSingleQuotedAttribute(demoHtmlFile, 'mpr-header', 'nav-links')),
-      normalizeAttributeValue(canonicalNavLinks),
-      `Expected ${demoFileName} to keep the shared demo nav links`,
-    );
     assert.strictEqual(
       normalizeAttributeValue(demoHeaderLinks),
       normalizeAttributeValue(canonicalHeaderLinks.replace(/\.\/index\.html/g, '../index.html').replace(/\.\/demo\//g, './')),
@@ -268,8 +257,30 @@ test('demo pages keep the shared slotted avatar control in the header', () => {
 test('docker compose keeps the index demo as the single root entrypoint', () => {
   assert.match(
     dockerCompose,
-    /- \.\/:[^\s]*\/app\/www/,
-    'Expected docker-compose.yml to mount the repository as the app root',
+    /- \.\/index\.html:\/app\/www\/index\.html:ro/,
+    'Expected docker-compose.yml to mount the public index file',
+  );
+  assert.match(dockerCompose, /GHTTP_SERVE_PORT:\s+"8000"/);
+  assert.match(dockerCompose, /- "4443:8000"/);
+  assert.match(
+    dockerCompose,
+    /GHTTP_SERVE_DIRECTORY:\s+"\/app\/www"/,
+    'Expected gHTTP to serve the public demo files',
+  );
+  assert.match(
+    dockerCompose,
+    /GHTTP_SERVE_PROXIES:\s+"\/auth=http:\/\/tauth:8080"/,
+    'Expected gHTTP to proxy the complete authentication route prefix',
+  );
+  assert.match(
+    dockerCompose,
+    /GHTTP_SERVE_RESPONSE_HEADERS:\s+"\/=Cache-Control:no-store"/,
+    'Expected gHTTP to prevent local demo response caching',
+  );
+  assert.doesNotMatch(
+    dockerCompose,
+    /GHTTP_SERVE_TLS_|\/certs\//,
+    'Expected the local demo stack to use HTTP without certificate configuration',
   );
 });
 
@@ -290,6 +301,68 @@ test('demo config supports the lightweight static preview origin', () => {
     staticPreviewEnvironment.auth.tenantId,
     'mpr-sites',
     'Expected the static preview to keep the demo tenant',
+  );
+});
+
+test('component gallery shows every general component and the complete dropdown modes', () => {
+  const galleryHtml = readDemoFile('components.html');
+  const expectedElements = [
+    'mpr-header',
+    'mpr-footer',
+    'mpr-dropdown',
+    'mpr-theme-toggle',
+    'mpr-settings',
+    'mpr-sites',
+    'mpr-legal-document',
+    'mpr-band',
+    'mpr-card',
+  ];
+
+  expectedElements.forEach((tagName) => {
+    assert.match(
+      galleryHtml,
+      new RegExp(`<${tagName}\\b`, 'i'),
+      `Expected the component gallery to include <${tagName}>`,
+    );
+  });
+
+  assert.match(galleryHtml, /"placement"\s*:\s*"top"/);
+  assert.match(galleryHtml, /"placement"\s*:\s*"bottom"/);
+  assert.match(galleryHtml, /"mode"\s*:\s*"static"/);
+  assert.match(galleryHtml, /"mode"\s*:\s*"expanded"/);
+  assert.match(galleryHtml, /"mode"\s*:\s*"collapsed"/);
+});
+
+test('TAuth demo includes every password mode, account action, and safe diagnostics', () => {
+  const tauthDemoHtml = readDemoFile('tauth-demo.html');
+  const passwordModes = ['login', 'signup', 'verify-email', 'reset-start', 'reset-complete'];
+  const accountActions = [
+    'password-change',
+    'password-link-start',
+    'password-link-verify',
+    'google-link',
+    'unlink',
+    'disable',
+  ];
+
+  passwordModes.forEach((mode) => {
+    assert.match(
+      tauthDemoHtml,
+      new RegExp(`<mpr-password-auth\\b[^>]*\\bmode="${mode}"`, 'i'),
+      `Expected the TAuth demo to include password mode ${mode}`,
+    );
+  });
+  accountActions.forEach((action) => {
+    assert.match(
+      tauthDemoHtml,
+      new RegExp(`<mpr-account-panel\\b[^>]*\\baction="${action}"`, 'i'),
+      `Expected the TAuth demo to include account action ${action}`,
+    );
+  });
+  assert.match(
+    tauthDemoHtml,
+    /<mpr-auth-diagnostics\b[^>]*\bauth-target="#demo-header"/i,
+    'Expected the TAuth demo to include safe auth diagnostics',
   );
 });
 

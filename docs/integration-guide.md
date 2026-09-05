@@ -4,7 +4,7 @@ This guide describes the primary `mpr-ui` integration contract. Treat it like an
 
 1. expose `/config-ui.yaml`
 2. load `mpr-ui-config.js`
-3. render `<mpr-header data-config-url="/config-ui.yaml">` or a login-only `<mpr-login-button data-config-url="/config-ui.yaml">`
+3. render `<mpr-header data-config-url="/config-ui.yaml">` or a standalone `<mpr-login-button data-config-url="/config-ui.yaml">`
 4. let the loader apply the validated `auth-config` provider map and load the bundle
 5. react to `mpr-ui:auth:*` events in app code
 6. send protected requests through `MPRUI.authenticatedFetch()`
@@ -16,7 +16,7 @@ Do not introduce a second path through direct `tauth.js` loading or template-lev
 - One path: `/config-ui.yaml` is the browser-facing config surface. The URL may be absolute when the config backend grants the page origin CORS access.
 - DSL first: use `<mpr-*>` attributes, slots, `horizontal-links`, `menu`, `theme-switcher`, and `theme-config`.
 - Backend owns config: your app serves `/config-ui.yaml`, browser-facing `/auth/*` routes, and protected domain routes.
-- `mpr-ui` owns auth lifecycle: it handles Google nonce preparation and credential exchange, Apple redirect initiation, password and account requests, shell state, and auth events.
+- `mpr-ui` owns auth lifecycle. It handles provider actions, password and account requests, shell state, and auth events.
 - `mpr-ui` owns protected requests: it coordinates TAuth session recovery and one permitted request retry.
 
 ## Required assets
@@ -29,23 +29,21 @@ Load assets in this order:
 4. `mpr-ui-config.js`
 5. a bundle marker with `data-mpr-ui-bundle-src`
 
-For production, pin the jsDelivr version instead of using `@latest`. The examples below use `v3.9.0`.
-
 ```html
 <link
   rel="stylesheet"
-  href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.0/mpr-ui.css"
+  href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
 />
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://cdn.jsdelivr.net/npm/js-yaml@5.4.1/dist/browser/js-yaml.umd.min.js"></script>
 <script
   defer
-  src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.0/mpr-ui-config.js"
+  src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
 ></script>
 <script
   id="mpr-ui-bundle"
   type="application/json"
-  data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.0/mpr-ui.js"
+  data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
 ></script>
 ```
 
@@ -173,7 +171,7 @@ Render the shell declaratively:
 ></mpr-footer>
 ```
 
-For public login pages that need provider controls in the header but do not need a header-owned user menu, keep the header as layout chrome and make the slotted login button the config owner:
+Some public login pages need provider controls without a header-owned user menu. For these pages, make the slotted login button the config owner:
 
 ```html
 <mpr-header brand-label="My Application" brand-href="/">
@@ -194,6 +192,8 @@ The loader applies only `/config-ui.yaml` auth attributes to the button before l
 
 The owning header or login button renders the provider set from `/config-ui.yaml`. Google, Apple, and password can be enabled independently or together. The surface uses one auth controller, and provider actions do not create duplicate session or profile probes.
 
+The header uses compact square provider actions with accessible names. The login button uses full provider text and its configured presentation.
+
 Apple is a redirect provider. The action builds the configured TAuth `startPath` with `tenant_id` and a validated `return_to`. It records a restore hint and emits an authenticating status. It then navigates the top-level page. TAuth handles the callback and session cookies. The returned page uses `sessionPath` and emits the ordinary `mpr-ui:auth:*` lifecycle.
 
 Apple Developer portal values belong to TAuth and deployment configuration. Browser config contains only enablement, start path, tenant ID, return policy, and approved label.
@@ -204,8 +204,9 @@ Use `<mpr-password-auth>` for public password flows. Set one explicit `mode`: `l
 
 ```html
 <mpr-password-auth
-  mode="login"
+  mode="verify-email"
   auth-target="#site-header"
+  token-fragment-parameter="token"
 ></mpr-password-auth>
 ```
 
@@ -220,16 +221,22 @@ Use `<mpr-account-panel>` for authenticated account actions. Set one explicit `a
 
 The config loader applies `auth-config` to both component types. `auth-target` names the owning header or login button when the component is outside that element. Each component uses the owning controller state and never creates a separate session probe.
 
+The `google-link` action renders the official Google Identity Services button.
+It requests and refreshes a TAuth nonce through the owning controller. Google
+returns the ID token to the JavaScript callback. The component sends the ID
+token and nonce to the configured account link endpoint. It does not use One
+Tap or a redirect callback.
+
 For `action="unlink"`, provide an `identities` JSON array containing exact
 `provider`, `providerId`, and user-facing `label` fields. The component renders
-a select control and submits the configured identity; users do not type opaque
+a select control and submits the configured identity. Users do not type opaque
 provider subjects.
 
 Every password or account POST uses `credentials: "include"`, `X-Requested-With: XMLHttpRequest`, and `X-TAuth-Tenant`. Successful login, verification, and reset completion produce the same profile state and `mpr-ui:auth:*` events as Google login. Account disable clears that state.
 
-Password and token values remain local to the immediate request. Do not copy them into attributes, event details, local storage, logs, diagnostics, or persistent profiles. TAuth may return challenge tokens only for a local fixture with `return_challenge_tokens` enabled. By default, the shared components discard returned token fields and assume TAuth delivers the challenge through email or another server-owned channel. A local fixture or trusted delivery integration can add `display-challenge-token` to `signup`, `reset-start`, or `password-link-start`; the token then appears only in that form's status text and remains absent from public events and profiles.
+Password and token values remain local to the immediate request. Do not copy them into attributes, events, storage, logs, diagnostics, or profiles. TAuth sends challenge links through Pinguin and puts each token in the URL fragment. Set `token-fragment-parameter="token"` only on the matching verification form. The component takes the token, removes the fragment from browser history, and keeps the value out of public events and profiles.
 
-TAuth owns password policy, challenge lifecycle, cookie issuance, identity rules, and account state. `mpr-ui` owns controls, browser validation, request wiring, status UI, and auth events. Host apps own route protection, app-specific profile data, and bespoke account-policy decisions. Direct `tauth.js` loading and app-owned password forms are obsolete.
+TAuth owns password policy, challenge lifecycle, cookie issuance, identity rules, and account state. `mpr-ui` owns controls, browser validation, request wiring, status UI, and auth events. Host apps own route protection, app-specific profile data, and bespoke account-policy decisions.
 
 Use `current-url` when the app must return to the current path and safe query values. `mpr-ui` removes callback-shaped query values and the fragment. Use `current-origin` for the origin root. Use a same-origin path for a fixed handoff route.
 
@@ -256,18 +263,18 @@ This element is not a replacement for the config-driven auth shell. The config l
 
 Integration rules:
 
-- treat `providers` as the explicit source of provider order; do not infer or default provider sets in app code
-- use `variant="icon-row"` only when surrounding copy or layout already explains the available providers; the buttons stay square, keep accessible labels, and show icons visually
+- Treat `providers` as the explicit source of provider order. Do not infer or default provider sets in app code.
+- Use `variant="icon-row"` only when the surrounding copy already explains the providers. The buttons stay square and keep accessible labels.
 - listen to `mpr-auth-provider:select` only as a provider-choice event
-- listen to `mpr-auth-provider:email-submit` only as a local form-intent event; raw email and password values are intentionally omitted from the event detail
-- treat the built-in Google and Apple marks as chooser cues, not as proof that the final auth flow satisfies provider button branding rules
+- Listen to `mpr-auth-provider:email-submit` only as a local form-intent event. The event detail omits raw email and password values.
+- Treat the built-in Google and Apple marks as chooser cues. They do not prove that the final auth flow satisfies provider rules.
 - complete auth through an owning controller or app action layer, then observe the existing `mpr-ui:auth:*` events before revealing authenticated UI
 - use `<mpr-header>` or `<mpr-login-button>` for real Apple and Google authentication
 
 What the loader applies automatically:
 
 - one validated `auth-config` JSON object on `<mpr-header>`, `<mpr-login-button>`, `<mpr-user>`, `<mpr-password-auth>`, and `<mpr-account-panel>`
-- no presentation attributes; static `button-*` markup remains authoritative for `<mpr-login-button>`
+- No presentation attributes. Static `button-*` markup remains authoritative for `<mpr-login-button>`.
 
 What your template still owns:
 
@@ -282,7 +289,9 @@ What your template still owns:
 
 ## Login-only button presentation
 
-`<mpr-login-button>` owns the complete enabled provider action set. After upgrade, it removes child CTA markup and host button semantics. It then renders accessible provider buttons with focus and status feedback. Google starts nonce-bound GIS on activation. Apple starts validated top-level TAuth navigation. Password opens `<mpr-password-auth mode="login">` on the same controller.
+`<mpr-login-button>` owns the complete enabled provider action set. On initialization, it renders accessible provider controls with focus and status feedback. Google uses the official GIS popup button. The controller requests and refreshes the TAuth nonce before it renders that button. The GIS JavaScript callback receives the ID token. This flow does not use a Google redirect URI. Apple starts validated top-level TAuth navigation. Password opens one panel with sign-in and account-creation tabs on the same controller.
+
+A Google button click emits provider intent. Authentication starts only when the Google JavaScript callback returns a credential. Other provider controls stay available if the popup returns no credential.
 
 Configure the standard appearance through static element attributes. `/config-ui.yaml` is auth-only and rejects `authButton`:
 
@@ -398,20 +407,22 @@ document.addEventListener('mpr-ui:auth:error', function (event) {
 });
 ```
 
-If you do not need the transition screen to wait for app hydration, omit `completionEvent` and the built-in screen will hide as soon as auth settles.
+If the transition screen does not need app hydration, omit `completionEvent`. The built-in screen hides when auth settles.
 
-If sign-in should open an authenticated app route, set `sign-in-redirect-url` on `<mpr-header>` and let `mpr-ui` navigate after credential exchange succeeds. Do not duplicate that redirect with app-owned `mpr-ui:auth:authenticated` handlers. If the authenticated UI stays on the same page and needs to finish hydration before the transition clears, set `auth-transition.completionEvent` and dispatch that event after the page is ready.
+If sign-in must open an authenticated route, set `sign-in-redirect-url` on `<mpr-header>`. Let `mpr-ui` navigate after credential exchange succeeds. Do not duplicate that redirect with app-owned `mpr-ui:auth:authenticated` handlers. If the authenticated UI stays on the same page, set `auth-transition.completionEvent`. Dispatch that event after the page is ready.
 
 ## Canonical integration rules
 
 - Load auth configuration through `/config-ui.yaml` and `mpr-ui-config.js`.
 - Let the owning component call TAuth and Google Identity Services.
+- Start Google only from the official button that the owning component renders.
+- Use `startAppleSignIn()` only for an explicit Apple redirect action.
 - Use the single `auth-config` provider map on auth components.
 - Keep component presentation in documented attributes and custom properties.
 - Keep `<mpr-login-button>` child-free.
 - Create a new component when the tenant changes.
 - Treat only `mpr-ui:auth:*` events as authentication state.
-- Keep credentials, Apple callback values, codes, tokens, state, and secrets out of DOM attributes, local storage, logs, diagnostics, and redispatched events.
+- Keep credentials, callback values, codes, tokens, state, and secrets out of attributes, storage, logs, diagnostics, and redispatched events.
 
 ## Verification
 
@@ -424,15 +435,18 @@ If sign-in should open an authenticated app route, set `sign-in-redirect-url` on
 7. Confirm logout calls `/auth/logout` and `mpr-ui:auth:unauthenticated` fires.
 8. Expire the access session and keep the refresh cookie valid.
 9. Confirm one `/auth/session` request runs and the protected request succeeds after one retry.
-10. If using `<mpr-auth-provider-chooser>`, confirm provider clicks emit only provider-choice events, any `variant="icon-row"` buttons still have accessible names, and authenticated UI still waits for `mpr-ui:auth:authenticated`.
-11. If using the chooser email form, confirm submitted email/password values do not appear in event details, attributes, local storage, logs, or diagnostics.
-12. If using `<mpr-login-button>`, confirm there is one visible native sign-in control and no auth request or GIS initialization occurs before it is activated.
-13. If Apple is enabled, inspect the start URL and confirm the configured TAuth origin and start path.
-14. Confirm `return_to` stays on the app origin.
-15. After the Apple return, confirm one session restore produces the ordinary authenticated profile event.
-16. If password auth is enabled, complete login, signup, verification, reset-start, and reset-complete through `<mpr-password-auth>`.
-17. If account management is enabled, complete change, link, unlink, and disable through `<mpr-account-panel>`.
-18. Confirm credentials and challenge tokens do not appear in attributes, event details, local storage, logs, diagnostics, or stored profiles.
+10. With `<mpr-auth-provider-chooser>`, confirm that provider clicks emit only provider-choice events.
+11. Confirm that each `variant="icon-row"` button has an accessible name.
+12. Confirm that authenticated UI waits for `mpr-ui:auth:authenticated`.
+13. With the chooser email form, confirm that credential values do not appear in events, attributes, storage, logs, or diagnostics.
+14. With `<mpr-login-button>`, confirm that one visible native sign-in control exists.
+15. Confirm that no auth request or GIS initialization occurs before activation.
+16. If Apple is enabled, inspect the start URL and confirm the configured TAuth origin and start path.
+17. Confirm `return_to` stays on the app origin.
+18. After the Apple return, confirm one session restore produces the ordinary authenticated profile event.
+19. If password auth is enabled, complete login, signup, verification, reset-start, and reset-complete through `<mpr-password-auth>`.
+20. If account management is enabled, complete change, link, unlink, and disable through `<mpr-account-panel>`.
+21. Confirm credentials and challenge tokens do not appear in attributes, events, storage, logs, diagnostics, or profiles.
 
 ## Troubleshooting
 
@@ -451,6 +465,12 @@ If sign-in should open an authenticated app route, set `sign-in-redirect-url` on
 | App reveals authenticated UI after `mpr-auth-provider:select` | provider-choice events were mistaken for auth lifecycle events | Wait for `mpr-ui:auth:authenticated` before showing authenticated UI. |
 | Password appears in logs or event output | an integration copied form values outside the shared component request | Remove the app-owned credential path and use `<mpr-password-auth>` or `<mpr-account-panel>`. |
 
-## Migration
+## Demo coverage
 
-Move flat Google and `tauth-*` values into the provider map in `/config-ui.yaml`. Add Google, Apple, and password provider entries, even when disabled. Add explicit password and account path sections for the shared forms. Remove direct `tauth.js` loading, app-owned password fetch code, and manual auth attributes. The loader writes one `auth-config` attribute.
+- [`../index.html`](../index.html) displays Google, Apple, and email actions from one provider map and uses the shared sectioned footer.
+- [`../demo/tauth-demo.html`](../demo/tauth-demo.html) contains every password mode, every account action, and safe auth diagnostics on one controller.
+- [`../demo/standalone.html`](../demo/standalone.html) shows the standalone auth owner and authenticated user menu.
+- [`../demo/auth-provider-chooser.html`](../demo/auth-provider-chooser.html) shows provider-intent variants without claiming authenticated state.
+- [`../demo/components.html`](../demo/components.html) shows shell and content primitives, both dropdown placements, and all section modes.
+
+The static preview can display the Apple action without Apple credentials. A live Apple completion additionally requires TAuth deployment configuration, an Apple-registered origin and callback, and the deployment-owned credentials.

@@ -1,97 +1,119 @@
-# demo auth stack
+# Demo suite
 
-This document explains the bundled auth and auth-adjacent demos:
+The repository demos divide the public library into focused, runnable surfaces.
 
-- [`/index.html`](../index.html) for the demo hub
-- [`/demo/tauth-demo.html`](../demo/tauth-demo.html) for header auth
-- [`/demo/auth-provider-chooser.html`](../demo/auth-provider-chooser.html) for the compact provider chooser
-- [`/demo/standalone.html`](../demo/standalone.html) for standalone login + user menu
+| Page | Capabilities | Runtime |
+| --- | --- | --- |
+| [`/index.html`](../index.html) | Config-driven header with Google, Apple, and email actions. Bands, cards, footer sections, and theme switcher | Static preview or TAuth stack |
+| [`/demo/components.html`](../demo/components.html) | Header, footer, standalone dropdowns, both placements, all section modes, theme toggle, settings, sites, band, card, legal document | Static preview |
+| [`/demo/auth-provider-chooser.html`](../demo/auth-provider-chooser.html) | Google, Apple, and email chooser in icon-row and stack variants. Safe event output | Static preview |
+| [`/demo/tauth-demo.html`](../demo/tauth-demo.html) | Google and password auth, account actions, user menu, auth diagnostics | TAuth stack |
+| [`/demo/standalone.html`](../demo/standalone.html) | Provider-aware standalone auth owner and authenticated user menu | TAuth stack |
+| [`/demo/entity-workspace.html`](../demo/entity-workspace.html) | Workspace layout, sidebar, rail, tiles, workspace, entity cards, selection state, and detail drawer | TAuth stack |
 
-All of them follow the same integration ideology:
+## Static preview
 
-- `mpr-ui` is configured through `/config-ui.yaml`
-- the shell is declared with `<mpr-*>`
-- the backend exposes the configured `/auth/*` routes
-- the page does not load `tauth.js`
+Run:
 
-The provider chooser demo is intentionally a UI/event primitive. It renders
-Google, Apple, and email provider choices in stacked and icon-row variants and
-records provider events, but it does not load `config-ui.yaml`, complete Apple
-redirects, or submit email/password credentials to TAuth. Authenticated UI must
-still wait for `mpr-ui:auth:*`.
-
-## Files involved
-
-- [`demo/config-ui.yaml`](../demo/config-ui.yaml)
-- [`demo/tauth-config.yaml`](../demo/tauth-config.yaml)
-- [`demo/.env.ghttp.example`](../demo/.env.ghttp.example)
-- [`demo/status-panel.js`](../demo/status-panel.js)
-- [`mpr-ui-config.js`](../mpr-ui-config.js)
-- [`mpr-ui.js`](../mpr-ui.js)
-
-## Preview modes
-
-Run `npm run demo:serve` for the lightweight static preview at `http://127.0.0.1:4177/`. The server applies `Cache-Control: no-store` to local demo assets so iterative `mpr-ui.js` and `mpr-ui.css` edits are visible after refresh. `demo/config-ui.yaml` includes that exact origin so the shared header/footer components render while you inspect the demos. This mode does not provide the configured auth routes; use `./up.sh tauth` for real sign-in.
-
-Run `./up.sh tauth` for the full HTTPS stack at `https://localhost:4443/`. This mode exercises gHTTP, TAuth, the configured `/auth/*` routes, and cookies.
-
-## Page contract
-
-The TAuth-backed demo pages:
-
-1. load `mpr-ui.css`
-2. load GIS when Google is enabled
-3. load `js-yaml`
-4. load `mpr-ui-config.js`
-5. expose the local bundle through `data-mpr-ui-bundle-src`
-6. render `<mpr-header data-config-url="./config-ui.yaml">`
-
-`/demo/auth-provider-chooser.html` is the exception: it loads `../mpr-ui.js`
-directly so the chooser can be inspected from any static local server.
-
-Example:
-
-```html
-<script src="https://accounts.google.com/gsi/client" async defer></script>
-<script src="https://cdn.jsdelivr.net/npm/js-yaml@5.4.1/dist/browser/js-yaml.umd.min.js"></script>
-<script src="../mpr-ui-config.js" defer></script>
-<script
-  id="mpr-ui-bundle"
-  type="application/json"
-  data-mpr-ui-bundle-src="../mpr-ui.js"
-></script>
-
-<mpr-header
-  data-config-url="./config-ui.yaml"
-  brand-label="Marco Polo Research Lab"
-  logout-url="/"
->
-  <mpr-user
-    slot="aux"
-    display-mode="avatar"
-    logout-url="/"
-    logout-label="Log out"
-  ></mpr-user>
-</mpr-header>
+```bash
+npm run demo:serve
 ```
 
-The config loader applies auth attributes first and then loads the bundle. No inline bootstrap script is required.
+Open `http://127.0.0.1:4177/`. The server sends `Cache-Control: no-store` for local demo assets.
 
-## Backend contract
+The static environment in [`../demo/config-ui.yaml`](../demo/config-ui.yaml) enables Google, Apple, and password presentation. It makes all three provider actions visible. It does not provide auth routes, credentials, cookies, or provider completion.
 
-The demos assume gHTTP exposes these browser-facing routes on `https://localhost:4443`:
+The provider chooser is an intent-only component. It emits provider and email-mode events, but it does not create an auth controller or authenticate a user.
+
+## HTTP TAuth stack
+
+The bundled stack uses gHTTP as the same-origin frontend and auth proxy. TAuth is the session authority.
+
+Create the private TAuth environment file. Review `.env.tauth.example` for the required variable names, but supply private operational values:
+
+```bash
+install -m 0600 /dev/null demo/.env.tauth
+```
+
+Configure the Google client ID, TAuth signing key, tenant, and origins. Keep `demo/config-ui.yaml` and `demo/tauth-config.yaml` tenant and origin values aligned.
+
+The stack also reads `../Pinguin/configs/.env.pinguin`. Configure its managed local SMTP values and master encryption key before startup. The script never writes the generated Pinguin API key to disk.
+
+Start the stack:
+
+```bash
+make up
+```
+
+Open `http://localhost:4443/`. Stop it with:
+
+```bash
+make down
+```
+
+`make up` builds the current sibling TAuth and Pinguin sources. It creates or refreshes the managed Pinguin demo tenant, starts one shared stack, and sends password-account challenge email through the configured real SMTP relay. The header, standalone, password/account, and entity-workspace pages are navigation targets inside that stack.
+The disposable local account uses `demo@mprlab.local` and `mpr-ui-demo`.
+
+### Private delivery owner
+
+The delivery owner uses the `mpr-ui-delivery-admin` TAuth tenant and the `mpr_ui_delivery_session` cookie.
+The browser demo account has no delivery administration access. Pinguin has no published management port.
+The frontend uses an explicit list of public files. Requests for private environment files, backend configuration, and Git metadata return `404`.
+The static preview uses the same public-file list from `docker-compose.yml`.
+
+Before `make up`, configure these values in `demo/.env.tauth`:
+
+1. Set `PINGUIN_BOOTSTRAP_PASSWORD` to a new random password.
+2. Run `htpasswd -nBC 12 delivery-owner` and enter that password at both prompts.
+3. Set `PINGUIN_BOOTSTRAP_PASSWORD_HASH` to the output after `delivery-owner:`. Keep the complete bcrypt hash in single quotes.
+4. Run `openssl rand -base64 48` to generate a separate signing key.
+5. Set `PINGUIN_BOOTSTRAP_SIGNING_KEY` to that output. This key must differ from `TAUTH_JWT_SIGNING_KEY`.
+
+The bootstrap uses `delivery-owner@mprlab.local` and the private password. TAuth disables account management for this tenant.
+On the next startup, Pinguin rejects all demo-session cookies, including cookies from the previous configuration.
+The bootstrap creates a new private tenant. The previous tenant and notification records remain in the database.
+
+Run `make test-delivery` to verify bootstrap, repeated startup, and session separation with isolated containers.
+The test sends no email. It removes only its temporary containers and volumes.
+It also verifies public pages, the authentication proxy, and rejection of private file requests.
+
+## Canonical browser contract
+
+Auth-bearing pages load assets in this order:
+
+1. `mpr-ui.css`
+2. Google Identity Services when Google is enabled
+3. js-yaml
+4. `mpr-ui-config.js`
+5. the `data-mpr-ui-bundle-src` marker
+
+They declare `<mpr-header data-config-url="./config-ui.yaml">` or `<mpr-login-button data-config-url="./config-ui.yaml">`. The loader validates the selected environment, applies one `auth-config` provider map to related components, and then loads the bundle.
+
+The browser does not load a direct TAuth client and does not issue app-owned password requests.
+
+## TAuth-backed routes
+
+The full fixture exposes these same-origin routes:
 
 - `POST /auth/nonce`
 - `POST /auth/google`
 - `POST /auth/logout`
 - `GET /auth/session`
-- `GET /auth/apple/start` when Apple is enabled
+- `POST /auth/password/login`
+- `POST /auth/password/signup`
+- `POST /auth/password/verify-email`
+- `POST /auth/password/reset/start`
+- `POST /auth/password/reset/complete`
+- `POST /auth/account/password/change`
+- `POST /auth/account/password/link/start`
+- `POST /auth/account/password/link/verify`
+- `POST /auth/account/google/link`
+- `POST /auth/account/unlink`
+- `POST /auth/account/disable`
 
-gHTTP forwards `/auth/*` to the TAuth container so the browser stays on one origin.
+gHTTP forwards `/auth/*` to TAuth so the browser stays on the frontend origin.
 
-## `/config-ui.yaml`
-
-The demo config is environment-matched and same-origin:
+The selected auth environment uses this complete shape:
 
 ```yaml
 auth:
@@ -102,42 +124,76 @@ auth:
   providers:
     google:
       enabled: true
-      clientId: "..."
+      clientId: "...apps.googleusercontent.com"
       loginPath: "/auth/google"
       noncePath: "/auth/nonce"
     apple:
       enabled: false
+    password:
+      enabled: true
+  password:
+    loginPath: "/auth/password/login"
+    signupPath: "/auth/password/signup"
+    verifyEmailPath: "/auth/password/verify-email"
+    resetStartPath: "/auth/password/reset/start"
+    resetCompletePath: "/auth/password/reset/complete"
+  account:
+    passwordChangePath: "/auth/account/password/change"
+    passwordLinkStartPath: "/auth/account/password/link/start"
+    passwordLinkVerifyPath: "/auth/account/password/link/verify"
+    googleLinkPath: "/auth/account/google/link"
+    unlinkPath: "/auth/account/unlink"
+    disablePath: "/auth/account/disable"
 ```
 
-Empty `tauthUrl` is intentional. It keeps every browser request on the current origin, which is the only path documented by the demos.
+## Apple demonstration boundary
 
-## Runtime behavior
+The static preview and provider chooser show Apple presentation and intent. Live Apple acceptance requires a TAuth deployment with:
 
-At runtime:
+- Apple credentials and provider settings.
+- An Apple-registered HTTPS callback on the TAuth domain.
+- Tenant origins for `https://ui.mprlab.com`, `http://localhost:4443`, and `http://127.0.0.1:4443`.
+- The configured browser `startPath`.
+- A working session cookie and `sessionPath` restore after return.
 
-1. `mpr-ui` requests `/auth/nonce`
-2. GIS returns a Google credential
-3. `mpr-ui` exchanges it through `/auth/google`
-4. the backend issues cookies
-5. `mpr-ui` records the session restore hint
-6. a returned or refreshed page uses `/auth/session` to restore the profile
-7. `mpr-ui` dispatches `mpr-ui:auth:authenticated` or `mpr-ui:auth:unauthenticated`
+Apple does not accept `localhost` as a web callback. The hosted TAuth callback returns the browser to an allowed demo origin. Keep all real Apple credentials in the canonical private deployment input.
 
-The status panel and standalone page listen only for those events.
+## Email and account demonstration
+
+`tauth-demo.html` shows all five `<mpr-password-auth>` modes:
+
+- `login`
+- `signup`
+- `verify-email`
+- `reset-start`
+- `reset-complete`
+
+It also shows all six `<mpr-account-panel>` actions:
+
+- `password-change`
+- `password-link-start`
+- `password-link-verify`
+- `google-link`
+- `unlink`
+- `disable`
+
+Every form uses `auth-target="#demo-header"`. The page contains no duplicate auth controller and no app-owned credential request. TAuth keeps challenge values out of response bodies. Pinguin sends links whose fragments are read and cleared by the matching form. Public events and diagnostics remain token-free.
+
+The header and standalone auth owner also show sign-in and account-creation tabs in the owned email panel. The tabs use the configured password endpoints on the same controller.
+
+The `google-link` panel renders the official Google Identity Services popup
+button. The shared controller binds it to a TAuth nonce and sends the returned
+proof to the account link endpoint. The panel does not use One Tap.
 
 ## Verification checklist
 
-1. Open a demo page and confirm the header has `data-config-url="./config-ui.yaml"`.
-2. Check DevTools Network and confirm `/config-ui.yaml` loads.
-3. Confirm the page loads `mpr-ui-config.js` and `mpr-ui.js` but not `/tauth.js`.
-4. Confirm `POST /auth/nonce` happens before the GIS exchange.
-5. Confirm `POST /auth/google` succeeds and sets cookies.
-6. Confirm `/auth/session` returns profile JSON after sign-in or redirect return.
-7. Confirm `mpr-ui:auth:authenticated` updates the status panel.
-8. Confirm logout clears shell state through `/auth/logout`.
-
-## Why this matters
-
-These demos are meant to teach one path, not three. If a reader copies them into another app, they should come away with this exact rule:
-
-Serve `/config-ui.yaml`, declare the shell with the DSL, expose browser-facing auth routes, and let `mpr-ui` own the rest.
+1. Open `/index.html` and confirm Google, Apple, and email actions are visible in the static environment.
+2. Open `/demo/components.html` and exercise both dropdown placements plus static, expanded, and collapsed sections.
+3. Open `/demo/auth-provider-chooser.html`, choose each provider, and confirm the event output contains no email or password values.
+4. Start `make up` and confirm `/config-ui.yaml` loads before `mpr-ui.js` on an auth-bearing page.
+5. Confirm the page loads no direct TAuth browser client.
+6. Complete Google or password sign-in and confirm `mpr-ui:auth:authenticated` updates the user menu and diagnostics.
+7. Complete password verification and reset from the links delivered through Pinguin.
+8. Sign in, exercise account actions, and confirm they use the same profile state.
+9. Log out and confirm `/auth/logout` clears the shell state.
+10. Verify real Apple authentication from both demo origins after the hosted TAuth tenant exists.

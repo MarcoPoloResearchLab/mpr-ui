@@ -55,7 +55,7 @@
       (function configureLoginButtonFixture(globalObject) {
         globalObject.__loginButtonRequestPaths = [];
         globalObject.__loginButtonGoogleInitializeCalls = [];
-        globalObject.__loginButtonPromptCount = 0;
+        globalObject.__loginButtonRenderCalls = [];
         globalObject.__loginButtonNonceFailure = false;
         globalObject.__loginButtonHoldNonce = false;
         globalObject.__resolveLoginButtonNonce = null;
@@ -64,16 +64,31 @@
         globalObject.google = {
           accounts: {
             id: {
-              renderButton: function renderGoogleIdentityButton() {},
+              renderButton: function renderGoogleIdentityButton(element, options) {
+                globalObject.__loginButtonRenderCalls.push({
+                  type: options.type,
+                  theme: options.theme,
+                  size: options.size,
+                  text: options.text,
+                  shape: options.shape,
+                });
+                element.innerHTML = '';
+                var buttonElement = document.createElement('button');
+                buttonElement.type = 'button';
+                buttonElement.setAttribute('aria-label', 'Sign in with Google');
+                buttonElement.textContent = 'Sign in with Google';
+                buttonElement.style.inlineSize = options.type === 'icon' ? '100%' : '220px';
+                buttonElement.style.blockSize = '100%';
+                buttonElement.addEventListener('click', options.click_listener);
+                element.appendChild(buttonElement);
+              },
               initialize: function initializeGoogleIdentity(config) {
                 globalObject.__loginButtonGoogleInitializeCalls.push({
                   clientId: config.client_id,
                   nonce: config.nonce,
                 });
               },
-              prompt: function promptGoogleIdentity() {
-                globalObject.__loginButtonPromptCount += 1;
-              },
+              prompt: function promptGoogleIdentity() {},
             },
           },
         };

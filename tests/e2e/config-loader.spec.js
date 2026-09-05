@@ -112,6 +112,7 @@ test.describe('Runtime configuration presentation ownership', () => {
     await visitConfigLoaderFixture(page);
 
     const loginButton = page.locator('mpr-login-button#fixture-config-login-button');
+    const googleControlHost = loginButton.locator('[data-mpr-auth-action="google"]');
     const googleControl = page.getByRole('button', { name: 'Sign in with Google' });
     const appleControl = page.getByRole('button', { name: 'Sign in with Apple' });
 
@@ -160,7 +161,7 @@ test.describe('Runtime configuration presentation ownership', () => {
     await expect(loginButton).toHaveAttribute('button-shape', 'pill');
     await expect(googleControl).toBeVisible();
     await expect(appleControl).toBeVisible();
-    await expect(googleControl).toHaveCSS('display', 'grid');
+    await expect(googleControlHost).toHaveAttribute('data-mpr-google-ready', 'true');
     expect(requestedSessionUrls).toEqual([runtimeSessionUrl]);
   });
 
@@ -302,9 +303,15 @@ test.describe('Runtime configuration presentation ownership', () => {
       window.google.accounts.id.initialize = (config) => {
         window.google.accounts.id.__callback = config.callback;
       };
-      window.google.accounts.id.renderButton = () => {};
-      window.google.accounts.id.prompt = () => {
-        window.google.accounts.id.__callback({ credential: 'google-proof-secret' });
+      window.google.accounts.id.renderButton = (target, options) => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.textContent = 'Continue with Google';
+        button.addEventListener('click', () => {
+          options.click_listener();
+          window.google.accounts.id.__callback({ credential: 'google-proof-secret', state: options.state });
+        });
+        target.replaceChildren(button);
       };
     });
 
@@ -349,7 +356,17 @@ test.describe('Runtime configuration presentation ownership', () => {
     await mountF007Component(page, 'mpr-account-panel', 'action', 'password-link-verify');
     await submitF007Form(page, { 'Challenge token': 'link-token-secret' }, 'Link password');
     await mountF007Component(page, 'mpr-account-panel', 'action', 'google-link');
-    await submitF007Form(page, {}, 'Link Google');
+    const googleLinkPanel = page.locator('[data-test="f007-component"]');
+    await expect(
+      googleLinkPanel.getByRole('button', { name: 'Link Google', exact: true }),
+    ).toHaveCount(0);
+    await googleLinkPanel
+      .getByRole('button', { name: 'Continue with Google', exact: true })
+      .click();
+    await expect(googleLinkPanel).toHaveAttribute(
+      'data-mpr-account-panel-status',
+      'success',
+    );
     await expect.poll(() => actionRequests.some((request) => request.path === '/auth/account/google/link')).toBe(true);
     await mountF007Component(page, 'mpr-account-panel', 'action', 'unlink', {
       identities: JSON.stringify([
@@ -445,5 +462,138 @@ test.describe('Runtime configuration presentation ownership', () => {
     F007_SECRET_VALUES.forEach((secretValue) => {
       expect(exposedText).not.toContain(secretValue);
     });
+  });
+
+  for (const mode of ['verify-email', 'reset-complete']) {
+    test(`review: ${mode} keeps its challenge when enabled`, async ({ page }) => {
+      await visitConfigLoaderFixture(page, 'auth_action=' + mode + '#token=review-token');
+      await mountF007Component(page, 'mpr-password-auth', 'mode', mode, {
+        'token-fragment-parameter': 'token', disabled: '',
+      });
+      const component = page.locator('[data-test="f007-component"]');
+      await expect(component.getByLabel('Challenge token')).toHaveValue('review-token');
+      await component.evaluate((element) => element.removeAttribute('disabled'));
+      await expect(component.getByLabel('Challenge token')).toHaveValue('review-token');
+      await expect(page).not.toHaveURL(/#token=/);
+      await component.evaluate((element) => element.setAttribute('mode', 'login'));
+      await component.evaluate((element, action) => element.setAttribute('mode', action), mode);
+      await expect(component.getByLabel('Challenge token')).toHaveValue('');
+    });
+  }
+
+  test('review: Google link keeps its callback and popup nonce across another control refresh', async ({ page }) => {
+    await page.addInitScript(() => {
+      window.reviewRefreshTimers = [];
+      const setTimer = window.setTimeout.bind(window);
+      window.setTimeout = (callback, delay, ...argumentsList) => {
+        if (delay === 240000) window.reviewRefreshTimers.push(callback);
+        return setTimer(callback, delay, ...argumentsList);
+      };
+    });
+    await visitConfigLoaderFixture(page);
+    const requests = [];
+    await page.route('https://auth.fixture.test/auth/**', async (route) => {
+      const request = route.request();
+      if (request.method() === 'POST') {
+        requests.push({ path: new URL(request.url()).pathname, body: request.postDataJSON() });
+      }
+      await route.fulfill({
+        status: request.method() === 'OPTIONS' ? 204 : 200,
+        headers: {
+          'access-control-allow-origin': 'https://static.fixture.test',
+          'access-control-allow-credentials': 'true',
+          'access-control-allow-headers': 'content-type,x-requested-with,x-tauth-tenant',
+          'access-control-allow-methods': 'POST,OPTIONS',
+        },
+        body: request.method() === 'OPTIONS' ? '' : JSON.stringify(F007_PROFILE),
+      });
+    });
+    await mountF007Component(page, 'mpr-password-auth', 'mode', 'login');
+    await submitF007Form(page, { Email: 'fixture@example.com', Password: 'fixture-password' }, 'Sign in');
+    requests.length = 0;
+    await page.evaluate(() => {
+      let nonceCount = 0;
+      window.requestNonce = () => Promise.resolve('review-nonce-' + ++nonceCount);
+      const originalRender = window.google.accounts.id.renderButton;
+      window.google.accounts.id.renderButton = (target, options) => {
+        originalRender(target, options);
+        target.querySelector('button').addEventListener('click', () => {
+          window.reviewPopup = { state: options.state, nonce: window.__googleInitConfig.nonce };
+        });
+      };
+    });
+    await mountF007Component(page, 'mpr-account-panel', 'action', 'google-link');
+    const panel = page.locator('[data-test="f007-component"]');
+    await expect(panel.locator('[data-mpr-google-ready]')).toBeVisible();
+    await page.evaluate(() => window.reviewRefreshTimers[0]());
+    await expect.poll(() => page.evaluate(() => window.__googleInitConfig.nonce)).toBe('review-nonce-2');
+    await panel.getByRole('button', { name: 'Continue with Google' }).click();
+    await page.evaluate(() => window.reviewRefreshTimers[0]());
+    await expect.poll(() => page.evaluate(() => window.__googleInitConfig.nonce)).toBe('review-nonce-3');
+    const popup = await page.evaluate(() => window.reviewPopup);
+    await page.evaluate(() => window.google.accounts.id.__callback({
+      credential: 'review-google-proof', state: window.reviewPopup.state,
+    }));
+    await expect.poll(() => requests.length).toBe(1);
+    expect(requests[0].path).toBe('/auth/account/google/link');
+    expect(requests[0].body.nonce_token).toBe(popup.nonce);
+    await expect(panel).toHaveAttribute('data-mpr-account-panel-status', 'success');
+    await page.evaluate(() => window.google.accounts.id.__callback({
+      credential: 'duplicate-proof', state: window.reviewPopup.state,
+    }));
+    expect(requests).toHaveLength(1);
+    await panel.getByRole('button', { name: 'Continue with Google' }).click();
+    await panel.evaluate((element) => element.remove());
+    await page.evaluate(() => window.google.accounts.id.__callback({
+      credential: 'disconnected-proof', state: window.reviewPopup.state,
+    }));
+    expect(requests).toHaveLength(1);
+  });
+
+  test('review: password-link token survives enablement and is cleared after submission', async ({ page }) => {
+    await visitConfigLoaderFixture(page, 'auth_action=password-link-verify#token=link-review-token');
+    const requests = [];
+    await page.route('https://auth.fixture.test/auth/**', async (route) => {
+      if (route.request().method() === 'POST') requests.push(route.request().postDataJSON());
+      await route.fulfill({
+        status: route.request().method() === 'OPTIONS' ? 204 : 200,
+        headers: {
+          'access-control-allow-origin': 'https://static.fixture.test',
+          'access-control-allow-credentials': 'true',
+          'access-control-allow-headers': 'content-type,x-requested-with,x-tauth-tenant',
+          'access-control-allow-methods': 'POST,OPTIONS',
+        },
+        body: route.request().method() === 'OPTIONS' ? '' : JSON.stringify(F007_PROFILE),
+      });
+    });
+    await mountF007Component(page, 'mpr-password-auth', 'mode', 'login');
+    await submitF007Form(page, { Email: 'fixture@example.com', Password: 'fixture-password' }, 'Sign in');
+    await mountF007Component(page, 'mpr-account-panel', 'action', 'password-link-verify', {
+      'token-fragment-parameter': 'token', disabled: '',
+    });
+    const panel = page.locator('[data-test="f007-component"]');
+    await panel.evaluate((element) => element.removeAttribute('disabled'));
+    await expect(panel.getByLabel('Challenge token')).toHaveValue('link-review-token');
+    await panel.getByRole('button', { name: 'Link password' }).click();
+    await expect(panel).toHaveAttribute('data-mpr-account-panel-status', 'success');
+    expect(requests[requests.length - 1].token).toBe('link-review-token');
+    await panel.evaluate((element) => element.setAttribute('disabled', ''));
+    await panel.evaluate((element) => element.removeAttribute('disabled'));
+    await expect(panel.getByLabel('Challenge token')).toHaveValue('');
+  });
+
+  test('F010: challenge forms read returned tokens inside the shared component boundary', async ({ page }) => {
+    await visitConfigLoaderFixture(
+      page,
+      'auth_action=verify-email#token=email-verification-secret',
+    );
+    await mountF007Component(page, 'mpr-password-auth', 'mode', 'verify-email', {
+      'token-fragment-parameter': 'token',
+    });
+
+    await expect(
+      page.locator('[data-test="f007-component"]').getByLabel('Challenge token'),
+    ).toHaveValue('email-verification-secret');
+    await expect(page).toHaveURL(/auth_action=verify-email$/);
   });
 });

@@ -1,325 +1,170 @@
-# ARCHITECTURE
+# Architecture
 
-`mpr-ui` is delivered as a browser-ready bundle (`mpr-ui.js`) that attaches helpers to the global `window.MPRUI` namespace. Its shell components include these controls:
+`mpr-ui` is a browser-delivered web-component library. `mpr-ui.js` registers the `<mpr-*>` element set. It exposes a small `window.MPRUI` namespace for auth controllers, protected requests, theme state, legal documents, catalogs, and selection state. `mpr-ui.css` contains the shared tokens and component styles. `mpr-ui-config.js` validates `/config-ui.yaml`, applies auth configuration to the declared elements, and then loads the bundle.
 
-- An authentication header controller that orchestrates Google Identity Services (GIS) sign-in flows.
-- A reusable sectioned dropdown menu.
-- A sticky footer renderer that composes the dropdown menu, privacy link, and theme toggle.
+The custom-element DSL is the primary public surface. Namespace functions exist for browser integrations that need explicit controllers or headless state.
 
-The library assumes a CDN delivery model and no build tooling. Everything runs in the browser with optional Alpine.js convenience factories. The bundle auto-registers `<mpr-*>` custom elements on load. These declarative tags form the primary public API and the package DSL. The namespace functions below support frameworks that need imperative mounting or advanced integration.
+## Delivery and composition
 
-## Files and Responsibilities
-
-| File          | Role                                                                                         |
-| ------------- | -------------------------------------------------------------------------------------------- |
-| `mpr-ui.js`   | Production bundle exposed to consumers. Defines the namespace, auth header helpers, footer.  |
-| `alpine.js.md`| Notes on Alpine integration patterns.                                                        |
-
-## Global Namespace
-
-When `mpr-ui.js` loads it calls `ensureNamespace(window)` and registers:
-
-| Export                                  | Description                                                                                          |
-| --------------------------------------- | ---------------------------------------------------------------------------------------------------- |
-| `MPRUI.createAuthHeader(host, options)` | Creates the auth header controller bound to a DOM element.                                           |
-| `MPRUI.renderAuthHeader(host, options)` | Convenience wrapper that resolves CSS selectors before calling `createAuthHeader`.                   |
-| `MPRUI.configureTheme(config)`          | Merges global theme configuration (attribute, targets, modes) and reapplies the current mode.        |
-| `MPRUI.setThemeMode(value)`             | Sets the active theme mode and dispatches `mpr-ui:theme-change`.                                     |
-| `MPRUI.getThemeMode()`                  | Returns the active theme mode string.                                                                |
-| `MPRUI.onThemeChange(listener)`         | Subscribes to theme updates; returns an unsubscribe function.                                        |
-| `MPRUI.getFooterSiteCatalog()`          | Returns a cloned array of packaged Marco Polo Research Lab links for the footer dropdown.            |
-| `MPRUI.getLegalProfile()`               | Returns a cloned Marco Polo Research Lab LLC legal profile with company/contact defaults.            |
-| `MPRUI.getLegalDocument(options)`        | Builds a reusable Terms or Privacy document model from product options and optional extra sections.  |
-| `MPRUI.renderLegalDocument(host, options)` | Renders the legal document model into a host element and returns an update/destroy controller.      |
-| `MPRUI.createCustomElementRegistry()`   | Factory that guards `customElements.define` calls so the bundle can register once per page.          |
-| `MPRUI.MprElement`                      | Base class used by every custom element (handles `connectedCallback`, `attributeChangedCallback`, etc.). |
-
-All helpers are side-effect free apart from DOM writes and `fetch` requests.
-
-> The Alpine-based helper exports (`renderSiteHeader`, `mprFooter`, etc.) were removed in v0.2.0 so the `<mpr-*>` Web Components DSL is the only supported API. See [`docs/deprecation-roadmap.md`](docs/deprecation-roadmap.md) for the historical mapping and removal timeline.
-
-### Custom Elements
-
-The bundle auto-registers modern HTML custom elements when `window.customElements` is available. Each element extends `MprElement`, so `connectedCallback` triggers `render()`, attribute changes invoke `update()`, and `disconnectedCallback` calls `destroy()` on the underlying controller.
-
-| Tag               | Backing Helper(s)                              | Key Attributes                                                                                                                        | Emitted Events                                            |
-| ----------------- | ---------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| `<mpr-header>`    | Header controller + `createAuthHeader`         | `brand-label`, `brand-href`, `nav-links`, `horizontal-links` (JSON object with `{ alignment, links }`), `google-site-id`, `tauth-tenant-id`, `tauth-url`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `logout-url`, `user-menu-display-mode`, `user-menu-avatar-url`, `user-menu-avatar-label`, `theme-config`, `size`, `sticky` (default `true`)   | `mpr-ui:auth:*`, `mpr-ui:header:update`, `mpr-ui:theme-change` |
-| `<mpr-footer>`    | Footer controller (internal)                   | `prefix-text`, `horizontal-links` (JSON object with `{ alignment, links }`), `menu`, `privacy-link-*`, `theme-switcher`, `theme-config`, dataset-based class overrides, `size`, `sticky` (default `true`)     | `mpr-footer:theme-change`                                 |
-| `<mpr-dropdown>`  | Sectioned dropdown menu                        | `menu` (JSON object with `{ label, placement, sections }`)                                                                                                                   | `mpr-dropdown:toggle`, `mpr-dropdown:section-toggle`, `mpr-dropdown:link-click`, `mpr-dropdown:error` |
-| `<mpr-theme-toggle>` | Theme manager (`configureTheme`)            | `variant`, `label`, `aria-label`, `show-label`, `wrapper-class`, `control-class`, `icon-class`, `theme-config`          | `mpr-ui:theme-change` (via the shared theme manager)      |
-| `<mpr-login-button>` | `createAuthHeader`, shared GIS helper       | `site-id`, `tauth-tenant-id`, `tauth-login-path`, `tauth-logout-path`, `tauth-nonce-path`, `tauth-url`, `button-text`, `button-size`, `button-theme`, `button-shape`        | `mpr-ui:auth:*`, `mpr-login:error`                        |
-| `<mpr-user>`      | TAuth profile + menu renderer                  | `display-mode`, `logout-url`, `logout-label`, `tauth-tenant-id`, `avatar-url`, `avatar-label`                                                                   | `mpr-user:toggle`, `mpr-user:logout`, `mpr-user:menu-item`, `mpr-user:error`    |
-| `<mpr-settings>` | Settings CTA + panel wrapper                    | `label`, `icon`, `panel-id`, `button-class`, `panel-class`, `open`                                                                    | `mpr-settings:toggle`                                     |
-| `<mpr-sites>`    | `getFooterSiteCatalog` (plus inline renderer)   | `links` (JSON), `variant` (`list`, `grid`, `menu`), `columns`, `heading`                                                              | `mpr-sites:link-click`                                    |
-| `<mpr-legal-document>` | `getLegalDocument` + `renderLegalDocument` | `type` (`terms`, `privacy`), `product-name`, service/date/contact attributes, `profile`, `sections`, `extra-sections`                 | —                                                         |
-| `<mpr-band>`     | Themed container with palette tokens            | `category`, `theme` (JSON)                                                                                                            | —                                                         |
-| `<mpr-card>`     | Standalone card controller                      | `card` (JSON), `theme` (JSON)                                                                                                         | `mpr-card:card-toggle`, `mpr-card:subscribe-ready`        |
-
-Slots:
-
-- `<mpr-header>`: `brand`, `nav-left`, `nav-right`, `aux`
-- `<mpr-footer>`: `menu-prefix`, `legal`
-- `<mpr-theme-toggle>` / `<mpr-login-button>` / `<mpr-user>` render controlled content and do not expose slots.
-
-When `customElements.define` is unavailable the helpers fall back gracefully: the registry caches null definitions and no DOM is mutated until the host polyfills the API. The registry performs three key tasks:
-
-1. **Feature detection**: `supports()` verifies the host exposes `define`/`get`. If not, `registry.define()` returns `null` so the bundle can bail out silently.
-2. **Memoisation**: A per-tag cache prevents duplicate definitions when the bundle is loaded multiple times (e.g., via module federation or micro-frontends).
-3. **Base class injection**: The setup callback receives `MprElement`, which provides consistent lifecycle behaviour (`render` on connect, `update` on attribute changes, `destroy` on disconnect) and centralises dataset/slot helpers.
-
-Each element relies on shared helpers to keep declarative and imperative code paths identical:
-
-- **Dataset reflection**: Attributes listed in the maps (`HEADER_ATTRIBUTE_DATASET_MAP`, etc.) are mirrored into `dataset` so CSS hooks and controllers share one source of truth.
-- **Slot capture**: `captureSlotNodes` stores light DOM nodes before the helper clears/rebuilds the host, allowing `<mpr-header>`/`<mpr-footer>` to reinsert `slot` content even though they render light DOM instead of Shadow DOM.
-- **Event dispatching**: Element wrappers re-dispatch controller events from the host element, which keeps event contracts identical everywhere (`mpr-ui:auth:*`, `mpr-ui:theme-change`, `mpr-settings:toggle`, `mpr-sites:link-click`).
-
-See [`docs/custom-elements.md`](docs/custom-elements.md) for the full attribute/event matrix plus troubleshooting guidance (polyfills, CSP).
-
-## Authentication Header Controller
-
-### Lifecycle Overview
-
-1. **Initialisation** – `createAuthHeader` normalises options (paths, Google client ID) and records internal state (`status`, `profile`, `pendingNonceToken`).
-2. **State Broadcast** – Dataset attributes (`data-user-id`, `data-user-email`, `data-user-display`, `data-user-avatar-url`) mirror the current profile for CSS hooks. Custom events on the host bubble up for consumers:
-   - `mpr-ui:auth:authenticated` with `{ profile }`
-   - `mpr-ui:auth:unauthenticated` with `{ profile: null }`
-   - `mpr-ui:auth:error` with `{ code, message?, status? }`
-3. **Nonce Handling** – `requestNonceToken` POSTs to `options.tauthNoncePath` and caches the result to avoid concurrent requests.
-4. **GIS Wiring** – `configureGoogleNonce` records the nonce and calls `google.accounts.id.initialize`, sourcing the client ID from the header/auth options (no DOM bootstrap element required).
-5. **Session Bootstrap** – If a global `initAuthClient` function exists, it is invoked to recover the current session. Otherwise, the controller awaits GIS events.
-6. **Credential Exchange** – `handleCredential` exchanges the GIS credential for a first-party session via `options.tauthLoginPath`. Success updates state and emits `authenticated`; failure emits `mpr-ui.auth.exchange_failed` and re-prompts GIS.
-7. **Logout** – `signOut` POSTs to `options.tauthLogoutPath`, clears local state, and triggers a new bootstrap.
-
-### Options
-
-| Option              | Purpose                                                                                |
-| ------------------- | -------------------------------------------------------------------------------------- |
-| `tauthUrl`           | Prefix applied to `tauthLoginPath`, `tauthLogoutPath`, and `tauthNoncePath`.            |
-| `tauthLoginPath`     | Relative path that receives `POST { google_id_token, nonce_token }`.                   |
-| `tauthLogoutPath`    | Relative path for session termination (`POST`).                                        |
-| `tauthNoncePath`     | Endpoint that issues a nonce (`POST` -> `{ nonce: string }`).                          |
-| `googleClientId`    | Google Identity Services client ID supplied via header/auth options. |
-| `tenantId`          | TAuth tenant identifier used to populate `X-TAuth-Tenant` and helper overrides. |
-| `siteName` / `siteLink` | Metadata forwarded to custom renderers via consumer code (not used internally).   |
-
-### Public API
-
-`createAuthHeader` returns an object with:
-
-- `handleCredential(credentialResponse)` – call from the GIS callback.
-- `signOut()` – clears the session and restarts bootstrap.
-- `restartSessionWatcher()` – re-run bootstrap logic (useful after network loss).
-- `state` – `{ status: "unauthenticated" | "authenticated", profile }` (read-only contract for consumers).
-
-The controller automatically prompts GIS after logout or failed exchanges and suppresses duplicate events with internal signature checks.
-
-### External Dependencies
-
-- Google Identity Services script (`https://accounts.google.com/gsi/client`) must be loaded.
-- Optional `initAuthClient` global bootstraps a server-provided session (expected to return a promise).
-- Backend endpoints must accept `credentials: "include"` requests and return JSON.
-
-## Site Header Component
-
-The header controller produces a sticky banner that combines navigation, auth controls, and shared theme configuration (it no longer renders a theme toggle; pair it with the footer or `<mpr-theme-toggle>` for user interaction). When `auth` options are supplied it internally initialises `createAuthHeader`, so the host element still receives the `mpr-ui:auth:*` events and dataset updates documented earlier. When authenticated, the header renders an embedded `<mpr-user>` menu.
-
-### Markup & Styling
-
-- Outputs `<header class="mpr-header" role="banner">` with `__inner`, `__nav`, `__actions`, and `__user` sub-elements.
-- Injects styles via `<style id="mpr-ui-header-styles">`; the header is `position: sticky` at the top (z-index `1200`), uses a translucent slate backdrop, and adapts to flex layouts.
-- Applies modifier classes to the root:
-  - `mpr-header--authenticated` shows the user menu / hides sign-in.
-  - `mpr-header--no-auth` hides auth UI when no controller is attached.
-  - `mpr-header--no-settings` hides the settings button.
-
-### Options
-
-| Option                     | Type                                   | Description                                                                  |
-| -------------------------- | -------------------------------------- | ---------------------------------------------------------------------------- |
-| `brand.label`              | `string`                               | Brand text (default "Marco Polo Research Lab").                             |
-| `brand.href`               | `string`                               | Brand link destination (default `/`).                                        |
-| `navLinks`                 | `{label, href, target?}[]`             | Optional navigation anchors rendered next to the brand.                      |
-| `settings.enabled`         | `boolean`                              | Shows or hides the settings button (default `true`).                         |
-| `settings.label`           | `string`                               | Settings button label (default "Settings").                                 |
-| `themeToggle.attribute`    | `string`                               | Attribute written to theme targets (default `data-mpr-theme`).               |
-| `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive shared theme state.   |
-| `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Ordered list of theme modes (default light/dark).            |
-| `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
-| `signInLabel`              | `string`                               | Copy for the sign-in button (default "Sign in").                            |
-| `signOutLabel`             | `string`                               | Copy for the sign-out button (default "Sign out"); forwarded to the menu.   |
-| `profileLabel`             | `string`                               | Optional text shown above the authenticated user name (default empty).      |
-| `userMenu.displayMode`     | `"avatar" \| "avatar-name" \| "avatar-full-name" \| "custom-avatar"` | Display mode for the embedded user menu. |
-| `userMenu.logoutUrl`       | `string`                               | Redirect target after log out (defaults to the brand href).                 |
-| `userMenu.avatarUrl`       | `string`                               | Optional avatar URL override for the menu.                                  |
-| `userMenu.avatarLabel`     | `string`                               | Optional accessible label for the avatar.                                   |
-| `size`                     | `"normal" \| "small"`                  | Controls the header scale; `small` is about 70% of the normal footprint.    |
-| `sticky`                   | `boolean`                              | Controls sticky positioning for the header; `true` (default) pins it, `false` renders it in-flow. |
-| `auth`                     | `object \| null`                       | Optional configuration forwarded to `createAuthHeader` for full auth wiring. |
-
-Declarative overrides: apply `data-theme-toggle` (JSON) to the header host element and include `initialMode` in the JSON to set the starting mode; values are merged with programmatic options and configure the shared theme manager (the header itself no longer renders a toggle).
-
-### Events
-
-- `mpr-ui:header:theme-change` — detail `{ theme }`, emitted whenever the shared theme manager changes (e.g., footer or standalone toggle activity).
-- `mpr-ui:header:settings-click` — fired when the settings button is pressed.
-- `mpr-ui:header:signin-click` — emitted if a sign-in attempt occurs without GIS availability.
-- `mpr-ui:header:signout-click` — emitted when sign-out is requested but no controller is attached.
-- `mpr-ui:header:error` — surfaced on internal failures (e.g., GIS prompt errors).
-
-## Theme Manager
-
-- Defaults write `data-mpr-theme` to `document.documentElement` and dispatch `mpr-ui:theme-change` on the `document` node whenever the active mode changes.
-- `MPRUI.configureTheme({ attribute, targets, modes })` merges attribute/target updates and replaces the mode collection when provided. Targets accept CSS selectors or the sentinel values `"document"` / `"body"`.
-- Modes accept `{ value, attributeValue?, classList?, dataset? }`; each dataset key becomes a `data-*` attribute on the targets and `classList` entries are added while old mode classes are removed.
-- Declarative configuration is supported via `data-theme-toggle` (JSON) attributes on header/footer hosts. Include `initialMode` in the JSON to set the starting mode; imperative options and dataset values are merged.
-- Consumers can observe theme changes with `MPRUI.onThemeChange(listener)` or by listening for the bubbling `mpr-ui:theme-change` event (detail `{ mode, source }`).
-
-## Dropdown Menu
-
-`<mpr-dropdown>` owns the sectioned link menu. The required `menu` attribute uses this schema:
-
-```json
-{
-  "label": "Explore",
-  "placement": "bottom",
-  "sections": [
-    {
-      "id": "platform",
-      "label": "Platform",
-      "mode": "static",
-      "links": [{ "label": "Docs", "href": "/docs" }]
-    }
-  ]
-}
+```text
+/config-ui.yaml
+       |
+       v
+mpr-ui-config.js ---- validates one origin and one auth contract
+       |
+       v
+  auth-config attributes
+       |
+       v
+    mpr-ui.js -------- registers elements and shared namespace
+       |
+       +---- shell and content components
+       +---- one auth controller per owning auth surface
+       +---- shared theme manager
+       +---- shared protected-request recovery
 ```
 
-`placement` accepts `top` or `bottom`. A section `mode` accepts `static`, `expanded`, or `collapsed`. Each link accepts `label`, `href`, and optional `target` and `rel` fields. Validation rejects missing values, duplicate section IDs, unsupported protocols, and unknown fields.
+Applications load the CSS, optional Google Identity Services client, js-yaml, config loader, and bundle marker. The config loader must run before the auth-bearing bundle. Direct TAuth browser clients and template-level auth paths are outside the current contract.
 
-The element keeps open and section state local to its instance. It closes after an outside pointer action, Escape, or link activation. Escape returns focus to the menu trigger. A section collapse returns focus to its disclosure button when focus was inside that section. The element removes its document and element listeners during an update or disconnect.
+## Public custom elements
 
-## Footer Controller (Internal)
-
-The footer controller composes `<mpr-dropdown>`, injects footer styles through `<style id="mpr-ui-footer-styles">`, and pins the footer to the bottom of the viewport (`position: sticky` by default). In sticky mode, the component renders the footer as a viewport-fixed bar and a spacer element. The spacer preserves the document flow. When `sticky` is `false`, the footer root uses normal in-flow positioning and the spacer collapses.
-
-### Controller Options
-
-| Option                     | Type                                   | Description                                                                   |
-| -------------------------- | -------------------------------------- | ----------------------------------------------------------------------------- |
-| `elementId`                | `string`                               | Optional `id` applied to the `<footer>` root.                                 |
-| `baseClass`                | `string`                               | Extra classes applied to the internal `<footer>` root and mirrored to the `<mpr-footer>` host only when `sticky` is `false`; the component always retains its `mpr-footer` chrome class. |
-| `size`                     | `"normal" \| "small"`                  | Controls the footer scale; `small` is about 70% of the normal footprint.     |
-| `sticky`                   | `boolean`                              | Controls sticky positioning for the footer; `true` (default) pins it, `false` renders it in-flow. |
-| `innerClass`               | `string`                               | Wrapper class for the inner flex container.                                   |
-| `wrapperClass`             | `string`                               | Class applied to the layout wrapper around brand/menu/privacy.                |
-| `brandWrapperClass`        | `string`                               | Class for the brand/prefix container.                                         |
-| `prefixClass`              | `string`                               | Class applied to the prefix span (default highlights in blue).                |
-| `prefixText`               | `string`                               | Text before the dropdown menu (default "Built by Marco Polo Research Lab").  |
-| `menu`                     | `{ label, placement, sections }`       | Configures the shared dropdown. Footer placement must be `top`.                |
-| `privacyLinkClass`         | `string`                               | Class applied to the privacy link.                                            |
-| `privacyLinkHref`          | `string`                               | Destination for the privacy link (`#` default).                               |
-| `privacyLinkLabel`         | `string`                               | Copy for the privacy link (default "Privacy • Terms").                        |
-| `privacyModalContent`      | `string` (HTML)                        | Optional HTML injected into a modal shown when the privacy link is activated. |
-| `themeToggle.enabled`      | `boolean`                              | Controls whether the theme toggle renders (default `false`; set to `true` or provide `theme-switcher`).                   |
-| `themeToggle.variant`      | `"switch" \| "button" \| "square"`     | Choose the control style (`theme-switcher="toggle"` aliases `switch`; `square` renders the quadrant picker). |
-| `themeToggle.wrapperClass` | `string`                               | Class for the toggle wrapper pill.                                            |
-| `themeToggle.inputClass`   | `string`                               | Class for the `input[type=checkbox]`.                                         |
-| `themeToggle.dataTheme`    | `string`                               | Optional Bootstrap theme hint stored on the wrapper.                          |
-| `themeToggle.inputId`      | `string`                               | Optional id applied to the checkbox.                                          |
-| `themeToggle.ariaLabel`    | `string`                               | Accessible label for the checkbox (default "Toggle theme").                  |
-| `themeToggle.attribute`    | `string`                               | Attribute written to theme targets (default `data-mpr-theme`).               |
-| `themeToggle.targets`      | `string[]`                             | CSS selectors (or `"document"`, `"body"`) that receive theme state.         |
-| `themeToggle.modes`        | `{value, attributeValue?, classList?, dataset?}[]` | Theme options toggled by the footer switch.             |
-| `themeToggle.initialMode`  | `string`                               | Initial mode forwarded to the theme manager when provided.                   |
-
-If `menu` is omitted, the footer renders the prefix text without a dropdown menu.
-
-If `privacyModalContent` is provided, the privacy link becomes a button that opens an almost full-screen modal with focus capture, ESC/backdrop/click-to-close, and body scroll locking.
-
-Declarative overrides: apply `data-theme-toggle` (JSON) to the footer host element and include `initialMode` in the JSON to set the starting mode; values merge with programmatic options.
-
-Declarative attribute `theme-switcher` controls `themeToggle.variant` and implicitly enables the control. Supported values: `toggle` (`switch`), `square`, and `button`. Square mode assumes up to four entries in `themeToggle.modes`, letting you encode palette + light/dark combinations by populating `dataset` entries such as `{"data-demo-palette":"sunrise"}` that the theme manager stamps onto every configured target. When `theme-switcher` is set, it overrides the mode count in `theme-config`; `toggle` always renders the switch even when four modes are defined.
-
-### Behaviour
-
-- The footer uses `<mpr-dropdown>` for menu state, markup, accessibility, and events.
-- Theme toggle emits `mpr-footer:theme-change` with `{ theme }` and forwards the mode through the shared theme manager for `<mpr-theme-toggle>` / `<mpr-header>` to consume.
-- All strings are escaped. Dropdown validation rejects unsupported link protocols.
-- The dropdown does not apply `data-bs-*` attributes.
-
-## Legal Document Component
-
-`<mpr-legal-document>` renders reusable Terms of Service or Privacy Policy content from the shared Marco Polo Research Lab LLC legal profile. The default profile includes the LLC name, California entity form, `https://mprlab.com`, `support@mprlab.com`, `legal@mprlab.com`, and `(650) 265-1193`.
-
-### Attributes & Options
-
-| Attribute / Option | Type | Description |
+| Family | Elements | Ownership |
 | --- | --- | --- |
-| `type` | `"terms"` \| `"privacy"` | Selects the packaged document body. Defaults to `terms`. |
-| `product-name` / `productName` | `string` | Product or service name used in title and body copy. |
-| `service-description` / `serviceDescription` | `string` | Terms-specific description of what the product provides. |
-| `service-data-description` / `serviceDataDescription` | `string` | Privacy-specific description of app data collected or generated. |
-| `effective-date`, `effective-date-text`, `last-updated-date` | `string` | Date metadata stamped into the document. |
-| `company-name`, `company-short-name`, `company-form`, `website-url`, `support-email`, `legal-email`, `phone-display`, `phone-href` | `string` | Per-app overrides for the default MPR Lab legal profile. |
-| `profile` | JSON object | Bulk profile override using camelCase keys. |
-| `extra-sections` / `extraSections` | JSON array | Additional `{ id?, heading, paragraphs?, list? }` sections inserted before contact. |
-| `sections` | JSON array | Full section replacement for apps that own the complete legal body. |
+| Shell | `<mpr-header>`, `<mpr-footer>`, `<mpr-dropdown>`, `<mpr-theme-toggle>` | Global page chrome, navigation, sectioned menus, privacy action, and shared theme state |
+| Authentication | `<mpr-login-button>`, `<mpr-password-auth>`, `<mpr-account-panel>`, `<mpr-auth-diagnostics>`, `<mpr-auth-provider-chooser>`, `<mpr-user>` | Provider actions, credential forms, account actions, safe diagnostics, provider intent, and authenticated profile menu |
+| General content | `<mpr-settings>`, `<mpr-sites>`, `<mpr-legal-document>`, `<mpr-band>`, `<mpr-card>` | Host settings content, site catalogs, legal copy, palette containers, and project cards |
+| Entity workspace | `<mpr-workspace-layout>`, `<mpr-sidebar-nav>`, `<mpr-entity-rail>`, `<mpr-entity-tile>`, `<mpr-entity-workspace>`, `<mpr-entity-card>`, `<mpr-detail-drawer>` | Generic collection/detail chrome and event boundaries. Host apps own data and domain behavior |
 
-All rendered text is escaped. The shared templates intentionally keep product-specific clauses as data (`extra-sections` or `sections`) so applications can add AI-output, payment-provider, source-site, trademark, children/family, or media-provider language without forking the MPR Lab company/contact profile.
+Every element extends `MPRUI.MprElement`. Connection calls `render()`, observed attribute changes call `update()`, and disconnection calls `destroy()`. Components capture declared light-DOM slots before controlled markup is rendered. Event listeners and document-level handlers are removed during update or disconnection.
 
-The imperative API is the same renderer used by the element:
+The complete attribute, slot, method, and event matrix is in [`docs/custom-elements.md`](docs/custom-elements.md).
 
-```js
-const profile = MPRUI.getLegalProfile();
-const terms = MPRUI.getLegalDocument({
-  type: 'terms',
-  productName: 'Poodle Scanner',
-  serviceDescription: 'Poodle Scanner provides product page retrieval and scoring analysis.',
-});
-const controller = MPRUI.renderLegalDocument('#legal-root', terms);
-controller.update({ type: 'privacy', productName: 'Poodle Scanner' });
-```
+## Namespace
 
-## Band Component
+| Export | Responsibility |
+| --- | --- |
+| `createAuthHeader(host, options)` | Create the shared auth controller for a mounted surface. |
+| `createAuthOptions(options)` | Validate and normalize an imperative auth contract. |
+| `renderAuthHeader(host, options)` | Resolve a host and render the auth header controller. |
+| `authenticatedFetch(authTarget, input, init?, policy?)` | Send a protected request with one coordinated session recovery and permitted retry. |
+| `resolveAuthProfileSnapshot(authTarget)` | Read the current safe profile snapshot from an auth target. |
+| `configureTheme(config)` | Configure the shared theme targets and modes. |
+| `setThemeMode(mode)` | Set the active shared theme mode. |
+| `getThemeMode()` | Return the active mode. |
+| `onThemeChange(listener)` | Subscribe to theme changes and receive an unsubscribe function. |
+| `getFooterSiteCatalog()` | Return a clone of the packaged MPR Lab site catalog. |
+| `getLegalProfile()` | Return a clone of the shared MPR Lab legal profile. |
+| `getLegalDocument(options)` | Build a Terms or Privacy document model. |
+| `renderLegalDocument(host, options)` | Render and update a legal-document model. |
+| `getBandProjectCatalog()` | Return packaged project-card data. |
+| `createSelectionState()` | Create immutable-id selection state for host-owned collections. |
+| `createCustomElementRegistry(target?)` | Register custom-element definitions once for the target registry. |
+| `MprElement` | Shared custom-element lifecycle base. |
 
-`<mpr-band>` is a themed container rather than a card renderer. The controller injects the palette stylesheet (`<style id="mpr-ui-band-styles">`), stamps metadata (`data-mpr-band-category`, `data-mpr-band-count`, `data-mpr-band-empty`, `data-mpr-band-layout`), and applies CSS custom properties for background/panel/text/accent colours. It never mutates or wraps the inner DOM, so Bootstrap grids, hero copy, or `<mpr-card>` instances remain untouched.
+The controller from `createAuthHeader()` exposes `startAppleSignIn()` for the
+Apple redirect flow. It does not expose a programmatic Google start method.
+Google starts only from an official rendered button. The button lifecycle uses
+the controller nonce and credential methods.
 
-### Attributes & Options
+`MPRUI.testing` exposes test-only auth state, Apple redirect-action, and Google Identity driver helpers. Production application behavior must use the ordinary public lifecycle.
 
-| Attribute / Option | Type | Description |
-| --- | --- | --- |
-| `category` | `string` | Optional preset palette selector (`research`, `tools`, `platform`, `products`, `custom`). Defaults to `custom`. |
-| `theme` | `object` | Optional `{ background, panel, panelAlt, text, muted, accent, border, shadow, lineTop, lineBottom }` overrides to patch the preset CSS variables. |
+## Authentication ownership
 
-The historical `layout`, `heading`, `description`, and `cards` attributes are ignored; the band always behaves as a manual container. Drop markup or `<mpr-card>` instances inside the element to control layout explicitly.
+### Browser configuration
 
-### Helpers
+`/config-ui.yaml` is the only browser auth input. The selected environment contains:
 
-`MPRUI.getBandProjectCatalog()` still returns the packaged Marco Polo Research Lab cards so consumers can map that data into `<mpr-card>` elements placed inside a band (or anywhere else). Every theme field is wrapped in shared CSS custom properties (`--mpr-color-*`, `--mpr-shadow-*`) so the header/footer theme switcher recolours bands and cards automatically, and the optional `lineTop` / `lineBottom` entries let you render thin separators that inherit the active palette without writing custom CSS.
+- `tauthUrl`, `tenantId`, `logoutPath`, and `sessionPath`.
+- Explicit `providers.google`, `providers.apple`, and `providers.password` entries.
+- The complete password route set when password auth is enabled.
+- The complete account route set when account panels are used.
 
-## Security and Accessibility Considerations
+The loader applies the validated contract to `<mpr-header>` or `<mpr-login-button>` and to the related password, account, user, and diagnostics elements. One owning surface creates one auth controller. A tenant is immutable after controller initialization.
 
-- All user-facing strings are escaped before insertion.
-- `sanitizeHref` prevents `javascript:` URLs and blank values.
-- The auth header never stores credentials; it exchanges them immediately for server-side sessions.
-- `fetch` calls always include `credentials: "include"` to retain cookies.
-- Custom events bubble, enabling observers to react without accessing internals.
+### Provider flows
 
-### Google Identity Helper
+Google sign-in and Google account linking use the official Google Identity
+Services button with popup mode. The controller requests a TAuth nonce before
+it renders each button. The controller refreshes the nonce every four minutes
+while the control remains connected. Google returns the ID token to the
+JavaScript callback. The controller sends the token and nonce to TAuth. These
+flows do not use One Tap or an OAuth redirect callback.
 
-`ensureGoogleIdentityClient(document)` loads `https://accounts.google.com/gsi/client` exactly once, memoising the promise so concurrent callers share the same script tag. When a Google button is needed the bundle calls `renderGoogleButton(host, siteId, options, onError)`:
+Apple sign-in is a redirect-provider flow. The controller validates the configured `startPath` and `returnTo`, attaches the tenant, records a restore hint, emits the authenticating lifecycle, and navigates the top-level page. TAuth and deployment configuration own Apple credentials, callback processing, session cookies, registered origins, and server-to-server notifications. The returning page restores the session through `sessionPath`.
 
-1. Ensures the GIS client is initialised.
-2. Calls `google.accounts.id.renderButton` with the provided options (size, theme, text).
-3. Marks the host with `data-mpr-google-ready` for CSS hooks.
-4. Reports errors through a callback so callers can dispatch domain-specific events (`mpr-ui:header:error`, `mpr-login:error`).
+Password and account components resolve the controller from `auth-target` or their owning ancestor. They do not create an independent controller or probe the session. Passwords and challenge values remain local to the immediate request. Public events contain stable status data and no credential values.
 
-Both the header and `<mpr-login-button>` reuse this helper, so only one script is injected per page even when the declarative and imperative surfaces coexist.
+`<mpr-auth-provider-chooser>` owns provider-choice presentation and safe intent events only. It does not create an auth controller, start provider mechanics, or establish authenticated state.
 
-## CDN and Versioning
+### Shared lifecycle
 
-Load the bundle directly from jsDelivr. Pin to tags or commit hashes for deterministic builds.
+All providers converge on the same events:
 
-- `https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@1.0.0/mpr-ui.js`
-- `https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@<commit-hash>/mpr-ui.js`
-> Header and footer stick to the viewport edges unless you explicitly set `sticky="false"`. Passing `sticky="true"` is redundant because `true` is the default, and the attribute accepts any case-insensitive `"true"`/`"false"` string (`sticky="FALSE"` behaves the same as `sticky="false"`). Stickiness is enforced inside the components, so external CSS does not need to mirror the attribute value.
+- `mpr-ui:auth:status-change`
+- `mpr-ui:auth:authenticated`
+- `mpr-ui:auth:unauthenticated`
+- `mpr-ui:auth:error`
+
+Auth-bearing hosts reflect the current phase through `data-mpr-auth-status`. Authenticated hosts also reflect safe user identity fields used by the shared user menu. Credentials, provider tokens, password values, and challenge values are not reflected.
+
+### Protected requests
+
+`MPRUI.authenticatedFetch()` sends the initial request with credentials. After HTTP 401 it coordinates one recovery request for the auth URL, tenant, and session path. Concurrent callers and browser tabs share that recovery through Web Locks and a generation record. The record contains result status only.
+
+Replayable `GET`, `HEAD`, and `OPTIONS` requests can run one more time after recovery. A mutation can retry only when the caller declares `mutationReplay: "authorization-before-domain-work"`, the server finishes authorization before domain work, and the request body can be cloned.
+
+## Dropdown and footer ownership
+
+`<mpr-dropdown>` is the only owner of sectioned-menu rendering and interaction. Its required `menu` object contains `label`, `placement`, and `sections`. Each section has a stable `id`, label, mode, and nonempty links collection.
+
+- `static` renders a heading and visible links.
+- `expanded` renders an initially open disclosure.
+- `collapsed` renders an initially closed disclosure.
+- `top` opens above the trigger.
+- `bottom` opens below the trigger.
+
+The component owns outside-pointer dismissal, Escape handling, link dismissal, section focus return, viewport clamping, and public menu events. `<mpr-footer>` composes this same element and requires `placement: "top"` for its menu.
+
+## Theme ownership
+
+One shared theme manager applies modes to configured selectors, `document.documentElement`, and `document.body`. A mode can set an attribute value, class list, and dataset values. `<mpr-theme-toggle>` and the footer theme control write through that manager. Header and footer receive the same current mode.
+
+Consumers observe `mpr-ui:theme-change` on `document` or subscribe with `MPRUI.onThemeChange(listener)`.
+
+## General content ownership
+
+- `<mpr-settings>` owns disclosure state and panel visibility. The host owns the settings content and meaning.
+- `<mpr-sites>` renders the packaged site list or an explicit catalog and emits normalized link actions.
+- `<mpr-legal-document>` builds shared Terms or Privacy copy from the MPR Lab legal profile plus product data. Text is escaped. Product-specific clauses are supplied as structured sections.
+- `<mpr-band>` applies palette CSS variables and leaves its child layout unchanged.
+- `<mpr-card>` owns card rendering, flip state, CTA behavior, and optional deferred subscription content.
+
+## Entity-workspace ownership
+
+The entity components own layout, slots, loading/empty presentation, scroll controls, selection presentation, and generic events. Host applications own fetches, pagination data, filters, domain names, route changes, selection meaning, and domain actions.
+
+`MPRUI.createSelectionState()` supplies stable selected-ID mechanics without coupling the components to a domain model.
+
+## Validation boundaries
+
+- JSON and YAML configuration is validated at the component or loader edge.
+- Unknown fields, invalid enums, duplicate identifiers, incomplete providers, unsafe return targets, and unsupported link protocols fail at that edge.
+- Core rendering and interaction logic assumes valid normalized data.
+- User-facing strings are escaped before controlled HTML is produced.
+- External auth requests use the configured TAuth boundary and `credentials: "include"`.
+- UI components do not own app-specific network calls.
+
+## Demonstration coverage
+
+| Demo | Architecture surface |
+| --- | --- |
+| [`index.html`](index.html) | Config-first auth header, bands/cards, shared footer, sectioned drop-up, and theme state |
+| [`demo/components.html`](demo/components.html) | General visual elements, both menu placements, and all section modes |
+| [`demo/auth-provider-chooser.html`](demo/auth-provider-chooser.html) | Provider-intent primitive and safe events |
+| [`demo/tauth-demo.html`](demo/tauth-demo.html) | TAuth controller, Google/password flows, account panels, and diagnostics |
+| [`demo/standalone.html`](demo/standalone.html) | Login-only owner and authenticated user menu |
+| [`demo/entity-workspace.html`](demo/entity-workspace.html) | Collection/detail composition and headless selection state |
+
+## Validation
+
+`make ci` runs Node regression tests, browser-side coverage, and Playwright behavior tests. Public component changes require black-box checks of behavior, visibility, events, focus, and cleanup. Visual demo changes also require a real-browser inspection of the affected pages.

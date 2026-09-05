@@ -65,7 +65,7 @@ test.describe('Standalone login button presentation', () => {
     expect(controlBox?.height || 0).toBeGreaterThanOrEqual(44);
   });
 
-  test('B044: renders one styled accessible Google control and starts the nonce-bound flow only after click', async ({ page }) => {
+  test('B059: renders one nonce-bound Google control that starts the popup flow', async ({ page }) => {
     await visitLoginButtonFixture(page);
 
     const loginButton = page.locator('mpr-login-button#fixture-login-button');
@@ -80,43 +80,37 @@ test.describe('Standalone login button presentation', () => {
     const initialControlBox = await googleControl.boundingBox();
     expect(initialControlBox).not.toBeNull();
     expect(initialControlBox?.height || 0).toBeGreaterThanOrEqual(40);
-    await expect(googleControl).toHaveCSS('display', 'grid');
-
-    await expect.poll(() => page.evaluate(() => window.__loginButtonRequestPaths)).toEqual([]);
-    await expect.poll(() => page.evaluate(() => window.__loginButtonGoogleInitializeCalls)).toEqual([]);
-
-    await page.evaluate(() => {
-      window.__loginButtonHoldNonce = true;
-    });
-    await googleControl.click();
+    await expect(googleControl).toHaveCSS('display', 'block');
 
     await expect.poll(() => page.evaluate(() => window.__loginButtonRequestPaths)).toEqual(['/auth/nonce']);
-    await expect(googleControl).toBeDisabled();
-    await expect(page.getByRole('status')).toHaveText('Starting Google sign-in…');
-    await expect.poll(() => page.evaluate(() => window.__loginButtonGoogleInitializeCalls)).toEqual([]);
-
-    await page.evaluate(() => {
-      window.__loginButtonHoldNonce = false;
-      window.__resolveLoginButtonNonce?.();
-    });
-
     await expect.poll(() => page.evaluate(() => window.__loginButtonGoogleInitializeCalls)).toEqual([
       { clientId: 'fixture-google-client', nonce: 'fixture-login-nonce' },
     ]);
-    await expect.poll(() => page.evaluate(() => window.__loginButtonPromptCount)).toBe(1);
+    await expect.poll(() => page.evaluate(() => window.__loginButtonRenderCalls)).toEqual([
+      {
+        type: 'standard',
+        theme: 'outline',
+        size: 'large',
+        text: 'signin_with',
+        shape: 'pill',
+      },
+    ]);
+
+    await googleControl.click();
+    await expect(page.getByRole('status')).toBeEmpty();
     await expect(googleControl).toBeEnabled();
 
     await page.evaluate(() => {
       window.__loginButtonNonceFailure = true;
+      document.querySelector('#fixture-login-button')?.setAttribute('button-theme', 'filled_blue');
     });
-    await googleControl.click();
 
     await expect(page.getByRole('status')).toHaveText('Unable to start Google sign-in. Try again.');
     await expect(page.getByRole('status')).toBeVisible();
-    await expect(googleControl).toBeEnabled();
 
     await loginButton.evaluate((element) => {
-      element.setAttribute('button-theme', 'filled_blue');
+      window.__loginButtonNonceFailure = false;
+      element.setAttribute('button-theme', 'outline');
     });
     await expect(page.getByRole('button')).toHaveCount(1);
     await expect(googleControl).toBeVisible();
@@ -134,7 +128,7 @@ test.describe('Standalone login button presentation', () => {
     await expect(loginButton).not.toHaveAttribute('role', 'button');
   });
 
-  test('B047: preparation keeps the visible Google sign-in control geometry unchanged', async ({ page }) => {
+  test('B059: popup start keeps the visible Google control geometry unchanged', async ({ page }) => {
     await visitLoginButtonFixture(page);
 
     const controlGroup = page.getByRole('group', { name: 'Google sign-in control' });
@@ -146,25 +140,58 @@ test.describe('Standalone login button presentation', () => {
     const initialGroupGeometry = await renderedGeometry(controlGroup);
     const initialControlGeometry = await renderedGeometry(googleControl);
 
-    await page.evaluate(() => {
-      window.__loginButtonHoldNonce = true;
-    });
     await googleControl.click();
 
-    await expect(googleControl).toHaveAttribute('aria-busy', 'true');
-    await expect(page.getByRole('status')).toHaveText('Starting Google sign-in…');
+    await expect(page.getByRole('status')).toBeEmpty();
 
     expect(await renderedGeometry(controlGroup)).toEqual(initialGroupGeometry);
     expect(await renderedGeometry(googleControl)).toEqual(initialControlGeometry);
-
-    await page.evaluate(() => {
-      window.__loginButtonHoldNonce = false;
-      window.__resolveLoginButtonNonce?.();
-    });
-    await expect(googleControl).toHaveAttribute('aria-busy', 'false');
   });
 
-  test('B044: icon-only login controls preserve their square footprint', async ({ page }) => {
+  test('B059: refreshes the button nonce and removes its timer on disconnect', async ({ page }) => {
+    await page.clock.install();
+    await visitLoginButtonFixture(page);
+
+    const loginButton = page.locator('mpr-login-button#fixture-login-button');
+    const googleControlHost = loginButton.locator('[data-mpr-auth-action="google"]');
+    await expect.poll(() => page.evaluate(() => window.__loginButtonRequestPaths)).toEqual([
+      '/auth/nonce',
+    ]);
+
+    await page.evaluate(() => {
+      window.__loginButtonNonceFailure = true;
+    });
+    await page.clock.fastForward(4 * 60 * 1000);
+    await expect.poll(() => page.evaluate(() => window.__loginButtonRequestPaths)).toEqual([
+      '/auth/nonce',
+      '/auth/nonce',
+    ]);
+    await expect(page.getByRole('status')).toHaveText(
+      'Unable to start Google sign-in. Try again.',
+    );
+    await expect(googleControlHost).toHaveAttribute('data-mpr-google-error', 'nonce-failed');
+    await expect(googleControlHost).not.toHaveAttribute('data-mpr-google-ready');
+    await expect(page.getByRole('button', { name: 'Sign in with Google' })).toHaveCount(0);
+
+    await page.evaluate(() => {
+      window.__loginButtonNonceFailure = false;
+    });
+    await page.clock.fastForward(30 * 1000);
+    await expect.poll(() => page.evaluate(() => window.__loginButtonRequestPaths)).toEqual([
+      '/auth/nonce',
+      '/auth/nonce',
+      '/auth/nonce',
+    ]);
+    await expect.poll(() => page.evaluate(() => window.__loginButtonRenderCalls.length)).toBe(2);
+    await expect(googleControlHost).toHaveAttribute('data-mpr-google-ready', 'true');
+    await expect(googleControlHost).not.toHaveAttribute('data-mpr-google-error');
+
+    await loginButton.evaluate((element) => element.remove());
+    await page.clock.fastForward(4 * 60 * 1000);
+    await expect.poll(() => page.evaluate(() => window.__loginButtonRequestPaths)).toHaveLength(3);
+  });
+
+  test('B059: icon-only login controls preserve their square footprint', async ({ page }) => {
     await visitLoginButtonFixture(page);
 
     const loginButton = page.locator('mpr-login-button#fixture-login-button');

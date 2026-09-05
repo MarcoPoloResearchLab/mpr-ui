@@ -6,6 +6,7 @@ server:
     - "${TAUTH_CORS_ORIGIN_1}"
     - "${TAUTH_CORS_ORIGIN_2}"
     - "${TAUTH_CORS_ORIGIN_3}"
+    - "http://pinguin-bootstrap"
   cors_allowed_origin_exceptions:
     - "${TAUTH_CORS_EXCEPTION_1}"
   enable_tenant_header_override: ${TAUTH_ENABLE_TENANT_HEADER_OVERRIDE}
@@ -23,14 +24,22 @@ tenants:
       users:
         - email: "${TAUTH_PASSWORD_USER_EMAIL}"
           display_name: "MPR UI Demo User"
-          avatar_url: ""
+          avatar_url: "/demo/demo-user.svg"
           password_hash: "${TAUTH_PASSWORD_HASH}"
     account_management:
       enabled: true
       password_signup:
         enabled: true
-      return_challenge_tokens: true
+      return_challenge_tokens: false
       email_verification_ttl: "30m"
+      email_delivery:
+        server_address: "pinguin:50051"
+        api_key: "${PINGUIN_DEMO_API_KEY}"
+        email_verification_url: "http://localhost:4443/demo/tauth-demo.html?auth_action=verify-email"
+        password_reset_url: "http://localhost:4443/demo/tauth-demo.html?auth_action=reset-complete"
+        password_link_url: "http://localhost:4443/demo/tauth-demo.html?auth_action=password-link-verify"
+        connection_timeout_seconds: 5
+        operation_timeout_seconds: 30
       password_reset_ttl: "15m"
     jwt_signing_key: "${TAUTH_JWT_SIGNING_KEY}"
     cookie_domain: ""
@@ -40,3 +49,23 @@ tenants:
     refresh_ttl: "720h"
     nonce_ttl: "10m"
     allow_insecure_http: "${TAUTH_ALLOW_INSECURE_HTTP}"
+  - id: "mpr-ui-delivery-admin"
+    display_name: "MPR UI Delivery Administration"
+    tenant_origins:
+      - "http://pinguin-bootstrap"
+    password_auth:
+      enabled: true
+      users:
+        - email: "delivery-owner@mprlab.local"
+          display_name: "Delivery Owner"
+          password_hash: "${PINGUIN_BOOTSTRAP_PASSWORD_HASH}"
+    account_management:
+      enabled: false
+    jwt_signing_key: "${PINGUIN_BOOTSTRAP_SIGNING_KEY}"
+    cookie_domain: ""
+    session_cookie_name: "mpr_ui_delivery_session"
+    refresh_cookie_name: "mpr_ui_delivery_refresh"
+    session_ttl: "5m"
+    refresh_ttl: "5m"
+    nonce_ttl: "10m"
+    allow_insecure_http: true

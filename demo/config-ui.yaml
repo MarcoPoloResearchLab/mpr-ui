@@ -3,12 +3,12 @@
 # Each environment is matched by window.location.origin; exactly one must match at runtime.
 
 environments:
-  # Local development with gHTTP serving the repository root over HTTPS.
+  # Local development with gHTTP serving the repository root over HTTP.
   - description: "Local TAuth demo"
     origins:
-      - "https://localhost:4443"
-      - "https://127.0.0.1:4443"
-      - "https://computercat.tyemirov.net:4443"
+      - "http://localhost:4443"
+      - "http://127.0.0.1:4443"
+      - "http://computercat.tyemirov.net:4443"
     auth:
       # Empty string means the auth endpoints are same-origin via gHTTP proxy.
       tauthUrl: ""
@@ -40,7 +40,7 @@ environments:
         disablePath: "/auth/account/disable"
 
   # Lightweight no-store static preview served with `npm run demo:serve`.
-  # This origin renders the demo chrome and components; authenticated sign-in still requires `./up.sh tauth`.
+  # This origin renders the demo chrome and components; authenticated sign-in still requires `make up`.
   - description: "Static HTTP preview"
     origins:
       - "http://127.0.0.1:4177"
