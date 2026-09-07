@@ -11,10 +11,13 @@ RELEASE_HELPER := $(abspath $(CURDIR)/scripts/release/release_helper.py)
 PUBLISH_RELEASE_ARGS ?=
 DEPLOY_ARGS ?=
 RELEASE_TOOL_DIR := $(abspath $(CURDIR)/scripts/release)
+MPR_UI_DEMO_BASE_URL ?= http://localhost:4443
 
 .PHONY: test test-unit test-coverage test-e2e lint format ci
 .PHONY: up down
 .PHONY: test-delivery
+.PHONY: test-demo
+.PHONY: test-pages
 .PHONY: release publish deploy
 
 test:
@@ -32,13 +35,19 @@ test-e2e:
 test-delivery:
 	PYTHONDONTWRITEBYTECODE=1 uv run --with pytest python -m pytest -q tests/integration/test_demo_delivery.py
 
+test-demo:
+	MPR_UI_DEMO_BASE_URL="$(MPR_UI_DEMO_BASE_URL)" timeout -k $(E2E_TIMEOUT)s -s SIGKILL $(E2E_TIMEOUT)s npx playwright test tests/e2e/demo-stack.spec.js
+
+test-pages:
+	timeout -k $(E2E_TIMEOUT)s -s SIGKILL $(E2E_TIMEOUT)s node --test tests/integration/pages-artifact.test.js
+
 lint:
 	timeout -k $(LINT_TIMEOUT)s -s SIGKILL $(LINT_TIMEOUT)s npm run lint --if-present
 
 format:
 	timeout -k $(FORMAT_TIMEOUT)s -s SIGKILL $(FORMAT_TIMEOUT)s npm run format --if-present
 
-ci: lint format test-coverage test-e2e
+ci: lint format test-coverage test-e2e test-pages
 
 up:
 	@./up.sh
