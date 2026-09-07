@@ -111,7 +111,7 @@ test('MU-435: make ci runs the coverage gate before e2e', () => {
   );
   assert.match(
     makefile,
-    /^ci:\s+lint format test-coverage test-e2e$/m,
+    /^ci:\s+lint format test-coverage test-e2e test-pages$/m,
     'Expected make ci to enforce the coverage gate before e2e',
   );
 });

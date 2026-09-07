@@ -8,6 +8,26 @@ const BASE_URL = process.env.MPR_UI_DEMO_BASE_URL || 'http://localhost:4443';
 const LOCAL_JS_SUFFIX = '/mpr-ui.js';
 const LOCAL_CSS_SUFFIX = '/mpr-ui.css';
 const LEGACY_TAUTH_HELPER_SUFFIX = '/tauth.js';
+const REQUIRED_PROVIDER_CONTROLS = Object.freeze([
+  'Sign in with Google',
+  'Sign in with Apple',
+  'Continue with email',
+]);
+const AUTH_DEMO_PATHS = Object.freeze([
+  '/',
+  '/demo/tauth-demo.html',
+  '/demo/entity-workspace.html',
+  '/demo/standalone.html',
+]);
+
+for (const demoPath of AUTH_DEMO_PATHS) {
+  test(`live provider acceptance: ${demoPath} shows Google, Apple, and email`, async ({ page }) => {
+    await page.goto(`${BASE_URL.replace(/\/$/, '')}${demoPath}`, { waitUntil: 'networkidle' });
+    for (const providerControl of REQUIRED_PROVIDER_CONTROLS) {
+      await expect(page.getByRole('button', { name: providerControl, exact: true }).first()).toBeVisible();
+    }
+  });
+}
 
 /**
  * Waits for the semantic orchestration-ready event before proceeding.
@@ -58,8 +78,7 @@ test('root / serves the demo hub landing page with local assets and DSL orchestr
   // 4. Verify User Menu Presence (Orchestrated by component)
   await expect(header.locator('mpr-user[slot="aux"]')).toBeAttached();
 
-  const providerControls = ['Sign in with Google', 'Continue with email'];
-  for (const providerControl of providerControls) {
+  for (const providerControl of REQUIRED_PROVIDER_CONTROLS) {
     await expect(page.getByRole('button', { name: providerControl })).toBeVisible();
   }
 });

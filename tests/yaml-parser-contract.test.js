@@ -135,7 +135,7 @@ test('B046: the current parser preserves the canonical provider maps', () => {
     yaml.load(configSource)
   );
 
-  assert.equal(parsedConfig.environments.length, 3);
+  assert.equal(parsedConfig.environments.length, 4);
   assert.deepEqual(
     parsedConfig.environments.map((environment) => {
       const auth = /** @type {{ providers: { google: { enabled: boolean }, apple: { enabled: boolean }, password: { enabled: boolean } } }} */ (
@@ -148,6 +148,7 @@ test('B046: the current parser preserves the canonical provider maps', () => {
       };
     }),
     [
+      { google: true, apple: true, password: true },
       { google: true, apple: false, password: true },
       { google: true, apple: true, password: true },
       { google: false, apple: true, password: false },

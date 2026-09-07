@@ -774,6 +774,7 @@ async function routeRuntimeNonce(page) {
 }
 
 module.exports = {
+  googleIdentityStub: GOOGLE_IDENTITY_STUB,
   visitWorkbenchFixture,
   visitFullLayoutFixture,
   visitHorizontalLinksFixture,
