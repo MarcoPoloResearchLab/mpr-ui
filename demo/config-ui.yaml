@@ -3,6 +3,41 @@
 # Each environment is matched by window.location.origin; exactly one must match at runtime.
 
 environments:
+  - description: "Hosted TAuth demo"
+    origins:
+      - "https://ui.mprlab.com"
+    auth:
+      tauthUrl: "https://tauth-api.mprlab.com"
+      tenantId: "mpr-ui-demo"
+      logoutPath: "/auth/logout"
+      sessionPath: "/auth/session"
+      providers:
+        google:
+          enabled: true
+          clientId: "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+          loginPath: "/auth/google"
+          noncePath: "/auth/nonce"
+        apple:
+          enabled: true
+          startPath: "/auth/apple/start"
+          returnTo: "current-origin"
+          label: "Sign in with Apple"
+        password:
+          enabled: true
+      password:
+        loginPath: "/auth/password/login"
+        signupPath: "/auth/password/signup"
+        verifyEmailPath: "/auth/password/verify-email"
+        resetStartPath: "/auth/password/reset/start"
+        resetCompletePath: "/auth/password/reset/complete"
+      account:
+        passwordChangePath: "/auth/account/password/change"
+        passwordLinkStartPath: "/auth/account/password/link/start"
+        passwordLinkVerifyPath: "/auth/account/password/link/verify"
+        googleLinkPath: "/auth/account/google/link"
+        unlinkPath: "/auth/account/unlink"
+        disablePath: "/auth/account/disable"
+
   # Local development with gHTTP serving the repository root over HTTP.
   - description: "Local TAuth demo"
     origins:
