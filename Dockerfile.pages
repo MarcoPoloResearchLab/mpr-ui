@@ -1,0 +1,8 @@
+FROM scratch
+COPY index.html mpr-ui.js mpr-ui.css mpr-ui-config.js README.md ARCHITECTURE.md CHANGELOG.md /
+COPY demo/demo.js demo/demo.css demo/demo-user.svg demo/config-ui.yaml /demo/
+COPY demo/components.html demo/standalone.html demo/tauth-demo.html /demo/
+COPY demo/tauth-settings-modal.js demo/status-panel.js /demo/
+COPY demo/auth-provider-chooser.html demo/auth-provider-chooser.js /demo/
+COPY demo/entity-workspace.html demo/entity-workspace.js demo/entity-workspace.css demo/entity-workspace.json /demo/
+COPY docs/alpine.js.md docs/custom-elements.md docs/demo-index-auth.md docs/integration-guide.md docs/hosted-auth-readiness.md /docs/
