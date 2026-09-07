@@ -268,6 +268,16 @@ Pinguin accepts only the delivery session for administration. Its management por
 The frontend mounts only public files. Private environment files and repository metadata are outside its document root.
 Configure the three `PINGUIN_BOOTSTRAP_*` values in `demo/.env.tauth` before startup. See [local delivery setup](docs/demo-index-auth.md#private-delivery-owner).
 
+After startup, run `make test-demo` for live demo acceptance.
+Run `make test-pages` to validate the static Pages artifact. This check requires Docker and the installed Playwright browser.
+The Pages check uses isolated provider responses. It verifies artifact content and controls, but it does not prove live authentication.
+See [hosted authentication readiness](docs/hosted-auth-readiness.md) for the production inputs and current blockers.
+The browser tests require Google, Apple, and email controls on all four authentication pages.
+They also verify local assets, navigation, and password authentication.
+Set `MPR_UI_DEMO_BASE_URL` for another demo URL.
+The default `make ci` suite excludes these live tests.
+Source CI success does not establish live provider acceptance.
+
 ## Development and validation
 
 ```bash
