@@ -248,3 +248,20 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - The static preview now uses the same public-file list. Its HTTP regression first reproduced private-file access.
 - The preview-server TypeScript check passed. The full-library TypeScript check reported an existing `TS2345` error at `parseAccountIdentityOptions(this)`.
 - The unchanged branch head produced the same error. This check is outside `make ci`.
+
+- B058: four live browser tests reproduced the missing Apple control. `make test-demo` now requires all three providers.
+- Apple web authentication is configured for `com.mprlab.ui` and its hosted TAuth callback.
+- Apple registered key `FSPJR9M37P`. Retrieval of its private file and TAuth configuration remain blocked.
+- Source validation: `make ci` passed. The live suite reported six failures and one pass.
+- Five failures report the missing Apple control. The password test completed sign-in but reported a Google origin rejection.
+- The documentation language checker reported no findings in the new prose. Existing journal findings remain unchanged.
+- The Governor check reported existing differences in five unchanged guidance files.
+
+- B059: Google saved the bare localhost origin. The local email test now passes without browser errors.
+- Live acceptance reports two passes and five failures. Each failure reports the missing Apple control.
+- F010: the Pages artifact contains explicit public files. Two builds produced identical content.
+- The artifact browser test verified three controls on four pages with isolated provider responses.
+- Source validation passed: `make ci` completed 210 Node tests, two runs of 132 browser tests, and the Pages check.
+- Gateway B535 adds the TAuth email delivery schema and private output. Its focused integration checks passed.
+- The Apple private key and production Pinguin configuration remain necessary inputs. The hosted tenant and DNS are not active.
+- Gateway B535: full `make ci` passed after the final schema and output changes.

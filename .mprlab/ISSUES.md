@@ -183,6 +183,12 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Verify the nonce refresh and controller cleanup behavior.
   - Run `make ci` after the final source, config, test, and documentation changes.
 
+  Progress 2026-09-05:
+  Google saved `http://localhost` as an authorized JavaScript origin for the configured client.
+  The local email test passed without browser errors after this change.
+  The complete live suite then reported two passes and five missing-Apple failures.
+  Real Google authentication on the hosted site remains necessary for acceptance.
+
 - [!] [B058] (P1) {F010} The local demo uses a simulated Apple provider.
   Goal:
   The public and local demos use the real Apple provider through one hosted TAuth callback.
@@ -218,6 +224,19 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Repeat the authentication at `https://ui.mprlab.com`.
   - Verify that no simulated provider code or fixture key remains.
   - Run `make ci` after the final source, config, and documentation changes.
+
+  Progress 2026-09-05:
+  The local browser config sets `auth.providers.apple.enabled` to `false`.
+  The live test previously required only Google and email controls. The default CI suite excludes the live tests.
+  Four new browser tests reproduced the missing Apple control on all authentication pages.
+  `make test-demo` now runs the live acceptance suite.
+  Apple web authentication is configured for `com.mprlab.ui` under team `Z9ZW6HDGML`.
+  The primary App ID is `com.mprlab.ui.primary`. The callback is `https://tauth-api.mprlab.com/auth/apple/callback`.
+  Apple registered key `FSPJR9M37P` for this primary App ID.
+  Apple reports a completed download, but the private key file is not available in the local filesystem.
+  The local Apple endpoint still returns `404` with `apple_login_not_configured`.
+  The hosted endpoint returns `403` for the current local request.
+  The private key, hosted tenant configuration, and real Apple authentication remain necessary for acceptance.
 
 - [!] [B027] (P1) gix sync: prevent creating a new branch when an explicit target branch is provided.
   Goal:
@@ -585,6 +604,15 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
   Progress 2026-09-03:
   `make up` now builds the current sibling TAuth and Pinguin sources. It creates a managed local Pinguin tenant and sends real challenge email through its configured SMTP relay. The demo consumes fragment tokens inside the matching component. Local browser acceptance and `make ci` passed.
+
+  Progress 2026-09-05:
+  `Dockerfile.pages` now produces a static artifact with explicit public files.
+  `make test-pages` verifies repeatable content and all three controls on four pages with isolated provider responses.
+  The hosted browser profile selects tenant `mpr-ui-demo` at `https://tauth-api.mprlab.com`.
+  Gateway B535 adds the real email delivery settings and private output that TAuth requires.
+  The Apple private key and production Pinguin configuration remain necessary inputs.
+  The production manifest, lifecycle connection, hosted tenant, Pages activation, and DNS record remain incomplete.
+  `docs/hosted-auth-readiness.md` records the verified provider values and remaining work.
 
 ## Planning
 
