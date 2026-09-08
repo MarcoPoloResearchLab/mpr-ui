@@ -8,13 +8,13 @@ The user owns production release, publication, and deployment.
 
 - `consumer-inventory.json` records 20 repositories, source identities, affected files, prepared patches, and available validation targets.
 - `public-observations.json` records HTTPS responses from the declared website domains on September 8, 2026.
-- `patches/` contains 16 proposed application patches. Application checkouts remain unchanged.
+- `patches/` contains 16 patches from the initial inspection. The application table records subsequent implementation.
 - `qualification-results.json` records proposed config and component checks against the current local library.
 
 The patches cover five static config producers and 226 additional source files.
 They replace selected flat auth fields, footer menus, and fixed MPR UI references.
 Each prepared file has before and after SHA-256 values in the inventory.
-All 16 patches passed `git apply --check` against their inspected checkouts.
+All 16 patches passed `git apply --check` against their inspected checkouts at preparation time.
 
 The current loader accepted the proposed config for all 18 declared origins.
 The current footer rendered all 205 proposed menus in a browser at a 390-pixel viewport width.
@@ -46,13 +46,29 @@ Use each repository's current agent instructions and test-driven sequence.
 | LikeMe | Footer | Verify header, footer, links, theme, and layout. |
 | ctx | None | Inspect current component markup and public asset requests. Confirm the production origin from its application owner. |
 | gix | Footer | Verify documentation navigation and theme behavior. Confirm the production origin from its application owner. |
-| marcopolo.github.io | Six public footers | Verify public pages with the candidate. Re-run F005 shared qualification after publication. Preserve its existing nested portal config. |
+| marcopolo.github.io | Six public footers implemented in F005 | Source migration and candidate tests passed. Complete published shared-asset qualification and F007 hosted acceptance. |
 | tyemirov.github.io | 14 pages | Verify older header and footer attributes against the complete current contract. Verify gallery and music page behavior. |
 | Smith | None | Convert the integration fixture after its explicit session endpoint is confirmed. Update the canonical fixture verification command. |
 
 Keep backend-owned Google configuration under its existing owner.
 For example, `NameSignal/configs/pinguin-config.yaml` is not an MPR UI config producer.
 A text match for `googleClientId` alone does not authorize a schema change.
+
+## Completed Application Preparation
+
+F005 [PR #61](https://github.com/MarcoPoloResearchLab/marcopolo.github.io/pull/61) includes the six public footer changes at `11ee6726f535e8aa20ab27249b261ce215534e95`.
+Twelve real-page tests first failed against the previous markup.
+The same tests passed against library candidate `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`, with verified JavaScript and CSS digests.
+They cover all six pages at 390-pixel and desktop widths, keyboard controls, product links, legal links, and theme persistence.
+Local `make ci` passed backend checks, 104 browser tests, two release tests, and the Pages boundary check.
+
+The application keeps literal `@latest` URLs and its existing provider map.
+The candidate test controls the external asset response only.
+The published loader still rejects the provider map with `config-ui.yaml missing auth.googleClientId` on September 8, 2026.
+F005 retains published asset qualification. F007 retains real Google login and hosted acceptance.
+
+The original patch and inventory hashes remain dated inspection evidence.
+Use F005 as the current application change. Compare subsequent work with its current PR head.
 
 ## Patch Procedure
 
