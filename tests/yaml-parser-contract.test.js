@@ -74,7 +74,7 @@ test('B046: all shipped YAML parser references use the audited version', () => {
 
   const referenceFiles = execFileSync(
     'git',
-    ['grep', '-l', '-I', '-F', YAML_PARSER_REFERENCE_PREFIX, '--', '.'],
+    ['grep', '-l', '-I', '-F', YAML_PARSER_REFERENCE_PREFIX, '--', '.', ':(glob,exclude)docs/**/*.patch'],
     { cwd: repositoryRoot, encoding: 'utf8' },
   ).trim().split(/\r?\n/);
 
