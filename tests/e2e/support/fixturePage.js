@@ -215,6 +215,10 @@ const AUTH_ONLY_RUNTIME_CONFIG = String.raw`environments:
  * @returns {Promise<void>}
  */
 async function visitWorkbenchFixture(page) {
+  // TAuth nonce issuance is independent of the asynchronous Google SDK load.
+  await page.addInitScript(() => {
+    window.requestNonce = () => Promise.resolve('fixture-google-nonce');
+  });
   await Promise.all([
     routeLocalAsset(page, CDN_BUNDLE_URL, LOCAL_ASSETS.bundle, 'application/javascript'),
     routeLocalAsset(page, CDN_STYLES_URL, LOCAL_ASSETS.styles, 'text/css'),
