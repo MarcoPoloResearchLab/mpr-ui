@@ -1,0 +1,3 @@
+
+# Unified patches contain significant context prefixes and source indentation.
+docs/i009/patches/*.patch -whitespace
