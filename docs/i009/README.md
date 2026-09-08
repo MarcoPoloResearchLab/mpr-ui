@@ -29,7 +29,7 @@ Use each repository's current agent instructions and test-driven sequence.
 
 | Repository | Prepared patch | Remaining implementation and acceptance |
 | --- | --- | --- |
-| Hecate | Config and three pages | Replace flat test producers in `tests/e2e/`. Verify `/me` restoration and the complete header workflow. |
+| Hecate | Config, three pages, fixtures, and candidate tests implemented in I014 | Resolve the existing Expo audit failure and hosted CI gap. Complete cache transition and live acceptance. |
 | NameSignal | None | Set the explicit session endpoint. Convert `internal/web/static/config-ui.yaml`. Remove `authButton`. Check static login presentation and Pages export. |
 | llm-proxy | 51 pages | Convert `RenderManagementConfigUI` and `site/config-ui.yaml`. Set its missing session endpoint. Update HTTP and browser expectations. |
 | pinguin | Config and four pages | Update config expectations. Verify each workspace page and session restoration. |
@@ -54,7 +54,9 @@ Keep backend-owned Google configuration under its existing owner.
 For example, `NameSignal/configs/pinguin-config.yaml` is not an MPR UI config producer.
 A text match for `googleClientId` alone does not authorize a schema change.
 
-## Completed Application Preparation
+## Application Preparation Results
+
+### Investor Portal
 
 F005 [PR #61](https://github.com/MarcoPoloResearchLab/marcopolo.github.io/pull/61) includes the six public footer changes at `11ee6726f535e8aa20ab27249b261ce215534e95`.
 Twelve real-page tests first failed against the previous markup.
@@ -70,16 +72,39 @@ F005 retains published asset qualification. F007 retains real Google login and h
 The original patch and inventory hashes remain dated inspection evidence.
 Use F005 as the current application change. Compare subsequent work with its current PR head.
 
+### Hecate
+
+I014 [PR #198](https://github.com/MarcoPoloResearchLab/Hecate/pull/198) contains the application migration at `c15d5d4bc09101039424b698cea988238ff4bd5e`.
+The work started from clean `master` revision `b6b6ecf4980dbad590dbe83eacf98b1842dd36d2`.
+The root config preserves Google identifiers, tenant identity, origins, and endpoints under the provider map.
+All three footers use `menu`. The legal pages load the shared bundle directly.
+Test producers and integration documents use the current contract.
+
+Seven real-page candidate tests first failed against the previous auth and footer inputs.
+The final tests passed with digest-verified library revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
+They cover controlled Google exchange, session reload, logout, keyboard controls, themes, and two viewport widths.
+Final `make ci` passed 462 browser tests with 100% frontend and backend coverage.
+It stopped at the existing mobile audit because installed Expo 57.0.20 requires `~57.0.21`.
+The separate `make test-mobile` target passed type checking and mobile flow tests.
+The repository has no hosted application CI workflow. The PR is ready for review with these blockers recorded.
+
+The [public asset record](https://github.com/MarcoPoloResearchLab/Hecate/blob/c15d5d4bc09101039424b698cea988238ff4bd5e/docs/mpr-ui/public-assets-2026-09-08.json) contains seven HTTP observations.
+The application pages and config declare a 600-second cache lifetime.
+All three shared assets declare `max-age=604800` and `s-maxage=43200`.
+These observations require browser cache qualification before publication. They do not establish a successful cache transition.
+I014 retains publication, interruption, and real provider acceptance as separate gates.
+
 ## Patch Procedure
 
 Set the application repository and its matching patch path from the inventory.
-The commands below use Hecate as the concrete first config migration.
+The commands below use pinguin as an example with a prepared patch.
+For an application with an existing PR, inspect its result record before further patch work.
 
 ```bash
-cd /Users/tyemirov/Development/Hecate
+cd /Users/tyemirov/Development/pinguin
 git status --short
 git rev-parse HEAD
-git apply --check /Users/tyemirov/Development/mpr-ui/docs/i009/patches/Hecate.patch
+git apply --check /Users/tyemirov/Development/mpr-ui/docs/i009/patches/pinguin.patch
 ```
 
 1. Compare the current source identity and affected file hashes with `consumer-inventory.json`.
@@ -94,7 +119,7 @@ git apply --check /Users/tyemirov/Development/mpr-ui/docs/i009/patches/Hecate.pa
 10. Open a ready-for-review application PR. Record its source identity and hosted CI result.
 
 ```bash
-git apply /Users/tyemirov/Development/mpr-ui/docs/i009/patches/Hecate.patch
+git apply /Users/tyemirov/Development/mpr-ui/docs/i009/patches/pinguin.patch
 make ci
 ```
 
