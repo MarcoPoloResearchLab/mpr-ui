@@ -1,0 +1,1159 @@
+{
+  "configs": [
+    {
+      "repository": "Hecate",
+      "path": "config-ui.yaml",
+      "origin": "http://localhost:8000",
+      "status": "accepted"
+    },
+    {
+      "repository": "Hecate",
+      "path": "config-ui.yaml",
+      "origin": "https://hecate.mprlab.com",
+      "status": "accepted"
+    },
+    {
+      "repository": "pinguin",
+      "path": "web/config-ui.yaml",
+      "origin": "https://pinguin.mprlab.com",
+      "status": "accepted"
+    },
+    {
+      "repository": "pinguin",
+      "path": "web/config-ui.yaml",
+      "origin": "http://localhost:8080",
+      "status": "accepted"
+    },
+    {
+      "repository": "pinguin",
+      "path": "web/config-ui.yaml",
+      "origin": "http://127.0.0.1:4174",
+      "status": "accepted"
+    },
+    {
+      "repository": "pinguin",
+      "path": "web/config-ui.yaml",
+      "origin": "http://localhost:4174",
+      "status": "accepted"
+    },
+    {
+      "repository": "social_threader",
+      "path": "config-ui.yaml",
+      "origin": "http://localhost:4173",
+      "status": "accepted"
+    },
+    {
+      "repository": "social_threader",
+      "path": "config-ui.yaml",
+      "origin": "https://threader.mprlab.com",
+      "status": "accepted"
+    },
+    {
+      "repository": "prompts",
+      "path": "web/config-ui.yaml",
+      "origin": "http://localhost:8000",
+      "status": "accepted"
+    },
+    {
+      "repository": "prompts",
+      "path": "web/config-ui.yaml",
+      "origin": "https://computercat.tyemirov.net:4433",
+      "status": "accepted"
+    },
+    {
+      "repository": "prompts",
+      "path": "web/config-ui.yaml",
+      "origin": "https://prompts.mprlab.com",
+      "status": "accepted"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/config-ui.yaml",
+      "origin": "https://loopaware.mprlab.com",
+      "status": "accepted"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/config-ui.yaml",
+      "origin": "https://tyemirov.github.io",
+      "status": "accepted"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/config-ui.yaml",
+      "origin": "http://localhost:8080",
+      "status": "accepted"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/config-ui.yaml",
+      "origin": "http://127.0.0.1:8080",
+      "status": "accepted"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/config-ui.yaml",
+      "origin": "http://localhost:8090",
+      "status": "accepted"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/config-ui.yaml",
+      "origin": "http://127.0.0.1:8090",
+      "status": "accepted"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/config-ui.yaml",
+      "origin": "https://computercat.tyemirov.net:4443",
+      "status": "accepted"
+    }
+  ],
+  "menus": [
+    {
+      "repository": "Hecate",
+      "path": "index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "Hecate",
+      "path": "privacy.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "Hecate",
+      "path": "tos.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/app/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/docs/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/privacy/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/admin-usage-visibility-without-secrets/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/anthropic-claude-messages-proxy/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/api-served-runtime-config-for-static-ui/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/audio-transcription-proxy-api/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/bring-your-own-provider-key-portal/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/canonical-v2-chat-messages-api/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/copyable-llm-curl-examples/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/dictation-provider-routing/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/encrypted-provider-key-storage/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/gemini-interactions-proxy/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/generated-secret-rotation/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/github-pages-llm-management-ui/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/go-client-v2-only-llm-proxy/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/gorm-managed-tenant-persistence/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/installable-llm-proxy-cli/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/internal-ai-gateway-for-product-tools/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/large-prompt-json-post/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/llm-proxy-client-authentication/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/llm-proxy-status-code-map/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/llm-response-formats-json-xml-csv-text/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/local-and-hosted-llm-proxy-config-profiles/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/managed-tenant-usage-dashboard/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/max-tokens-provider-limit-validation/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/model-catalog-configuration/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/multi-provider-llm-proxy/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/multi-tenant-ownership-migration/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/normalized-token-usage-metadata/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/openai-background-response-polling/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/openai-claude-gemini-one-endpoint/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/openai-compatible-provider-gateway/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/openai-web-search-guardrails/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/per-request-provider-model-selection/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/provider-default-model-selection/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/provider-overload-timeout-handling/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/provider-specific-system-prompts/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/python-client-v2-only-llm-proxy/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/reject-client-provider-key-leaks/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/self-service-llm-key-management/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/server-side-provider-api-keys/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/strict-yaml-config-placeholders/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/system-prompt-handling/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/tauth-protected-management-api/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/tenant-secret-ai-gateway/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/upstream-worker-queue-limits/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/resources/usage-metadata-without-prompts/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "llm-proxy",
+      "path": "site/terms/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "pinguin",
+      "path": "web/event-log.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "pinguin",
+      "path": "web/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "pinguin",
+      "path": "web/smtp-relay.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "pinguin",
+      "path": "web/tenants.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "prompts",
+      "path": "web/investors/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/privacy.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/account-owned-camp-plans.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/calendar-ready-camp-plan.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/camp-planning-without-spreadsheets.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/camp-registration-handoff-checklist.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/camp-schedule-by-camp.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/camp-schedule-by-child.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/camp-session-count-comparison.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/camp-share-link-privacy.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/camp-shortlist-review.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/camp-source-selection-by-location.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/caregiver-camp-schedule-sharing.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/child-age-camp-eligibility.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/choose-camps-by-location-bucket.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/co-parent-camp-schedule-sharing.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/compare-camp-descriptions-and-summaries.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/compare-camp-sessions-by-week.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/compare-local-summer-camps.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/current-shared-schedule-link.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/email-summer-camp-plan.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/family-blackout-date-camp-planner.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/family-calendar-camp-planning.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/frozen-demo-catalog-camp-planning.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/guardian-summer-camp-planning.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/ical-summer-camp-calendar.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/local-provider-camp-catalog-planning.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/morning-afternoon-camp-conflicts.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/multiple-children-summer-camp-planner.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/organize-camp-provider-links.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/private-summer-camp-planning-workspace.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/provider-verification-before-booking.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/proxy-only-camp-source-planning.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/rank-camp-preferences-by-child.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/restart-a-summer-camp-plan.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/san-ramon-summer-camp-planning.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/shareable-summer-camp-schedule.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/sibling-summer-camp-schedule.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/south-bay-summer-camp-planning.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/step-by-step-camp-planner.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/submit-missing-camp-suggestion.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/summer-camp-categories-comparison.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/summer-camp-planner-for-busy-parents.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/summer-camp-planning-workflow.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/unavailable-dates-camp-planning.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/walnut-creek-summer-camp-planning.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/resources/working-parent-camp-schedule.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "SummerCan",
+      "path": "web/static/tos.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "MediaOps",
+      "path": "web/pages/audio-qc.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "MediaOps",
+      "path": "web/pages/frame-picker.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "MediaOps",
+      "path": "web/pages/help.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "MediaOps",
+      "path": "web/pages/landing_login.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "MediaOps",
+      "path": "web/pages/privacy.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "MediaOps",
+      "path": "web/pages/subtitles.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "MediaOps",
+      "path": "web/pages/text-video.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "MediaOps",
+      "path": "web/pages/timeline.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "MediaOps",
+      "path": "web/pages/tos.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "MediaOps",
+      "path": "web/pages/videos.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "ledger",
+      "path": "internal/controlplane/web/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/404.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/agency/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/app/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/help/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/pricing/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/privacy/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/agencies-amazon-listing-audits/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/amazon-a-plus-content-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/amazon-bullet-point-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/amazon-buy-box-prime-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/amazon-delivery-country-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/amazon-fix-suggestions/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/amazon-image-video-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/amazon-listing-quality-checker/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/amazon-product-description-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/amazon-ratings-review-count-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/amazon-redirected-asin-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/amazon-search-discoverability-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/amazon-seo-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/amazon-title-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/bulk-asin-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/catalog-cleanup-workflow/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/csv-amazon-audit-reporting/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/custom-scan-profiles/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/ecommerce-analytics-tag-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/ecommerce-security-trust-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/ecommerce-seo-metadata-audit/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/ecommerce-storefront-health-check/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/pdf-amazon-audit-reporting/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/product-launch-readiness-checklist/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/rescore-amazon-listings/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/robots-sitemap-crawlability-check/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/scheduled-amazon-listing-monitoring/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/resources/seller-central-report-asin-upload/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "PoodleScanner",
+      "path": "web/site/tos/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/app/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/login/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/pricing/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/privacy/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/agency-client-sites/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/bot-filtered-analytics/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/browser-error-capture/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/favicon-refresh-notifications/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/feedback-source-context/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/feedback-widget/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/inline-subscribe-forms/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/la-sentry-monitoring/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/lightweight-analytics/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/mobile-app-feedback/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/multi-origin-feedback/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/no-javascript-traffic-pixel/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/owner-admin-site-management/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/portfolio-traffic-reports/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/privacy-first-analytics/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/saas-feedback/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/self-hosted-feedback/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/sentiment-only-feedback/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/sentry-issue-triage/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/server-side-error-capture/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/subscriber-capture/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/subscriber-confirmation-flow/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/subscriber-csv-export/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/team-member-site-access/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/top-pages-reporting/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/traffic-attribution-breakdown/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/traffic-csv-export/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/traffic-report-emails/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/uptime-monitoring/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/visitor-device-breakdown/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/visitor-location-signals/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/resources/widget-appearance-controls/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/subscriptions/confirm/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/subscriptions/unsubscribe/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "loopaware",
+      "path": "web/terms/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "LikeMe",
+      "path": "index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "gix",
+      "path": "docs/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "marcopolo.github.io",
+      "path": "index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "marcopolo.github.io",
+      "path": "investors/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "marcopolo.github.io",
+      "path": "investors/platform/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "marcopolo.github.io",
+      "path": "investors/poodle-scanner/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "marcopolo.github.io",
+      "path": "privacy/index.html",
+      "status": "rendered-opened-closed"
+    },
+    {
+      "repository": "marcopolo.github.io",
+      "path": "tos/index.html",
+      "status": "rendered-opened-closed"
+    }
+  ],
+  "scope": "Current local library with proposed config payloads and isolated footer components. Full applications and real provider login remain unqualified.",
+  "library_candidate": "76176b37f76018ace3d21ef4761b5e8c7e924c35",
+  "patch_application_checks": {
+    "Hecate": "passed git apply --check against inspected primary checkout",
+    "llm-proxy": "passed git apply --check against inspected primary checkout",
+    "pinguin": "passed git apply --check against inspected primary checkout",
+    "social_threader": "passed git apply --check against inspected primary checkout",
+    "prompts": "passed git apply --check against inspected primary checkout",
+    "SummerCan": "passed git apply --check against inspected primary checkout",
+    "MediaOps": "passed git apply --check against inspected primary checkout",
+    "ledger": "passed git apply --check against inspected primary checkout",
+    "PoodleScanner": "passed git apply --check against inspected primary checkout",
+    "loopaware": "passed git apply --check against inspected primary checkout",
+    "WriterBlock": "passed git apply --check against inspected primary checkout",
+    "gravity": "passed git apply --check against inspected primary checkout",
+    "LikeMe": "passed git apply --check against inspected primary checkout",
+    "gix": "passed git apply --check against inspected primary checkout",
+    "marcopolo.github.io": "passed git apply --check against inspected primary checkout",
+    "tyemirov.github.io": "passed git apply --check against inspected primary checkout"
+  }
+}

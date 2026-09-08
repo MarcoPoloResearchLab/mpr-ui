@@ -1,0 +1,42 @@
+--- a/frontend/app.html
++++ b/frontend/app.html
+@@ -27,15 +27,15 @@
+     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/easymde@2.19.0/dist/easymde.min.css"/>
+     <script src="https://cdn.jsdelivr.net/npm/easymde@2.19.0/dist/easymde.min.js"></script>
+ 
+-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.5/mpr-ui.css"/>
++    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"/>
+     <link rel="stylesheet" href="./styles.css?build=2026-01-01T22:43:21Z"/>
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+-    <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.5/mpr-ui-config.js"></script>
++    <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"></script>
+     <script
+             id="mpr-ui-bundle"
+             type="application/json"
+-            data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.5/mpr-ui.js"
++            data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+     ></script>
+     <script defer src="https://loopaware.mprlab.com/pixel.js?site_id=8b4fa15e-52a9-4feb-a466-bb186f42df81"></script>
+   </head>
+--- a/frontend/index.html
++++ b/frontend/index.html
+@@ -17,15 +17,15 @@
+     />
+     <title>Gravity Notes</title>
+ 
+-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.5/mpr-ui.css"/>
++    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"/>
+     <link rel="stylesheet" href="./styles.css?build=2026-01-01T22:43:21Z"/>
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+-    <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.5/mpr-ui-config.js"></script>
++    <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"></script>
+     <script
+             id="mpr-ui-bundle"
+             type="application/json"
+-            data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.5/mpr-ui.js"
++            data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+     ></script>
+     <script defer src="https://loopaware.mprlab.com/pixel.js?site_id=8b4fa15e-52a9-4feb-a466-bb186f42df81"></script>
+   </head>

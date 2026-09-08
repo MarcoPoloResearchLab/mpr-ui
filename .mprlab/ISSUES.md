@@ -299,6 +299,54 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Verify the obsolete `theme-mode` attribute remains rejected.
   - Run `make ci` after the final source and documentation changes.
 
+- [ ] [I009] (P1) {F007,F008,F009} Migrate applications to the nested auth config contract.
+  Goal:
+  Applications use the current provider map with matching library assets, markup, and backend config output.
+  Publication does not expose an unmigrated application to the new loader through a mutable alias.
+
+  Requirements:
+  - Use the [migration and deployment plan](../docs/config-migration-deployment-plan.md) as the procedure and acceptance reference.
+  - Confirm production consumers, config producers, exact asset identities, and application owners before publication.
+  - Use literal `@latest` for every changed MPR UI library input.
+  - Qualify all application release units and their maintenance state before library publication.
+  - Replace flat auth keys with the provider map without compatibility reads or aliases for obsolete keys.
+  - Change each application's config, loader, bundle, CSS, and affected markup as one release unit.
+  - Preserve existing provider enablement and tenant identities during the format migration.
+  - Preserve Ledger B003 acceptance through literal `@latest` URLs.
+  - Resolve application order, interruption limits, and release selection before the affected execution phase.
+  - Keep F010 hosted demo work separate unless the release scope explicitly includes it.
+  - Prepare application changes under the September 8, 2026 user authorization.
+  - Keep production release, publication, and deployment with the user.
+
+  Deliverables:
+  - Maintain the consumer inventory and application migration status in the linked plan.
+  - Record application-specific work and acceptance evidence under each application's owner.
+  - Record the released library identity and matching public asset digests.
+  - Record the result of each application migration and any unresolved dependency.
+  - File each reproducible contract defect as a separate bug issue.
+
+  Validation:
+  - Verify the protection gate before publication.
+  - Verify generated and static YAML through the real application config entry points.
+  - Verify rejection of flat keys and acceptance of complete provider maps.
+  - Run the plan's browser acceptance matrix for each application.
+  - Verify real authentication, session restoration, logout, and protected-request recovery separately from controlled provider tests.
+  - Verify fresh and existing browser profiles after each deployment.
+  - Verify exact public asset identities separately from CI and publication status.
+  - Close this issue only after every required application has an accepted current release unit.
+
+  Progress 2026-09-07:
+  The migration plan records the field mapping, initial consumer inventory, deployment sequence, acceptance gates, and open decisions.
+  The planning checks passed 18 loader tests and nine browser tests.
+  Application implementation, release, publication, deployment, and live acceptance remain pending.
+
+  Progress 2026-09-08:
+  The user expanded the investor portal task to prepare this migration.
+  The preparation package records 20 repositories and 16 checked patches across 231 files.
+  The candidate accepted 18 proposed config origins. Browser checks passed for 205 proposed footer menus.
+  The plan now requires literal `@latest` inputs and a qualified coordinated interruption.
+  Each application still requires its complete implementation, CI, and public acceptance.
+
 ## Maintenance
 
 ### Recurring

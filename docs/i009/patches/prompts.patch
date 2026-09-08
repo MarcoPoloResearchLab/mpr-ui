@@ -1,0 +1,93 @@
+--- a/web/config-ui.yaml
++++ b/web/config-ui.yaml
+@@ -7,12 +7,19 @@
+       promptsUrl: "http://localhost:8000"
+     auth:
+       tauthUrl: ""
+-      googleClientId: "761199429759-ftho7a14blghha4j8bifetrelor0u6sn.apps.googleusercontent.com"
+       tenantId: "prompt-bubbles-dev"
+-      loginPath: "/auth/google"
+       logoutPath: "/auth/logout"
+-      noncePath: "/auth/nonce"
+       sessionPath: "/me"
++      providers:
++        google:
++          enabled: true
++          clientId: "761199429759-ftho7a14blghha4j8bifetrelor0u6sn.apps.googleusercontent.com"
++          loginPath: "/auth/google"
++          noncePath: "/auth/nonce"
++        apple:
++          enabled: false
++        password:
++          enabled: false
+   - description: Local environment (computercat)
+     origins:
+       - "https://computercat.tyemirov.net:4433"
+@@ -20,12 +27,19 @@
+       promptsUrl: "https://computercat.tyemirov.net:4433"
+     auth:
+       tauthUrl: ""
+-      googleClientId: "761199429759-ftho7a14blghha4j8bifetrelor0u6sn.apps.googleusercontent.com"
+       tenantId: "prompt-bubbles-dev"
+-      loginPath: "/auth/google"
+       logoutPath: "/auth/logout"
+-      noncePath: "/auth/nonce"
+       sessionPath: "/me"
++      providers:
++        google:
++          enabled: true
++          clientId: "761199429759-ftho7a14blghha4j8bifetrelor0u6sn.apps.googleusercontent.com"
++          loginPath: "/auth/google"
++          noncePath: "/auth/nonce"
++        apple:
++          enabled: false
++        password:
++          enabled: false
+   - description: Production environment
+     origins:
+       - "https://prompts.mprlab.com"
+@@ -33,9 +47,16 @@
+       promptsUrl: "https://prompts-api.mprlab.com"
+     auth:
+       tauthUrl: "https://tauth-api.mprlab.com"
+-      googleClientId: "761199429759-ftho7a14blghha4j8bifetrelor0u6sn.apps.googleusercontent.com"
+       tenantId: "prompt-bubbles"
+-      loginPath: "/auth/google"
+       logoutPath: "/auth/logout"
+-      noncePath: "/auth/nonce"
+       sessionPath: "/me"
++      providers:
++        google:
++          enabled: true
++          clientId: "761199429759-ftho7a14blghha4j8bifetrelor0u6sn.apps.googleusercontent.com"
++          loginPath: "/auth/google"
++          noncePath: "/auth/nonce"
++        apple:
++          enabled: false
++        password:
++          enabled: false
+--- a/web/investors/index.html
++++ b/web/investors/index.html
+@@ -590,21 +590,7 @@
+     id="page-footer"
+     privacy-link-label="Privacy"
+     privacy-modal-content="&lt;p&gt;This page does not collect personal data. For questions, contact &lt;a href='mailto:support@mprlab.com'&gt;support@mprlab.com&lt;/a&gt;.&lt;/p&gt;"
+-    links-collection='{
+-      "style": "drop-up",
+-      "text": "Built by Marco Polo Research Lab",
+-      "links": [
+-        { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-        { "label": "Poodle Scanner", "url": "https://poodlescanner.com" },
+-        { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-        { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-        { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-        { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-        { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-        { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-        { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-      ]
+-    }'
++    menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Poodle Scanner&quot;,&quot;href&quot;:&quot;https://poodlescanner.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+     theme-switcher="square"
+     theme-config='{
+       "attribute": "data-bs-theme",

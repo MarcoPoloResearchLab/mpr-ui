@@ -1,0 +1,19 @@
+--- a/index.html
++++ b/index.html
+@@ -932,15 +932,7 @@
+         {"label":"Announcement","url":"#announcement"}
+       ]
+     }'
+-    links-collection='{
+-      "style":"drop-up",
+-      "text":"Built by Marco Polo Research Lab",
+-      "links":[
+-        {"label":"Marco Polo Research Lab","url":"https://mprlab.com"},
+-        {"label":"Like Me","url":"https://likeme.mprlab.com"},
+-        {"label":"GitHub Pages","url":"https://pages.github.com/"}
+-      ]
+-    }'
++    menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Like Me&quot;,&quot;href&quot;:&quot;https://likeme.mprlab.com&quot;},{&quot;label&quot;:&quot;GitHub Pages&quot;,&quot;href&quot;:&quot;https://pages.github.com/&quot;}]}]}'
+     aria-label="Like Me footer"
+   >
+   </mpr-footer>
