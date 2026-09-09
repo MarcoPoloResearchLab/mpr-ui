@@ -133,6 +133,17 @@ The [public asset record](https://github.com/MarcoPoloResearchLab/NameSignal/blo
 The pages and configuration declare `max-age=600`. All three shared assets declare `max-age=604800` and `s-maxage=43200`.
 I094 retains shared publication, cache qualification, and real Google acceptance as separate gates.
 
+Final B069 qualification is in I094 PR #47 at `d5ecef71e597037ea22fcefcf142d1c645d7ff64`.
+B166 corrects protected requests that did not recover after an expired session.
+The application uses the shared authenticated transport after API origin validation.
+The API checks authentication before onboarding and domain handlers. This permits the declared mutation retry contract.
+Ten browser checks passed with the real shared library and controlled Google, TAuth, and application API responses.
+They cover protected reads, one stored job after mutation retry, reload, logout, and all four public pages at two widths.
+The native credentialed event stream reconnects after recovery.
+Final `make ci` passed Go checks, both configured 100 percent coverage gates, 64 frontend guardrails, and ten browser checks.
+The frontend coverage gate applies to `app.js`.
+Hosted run `34334565902` is in progress at this exact source revision.
+
 ### LikeMe
 
 I001 [PR #3](https://github.com/Undeliverable-Mail-Office/LikeMe/pull/3) contains the migration at `0bd45ce5971949e50a2811d47abf91dde7eb36fd`.
@@ -148,6 +159,11 @@ The GitHub provider confirms that Pages serves `gh-pages`. The README now record
 The [public asset record](https://github.com/Undeliverable-Mail-Office/LikeMe/blob/0bd45ce5971949e50a2811d47abf91dde7eb36fd/docs/mpr-ui/public-assets-2026-09-09.json) contains three HTTP observations from one network location.
 The page declares `max-age=600`. The shared assets declare `max-age=604800` and `s-maxage=43200`.
 I001 retains shared publication, cache qualification, and hosted acceptance as separate gates.
+
+Final B069 qualification is in I001 PR #3 at `5c087b7192ceacf18aa16c43363c313a978fb28a`.
+Final `make ci` passed the release artifact contract, site identifier check, and both browser scenarios.
+The browser checks verify the final JavaScript and CSS digests before use.
+Hosted run `34335212594` passed at this exact revision.
 
 ### Pinguin
 
@@ -539,7 +555,7 @@ MediaOps and Ledger use the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-The investor portal, Hecate, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
+The investor portal, Hecate, NameSignal, LikeMe, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
