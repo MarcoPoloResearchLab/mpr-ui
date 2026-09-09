@@ -12,7 +12,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
-- [-] [B066] (P1) Keep the account menu inside the viewport
+- [!] [B066] (P1) Keep the account menu inside the viewport
   Goal: A user can select each account action at narrow viewport widths.
   Evidence:
   - Social Threader I003 loads the real shared candidate at a 390-pixel viewport width.
@@ -31,7 +31,11 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Both new viewport regressions failed before the source fix.
   - All 13 account-menu and dropdown checks passed after the fix.
   - Full local CI passed: 210 Node checks, 134 end-to-end checks, coverage, and Pages artifact validation.
-  - Social Threader qualification and hosted CI remain pending.
+  - Social Threader passed all four candidate flows at local and hosted origins, at mobile and desktop widths.
+  - The application uses digest-verified shared revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`.
+  Blocked:
+  - Hosted CI accepts only PRs into `master`. This PR is stacked above I009.
+  - Shared publication and public acceptance remain user-owned gates.
 
 - [-] [B064] (P1) {B059} A Google popup attempt can lock the other auth controls.
   Goal:
