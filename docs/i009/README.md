@@ -36,7 +36,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | social_threader | Both auth environments, lifecycle, and candidate checks implemented in I003 | Complete B009, hosted CI, shared publication, cache transition, and real Google acceptance. |
 | prompts | Config, auth bootstrap, request transport, footers, and browser checks implemented in I027 | Browser and backend checks passed. B077 records the Expo dependency mismatch. Complete shared publication, cache transition, and real Google acceptance. |
 | SummerCan | Generated config, shared auth, and 49 public footers implemented in I099 | Native CI passed with 100% Go and JavaScript coverage. Complete final candidate, maintenance, publication, and real Google gates. |
-| download_your_data | None | Convert `internal/uiconfig/config.go` types and serializer. Preserve validated inputs. Verify real HTTP output and generated Pages files. |
+| download_your_data | Shared serializer, protected transport, and browser checks implemented in I017 | Native CI passed. Complete shared B068, final candidate qualification, maintenance preparation, publication, and real Google acceptance. |
 | MediaOps | Ten pages | Convert `scripts/render-pages-config.mjs` and `internal/webapp/web_e2e.go`. Verify exported YAML and every workspace page. |
 | ledger | Footer | Verify the existing nested producer in `internal/controlplane/ui.go`. Resolve public TLS and complete B003 acceptance. |
 | PoodleScanner | 37 pages | Convert `internal/handlers/runtime_config.go`. Update producer tests and generated Pages checks. Preserve environment-owned provider identifiers. |
@@ -272,7 +272,7 @@ I010 retains shared publication and real-CDN fixture qualification.
 
 ### Prompt Bubbles
 
-I027 [PR #192](https://github.com/MarcoPoloResearchLab/prompts/pull/192) contains the migration at `9d540573356d1aea65b65421a13d0da85f7b731a`.
+I027 [PR #192](https://github.com/MarcoPoloResearchLab/prompts/pull/192) contains the migration and B078 correction at `2cc9f5195e6ef33a325866b051b1a0d50095c8a9`.
 The work started from `master` revision `0acba011af42f97e10132f8cae0150ab8a969597` and preserved existing Apple and Governor edits.
 All three environments preserve their Google identifier, tenant, origin, and `/me` endpoint under the provider map.
 The shared loader owns auth configuration and bundle startup. Protected operations use the shared request transport.
@@ -289,7 +289,11 @@ The mobile gate then rejected existing Expo `57.0.20`, which requires `~57.0.21`
 
 The real localhost suite passed API health, TAuth nonce issuance, prompt operations, imports, themes, and investor-page checks.
 The candidate suite controls Google, TAuth, and API responses for exchange, session restoration, mutation replay, and logout.
-Hosted CI run `34306921168` was in progress at this result update.
+Hosted run `34306921168` timed out after Chromium startup failed and left an HTTP fixture open.
+B078 adds Chromium installation and closes the fixture on startup failure.
+The missing-browser regression first exceeded its process deadline, then passed after the correction.
+Hosted [run 34309764203](https://github.com/MarcoPoloResearchLab/prompts/actions/runs/34309764203) passed startup, candidate, layout, backend, and lifecycle checks at `2cc9f5195e6ef33a325866b051b1a0d50095c8a9`.
+It then failed at the existing B077 Expo dependency mismatch.
 The [public asset record](https://github.com/MarcoPoloResearchLab/prompts/blob/9d540573356d1aea65b65421a13d0da85f7b731a/docs/mpr-ui/public-assets-2026-09-09.json) contains seven successful responses.
 GitHub confirms the `gh-pages` publication branch and `prompts.mprlab.com` domain.
 I027 retains maintenance preparation, final candidate qualification, publication, and real Google acceptance.
@@ -314,15 +318,40 @@ The public asset record contains ten successful observations, including the API 
 GitHub confirms `gh-pages` and `summercan.mprlab.com`. The API config route declares `no-store`.
 I099 retains final candidate qualification, maintenance preparation, publication, and real Google acceptance.
 
+### Download Your Data
+
+I017 [PR #24](https://github.com/MarcoPoloResearchLab/download_your_data/pull/24) contains the migration at `d9621b0494ba49386bb2e7a265a8eec6c3edebe4`.
+The work started from `master` revision `ea1f1f179a3e645a9785a5e36ba7e2b763159ab4` and preserved existing tracker edits.
+One serializer supplies the provider map to both API and Pages configuration.
+Protected requests use shared recovery and preserve the existing CSRF and authorization boundaries.
+The application retains its lifecycle buffer, anonymous guides, private workspaces, footer content, and literal `@latest` inputs.
+
+The HTTP regression first rejected flat configuration. A later browser regression failed on an expired protected read.
+Four browser flows now pass across two viewport widths and both origin configurations.
+They cover Google exchange, restored sessions, read recovery, mutation replay, logout, and footer content.
+Both existing browser suites pass with controlled Google and nonce responses.
+Final native CI passed, including Go tests, static checks, lifecycle checks, production artifacts, and browser suites.
+The repository has no hosted workflow. Local CI supplies its required source validation.
+
+The candidate is digest-verified revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`.
+The [public asset record](https://github.com/MarcoPoloResearchLab/download_your_data/blob/d9621b0494ba49386bb2e7a265a8eec6c3edebe4/docs/mpr-ui/public-assets-2026-09-09.json) contains eight successful responses.
+GitHub confirms `gh-pages` and `dyd.mprlab.com`. Pages and API configuration bytes matched with different cache headers.
+Preparation exposed header overflow after Google nonce failure beside application controls.
+[B068 PR #214](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/214) corrects shared status layout at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
+I017 retains that shared correction, final candidate qualification, maintenance preparation, publication, and real Google acceptance.
+
 ### Final Candidate Qualification
 
 The first seven application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
 Social Threader, CTX, Gix, and Smith use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
-Prompt Bubbles and SummerCan use revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
+Prompt Bubbles, SummerCan, and Download Your Data use revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
+B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
+Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests are unchanged. Each subsequent candidate changes the JavaScript bundle digest.
 B066 passed 210 Node checks, 134 end-to-end checks, coverage, and Pages artifact validation locally.
 B067 passed 210 Node checks, 136 end-to-end checks, coverage, and Pages artifact validation locally.
-The hosted workflow accepts PRs into `master` only, so both stacked PRs retain that CI gate.
+B068 passed 210 Node checks, 139 end-to-end checks, coverage, and Pages artifact validation locally.
+The hosted workflow accepts PRs into `master` only, so all three stacked fixes retain that CI gate.
 
 After all application preparation, select one final immutable shared candidate.
 Update each application test input to that candidate and verify its digests.
