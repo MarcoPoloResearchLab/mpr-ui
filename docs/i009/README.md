@@ -247,6 +247,17 @@ The [public asset record](https://github.com/MarcoPoloResearchLab/gravity/blob/c
 All ten requests returned HTTP 200. The public loader differs from the tested candidate.
 I002 retains shared publication, cache qualification, and real Google acceptance as separate gates.
 
+Final B069 qualification is in I002 PR #228 at `b66526f4bcd6dbdb9cf0710f62328ad2f595b01b`.
+B008 restores the notebook scope from the shared startup profile snapshot.
+B009 uses the shared authenticated transport for protected requests.
+The API checks authentication before domain handlers, which permits the declared mutation retry contract.
+Eight candidate checks passed with real shared assets and the Go API.
+They cover both page sizes, real expired-cookie rejections, unchanged retry payloads, one stored note, reload, and logout.
+The token helper permits explicit negative lifetimes. The browser capture reads streamed request bodies.
+Google and TAuth responses remain controlled external boundaries.
+Final `make ci` passed all 156 suite runs across three iterations, backend checks, and lifecycle checks.
+Hosted run `34339266863` is in progress at this exact revision.
+
 ### Social Threader
 
 I003 [PR #71](https://github.com/MarcoPoloResearchLab/social_threader/pull/71) contains the migration at `17541719ee839eeebeec44fa71f643f0321c76c7`.
@@ -573,7 +584,7 @@ MediaOps and Ledger use the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-The investor portal, Hecate, NameSignal, LikeMe, Pinguin, WriterBlock, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
+The investor portal, Hecate, NameSignal, LikeMe, Pinguin, WriterBlock, Gravity, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
