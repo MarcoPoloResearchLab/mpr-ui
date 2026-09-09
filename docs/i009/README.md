@@ -30,7 +30,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | Repository | Prepared patch | Remaining implementation and acceptance |
 | --- | --- | --- |
 | Hecate | Config, three pages, fixtures, and candidate tests implemented in I014 | Resolve the existing Expo audit failure and hosted CI gap. Complete cache transition and live acceptance. |
-| NameSignal | Config, shared layout, exported-page tests, and CI implemented in I094 | Complete hosted CI, shared publication, cache transition, and real Google acceptance. |
+| NameSignal | Config, shared layout, exported-page tests, and CI implemented in I094 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
 | llm-proxy | 51 pages | Convert `RenderManagementConfigUI` and `site/config-ui.yaml`. Set its missing session endpoint. Update HTTP and browser expectations. |
 | pinguin | Config and four pages | Update config expectations. Verify each workspace page and session restoration. |
 | social_threader | Config | Update `internal/deployment/contract_test.go` and `tests/transformationPuppeteerSuite.js`. Verify the shared header lifecycle. |
@@ -43,7 +43,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | loopaware | Config and 44 pages | Convert `pkg/footer/footer.go` and its callers to the current menu contract. Update auth fixtures and generated resource pages. |
 | WriterBlock | Two pages | Set the explicit session endpoint. Convert config and remove `authButton`. Replace manual auth wiring in `js/core/mprUiLoader.js`. |
 | gravity | Two pages | Set the explicit session endpoint. Convert `frontend/config-ui.yaml`. Remove `authButton`. Update browser fixtures and config expectations. |
-| LikeMe | Footer | Verify header, footer, links, theme, and layout. |
+| LikeMe | Footer and exported-page checks implemented in I001 | Local CI passed. Complete hosted CI, shared publication, cache transition, and public acceptance. |
 | ctx | None | Inspect current component markup and public asset requests. Confirm the production origin from its application owner. |
 | gix | Footer | Verify documentation navigation and theme behavior. Confirm the production origin from its application owner. |
 | marcopolo.github.io | Six public footers implemented in F005 | Source migration and candidate tests passed. Complete published shared-asset qualification and F007 hosted acceptance. |
@@ -96,7 +96,7 @@ I014 retains publication, interruption, and real provider acceptance as separate
 
 ### NameSignal
 
-I094 [PR #47](https://github.com/MarcoPoloResearchLab/NameSignal/pull/47) contains the migration at `74fffc90f66826d5133beec461ed784bba77bda3`.
+I094 [PR #47](https://github.com/MarcoPoloResearchLab/NameSignal/pull/47) contains the migration at `d9373c641175ee6b07ef98573ef22c533ec994aa`.
 The work started from `master` revision `815a2e0330f330b63df921e31986f3decf3d9f25` and preserved existing governance edits.
 Both environments declare the provider map and `/me`. The shared loader controls bundle startup and authentication transport.
 The application retains its separate API configuration and literal `@latest` asset URLs.
@@ -107,10 +107,26 @@ The tests use the real exported frontend, shared library, and Alpine runtime wit
 They cover all four pages at two widths, theme changes, Google exchange, session restoration, and sign-out.
 Three initial checks reproduced rejection of `authButton`. The remaining six stopped before execution.
 The application CI workflow now includes the browser suite.
+Hosted CI run `34293848512` passed at this exact PR revision.
 
-The [public asset record](https://github.com/MarcoPoloResearchLab/NameSignal/blob/74fffc90f66826d5133beec461ed784bba77bda3/docs/mpr-ui/public-assets-2026-09-09.json) contains eight HTTP observations from one network location.
+The [public asset record](https://github.com/MarcoPoloResearchLab/NameSignal/blob/d9373c641175ee6b07ef98573ef22c533ec994aa/docs/mpr-ui/public-assets-2026-09-09.json) contains eight HTTP observations from one network location.
 The pages and configuration declare `max-age=600`. All three shared assets declare `max-age=604800` and `s-maxage=43200`.
 I094 retains shared publication, cache qualification, and real Google acceptance as separate gates.
+
+### LikeMe
+
+I001 [PR #3](https://github.com/Undeliverable-Mail-Office/LikeMe/pull/3) contains the migration at `0bd45ce5971949e50a2811d47abf91dde7eb36fd`.
+The work started from clean `main` revision `3efe7c3786897ef15f21cd1807a276cd62ac2e8c`.
+The footer uses the current menu contract. The page retains literal `@latest` assets.
+Baseline and final `make ci` passed.
+Both browser checks first reproduced the absent menu, then passed against digest-verified candidate `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
+They cover the exported Pages artifact at mobile and desktop widths, keyboard controls, navigation, four themes, images, and layout.
+The PR adds hosted CI with the same browser suite.
+
+The GitHub provider confirms that Pages serves `gh-pages`. The README now records that current setting.
+The [public asset record](https://github.com/Undeliverable-Mail-Office/LikeMe/blob/0bd45ce5971949e50a2811d47abf91dde7eb36fd/docs/mpr-ui/public-assets-2026-09-09.json) contains three HTTP observations from one network location.
+The page declares `max-age=600`. The shared assets declare `max-age=604800` and `s-maxage=43200`.
+I001 retains shared publication, cache qualification, and hosted acceptance as separate gates.
 
 ## Patch Procedure
 
