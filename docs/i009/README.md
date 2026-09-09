@@ -34,7 +34,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | llm-proxy | 51 pages | Convert `RenderManagementConfigUI` and `site/config-ui.yaml`. Set its missing session endpoint. Update HTTP and browser expectations. |
 | pinguin | Config, four footers, and complete candidate browser suite implemented in I004 | Local CI passed. GitHub Actions are disabled by contract. Complete shared publication, cache transition, and real Google acceptance. |
 | social_threader | Both auth environments, lifecycle, and candidate checks implemented in I003 | Complete B009, hosted CI, shared publication, cache transition, and real Google acceptance. |
-| prompts | Config and investor footer | Remove flat parsing and recovery paths in `web/js/app.js`. Update `web/js/types.d.js`. Verify authenticated resource requests. |
+| prompts | Config, auth bootstrap, request transport, footers, and browser checks implemented in I027 | Browser and backend checks passed. B077 records the Expo dependency mismatch. Complete shared publication, cache transition, and real Google acceptance. |
 | SummerCan | 49 pages | Convert YAML in `cmd/server/main.go`. Remove `authButton`. Replace direct TAuth and bundle loads in `web/static/js/bootstrap.js`. |
 | download_your_data | None | Convert `internal/uiconfig/config.go` types and serializer. Preserve validated inputs. Verify real HTTP output and generated Pages files. |
 | MediaOps | Ten pages | Convert `scripts/render-pages-config.mjs` and `internal/webapp/web_e2e.go`. Verify exported YAML and every workspace page. |
@@ -270,13 +270,39 @@ Smith provides a development fixture, with no production website or deployment a
 Its selected package uses local CI. Its repository tracks replacement of hosted Actions gates under I003.
 I010 retains shared publication and real-CDN fixture qualification.
 
+### Prompt Bubbles
+
+I027 [PR #192](https://github.com/MarcoPoloResearchLab/prompts/pull/192) contains the migration at `9d540573356d1aea65b65421a13d0da85f7b731a`.
+The work started from `master` revision `0acba011af42f97e10132f8cae0150ab8a969597` and preserved existing Apple and Governor edits.
+All three environments preserve their Google identifier, tenant, origin, and `/me` endpoint under the provider map.
+The shared loader owns auth configuration and bundle startup. Protected operations use the shared request transport.
+The application retains its separate API routing and literal `@latest` inputs.
+Both footer producers use `menu`. The compact header preserves search space.
+
+Eight initial auth and footer regressions failed before migration.
+Later checks exposed a missing bootstrap deadline, stale shared logout state, and a narrow search layout defect.
+[B067 PR #213](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/213) fixes shared logout when fragment navigation keeps the same page.
+The candidate tests use digest-verified shared revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`.
+Eleven candidate checks and five responsive cases passed.
+Final native CI also passed fifteen agent tests, 100% Go coverage, and three lifecycle tests.
+The mobile gate then rejected existing Expo `57.0.20`, which requires `~57.0.21`. B077 records that separate mismatch.
+
+The real localhost suite passed API health, TAuth nonce issuance, prompt operations, imports, themes, and investor-page checks.
+The candidate suite controls Google, TAuth, and API responses for exchange, session restoration, mutation replay, and logout.
+Hosted CI run `34306921168` was in progress at this result update.
+The [public asset record](https://github.com/MarcoPoloResearchLab/prompts/blob/9d540573356d1aea65b65421a13d0da85f7b731a/docs/mpr-ui/public-assets-2026-09-09.json) contains seven successful responses.
+GitHub confirms the `gh-pages` publication branch and `prompts.mprlab.com` domain.
+I027 retains maintenance preparation, final candidate qualification, publication, and real Google acceptance.
+
 ### Final Candidate Qualification
 
 The first seven application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
 Social Threader, CTX, Gix, and Smith use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
-The config loader and CSS digests are unchanged. The JavaScript bundle digest changes.
+Prompt Bubbles uses revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
+The config loader and CSS digests are unchanged. Each subsequent candidate changes the JavaScript bundle digest.
 B066 passed 210 Node checks, 134 end-to-end checks, coverage, and Pages artifact validation locally.
-Its hosted workflow accepts PRs into `master` only, so its stacked PR retains that CI gate.
+B067 passed 210 Node checks, 136 end-to-end checks, coverage, and Pages artifact validation locally.
+The hosted workflow accepts PRs into `master` only, so both stacked PRs retain that CI gate.
 
 After all application preparation, select one final immutable shared candidate.
 Update each application test input to that candidate and verify its digests.
