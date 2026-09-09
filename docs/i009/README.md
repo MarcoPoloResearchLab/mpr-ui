@@ -38,8 +38,8 @@ Use each repository's current agent instructions and test-driven sequence.
 | SummerCan | Generated config, shared auth, and 49 public footers implemented in I099 | Native CI passed with 100% Go and JavaScript coverage. Complete final candidate, maintenance, publication, and real Google gates. |
 | download_your_data | Shared serializer, protected transport, and browser checks implemented in I017 | Native CI passed. Complete shared B068, final candidate qualification, maintenance preparation, publication, and real Google acceptance. |
 | MediaOps | Both config producers, shared transport, and ten footers implemented in I091 | Local CI and 45 Docker browser scenarios passed. Complete hosted CI, final candidate, maintenance, publication, and real Google gates. |
-| ledger | Nested producer, footer, recovery transition, and real browser checks prepared in B003 | Local CI passed with retained F002 changes. Complete exact-commit hosted CI, F002 Pages qualification, public TLS, and live acceptance. |
-| PoodleScanner | 37 pages | Convert `internal/handlers/runtime_config.go`. Update producer tests and generated Pages checks. Preserve environment-owned provider identifiers. |
+| ledger | Nested producer, footer, recovery transition, and real browser checks prepared in B003 | Local CI and exact-commit hosted CI passed. Complete F002 Pages qualification, public TLS, and live acceptance. |
+| PoodleScanner | API producer, 37 pages, shared transport, and browser checks prepared in I087 | All 588 browser scenarios passed. Complete the existing 95.9 percent coverage gate, hosted CI, final candidate, publication, and public acceptance. |
 | loopaware | Config and 44 pages | Convert `pkg/footer/footer.go` and its callers to the current menu contract. Update auth fixtures and generated resource pages. |
 | WriterBlock | Config, two pages, auth bootstrap, and candidate tests implemented in I014 | Local CI passed. Complete hosted CI, shared publication, cache transition, and real Google acceptance. |
 | gravity | Config, generator, two pages, and candidate checks implemented in I002 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
@@ -384,25 +384,60 @@ The log is `/tmp/ledger-b003-ci-final.log`.
 This local result includes retained F002 working changes.
 The B003 PR reuses the existing nested producer and YAML script correction.
 Separate Pages, CORS, profile, deployment, and API changes remain outside B003.
-Hosted CI must qualify the exact B003 commit.
+Hosted run `34314445178` passed at the exact B003 commit.
 
 The public website still fails certificate hostname validation.
 The API health request fails its TLS handshake.
 B003 remains open for shared publication, valid TLS, the complete F002 release unit, and live authentication acceptance.
+
+### PoodleScanner
+
+I087 [PR #931](https://github.com/MarcoPoloResearchLab/PoodleScanner/pull/931) is ready for review at `59cd27eac2e12c7676335186dd98ac02e15ba88c`.
+It is stacked on B211, which corrects the catalog editor after a same-catalog refresh.
+The candidate is B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1` with verified asset digests.
+The API producer emits the nested provider map with environment-owned Google values.
+All 37 pages use literal `@latest` URLs and preserve their footer labels and destinations.
+Protected requests now use shared session recovery with authorization before domain mutations.
+
+Four browser scenarios exercise the real API, frontend, shared library, browser client, and persistence.
+They cover split-origin and local-compose profiles at 390 and 1280 pixels.
+Controlled Google and TAuth responses prove login, restoration, read recovery, mutation recovery, and logout.
+The mutation check verifies one persisted catalog after one rejected request and its successful repeat.
+Five browser acceptance scenarios now load the actual shared assets instead of the simulated config loader.
+Fourteen pricing scenarios use controlled Google exchanges and preserve the final selected plan after a canceled login.
+
+Final native CI passed all 588 browser scenarios with two expected skips.
+The frontend coverage gate failed at 95.9 percent against 97 percent, as it did before I087.
+Backend coverage qualification remains open.
+The log is `/tmp/poodlescanner-i087-ci-final.log`.
+Hosted run `34320281515` started at the exact migration commit.
+All twelve pre-existing changed files remained outside the migration commit and retained their original bytes.
+
+The public website, app, release marker, and three shared assets returned HTTP 200.
+The API config endpoint refused the connection.
+The published shared bytes differ from the candidate.
+The [migration record](https://github.com/MarcoPoloResearchLab/PoodleScanner/blob/59cd27eac2e12c7676335186dd98ac02e15ba88c/docs/mpr-ui-migration.md) retains coverage, hosted CI, cache preparation, publication, and public Google acceptance gates.
 
 ### Final Candidate Qualification
 
 The first seven application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
 Social Threader, CTX, Gix, and Smith use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
 Prompt Bubbles, SummerCan, and Download Your Data use revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
-MediaOps uses the B068 candidate.
+MediaOps and Ledger use the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
-The config loader and CSS digests are unchanged. Each subsequent candidate changes the JavaScript bundle digest.
+The config loader and CSS digests stay unchanged through B068.
+PoodleScanner uses B069.
+B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
+[B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
+Visible authentication errors retain their layout.
+Its CSS digest is `351bbf6c15054528a651571d8c8bd85536eea76c3e574f9335e6cd413878923f`.
+Its JavaScript and config loader digests match B068.
 B066 passed 210 Node checks, 134 end-to-end checks, coverage, and Pages artifact validation locally.
 B067 passed 210 Node checks, 136 end-to-end checks, coverage, and Pages artifact validation locally.
 B068 passed 210 Node checks, 139 end-to-end checks, coverage, and Pages artifact validation locally.
-The hosted workflow accepts PRs into `master` only, so all three stacked fixes retain that CI gate.
+B069 passed 210 Node checks, 141 end-to-end checks, coverage, and Pages artifact validation locally.
+The hosted workflow accepts PRs into `master` only, so these four stacked fixes retain that CI gate.
 
 After all application preparation, select one final immutable shared candidate.
 Update each application test input to that candidate and verify its digests.
