@@ -6682,7 +6682,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "__auth-transition-message:empty{display:none}" +
     "." +
     HEADER_ROOT_CLASS +
-    "__auth-actions{display:none;align-items:center}" +
+    "__auth-actions{display:none;align-items:center;min-inline-size:0;flex-shrink:1}" +
     "." +
     HEADER_ROOT_CLASS +
     "__auth-actions:has([data-mpr-auth-actions]){display:inline-flex}" +
@@ -7122,6 +7122,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--google{border-color:#8e918f;background:#131314;color:#e3e3e3;font-family:'Google Sans',Roboto,Arial,sans-serif;font-size:.875rem;line-height:1.25rem}" +
     ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--google:hover{background:#202124}" +
     ".mpr-auth-actions__status{min-block-size:1.2em;margin:0;color:var(--mpr-color-text-muted,#cbd5f5);font-size:.78rem;line-height:1.2}" +
+    "mpr-header .mpr-auth-actions__status{min-inline-size:0;white-space:normal;overflow-wrap:anywhere}" +
     "mpr-header .mpr-auth-actions__status:empty{display:none}" +
     "mpr-header .mpr-auth-actions{position:relative;--mpr-auth-provider-scale:var(--mpr-header-scale,1);max-inline-size:100%}" +
     "mpr-header .mpr-auth-actions__controls{overflow:visible}" +

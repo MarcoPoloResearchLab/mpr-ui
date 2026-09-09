@@ -12,6 +12,22 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [!] [B068] (P1) Keep authentication errors within the header width
+  Goal: Google startup errors remain readable beside application controls at narrow viewport widths.
+  Requirements:
+  - Let the shared auth region shrink within the available header width.
+  - Preserve application controls and visible error text.
+  - Preserve normal provider actions and account menus.
+  Validation:
+  - Reproduce overflow through Google nonce failure in a real browser.
+  - Verify narrow and wide header geometry and readable status text.
+  - Run final native CI and retain publication as a separate gate.
+  Preparation:
+  - The auth region can shrink beside application controls, and status text wraps within that region.
+  - The new browser regression first failed at 320 and 390 pixels.
+  - Final native CI passed 210 Node checks, 139 end-to-end checks, coverage, and Pages artifact validation.
+  Blocked: The stacked PR requires hosted qualification, shared publication, and final application qualification.
+
 - [!] [B067] (P1) Clear header authentication after same-page logout
   Goal: A successful user-menu logout leaves its owning header signed out.
   Evidence:
