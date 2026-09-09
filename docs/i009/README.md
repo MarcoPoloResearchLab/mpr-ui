@@ -33,7 +33,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | NameSignal | Config, shared layout, exported-page tests, and CI implemented in I094 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
 | llm-proxy | 51 pages | Convert `RenderManagementConfigUI` and `site/config-ui.yaml`. Set its missing session endpoint. Update HTTP and browser expectations. |
 | pinguin | Config, four footers, and complete candidate browser suite implemented in I004 | Local CI passed. GitHub Actions are disabled by contract. Complete shared publication, cache transition, and real Google acceptance. |
-| social_threader | Config | Update `internal/deployment/contract_test.go` and `tests/transformationPuppeteerSuite.js`. Verify the shared header lifecycle. |
+| social_threader | Both auth environments, lifecycle, and candidate checks implemented in I003 | Complete B009, hosted CI, shared publication, cache transition, and real Google acceptance. |
 | prompts | Config and investor footer | Remove flat parsing and recovery paths in `web/js/app.js`. Update `web/js/types.d.js`. Verify authenticated resource requests. |
 | SummerCan | 49 pages | Convert YAML in `cmd/server/main.go`. Remove `authButton`. Replace direct TAuth and bundle loads in `web/static/js/bootstrap.js`. |
 | download_your_data | None | Convert `internal/uiconfig/config.go` types and serializer. Preserve validated inputs. Verify real HTTP output and generated Pages files. |
@@ -192,6 +192,40 @@ The subsequent commit records the result in documentation only.
 The [public asset record](https://github.com/MarcoPoloResearchLab/gravity/blob/c85c80ac0c64d3908bf25ca4cdbe8712d31daeba/docs/mpr-ui/public-assets-2026-09-09.json) contains ten observations from one network location.
 All ten requests returned HTTP 200. The public loader differs from the tested candidate.
 I002 retains shared publication, cache qualification, and real Google acceptance as separate gates.
+
+### Social Threader
+
+I003 [PR #71](https://github.com/MarcoPoloResearchLab/social_threader/pull/71) contains the migration at `6e21483a2d74fc853529e29c4b60b96535880d8b`.
+The work started from `e64b52587ade8761f1ab580be32de4c3c802e6ae` and preserved existing governance edits.
+Both environments declare the provider map and preserve Google identifiers, tenant, origins, and `/auth/session`.
+The application accepts the canonical snapshot `status` and retains guest controls.
+
+Four config regressions and one obsolete-snapshot regression failed before the corresponding fixes.
+The real page exposed B066: the mobile sign-out control extended beyond the viewport.
+[B066 PR #212](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/212) corrects shared account-menu placement and open-menu resize behavior.
+All four Social Threader candidate flows passed against shared revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`.
+They cover both environments at mobile and desktop widths, controlled Google exchange, reload, toolbar state, keyboard controls, and logout.
+Final native CI passed 44 headless checks, ten browser checks, backend checks, lint, module verification, and 33 mobile tests.
+It then stopped at the existing Expo dependency mismatch, recorded as B009.
+Hosted CI remains pending.
+
+The application records six public asset observations from one network location.
+The public shared assets still permit a seven-day browser cache and a twelve-hour shared cache.
+I003 retains shared publication, cache transition, and real Google acceptance.
+
+### Final Candidate Qualification
+
+The first seven application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
+Social Threader uses revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
+The config loader and CSS digests are unchanged. The JavaScript bundle digest changes.
+B066 passed 210 Node checks, 134 end-to-end checks, coverage, and Pages artifact validation locally.
+Its hosted workflow accepts PRs into `master` only, so its stacked PR retains that CI gate.
+
+After all application preparation, select one final immutable shared candidate.
+Update each application test input to that candidate and verify its digests.
+Run each application's required checks after the update.
+Record the final qualified identity for every application before publication.
+Earlier candidate results retain their original validation scope.
 
 ## Patch Procedure
 
