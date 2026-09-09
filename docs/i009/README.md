@@ -35,7 +35,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | pinguin | Config, four footers, and complete candidate browser suite implemented in I004 | Local CI passed. GitHub Actions are disabled by contract. Complete shared publication, cache transition, and real Google acceptance. |
 | social_threader | Both auth environments, lifecycle, and candidate checks implemented in I003 | Complete B009, hosted CI, shared publication, cache transition, and real Google acceptance. |
 | prompts | Config, auth bootstrap, request transport, footers, and browser checks implemented in I027 | Browser and backend checks passed. B077 records the Expo dependency mismatch. Complete shared publication, cache transition, and real Google acceptance. |
-| SummerCan | 49 pages | Convert YAML in `cmd/server/main.go`. Remove `authButton`. Replace direct TAuth and bundle loads in `web/static/js/bootstrap.js`. |
+| SummerCan | Generated config, shared auth, and 49 public footers implemented in I099 | Native CI passed with 100% Go and JavaScript coverage. Complete final candidate, maintenance, publication, and real Google gates. |
 | download_your_data | None | Convert `internal/uiconfig/config.go` types and serializer. Preserve validated inputs. Verify real HTTP output and generated Pages files. |
 | MediaOps | Ten pages | Convert `scripts/render-pages-config.mjs` and `internal/webapp/web_e2e.go`. Verify exported YAML and every workspace page. |
 | ledger | Footer | Verify the existing nested producer in `internal/controlplane/ui.go`. Resolve public TLS and complete B003 acceptance. |
@@ -294,11 +294,31 @@ The [public asset record](https://github.com/MarcoPoloResearchLab/prompts/blob/9
 GitHub confirms the `gh-pages` publication branch and `prompts.mprlab.com` domain.
 I027 retains maintenance preparation, final candidate qualification, publication, and real Google acceptance.
 
+### SummerCan
+
+I099 [PR #105](https://github.com/MarcoPoloResearchLab/SummerCan/pull/105) contains the migration at `cc996e20096d75a1b121270c98b95bcda89d33eb`.
+The work started from clean `master` revision `0484f9e035d73e8aa2710587d5cbcea2d687dd2a`.
+Generated YAML preserves configured origins, Google identifiers, tenant identity, and `/me` under the provider map.
+The bootstrap waits for DOM readiness before shared orchestration and profile access.
+Protected requests use shared transport and the configured tenant header.
+All 49 public footers use current menus. Production assets retain literal `@latest` inputs.
+
+Two HTTP regressions and the initial browser check first failed against the obsolete contract.
+Final native CI passed with 100% Go and JavaScript coverage, including all 229 JavaScript tests.
+Four browser flows passed across two viewport widths and both origin configurations.
+They verify login, restored sessions, protected-request recovery, logout, and 196 footer cases.
+The candidate is digest-verified shared revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`.
+GitHub Actions are disabled by the repository contract. Local CI supplies its required source validation.
+
+The public asset record contains ten successful observations, including the API config route and Pages release marker.
+GitHub confirms `gh-pages` and `summercan.mprlab.com`. The API config route declares `no-store`.
+I099 retains final candidate qualification, maintenance preparation, publication, and real Google acceptance.
+
 ### Final Candidate Qualification
 
 The first seven application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
 Social Threader, CTX, Gix, and Smith use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
-Prompt Bubbles uses revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
+Prompt Bubbles and SummerCan use revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
 The config loader and CSS digests are unchanged. Each subsequent candidate changes the JavaScript bundle digest.
 B066 passed 210 Node checks, 134 end-to-end checks, coverage, and Pages artifact validation locally.
 B067 passed 210 Node checks, 136 end-to-end checks, coverage, and Pages artifact validation locally.
