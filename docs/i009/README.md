@@ -31,17 +31,17 @@ Use each repository's current agent instructions and test-driven sequence.
 | --- | --- | --- |
 | Hecate | Config, three pages, fixtures, and candidate tests implemented in I014 | Final B069 browser and backend checks passed. Complete committed mobile qualification, shared publication, and live acceptance. |
 | NameSignal | Config, shared layout, exported-page tests, and CI implemented in I094 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
-| llm-proxy | Both config producers, 52 generated footers, and shared request transport prepared in I260 | Local and exact-commit hosted CI passed. Complete final candidate, publication, cache convergence, and real Google acceptance. |
+| llm-proxy | Both config producers, 52 generated footers, and shared request transport prepared in I260 | Local and exact-commit hosted CI passed. Complete publication, cache convergence, and real Google acceptance. |
 | pinguin | Config, four footers, and complete candidate browser suite implemented in I004 | Local CI passed. GitHub Actions are disabled by contract. Complete shared publication, cache transition, and real Google acceptance. |
 | social_threader | Both auth environments, lifecycle, and candidate checks implemented in I003 | Complete B009, hosted CI, shared publication, cache transition, and real Google acceptance. |
 | prompts | Config, auth bootstrap, request transport, footers, and browser checks implemented in I027 | Browser and backend checks passed. B077 records the Expo dependency mismatch. Complete shared publication, cache transition, and real Google acceptance. |
-| SummerCan | Generated config, shared auth, and 49 public footers implemented in I099 | Native CI passed with 100% Go and JavaScript coverage. Complete final candidate, maintenance, publication, and real Google gates. |
+| SummerCan | Generated config, shared auth, and 49 public footers implemented in I099 | Native CI passed with 100% Go and JavaScript coverage. Complete maintenance, publication, and real Google gates. |
 | download_your_data | Shared serializer, protected transport, and browser checks implemented in I017 | Native CI passed. Complete shared B068, final candidate qualification, maintenance preparation, publication, and real Google acceptance. |
-| MediaOps | Both config producers, shared transport, and ten footers implemented in I091 | Local CI and 45 Docker browser scenarios passed. Complete hosted CI, final candidate, maintenance, publication, and real Google gates. |
+| MediaOps | Both config producers, shared transport, and ten footers implemented in I091 | Local CI and 45 Docker browser scenarios passed. Complete hosted CI, maintenance, publication, and real Google gates. |
 | ledger | Nested producer, footer, recovery transition, and real browser checks prepared in B003 | Local CI and exact-commit hosted CI passed. Complete F002 Pages qualification, public TLS, and live acceptance. |
-| PoodleScanner | API producer, 37 pages, shared transport, and browser checks prepared in I087 | All 588 browser scenarios passed. Complete the existing 95.9 percent coverage gate, hosted CI, final candidate, publication, and public acceptance. |
-| loopaware | Both config environments, 41 static footers, Go renderer, and shared request transport prepared in I042 | Local and hosted CI passed. Central I009 retains final candidate, publication, cache convergence, and real Google acceptance. |
-| WriterBlock | Config, two pages, auth bootstrap, and candidate tests implemented in I014 | Local CI passed. Complete hosted CI, shared publication, cache transition, and real Google acceptance. |
+| PoodleScanner | API producer, 37 pages, shared transport, and browser checks prepared in I087 | All 588 browser scenarios passed. Complete the existing 95.9 percent coverage gate, hosted CI, publication, and public acceptance. |
+| loopaware | Both config environments, 41 static footers, Go renderer, and shared request transport prepared in I042 | Local and hosted CI passed. Central I009 retains publication, cache convergence, and real Google acceptance. |
+| WriterBlock | Config, two pages, auth bootstrap, and candidate tests implemented in I014 | Local CI passed. No hosted workflow exists. Complete shared publication, cache transition, and real Google acceptance. |
 | gravity | Config, generator, two pages, and candidate checks implemented in I002 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
 | LikeMe | Footer and exported-page checks implemented in I001 | Local and hosted CI passed. Complete shared publication, cache transition, and public acceptance. |
 | ctx | Footer and real-page checks implemented in I001 | Local and hosted browser CI passed. Complete Pages publication preparation, shared publication, cache transition, and public acceptance. |
@@ -365,7 +365,7 @@ I027 retains maintenance preparation, final candidate qualification, publication
 
 ### SummerCan
 
-I099 [PR #105](https://github.com/MarcoPoloResearchLab/SummerCan/pull/105) contains the migration at `cc996e20096d75a1b121270c98b95bcda89d33eb`.
+I099 [PR #105](https://github.com/MarcoPoloResearchLab/SummerCan/pull/105) contains the migration at `de49886cd91c26a2fa318fc89b9cfbba0a65e2d7`.
 The work started from clean `master` revision `0484f9e035d73e8aa2710587d5cbcea2d687dd2a`.
 Generated YAML preserves configured origins, Google identifiers, tenant identity, and `/me` under the provider map.
 The bootstrap waits for DOM readiness before shared orchestration and profile access.
@@ -376,12 +376,14 @@ Two HTTP regressions and the initial browser check first failed against the obso
 Final native CI passed with 100% Go and JavaScript coverage, including all 229 JavaScript tests.
 Four browser flows passed across two viewport widths and both origin configurations.
 They verify login, restored sessions, protected-request recovery, logout, and 196 footer cases.
-The candidate is digest-verified shared revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`.
+The final candidate is digest-verified B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1`.
+The final update passed native CI, four auth flows, and all 196 footer cases.
+Logs: `/tmp/summercan-i099-b069-ci.log` and `/tmp/summercan-i099-b069-focused.log`.
 GitHub Actions are disabled by the repository contract. Local CI supplies its required source validation.
 
 The public asset record contains ten successful observations, including the API config route and Pages release marker.
 GitHub confirms `gh-pages` and `summercan.mprlab.com`. The API config route declares `no-store`.
-I099 retains final candidate qualification, maintenance preparation, publication, and real Google acceptance.
+I099 retains maintenance preparation, publication, and real Google acceptance.
 
 ### Download Your Data
 
@@ -583,12 +585,12 @@ F001 retains its existing music production gates.
 
 The first seven historical application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
 Social Threader, CTX, Gix, and Smith use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
-Prompt Bubbles, SummerCan, and Download Your Data use revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
+Prompt Bubbles and Download Your Data use revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
 MediaOps and Ledger previously used the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-The investor portal, Hecate, NameSignal, LikeMe, Pinguin, WriterBlock, Gravity, Ledger, MediaOps, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
+The investor portal, Hecate, NameSignal, LikeMe, Pinguin, WriterBlock, Gravity, Ledger, MediaOps, SummerCan, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
