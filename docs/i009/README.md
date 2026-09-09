@@ -31,7 +31,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | --- | --- | --- |
 | Hecate | Config, three pages, fixtures, and candidate tests implemented in I014 | Resolve the existing Expo audit failure and hosted CI gap. Complete cache transition and live acceptance. |
 | NameSignal | Config, shared layout, exported-page tests, and CI implemented in I094 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
-| llm-proxy | 51 pages | Convert `RenderManagementConfigUI` and `site/config-ui.yaml`. Set its missing session endpoint. Update HTTP and browser expectations. |
+| llm-proxy | Both config producers, 52 generated footers, and shared request transport prepared in I260 | Native CI passed all 12 gates with 100 percent Go coverage. Complete hosted CI, final candidate, publication, and real Google acceptance. |
 | pinguin | Config, four footers, and complete candidate browser suite implemented in I004 | Local CI passed. GitHub Actions are disabled by contract. Complete shared publication, cache transition, and real Google acceptance. |
 | social_threader | Both auth environments, lifecycle, and candidate checks implemented in I003 | Complete B009, hosted CI, shared publication, cache transition, and real Google acceptance. |
 | prompts | Config, auth bootstrap, request transport, footers, and browser checks implemented in I027 | Browser and backend checks passed. B077 records the Expo dependency mismatch. Complete shared publication, cache transition, and real Google acceptance. |
@@ -419,6 +419,35 @@ The API config endpoint refused the connection.
 The published shared bytes differ from the candidate.
 The [migration record](https://github.com/MarcoPoloResearchLab/PoodleScanner/blob/59cd27eac2e12c7676335186dd98ac02e15ba88c/docs/mpr-ui-migration.md) retains coverage, hosted CI, cache preparation, publication, and public Google acceptance gates.
 
+### llm-proxy
+
+I260 [PR #320](https://github.com/tyemirov/llm-proxy/pull/320) is ready for review at `3575ef5f2a6673192d9658814faed4e92cb4a5ab`.
+The work started from clean `master` revision `64c81e87ef8f0764877e720ed2842f84fde725e3`.
+The API and static config preserve their Google identifiers and origins under `auth.providers`.
+The static config now declares `/auth/session`.
+All 52 generated footers retain their project labels and destinations under `menu`.
+Protected management requests use `MPRUI.authenticatedFetch` with authorization before domain work.
+
+B206 corrects the application transition after shared session recovery.
+The browser regression first reproduced the blocked user menu after read and mutation recovery.
+The correction preserves application state and completes the configured transition.
+The final browser scenarios verify user-menu access and logout after recovery.
+
+The tests use digest-verified B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1`.
+Four migration scenarios cover frontend and direct TAuth origins at 390px and 1280px.
+Each scenario verifies login, restoration, read recovery, one persisted mutation after recovery, logout, and the project menu.
+The tests use the real Go CLI, TAuth, SQLite, application modules, and shared assets.
+The Google fixture controls the external credential response. It does not establish real Google acceptance.
+
+Final native `make ci` passed all 12 gates in 345 seconds.
+The run passed 100 percent Go coverage, 114 application browser tests, six TAuth/MCP scenarios, Python checks, and the Pages artifact check.
+Hosted run `34323669933` started against the exact PR commit. Its result remains pending.
+
+The [migration record](https://github.com/tyemirov/llm-proxy/blob/3575ef5f2a6673192d9658814faed4e92cb4a5ab/docs/mpr-ui-migration.md) contains exact candidate digests and seven public HTTP observations.
+The website, application, release marker, API config, and three published shared assets returned HTTP 200 from one network location.
+The published shared asset digests differ from B069.
+I260 retains final-candidate qualification, coordinated publication, cache convergence, and real Google acceptance.
+
 ### Final Candidate Qualification
 
 The first seven application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
@@ -428,7 +457,7 @@ MediaOps and Ledger use the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-PoodleScanner uses B069.
+PoodleScanner and llm-proxy use B069.
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
