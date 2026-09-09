@@ -12,6 +12,27 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [-] [B066] (P1) Keep the account menu inside the viewport
+  Goal: A user can select each account action at narrow viewport widths.
+  Evidence:
+  - Social Threader I003 loads the real shared candidate at a 390-pixel viewport width.
+  - The sign-out control begins 120.6 pixels beyond the left viewport edge.
+  - Pointer activation dismisses the menu without a logout request.
+  Requirements:
+  - Keep the account menu inside both horizontal viewport edges.
+  - Reuse the dropdown positioning calculation.
+  - Update the position when an open menu encounters a viewport resize.
+  - Preserve keyboard dismissal, focus, and logout behavior.
+  Validation:
+  - Add a real-header regression before the source fix.
+  - Verify narrow and desktop widths, resize, hit testing, and logout.
+  - Run final `make ci` and the Social Threader candidate checks.
+  Results:
+  - Both new viewport regressions failed before the source fix.
+  - All 13 account-menu and dropdown checks passed after the fix.
+  - Full local CI passed: 210 Node checks, 134 end-to-end checks, coverage, and Pages artifact validation.
+  - Social Threader qualification and hosted CI remain pending.
+
 - [-] [B064] (P1) {B059} A Google popup attempt can lock the other auth controls.
   Goal:
   The provider controls stay available until Google returns a credential.
