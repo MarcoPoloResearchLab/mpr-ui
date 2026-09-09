@@ -30,7 +30,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | Repository | Prepared patch | Remaining implementation and acceptance |
 | --- | --- | --- |
 | Hecate | Config, three pages, fixtures, and candidate tests implemented in I014 | Resolve the existing Expo audit failure and hosted CI gap. Complete cache transition and live acceptance. |
-| NameSignal | None | Set the explicit session endpoint. Convert `internal/web/static/config-ui.yaml`. Remove `authButton`. Check static login presentation and Pages export. |
+| NameSignal | Config, shared layout, exported-page tests, and CI implemented in I094 | Complete hosted CI, shared publication, cache transition, and real Google acceptance. |
 | llm-proxy | 51 pages | Convert `RenderManagementConfigUI` and `site/config-ui.yaml`. Set its missing session endpoint. Update HTTP and browser expectations. |
 | pinguin | Config and four pages | Update config expectations. Verify each workspace page and session restoration. |
 | social_threader | Config | Update `internal/deployment/contract_test.go` and `tests/transformationPuppeteerSuite.js`. Verify the shared header lifecycle. |
@@ -93,6 +93,24 @@ The application pages and config declare a 600-second cache lifetime.
 All three shared assets declare `max-age=604800` and `s-maxage=43200`.
 These observations require browser cache qualification before publication. They do not establish a successful cache transition.
 I014 retains publication, interruption, and real provider acceptance as separate gates.
+
+### NameSignal
+
+I094 [PR #47](https://github.com/MarcoPoloResearchLab/NameSignal/pull/47) contains the migration at `74fffc90f66826d5133beec461ed784bba77bda3`.
+The work started from `master` revision `815a2e0330f330b63df921e31986f3decf3d9f25` and preserved existing governance edits.
+Both environments declare the provider map and `/me`. The shared loader controls bundle startup and authentication transport.
+The application retains its separate API configuration and literal `@latest` asset URLs.
+
+Baseline and final `make ci` passed with 100% internal Go and frontend coverage.
+Nine browser checks passed against digest-verified candidate `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
+The tests use the real exported frontend, shared library, and Alpine runtime with controlled external responses.
+They cover all four pages at two widths, theme changes, Google exchange, session restoration, and sign-out.
+Three initial checks reproduced rejection of `authButton`. The remaining six stopped before execution.
+The application CI workflow now includes the browser suite.
+
+The [public asset record](https://github.com/MarcoPoloResearchLab/NameSignal/blob/74fffc90f66826d5133beec461ed784bba77bda3/docs/mpr-ui/public-assets-2026-09-09.json) contains eight HTTP observations from one network location.
+The pages and configuration declare `max-age=600`. All three shared assets declare `max-age=604800` and `s-maxage=43200`.
+I094 retains shared publication, cache qualification, and real Google acceptance as separate gates.
 
 ## Patch Procedure
 
