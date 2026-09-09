@@ -410,7 +410,8 @@ Final native CI passed all 588 browser scenarios with two expected skips.
 The frontend coverage gate failed at 95.9 percent against 97 percent, as it did before I087.
 Backend coverage qualification remains open.
 The log is `/tmp/poodlescanner-i087-ci-final.log`.
-Hosted run `34320281515` started at the exact migration commit.
+Hosted run `34320281515` passed all 588 browser scenarios at the exact migration commit.
+It failed the same 95.9 percent frontend coverage gate.
 All twelve pre-existing changed files remained outside the migration commit and retained their original bytes.
 
 The public website, app, release marker, and three shared assets returned HTTP 200.
