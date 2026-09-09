@@ -260,7 +260,7 @@ Hosted run `34339266863` passed at this exact revision.
 
 ### Social Threader
 
-I003 [PR #71](https://github.com/MarcoPoloResearchLab/social_threader/pull/71) contains the migration at `17541719ee839eeebeec44fa71f643f0321c76c7`.
+I003 [PR #71](https://github.com/MarcoPoloResearchLab/social_threader/pull/71) contains the migration at `cc5b71ada71b019c8fb95f111fd3c0e7cd900468`.
 The work started from `e64b52587ade8761f1ab580be32de4c3c802e6ae` and preserved existing governance edits.
 Both environments declare the provider map and preserve Google identifiers, tenant, origins, and `/auth/session`.
 The application accepts the canonical snapshot `status` and retains guest controls.
@@ -280,9 +280,16 @@ The application records six public asset observations from one network location.
 The public shared assets still permit a seven-day browser cache and a twelve-hour shared cache.
 I003 retains shared publication, cache transition, and real Google acceptance.
 
+Final B069 candidate qualification passed local CI in the primary checkout.
+The result includes the separate Apple commit `483bd5f` and its B009 correction.
+All 44 headless checks, ten browser checks, backend checks, and full mobile checks passed.
+Only candidate and evidence files enter I003; its committed mobile and hosted qualification gates remain open.
+The primary checkout retains its Apple branch and original user edits.
+The log is `/tmp/social-i003-b069-ci.log`.
+
 ### CTX
 
-I001 [PR #137](https://github.com/tyemirov/ctx/pull/137) contains the migration at `1caf652031b424b2326dc00fff33b5f661bf8353`.
+I001 [PR #137](https://github.com/tyemirov/ctx/pull/137) contains the migration at `dcd958e902159e14ea3db621653a0f3e605cb8d8`.
 The work started from `0f7beb749860091637e417ec8d17146da489c9b5` and preserved existing governance and telemetry edits.
 The documentation footer uses the current menu and preserves all four resource links and MIT license content.
 The page retains literal `@latest` assets.
@@ -296,6 +303,11 @@ Hosted browser run `34302289256` passed at `d38791cea7a2d2b892f7f785274503dd62be
 GitHub confirms `ctx.mprlab.com` and the current `master:/docs` Pages source.
 Four public observations show the page and shared assets available, with a missing release marker.
 I001 retains the Pages resource, release identity, maintenance artifact, shared publication, cache transition, and public acceptance gates.
+
+Final B069 candidate qualification passed local CI and both browser cases.
+The local result includes separate telemetry and governance changes in the primary checkout.
+Hosted run `34342026342` passed at the final migration commit.
+The local log is `/tmp/ctx-i001-b069-ci.log`.
 
 ### Gix
 
@@ -587,13 +599,13 @@ F001 retains its existing music production gates.
 ### Final Candidate Qualification
 
 The first seven historical application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
-Social Threader, CTX, and Gix use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
+Gix uses revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
 Prompt Bubbles uses revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
 MediaOps and Ledger previously used the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-The investor portal, Hecate, NameSignal, LikeMe, Pinguin, WriterBlock, Gravity, Ledger, MediaOps, SummerCan, Download Your Data, Smith, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
+The investor portal, Hecate, NameSignal, LikeMe, Pinguin, WriterBlock, Gravity, Ledger, MediaOps, SummerCan, Download Your Data, Smith, CTX, Social Threader, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
