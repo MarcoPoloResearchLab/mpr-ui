@@ -407,7 +407,7 @@ I017 retains that shared correction, final candidate qualification, maintenance 
 
 ### MediaOps
 
-I091 [PR #802](https://github.com/MarcoPoloResearchLab/MediaOps/pull/802) contains the migration at `e0fc6859c5005cc749eb9c76c09e8b3c37a978fe`.
+I091 [PR #802](https://github.com/MarcoPoloResearchLab/MediaOps/pull/802) contains the migration at `165dcc126fb0ec1589e4af56f87a49f3dd170a02`.
 The work started from clean `master` revision `0f6e06d91d04b43df90fec692d0a024df2a916a1`.
 Both the Pages build and Go browser server generate the provider map.
 All ten pages use current footer menus and retain literal `@latest` assets.
@@ -422,12 +422,15 @@ All ten footer menus passed at both widths.
 Final native CI passed with the required JavaScript, Go, and Python coverage.
 The local Docker browser suite passed all 45 scenarios against the Go server and media services.
 Chrome uses the browser server network namespace so localhost supplies the required secure browser APIs.
-Hosted run `34313237266` is queued at the same source revision.
+The previous hosted run `34313237266` passed at `e0fc6859c5005cc749eb9c76c09e8b3c37a978fe`.
+Hosted qualification for the final candidate commit remains open.
 
-The candidate is digest-verified revision `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
+The candidate is digest-verified B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1`.
+The final update passed native CI and all 45 Docker browser scenarios.
+Logs: `/tmp/mediaops-i091-b069-ci.log` and `/tmp/mediaops-i091-b069-docker-browser.log`.
 The [public asset record](https://github.com/MarcoPoloResearchLab/MediaOps/blob/e0fc6859c5005cc749eb9c76c09e8b3c37a978fe/docs/mpr-ui/public-assets-2026-09-09.json) contains nine successful responses.
 Pages responses advertised a 600-second cache lifetime, and the public release marker returned HTTP 200.
-I091 retains final candidate qualification, maintenance preparation, publication, and real Google acceptance.
+I091 retains maintenance preparation, publication, and real Google acceptance.
 
 ### Ledger
 
@@ -450,7 +453,7 @@ This local result includes retained F002 working changes.
 The B003 PR reuses the existing nested producer and YAML script correction.
 Separate Pages, CORS, profile, deployment, and API changes remain outside B003.
 The previous hosted run `34314445178` passed at `4bf84be326d00260349e2284e730ac62f951484b`.
-Hosted qualification for the final candidate update is pending.
+Hosted run `34340480438` passed at the final candidate commit.
 
 The public website still fails certificate hostname validation.
 The API health request fails its TLS handshake.
@@ -581,11 +584,11 @@ F001 retains its existing music production gates.
 The first seven historical application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
 Social Threader, CTX, Gix, and Smith use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
 Prompt Bubbles, SummerCan, and Download Your Data use revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
-MediaOps uses the B068 candidate.
+MediaOps and Ledger previously used the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-The investor portal, Hecate, NameSignal, LikeMe, Pinguin, WriterBlock, Gravity, Ledger, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
+The investor portal, Hecate, NameSignal, LikeMe, Pinguin, WriterBlock, Gravity, Ledger, MediaOps, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
