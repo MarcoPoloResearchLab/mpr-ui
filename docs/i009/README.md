@@ -40,13 +40,13 @@ Use each repository's current agent instructions and test-driven sequence.
 | MediaOps | Both config producers, shared transport, and ten footers implemented in I091 | Local CI and 45 Docker browser scenarios passed. Complete hosted CI, final candidate, maintenance, publication, and real Google gates. |
 | ledger | Nested producer, footer, recovery transition, and real browser checks prepared in B003 | Local CI and exact-commit hosted CI passed. Complete F002 Pages qualification, public TLS, and live acceptance. |
 | PoodleScanner | API producer, 37 pages, shared transport, and browser checks prepared in I087 | All 588 browser scenarios passed. Complete the existing 95.9 percent coverage gate, hosted CI, final candidate, publication, and public acceptance. |
-| loopaware | Both config environments, 41 static footers, Go renderer, and shared request transport prepared in I042 | Local CI passed. Hosted CI is in progress. Central I009 retains final candidate, publication, cache convergence, and real Google acceptance. |
+| loopaware | Both config environments, 41 static footers, Go renderer, and shared request transport prepared in I042 | Local and hosted CI passed. Central I009 retains final candidate, publication, cache convergence, and real Google acceptance. |
 | WriterBlock | Config, two pages, auth bootstrap, and candidate tests implemented in I014 | Local CI passed. Complete hosted CI, shared publication, cache transition, and real Google acceptance. |
 | gravity | Config, generator, two pages, and candidate checks implemented in I002 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
 | LikeMe | Footer and exported-page checks implemented in I001 | Local and hosted CI passed. Complete shared publication, cache transition, and public acceptance. |
 | ctx | Footer and real-page checks implemented in I001 | Local and hosted browser CI passed. Complete Pages publication preparation, shared publication, cache transition, and public acceptance. |
 | gix | Footer and real-page checks implemented in I018 | Local and hosted CI passed. Complete maintenance preparation, shared publication, cache transition, and public acceptance. |
-| marcopolo.github.io | Six public footers implemented in F005 | Source migration and candidate tests passed. Complete published shared-asset qualification and F007 hosted acceptance. |
+| marcopolo.github.io | Six public footers and shared protected transport implemented in F005 and F007 | Final B069 qualification and local CI passed. Complete published shared-asset qualification and F007 hosted acceptance. |
 | tyemirov.github.io | All 14 shared footers and the theme integration prepared in I001 | Native Linux CI and actual-image checks passed. Central I009 retains publication, cache convergence, and public acceptance. |
 | Smith | Fixture, profile, seed, and verifier implemented in I010 | Package CI passed. Complete shared publication and real-CDN fixture qualification. This development fixture has no production deployment. |
 
@@ -70,7 +70,17 @@ The published loader still rejects the provider map with `config-ui.yaml missing
 F005 retains published asset qualification. F007 retains real Google login and hosted acceptance.
 
 The original patch and inventory hashes remain dated inspection evidence.
-Use F005 as the current application change. Compare subsequent work with its current PR head.
+F007 [PR #62](https://github.com/MarcoPoloResearchLab/marcopolo.github.io/pull/62) adds final B069 qualification at `3904330afe8672dc9b2631e293b7063947793d70`.
+The test helper verifies all three B069 asset digests.
+Fourteen portal scenarios now use the real shared runtime with controlled Google and TAuth protocols.
+The real Go API rejects expired cookies before domain operations.
+Two tests first exposed missing read recovery and a mutation abort from repeated authentication events.
+Protected requests now use shared authenticated transport.
+Repeated authentication for the same account preserves the pending operation and form values.
+Both viewport widths verify sign-in, reload, read recovery, one saved access request, and logout.
+Final `make ci` passed API checks, 106 browser tests, release checks, and the Pages boundary check.
+Hosted run `34331926755` is in progress at this commit.
+Use the F007 release branch as the final portal qualification record. Earlier F005 evidence retains its original scope.
 
 ### Hecate
 
@@ -474,7 +484,7 @@ All 100 authentication, logout, and browser-security checks also passed as a foc
 The local CI result qualified application commit `3fe94be458df11636bae47c399fb11e354e118de`.
 A concurrent commit added only Apple-guide documentation and restarted hosted CI.
 Run `34327779046` was cancelled by the replacement run.
-Hosted run `34328909035` is in progress at `55bbe2c2007bb9006d665df157932b32a3432fce`.
+Hosted run `34328909035` passed at `55bbe2c2007bb9006d665df157932b32a3432fce`.
 The application source and tests remain unchanged.
 
 The [migration record](https://github.com/tyemirov/loopaware/blob/3fe94be458df11636bae47c399fb11e354e118de/docs/mpr-ui-migration.md) contains candidate digests and seven dated public HTTP observations.
@@ -512,14 +522,14 @@ F001 retains its existing music production gates.
 
 ### Final Candidate Qualification
 
-The first seven application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
+The first seven historical application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
 Social Threader, CTX, Gix, and Smith use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
 Prompt Bubbles, SummerCan, and Download Your Data use revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
 MediaOps and Ledger use the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
+The investor portal, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
