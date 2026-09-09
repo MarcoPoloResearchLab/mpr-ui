@@ -133,7 +133,7 @@ Additional component consumers require release review:
 | --- | --- | --- |
 | LikeMe, ctx, gix, marcopolo.github.io | `@latest` | Inspect public component behavior, footer menus, and all three asset references. |
 | tyemirov.github.io | `@v3.6.7` | Inspect older header and footer markup before a version change. |
-| Smith | `@latest` fixture | Update the integration fixture after application acceptance. |
+| Smith | `@latest` fixture | Qualify the development fixture against the shared candidate. It has no production deployment. |
 | mpr-ui | Local assets and documented `@latest` URLs | Validate demos and integration instructions against the selected release. |
 
 This inventory excludes secondary worktrees and private environment files.
@@ -163,7 +163,8 @@ Owner: agent, in each application's primary checkout.
 11. Open ready-for-review application PRs and record hosted CI separately.
 12. Qualify every changed contract before application release preparation.
 
-Exit gate: every affected application has one complete reviewed release unit and passing local and hosted CI.
+Exit gate: every affected application has one complete reviewed release unit and passing checks required by its repository contract.
+Record hosted CI separately where it applies. Smith qualifies its development fixture through package CI.
 Failure action: keep the library unpublished until every required application completes this gate.
 
 ### Phase 2: Prepare The Interruption

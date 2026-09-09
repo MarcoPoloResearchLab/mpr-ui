@@ -29,26 +29,26 @@ Use each repository's current agent instructions and test-driven sequence.
 
 | Repository | Prepared patch | Remaining implementation and acceptance |
 | --- | --- | --- |
-| Hecate | Config, three pages, fixtures, and candidate tests implemented in I014 | Resolve the existing Expo audit failure and hosted CI gap. Complete cache transition and live acceptance. |
+| Hecate | Config, three pages, fixtures, and candidate tests implemented in I014 | Final B069 browser and backend checks passed. Complete committed mobile qualification, shared publication, and live acceptance. |
 | NameSignal | Config, shared layout, exported-page tests, and CI implemented in I094 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
-| llm-proxy | 51 pages | Convert `RenderManagementConfigUI` and `site/config-ui.yaml`. Set its missing session endpoint. Update HTTP and browser expectations. |
+| llm-proxy | Both config producers, 52 generated footers, and shared request transport prepared in I260 | Local and exact-commit hosted CI passed. Complete publication, cache convergence, and real Google acceptance. |
 | pinguin | Config, four footers, and complete candidate browser suite implemented in I004 | Local CI passed. GitHub Actions are disabled by contract. Complete shared publication, cache transition, and real Google acceptance. |
-| social_threader | Config | Update `internal/deployment/contract_test.go` and `tests/transformationPuppeteerSuite.js`. Verify the shared header lifecycle. |
-| prompts | Config and investor footer | Remove flat parsing and recovery paths in `web/js/app.js`. Update `web/js/types.d.js`. Verify authenticated resource requests. |
-| SummerCan | 49 pages | Convert YAML in `cmd/server/main.go`. Remove `authButton`. Replace direct TAuth and bundle loads in `web/static/js/bootstrap.js`. |
-| download_your_data | None | Convert `internal/uiconfig/config.go` types and serializer. Preserve validated inputs. Verify real HTTP output and generated Pages files. |
-| MediaOps | Ten pages | Convert `scripts/render-pages-config.mjs` and `internal/webapp/web_e2e.go`. Verify exported YAML and every workspace page. |
-| ledger | Footer | Verify the existing nested producer in `internal/controlplane/ui.go`. Resolve public TLS and complete B003 acceptance. |
-| PoodleScanner | 37 pages | Convert `internal/handlers/runtime_config.go`. Update producer tests and generated Pages checks. Preserve environment-owned provider identifiers. |
-| loopaware | Config and 44 pages | Convert `pkg/footer/footer.go` and its callers to the current menu contract. Update auth fixtures and generated resource pages. |
-| WriterBlock | Config, two pages, auth bootstrap, and candidate tests implemented in I014 | Local CI passed. Complete hosted CI, shared publication, cache transition, and real Google acceptance. |
+| social_threader | Both auth environments, lifecycle, and candidate checks implemented in I003 | Complete B009, hosted CI, shared publication, cache transition, and real Google acceptance. |
+| prompts | Config, auth bootstrap, request transport, footers, and browser checks implemented in I027 | Browser and backend checks passed. B077 records the Expo dependency mismatch. Complete shared publication, cache transition, and real Google acceptance. |
+| SummerCan | Generated config, shared auth, and 49 public footers implemented in I099 | Native CI passed with 100% Go and JavaScript coverage. Complete maintenance, publication, and real Google gates. |
+| download_your_data | Shared serializer, protected transport, and browser checks implemented in I017 | Native CI passed. Complete maintenance preparation, publication, and real Google acceptance. |
+| MediaOps | Both config producers, shared transport, and ten footers implemented in I091 | Local CI and 45 Docker browser scenarios passed. Complete maintenance, publication, and real Google gates. |
+| ledger | Nested producer, footer, recovery transition, and real browser checks prepared in B003 | Local CI and exact-commit hosted CI passed. Complete F002 Pages qualification, public TLS, and live acceptance. |
+| PoodleScanner | API producer, 37 pages, shared transport, and browser checks prepared in I087 | All 588 browser scenarios passed. Complete the existing 95.9 percent coverage gate, hosted CI, publication, and public acceptance. |
+| loopaware | Both config environments, 41 static footers, Go renderer, and shared request transport prepared in I042 | Local and hosted CI passed. Central I009 retains publication, cache convergence, and real Google acceptance. |
+| WriterBlock | Config, two pages, auth bootstrap, and candidate tests implemented in I014 | Local CI passed. No hosted workflow exists. Complete shared publication, cache transition, and real Google acceptance. |
 | gravity | Config, generator, two pages, and candidate checks implemented in I002 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
 | LikeMe | Footer and exported-page checks implemented in I001 | Local and hosted CI passed. Complete shared publication, cache transition, and public acceptance. |
-| ctx | None | Inspect current component markup and public asset requests. Confirm the production origin from its application owner. |
-| gix | Footer | Verify documentation navigation and theme behavior. Confirm the production origin from its application owner. |
-| marcopolo.github.io | Six public footers implemented in F005 | Source migration and candidate tests passed. Complete published shared-asset qualification and F007 hosted acceptance. |
-| tyemirov.github.io | 14 pages | Verify older header and footer attributes against the complete current contract. Verify gallery and music page behavior. |
-| Smith | None | Convert the integration fixture after its explicit session endpoint is confirmed. Update the canonical fixture verification command. |
+| ctx | Footer and real-page checks implemented in I001 | Local and hosted browser CI passed. Complete Pages publication preparation, shared publication, cache transition, and public acceptance. |
+| gix | Footer and real-page checks implemented in I018 | Local and hosted CI passed. Complete maintenance preparation, shared publication, cache transition, and public acceptance. |
+| marcopolo.github.io | Six public footers and shared protected transport implemented in F005 and F007 | Final B069 qualification and local CI passed. Complete published shared-asset qualification and F007 hosted acceptance. |
+| tyemirov.github.io | All 14 shared footers and the theme integration prepared in I001 | Native Linux CI and actual-image checks passed. Central I009 retains publication, cache convergence, and public acceptance. |
+| Smith | Fixture, profile, seed, and verifier implemented in I010 | Package CI passed. Complete shared publication and real-CDN fixture qualification. This development fixture has no production deployment. |
 
 Keep backend-owned Google configuration under its existing owner.
 For example, `NameSignal/configs/pinguin-config.yaml` is not an MPR UI config producer.
@@ -70,7 +70,17 @@ The published loader still rejects the provider map with `config-ui.yaml missing
 F005 retains published asset qualification. F007 retains real Google login and hosted acceptance.
 
 The original patch and inventory hashes remain dated inspection evidence.
-Use F005 as the current application change. Compare subsequent work with its current PR head.
+F007 [PR #62](https://github.com/MarcoPoloResearchLab/marcopolo.github.io/pull/62) adds final B069 qualification at `3904330afe8672dc9b2631e293b7063947793d70`.
+The test helper verifies all three B069 asset digests.
+Fourteen portal scenarios now use the real shared runtime with controlled Google and TAuth protocols.
+The real Go API rejects expired cookies before domain operations.
+Two tests first exposed missing read recovery and a mutation abort from repeated authentication events.
+Protected requests now use shared authenticated transport.
+Repeated authentication for the same account preserves the pending operation and form values.
+Both viewport widths verify sign-in, reload, read recovery, one saved access request, and logout.
+Final `make ci` passed API checks, 106 browser tests, release checks, and the Pages boundary check.
+Hosted run `34331926755` passed at this commit.
+Use the F007 release branch as the final portal qualification record. Earlier F005 evidence retains its original scope.
 
 ### Hecate
 
@@ -94,6 +104,16 @@ All three shared assets declare `max-age=604800` and `s-maxage=43200`.
 These observations require browser cache qualification before publication. They do not establish a successful cache transition.
 I014 retains publication, interruption, and real provider acceptance as separate gates.
 
+Hecate final qualification is in I014 PR #198 at `4eac463352312c2a56d5e8c92dc47d77eb15861e`.
+The tests verify all three B069 digests before use.
+Protected puzzle, account, administration, and billing requests use one shared transport adapter.
+Two recovery scenarios first failed with raw fetch. All eight candidate scenarios now pass.
+Both widths verify read recovery and one generation with the original topic.
+Browser scenarios control Google, TAuth, and application API responses. Backend tests verify the real API separately.
+Final local CI passed 463 browser tests, 100% frontend and backend coverage, and mobile checks.
+The full local result includes concurrent mobile changes outside this browser commit.
+Complete committed mobile qualification before the release. The hosted CI gap remains.
+
 ### NameSignal
 
 I094 [PR #47](https://github.com/MarcoPoloResearchLab/NameSignal/pull/47) contains the migration at `d9373c641175ee6b07ef98573ef22c533ec994aa`.
@@ -113,6 +133,17 @@ The [public asset record](https://github.com/MarcoPoloResearchLab/NameSignal/blo
 The pages and configuration declare `max-age=600`. All three shared assets declare `max-age=604800` and `s-maxage=43200`.
 I094 retains shared publication, cache qualification, and real Google acceptance as separate gates.
 
+Final B069 qualification is in I094 PR #47 at `d5ecef71e597037ea22fcefcf142d1c645d7ff64`.
+B166 corrects protected requests that did not recover after an expired session.
+The application uses the shared authenticated transport after API origin validation.
+The API checks authentication before onboarding and domain handlers. This permits the declared mutation retry contract.
+Ten browser checks passed with the real shared library and controlled Google, TAuth, and application API responses.
+They cover protected reads, one stored job after mutation retry, reload, logout, and all four public pages at two widths.
+The native credentialed event stream reconnects after recovery.
+Final `make ci` passed Go checks, both configured 100 percent coverage gates, 64 frontend guardrails, and ten browser checks.
+The frontend coverage gate applies to `app.js`.
+Hosted run `34334565902` passed at this exact source revision.
+
 ### LikeMe
 
 I001 [PR #3](https://github.com/Undeliverable-Mail-Office/LikeMe/pull/3) contains the migration at `0bd45ce5971949e50a2811d47abf91dde7eb36fd`.
@@ -128,6 +159,11 @@ The GitHub provider confirms that Pages serves `gh-pages`. The README now record
 The [public asset record](https://github.com/Undeliverable-Mail-Office/LikeMe/blob/0bd45ce5971949e50a2811d47abf91dde7eb36fd/docs/mpr-ui/public-assets-2026-09-09.json) contains three HTTP observations from one network location.
 The page declares `max-age=600`. The shared assets declare `max-age=604800` and `s-maxage=43200`.
 I001 retains shared publication, cache qualification, and hosted acceptance as separate gates.
+
+Final B069 qualification is in I001 PR #3 at `5c087b7192ceacf18aa16c43363c313a978fb28a`.
+Final `make ci` passed the release artifact contract, site identifier check, and both browser scenarios.
+The browser checks verify the final JavaScript and CSS digests before use.
+Hosted run `34335212594` passed at this exact revision.
 
 ### Pinguin
 
@@ -148,6 +184,16 @@ The [public asset record](https://github.com/tyemirov/pinguin/blob/a0003f1025396
 The pages and configuration declare `max-age=600`. Shared assets declare `max-age=604800` and `s-maxage=43200`.
 I004 retains shared publication, cache qualification, and real Google acceptance as separate gates.
 F001 retains its separate managed tenant conversion requirements.
+
+Final B069 qualification is in I004 PR #200 at `ccb84f628a5dc11ea1a441194d66d2991c1d2c93`.
+B008 corrects protected request recovery through the shared authenticated transport.
+The API checks authentication before protected domain handlers, which permits the declared mutation retry contract.
+Both recovery scenarios first failed on the tenant read, then passed after the transport correction.
+Ten candidate checks passed at phone and desktop widths.
+They verify one tenant after a retried create request, unchanged payload and idempotency key, reload, and logout.
+The browser tests use the real application and shared runtime with controlled Google and local API test server responses.
+Final `make ci` passed all 65 browser checks and 100 percent Go coverage.
+Existing governance changes and I003 remain outside this commit.
 
 ### WriterBlock
 
@@ -171,6 +217,14 @@ The [public asset record](https://github.com/MarcoPoloResearchLab/WriterBlock/bl
 The pages and config declare `max-age=600`. All three `@latest` assets declare `max-age=604800` and `s-maxage=43200`.
 I014 retains shared publication, cache qualification, and real Google acceptance as separate gates.
 
+Final B069 qualification is in I014 PR #51 at `b6d731411ed8135f13f43c1543d71c5a0bc860a3`.
+The final candidate update changes no application code.
+The PRD AUTH-8 contract requires a redirect to sign-in after a protected API returns HTTP 401.
+WriterBlock retains this explicit contract.
+Final `make ci` passed 166 browser scenarios, eight WebKit checks, runtime inclusion, and 100 percent frontend and backend coverage.
+The local validation stack uses port 8189 and repository-relative source mounts for its runtime inclusion check.
+All three B069 asset digests are verified before browser use.
+
 ### Gravity
 
 I002 [PR #228](https://github.com/MarcoPoloResearchLab/gravity/pull/228) contains the migration at `b9ab15cb6f6934e2a6ace5b885811de755cfd08f`.
@@ -192,6 +246,404 @@ The subsequent commit records the result in documentation only.
 The [public asset record](https://github.com/MarcoPoloResearchLab/gravity/blob/c85c80ac0c64d3908bf25ca4cdbe8712d31daeba/docs/mpr-ui/public-assets-2026-09-09.json) contains ten observations from one network location.
 All ten requests returned HTTP 200. The public loader differs from the tested candidate.
 I002 retains shared publication, cache qualification, and real Google acceptance as separate gates.
+
+Final B069 qualification is in I002 PR #228 at `b66526f4bcd6dbdb9cf0710f62328ad2f595b01b`.
+B008 restores the notebook scope from the shared startup profile snapshot.
+B009 uses the shared authenticated transport for protected requests.
+The API checks authentication before domain handlers, which permits the declared mutation retry contract.
+Eight candidate checks passed with real shared assets and the Go API.
+They cover both page sizes, real expired-cookie rejections, unchanged retry payloads, one stored note, reload, and logout.
+The token helper permits explicit negative lifetimes. The browser capture reads streamed request bodies.
+Google and TAuth responses remain controlled external boundaries.
+Final `make ci` passed all 156 suite runs across three iterations, backend checks, and lifecycle checks.
+Hosted run `34339266863` passed at this exact revision.
+
+### Social Threader
+
+I003 [PR #71](https://github.com/MarcoPoloResearchLab/social_threader/pull/71) contains the migration at `cc5b71ada71b019c8fb95f111fd3c0e7cd900468`.
+The work started from `e64b52587ade8761f1ab580be32de4c3c802e6ae` and preserved existing governance edits.
+Both environments declare the provider map and preserve Google identifiers, tenant, origins, and `/auth/session`.
+The application accepts the canonical snapshot `status` and retains guest controls.
+
+Four config regressions and one obsolete-snapshot regression failed before the corresponding fixes.
+The real page exposed B066: the mobile sign-out control extended beyond the viewport.
+[B066 PR #212](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/212) corrects shared account-menu placement and open-menu resize behavior.
+All four Social Threader candidate flows passed against shared revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`.
+They cover both environments at mobile and desktop widths, controlled Google exchange, reload, toolbar state, keyboard controls, and logout.
+Final native CI passed 44 headless checks, ten browser checks, backend checks, lint, module verification, and 33 mobile tests.
+Current master was merged forward to resolve a tracker conflict. The image-picker dependency check then passed.
+Expo `57.0.20` still requires `~57.0.21` under B009.
+Hosted run `34301824325` passed browser, API, container, and local-stack checks at `e83e2a5feddd6449213351a27b77623d0a64c531`.
+Its mobile job confirms the same Expo failure.
+
+The application records six public asset observations from one network location.
+The public shared assets still permit a seven-day browser cache and a twelve-hour shared cache.
+I003 retains shared publication, cache transition, and real Google acceptance.
+
+Final B069 candidate qualification passed local CI in the primary checkout.
+The result includes the separate Apple commit `483bd5f` and its B009 correction.
+All 44 headless checks, ten browser checks, backend checks, and full mobile checks passed.
+Only candidate and evidence files enter I003. Its committed mobile qualification gate remains open.
+Hosted run `34342371955` passed browser, API, and container checks.
+Its mobile check rejected Expo `57.0.20`, which requires `~57.0.21` under B009.
+The primary checkout retains its Apple branch and original user edits.
+The log is `/tmp/social-i003-b069-ci.log`.
+
+### CTX
+
+I001 [PR #137](https://github.com/tyemirov/ctx/pull/137) contains the migration at `dcd958e902159e14ea3db621653a0f3e605cb8d8`.
+The work started from `0f7beb749860091637e417ec8d17146da489c9b5` and preserved existing governance and telemetry edits.
+The documentation footer uses the current menu and preserves all four resource links and MIT license content.
+The page retains literal `@latest` assets.
+
+Both real-page regressions failed before the footer change.
+Both passed against candidate `7c2f9e36453c6081db7641b7efae00c6e271fa39` at mobile and desktop widths.
+They verify menu links, horizontal bounds, keyboard controls, focus, license content, and reload.
+Final local CI passed formatting, Go vet, all Go tests, and both browser checks.
+Hosted browser run `34302289256` passed at `d38791cea7a2d2b892f7f785274503dd62bedd75`.
+
+GitHub confirms `ctx.mprlab.com` and the current `master:/docs` Pages source.
+Four public observations show the page and shared assets available, with a missing release marker.
+I001 retains the Pages resource, release identity, maintenance artifact, shared publication, cache transition, and public acceptance gates.
+
+Final B069 candidate qualification passed local CI and both browser cases.
+The local result includes separate telemetry and governance changes in the primary checkout.
+Hosted run `34342026342` passed at the final migration commit.
+The local log is `/tmp/ctx-i001-b069-ci.log`.
+
+### Gix
+
+I018 [PR #452](https://github.com/tyemirov/gix/pull/452) contains the migration at `5d4bfea6e6a4c16b44e23fea7d8954577e666bde`.
+The work started from clean source `a33e01cf2924cf7cda32b77a8cb7a76e5f51a93f`.
+The documentation footer uses the current menu and preserves all eleven product links and existing license content.
+The page retains literal `@latest` assets.
+
+The existing Chrome harness loads the real page with digest-verified candidate `7c2f9e36453c6081db7641b7efae00c6e271fa39`.
+Both viewport regressions first failed with the obsolete `links-collection` error, then passed after migration.
+They verify menu links, bounds, keyboard dismissal, focus, license content, and reload.
+Final local CI passed formatting, Go vet, staticcheck, ineffassign, application tests, 16 licensing tests, and the CLI integration suite.
+Hosted run `34303302514` passed on its second attempt at `c9334e8ddd898aba31443ed6c5507fa8546f9d67`.
+The first attempt hit a timeout in an unchanged startup test. Three local repetitions of that test also passed.
+The later commit records these results in documentation only.
+
+GitHub confirms `gix.mprlab.com` and the existing `gh-pages` publication branch.
+All four public observations returned HTTP 200, including the Pages release marker.
+The shared assets permit a seven-day browser cache and a twelve-hour shared cache.
+I018 retains maintenance preparation, shared publication, cache transition, and public acceptance.
+
+Final B069 candidate qualification passed native CI and both documentation browser scenarios.
+The log is `/tmp/gix-i018-b069-ci.log`.
+Hosted run `34342564849` passed at the final Gix commit.
+
+### Smith
+
+I010 [PR #105](https://github.com/MarcoPoloResearchLab/Smith/pull/105) contains the fixture migration at `cd865074442bee627973b781938a863045f9ba42`.
+The work started from `68aedae8135fceb14d73d240d63b4ba9f1ad4a09` and preserved existing Governor and Apple work.
+The selected profile supplies the explicit `/auth/session` endpoint.
+The fixture declares the provider map and preserves its local origin, example Google client, tenant, and other endpoints.
+The seeded hostname defect and public verifier use the same current contract.
+
+Eight verifier regressions and two real-browser checks failed before their corresponding fixes.
+Final `make -C mpr-integration ci` passed ten verifier tests, two browser tests, and the public fixture command.
+The verifier rejects obsolete fields, altered profile inputs, numeric provider flags, and duplicate YAML keys.
+Browser checks use digest-verified B069 candidate `768f25936497c5aabd426197d21c2100b6e5d9a1` at mobile and desktop widths.
+Final package CI passed again. The log is `/tmp/smith-i010-b069-ci.log`.
+The primary checkout returned to its separate Apple branch after the migration PR update.
+They verify controlled Google exchange, session restoration, tenant headers, and logout.
+
+Smith provides a development fixture, with no production website or deployment artifact.
+Its selected package uses local CI. Its repository tracks replacement of hosted Actions gates under I003.
+I010 retains shared publication and real-CDN fixture qualification.
+
+### Prompt Bubbles
+
+I027 [PR #192](https://github.com/MarcoPoloResearchLab/prompts/pull/192) contains the migration and B078 correction at `3742b600c605aaaeb94a7d7449a5afcfff835f0d`.
+The work started from `master` revision `0acba011af42f97e10132f8cae0150ab8a969597` and preserved existing Apple and Governor edits.
+All three environments preserve their Google identifier, tenant, origin, and `/me` endpoint under the provider map.
+The shared loader owns auth configuration and bundle startup. Protected operations use the shared request transport.
+The application retains its separate API routing and literal `@latest` inputs.
+Both footer producers use `menu`. The compact header preserves search space.
+
+Eight initial auth and footer regressions failed before migration.
+Later checks exposed a missing bootstrap deadline, stale shared logout state, and a narrow search layout defect.
+[B067 PR #213](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/213) fixes shared logout when fragment navigation keeps the same page.
+The candidate tests use digest-verified shared revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`.
+Eleven candidate checks and five responsive cases passed.
+Final native CI also passed fifteen agent tests, 100% Go coverage, and three lifecycle tests.
+The mobile gate then rejected existing Expo `57.0.20`, which requires `~57.0.21`. B077 records that separate mismatch.
+
+The real localhost suite passed API health, TAuth nonce issuance, prompt operations, imports, themes, and investor-page checks.
+The candidate suite controls Google, TAuth, and API responses for exchange, session restoration, mutation replay, and logout.
+Hosted run `34306921168` timed out after Chromium startup failed and left an HTTP fixture open.
+B078 adds Chromium installation and closes the fixture on startup failure.
+The missing-browser regression first exceeded its process deadline, then passed after the correction.
+Hosted [run 34309764203](https://github.com/MarcoPoloResearchLab/prompts/actions/runs/34309764203) passed startup, candidate, layout, backend, and lifecycle checks at `2cc9f5195e6ef33a325866b051b1a0d50095c8a9`.
+It then failed at the existing B077 Expo dependency mismatch.
+The [public asset record](https://github.com/MarcoPoloResearchLab/prompts/blob/9d540573356d1aea65b65421a13d0da85f7b731a/docs/mpr-ui/public-assets-2026-09-09.json) contains seven successful responses.
+GitHub confirms the `gh-pages` publication branch and `prompts.mprlab.com` domain.
+I027 retains maintenance preparation, final candidate qualification, publication, and real Google acceptance.
+
+Final B069 candidate qualification passed native CI in the primary checkout.
+The result includes the retained Apple work and B077 Expo correction outside the migration PR.
+Candidate checks, layouts, 100% Go coverage, mobile checks, and real localhost flows passed.
+Hosted run `34342788883` passed candidate, layout, agent, Go coverage, and lifecycle checks.
+Its mobile step rejected Expo `57.0.20`, which requires `~57.0.21` under B077.
+The separate review workflow passed in run `34342789443`.
+The committed migration branch retains the mobile qualification gate.
+The log is `/tmp/prompts-i027-b069-ci.log`.
+
+### SummerCan
+
+I099 [PR #105](https://github.com/MarcoPoloResearchLab/SummerCan/pull/105) contains the migration at `de49886cd91c26a2fa318fc89b9cfbba0a65e2d7`.
+The work started from clean `master` revision `0484f9e035d73e8aa2710587d5cbcea2d687dd2a`.
+Generated YAML preserves configured origins, Google identifiers, tenant identity, and `/me` under the provider map.
+The bootstrap waits for DOM readiness before shared orchestration and profile access.
+Protected requests use shared transport and the configured tenant header.
+All 49 public footers use current menus. Production assets retain literal `@latest` inputs.
+
+Two HTTP regressions and the initial browser check first failed against the obsolete contract.
+Final native CI passed with 100% Go and JavaScript coverage, including all 229 JavaScript tests.
+Four browser flows passed across two viewport widths and both origin configurations.
+They verify login, restored sessions, protected-request recovery, logout, and 196 footer cases.
+The final candidate is digest-verified B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1`.
+The final update passed native CI, four auth flows, and all 196 footer cases.
+Logs: `/tmp/summercan-i099-b069-ci.log` and `/tmp/summercan-i099-b069-focused.log`.
+GitHub Actions are disabled by the repository contract. Local CI supplies its required source validation.
+
+The public asset record contains ten successful observations, including the API config route and Pages release marker.
+GitHub confirms `gh-pages` and `summercan.mprlab.com`. The API config route declares `no-store`.
+I099 retains maintenance preparation, publication, and real Google acceptance.
+
+### Download Your Data
+
+I017 [PR #24](https://github.com/MarcoPoloResearchLab/download_your_data/pull/24) contains the migration at `f99c86e9c37bf47b7b07bc783fe59a5389158d04`.
+The work started from `master` revision `ea1f1f179a3e645a9785a5e36ba7e2b763159ab4` and preserved existing tracker edits.
+One serializer supplies the provider map to both API and Pages configuration.
+Protected requests use shared recovery and preserve the existing CSRF and authorization boundaries.
+The application retains its lifecycle buffer, anonymous guides, private workspaces, footer content, and literal `@latest` inputs.
+
+The HTTP regression first rejected flat configuration. A later browser regression failed on an expired protected read.
+Four browser flows now pass across two viewport widths and both origin configurations.
+They cover Google exchange, restored sessions, read recovery, mutation replay, logout, and footer content.
+Both existing browser suites pass with controlled Google and nonce responses.
+Final native CI passed, including Go tests, static checks, lifecycle checks, production artifacts, and browser suites.
+The repository has no hosted workflow. Local CI supplies its required source validation.
+
+The final candidate is digest-verified B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1`.
+Native CI passed with that candidate. The log is `/tmp/dyd-i017-b069-ci.log`.
+The [public asset record](https://github.com/MarcoPoloResearchLab/download_your_data/blob/d9621b0494ba49386bb2e7a265a8eec6c3edebe4/docs/mpr-ui/public-assets-2026-09-09.json) contains eight successful responses.
+GitHub confirms `gh-pages` and `dyd.mprlab.com`. Pages and API configuration bytes matched with different cache headers.
+Preparation exposed header overflow after Google nonce failure beside application controls.
+[B068 PR #214](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/214) corrects shared status layout at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
+B069 includes that correction. I017 retains maintenance preparation, publication, and real Google acceptance.
+
+### MediaOps
+
+I091 [PR #802](https://github.com/MarcoPoloResearchLab/MediaOps/pull/802) contains the migration at `165dcc126fb0ec1589e4af56f87a49f3dd170a02`.
+The work started from clean `master` revision `0f6e06d91d04b43df90fec692d0a024df2a916a1`.
+Both the Pages build and Go browser server generate the provider map.
+All ten pages use current footer menus and retain literal `@latest` assets.
+Protected requests use shared recovery with authorization before domain work.
+The application retains YouTube authorization, EventSource connections, compact navigation, and its landing-page logout behavior.
+
+The CLI and HTTP regressions first rejected the flat configuration.
+A browser regression then returned HTTP 401 for both a protected read and mutation.
+Four browser flows passed across two viewport widths and both origin configurations.
+They verify Google exchange, restoration after reload, request recovery, one mutation side effect, and logout.
+All ten footer menus passed at both widths.
+Final native CI passed with the required JavaScript, Go, and Python coverage.
+The local Docker browser suite passed all 45 scenarios against the Go server and media services.
+Chrome uses the browser server network namespace so localhost supplies the required secure browser APIs.
+The previous hosted run `34313237266` passed at `e0fc6859c5005cc749eb9c76c09e8b3c37a978fe`.
+Hosted run `34340846582` passed at the final candidate commit.
+
+The candidate is digest-verified B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1`.
+The final update passed native CI and all 45 Docker browser scenarios.
+Logs: `/tmp/mediaops-i091-b069-ci.log` and `/tmp/mediaops-i091-b069-docker-browser.log`.
+The [public asset record](https://github.com/MarcoPoloResearchLab/MediaOps/blob/e0fc6859c5005cc749eb9c76c09e8b3c37a978fe/docs/mpr-ui/public-assets-2026-09-09.json) contains nine successful responses.
+Pages responses advertised a 600-second cache lifetime, and the public release marker returned HTTP 200.
+I091 retains maintenance preparation, publication, and real Google acceptance.
+
+### Ledger
+
+B003 [PR #95](https://github.com/tyemirov/ledger/pull/95) is ready for review at `21e2ff9d4be4e67553dc42853d3e3e474426d952`.
+Its tests use candidate `768f25936497c5aabd426197d21c2100b6e5d9a1` with verified asset SHA-256 values.
+The source uses the nested Go config producer and the current footer menu.
+The existing shared transport retains Ledger authorization before domain work.
+The workspace now releases its loading overlay after authentication recovery.
+
+Two real-browser scenarios run the Ledger CLI, SQLite, config producer, browser client, and protected API.
+Controlled Google and TAuth responses establish the signed test session through the login response.
+At 390 and 1280 pixels, the tests cover login, restoration, read recovery, mutation recovery, logout, and documentation links.
+The mutation test verifies one persisted tenant after one rejected request and its successful repeat.
+The initial run failed because the documentation menu was absent.
+A later run reproduced the loading overlay that blocked logout after request recovery.
+
+Final local `make ci` passed static analysis, the Go coverage gate, eight browser scenarios, lifecycle checks, and the Pages artifact check.
+The log is `/tmp/ledger-b003-b069-ci.log`.
+This local result includes retained F002 working changes.
+The B003 PR reuses the existing nested producer and YAML script correction.
+Separate Pages, CORS, profile, deployment, and API changes remain outside B003.
+The previous hosted run `34314445178` passed at `4bf84be326d00260349e2284e730ac62f951484b`.
+Hosted run `34340480438` passed at the final candidate commit.
+
+The public website still fails certificate hostname validation.
+The API health request fails its TLS handshake.
+B003 remains open for shared publication, valid TLS, the complete F002 release unit, and live authentication acceptance.
+
+### PoodleScanner
+
+I087 [PR #931](https://github.com/MarcoPoloResearchLab/PoodleScanner/pull/931) is ready for review at `59cd27eac2e12c7676335186dd98ac02e15ba88c`.
+It is stacked on B211, which corrects the catalog editor after a same-catalog refresh.
+The candidate is B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1` with verified asset digests.
+The API producer emits the nested provider map with environment-owned Google values.
+All 37 pages use literal `@latest` URLs and preserve their footer labels and destinations.
+Protected requests now use shared session recovery with authorization before domain mutations.
+
+Four browser scenarios exercise the real API, frontend, shared library, browser client, and persistence.
+They cover split-origin and local-compose profiles at 390 and 1280 pixels.
+Controlled Google and TAuth responses prove login, restoration, read recovery, mutation recovery, and logout.
+The mutation check verifies one persisted catalog after one rejected request and its successful repeat.
+Five browser acceptance scenarios now load the actual shared assets instead of the simulated config loader.
+Fourteen pricing scenarios use controlled Google exchanges and preserve the final selected plan after a canceled login.
+
+Final native CI passed all 588 browser scenarios with two expected skips.
+The frontend coverage gate failed at 95.9 percent against 97 percent, as it did before I087.
+Backend coverage qualification remains open.
+The log is `/tmp/poodlescanner-i087-ci-final.log`.
+Hosted run `34320281515` passed all 588 browser scenarios at the exact migration commit.
+It failed the same 95.9 percent frontend coverage gate.
+All twelve pre-existing changed files remained outside the migration commit and retained their original bytes.
+
+The public website, app, release marker, and three shared assets returned HTTP 200.
+The API config endpoint refused the connection.
+The published shared bytes differ from the candidate.
+The [migration record](https://github.com/MarcoPoloResearchLab/PoodleScanner/blob/59cd27eac2e12c7676335186dd98ac02e15ba88c/docs/mpr-ui-migration.md) retains coverage, hosted CI, cache preparation, publication, and public Google acceptance gates.
+
+### llm-proxy
+
+I260 [PR #320](https://github.com/tyemirov/llm-proxy/pull/320) is ready for review at `3575ef5f2a6673192d9658814faed4e92cb4a5ab`.
+The work started from clean `master` revision `64c81e87ef8f0764877e720ed2842f84fde725e3`.
+The API and static config preserve their Google identifiers and origins under `auth.providers`.
+The static config now declares `/auth/session`.
+All 52 generated footers retain their project labels and destinations under `menu`.
+Protected management requests use `MPRUI.authenticatedFetch` with authorization before domain work.
+
+B206 corrects the application transition after shared session recovery.
+The browser regression first reproduced the blocked user menu after read and mutation recovery.
+The correction preserves application state and completes the configured transition.
+The final browser scenarios verify user-menu access and logout after recovery.
+
+The tests use digest-verified B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1`.
+Four migration scenarios cover frontend and direct TAuth origins at 390px and 1280px.
+Each scenario verifies login, restoration, read recovery, one persisted mutation after recovery, logout, and the project menu.
+The tests use the real Go CLI, TAuth, SQLite, application modules, and shared assets.
+The Google fixture controls the external credential response. It does not establish real Google acceptance.
+
+Final native `make ci` passed all 12 gates in 345 seconds.
+The run passed 100 percent Go coverage, 114 application browser tests, six TAuth/MCP scenarios, Python checks, and the Pages artifact check.
+Hosted run `34323669933` passed all three jobs against the exact PR commit.
+
+The [migration record](https://github.com/tyemirov/llm-proxy/blob/3575ef5f2a6673192d9658814faed4e92cb4a5ab/docs/mpr-ui-migration.md) contains exact candidate digests and seven public HTTP observations.
+The website, application, release marker, API config, and three published shared assets returned HTTP 200 from one network location.
+The published shared asset digests differ from B069.
+I260 retains final-candidate qualification, coordinated publication, cache convergence, and real Google acceptance.
+
+### LoopAware
+
+I042 [PR #368](https://github.com/tyemirov/loopaware/pull/368) is ready for review at `55bbe2c2007bb9006d665df157932b32a3432fce`.
+The migration uses shared B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1`.
+The test helper verifies all three candidate digests before browser use.
+Production URLs retain literal `@latest`.
+
+Both config environments use the provider map with their existing identities and endpoints.
+The Go renderer and 41 static footers use the sectioned menu.
+The conversion preserves all project labels, destinations, utility links, and theme config.
+The asset audit checks 49 HTML entries and 44 shared asset declarations.
+Other external asset pins, integrity checks, and CSP checks remain active.
+
+Protected dashboard requests use `MPRUI.authenticatedFetch` with authorization before domain work.
+Startup waits for shared orchestration and authentication.
+The application clears its transition after session recovery.
+Seven focused browser checks passed against B069.
+Four scenarios cover both origin configurations at 390px and 1280px.
+Each verifies login, reload, read recovery, mutation recovery, one persisted site, and logout.
+The Go API and local database remain real while Google and TAuth protocol fixtures control external responses.
+
+Final local `make ci` passed, including all 472 integration scenarios, Go race checks, and mobile preparation checks.
+All 100 authentication, logout, and browser-security checks also passed as a focused suite.
+The local CI result qualified application commit `3fe94be458df11636bae47c399fb11e354e118de`.
+A concurrent commit added only Apple-guide documentation and restarted hosted CI.
+Run `34327779046` was cancelled by the replacement run.
+Hosted run `34328909035` passed at `55bbe2c2007bb9006d665df157932b32a3432fce`.
+The application source and tests remain unchanged.
+
+The [migration record](https://github.com/tyemirov/loopaware/blob/3fe94be458df11636bae47c399fb11e354e118de/docs/mpr-ui-migration.md) contains candidate digests and seven dated public HTTP observations.
+All seven requests returned HTTP 200 from one network location.
+The published shared asset digests differ from B069.
+I042 records completed and verified repository work.
+Central I009 retains final-candidate qualification, coordinated publication, cache convergence, and real Google acceptance.
+
+### Personal Website
+
+I001 [PR #7](https://github.com/tyemirov/tyemirov.github.io/pull/7) is ready for review at `9c3822ae311112cd09bf12a9d2afc60799055b03`.
+The migration uses B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1`.
+The test helper verifies all three shared candidate digests.
+All public MPR UI inputs retain literal `@latest`.
+
+One module initializes the sectioned menu on all 14 page entry points.
+The project links come from `MPRUI.getFooterSiteCatalog()`.
+The homepage and music pages retain the contact link and use shared theme configuration.
+A common stylesheet removes duplicate attribution and corrects footer padding overflow on two phone layouts.
+The content catalog, article links, tracking pixel, gallery code, and music service retain their existing contracts.
+
+All 36 focused Chromium checks passed, including catalog behavior and delayed library initialization.
+Final `make music-ci-container` passed native Linux CI with 234 browser checks and 18 engine-specific skips.
+All 116 new footer and theme checks passed across four browser projects.
+The lifecycle, artifact, Go race, and media checks also passed.
+Both actual Pages and media image checks passed through `make music-container-test`.
+The 21 changed source and test files match the passing CI image byte for byte.
+The repository has no hosted CI workflow.
+
+The [migration record](https://github.com/tyemirov/tyemirov.github.io/blob/9c3822ae311112cd09bf12a9d2afc60799055b03/docs/mpr-ui-migration.md) contains candidate digests and seven public HTTP observations.
+All seven requests returned HTTP 200 from one network location.
+The published CSS and JavaScript digests differ from B069.
+Central I009 retains coordinated publication, cache convergence, and public acceptance.
+F001 retains its existing music production gates.
+
+### Final Candidate Qualification
+
+The first seven historical application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
+Gix and the earlier consumers first used revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
+Prompt Bubbles and other consumers previously used revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
+MediaOps and Ledger previously used the B068 candidate.
+B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
+Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
+The config loader and CSS digests stay unchanged through B068.
+These consumers use B069:
+
+- Investor portal, Hecate, NameSignal, LikeMe, Pinguin, and WriterBlock.
+- Gravity, Ledger, MediaOps, SummerCan, Download Your Data, and Smith.
+- CTX, Gix, Social Threader, Prompt Bubbles, PoodleScanner, llm-proxy, LoopAware, and the personal website.
+
+B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
+[B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
+Visible authentication errors retain their layout.
+Its CSS digest is `351bbf6c15054528a651571d8c8bd85536eea76c3e574f9335e6cd413878923f`.
+Its JavaScript and config loader digests match B068.
+B066 passed 210 Node checks, 134 end-to-end checks, coverage, and Pages artifact validation locally.
+B067 passed 210 Node checks, 136 end-to-end checks, coverage, and Pages artifact validation locally.
+B068 passed 210 Node checks, 139 end-to-end checks, coverage, and Pages artifact validation locally.
+B069 passed 210 Node checks, 141 end-to-end checks, coverage, and Pages artifact validation locally.
+The hosted workflow accepts PRs into `master` only, so these four stacked fixes retain that CI gate.
+
+All 20 consumer repositories now have migration PRs.
+All 18 open consumer PRs are ready for review. The llm-proxy and LoopAware PRs are merged.
+Use B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1` as the final qualification input.
+All 20 consumer PRs now record that candidate and verify its asset digests.
+The result sections record each final commit and its local validation scope.
+Complete the recorded committed-source and hosted CI gates before publication.
+Earlier candidate results retain their original validation scope.
 
 ## Patch Procedure
 
