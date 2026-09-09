@@ -44,7 +44,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | WriterBlock | Config, two pages, auth bootstrap, and candidate tests implemented in I014 | Local CI passed. Complete hosted CI, shared publication, cache transition, and real Google acceptance. |
 | gravity | Config, generator, two pages, and candidate checks implemented in I002 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
 | LikeMe | Footer and exported-page checks implemented in I001 | Local and hosted CI passed. Complete shared publication, cache transition, and public acceptance. |
-| ctx | None | Inspect current component markup and public asset requests. Confirm the production origin from its application owner. |
+| ctx | Footer and real-page checks implemented in I001 | Local and hosted browser CI passed. Complete Pages publication preparation, shared publication, cache transition, and public acceptance. |
 | gix | Footer | Verify documentation navigation and theme behavior. Confirm the production origin from its application owner. |
 | marcopolo.github.io | Six public footers implemented in F005 | Source migration and candidate tests passed. Complete published shared-asset qualification and F007 hosted acceptance. |
 | tyemirov.github.io | 14 pages | Verify older header and footer attributes against the complete current contract. Verify gallery and music page behavior. |
@@ -195,7 +195,7 @@ I002 retains shared publication, cache qualification, and real Google acceptance
 
 ### Social Threader
 
-I003 [PR #71](https://github.com/MarcoPoloResearchLab/social_threader/pull/71) contains the migration at `6e21483a2d74fc853529e29c4b60b96535880d8b`.
+I003 [PR #71](https://github.com/MarcoPoloResearchLab/social_threader/pull/71) contains the migration at `17541719ee839eeebeec44fa71f643f0321c76c7`.
 The work started from `e64b52587ade8761f1ab580be32de4c3c802e6ae` and preserved existing governance edits.
 Both environments declare the provider map and preserve Google identifiers, tenant, origins, and `/auth/session`.
 The application accepts the canonical snapshot `status` and retains guest controls.
@@ -206,17 +206,36 @@ The real page exposed B066: the mobile sign-out control extended beyond the view
 All four Social Threader candidate flows passed against shared revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`.
 They cover both environments at mobile and desktop widths, controlled Google exchange, reload, toolbar state, keyboard controls, and logout.
 Final native CI passed 44 headless checks, ten browser checks, backend checks, lint, module verification, and 33 mobile tests.
-It then stopped at the existing Expo dependency mismatch, recorded as B009.
-Hosted CI remains pending.
+Current master was merged forward to resolve a tracker conflict. The image-picker dependency check then passed.
+Expo `57.0.20` still requires `~57.0.21` under B009.
+Hosted run `34301824325` passed browser, API, container, and local-stack checks at `e83e2a5feddd6449213351a27b77623d0a64c531`.
+Its mobile job confirms the same Expo failure.
 
 The application records six public asset observations from one network location.
 The public shared assets still permit a seven-day browser cache and a twelve-hour shared cache.
 I003 retains shared publication, cache transition, and real Google acceptance.
 
+### CTX
+
+I001 [PR #137](https://github.com/tyemirov/ctx/pull/137) contains the migration at `1caf652031b424b2326dc00fff33b5f661bf8353`.
+The work started from `0f7beb749860091637e417ec8d17146da489c9b5` and preserved existing governance and telemetry edits.
+The documentation footer uses the current menu and preserves all four resource links and MIT license content.
+The page retains literal `@latest` assets.
+
+Both real-page regressions failed before the footer change.
+Both passed against candidate `7c2f9e36453c6081db7641b7efae00c6e271fa39` at mobile and desktop widths.
+They verify menu links, horizontal bounds, keyboard controls, focus, license content, and reload.
+Final local CI passed formatting, Go vet, all Go tests, and both browser checks.
+Hosted browser run `34302289256` passed at `d38791cea7a2d2b892f7f785274503dd62bedd75`.
+
+GitHub confirms `ctx.mprlab.com` and the current `master:/docs` Pages source.
+Four public observations show the page and shared assets available, with a missing release marker.
+I001 retains the Pages resource, release identity, maintenance artifact, shared publication, cache transition, and public acceptance gates.
+
 ### Final Candidate Qualification
 
 The first seven application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
-Social Threader uses revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
+Social Threader and CTX use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
 The config loader and CSS digests are unchanged. The JavaScript bundle digest changes.
 B066 passed 210 Node checks, 134 end-to-end checks, coverage, and Pages artifact validation locally.
 Its hosted workflow accepts PRs into `master` only, so its stacked PR retains that CI gate.
