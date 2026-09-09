@@ -97,7 +97,7 @@ test.describe('Standalone login button presentation', () => {
     ]);
 
     await googleControl.click();
-    await expect(page.getByRole('status')).toBeEmpty();
+    await expect(page.getByRole('status', { includeHidden: true })).toBeEmpty();
     await expect(googleControl).toBeEnabled();
 
     await page.evaluate(() => {
@@ -142,7 +142,7 @@ test.describe('Standalone login button presentation', () => {
 
     await googleControl.click();
 
-    await expect(page.getByRole('status')).toBeEmpty();
+    await expect(page.getByRole('status', { includeHidden: true })).toBeEmpty();
 
     expect(await renderedGeometry(controlGroup)).toEqual(initialGroupGeometry);
     expect(await renderedGeometry(googleControl)).toEqual(initialControlGeometry);

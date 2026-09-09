@@ -12,6 +12,27 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [!] [B069] (P1) {B068} Remove empty status space from standalone login controls
+  Goal: An empty authentication status adds no height to a standalone login control.
+  Evidence:
+  PoodleScanner measured a 56.89-pixel login shell beside 36-pixel navigation links after the provider-map migration.
+  The empty status paragraph retains its minimum height and grid gap outside a shared header.
+  Requirements:
+  - Hide empty status paragraphs for every shared authentication surface.
+  - Preserve visible error messages and their accessible status role.
+  - Restore the original control height after an error clears.
+  Validation:
+  - Reproduce the empty space through the real standalone login fixture.
+  - Verify narrow and wide geometry before an error, during an error, and after recovery.
+  - Pass native CI before source delivery.
+  - Qualify the published candidate with application migrations separately.
+  Preparation:
+  - The empty-status rule now applies to every shared authentication surface.
+  - Both new browser cases failed before the CSS change and passed after it.
+  - Native CI passed 210 Node checks, 141 browser checks, coverage, and Pages artifact validation.
+  Blocked: Hosted qualification, shared publication, and final application qualification remain pending.
+
+
 - [!] [B068] (P1) Keep authentication errors within the header width
   Goal: Google startup errors remain readable beside application controls at narrow viewport widths.
   Requirements:
