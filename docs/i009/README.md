@@ -42,7 +42,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | PoodleScanner | 37 pages | Convert `internal/handlers/runtime_config.go`. Update producer tests and generated Pages checks. Preserve environment-owned provider identifiers. |
 | loopaware | Config and 44 pages | Convert `pkg/footer/footer.go` and its callers to the current menu contract. Update auth fixtures and generated resource pages. |
 | WriterBlock | Config, two pages, auth bootstrap, and candidate tests implemented in I014 | Local CI passed. Complete hosted CI, shared publication, cache transition, and real Google acceptance. |
-| gravity | Two pages | Set the explicit session endpoint. Convert `frontend/config-ui.yaml`. Remove `authButton`. Update browser fixtures and config expectations. |
+| gravity | Config, generator, two pages, and candidate checks implemented in I002 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
 | LikeMe | Footer and exported-page checks implemented in I001 | Local and hosted CI passed. Complete shared publication, cache transition, and public acceptance. |
 | ctx | None | Inspect current component markup and public asset requests. Confirm the production origin from its application owner. |
 | gix | Footer | Verify documentation navigation and theme behavior. Confirm the production origin from its application owner. |
@@ -149,6 +149,50 @@ The pages and configuration declare `max-age=600`. Shared assets declare `max-ag
 I004 retains shared publication, cache qualification, and real Google acceptance as separate gates.
 F001 retains its separate managed tenant conversion requirements.
 
+### WriterBlock
+
+I014 [PR #51](https://github.com/MarcoPoloResearchLab/WriterBlock/pull/51) contains the migration at `07014699f7a83337a1bb336210072db100f052ca`.
+The work started from `master` revision `e5632fac3e578bce8ebf63c1fa5ea5dd3108f06f` and preserved existing governance edits.
+Both pages use literal `@latest` assets. Both environments declare the provider map and `/me`.
+The bootstrap uses `MPRUI.applyYamlConfig()` to apply auth attributes before bundle startup.
+The editor uses its live session probe and the shared lifecycle event to populate the account control.
+The application no longer uses a testing-only profile API in its route guard.
+
+The initial browser run passed 159 tests and failed one test because WebKit was absent.
+The required WebKit executable was then installed.
+Four new checks failed before migration because the pages lacked the provider contract.
+Final `make ci` passed 166 browser tests, eight separate WebKit checks, and 100% frontend and backend coverage.
+The complete browser suite uses digest-verified candidate `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
+Six new checks cover both page sizes, menu keyboard controls, reload, logout, Google exchange, and a separate auth origin.
+The settings image was reviewed and updated with a controlled prompt response.
+The repository has no hosted CI workflow. I014 records that open acceptance gate.
+
+The [public asset record](https://github.com/MarcoPoloResearchLab/WriterBlock/blob/07014699f7a83337a1bb336210072db100f052ca/docs/mpr-ui/public-assets-2026-09-09.json) contains nine observations from one network location.
+The pages and config declare `max-age=600`. All three `@latest` assets declare `max-age=604800` and `s-maxage=43200`.
+I014 retains shared publication, cache qualification, and real Google acceptance as separate gates.
+
+### Gravity
+
+I002 [PR #228](https://github.com/MarcoPoloResearchLab/gravity/pull/228) contains the migration at `b9ab15cb6f6934e2a6ace5b885811de755cfd08f`.
+The work started from `master` revision `5f5e8e4176c906b2b60acb5058e6e23b40a11bc7` and preserved existing governance edits.
+The production YAML and local config generator now declare the provider map and `/me`.
+Both pages use literal `@latest` assets. The editor footer uses the current menu contract.
+The browser workflow includes config, generator, dependency, and workflow changes in its path filters.
+
+Initial `make ci` passed 153 frontend suite runs across three iterations, plus backend and lifecycle checks.
+The new generator and real-page checks failed before the production migration.
+Final `make ci` passed 156 frontend suite runs, plus backend and lifecycle checks.
+Seven focused checks use digest-verified candidate `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
+They cover generated config, both page widths, Google exchange, notebook startup, session restoration, keyboard controls, and logout.
+The real notebook API returns HTTP 200 after controlled sign-in and HTTP 401 after logout.
+The existing editor suites retain their component doubles. The new suite supplies the shared-library acceptance evidence.
+Hosted [CI run 34299549975](https://github.com/MarcoPoloResearchLab/gravity/actions/runs/34299549975) passed at `c85c80ac0c64d3908bf25ca4cdbe8712d31daeba`.
+The subsequent commit records the result in documentation only.
+
+The [public asset record](https://github.com/MarcoPoloResearchLab/gravity/blob/c85c80ac0c64d3908bf25ca4cdbe8712d31daeba/docs/mpr-ui/public-assets-2026-09-09.json) contains ten observations from one network location.
+All ten requests returned HTTP 200. The public loader differs from the tested candidate.
+I002 retains shared publication, cache qualification, and real Google acceptance as separate gates.
+
 ## Patch Procedure
 
 Set the application repository and its matching patch path from the inventory.
@@ -197,25 +241,3 @@ The package records this failure without bypassing TLS validation.
 The provider-map migration and footer migration affect the same shared release.
 Every live consumer of the changed contracts must complete application preparation before that release is published.
 The [deployment plan](../config-migration-deployment-plan.md) defines the coordinated cutover and the user-owned production gates.
-
-### WriterBlock
-
-I014 [PR #51](https://github.com/MarcoPoloResearchLab/WriterBlock/pull/51) contains the migration at `07014699f7a83337a1bb336210072db100f052ca`.
-The work started from `master` revision `e5632fac3e578bce8ebf63c1fa5ea5dd3108f06f` and preserved existing governance edits.
-Both pages use literal `@latest` assets. Both environments declare the provider map and `/me`.
-The bootstrap uses `MPRUI.applyYamlConfig()` to apply auth attributes before bundle startup.
-The editor uses its live session probe and the shared lifecycle event to populate the account control.
-The application no longer uses a testing-only profile API in its route guard.
-
-The initial browser run passed 159 tests and failed one test because WebKit was absent.
-The required WebKit executable was then installed.
-Four new checks failed before migration because the pages lacked the provider contract.
-Final `make ci` passed 166 browser tests, eight separate WebKit checks, and 100% frontend and backend coverage.
-The complete browser suite uses digest-verified candidate `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
-Six new checks cover both page sizes, menu keyboard controls, reload, logout, Google exchange, and a separate auth origin.
-The settings image was reviewed and updated with a controlled prompt response.
-The repository has no hosted CI workflow. I014 records that open acceptance gate.
-
-The [public asset record](https://github.com/MarcoPoloResearchLab/WriterBlock/blob/07014699f7a83337a1bb336210072db100f052ca/docs/mpr-ui/public-assets-2026-09-09.json) contains nine observations from one network location.
-The pages and config declare `max-age=600`. All three `@latest` assets declare `max-age=604800` and `s-maxage=43200`.
-I014 retains shared publication, cache qualification, and real Google acceptance as separate gates.
