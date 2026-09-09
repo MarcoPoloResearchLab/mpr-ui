@@ -37,7 +37,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | prompts | Config, auth bootstrap, request transport, footers, and browser checks implemented in I027 | Browser and backend checks passed. B077 records the Expo dependency mismatch. Complete shared publication, cache transition, and real Google acceptance. |
 | SummerCan | Generated config, shared auth, and 49 public footers implemented in I099 | Native CI passed with 100% Go and JavaScript coverage. Complete final candidate, maintenance, publication, and real Google gates. |
 | download_your_data | Shared serializer, protected transport, and browser checks implemented in I017 | Native CI passed. Complete shared B068, final candidate qualification, maintenance preparation, publication, and real Google acceptance. |
-| MediaOps | Ten pages | Convert `scripts/render-pages-config.mjs` and `internal/webapp/web_e2e.go`. Verify exported YAML and every workspace page. |
+| MediaOps | Both config producers, shared transport, and ten footers implemented in I091 | Local CI and 45 Docker browser scenarios passed. Complete hosted CI, final candidate, maintenance, publication, and real Google gates. |
 | ledger | Footer | Verify the existing nested producer in `internal/controlplane/ui.go`. Resolve public TLS and complete B003 acceptance. |
 | PoodleScanner | 37 pages | Convert `internal/handlers/runtime_config.go`. Update producer tests and generated Pages checks. Preserve environment-owned provider identifiers. |
 | loopaware | Config and 44 pages | Convert `pkg/footer/footer.go` and its callers to the current menu contract. Update auth fixtures and generated resource pages. |
@@ -340,11 +340,36 @@ Preparation exposed header overflow after Google nonce failure beside applicatio
 [B068 PR #214](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/214) corrects shared status layout at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 I017 retains that shared correction, final candidate qualification, maintenance preparation, publication, and real Google acceptance.
 
+### MediaOps
+
+I091 [PR #802](https://github.com/MarcoPoloResearchLab/MediaOps/pull/802) contains the migration at `e0fc6859c5005cc749eb9c76c09e8b3c37a978fe`.
+The work started from clean `master` revision `0f6e06d91d04b43df90fec692d0a024df2a916a1`.
+Both the Pages build and Go browser server generate the provider map.
+All ten pages use current footer menus and retain literal `@latest` assets.
+Protected requests use shared recovery with authorization before domain work.
+The application retains YouTube authorization, EventSource connections, compact navigation, and its landing-page logout behavior.
+
+The CLI and HTTP regressions first rejected the flat configuration.
+A browser regression then returned HTTP 401 for both a protected read and mutation.
+Four browser flows passed across two viewport widths and both origin configurations.
+They verify Google exchange, restoration after reload, request recovery, one mutation side effect, and logout.
+All ten footer menus passed at both widths.
+Final native CI passed with the required JavaScript, Go, and Python coverage.
+The local Docker browser suite passed all 45 scenarios against the Go server and media services.
+Chrome uses the browser server network namespace so localhost supplies the required secure browser APIs.
+Hosted run `34313237266` is queued at the same source revision.
+
+The candidate is digest-verified revision `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
+The [public asset record](https://github.com/MarcoPoloResearchLab/MediaOps/blob/e0fc6859c5005cc749eb9c76c09e8b3c37a978fe/docs/mpr-ui/public-assets-2026-09-09.json) contains nine successful responses.
+Pages responses advertised a 600-second cache lifetime, and the public release marker returned HTTP 200.
+I091 retains final candidate qualification, maintenance preparation, publication, and real Google acceptance.
+
 ### Final Candidate Qualification
 
 The first seven application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
 Social Threader, CTX, Gix, and Smith use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
 Prompt Bubbles, SummerCan, and Download Your Data use revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
+MediaOps uses the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests are unchanged. Each subsequent candidate changes the JavaScript bundle digest.
