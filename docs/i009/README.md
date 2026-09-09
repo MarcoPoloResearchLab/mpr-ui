@@ -256,7 +256,7 @@ They cover both page sizes, real expired-cookie rejections, unchanged retry payl
 The token helper permits explicit negative lifetimes. The browser capture reads streamed request bodies.
 Google and TAuth responses remain controlled external boundaries.
 Final `make ci` passed all 156 suite runs across three iterations, backend checks, and lifecycle checks.
-Hosted run `34339266863` is in progress at this exact revision.
+Hosted run `34339266863` passed at this exact revision.
 
 ### Social Threader
 
@@ -431,8 +431,8 @@ I091 retains final candidate qualification, maintenance preparation, publication
 
 ### Ledger
 
-B003 [PR #95](https://github.com/tyemirov/ledger/pull/95) is ready for review at `4bf84be326d00260349e2284e730ac62f951484b`.
-Its tests use candidate `bbc21cc264d96b51195e0c1a264ad43f14a205ad` with verified asset SHA-256 values.
+B003 [PR #95](https://github.com/tyemirov/ledger/pull/95) is ready for review at `21e2ff9d4be4e67553dc42853d3e3e474426d952`.
+Its tests use candidate `768f25936497c5aabd426197d21c2100b6e5d9a1` with verified asset SHA-256 values.
 The source uses the nested Go config producer and the current footer menu.
 The existing shared transport retains Ledger authorization before domain work.
 The workspace now releases its loading overlay after authentication recovery.
@@ -445,11 +445,12 @@ The initial run failed because the documentation menu was absent.
 A later run reproduced the loading overlay that blocked logout after request recovery.
 
 Final local `make ci` passed static analysis, the Go coverage gate, eight browser scenarios, lifecycle checks, and the Pages artifact check.
-The log is `/tmp/ledger-b003-ci-final.log`.
+The log is `/tmp/ledger-b003-b069-ci.log`.
 This local result includes retained F002 working changes.
 The B003 PR reuses the existing nested producer and YAML script correction.
 Separate Pages, CORS, profile, deployment, and API changes remain outside B003.
-Hosted run `34314445178` passed at the exact B003 commit.
+The previous hosted run `34314445178` passed at `4bf84be326d00260349e2284e730ac62f951484b`.
+Hosted qualification for the final candidate update is pending.
 
 The public website still fails certificate hostname validation.
 The API health request fails its TLS handshake.
@@ -580,11 +581,11 @@ F001 retains its existing music production gates.
 The first seven historical application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
 Social Threader, CTX, Gix, and Smith use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
 Prompt Bubbles, SummerCan, and Download Your Data use revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
-MediaOps and Ledger use the B068 candidate.
+MediaOps uses the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-The investor portal, Hecate, NameSignal, LikeMe, Pinguin, WriterBlock, Gravity, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
+The investor portal, Hecate, NameSignal, LikeMe, Pinguin, WriterBlock, Gravity, Ledger, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
