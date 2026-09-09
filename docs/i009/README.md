@@ -45,10 +45,10 @@ Use each repository's current agent instructions and test-driven sequence.
 | gravity | Config, generator, two pages, and candidate checks implemented in I002 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
 | LikeMe | Footer and exported-page checks implemented in I001 | Local and hosted CI passed. Complete shared publication, cache transition, and public acceptance. |
 | ctx | Footer and real-page checks implemented in I001 | Local and hosted browser CI passed. Complete Pages publication preparation, shared publication, cache transition, and public acceptance. |
-| gix | Footer | Verify documentation navigation and theme behavior. Confirm the production origin from its application owner. |
+| gix | Footer and real-page checks implemented in I018 | Local CI passed. Complete hosted CI, maintenance preparation, shared publication, cache transition, and public acceptance. |
 | marcopolo.github.io | Six public footers implemented in F005 | Source migration and candidate tests passed. Complete published shared-asset qualification and F007 hosted acceptance. |
 | tyemirov.github.io | 14 pages | Verify older header and footer attributes against the complete current contract. Verify gallery and music page behavior. |
-| Smith | None | Convert the integration fixture after its explicit session endpoint is confirmed. Update the canonical fixture verification command. |
+| Smith | Fixture migration pending | TAuth exposes `/auth/session`. Add that explicit profile input, migrate the fixture and seeded patch, and update its verification command. |
 
 Keep backend-owned Google configuration under its existing owner.
 For example, `NameSignal/configs/pinguin-config.yaml` is not an MPR UI config producer.
@@ -232,10 +232,28 @@ GitHub confirms `ctx.mprlab.com` and the current `master:/docs` Pages source.
 Four public observations show the page and shared assets available, with a missing release marker.
 I001 retains the Pages resource, release identity, maintenance artifact, shared publication, cache transition, and public acceptance gates.
 
+### Gix
+
+I018 [PR #452](https://github.com/tyemirov/gix/pull/452) contains the migration at `c9334e8ddd898aba31443ed6c5507fa8546f9d67`.
+The work started from clean source `a33e01cf2924cf7cda32b77a8cb7a76e5f51a93f`.
+The documentation footer uses the current menu and preserves all eleven product links and existing license content.
+The page retains literal `@latest` assets.
+
+The existing Chrome harness loads the real page with digest-verified candidate `7c2f9e36453c6081db7641b7efae00c6e271fa39`.
+Both viewport regressions first failed with the obsolete `links-collection` error, then passed after migration.
+They verify menu links, bounds, keyboard dismissal, focus, license content, and reload.
+Final local CI passed formatting, Go vet, staticcheck, ineffassign, application tests, 16 licensing tests, and the CLI integration suite.
+Hosted CI remains pending.
+
+GitHub confirms `gix.mprlab.com` and the existing `gh-pages` publication branch.
+All four public observations returned HTTP 200, including the Pages release marker.
+The shared assets permit a seven-day browser cache and a twelve-hour shared cache.
+I018 retains maintenance preparation, shared publication, cache transition, and public acceptance.
+
 ### Final Candidate Qualification
 
 The first seven application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
-Social Threader and CTX use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
+Social Threader, CTX, and Gix use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
 The config loader and CSS digests are unchanged. The JavaScript bundle digest changes.
 B066 passed 210 Node checks, 134 end-to-end checks, coverage, and Pages artifact validation locally.
 Its hosted workflow accepts PRs into `master` only, so its stacked PR retains that CI gate.
