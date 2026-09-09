@@ -1,0 +1,50 @@
+--- a/app/index.html
++++ b/app/index.html
+@@ -12,7 +12,7 @@
+     <link rel="stylesheet" href="../styles.auth.css?v=20260425-b074" />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@394fa27ff1fd7c2a3250b3c86c2e55b0be3c8cbe/mpr-ui.css"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+     />
+   </head>
+   <body class="appPage">
+@@ -207,11 +207,11 @@
+     <script defer src="../auth-config.js?v=20260425-b074"></script>
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script defer src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+-    <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@394fa27ff1fd7c2a3250b3c86c2e55b0be3c8cbe/mpr-ui-config.js"></script>
++    <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"></script>
+     <script
+       id="mpr-ui-bundle"
+       type="application/json"
+-      data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@394fa27ff1fd7c2a3250b3c86c2e55b0be3c8cbe/mpr-ui.js"
++      data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+     ></script>
+     <script defer src="../js/core/mprUiLoader.js?v=20260425-b074"></script>
+ 
+--- a/index.html
++++ b/index.html
+@@ -11,7 +11,7 @@
+     <link rel="stylesheet" href="./styles.auth.css?v=20260425-b074" />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@394fa27ff1fd7c2a3250b3c86c2e55b0be3c8cbe/mpr-ui.css"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+     />
+   </head>
+   <body class="landingPage">
+@@ -46,11 +46,11 @@
+     <script defer src="./auth-config.js?v=20260425-b074"></script>
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script defer src="https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/dist/js-yaml.min.js"></script>
+-    <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@394fa27ff1fd7c2a3250b3c86c2e55b0be3c8cbe/mpr-ui-config.js"></script>
++    <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"></script>
+     <script
+       id="mpr-ui-bundle"
+       type="application/json"
+-      data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@394fa27ff1fd7c2a3250b3c86c2e55b0be3c8cbe/mpr-ui.js"
++      data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+     ></script>
+     <script defer src="./js/core/mprUiLoader.js?v=20260425-b074"></script>
+     <script defer src="./auth-landing.js?v=20260425-b074"></script>

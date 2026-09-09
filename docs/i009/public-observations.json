@@ -1,0 +1,477 @@
+[
+  {
+    "repo": "Hecate",
+    "observations": [
+      {
+        "url": "https://hecate.mprlab.com/",
+        "status": 200,
+        "final_url": "https://hecate.mprlab.com/",
+        "sha256": "06ed7bf92ef55a59930ad53511ee91d206c17b56d5445f914e4ba597ae7604f8",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://hecate.mprlab.com/config-ui.yaml",
+        "status": 200,
+        "final_url": "https://hecate.mprlab.com/config-ui.yaml",
+        "sha256": "0c73abf283982649b14eb597f0fcced02db48029c1d63d9a495bf2ff26498cb0",
+        "type": "text/yaml",
+        "refs": [],
+        "flat": true,
+        "provider_map": false,
+        "authButton": false
+      }
+    ]
+  },
+  {
+    "repo": "NameSignal",
+    "observations": [
+      {
+        "url": "https://namesignal.mprlab.com/",
+        "status": 200,
+        "final_url": "https://namesignal.mprlab.com/",
+        "sha256": "453e4d74fbfcf6e499d3d73e6ab1569266bb7af9bcfd2d89c8a25bd750ddd4e3",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://namesignal.mprlab.com/config-ui.yaml",
+        "status": 200,
+        "final_url": "https://namesignal.mprlab.com/config-ui.yaml",
+        "sha256": "1ad3ec4967d364d07f52db8c61fc1c29b890e1eba99e45f1495f4e93821367ac",
+        "type": "text/yaml",
+        "refs": [],
+        "flat": true,
+        "provider_map": false,
+        "authButton": true
+      }
+    ]
+  },
+  {
+    "repo": "llm-proxy",
+    "observations": [
+      {
+        "url": "https://llm-proxy.mprlab.com/",
+        "status": 200,
+        "final_url": "https://llm-proxy.mprlab.com/",
+        "sha256": "20404427062056e0d7840268d75847875269517e2783b50423196825cdf45c9b",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://llm-proxy.mprlab.com/config-ui.yaml",
+        "error": "HTTP Error 404: Not Found"
+      }
+    ]
+  },
+  {
+    "repo": "pinguin",
+    "observations": [
+      {
+        "url": "https://pinguin.mprlab.com/",
+        "status": 200,
+        "final_url": "https://pinguin.mprlab.com/",
+        "sha256": "372222b6ac2434abf4e05e62c5b79074e6ced66d51a3a5a04cf461ff0cb6620d",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://pinguin.mprlab.com/config-ui.yaml",
+        "status": 200,
+        "final_url": "https://pinguin.mprlab.com/config-ui.yaml",
+        "sha256": "bd6bc76148d625cc4f85cb70e5dea729b2245d20e0cc942b61fba61ad44caed4",
+        "type": "text/yaml",
+        "refs": [],
+        "flat": true,
+        "provider_map": false,
+        "authButton": false
+      }
+    ]
+  },
+  {
+    "repo": "social_threader",
+    "observations": [
+      {
+        "url": "https://threader.mprlab.com/",
+        "status": 200,
+        "final_url": "https://threader.mprlab.com/",
+        "sha256": "2280b0364504266835586605f6ab27b8593aa5057a65188a1f52e37b843090e1",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://threader.mprlab.com/config-ui.yaml",
+        "status": 200,
+        "final_url": "https://threader.mprlab.com/config-ui.yaml",
+        "sha256": "5373b403c76f28513ae1466bb17e3dd000b683dd9fc61478fa85fbaa0284ca79",
+        "type": "text/yaml",
+        "refs": [],
+        "flat": true,
+        "provider_map": false,
+        "authButton": false
+      }
+    ]
+  },
+  {
+    "repo": "prompts",
+    "observations": [
+      {
+        "url": "https://prompts.mprlab.com/",
+        "status": 200,
+        "final_url": "https://prompts.mprlab.com/",
+        "sha256": "d5d250e743389f0974b1fbf27aca1c892b8ef810b6da7e2db7eb2f14ffb68f22",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://prompts.mprlab.com/config-ui.yaml",
+        "status": 200,
+        "final_url": "https://prompts.mprlab.com/config-ui.yaml",
+        "sha256": "7eee6674cbf411d4eb06a554a560c596d8903fc3a7c30c015f0aefa3ebbd282d",
+        "type": "text/yaml",
+        "refs": [],
+        "flat": true,
+        "provider_map": false,
+        "authButton": false
+      }
+    ]
+  },
+  {
+    "repo": "SummerCan",
+    "observations": [
+      {
+        "url": "https://summercan.mprlab.com/",
+        "status": 200,
+        "final_url": "https://summercan.mprlab.com/",
+        "sha256": "5ff08ef35b408162e9113c2eb2ab388ea36279043bd31c19ccb99b746820bc5b",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://summercan.mprlab.com/config-ui.yaml",
+        "error": "HTTP Error 404: Not Found"
+      }
+    ]
+  },
+  {
+    "repo": "download_your_data",
+    "observations": [
+      {
+        "url": "https://dyd.mprlab.com/",
+        "status": 200,
+        "final_url": "https://dyd.mprlab.com/",
+        "sha256": "232470c1a5469db78df976fbabee0e529fa7cec1370d1ea0446a7eb899e67df6",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://dyd.mprlab.com/config-ui.yaml",
+        "status": 200,
+        "final_url": "https://dyd.mprlab.com/config-ui.yaml",
+        "sha256": "625af716b6edafe762247eb07dcf1fd34a9a3ede1a1261ebd3de91a382ac9f89",
+        "type": "text/yaml",
+        "refs": [],
+        "flat": true,
+        "provider_map": false,
+        "authButton": false
+      }
+    ]
+  },
+  {
+    "repo": "MediaOps",
+    "observations": [
+      {
+        "url": "https://mediaops.mprlab.com/",
+        "status": 200,
+        "final_url": "https://mediaops.mprlab.com/",
+        "sha256": "49c167964949381bf47dbce4853ab6c945e631f6c88f6c82026047274665e92c",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://mediaops.mprlab.com/config-ui.yaml",
+        "status": 200,
+        "final_url": "https://mediaops.mprlab.com/config-ui.yaml",
+        "sha256": "b6a5d7b44abd9e348b1d1d195a4ce4cdc4d3880254a3a610df6c453c58ad53bf",
+        "type": "text/yaml",
+        "refs": [],
+        "flat": true,
+        "provider_map": false,
+        "authButton": true
+      }
+    ]
+  },
+  {
+    "repo": "ledger",
+    "observations": [
+      {
+        "url": "https://ledger.mprlab.com/",
+        "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'ledger.mprlab.com'. (_ssl.c:1082)>"
+      },
+      {
+        "url": "https://ledger.mprlab.com/config-ui.yaml",
+        "error": "<urlopen error [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: Hostname mismatch, certificate is not valid for 'ledger.mprlab.com'. (_ssl.c:1082)>"
+      }
+    ]
+  },
+  {
+    "repo": "PoodleScanner",
+    "observations": [
+      {
+        "url": "https://poodlescanner.com/",
+        "status": 200,
+        "final_url": "https://poodlescanner.com/",
+        "sha256": "c91e87fc5be48750c158e948690356387af54b4e36ff6d81fceb60c479af2162",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://poodlescanner.com/config-ui.yaml",
+        "error": "HTTP Error 404: Not Found"
+      }
+    ]
+  },
+  {
+    "repo": "loopaware",
+    "observations": [
+      {
+        "url": "https://loopaware.mprlab.com/",
+        "status": 200,
+        "final_url": "https://loopaware.mprlab.com/",
+        "sha256": "df21172840ff321641bb035d7820876a8c5ec6a76da81516788672a92f5b9013",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@97ebeb2df518f91af78aafcb6e14b9691fb20694/mpr-ui-config.js",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@97ebeb2df518f91af78aafcb6e14b9691fb20694/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@97ebeb2df518f91af78aafcb6e14b9691fb20694/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://loopaware.mprlab.com/config-ui.yaml",
+        "status": 200,
+        "final_url": "https://loopaware.mprlab.com/config-ui.yaml",
+        "sha256": "3a9f3cf3edd2ea1cdbcd5af069f9fec331bec976290c9d5cd7366a71339fb71e",
+        "type": "text/yaml",
+        "refs": [],
+        "flat": true,
+        "provider_map": false,
+        "authButton": false
+      }
+    ]
+  },
+  {
+    "repo": "WriterBlock",
+    "observations": [
+      {
+        "url": "https://writer.mprlab.com/",
+        "status": 200,
+        "final_url": "https://writer.mprlab.com/",
+        "sha256": "c31fef8c0d1a0ee7054c4d86e108116bb4a4dc5e022b02e43bdc5ec4b43cbaa1",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@394fa27ff1fd7c2a3250b3c86c2e55b0be3c8cbe/mpr-ui-config.js",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@394fa27ff1fd7c2a3250b3c86c2e55b0be3c8cbe/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@394fa27ff1fd7c2a3250b3c86c2e55b0be3c8cbe/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://writer.mprlab.com/config-ui.yaml",
+        "status": 200,
+        "final_url": "https://writer.mprlab.com/config-ui.yaml",
+        "sha256": "ac282597ee173f02a44e465205655e5751e52666c62cda251cab2af588a42a94",
+        "type": "text/yaml",
+        "refs": [],
+        "flat": true,
+        "provider_map": false,
+        "authButton": true
+      }
+    ]
+  },
+  {
+    "repo": "gravity",
+    "observations": [
+      {
+        "url": "https://gravity.mprlab.com/",
+        "status": 200,
+        "final_url": "https://gravity.mprlab.com/",
+        "sha256": "d4dc5f7226a89b43868f06bee994e617997ac1abf8d740190faa1f133bb6e203",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.5/mpr-ui-config.js",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.5/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.9.5/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://gravity.mprlab.com/config-ui.yaml",
+        "status": 200,
+        "final_url": "https://gravity.mprlab.com/config-ui.yaml",
+        "sha256": "c5f39af75cfbb611447091ee1b48e9bc76eee63afba2f13f19042a043d7b7b90",
+        "type": "text/yaml",
+        "refs": [],
+        "flat": true,
+        "provider_map": false,
+        "authButton": true
+      }
+    ]
+  },
+  {
+    "repo": "LikeMe",
+    "observations": [
+      {
+        "url": "https://likeme.mprlab.com/",
+        "status": 200,
+        "final_url": "https://likeme.mprlab.com/",
+        "sha256": "13c8f8361af0d3ae30efc4729baa69fb46d9b1c409420901448ccdbe43f67b11",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://likeme.mprlab.com/config-ui.yaml",
+        "error": "HTTP Error 404: Not Found"
+      }
+    ]
+  },
+  {
+    "repo": "ctx",
+    "observations": []
+  },
+  {
+    "repo": "gix",
+    "observations": []
+  },
+  {
+    "repo": "marcopolo.github.io",
+    "observations": [
+      {
+        "url": "https://mprlab.com/",
+        "status": 200,
+        "final_url": "https://mprlab.com/",
+        "sha256": "60ca1e4a9d015b1ec61d88ad58de5079d370ae80fc2cbcf62cd2b28e1254facf",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://mprlab.com/config-ui.yaml",
+        "error": "HTTP Error 404: Not Found"
+      }
+    ]
+  },
+  {
+    "repo": "tyemirov.github.io",
+    "observations": [
+      {
+        "url": "https://tyemirov.net/",
+        "status": 200,
+        "final_url": "https://tyemirov.net/",
+        "sha256": "0d1f247dabed2d84af7f6a7b3375b3d3a0746578cc60728f5296e84bd71f014e",
+        "type": "text/html; charset=utf-8",
+        "refs": [
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css",
+          "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"
+        ],
+        "flat": false,
+        "provider_map": false,
+        "authButton": false
+      },
+      {
+        "url": "https://tyemirov.net/config-ui.yaml",
+        "error": "HTTP Error 404: Not Found"
+      }
+    ]
+  },
+  {
+    "repo": "Smith",
+    "observations": []
+  }
+]

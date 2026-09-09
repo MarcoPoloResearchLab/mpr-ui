@@ -3,6 +3,7 @@ SHELL := /bin/bash
 UNIT_TIMEOUT ?= 30
 COVERAGE_TIMEOUT ?= 120
 E2E_TIMEOUT ?= 350
+E2E_ARGS ?=
 FULL_TIMEOUT ?= 350
 LINT_TIMEOUT ?= 30
 FORMAT_TIMEOUT ?= 30
@@ -30,7 +31,7 @@ test-coverage:
 	timeout -k $(COVERAGE_TIMEOUT)s -s SIGKILL $(COVERAGE_TIMEOUT)s npm run test:coverage
 
 test-e2e:
-	timeout -k $(E2E_TIMEOUT)s -s SIGKILL $(E2E_TIMEOUT)s npm run test:e2e
+	timeout -k $(E2E_TIMEOUT)s -s SIGKILL $(E2E_TIMEOUT)s npm run test:e2e -- $(E2E_ARGS)
 
 test-delivery:
 	PYTHONDONTWRITEBYTECODE=1 uv run --with pytest python -m pytest -q tests/integration/test_demo_delivery.py

@@ -1,0 +1,1963 @@
+--- a/web/site/404.html
++++ b/web/site/404.html
+@@ -148,14 +148,12 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -387,22 +385,7 @@
+           { "label": "Help", "href": "/help" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -411,8 +394,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/agency/index.html
++++ b/web/site/agency/index.html
+@@ -172,14 +172,12 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -542,22 +540,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -566,8 +549,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/app/index.html
++++ b/web/site/app/index.html
+@@ -107,14 +107,12 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -123,9 +121,8 @@
+     <script
+       id="mpr-ui-bundle"
+       type="application/json"
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
++      data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="https://loopaware.mprlab.com/pixel.js?site_id=77914730-9381-46a0-8349-ccc0865cb34f"></script>
+@@ -8707,22 +8704,7 @@
+ 	          { "label": "Help", "href": "/help" }
+ 	        ]
+ 	      }'
+-	      links-collection='{
+-	        "style": "drop-up",
+-	        "text": "Built by Marco Polo Research Lab LLC",
+-	        "links": [
+-	          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-            { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-            { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-            { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-            { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-            { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-            { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-            { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-            { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-            { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-          ]
+-	      }'
++	      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+ 	      theme-switcher="toggle"
+ 	      theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+ 	    >
+--- a/web/site/help/index.html
++++ b/web/site/help/index.html
+@@ -121,14 +121,12 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -486,22 +484,7 @@
+ 	          { "label": "Help", "href": "/help/" }
+ 	        ]
+ 	      }'
+-	      links-collection='{
+-	        "style": "drop-up",
+-	        "text": "Built by Marco Polo Research Lab LLC",
+-	        "links": [
+-	          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-            { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-            { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-            { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-            { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-            { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-            { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-            { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-            { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-            { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-          ]
+-	      }'
++	      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+ 	      theme-switcher="toggle"
+ 	      theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+ 	    >
+@@ -510,8 +493,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/index.html
++++ b/web/site/index.html
+@@ -218,14 +218,12 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -1013,22 +1011,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -1037,8 +1020,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/pricing/index.html
++++ b/web/site/pricing/index.html
+@@ -121,14 +121,12 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -358,22 +356,7 @@
+ 	          { "label": "Help", "href": "/help/" }
+ 	        ]
+ 	      }'
+-	      links-collection='{
+-	        "style": "drop-up",
+-	        "text": "Built by Marco Polo Research Lab LLC",
+-	        "links": [
+-	          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-            { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-            { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-            { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-            { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-            { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-            { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-            { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-            { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-            { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-          ]
+-	      }'
++	      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+ 	      theme-switcher="toggle"
+ 	      theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+ 	    >
+@@ -381,8 +364,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/privacy/index.html
++++ b/web/site/privacy/index.html
+@@ -121,14 +121,12 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -395,22 +393,7 @@
+ 	          { "label": "Help", "href": "/help/" }
+ 	        ]
+ 	      }'
+-	      links-collection='{
+-	        "style": "drop-up",
+-	        "text": "Built by Marco Polo Research Lab LLC",
+-	        "links": [
+-	          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-            { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-            { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-            { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-            { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-            { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-            { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-            { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-            { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-            { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-          ]
+-	      }'
++	      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+ 	      theme-switcher="toggle"
+ 	      theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+ 	    >
+@@ -419,8 +402,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/agencies-amazon-listing-audits/index.html
++++ b/web/site/resources/agencies-amazon-listing-audits/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/amazon-a-plus-content-audit/index.html
++++ b/web/site/resources/amazon-a-plus-content-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/amazon-bullet-point-audit/index.html
++++ b/web/site/resources/amazon-bullet-point-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/amazon-buy-box-prime-audit/index.html
++++ b/web/site/resources/amazon-buy-box-prime-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/amazon-delivery-country-audit/index.html
++++ b/web/site/resources/amazon-delivery-country-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/amazon-fix-suggestions/index.html
++++ b/web/site/resources/amazon-fix-suggestions/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/amazon-image-video-audit/index.html
++++ b/web/site/resources/amazon-image-video-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/amazon-listing-quality-checker/index.html
++++ b/web/site/resources/amazon-listing-quality-checker/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/amazon-product-description-audit/index.html
++++ b/web/site/resources/amazon-product-description-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/amazon-ratings-review-count-audit/index.html
++++ b/web/site/resources/amazon-ratings-review-count-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/amazon-redirected-asin-audit/index.html
++++ b/web/site/resources/amazon-redirected-asin-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/amazon-search-discoverability-audit/index.html
++++ b/web/site/resources/amazon-search-discoverability-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/amazon-seo-audit/index.html
++++ b/web/site/resources/amazon-seo-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/amazon-title-audit/index.html
++++ b/web/site/resources/amazon-title-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/bulk-asin-audit/index.html
++++ b/web/site/resources/bulk-asin-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/catalog-cleanup-workflow/index.html
++++ b/web/site/resources/catalog-cleanup-workflow/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/csv-amazon-audit-reporting/index.html
++++ b/web/site/resources/csv-amazon-audit-reporting/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/custom-scan-profiles/index.html
++++ b/web/site/resources/custom-scan-profiles/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/ecommerce-analytics-tag-audit/index.html
++++ b/web/site/resources/ecommerce-analytics-tag-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/ecommerce-security-trust-audit/index.html
++++ b/web/site/resources/ecommerce-security-trust-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/ecommerce-seo-metadata-audit/index.html
++++ b/web/site/resources/ecommerce-seo-metadata-audit/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/ecommerce-storefront-health-check/index.html
++++ b/web/site/resources/ecommerce-storefront-health-check/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/index.html
++++ b/web/site/resources/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -452,22 +450,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -476,8 +459,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/pdf-amazon-audit-reporting/index.html
++++ b/web/site/resources/pdf-amazon-audit-reporting/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/product-launch-readiness-checklist/index.html
++++ b/web/site/resources/product-launch-readiness-checklist/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/rescore-amazon-listings/index.html
++++ b/web/site/resources/rescore-amazon-listings/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/robots-sitemap-crawlability-check/index.html
++++ b/web/site/resources/robots-sitemap-crawlability-check/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/scheduled-amazon-listing-monitoring/index.html
++++ b/web/site/resources/scheduled-amazon-listing-monitoring/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/resources/seller-central-report-asin-upload/index.html
++++ b/web/site/resources/seller-central-report-asin-upload/index.html
+@@ -36,14 +36,12 @@
+     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -296,22 +294,7 @@
+           { "label": "Help", "href": "/help/" }
+         ]
+       }'
+-      links-collection='{
+-        "style": "drop-up",
+-        "text": "Built by Marco Polo Research Lab LLC",
+-        "links": [
+-          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-          { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-          { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-          { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-          { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-          { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-          { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-          { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-          { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-          { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-        ]
+-      }'
++      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+       theme-switcher="toggle"
+       theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+     >
+@@ -320,8 +303,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>
+--- a/web/site/tos/index.html
++++ b/web/site/tos/index.html
+@@ -121,14 +121,12 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.css"
+-      integrity="sha384-WWDM4bNAbnG6m8Lda3m59qcrh8OkdoLPBMl+1LDA+IvCrjszwBgdt3CizK3ayn75"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+       crossorigin="anonymous"
+     />
+     <script src="https://accounts.google.com/gsi/client" async defer></script>
+     <script
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui-config.js"
+-      integrity="sha384-Dc2CI2UQJ+SKoIo4Ce/PJ9cqZd8N726ZeEUvtJWSXkOalAa5IQNQp9ATIsDvEvts"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"
+       crossorigin="anonymous"
+     ></script>
+     <script defer src="/static/runtime-bootstrap.js"></script>
+@@ -420,22 +418,7 @@
+ 	          { "label": "Help", "href": "/help/" }
+ 	        ]
+ 	      }'
+-	      links-collection='{
+-	        "style": "drop-up",
+-	        "text": "Built by Marco Polo Research Lab LLC",
+-	        "links": [
+-	          { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-            { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-            { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-            { "label": "Allergy Wheel", "url": "https://allergy.mprlab.com" },
+-            { "label": "Social Threader", "url": "https://threader.mprlab.com" },
+-            { "label": "RSVP", "url": "https://rsvp.mprlab.com" },
+-            { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" },
+-            { "label": "LLM Crossword", "url": "https://llm-crossword.mprlab.com" },
+-            { "label": "Prompt Bubbles", "url": "https://prompts.mprlab.com" },
+-            { "label": "Wallpapers", "url": "https://wallpapers.mprlab.com" }
+-          ]
+-	      }'
++	      menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Allergy Wheel&quot;,&quot;href&quot;:&quot;https://allergy.mprlab.com&quot;},{&quot;label&quot;:&quot;Social Threader&quot;,&quot;href&quot;:&quot;https://threader.mprlab.com&quot;},{&quot;label&quot;:&quot;RSVP&quot;,&quot;href&quot;:&quot;https://rsvp.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;},{&quot;label&quot;:&quot;LLM Crossword&quot;,&quot;href&quot;:&quot;https://llm-crossword.mprlab.com&quot;},{&quot;label&quot;:&quot;Prompt Bubbles&quot;,&quot;href&quot;:&quot;https://prompts.mprlab.com&quot;},{&quot;label&quot;:&quot;Wallpapers&quot;,&quot;href&quot;:&quot;https://wallpapers.mprlab.com&quot;}]}]}'
+ 	      theme-switcher="toggle"
+ 	      theme-config='{"targets":["html","body"],"attribute":"data-theme","initialMode":"light","modes":[{"value":"light","attributeValue":"light","dataset":{"data-bs-theme":"light"}},{"value":"dark","attributeValue":"dark","dataset":{"data-bs-theme":"dark"}}]}'
+ 	    >
+@@ -444,8 +427,7 @@
+     <script
+       id="mpr-ui-bundle"
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@02be358793a0a56a908eca6d781d56fa0df36529/mpr-ui.js"
+-      integrity="sha384-bX/8wg49LNxOOq0eX3bimy1+71n1pQxIxsCqLC7VEFnAIJbyQbM7NJhYD/m9exGy"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+       crossorigin="anonymous"
+     ></script>
+     <script type="module" src="/static/footer-inline-panel.js"></script>

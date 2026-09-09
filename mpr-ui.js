@@ -6289,6 +6289,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return Promise.resolve();
     }
 
+    function completeLogout() {
+      invalidateAuthLifecycle();
+      clearAuthRestoreHint(options);
+      pendingProfile = null;
+      markUnauthenticated();
+    }
+
     function signOut() {
       invalidateAuthLifecycle();
       return performLogout().then(function () {
@@ -6318,6 +6325,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       startGoogleLink: startGoogleLink,
       authenticatedFetch: authenticatedFetchWithController,
       signOut: signOut,
+      completeLogout: completeLogout,
       updateOptions: updateOptions,
       destroy: destroy,
       restartSessionWatcher: bootstrapSession,
@@ -6674,7 +6682,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "__auth-transition-message:empty{display:none}" +
     "." +
     HEADER_ROOT_CLASS +
-    "__auth-actions{display:none;align-items:center}" +
+    "__auth-actions{display:none;align-items:center;min-inline-size:0;flex-shrink:1}" +
     "." +
     HEADER_ROOT_CLASS +
     "__auth-actions:has([data-mpr-auth-actions]){display:inline-flex}" +
@@ -7114,6 +7122,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--google{border-color:#8e918f;background:#131314;color:#e3e3e3;font-family:'Google Sans',Roboto,Arial,sans-serif;font-size:.875rem;line-height:1.25rem}" +
     ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--google:hover{background:#202124}" +
     ".mpr-auth-actions__status{min-block-size:1.2em;margin:0;color:var(--mpr-color-text-muted,#cbd5f5);font-size:.78rem;line-height:1.2}" +
+    "mpr-header .mpr-auth-actions__status{min-inline-size:0;white-space:normal;overflow-wrap:anywhere}" +
     "mpr-header .mpr-auth-actions__status:empty{display:none}" +
     "mpr-header .mpr-auth-actions{position:relative;--mpr-auth-provider-scale:var(--mpr-header-scale,1);max-inline-size:100%}" +
     "mpr-header .mpr-auth-actions__controls{overflow:visible}" +
@@ -8680,11 +8689,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       typeof elements.userMenu.addEventListener === "function"
     ) {
       elements.userMenu.addEventListener("mpr-user:logout", function (eventObject) {
-        if (
-          authController &&
-          typeof authController.restartSessionWatcher === "function"
-        ) {
-          authController.restartSessionWatcher();
+        if (authController) {
+          authController.completeLogout();
         }
         dispatchHeaderEvent("mpr-ui:header:signout-click", {
           source: "user-menu",
@@ -8827,6 +8833,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   }
 
   var USER_MENU_ROOT_CLASS = "mpr-user";
+  var POPOVER_VIEWPORT_MARGIN_PIXELS = 8;
+  var USER_MENU_VIEWPORT_OFFSET_PROPERTY = "--mpr-user-viewport-offset-x";
   var USER_MENU_STYLE_ID = "mpr-ui-user-styles";
   var USER_MENU_STYLE_MARKUP =
     "mpr-user{display:inline-flex;align-items:center;position:relative;--mpr-user-scale:1}" +
@@ -8878,7 +8886,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "__avatar{border-color:var(--mpr-color-accent,#38bdf8);box-shadow:0 0 0 2px rgba(56,189,248,0.35)}" +
     "." +
     USER_MENU_ROOT_CLASS +
-    "__menu{position:absolute;right:0;top:calc(100% + (6px * var(--mpr-user-scale,1)));min-width:calc(168px * var(--mpr-user-scale,1));padding:calc(0.4rem * var(--mpr-user-scale,1));border-radius:8px;border:1px solid var(--mpr-color-border,#2c2f36);background:var(--mpr-color-surface-elevated,#1f2126);box-shadow:var(--mpr-shadow-flyout,0 8px 20px rgba(0,0,0,0.35));display:none;flex-direction:column;gap:0.25rem;z-index:1300}" +
+    "__menu{position:absolute;right:0;top:calc(100% + (6px * var(--mpr-user-scale,1)));min-width:min(calc(168px * var(--mpr-user-scale,1)),calc(100vw - 16px));max-width:calc(100vw - 16px);box-sizing:border-box;transform:translateX(var(--mpr-user-viewport-offset-x,0px));padding:calc(0.4rem * var(--mpr-user-scale,1));border-radius:8px;border:1px solid var(--mpr-color-border,#2c2f36);background:var(--mpr-color-surface-elevated,#1f2126);box-shadow:var(--mpr-shadow-flyout,0 8px 20px rgba(0,0,0,0.35));display:none;flex-direction:column;gap:0.25rem;z-index:1300}" +
     'mpr-user[data-mpr-user-open="true"] .' +
     USER_MENU_ROOT_CLASS +
     "__menu{display:flex}" +
@@ -9582,6 +9590,33 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     hostElement.setAttribute("data-mpr-user-status", status);
   }
 
+  function positionPanelInViewport(panel, ownerWindow, offsetProperty) {
+    if (
+      !panel ||
+      !panel.style ||
+      typeof panel.style.setProperty !== "function" ||
+      typeof panel.getBoundingClientRect !== "function" ||
+      !ownerWindow ||
+      typeof ownerWindow.innerWidth !== "number"
+    ) {
+      return;
+    }
+    panel.style.setProperty(offsetProperty, "0px");
+    var panelRect = panel.getBoundingClientRect();
+    var viewportRightEdge =
+      ownerWindow.innerWidth - POPOVER_VIEWPORT_MARGIN_PIXELS;
+    var horizontalOffset = 0;
+    if (panelRect.left < POPOVER_VIEWPORT_MARGIN_PIXELS) {
+      horizontalOffset = POPOVER_VIEWPORT_MARGIN_PIXELS - panelRect.left;
+    } else if (panelRect.right > viewportRightEdge) {
+      horizontalOffset = viewportRightEdge - panelRect.right;
+    }
+    panel.style.setProperty(
+      offsetProperty,
+      String(horizontalOffset) + "px",
+    );
+  }
+
   function applyUserMenuOpenState(hostElement, elements, isOpen) {
     hostElement.setAttribute("data-mpr-user-open", isOpen ? "true" : "false");
     if (elements.trigger) {
@@ -9589,6 +9624,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     }
     if (elements.menu) {
       elements.menu.setAttribute("aria-hidden", isOpen ? "false" : "true");
+      if (isOpen) {
+        positionPanelInViewport(
+          elements.menu,
+          resolveOwnerWindow(hostElement),
+          USER_MENU_VIEWPORT_OFFSET_PROPERTY,
+        );
+      }
     }
   }
 
@@ -13593,7 +13635,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   var DROPDOWN_SECTION_MODES = Object.freeze(["static", "expanded", "collapsed"]);
   var DROPDOWN_SECTION_ID_PATTERN = /^[A-Za-z][A-Za-z0-9_-]*$/;
   var DROPDOWN_LINK_DEFAULT_REL = "noopener noreferrer";
-  var DROPDOWN_VIEWPORT_MARGIN_PIXELS = 8;
   var DROPDOWN_VIEWPORT_OFFSET_PROPERTY = "--mpr-dropdown-viewport-offset-x";
   var DROPDOWN_STYLE_MARKUP =
     "mpr-dropdown{position:relative;display:inline-block;white-space:normal}" +
@@ -14237,30 +14278,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         __positionDropdownPanel() {
           var panel = this.querySelector('[data-mpr-dropdown="panel"]');
           var ownerWindow = this.__dropdownWindow || resolveOwnerWindow(this);
-          if (
-            !panel ||
-            !panel.style ||
-            typeof panel.style.setProperty !== "function" ||
-            typeof panel.getBoundingClientRect !== "function" ||
-            !ownerWindow ||
-            typeof ownerWindow.innerWidth !== "number"
-          ) {
-            return;
-          }
-          panel.style.setProperty(DROPDOWN_VIEWPORT_OFFSET_PROPERTY, "0px");
-          var panelRect = panel.getBoundingClientRect();
-          var viewportRightEdge =
-            ownerWindow.innerWidth - DROPDOWN_VIEWPORT_MARGIN_PIXELS;
-          var horizontalOffset = 0;
-          if (panelRect.left < DROPDOWN_VIEWPORT_MARGIN_PIXELS) {
-            horizontalOffset = DROPDOWN_VIEWPORT_MARGIN_PIXELS - panelRect.left;
-          } else if (panelRect.right > viewportRightEdge) {
-            horizontalOffset = viewportRightEdge - panelRect.right;
-          }
-          panel.style.setProperty(
-            DROPDOWN_VIEWPORT_OFFSET_PROPERTY,
-            String(horizontalOffset) + "px",
-          );
+          positionPanelInViewport(panel, ownerWindow, DROPDOWN_VIEWPORT_OFFSET_PROPERTY);
         }
         __setDropdownSectionOpen(sectionId, nextOpen) {
           if (!this.__dropdownMenu) {
@@ -17309,6 +17327,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__isOpen = false;
           this.__authEventTarget = null;
           this.__dismissTarget = null;
+          this.__dismissWindow = null;
+          this.__boundUserViewportResizeHandler = this.__handleUserViewportResize.bind(this);
           this.__boundTriggerHandler = this.__handleTriggerClick.bind(this);
           this.__boundLogoutHandler = this.__handleLogoutClick.bind(this);
           this.__boundMenuItemHandler = this.__handleMenuItemClick.bind(this);
@@ -17522,6 +17542,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__dismissTarget = documentObject;
           documentObject.addEventListener("click", this.__boundOutsideClickHandler);
           documentObject.addEventListener("keydown", this.__boundEscapeHandler);
+          this.__dismissWindow = resolveOwnerWindow(this);
+          if (this.__dismissWindow && typeof this.__dismissWindow.addEventListener === "function") {
+            this.__dismissWindow.addEventListener("resize", this.__boundUserViewportResizeHandler);
+          }
         }
         __detachDismissEvents() {
           if (!this.__dismissTarget) {
@@ -17537,7 +17561,20 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
               this.__boundEscapeHandler,
             );
           }
+          if (this.__dismissWindow && typeof this.__dismissWindow.removeEventListener === "function") {
+            this.__dismissWindow.removeEventListener("resize", this.__boundUserViewportResizeHandler);
+          }
+          this.__dismissWindow = null;
           this.__dismissTarget = null;
+        }
+        __handleUserViewportResize() {
+          if (this.__isOpen && this.__userMenuElements) {
+            positionPanelInViewport(
+              this.__userMenuElements.menu,
+              this.__dismissWindow,
+              USER_MENU_VIEWPORT_OFFSET_PROPERTY,
+            );
+          }
         }
         __refreshProfile() {
           if (!this.__userMenuConfig) {

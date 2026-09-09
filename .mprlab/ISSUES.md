@@ -12,6 +12,90 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [!] [B069] (P1) {B068} Remove empty status space from standalone login controls
+  Goal: An empty authentication status adds no height to a standalone login control.
+  Evidence:
+  PoodleScanner measured a 56.89-pixel login shell beside 36-pixel navigation links after the provider-map migration.
+  The empty status paragraph retains its minimum height and grid gap outside a shared header.
+  Requirements:
+  - Hide empty status paragraphs for every shared authentication surface.
+  - Preserve visible error messages and their accessible status role.
+  - Restore the original control height after an error clears.
+  Validation:
+  - Reproduce the empty space through the real standalone login fixture.
+  - Verify narrow and wide geometry before an error, during an error, and after recovery.
+  - Pass native CI before source delivery.
+  - Qualify the published candidate with application migrations separately.
+  Preparation:
+  - The empty-status rule now applies to every shared authentication surface.
+  - Both new browser cases failed before the CSS change and passed after it.
+  - Native CI passed 210 Node checks, 141 browser checks, coverage, and Pages artifact validation.
+  Blocked: Hosted qualification, shared publication, and final application qualification remain pending.
+
+
+- [!] [B068] (P1) Keep authentication errors within the header width
+  Goal: Google startup errors remain readable beside application controls at narrow viewport widths.
+  Requirements:
+  - Let the shared auth region shrink within the available header width.
+  - Preserve application controls and visible error text.
+  - Preserve normal provider actions and account menus.
+  Validation:
+  - Reproduce overflow through Google nonce failure in a real browser.
+  - Verify narrow and wide header geometry and readable status text.
+  - Run final native CI and retain publication as a separate gate.
+  Preparation:
+  - The auth region can shrink beside application controls, and status text wraps within that region.
+  - The new browser regression first failed at 320 and 390 pixels.
+  - Final native CI passed 210 Node checks, 139 end-to-end checks, coverage, and Pages artifact validation.
+  Blocked: The stacked PR requires hosted qualification, shared publication, and final application qualification.
+
+- [!] [B067] (P1) Clear header authentication after same-page logout
+  Goal: A successful user-menu logout leaves its owning header signed out.
+  Evidence:
+  Prompt Bubbles returns HTTP 204 from logout and navigates to `#top`.
+  The user menu clears its profile, but its owning header retains authenticated state.
+  The session watcher skips reconciliation while its controller reports authenticated state.
+  Requirements:
+  - Complete the owning controller logout after the user-menu operation succeeds.
+  - Clear its profile and invalidate previous authentication work.
+  - Preserve one logout request and the selected redirect.
+  Validation:
+  - Reproduce the defect with a real header and controlled Google and TAuth responses.
+  - Verify visible sign-in controls and a subsequent sign-in at both viewport widths.
+  - Run final native CI and record publication separately.
+  Results:
+  Both regressions failed before the controller change.
+  The focused account and protected-request suite passed 28 checks.
+  Final native CI passed Node checks, coverage, 136 end-to-end checks, and Pages artifact validation.
+  Blocked:
+  The stacked PR requires hosted CI after its base satisfies the workflow filter.
+  Shared publication and consumer qualification remain pending.
+
+- [!] [B066] (P1) Keep the account menu inside the viewport
+  Goal: A user can select each account action at narrow viewport widths.
+  Evidence:
+  - Social Threader I003 loads the real shared candidate at a 390-pixel viewport width.
+  - The sign-out control begins 120.6 pixels beyond the left viewport edge.
+  - Pointer activation dismisses the menu without a logout request.
+  Requirements:
+  - Keep the account menu inside both horizontal viewport edges.
+  - Reuse the dropdown positioning calculation.
+  - Update the position when an open menu encounters a viewport resize.
+  - Preserve keyboard dismissal, focus, and logout behavior.
+  Validation:
+  - Add a real-header regression before the source fix.
+  - Verify narrow and desktop widths, resize, hit testing, and logout.
+  - Run final `make ci` and the Social Threader candidate checks.
+  Results:
+  - Both new viewport regressions failed before the source fix.
+  - All 13 account-menu and dropdown checks passed after the fix.
+  - Full local CI passed: 210 Node checks, 134 end-to-end checks, coverage, and Pages artifact validation.
+  - Social Threader passed all four candidate flows at local and hosted origins, at mobile and desktop widths.
+  - The application uses digest-verified shared revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`.
+  Blocked:
+  - Hosted CI accepts only PRs into `master`. This PR is stacked above I009.
+  - Shared publication and public acceptance remain user-owned gates.
+
 - [-] [B064] (P1) {B059} A Google popup attempt can lock the other auth controls.
   Goal:
   The provider controls stay available until Google returns a credential.
@@ -298,6 +382,62 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Verify shell components and `<mpr-theme-toggle>` show the same active mode.
   - Verify the obsolete `theme-mode` attribute remains rejected.
   - Run `make ci` after the final source and documentation changes.
+
+- [ ] [I009] (P1) {F007,F008,F009} Migrate applications to the nested auth config contract.
+  Goal:
+  Applications use the current provider map with matching library assets, markup, and backend config output.
+  Publication does not expose an unmigrated application to the new loader through a mutable alias.
+
+  Requirements:
+  - Use the [migration and deployment plan](../docs/config-migration-deployment-plan.md) as the procedure and acceptance reference.
+  - Confirm production consumers, config producers, exact asset identities, and application owners before publication.
+  - Use literal `@latest` for every changed MPR UI library input.
+  - Qualify all application release units and their maintenance state before library publication.
+  - Replace flat auth keys with the provider map without compatibility reads or aliases for obsolete keys.
+  - Change each application's config, loader, bundle, CSS, and affected markup as one release unit.
+  - Preserve existing provider enablement and tenant identities during the format migration.
+  - Preserve Ledger B003 acceptance through literal `@latest` URLs.
+  - Resolve application order, interruption limits, and release selection before the affected execution phase.
+  - Keep F010 hosted demo work separate unless the release scope explicitly includes it.
+  - Prepare application changes under the September 8, 2026 user authorization.
+  - Keep production release, publication, and deployment with the user.
+
+  Deliverables:
+  - Maintain the consumer inventory and application migration status in the linked plan.
+  - Record application-specific work and acceptance evidence under each application's owner.
+  - Record the released library identity and matching public asset digests.
+  - Record the result of each application migration and any unresolved dependency.
+  - File each reproducible contract defect as a separate bug issue.
+
+  Validation:
+  - Verify the protection gate before publication.
+  - Verify generated and static YAML through the real application config entry points.
+  - Verify rejection of flat keys and acceptance of complete provider maps.
+  - Run the plan's browser acceptance matrix for each application.
+  - Verify real authentication, session restoration, logout, and protected-request recovery separately from controlled provider tests.
+  - Verify fresh and existing browser profiles after each deployment.
+  - Verify exact public asset identities separately from CI and publication status.
+  - Close this issue only after every required application has an accepted current release unit.
+
+  Progress 2026-09-07:
+  The migration plan records the field mapping, initial consumer inventory, deployment sequence, acceptance gates, and open decisions.
+  The planning checks passed 18 loader tests and nine browser tests.
+  Application implementation, release, publication, deployment, and live acceptance remain pending.
+
+  Progress 2026-09-08:
+  The user expanded the investor portal task to prepare this migration.
+  The preparation package records 20 repositories and 16 checked patches across 231 files.
+  The candidate accepted 18 proposed config origins. Browser checks passed for 205 proposed footer menus.
+  The plan now requires literal `@latest` inputs and a qualified coordinated interruption.
+  Each application still requires its complete implementation, CI, and public acceptance.
+
+  Progress 2026-09-09:
+  The [application preparation record](../docs/i009/README.md) now covers 20 consumer migration PRs.
+  Every PR uses final test candidate `768f25936497c5aabd426197d21c2100b6e5d9a1` with verified asset digests.
+  The record identifies final commits, local results, hosted results, and remaining source gates.
+  PoodleScanner retains its coverage gate. Hecate, Ledger, Social Threader, and Prompt Bubbles retain separate source integration gates.
+  All 18 open consumer PRs are ready for review. The llm-proxy and LoopAware PRs are merged.
+  Shared publication, the coordinated cache transition, and public acceptance remain open.
 
 ## Maintenance
 

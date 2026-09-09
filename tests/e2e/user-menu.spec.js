@@ -8,6 +8,35 @@ const {
 } = require('./support/fixturePage');
 
 test.describe('User menu element', () => {
+  for (const width of [390, 1280]) {
+    test(`B066: account menu stays reachable at ${width}px and after resize`, async ({ page }) => {
+      await page.setViewportSize({ width, height: 900 });
+      await visitHeaderUserMenuOverflowFixture(page);
+      const user = page.locator('#fixture-header-user');
+      const trigger = user.locator('[data-mpr-user="trigger"]');
+      await expect(user).toHaveAttribute('data-mpr-user-status', 'authenticated');
+      await trigger.focus();
+      await page.keyboard.press('Enter');
+      const logout = user.locator('[data-mpr-user="logout"]');
+      await expect(logout).toBeVisible();
+      for (const currentWidth of [width, width === 390 ? 1280 : 390]) {
+        await page.setViewportSize({ width: currentWidth, height: 900 });
+        await expect.poll(async () => logout.evaluate(element => {
+          const bounds = element.getBoundingClientRect();
+          const hit = document.elementFromPoint(bounds.left + bounds.width / 2, bounds.top + bounds.height / 2);
+          return bounds.left >= 0 && bounds.right <= window.innerWidth && element.contains(hit);
+        })).toBe(true);
+      }
+      await page.keyboard.press('Escape');
+      await expect(trigger).toBeFocused();
+      await expect(trigger).toHaveAttribute('aria-expanded', 'false');
+      await trigger.click();
+      await logout.click();
+      await expect(page).toHaveURL(/#signed-out$/);
+      expect(await page.evaluate(() => window.__mprHeaderLogoutCalled)).toBe(true);
+    });
+  }
+
   test('MU-118: renders profile data and logs out', async ({ page }) => {
     await visitUserMenuFixture(page);
 

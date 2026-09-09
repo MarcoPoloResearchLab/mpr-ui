@@ -1,0 +1,980 @@
+--- a/web/static/index.html
++++ b/web/static/index.html
+@@ -312,16 +312,7 @@
+             { "label": "Support", "href": "mailto:support@mprlab.com" }
+         ]
+     }'
+-    links-collection='{
+-        "style": "drop-up",
+-        "text": "Explore MPR Lab",
+-        "links": [
+-            { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-            { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-            { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-            { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-        ]
+-    }'
++    menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+     theme-switcher="toggle"
+     theme-config='{
+         "targets": ["html", "body"],
+--- a/web/static/privacy.html
++++ b/web/static/privacy.html
+@@ -178,16 +178,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/account-owned-camp-plans.html
++++ b/web/static/resources/account-owned-camp-plans.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/calendar-ready-camp-plan.html
++++ b/web/static/resources/calendar-ready-camp-plan.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/camp-planning-without-spreadsheets.html
++++ b/web/static/resources/camp-planning-without-spreadsheets.html
+@@ -162,16 +162,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/camp-registration-handoff-checklist.html
++++ b/web/static/resources/camp-registration-handoff-checklist.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/camp-schedule-by-camp.html
++++ b/web/static/resources/camp-schedule-by-camp.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/camp-schedule-by-child.html
++++ b/web/static/resources/camp-schedule-by-child.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/camp-session-count-comparison.html
++++ b/web/static/resources/camp-session-count-comparison.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/camp-share-link-privacy.html
++++ b/web/static/resources/camp-share-link-privacy.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/camp-shortlist-review.html
++++ b/web/static/resources/camp-shortlist-review.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/camp-source-selection-by-location.html
++++ b/web/static/resources/camp-source-selection-by-location.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/caregiver-camp-schedule-sharing.html
++++ b/web/static/resources/caregiver-camp-schedule-sharing.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/child-age-camp-eligibility.html
++++ b/web/static/resources/child-age-camp-eligibility.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/choose-camps-by-location-bucket.html
++++ b/web/static/resources/choose-camps-by-location-bucket.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/co-parent-camp-schedule-sharing.html
++++ b/web/static/resources/co-parent-camp-schedule-sharing.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/compare-camp-descriptions-and-summaries.html
++++ b/web/static/resources/compare-camp-descriptions-and-summaries.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/compare-camp-sessions-by-week.html
++++ b/web/static/resources/compare-camp-sessions-by-week.html
+@@ -162,16 +162,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/compare-local-summer-camps.html
++++ b/web/static/resources/compare-local-summer-camps.html
+@@ -162,16 +162,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/current-shared-schedule-link.html
++++ b/web/static/resources/current-shared-schedule-link.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/email-summer-camp-plan.html
++++ b/web/static/resources/email-summer-camp-plan.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/family-blackout-date-camp-planner.html
++++ b/web/static/resources/family-blackout-date-camp-planner.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/family-calendar-camp-planning.html
++++ b/web/static/resources/family-calendar-camp-planning.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/frozen-demo-catalog-camp-planning.html
++++ b/web/static/resources/frozen-demo-catalog-camp-planning.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/guardian-summer-camp-planning.html
++++ b/web/static/resources/guardian-summer-camp-planning.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/ical-summer-camp-calendar.html
++++ b/web/static/resources/ical-summer-camp-calendar.html
+@@ -162,16 +162,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/index.html
++++ b/web/static/resources/index.html
+@@ -367,16 +367,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/local-provider-camp-catalog-planning.html
++++ b/web/static/resources/local-provider-camp-catalog-planning.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/morning-afternoon-camp-conflicts.html
++++ b/web/static/resources/morning-afternoon-camp-conflicts.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/multiple-children-summer-camp-planner.html
++++ b/web/static/resources/multiple-children-summer-camp-planner.html
+@@ -162,16 +162,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/organize-camp-provider-links.html
++++ b/web/static/resources/organize-camp-provider-links.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/private-summer-camp-planning-workspace.html
++++ b/web/static/resources/private-summer-camp-planning-workspace.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/provider-verification-before-booking.html
++++ b/web/static/resources/provider-verification-before-booking.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/proxy-only-camp-source-planning.html
++++ b/web/static/resources/proxy-only-camp-source-planning.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/rank-camp-preferences-by-child.html
++++ b/web/static/resources/rank-camp-preferences-by-child.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/restart-a-summer-camp-plan.html
++++ b/web/static/resources/restart-a-summer-camp-plan.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/san-ramon-summer-camp-planning.html
++++ b/web/static/resources/san-ramon-summer-camp-planning.html
+@@ -162,16 +162,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/shareable-summer-camp-schedule.html
++++ b/web/static/resources/shareable-summer-camp-schedule.html
+@@ -162,16 +162,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/sibling-summer-camp-schedule.html
++++ b/web/static/resources/sibling-summer-camp-schedule.html
+@@ -162,16 +162,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/south-bay-summer-camp-planning.html
++++ b/web/static/resources/south-bay-summer-camp-planning.html
+@@ -162,16 +162,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/step-by-step-camp-planner.html
++++ b/web/static/resources/step-by-step-camp-planner.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/submit-missing-camp-suggestion.html
++++ b/web/static/resources/submit-missing-camp-suggestion.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/summer-camp-categories-comparison.html
++++ b/web/static/resources/summer-camp-categories-comparison.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/summer-camp-planner-for-busy-parents.html
++++ b/web/static/resources/summer-camp-planner-for-busy-parents.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/summer-camp-planning-workflow.html
++++ b/web/static/resources/summer-camp-planning-workflow.html
+@@ -162,16 +162,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/unavailable-dates-camp-planning.html
++++ b/web/static/resources/unavailable-dates-camp-planning.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/walnut-creek-summer-camp-planning.html
++++ b/web/static/resources/walnut-creek-summer-camp-planning.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/resources/working-parent-camp-schedule.html
++++ b/web/static/resources/working-parent-camp-schedule.html
+@@ -163,16 +163,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],
+--- a/web/static/tos.html
++++ b/web/static/tos.html
+@@ -177,16 +177,7 @@
+                 { "label": "Support", "href": "mailto:support@mprlab.com" }
+             ]
+         }'
+-        links-collection='{
+-            "style": "drop-up",
+-            "text": "Explore MPR Lab",
+-            "links": [
+-                { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-                { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-                { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-                { "label": "Countdown Calendar", "url": "https://countdown.mprlab.com" }
+-            ]
+-        }'
++        menu='{&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Explore MPR Lab&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;Countdown Calendar&quot;,&quot;href&quot;:&quot;https://countdown.mprlab.com&quot;}]}]}'
+         theme-switcher="toggle"
+         theme-config='{
+             "targets": ["html", "body"],

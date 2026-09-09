@@ -93,6 +93,13 @@ Give each term one meaning. Use the same term for the same concept in all docume
 
 Add repository-specific technical nouns below this line.
 
+- `CDN`: A content delivery network that serves public library assets.
+- `migration`: A bounded change from an obsolete application contract to the current contract.
+- `mutable alias`: An asset reference, such as `@latest`, that can select a different release without an application change.
+- `provider map`: The explicit Google, Apple, and password entries in `auth.providers`.
+- `release unit`: The application HTML, library assets, config output, and backend routes that must operate together.
+- `Subresource Integrity`: A browser check that compares a downloaded asset with its declared content digest.
+
 ```text
 - `authenticated fetch`: The `MPRUI.authenticatedFetch()` API that sends a protected request and coordinates TAuth session recovery.
 - `disclosure button`: A button that expands or collapses one dropdown menu section.

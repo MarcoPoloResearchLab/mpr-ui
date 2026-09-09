@@ -1,0 +1,246 @@
+--- a/civilization/index.html
++++ b/civilization/index.html
+@@ -60,9 +60,9 @@
+     />
+ 
+     <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css" />
++    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css" />
+     <link rel="stylesheet" href="style.css" />
+-    <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"></script>
++    <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"></script>
+     <style>
+       .site-footer {
+         display: block;
+--- a/decisioning/index.html
++++ b/decisioning/index.html
+@@ -57,9 +57,9 @@
+   </script>
+ 
+   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css" />
++  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css" />
+   <link rel="stylesheet" href="styles.css" />
+-  <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"></script>
++  <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"></script>
+ 
+   <!-- D3 for 2D charts -->
+   <script src="https://cdn.jsdelivr.net/npm/d3@7.9.0/dist/d3.min.js"></script>
+--- a/freedom/index.html
++++ b/freedom/index.html
+@@ -52,9 +52,9 @@
+     }
+   </script>
+   <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css" />
++  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css" />
+   <link rel="stylesheet" href="style.css" />
+-  <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"></script>
++  <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"></script>
+     <style>
+       .site-footer {
+         display: block;
+--- a/gallery/index.html
++++ b/gallery/index.html
+@@ -43,8 +43,8 @@
+   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+   <link rel="stylesheet" href="assets/css/styles.css" />
+   <link href="https://fonts.googleapis.com/css2?family=EB+Garamond:ital@0;1&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css" />
+-  <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"></script>
++  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css" />
++  <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"></script>
+     <style>
+       .site-footer {
+         display: block;
+--- a/index.html
++++ b/index.html
+@@ -62,13 +62,13 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+     />
+     <link rel="stylesheet" href="styles.css" />
+     <script type="module" src="site.js"></script>
+     <script
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+     ></script>
+   </head>
+   <body>
+--- a/music/egyptian-nights/index.html
++++ b/music/egyptian-nights/index.html
+@@ -16,7 +16,7 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+     />
+     <link rel="stylesheet" href="/styles.css" />
+     <link rel="stylesheet" href="/music/player.css" />
+@@ -24,7 +24,7 @@
+     <script type="module" src="../album.js"></script>
+     <script
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+     ></script>
+   </head>
+   <body>
+--- a/music/february-get-ink-and-weep/index.html
++++ b/music/february-get-ink-and-weep/index.html
+@@ -16,7 +16,7 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+     />
+     <link rel="stylesheet" href="/styles.css" />
+     <link rel="stylesheet" href="/music/player.css" />
+@@ -24,7 +24,7 @@
+     <script type="module" src="../album.js"></script>
+     <script
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+     ></script>
+   </head>
+   <body>
+--- a/music/index.html
++++ b/music/index.html
+@@ -16,7 +16,7 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+     />
+     <link rel="stylesheet" href="/styles.css" />
+     <link rel="stylesheet" href="/music/player.css" />
+@@ -24,7 +24,7 @@
+     <script type="module" src="music.js"></script>
+     <script
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+     ></script>
+   </head>
+   <body>
+--- a/music/pump-it/index.html
++++ b/music/pump-it/index.html
+@@ -16,7 +16,7 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+     />
+     <link rel="stylesheet" href="/styles.css" />
+     <link rel="stylesheet" href="/music/player.css" />
+@@ -24,7 +24,7 @@
+     <script type="module" src="../album.js"></script>
+     <script
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+     ></script>
+   </head>
+   <body>
+--- a/music/singing-pasternak/index.html
++++ b/music/singing-pasternak/index.html
+@@ -16,7 +16,7 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+     />
+     <link rel="stylesheet" href="/styles.css" />
+     <link rel="stylesheet" href="/music/player.css" />
+@@ -24,7 +24,7 @@
+     <script type="module" src="../album.js"></script>
+     <script
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+     ></script>
+   </head>
+   <body>
+--- a/music/soliloquies-vol-i/index.html
++++ b/music/soliloquies-vol-i/index.html
+@@ -16,7 +16,7 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+     />
+     <link rel="stylesheet" href="/styles.css" />
+     <link rel="stylesheet" href="/music/player.css" />
+@@ -24,7 +24,7 @@
+     <script type="module" src="../album.js"></script>
+     <script
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+     ></script>
+   </head>
+   <body>
+--- a/music/soliloquies-vol-ii/index.html
++++ b/music/soliloquies-vol-ii/index.html
+@@ -16,7 +16,7 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+     />
+     <link rel="stylesheet" href="/styles.css" />
+     <link rel="stylesheet" href="/music/player.css" />
+@@ -24,7 +24,7 @@
+     <script type="module" src="../album.js"></script>
+     <script
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+     ></script>
+   </head>
+   <body>
+--- a/music/songs-of-desire/index.html
++++ b/music/songs-of-desire/index.html
+@@ -16,7 +16,7 @@
+     />
+     <link
+       rel="stylesheet"
+-      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css"
++      href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css"
+     />
+     <link rel="stylesheet" href="/styles.css" />
+     <link rel="stylesheet" href="/music/player.css" />
+@@ -24,7 +24,7 @@
+     <script type="module" src="../album.js"></script>
+     <script
+       defer
+-      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"
++      src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+     ></script>
+   </head>
+   <body>
+--- a/timeseries/index.html
++++ b/timeseries/index.html
+@@ -9,8 +9,8 @@
+   <link rel="icon" type="image/x-icon" href="/favicon.ico" />
+   <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+   <link rel="stylesheet" href="styles.css">
+-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.css" />
+-  <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v3.6.7/mpr-ui.js"></script>
++  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css" />
++  <script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"></script>
+     <style>
+       .site-footer {
+         display: block;

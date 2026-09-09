@@ -1,0 +1,4449 @@
+{
+  "observed_at": "2026-09-08",
+  "library_candidate": "76176b37f76018ace3d21ef4761b5e8c7e924c35",
+  "applications": [
+    {
+      "repo": "Hecate",
+      "commit": "e9668a510745a8f04d37a32661a07d0642aa6dea",
+      "branch": "improvement/I010-public-pricing",
+      "configs": [
+        "config-ui.yaml"
+      ],
+      "affected_files": [
+        {
+          "path": "config-ui.yaml",
+          "refs": [],
+          "flat": 2,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "privacy.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "tests/e2e/config.spec.js",
+          "refs": [
+            "latest"
+          ],
+          "flat": 2,
+          "authButton": 1,
+          "footers": 0
+        },
+        {
+          "path": "tests/e2e/mpr-ui-config.stub.js",
+          "refs": [],
+          "flat": 5,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "tests/e2e/route-helpers.js",
+          "refs": [],
+          "flat": 3,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "tos.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "config-ui.yaml",
+          "before_sha256": "0c73abf283982649b14eb597f0fcced02db48029c1d63d9a495bf2ff26498cb0",
+          "after_sha256": "024cfaf0e58d380939ed8def4b4046ae04b98d3376f6bb6e54e5dd59f6f98ac5"
+        },
+        {
+          "path": "index.html",
+          "before_sha256": "e4832cf7bde4beba96a1a1aaa4de2fc09f7625605d5520d556dac4aae88a8591",
+          "after_sha256": "baa941725e99d46afbd8593052b42c88027420e2b5899942f91462a9062e754f"
+        },
+        {
+          "path": "privacy.html",
+          "before_sha256": "f955023692cc3a28d77d9ca702c74f83f81c0a605deec82bec79da2f4d9c351a",
+          "after_sha256": "8f9445ab4b20eff0f4e030bb80c36008a1dc8d6ed47a819faab86321bcab51f6"
+        },
+        {
+          "path": "tos.html",
+          "before_sha256": "4f25748871d61a03bd7b83eb9476c100bfccbf66787d0c94d584fbac95e3587f",
+          "after_sha256": "bc61dbc31d1d4c7a315441f4b0cc962249f605167e05cdbc9e1188702522a167"
+        }
+      ],
+      "patch": "patches/Hecate.patch",
+      "pending": [],
+      "validation_targets": [
+        "lint",
+        "test-backend",
+        "test-scripts",
+        "test-web",
+        "test-web-coverage",
+        "test-integration",
+        "test-mobile",
+        "test-unit",
+        "test",
+        "ci"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation"
+    },
+    {
+      "repo": "NameSignal",
+      "commit": "815a2e0330f330b63df921e31986f3decf3d9f25",
+      "branch": "master",
+      "configs": [
+        "internal/web/static/config-ui.yaml"
+      ],
+      "affected_files": [
+        {
+          "path": "configs/pinguin-config.yaml",
+          "refs": [],
+          "flat": 2,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "internal/web/static/config-ui.yaml",
+          "refs": [],
+          "flat": 2,
+          "authButton": 2,
+          "footers": 0
+        },
+        {
+          "path": "internal/web/templates/layout.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "internal/web/templates_test.go",
+          "refs": [
+            "2.0.2",
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        }
+      ],
+      "pending": [
+        "internal/web/static/config-ui.yaml: resolve the explicit sessionPath before conversion"
+      ],
+      "validation_targets": [
+        "lint",
+        "test",
+        "test-coverage",
+        "test-integration",
+        "test-frontend",
+        "test-live",
+        "test-e2e",
+        "ci",
+        "ci-live"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation"
+    },
+    {
+      "repo": "llm-proxy",
+      "commit": "50cd2086623d45df2836a370a42a14f09d337b41",
+      "branch": "master",
+      "configs": [
+        "site/config-ui.yaml"
+      ],
+      "affected_files": [
+        {
+          "path": "internal/proxy/management_frontend_config.go",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "internal/proxy/management_test.go",
+          "refs": [
+            "latest",
+            "v"
+          ],
+          "flat": 1,
+          "authButton": 1,
+          "footers": 2
+        },
+        {
+          "path": "site/app/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/config-ui.yaml",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "site/docs/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/privacy/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/admin-usage-visibility-without-secrets/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/anthropic-claude-messages-proxy/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/api-served-runtime-config-for-static-ui/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/audio-transcription-proxy-api/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/bring-your-own-provider-key-portal/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/canonical-v2-chat-messages-api/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/copyable-llm-curl-examples/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/dictation-provider-routing/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/encrypted-provider-key-storage/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/gemini-interactions-proxy/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/generated-secret-rotation/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/github-pages-llm-management-ui/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/go-client-v2-only-llm-proxy/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/gorm-managed-tenant-persistence/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/installable-llm-proxy-cli/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/internal-ai-gateway-for-product-tools/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/large-prompt-json-post/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/live-provider-smoke-tests/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/llm-proxy-client-authentication/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/llm-proxy-status-code-map/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/llm-response-formats-json-xml-csv-text/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/local-and-hosted-llm-proxy-config-profiles/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/managed-tenant-usage-dashboard/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/max-tokens-provider-limit-validation/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/model-catalog-configuration/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/multi-provider-llm-proxy/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/multi-tenant-ownership-migration/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/normalized-token-usage-metadata/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/openai-background-response-polling/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/openai-claude-gemini-one-endpoint/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/openai-compatible-provider-gateway/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/openai-web-search-guardrails/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/per-request-provider-model-selection/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/provider-default-model-selection/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/provider-overload-timeout-handling/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/provider-specific-system-prompts/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/python-client-v2-only-llm-proxy/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/reject-client-provider-key-leaks/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/self-service-llm-key-management/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/server-side-provider-api-keys/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/strict-yaml-config-placeholders/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/system-prompt-handling/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/tauth-protected-management-api/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/tenant-secret-ai-gateway/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/upstream-worker-queue-limits/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/resources/usage-metadata-without-prompts/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "site/terms/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "tests/blackbox/management-auth.spec.js",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 1,
+          "footers": 0
+        },
+        {
+          "path": "tests/e2e/management-ui.spec.js",
+          "refs": [
+            "latest",
+            "v"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 4
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "site/app/index.html",
+          "before_sha256": "18aa26e55751e7c5bea8463f30821b40be05cc0dd665cfef5ccc56fededf1f0b",
+          "after_sha256": "3c18b2bd407bf72d5eeb313ec81a2c16458486a99441f4e84628c96d740e0e8a"
+        },
+        {
+          "path": "site/docs/index.html",
+          "before_sha256": "06671bd25ef3a6a9d8585af4295ffe017cf5e12870eee9d93d4a9832707c733d",
+          "after_sha256": "9c273df00a4007ca95716b310f54b8eb3d2a5def79b9719beb2972860ada3600"
+        },
+        {
+          "path": "site/index.html",
+          "before_sha256": "8f573e8fdb708a45901aedd9c31803ad7c1913d0f6a97ecbfcbcef82edb5eca0",
+          "after_sha256": "f04eab50012bfb21df079386a3885ae2d2c876667f6a088204140332b4cb45d7"
+        },
+        {
+          "path": "site/privacy/index.html",
+          "before_sha256": "867a72620071214f2dbf4bf4ff8d991f4b66c9dd8381efe9cccc00b7c161f63e",
+          "after_sha256": "ba07650a409f4de985b56d6116758ee7a1e6bc872ee86115837a35a80befc457"
+        },
+        {
+          "path": "site/resources/admin-usage-visibility-without-secrets/index.html",
+          "before_sha256": "b75dff37659d24ed25059fb6040f1509f64e4832779ebcce3f1658ef25fb3b01",
+          "after_sha256": "a239b0d764788bfff0d70fa21996f2cf1aebac63887de799254d7ef4bf334140"
+        },
+        {
+          "path": "site/resources/anthropic-claude-messages-proxy/index.html",
+          "before_sha256": "b724e0f6b478b12f422bd7261d09729cc499e7393a7188905d97aaca7795a5b9",
+          "after_sha256": "1548c07b19344ac9f06ca9fe622baef7fe15bf946653425999afd0ea46058b57"
+        },
+        {
+          "path": "site/resources/api-served-runtime-config-for-static-ui/index.html",
+          "before_sha256": "3a7195042e47701ce758fdf94f9ae32fc75f2d0df63825906cf77b4676a8bf44",
+          "after_sha256": "4c6fa810f7fa04d3e3eca3783e76bb40b79c93c9ea46c26dc73db634c9ecf814"
+        },
+        {
+          "path": "site/resources/audio-transcription-proxy-api/index.html",
+          "before_sha256": "dc254296d278ad92ca50e0246c8ab482a64552b63bf872ebb12c3502bb0cb801",
+          "after_sha256": "f049558971acd8d8d6871ba34aa2ecb7c419428e0c55f1d33b2953e70deb2fc0"
+        },
+        {
+          "path": "site/resources/bring-your-own-provider-key-portal/index.html",
+          "before_sha256": "6f82ccba3fccd7ea7b6424f0f18c1de4f81a802af0a5229fca2367d631e599df",
+          "after_sha256": "fa714837ff4ab1250084ccdefa6e1303a3f53a6c9bd06fca4ebb17f832037486"
+        },
+        {
+          "path": "site/resources/canonical-v2-chat-messages-api/index.html",
+          "before_sha256": "29cf95c204e5e8ad23e97e240c10ed1fc96580d9cb5e6379a73f08db813d739c",
+          "after_sha256": "e0bb37050e0ab11741c3fdfd770be753fd51aee3857e1cc95d6a8033cc7d3761"
+        },
+        {
+          "path": "site/resources/copyable-llm-curl-examples/index.html",
+          "before_sha256": "272feaf0f1487e712f07d2b74d085090447b072ee16ef35cef2286ab6239032f",
+          "after_sha256": "082a891649f3c8d276f2b39ca1b8e534f9c5c30251e9f1bd300f7c8f95201a68"
+        },
+        {
+          "path": "site/resources/dictation-provider-routing/index.html",
+          "before_sha256": "317bdbc8e8753e290c710606544bb2869b1780c7fa7b0d6465ff96a7a1b056d8",
+          "after_sha256": "36b87fdbab564bbafcdb3eb2ad32ee2689246e072b51437ed9d1e801a39ed006"
+        },
+        {
+          "path": "site/resources/encrypted-provider-key-storage/index.html",
+          "before_sha256": "91017ebe2a66f6a8f8ddf5ab887ed0265d399e3722bc2f17e2c770ca10e567d7",
+          "after_sha256": "7cf7fd2148eeb3795bc7288ba7620b1ae6569abc85649a6638dd64b744ffbe7b"
+        },
+        {
+          "path": "site/resources/gemini-interactions-proxy/index.html",
+          "before_sha256": "f189732f69b5930c5f425026e8711a688139b84fb6f6642d8f492d1fae1f9cb2",
+          "after_sha256": "de967d05fe0b97c737b66241dfa2f0e237f602b5805407246e7626b6591205ba"
+        },
+        {
+          "path": "site/resources/generated-secret-rotation/index.html",
+          "before_sha256": "b03bc070babe18bd77fab54c623c1bdd0ac19783150ec0c9387ec5237b788154",
+          "after_sha256": "fb5afa2284af0d197c456d70afe1c5dd767ed443760f71d809b55fb992741c47"
+        },
+        {
+          "path": "site/resources/github-pages-llm-management-ui/index.html",
+          "before_sha256": "a38a5bbdaabf8cc0bd88616ee2465576bf2cf2a5e643ebc766bf1e13fef5604e",
+          "after_sha256": "e428fa48f0080e9f3c5730f5997c8ffdec4ac4998032bc35f6654cdd734e0f19"
+        },
+        {
+          "path": "site/resources/go-client-v2-only-llm-proxy/index.html",
+          "before_sha256": "2b81702ae018aab9904126716b5aec36ddd9f4ba00e9e137682893130848e4d0",
+          "after_sha256": "5e51191f6ec5c7036ae05a6afcdbb261befbbe026af99034d0950eaac41e1b8c"
+        },
+        {
+          "path": "site/resources/gorm-managed-tenant-persistence/index.html",
+          "before_sha256": "3f40228de576ea7f76d57be51b468c0e570f33262e6c5ea11bf065b193755f33",
+          "after_sha256": "128cb84063c65ce221a7bf89102ef2ce58a4300fdcad9a8b04bf1492b8bdc51c"
+        },
+        {
+          "path": "site/resources/index.html",
+          "before_sha256": "c46cb6fed86f01675670697b3c072bcd01ffd45233c276cde73d65ce098993dd",
+          "after_sha256": "6864334d63b4d54bcde20e657452e5753d295e44d24c8cb76c90ee8d69de60c2"
+        },
+        {
+          "path": "site/resources/installable-llm-proxy-cli/index.html",
+          "before_sha256": "52d219efd478e001a967e125396a3e53a57314d156eb893356a6a1637154a7ad",
+          "after_sha256": "9ee8924f0b385c6a5c484082374c9e3392fc518bb06011a54fb0082b19e09835"
+        },
+        {
+          "path": "site/resources/internal-ai-gateway-for-product-tools/index.html",
+          "before_sha256": "cdae87893f83d582063eaadf24b3fc71c8354e44bbebaefea405dd1af14f19a2",
+          "after_sha256": "8cf30723ff10f24328525ca1ecd3865a04eba7df133f3d7cb6bb8ede65783631"
+        },
+        {
+          "path": "site/resources/large-prompt-json-post/index.html",
+          "before_sha256": "b38a72a7070cf7b14c39c07065180f6a383b05357dba186e1a59d2e55f41f2b1",
+          "after_sha256": "95ff2ac0cfc8cdc1a4a5eb45b0faafd643dc8e12bd7bba0ffbf92d3e5d3faf2e"
+        },
+        {
+          "path": "site/resources/llm-proxy-client-authentication/index.html",
+          "before_sha256": "5012b70d475520731276b4d226042e7bb035f42ccacc662d3d549b4b2b036383",
+          "after_sha256": "ab468f078d813a8d9f72ea43cb23f51a3723d509cf0737d595a32f2187e98ca6"
+        },
+        {
+          "path": "site/resources/llm-proxy-status-code-map/index.html",
+          "before_sha256": "c9d07e094e3c15601196495074d62b2988cc948c15bc84046d09e09b2464eaa6",
+          "after_sha256": "d3e9412112585e2604725f382d2df4f3d4c32ea528247c3fd5bc8f25b8ea0b91"
+        },
+        {
+          "path": "site/resources/llm-response-formats-json-xml-csv-text/index.html",
+          "before_sha256": "efef5bd35faab9cbe26517e260292072f272d6e47e436e40ff538f47ac948ba5",
+          "after_sha256": "bd4b15f42be3c95cee28d32fafb155edfb4286267f530e3673c5163d0ac01c92"
+        },
+        {
+          "path": "site/resources/local-and-hosted-llm-proxy-config-profiles/index.html",
+          "before_sha256": "e9f3d1b6857d11e63cc476fe8ae29a1b164816cfa76cfeb44403134ac7dd96b6",
+          "after_sha256": "d137039856aad69c4a2bd4f223cb8c7a0dd70ec1a23467af849460ba3c37c610"
+        },
+        {
+          "path": "site/resources/managed-tenant-usage-dashboard/index.html",
+          "before_sha256": "0753e1bc7b8cc841b7de43f8a5a468ade15ff9913c390e5a08ca1e9596d0728d",
+          "after_sha256": "55363173c1fdd4d5c903a385e15f14c112f1f49d917b71c8849d72c182b414a4"
+        },
+        {
+          "path": "site/resources/max-tokens-provider-limit-validation/index.html",
+          "before_sha256": "e547dfb3901c53375420fd0c9e82e1d925ada4ea2a735b2a8efe70c8f8b49996",
+          "after_sha256": "1a120ca5b8bb8d570f318a015f28885dda27035c33b4969c679290b4de4a9def"
+        },
+        {
+          "path": "site/resources/model-catalog-configuration/index.html",
+          "before_sha256": "720166bbae04f893de568309f1c5f3349e3782df7f8f81806ce0a9ced0cf55a6",
+          "after_sha256": "e1a4842b81cd37cd4e3b2c71b5e539a7bf2ec6493db20b5345065dadf3af789f"
+        },
+        {
+          "path": "site/resources/multi-provider-llm-proxy/index.html",
+          "before_sha256": "225081d180b962624e9fb6f4564b2bab92f844b92abf26fe7663adc5aeb96fba",
+          "after_sha256": "d17f6f1116bd73a584be386ad60b8f0fb0dee1ad7c21ad7afc4915b37079e511"
+        },
+        {
+          "path": "site/resources/multi-tenant-ownership-migration/index.html",
+          "before_sha256": "37a723df3fe749c606189f68d460c7ab2e583133f63a44e89fe7dfd6af2c0fdf",
+          "after_sha256": "a71f372f39cb316d8ed584e1f9d22a48be397e036566d6ee0bdd65d783296cbd"
+        },
+        {
+          "path": "site/resources/normalized-token-usage-metadata/index.html",
+          "before_sha256": "8645605768e508c9fb5d31306312355342ba578ad3284fd94f040b2badd1e792",
+          "after_sha256": "3080baf9a60b3c4b95f2c71c13c7cc7080fbd87e2f9059227289bda42a6a7833"
+        },
+        {
+          "path": "site/resources/openai-background-response-polling/index.html",
+          "before_sha256": "2c9025d30388f5ed29b73c2bc5dbe3082499b287f92025a8819ab251b1be0035",
+          "after_sha256": "eb6745ace895eaee992e0aefc76e7736b1ee41e214e6c6e10a6cae659bb24113"
+        },
+        {
+          "path": "site/resources/openai-claude-gemini-one-endpoint/index.html",
+          "before_sha256": "859bd43fbdc67b7a90829eca73aeb1eb1229a783ac308a74a1012b2cdc9e5504",
+          "after_sha256": "45e40060f89e9e9bc5ea0e1609a083664e9dedd61188ef263410f053591cb4ab"
+        },
+        {
+          "path": "site/resources/openai-compatible-provider-gateway/index.html",
+          "before_sha256": "664d4e979bbe8051ecde87059fce5fe3a5f4f8b32cf3016b320cff9243c95d60",
+          "after_sha256": "2b6b2c8f85fcd6df6d64b6dd29b9e73cf71f2ea15e36314d7546e0ebdad38dff"
+        },
+        {
+          "path": "site/resources/openai-web-search-guardrails/index.html",
+          "before_sha256": "353d40ac2f6e119fb464d821d9b4d4ac713fa5c275b10bc1943f733df3885541",
+          "after_sha256": "7437b60e8410345d47bd4c1666e701547ccf0d0a169b3d29cfdbf6ab2f0bf8a5"
+        },
+        {
+          "path": "site/resources/per-request-provider-model-selection/index.html",
+          "before_sha256": "72118bad0121ffe3eb48d692631f35d05b51d99f45d92a01592aac77fe1e29c4",
+          "after_sha256": "b02d6b8bdd3237af8b3ddaf039a976ae6b047718bad08d0ee38a6dc831124017"
+        },
+        {
+          "path": "site/resources/provider-default-model-selection/index.html",
+          "before_sha256": "ba33bf36ec8a1aabc595ab5ee8c33c1f7b2824bcc316fa51fbda65edb69e1180",
+          "after_sha256": "2d27f88653d73c0ce4ac4050a628031da306638ad0303dfe3723d278adabf6de"
+        },
+        {
+          "path": "site/resources/provider-overload-timeout-handling/index.html",
+          "before_sha256": "fb1fa89a33d179c7478324817eba27baaec9d7a7f8fd8b2e113896db0eb57b75",
+          "after_sha256": "ca294d5b792e91f6dc05933a03eb42064a17178b358290abfd5e94c842410c7a"
+        },
+        {
+          "path": "site/resources/provider-specific-system-prompts/index.html",
+          "before_sha256": "67a9ddf96a373f9208cc65d4ba04aae36889a18805f5370eb3ac321b32bc73c5",
+          "after_sha256": "68b720d1ff0f37584a1c4a4b01815c5fcb9f6e7466e6323bb5a2e6ef28739f07"
+        },
+        {
+          "path": "site/resources/python-client-v2-only-llm-proxy/index.html",
+          "before_sha256": "c52b50b4ec13749a2ffafbb6866a25bda01623ca493ecdd9a368541af643eeae",
+          "after_sha256": "e934db42dd80ef1bceed9e2e6b1a32876ab19661f1f7c70040f2b538d2750469"
+        },
+        {
+          "path": "site/resources/reject-client-provider-key-leaks/index.html",
+          "before_sha256": "65e17a1a50e827c13e288aef6622823c3a24b71334fc874bd274e9964003db41",
+          "after_sha256": "ce0b626a222d92ab8a0ddd8a045eb12e37f7cdc947338f095b2dc87ef45716c9"
+        },
+        {
+          "path": "site/resources/self-service-llm-key-management/index.html",
+          "before_sha256": "863f5ebe9ab6ec06ed4689dee0bc208ebcfca1471dc44a1658bc9284853d79c4",
+          "after_sha256": "9da2fede12f69b81f9b7ee4e3bea98338b984334554dd07e062218a51b933390"
+        },
+        {
+          "path": "site/resources/server-side-provider-api-keys/index.html",
+          "before_sha256": "ecdebbfb401e9be4c9fe73b3b7df7c7664af537020584f0e5f656736e511a36b",
+          "after_sha256": "17bb3202cddf2f527ca06005aeac360e7a1b92e7fe22eaac1af0a58f10e0e50e"
+        },
+        {
+          "path": "site/resources/strict-yaml-config-placeholders/index.html",
+          "before_sha256": "1a65e4b6e496f9d3ea2dfc20dde4621f90b14258fb75e9d9da76306d3a4e281a",
+          "after_sha256": "b0c1ec27de073f29e70dbab42a30c54a44a2571e2ab8ba38d67d52a7f395fa07"
+        },
+        {
+          "path": "site/resources/system-prompt-handling/index.html",
+          "before_sha256": "0ec2581a97151552aa2edf0d9be16b1578a4c35d195e2139a3c1eea0c9faec1f",
+          "after_sha256": "ab81ef7295cf75e15ab6c56ad19993a5284cb18e8ad0ddf2111f8500275aacde"
+        },
+        {
+          "path": "site/resources/tauth-protected-management-api/index.html",
+          "before_sha256": "9e950ad21758ae8cfb7cc2a1fdc2c5480112290e1972c7ee052ed30f8d163c36",
+          "after_sha256": "a0f87213386eed77d53d98e203cbc4546c9fe9d4e00958609af1ee70ff2d59c9"
+        },
+        {
+          "path": "site/resources/tenant-secret-ai-gateway/index.html",
+          "before_sha256": "26c328b518d66db84058e393aab4b6a78f7fd4cb1687542de7afe5556c467aeb",
+          "after_sha256": "93b839b3996d4c15c15b7d9cffa3b8968f1fbe37aee637e3f022a3816a547152"
+        },
+        {
+          "path": "site/resources/upstream-worker-queue-limits/index.html",
+          "before_sha256": "f3bcca96495b20557b295ecdd8cf1413acec1f300a99192238a4ef9acb800b8c",
+          "after_sha256": "aff615278b132133c2b1b1eb3cfd7c930db24ad7f366305799b872350ee56f9e"
+        },
+        {
+          "path": "site/resources/usage-metadata-without-prompts/index.html",
+          "before_sha256": "639455b98ea7c1687df335872adbb8f96c4a6c45e7cb886b3e15784260e96527",
+          "after_sha256": "8862d6d8351976d0b91de010743ffdf08dde960959069f06b5d6a5665a53b0c7"
+        },
+        {
+          "path": "site/terms/index.html",
+          "before_sha256": "c7e50e83f86afe1ab2c690fb967e5cc17b14e7cb27f949144a968f175e035a5d",
+          "after_sha256": "88d5fe22db55806d308b3b1d870d77651559a5de590eafcff510634c7dc8079a"
+        }
+      ],
+      "patch": "patches/llm-proxy.patch",
+      "pending": [
+        "site/config-ui.yaml: resolve the explicit sessionPath before conversion"
+      ],
+      "validation_targets": [
+        "lint",
+        "test-brand-icons",
+        "test",
+        "test-frontend-dependency-contract",
+        "test-openapi-pages-artifact",
+        "test-management-auth-blackbox",
+        "test-management-persistence",
+        "test-live-provider-harness",
+        "test-live-providers",
+        "test-live-provider-media",
+        "test-live-provider-candidate",
+        "test-live-provider-candidate-media",
+        "test-live-gemini",
+        "test-live-gemini-candidate",
+        "test-live-local-providers",
+        "test-live-local-gemini",
+        "ci",
+        "ci-backend",
+        "ci-frontend",
+        "test-mcp",
+        "test-mcp-oauth",
+        "test-client-protocols",
+        "test-client-contracts",
+        "test-release-policy",
+        "test-provider-catalog",
+        "test-deepseek-retirement",
+        "test-claude-retirement",
+        "test-xai-responses",
+        "test-dashscope-responses",
+        "test-minimax-reasoning",
+        "test-minimax-m3",
+        "test-claude-current",
+        "test-gemini-current",
+        "test-gemini-candidate-contract",
+        "test-gemini-transcription",
+        "test-live-candidate-contract",
+        "test-live-minimax-m3",
+        "test-grok-current",
+        "test-meta-current",
+        "test-meta-transcription",
+        "test-openai-transcription-retirement",
+        "test-live-openai-transcription",
+        "test-dashscope-media-limits",
+        "test-qwen-current",
+        "test-zai-current",
+        "test-zai-images",
+        "test-baidu",
+        "test-live-provider-defaults",
+        "test-gemini-qualified",
+        "test-astra",
+        "test-live-astra-capabilities"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation",
+      "config_producers": [
+        "site/config-ui.yaml",
+        "internal/proxy/management_frontend_config.go"
+      ]
+    },
+    {
+      "repo": "pinguin",
+      "commit": "c6a12b85d9aee030ab3d3db3dd40b9721e3e2947",
+      "branch": "master",
+      "configs": [
+        "web/config-ui.yaml"
+      ],
+      "affected_files": [
+        {
+          "path": "tests/config/mpr_ui_contract_test.go",
+          "refs": [],
+          "flat": 0,
+          "authButton": 7,
+          "footers": 0
+        },
+        {
+          "path": "tests/e2e/landing.spec.ts",
+          "refs": [
+            "latest\\"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "web/config-ui.yaml",
+          "refs": [],
+          "flat": 4,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "web/event-log.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/smtp-relay.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/tenants.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "web/config-ui.yaml",
+          "before_sha256": "bd6bc76148d625cc4f85cb70e5dea729b2245d20e0cc942b61fba61ad44caed4",
+          "after_sha256": "eb0170a7008377b2f6dc60dd3824311298741daeee5a3b0daa9ee7f943918505"
+        },
+        {
+          "path": "web/event-log.html",
+          "before_sha256": "8ba2e112d82531cfe9f7b3f92c858afc94b96749745ca11bbe4bb9f1d165e7a1",
+          "after_sha256": "b7943614614033756fd270ec4f3f90ad02b6ddc52e1c0a5ddaa0bec058189708"
+        },
+        {
+          "path": "web/index.html",
+          "before_sha256": "372222b6ac2434abf4e05e62c5b79074e6ced66d51a3a5a04cf461ff0cb6620d",
+          "after_sha256": "dac23c04ff510d4540e7cc66fcdf0ae41728716c5d63b457377c89aeee30080e"
+        },
+        {
+          "path": "web/smtp-relay.html",
+          "before_sha256": "24fb357547faaea834f3fd51ffb3797ce06ca278b6b8ab4d3bb6e0a5ff0bfc39",
+          "after_sha256": "02571fa0025e518742f920ec748e89cadc72d0b25e17f7b7d3da76866e9ba984"
+        },
+        {
+          "path": "web/tenants.html",
+          "before_sha256": "0bf795bbd6daa64ba022098d769e20ce4f59cfaaa1f297019d50adc0f4e58a1b",
+          "after_sha256": "725db8b6a84c03051b9a0fbe0728758ef909807d74378ec44c21d61f261d888c"
+        }
+      ],
+      "patch": "patches/pinguin.patch",
+      "pending": [],
+      "validation_targets": [
+        "lint",
+        "test-fast",
+        "test-slow",
+        "test-unit",
+        "test-integration",
+        "test",
+        "test-coverage",
+        "test-frontend",
+        "test-frontend-update",
+        "ci"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation"
+    },
+    {
+      "repo": "social_threader",
+      "commit": "e64b52587ade8761f1ab580be32de4c3c802e6ae",
+      "branch": "master",
+      "configs": [
+        "config-ui.yaml"
+      ],
+      "affected_files": [
+        {
+          "path": "config-ui.yaml",
+          "refs": [],
+          "flat": 2,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "internal/deployment/contract_test.go",
+          "refs": [
+            "latest"
+          ],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "tests/transformationPuppeteerSuite.js",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "config-ui.yaml",
+          "before_sha256": "5373b403c76f28513ae1466bb17e3dd000b683dd9fc61478fa85fbaa0284ca79",
+          "after_sha256": "d3e5ec1ecb131d022a459274224a2715439ff6e96fc0dc6dd4b8feb6c1752ff4"
+        }
+      ],
+      "patch": "patches/social_threader.patch",
+      "pending": [],
+      "validation_targets": [
+        "lint",
+        "test",
+        "ci"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation"
+    },
+    {
+      "repo": "prompts",
+      "commit": "0acba011af42f97e10132f8cae0150ab8a969597",
+      "branch": "master",
+      "configs": [
+        "web/config-ui.yaml"
+      ],
+      "affected_files": [
+        {
+          "path": "web/config-ui.yaml",
+          "refs": [],
+          "flat": 3,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "web/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/investors/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/js/app.js",
+          "refs": [
+            "latest"
+          ],
+          "flat": 4,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "web/js/types.d.js",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "web/config-ui.yaml",
+          "before_sha256": "7eee6674cbf411d4eb06a554a560c596d8903fc3a7c30c015f0aefa3ebbd282d",
+          "after_sha256": "4b2b2504f50749c9c66fcd0a871d253dcc76c24e946822b7247b77547104934e"
+        },
+        {
+          "path": "web/investors/index.html",
+          "before_sha256": "c8966255d15a5fb2c04fb423b175b6fac450133c7e7d903b46762d2e8be838aa",
+          "after_sha256": "aaa0f6030f10748f99b719a18c62af44d0bd71ad238fd9e866205e0fb3223fe9"
+        }
+      ],
+      "patch": "patches/prompts.patch",
+      "pending": [],
+      "validation_targets": [
+        "test-agent-workflows",
+        "lint-workflows",
+        "test-go-coverage",
+        "test-lifecycle-entrypoints",
+        "test",
+        "lint",
+        "ci",
+        "test-prompt-bubbles-desktop",
+        "test-prompt-bubbles-mobile",
+        "test-localhost-stack",
+        "test-layout"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation"
+    },
+    {
+      "repo": "SummerCan",
+      "commit": "0484f9e035d73e8aa2710587d5cbcea2d687dd2a",
+      "branch": "master",
+      "configs": [],
+      "affected_files": [
+        {
+          "path": "cmd/server/http_test.go",
+          "refs": [
+            "latest"
+          ],
+          "flat": 1,
+          "authButton": 3,
+          "footers": 3
+        },
+        {
+          "path": "cmd/server/main.go",
+          "refs": [],
+          "flat": 1,
+          "authButton": 1,
+          "footers": 0
+        },
+        {
+          "path": "web/static/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/js/app.test.js",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 5
+        },
+        {
+          "path": "web/static/js/bootstrap.js",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "web/static/privacy.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/account-owned-camp-plans.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/calendar-ready-camp-plan.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/camp-planning-without-spreadsheets.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/camp-registration-handoff-checklist.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/camp-schedule-by-camp.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/camp-schedule-by-child.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/camp-session-count-comparison.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/camp-share-link-privacy.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/camp-shortlist-review.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/camp-source-selection-by-location.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/caregiver-camp-schedule-sharing.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/child-age-camp-eligibility.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/choose-camps-by-location-bucket.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/co-parent-camp-schedule-sharing.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/compare-camp-descriptions-and-summaries.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/compare-camp-sessions-by-week.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/compare-local-summer-camps.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/current-shared-schedule-link.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/email-summer-camp-plan.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/family-blackout-date-camp-planner.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/family-calendar-camp-planning.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/frozen-demo-catalog-camp-planning.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/guardian-summer-camp-planning.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/ical-summer-camp-calendar.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/local-provider-camp-catalog-planning.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/morning-afternoon-camp-conflicts.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/multiple-children-summer-camp-planner.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/organize-camp-provider-links.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/private-summer-camp-planning-workspace.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/provider-verification-before-booking.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/proxy-only-camp-source-planning.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/rank-camp-preferences-by-child.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/restart-a-summer-camp-plan.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/san-ramon-summer-camp-planning.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/shareable-summer-camp-schedule.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/sibling-summer-camp-schedule.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/south-bay-summer-camp-planning.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/step-by-step-camp-planner.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/submit-missing-camp-suggestion.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/summer-camp-categories-comparison.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/summer-camp-planner-for-busy-parents.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/summer-camp-planning-workflow.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/unavailable-dates-camp-planning.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/walnut-creek-summer-camp-planning.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/resources/working-parent-camp-schedule.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/static/tos.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "web/static/index.html",
+          "before_sha256": "5ff08ef35b408162e9113c2eb2ab388ea36279043bd31c19ccb99b746820bc5b",
+          "after_sha256": "4da62d0a3aca05f98e536d5603fe069008249108c8e98a9e4be7ee853cbdd3d0"
+        },
+        {
+          "path": "web/static/privacy.html",
+          "before_sha256": "f7e0347f96aa28dfa14b4f4ba6a81c7ab25013757b9a935174e8b5aa5659ed88",
+          "after_sha256": "b81e42adf15729daa4ef49ed104f9b029409a45ff005fda3beb31a0e31bd10d7"
+        },
+        {
+          "path": "web/static/resources/account-owned-camp-plans.html",
+          "before_sha256": "0cdeef8abb4fe275a4e57a7be8d748a61d64395e77e4bbef75c08ea9c477f866",
+          "after_sha256": "1c95eb2b589b7b64361773c7d4b04e8ae92fbdfedcbbdb2d647cce3c75146210"
+        },
+        {
+          "path": "web/static/resources/calendar-ready-camp-plan.html",
+          "before_sha256": "4822ebe7da1411f690c44049135f1e24905b02e2a29833889cee00a595b92da0",
+          "after_sha256": "c1789ea745644c4bfe13e03b37266319de28211fdc4d3520d699ae814d755903"
+        },
+        {
+          "path": "web/static/resources/camp-planning-without-spreadsheets.html",
+          "before_sha256": "20530c2c0f2c018a15421aabdaddafb7b996113b1778bb4ac2474dfdf842a111",
+          "after_sha256": "84d0704f2da92dd09aed69c9f382c50b0024a5fa7cc8450de9e6c3097c2f29a0"
+        },
+        {
+          "path": "web/static/resources/camp-registration-handoff-checklist.html",
+          "before_sha256": "56361fb32714715593f1fad26e6b402b1abe8df4fb6c919c4b1a86506655177a",
+          "after_sha256": "68aca228f33e0b37db53877e47339eb1f4ffa515d73a93718a50f859bffb59f6"
+        },
+        {
+          "path": "web/static/resources/camp-schedule-by-camp.html",
+          "before_sha256": "775450c1ad984373b4422f4164de0971ae4ea69f999cf8b102d34742eb34a1e2",
+          "after_sha256": "ce480894d62398a498d24ba445ed106f748cbb6be839a6c73972f7f42eec5840"
+        },
+        {
+          "path": "web/static/resources/camp-schedule-by-child.html",
+          "before_sha256": "81e4a06c282e64f90887d195fffe5db223a422f3f23ecae7fb2fcf777b5c3c9d",
+          "after_sha256": "0c1aaf41e46c912d5cfa593be2ccccd316f233be1a5114cdb8ebad40171ba024"
+        },
+        {
+          "path": "web/static/resources/camp-session-count-comparison.html",
+          "before_sha256": "10d07b58e7e7181ebb1266dc036daa014338cf362f7b96232e836518729d0258",
+          "after_sha256": "60da9cd46a6cd3450f1e1533e7ef983bad6833cfe1cb0eb8fd805d6b0915d081"
+        },
+        {
+          "path": "web/static/resources/camp-share-link-privacy.html",
+          "before_sha256": "c6c95e2f3dac5da5e151cf7847dff9df231be459bc9de1aa184f08b0e8c81d25",
+          "after_sha256": "65039d57453cd03e2f7d9c1de1e080865fe7aeae37c7f5f41eb8a7a4284d9cc2"
+        },
+        {
+          "path": "web/static/resources/camp-shortlist-review.html",
+          "before_sha256": "27c6f15c69aed1d3466dcf0c991c87b25b14984c94debfa4ffba0b1663b560ea",
+          "after_sha256": "31c10c86b4749f01fb7ef2328592e71bfe8be8ee29eb3ecb38765b5e7258b5c8"
+        },
+        {
+          "path": "web/static/resources/camp-source-selection-by-location.html",
+          "before_sha256": "cdb4cd30796c956aa11d45014108f59356a03e9916696772392ef43aac926643",
+          "after_sha256": "8c0ca6f2edada42a874307e44a46296278589096700158703abb2e81cb6cd8b2"
+        },
+        {
+          "path": "web/static/resources/caregiver-camp-schedule-sharing.html",
+          "before_sha256": "7fa7ac18fdea59d7987023f595ca9e25366f7b2a506eddbd2b80004303a47892",
+          "after_sha256": "afe12a80244cc42b1762a36e01f55668279365f57e529b2d211df5ca88b1bdbd"
+        },
+        {
+          "path": "web/static/resources/child-age-camp-eligibility.html",
+          "before_sha256": "43ef8e66b2b32c7870aaf1bfa79341319feb854365a06c9332c41a07bfa8473e",
+          "after_sha256": "f5cde020191bd261047b06f66d71825d16468c4670fc8f111033c20c20fcd6a7"
+        },
+        {
+          "path": "web/static/resources/choose-camps-by-location-bucket.html",
+          "before_sha256": "bff67a85001c89603e741511b4926c460cad140cf8378d4678897851718dbc17",
+          "after_sha256": "d5e33b5abdf99bc1d1562218f954e165ce419cfc6a83bd4be1d2dac550a501d3"
+        },
+        {
+          "path": "web/static/resources/co-parent-camp-schedule-sharing.html",
+          "before_sha256": "c1a8fbe499050f92ed8de51ebb89a294e61cbc779cab2d3ba82285eb3165b76c",
+          "after_sha256": "53dd299ab364d835241cd951220a744dc0b637e2d9a17b3fa55ef9cbf86a5e1e"
+        },
+        {
+          "path": "web/static/resources/compare-camp-descriptions-and-summaries.html",
+          "before_sha256": "c9a1e94abd65ef0d249d89212646cf1dab480361e60308187a7ed9d90c2a97fb",
+          "after_sha256": "308b7eda4bced48ffa234592ca9bf91e37330089a4d0ce8faf0c5fd6ce2a3e37"
+        },
+        {
+          "path": "web/static/resources/compare-camp-sessions-by-week.html",
+          "before_sha256": "c639f722cf31f767a8f562c78cb1d109cac499ce2e9da616ade75fb76b8189f4",
+          "after_sha256": "c49a36928c12558945ba9587f3bcc5f1fbdba7149199f3b8d5a62e20273db0b4"
+        },
+        {
+          "path": "web/static/resources/compare-local-summer-camps.html",
+          "before_sha256": "389e5e824d39f787f3840fffc13494b8e674120423642654381c27052b0dfd39",
+          "after_sha256": "9a1805ca7842671f137dc9470b7435301095a36b19e293835d5d4fe65add3f9c"
+        },
+        {
+          "path": "web/static/resources/current-shared-schedule-link.html",
+          "before_sha256": "7524295d5aec542ccf02e9b2893e806bbe6527c081285dd91b0f66f369d68d39",
+          "after_sha256": "29dee86b39328ac1abca9f6bace97843bfdb6e86dbd90cf2df439d46fa48bc4c"
+        },
+        {
+          "path": "web/static/resources/email-summer-camp-plan.html",
+          "before_sha256": "61aa6348ad6f2412da81e23c788ac2d1a27324f841a64cb4655257ba14e2a930",
+          "after_sha256": "60018cb97aa7e344a918f2fcd2b1c9cf0b3dcf1ea05b78251a910ff5e967873e"
+        },
+        {
+          "path": "web/static/resources/family-blackout-date-camp-planner.html",
+          "before_sha256": "02352c074067d8a4eb770e37ee88864f12ac2f9ea89b7b645fe7ed10d47cb51d",
+          "after_sha256": "8a520d4f7d2f215c2d35c6ba8ce0f9049a23e0499b94b55bb5f856ed9419f628"
+        },
+        {
+          "path": "web/static/resources/family-calendar-camp-planning.html",
+          "before_sha256": "978c77be815a0aa7d6d46cb19f49c788c5dd7316bba6a25ed17ca3cc30acc917",
+          "after_sha256": "6d875e9c4951b443d4222b5b79b7a3fce1976312e879433d9b755eba06749916"
+        },
+        {
+          "path": "web/static/resources/frozen-demo-catalog-camp-planning.html",
+          "before_sha256": "9a133d19fcb0d4ae661334653f6099b8f420934bbfa9178e2be6ca72f49d3c62",
+          "after_sha256": "783415bfd5d11567c9d538dba4ec4b423bf307e01ad6d459dd795f3fae825d66"
+        },
+        {
+          "path": "web/static/resources/guardian-summer-camp-planning.html",
+          "before_sha256": "5c26703fa26cdfbe917ca2d57a44b6e7c1ccd1c1da83188630865ce5465ad625",
+          "after_sha256": "b89373f0fb5ffcc6081318b6a4ca72cccd313c5942d30d0ec74844d81873f497"
+        },
+        {
+          "path": "web/static/resources/ical-summer-camp-calendar.html",
+          "before_sha256": "2d4ba1175d92b78bea66f96c23f197afe6e089e405554a6e2f1fec902097593c",
+          "after_sha256": "dd7862f28761e3e9fbfda61f97923e041cd486be28d02bf0c76ec16ff2ee70e7"
+        },
+        {
+          "path": "web/static/resources/index.html",
+          "before_sha256": "6536dca79d4a72515b85f6fb5b28ac01ef0d39fe364d9b1c9573e8e616e2df87",
+          "after_sha256": "7246211a9438a2b5097bb0959338b4fb4da4bf216db886c5900ba38a1d61a039"
+        },
+        {
+          "path": "web/static/resources/local-provider-camp-catalog-planning.html",
+          "before_sha256": "83c45235a535ec987dba34548b0df8749053ce5645be99d4c04817e94f3b281f",
+          "after_sha256": "ba3ace1969d694ef8dc227ef0e6cec821469a3b2ef04769d49195302480ad1a2"
+        },
+        {
+          "path": "web/static/resources/morning-afternoon-camp-conflicts.html",
+          "before_sha256": "561fc60fd4a522578673bd122be9124d8bd33e7d494c2e6c9fcb87897ecc5fa4",
+          "after_sha256": "6402fe176ab0ae8d433d6fd3e3881e067b743b637d3eb915a602a741b0807dcf"
+        },
+        {
+          "path": "web/static/resources/multiple-children-summer-camp-planner.html",
+          "before_sha256": "6f65819036eb77158109593a07d231264dff6d5c1a682a48186d82aef7a2dbb1",
+          "after_sha256": "39451b695c0660a3a59e136b63fd1815d06a02baa05bffcc546edf4390442aa4"
+        },
+        {
+          "path": "web/static/resources/organize-camp-provider-links.html",
+          "before_sha256": "6f49227afba2fa9131989bdfa58d5455fbca00829c26b0a2a9f99734461eee30",
+          "after_sha256": "c2bf01705f91fe81e640896e5b47b71b9b9fe93fcc787fe23fe34531d174c67a"
+        },
+        {
+          "path": "web/static/resources/private-summer-camp-planning-workspace.html",
+          "before_sha256": "6b218a16ad96a79830880d40e61a9d47bbc576cab3340b418e64b0dffdec14de",
+          "after_sha256": "bcb4534777ce492677960ce959e32f1a3a6e555cbda801f37e7d8d33444a1a7c"
+        },
+        {
+          "path": "web/static/resources/provider-verification-before-booking.html",
+          "before_sha256": "163cded84d682dcf023619ea9176df22c8eea277bc1d9fd008bf487c6b230793",
+          "after_sha256": "d2991537b3f3b8ea4f0714bf3b8d36113ef6f3774b9b7cb5ed710d8523fe23d3"
+        },
+        {
+          "path": "web/static/resources/proxy-only-camp-source-planning.html",
+          "before_sha256": "43eea21a078016787198438bbfc4330e6bec51131a9be80a7ae25c6875259d30",
+          "after_sha256": "c53235ad84db0fd869f4a374c6cabb32dcf265d9a680ba281c5e7ceeeadd4177"
+        },
+        {
+          "path": "web/static/resources/rank-camp-preferences-by-child.html",
+          "before_sha256": "8561a4d46a684705a75b74066c37bf0c98a6f39de2e02aefa1e0c9d6daa350e8",
+          "after_sha256": "81f88b8bf05b1a1aa30008e669d739a339dc978abd40a3c4d1f06d7f53b17c72"
+        },
+        {
+          "path": "web/static/resources/restart-a-summer-camp-plan.html",
+          "before_sha256": "f9346b2d5a689e32c92797c82829633205fb832f716c9eac66bd405ccc785ae7",
+          "after_sha256": "95583cfab3f6539f02695a21462d00db4f092e630cb6bfce9c21a54bd208070d"
+        },
+        {
+          "path": "web/static/resources/san-ramon-summer-camp-planning.html",
+          "before_sha256": "cd7349703204fdd560d16d7ab0a718943d19e4b9342e4802a0e336a129ff4183",
+          "after_sha256": "d71299d5972a9f554fbb37afa04651d2a67399a37deb2abc2ae596818790a1bc"
+        },
+        {
+          "path": "web/static/resources/shareable-summer-camp-schedule.html",
+          "before_sha256": "96e33bac258ce9f2f58233327ded5c2aa5f32f086f8a4a9f8e10cf4cf05441ea",
+          "after_sha256": "74b0737244b61cbdbfb8dca62c7184e7e030813b7ad1413d0fab6dcf049d722a"
+        },
+        {
+          "path": "web/static/resources/sibling-summer-camp-schedule.html",
+          "before_sha256": "4bd870104dfcdab82e8303c84381dea521d8c73f39f78f85c1aac547064be274",
+          "after_sha256": "4d7cbf3d30529a6613e5f4e7d4067d98e39551dcc16bee7d8f7aa18b119a80ea"
+        },
+        {
+          "path": "web/static/resources/south-bay-summer-camp-planning.html",
+          "before_sha256": "e90aee90afbd5120f2cf26e5160565d306b4c241af54c58e70c80d974c1c00ad",
+          "after_sha256": "e32c97bdd0bced3a9c5ebe934bb3aab22b28ebadb5807120b82886c9ed7e28eb"
+        },
+        {
+          "path": "web/static/resources/step-by-step-camp-planner.html",
+          "before_sha256": "0a7eb692c5dd6a846759ae253193cd4accbb7d9c5e7b2f19c01af6eb39282245",
+          "after_sha256": "bc79c46a175369df3e6f95130854351c816345f3c388a4aaf2ab713770c3ba31"
+        },
+        {
+          "path": "web/static/resources/submit-missing-camp-suggestion.html",
+          "before_sha256": "89be6a7b8be5ba4a267dac9f9df6ce562a9c8f3de111a64a9c664e31e08529ab",
+          "after_sha256": "80382ddcc280a6ed8c21e4d059655d93a9183353625c8adc14828dc514589d6a"
+        },
+        {
+          "path": "web/static/resources/summer-camp-categories-comparison.html",
+          "before_sha256": "76a07302038356ce8510de94c9c5ff46682d095574398cec365fccdbc09a0aeb",
+          "after_sha256": "0bd0fa60694d5dda97ec3d9ba77ef4ce7eaff10feb99d962e7df40ad002708fb"
+        },
+        {
+          "path": "web/static/resources/summer-camp-planner-for-busy-parents.html",
+          "before_sha256": "0c9a14ec64b1b3063ec77886cce138600e7723bf9f13638ba7f8bf266dfc27b6",
+          "after_sha256": "170e5c6d9a1416124c2678e1a90356073dabc6eea6476705b897c6f1da08ec79"
+        },
+        {
+          "path": "web/static/resources/summer-camp-planning-workflow.html",
+          "before_sha256": "98222ab4dc6e74bd98d4ac85975251babfa49417ddc7ae778c79587b40d28da1",
+          "after_sha256": "2c40f0e430d8dcde70fc2197e553bdcfd758b4715e65b7eef7a87c14ef30b570"
+        },
+        {
+          "path": "web/static/resources/unavailable-dates-camp-planning.html",
+          "before_sha256": "8e02b77773ff574bd075d7064a7ac0c322c28502e83a2737acd5cd3fe972e60e",
+          "after_sha256": "09e33371224f25169ca9c3f65922715630fdfc1a65df7b29764503156e27e315"
+        },
+        {
+          "path": "web/static/resources/walnut-creek-summer-camp-planning.html",
+          "before_sha256": "0a869982dca3950b8647bcc823ab308b68c7d2d0aabac3287b5d8e3e0354ae05",
+          "after_sha256": "50496b2dc1c0fd49f6ae991478ac1c174849e0a35545c71f30f12a5aa949fe11"
+        },
+        {
+          "path": "web/static/resources/working-parent-camp-schedule.html",
+          "before_sha256": "cff05a77411e1670e76c80403d0c04769a4ae38b18260da0ec6c958130dba45d",
+          "after_sha256": "4903092f145ef0ee0a552daf49361d7b3c2c552ae0b6efdd4de4339ed347a1e3"
+        },
+        {
+          "path": "web/static/tos.html",
+          "before_sha256": "f3018ca8a3d5e90c8347b92c554705f17283e0882c5022609e484c7d07175b61",
+          "after_sha256": "7656b404be4a5fa08b6be315ae500814f539b812d89be9231a66937d5e377cdf"
+        }
+      ],
+      "patch": "patches/SummerCan.patch",
+      "pending": [],
+      "validation_targets": [
+        "lint",
+        "test-sidecars",
+        "test",
+        "test-live",
+        "test-unit",
+        "test-live-sources",
+        "test-live-categories",
+        "test-live-galileo",
+        "ci-fast",
+        "ci"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation",
+      "config_producers": [
+        "cmd/server/main.go"
+      ]
+    },
+    {
+      "repo": "download_your_data",
+      "commit": "ea1f1f179a3e645a9785a5e36ba7e2b763159ab4",
+      "branch": "master",
+      "configs": [],
+      "affected_files": [
+        {
+          "path": "frontend/frontend_contract_test.go",
+          "refs": [
+            "latest",
+            "v"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "frontend/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "internal/uiconfig/config.go",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "internal/uiconfig/config_test.go",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "scripts/browser-smoke.playwright.js",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "scripts/netflix-browser-workspace.playwright.js",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        }
+      ],
+      "pending": [],
+      "validation_targets": [
+        "lint",
+        "test",
+        "test-local-lifecycle",
+        "test-browser",
+        "test-production-artifacts",
+        "ci"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation",
+      "config_producers": [
+        "internal/uiconfig/config.go"
+      ]
+    },
+    {
+      "repo": "MediaOps",
+      "commit": "0f6e06d91d04b43df90fec692d0a024df2a916a1",
+      "branch": "master",
+      "configs": [],
+      "affected_files": [
+        {
+          "path": "internal/webapp/web_e2e.go",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "tests/docker_build_workflow.test.js",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "tests/fixtures/upload-modal.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "tests/footerLegalLinks.template.test.js",
+          "refs": [],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "tests/mprFooterTheme.template.test.js",
+          "refs": [],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "tests/mprHeaderLinks.template.test.js",
+          "refs": [
+            "([^",
+            "latest`).toBe("
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "tests/puppeteerLocalAssets.js",
+          "refs": [
+            "[^"
+          ],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "tests/timeline.template.test.js",
+          "refs": [],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "tests/web_integration_test/web_integration_test.go",
+          "refs": [],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/pages/audio-qc.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/pages/frame-picker.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/pages/help.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/pages/landing_login.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/pages/privacy.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/pages/subtitles.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/pages/text-video.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/pages/timeline.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/pages/tos.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/pages/videos.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "web/pages/audio-qc.html",
+          "before_sha256": "e9a901c3d7b6e1f292c01cdd5759b8e5f71c219788299bdd3e8628b834d1f030",
+          "after_sha256": "d4210d59523f430c21ad2e28120551d97e34b5f4c5521d33968b4f34095ea5c0"
+        },
+        {
+          "path": "web/pages/frame-picker.html",
+          "before_sha256": "0950202577e2cfe05c90dedde474cb46151c7f8b03d4c983972cbbffb798b1e3",
+          "after_sha256": "b1cc636b403d4c87d4296f8742d57bb39dd97f2c08deed1aace51e92a4af7f32"
+        },
+        {
+          "path": "web/pages/help.html",
+          "before_sha256": "90261a9e77da96524274ae600d2857b1bf2180d1b2f4e87aa0521cdcc41bed81",
+          "after_sha256": "213be6699bc1df048c82a01e78cfaf2a242ba50934d54411ad2300805a8b745c"
+        },
+        {
+          "path": "web/pages/landing_login.html",
+          "before_sha256": "49c167964949381bf47dbce4853ab6c945e631f6c88f6c82026047274665e92c",
+          "after_sha256": "02ea06bfb67b604a45485a69791429bb9c3cb786ef471bf5adecb3cc0704ecfb"
+        },
+        {
+          "path": "web/pages/privacy.html",
+          "before_sha256": "38bd2ab1654091604288e54699632398c8a5dc3e8e39aa387c281b94abf10307",
+          "after_sha256": "637f1145661eb9e1c7f5d9629007cd2a823a411f86d40876e67cb0052dd6c290"
+        },
+        {
+          "path": "web/pages/subtitles.html",
+          "before_sha256": "796a5bec1177d933d7cb6da5943733c45b8008c1b95e4f5da9b17c2b99d110bd",
+          "after_sha256": "c56ae96effee1614894bc56bc246bf5420da6944212f902277ad193e21452bed"
+        },
+        {
+          "path": "web/pages/text-video.html",
+          "before_sha256": "0dca88ec7ae9ce6be8ef6303c5a4f93bfeb644d2a8b1ae1a8ca33ac794a26720",
+          "after_sha256": "4cddd0ed0982729c6eb341293ed70ba81ddf1d05fc337ff54ea2e21650037a1f"
+        },
+        {
+          "path": "web/pages/timeline.html",
+          "before_sha256": "f247811a97e52ded856ee46a25eb9d7711b73c69a1f3d65ff1ae88456c91262e",
+          "after_sha256": "a0cef9f278da6fd7c57020ad7a63be903f81552bcb1c796466021e7134f126dd"
+        },
+        {
+          "path": "web/pages/tos.html",
+          "before_sha256": "c30a7286c789debcd384e7f20fba9e2b7ef580e57e8a886bac77f1cb6212454a",
+          "after_sha256": "cbdbb703f777dcf37d505ceda54632629f5d0d33bb43a387ccce05bdfd0a6caf"
+        },
+        {
+          "path": "web/pages/videos.html",
+          "before_sha256": "6f1504278ebf4c3f8b12fdfdad36341346c5a97373b97046842df77fe5d50292",
+          "after_sha256": "fb414450c59802a507be0d3074b893c25a2c3c55580235d12e24192a592c7bf9"
+        }
+      ],
+      "patch": "patches/MediaOps.patch",
+      "pending": [],
+      "validation_targets": [
+        "lint-go",
+        "lint-js",
+        "lint-services",
+        "lint",
+        "test-go",
+        "test-go-coverage",
+        "test-dictator-live",
+        "test-image-provider-live",
+        "test-provider-recovery-live",
+        "test-tempmedia-static-http-live",
+        "test-gcs-staging-live",
+        "test-fal-staging-live",
+        "test-kling-video-staging-live",
+        "test-kling-lipsync-staging-live",
+        "test-gemini-omni-live",
+        "test-xai-video-live",
+        "test-runway-seedance-live",
+        "test-js",
+        "test-release-ci-cache",
+        "test-js-coverage",
+        "test-services",
+        "test-services-coverage",
+        "test",
+        "test-coverage",
+        "ci-verification",
+        "ci-coverage",
+        "ci"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation",
+      "config_producers": [
+        "scripts/render-pages-config.mjs",
+        "internal/webapp/web_e2e.go"
+      ]
+    },
+    {
+      "repo": "ledger",
+      "commit": "966f6e10152d3b1a70c3ea59dda3cdb68fbed53e",
+      "branch": "master",
+      "configs": [],
+      "affected_files": [
+        {
+          "path": "internal/controlplane/web/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "tests/lifecyclecontract/lifecycle_contract_test.go",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "tests/locallifecycle/local_lifecycle_test.go",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "web/tests/workspace.spec.js",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "internal/controlplane/web/index.html",
+          "before_sha256": "3780cef2d12a09ecacecab9d22376199910619a0ad59b663c601f0cc67a17566",
+          "after_sha256": "571bcebcd92f454c97ff48d708df387c969aabdc3644e5909cacb356a137739a"
+        }
+      ],
+      "patch": "patches/ledger.patch",
+      "pending": [],
+      "validation_targets": [
+        "lint",
+        "test",
+        "test-unit",
+        "test-integration",
+        "test-local-lifecycle",
+        "test-pages",
+        "ci"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation",
+      "config_producers": [
+        "internal/controlplane/ui.go"
+      ]
+    },
+    {
+      "repo": "PoodleScanner",
+      "commit": "a02c176d4acdb5d8c084754d7b6ba9ec5c875246",
+      "branch": "improvement/agency-claim-copy",
+      "configs": [],
+      "affected_files": [
+        {
+          "path": "cmd/web/main_test.go",
+          "refs": [],
+          "flat": 2,
+          "authButton": 2,
+          "footers": 0
+        },
+        {
+          "path": "internal/config/environment.go",
+          "refs": [],
+          "flat": 3,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "internal/handlers/runtime_config.go",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "test/static_pages_deployment_test.go",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529",
+            "latest"
+          ],
+          "flat": 2,
+          "authButton": 3,
+          "footers": 0
+        },
+        {
+          "path": "test/web/go-server.js",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "test/web/security-contract.test.js",
+          "refs": [
+            "${MPR_UI_REVISION}`;",
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "test/web/testdata/acceptance-mpr-ui-config.js",
+          "refs": [],
+          "flat": 3,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "test/web/tests/authentication-regression.spec.js",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "test/web/tests/landing.spec.js",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "test/web/tests/mpr-ui-runtime-config.spec.js",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 2,
+          "footers": 0
+        },
+        {
+          "path": "test/web/tests/public-header-live.spec.js",
+          "refs": [],
+          "flat": 0,
+          "authButton": 1,
+          "footers": 0
+        },
+        {
+          "path": "test/web/tests/static-api-runtime-config.spec.js",
+          "refs": [],
+          "flat": 1,
+          "authButton": 1,
+          "footers": 0
+        },
+        {
+          "path": "test/web/tests/ui-regressions.spec.js",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "web/site/404.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/agency/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/app/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/help/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/pricing/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/privacy/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/agencies-amazon-listing-audits/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/amazon-a-plus-content-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/amazon-bullet-point-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/amazon-buy-box-prime-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/amazon-delivery-country-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/amazon-fix-suggestions/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/amazon-image-video-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/amazon-listing-quality-checker/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/amazon-product-description-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/amazon-ratings-review-count-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/amazon-redirected-asin-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/amazon-search-discoverability-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/amazon-seo-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/amazon-title-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/bulk-asin-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/catalog-cleanup-workflow/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/csv-amazon-audit-reporting/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/custom-scan-profiles/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/ecommerce-analytics-tag-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/ecommerce-security-trust-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/ecommerce-seo-metadata-audit/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/ecommerce-storefront-health-check/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/pdf-amazon-audit-reporting/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/product-launch-readiness-checklist/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/rescore-amazon-listings/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/robots-sitemap-crawlability-check/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/scheduled-amazon-listing-monitoring/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/resources/seller-central-report-asin-upload/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/site/tos/index.html",
+          "refs": [
+            "02be358793a0a56a908eca6d781d56fa0df36529"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "web/site/404.html",
+          "before_sha256": "512f2cb2602cf6f4d5685be297cfc9d597305318cd00fc221ccd800c52e28d7d",
+          "after_sha256": "1b2a7e4b68edac42344e3b4a9f381af9fb26189bec3c98160c4cfdc060ce604f"
+        },
+        {
+          "path": "web/site/agency/index.html",
+          "before_sha256": "f11a3ed53d1c35a90c6814e5a0f628dc9299fee81a1673b87d8577dddf6c744a",
+          "after_sha256": "16da0aaff69ed93feb598b1253b41db454c2eab6843216885f118fc0aea4e340"
+        },
+        {
+          "path": "web/site/app/index.html",
+          "before_sha256": "47683b50ebb869cd357e03d8dc9ba38539022bc74758cfabff80565da5d76a69",
+          "after_sha256": "3a89034e3cbb6dfe76b4bb5446360ca65585a4772f483a575aa364ce274ec7ed"
+        },
+        {
+          "path": "web/site/help/index.html",
+          "before_sha256": "181a85b8adc5244c3465c9a24f79d120baaf9ae8abe0a23a9820516d17bfd680",
+          "after_sha256": "63a1099f62219ad6c258d60aea29923bd27167229d57ab5557b3778a9884a153"
+        },
+        {
+          "path": "web/site/index.html",
+          "before_sha256": "c91e87fc5be48750c158e948690356387af54b4e36ff6d81fceb60c479af2162",
+          "after_sha256": "d89fe94d7eb7f09731ae408a14834ebdb9cf91a8dd9f006524e5e2d997afa8a0"
+        },
+        {
+          "path": "web/site/pricing/index.html",
+          "before_sha256": "842621959936f37b03eb50d25005b0dd1e62d3687efd0cb26609c1766a5c7b1e",
+          "after_sha256": "2e2fe706c6544db3944fd3f146bda52bcb535aff220f7fbe732fadf11ca096f3"
+        },
+        {
+          "path": "web/site/privacy/index.html",
+          "before_sha256": "5785bba90ffc5936628d254c853f8d67978e39aa29f6313090608d272b526e23",
+          "after_sha256": "0742223e37b325e8a4377f2cfa85257467a4957b05de382d20b8a1f6440d8925"
+        },
+        {
+          "path": "web/site/resources/agencies-amazon-listing-audits/index.html",
+          "before_sha256": "65550e0340529f5237b10ac65fc16e38319acc3927b871afe39cf5b5dfedc9a9",
+          "after_sha256": "27d2cfbcacc64c2ddaa95972ae8d5b149a90b2ed6ff500500250a8f288b9bf3f"
+        },
+        {
+          "path": "web/site/resources/amazon-a-plus-content-audit/index.html",
+          "before_sha256": "611fbcda4a38babc9b0d2434558837435446087d3b5f09edb75b5d1bc1086474",
+          "after_sha256": "dbdd59ed6c01e9e8ef308ae75a9798fa4352e757674841b3da6a9110544edc9e"
+        },
+        {
+          "path": "web/site/resources/amazon-bullet-point-audit/index.html",
+          "before_sha256": "aa9f86e474b7ab7df3e8af23d95d5f9db7cbc68c1143ee6806f95c245c1b9539",
+          "after_sha256": "301dbce99228139ad42d0e9b782a1b60d2ff797746d06796e311ea76abfcc56d"
+        },
+        {
+          "path": "web/site/resources/amazon-buy-box-prime-audit/index.html",
+          "before_sha256": "10e12721e5496b9d6c71b682011e752508e356f5c839bd6b1ed0ddf72acf8f7e",
+          "after_sha256": "cb73242e0d9947d02cc8a68fdaebd27fb5d94782dd7eff902153594f2b440386"
+        },
+        {
+          "path": "web/site/resources/amazon-delivery-country-audit/index.html",
+          "before_sha256": "e8e306b8616a7f00a6d64ecdb8d97f371135b2caebf49a43d83f94b1341e2685",
+          "after_sha256": "686d970fac994fa69f0e63c1c98244d789e259421d0c182878ba8869fc26b579"
+        },
+        {
+          "path": "web/site/resources/amazon-fix-suggestions/index.html",
+          "before_sha256": "5abd54f34c94175ad0aea6e0e33673bf83ab3d76ab118790faa48bec29dd3197",
+          "after_sha256": "b6bf158bdf493254d6c1611de1ab707865d35b05af06da474e4347e869567e7d"
+        },
+        {
+          "path": "web/site/resources/amazon-image-video-audit/index.html",
+          "before_sha256": "20b7f512eab55ba4d2c97ed457701d1885fd8d0e50e02f745a31c2f07de94f95",
+          "after_sha256": "343358d9d44d2984521492b6e61d6cdd0b8a7939eca3c41253fb64e28f2f9fda"
+        },
+        {
+          "path": "web/site/resources/amazon-listing-quality-checker/index.html",
+          "before_sha256": "9044203a0eb9ad1c290af3eaf339cb578c4608d3b61b2b73ed2ade146862dab9",
+          "after_sha256": "2119edb855c4a7ac1e330a8dc3b13c66f577dcc04c704e9d982bc8eced7734dd"
+        },
+        {
+          "path": "web/site/resources/amazon-product-description-audit/index.html",
+          "before_sha256": "2834ef040ba90b3fbf75b6fd975e8a0509d9d0846623b82d0babf5b45852f8c7",
+          "after_sha256": "c0097271af2c5c55fcea81eb467d4a4b83f3785ad7438ca390257ab24ac97371"
+        },
+        {
+          "path": "web/site/resources/amazon-ratings-review-count-audit/index.html",
+          "before_sha256": "f5197f7a5741f693b0dbe9befeb3f6e1308e1324b998e03f6c0196d4451628a7",
+          "after_sha256": "a15866580ae1d80e53a55014a26a4cc0ac1315e5337ca98a360fbc15545dd775"
+        },
+        {
+          "path": "web/site/resources/amazon-redirected-asin-audit/index.html",
+          "before_sha256": "306baa02daee3d171555dda33199080259b06bbaa3518824c08d6d326cec9509",
+          "after_sha256": "b532aba726430b832854a3dafceb76132350c4fde1aa3fecad3d5fee352d955a"
+        },
+        {
+          "path": "web/site/resources/amazon-search-discoverability-audit/index.html",
+          "before_sha256": "7c147093d1b6494235512b9bd11bc071760fc91302b49e286ee55d2ad2139532",
+          "after_sha256": "c7d28fd17bb4c5f60d220adf84c1031abde70cd3a6885d5b0153010e11ded054"
+        },
+        {
+          "path": "web/site/resources/amazon-seo-audit/index.html",
+          "before_sha256": "aae0a51ab3622484021095771d5438ae50b20a711402de17b7f775d01efc8d15",
+          "after_sha256": "fabfb1f854fb1927d567de70caf76e334d2d88ae68392b88a24dac32276a82a7"
+        },
+        {
+          "path": "web/site/resources/amazon-title-audit/index.html",
+          "before_sha256": "9133fdabc2dd029530afd226436bdb8e79ab2c7397c18cbed307513397656914",
+          "after_sha256": "a547a86800935e892fa43954d6f0e4e641c897351841a2b950100b5fbec774de"
+        },
+        {
+          "path": "web/site/resources/bulk-asin-audit/index.html",
+          "before_sha256": "abcfc95431d2f6e1d87e2964f184d0d5f127af412cc4ec8544e16342d7210729",
+          "after_sha256": "83de5a5b9992ccbb4ca4e02061c7798edbd074af47d411bcad17a85f349c010e"
+        },
+        {
+          "path": "web/site/resources/catalog-cleanup-workflow/index.html",
+          "before_sha256": "f3fbde407cffd835557754e640cd120a01fc0da9bfca13e63b5fe1c2390a1108",
+          "after_sha256": "55a447ffc9f5ca6f072819fe96c4977d832a24877f7c5b6830b320188831239f"
+        },
+        {
+          "path": "web/site/resources/csv-amazon-audit-reporting/index.html",
+          "before_sha256": "32999de6532533513cfc17b82581f59c1549bf909da21f13829f9a5eec2f9aab",
+          "after_sha256": "064bdcb3a77c3d102f52d6dbc4135b644112214cc27e87b1d1ecb5e900ef9027"
+        },
+        {
+          "path": "web/site/resources/custom-scan-profiles/index.html",
+          "before_sha256": "09a54325808ee2af2ce7954ef511be1b3fb5ba5b0a1464b44c2ba84f5d2d4c76",
+          "after_sha256": "c59e1b7d67c82a37cc08b97960b8f840ba74afe399a589c9293628105e9d6479"
+        },
+        {
+          "path": "web/site/resources/ecommerce-analytics-tag-audit/index.html",
+          "before_sha256": "ceffa30495d246a8ff9eda1cdad4b216930477602c4ca17ecd4d52676bec68d4",
+          "after_sha256": "75a89c06dc9ddcab72554f9457d161192c4990e4b45c8ff00f277f01c16d3fee"
+        },
+        {
+          "path": "web/site/resources/ecommerce-security-trust-audit/index.html",
+          "before_sha256": "5feefc79d987c4e61b7cdebd3f45d71dec3a6af982d3f1289d3518664851cdfe",
+          "after_sha256": "303019e0a96edc79aad3730ee1b5e5014ea203eb6aeea6b3b916d6917b7e6001"
+        },
+        {
+          "path": "web/site/resources/ecommerce-seo-metadata-audit/index.html",
+          "before_sha256": "508d1a250c934e5bceac55299c5b5022b9a62ce1ece5e286e838387b59b5558d",
+          "after_sha256": "192651e17a692f352a28acf3fd0ba544c3d38b7659d3142f2e8e60a659303cca"
+        },
+        {
+          "path": "web/site/resources/ecommerce-storefront-health-check/index.html",
+          "before_sha256": "21c1ab9176abb2dfbd75d470839e1ffcd6b1ffaf883c356d2f3c820998dbdad9",
+          "after_sha256": "eeffe0e6eb8dae4bd517da0ffd2091a5e23a7ea1f024a8ebf5e7c2102b5eed4d"
+        },
+        {
+          "path": "web/site/resources/index.html",
+          "before_sha256": "60bdb2a301cc2973743a20487e6d552323db58e25a7db7ab24b38452419ef62d",
+          "after_sha256": "fadb2067d911f8bad89f383e67db7e9ca9a6125f970f5397f840c8cb1e48edf3"
+        },
+        {
+          "path": "web/site/resources/pdf-amazon-audit-reporting/index.html",
+          "before_sha256": "966f7d17709e15bb5d37785e501e68a56ae89d1f9f4934003bf6ddd3de7dad13",
+          "after_sha256": "7d63713e4e046aa69a602cf758a112ff22f3298242374ccfa7a8eca6f2b6392c"
+        },
+        {
+          "path": "web/site/resources/product-launch-readiness-checklist/index.html",
+          "before_sha256": "bfedf45ab506952a113d66eaff7c0c37aac5951f59605bcffde8009cb34e76ab",
+          "after_sha256": "01a02999efd1f04ae9958fbe741d76036f5eac6513e676828e48b9f9a3b94c7a"
+        },
+        {
+          "path": "web/site/resources/rescore-amazon-listings/index.html",
+          "before_sha256": "11873a1737d692e4cd8c8cdc53090490ff5ec43691359dfafad897e543752143",
+          "after_sha256": "929826c92529ed136ba93e4b65f927c3146f3a8606ecaba651eec7783417fcca"
+        },
+        {
+          "path": "web/site/resources/robots-sitemap-crawlability-check/index.html",
+          "before_sha256": "6e5160c45131f39b90ee93e9d2ff5515c35e898ce8984b99655f99a54e61d7b4",
+          "after_sha256": "39cece925b76876133f360454cd07fdf0d3c2d89171dca5031fd13bb651abb93"
+        },
+        {
+          "path": "web/site/resources/scheduled-amazon-listing-monitoring/index.html",
+          "before_sha256": "8ce5e0b510154355a779b8b44187887658955e227eae20a59f5d8907f7d9a647",
+          "after_sha256": "232f61d747b372852eba226b580551cf6929c9f5179d0e29220207347be9ca40"
+        },
+        {
+          "path": "web/site/resources/seller-central-report-asin-upload/index.html",
+          "before_sha256": "e366b3803c4db7fd558cf9ded1ddd811115db50699b80fbc9dfefeacf177a495",
+          "after_sha256": "574078a66307b65a1705f22bf962d7aff92aff39f7d3720bb20da28ee55cd69f"
+        },
+        {
+          "path": "web/site/tos/index.html",
+          "before_sha256": "2102fc782d49e8c20794d146135a1187aa1e0783d5931206739e171820ece017",
+          "after_sha256": "88bc156d4ba8de9dba932f1d63291891f388d139ebb45b2cb7f07a20aeaabb4d"
+        }
+      ],
+      "patch": "patches/PoodleScanner.patch",
+      "pending": [],
+      "validation_targets": [
+        "lint",
+        "test-unit",
+        "test-integration",
+        "test-backend-graph",
+        "test-backend-coverage",
+        "test-evidence-contract",
+        "test-acceptance-go",
+        "test-acceptance",
+        "test",
+        "test-mprlab-library-latest",
+        "test-web",
+        "test-web-acceptance",
+        "test-web-coverage",
+        "test-static-api-rehearsal",
+        "test-public-header-live",
+        "test-public-login-controls-local",
+        "test-docker-runtime-layout",
+        "test-local-lifecycle",
+        "test-crawlera-live",
+        "ci",
+        "test-fix-suggestions-live"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation",
+      "config_producers": [
+        "internal/handlers/runtime_config.go"
+      ]
+    },
+    {
+      "repo": "loopaware",
+      "commit": "11c4b6fda3f4a24a3be54870edefa451ff478d9e",
+      "branch": "gix/preserve-site-list-position-after-selection",
+      "configs": [
+        "web/config-ui.yaml"
+      ],
+      "affected_files": [
+        {
+          "path": "pkg/footer/footer.go",
+          "refs": [],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "tests/specs/header-auth-state.spec.js",
+          "refs": [
+            "${MPR_UI_VERSION}"
+          ],
+          "flat": 0,
+          "authButton": 2,
+          "footers": 0
+        },
+        {
+          "path": "tests/specs/seo-public-pages.spec.js",
+          "refs": [],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/app/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/app/subscribe-test/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "web/app/traffic-test/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "web/app/widget-test/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "web/config-ui.yaml",
+          "refs": [],
+          "flat": 2,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "web/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/login/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/pricing/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/privacy/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/agency-client-sites/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/bot-filtered-analytics/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/browser-error-capture/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/favicon-refresh-notifications/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/feedback-source-context/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/feedback-widget/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/inline-subscribe-forms/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/la-sentry-monitoring/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/lightweight-analytics/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/mobile-app-feedback/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/multi-origin-feedback/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/no-javascript-traffic-pixel/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/owner-admin-site-management/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/portfolio-traffic-reports/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/privacy-first-analytics/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/saas-feedback/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/self-hosted-feedback/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/sentiment-only-feedback/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/sentry-issue-triage/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/server-side-error-capture/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/subscriber-capture/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/subscriber-confirmation-flow/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/subscriber-csv-export/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/team-member-site-access/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/top-pages-reporting/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/traffic-attribution-breakdown/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/traffic-csv-export/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/traffic-report-emails/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/uptime-monitoring/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/visitor-device-breakdown/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/visitor-location-signals/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/resources/widget-appearance-controls/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/subscriptions/confirm/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/subscriptions/unsubscribe/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "web/terms/index.html",
+          "refs": [
+            "97ebeb2df518f91af78aafcb6e14b9691fb20694"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "web/config-ui.yaml",
+          "before_sha256": "3a9f3cf3edd2ea1cdbcd5af069f9fec331bec976290c9d5cd7366a71339fb71e",
+          "after_sha256": "7d433f72138be674207716e9b45d55b31005940a2f7063a9a8bf6833e5ee7c67"
+        },
+        {
+          "path": "web/app/index.html",
+          "before_sha256": "8433c36d5e38b905212af8cc885ddeffb91579e0ff858bb36515528a10761143",
+          "after_sha256": "155f47bfad94f554617790b509c03c9147a7024d421d8d655a7944c1699178d1"
+        },
+        {
+          "path": "web/app/subscribe-test/index.html",
+          "before_sha256": "8b705f64a9bc09421a69ea99f14651b71288a60d0c06bd74d7ca18dc3489d4a9",
+          "after_sha256": "7883d0ca002417f0872662934a365d8f9deb9e8ce336821438d31d5417c92f45"
+        },
+        {
+          "path": "web/app/traffic-test/index.html",
+          "before_sha256": "b79b31f3cf129f22103bea070f6e42d739607bb30d3f074a19f8aecfa340c5a5",
+          "after_sha256": "725142b2ab2f5328c4aa26afada579ce5d1ea2c051cb152d9f408913d9b29bad"
+        },
+        {
+          "path": "web/app/widget-test/index.html",
+          "before_sha256": "5ebf31acdf887c5211c561ca5d257dfed22f748e84a5a65ece4e33a60eb58595",
+          "after_sha256": "c81fe60e37bc41a443272661197f5ce84c15e6cbfd91c5635df0a40dc45885ad"
+        },
+        {
+          "path": "web/index.html",
+          "before_sha256": "df21172840ff321641bb035d7820876a8c5ec6a76da81516788672a92f5b9013",
+          "after_sha256": "c20c7b5118eb2758e8883e2bc86557c207da00c08e051c017744a84500783dc5"
+        },
+        {
+          "path": "web/login/index.html",
+          "before_sha256": "df21172840ff321641bb035d7820876a8c5ec6a76da81516788672a92f5b9013",
+          "after_sha256": "c20c7b5118eb2758e8883e2bc86557c207da00c08e051c017744a84500783dc5"
+        },
+        {
+          "path": "web/pricing/index.html",
+          "before_sha256": "b43e2fee286c510fdca04c7fa8b6c7f5856ab0d7693250993c1bc1680f872887",
+          "after_sha256": "e12ae3bb2cd8ba25d71cf6facb569725f2e96d35a19700b6e417c7f202ef4d0e"
+        },
+        {
+          "path": "web/privacy/index.html",
+          "before_sha256": "71033c778a9456bf80c9772532fcec41ea9fbf3075cb7cca04eb4009a81f1ee4",
+          "after_sha256": "2f84328f612c4f380df3061f4fab9e533e6f5c9013a5635901fc2e4d89d6b2a6"
+        },
+        {
+          "path": "web/resources/agency-client-sites/index.html",
+          "before_sha256": "225ad68ebf7a57dbeaf52dc6a51ead51c8a2aa020aa6c7930f596e927b3389e7",
+          "after_sha256": "bcbf6bc88568c8fa61426dcda4a2d7f4308dc95f72dcaa397d78ee9c87626276"
+        },
+        {
+          "path": "web/resources/bot-filtered-analytics/index.html",
+          "before_sha256": "28f28228e5815de5e30fa208af0f92da7ee5591e3610b0c33fa2d638fcde4f92",
+          "after_sha256": "a8a24ed8100a18b925ed4ae5ac0893208f148009a280e81134ead8cacfefe3df"
+        },
+        {
+          "path": "web/resources/browser-error-capture/index.html",
+          "before_sha256": "f00bfb35d193ed77428a784df22ec9a4ba8a6e0fd6f366b146118d87b9c2df99",
+          "after_sha256": "3df99923ae046a16dc75bf00916675708bbd8405e8a1494ed7d791ba355832ca"
+        },
+        {
+          "path": "web/resources/favicon-refresh-notifications/index.html",
+          "before_sha256": "b5f03d39f02b0f2805ca9ffd756bf5ee4e70f7980fc8e3f1311495103283e76e",
+          "after_sha256": "f9d76b1257e4ebd86afcc04ff8d324b884982396e485b90716e8859ef55900d5"
+        },
+        {
+          "path": "web/resources/feedback-source-context/index.html",
+          "before_sha256": "b86358aaeb5df9f8be29e19e3dc322ce8de89db897f731000e9a3ca8a66deaee",
+          "after_sha256": "117da96145a2e201e9b66cf1701dd6cfa2588646e6c2739a8af32a237fbbc118"
+        },
+        {
+          "path": "web/resources/feedback-widget/index.html",
+          "before_sha256": "25a610c240b01443090b09330c513bdff89dc6823ceb5ae94e75a4d04d210747",
+          "after_sha256": "adb5a8b19d0a47a3f387ee2d37a6d8be11be75ddafa798d8a4ce00377acb8289"
+        },
+        {
+          "path": "web/resources/index.html",
+          "before_sha256": "4bd14de8c7e5defb344dda6b6fdd2d03ee068371206ab198512da0ccec69ae63",
+          "after_sha256": "1919f3ff2abe743fb44da3d8d9f1b975893935cca0f5b7c21c9b06d6bd2298e3"
+        },
+        {
+          "path": "web/resources/inline-subscribe-forms/index.html",
+          "before_sha256": "42e317b0c35ea2510ee2c6a88205df0939c32a4c8756564daf3908b6d55b469f",
+          "after_sha256": "828a3b48f753428a0670c6a333cf36a79d501edb57fbb3bc33f07bae0b8fb270"
+        },
+        {
+          "path": "web/resources/la-sentry-monitoring/index.html",
+          "before_sha256": "0ac0ef005a1e7a0a34d9c96a96035293e5fdf7f02b8f48a34565bea6e7ff45dc",
+          "after_sha256": "42576f914329f7862e7ea5cc7b700620891ce8c0793ef0c7e8187c905535d0c0"
+        },
+        {
+          "path": "web/resources/lightweight-analytics/index.html",
+          "before_sha256": "f56a2d405b57e4910ee862c4c4bbb0edff817523b98b0515d697aa2f7d10aa45",
+          "after_sha256": "0a650aa68cfc6ca91f50dec599b755632dccbf9c2a92cc550232508f0d4aaf0f"
+        },
+        {
+          "path": "web/resources/mobile-app-feedback/index.html",
+          "before_sha256": "78e0d608bba3368b1152715d2e822ea440f847a7d595ee1294d83ef16426783c",
+          "after_sha256": "bfb67afadcb49e73de2949888e7eb4b9fdaf5de8f9a796ae344a4bdf34de0072"
+        },
+        {
+          "path": "web/resources/multi-origin-feedback/index.html",
+          "before_sha256": "25ab6b33a5fc51c6317e62ffbc07e37c98eb96edc10f92cba4a9c8f08b980ee9",
+          "after_sha256": "8eaa883ea670b9ef64ec233e212af7d165a60e91c9e08c1c6bdeb34fbebb36f5"
+        },
+        {
+          "path": "web/resources/no-javascript-traffic-pixel/index.html",
+          "before_sha256": "cd64fecc50982975865cf921c235f4ee6d4aaae2b1c9b66807110ce6741d23e3",
+          "after_sha256": "4ca5bdfba7dff4dd550fccfe378724ddc49905e44782bb227a1a6aea34677552"
+        },
+        {
+          "path": "web/resources/owner-admin-site-management/index.html",
+          "before_sha256": "88bc443954d878ef6d87dfa471b14b0d864a12a34e7f24b7a10d96abbcacc695",
+          "after_sha256": "8a7bf660d8c0e881b57f4f221d501e3b6704bddb4339a93f0a9a6fc603159357"
+        },
+        {
+          "path": "web/resources/portfolio-traffic-reports/index.html",
+          "before_sha256": "2bba43ed14bc1d8c44dad23f4f187288c4a2af5b8d6143a1d0f684a091f286dc",
+          "after_sha256": "194ef0e70692fb5538fdeba5ffde44bf8e1640f349cdb00c1cc024a3e8b4e79a"
+        },
+        {
+          "path": "web/resources/privacy-first-analytics/index.html",
+          "before_sha256": "05dd5dbd3f7626dfa5640440c738c0edb90b5f7ff7089a82376dfcd5c249d710",
+          "after_sha256": "1fb29ef9915b0e66d6d0d4532c6d79e0c6261197e0600403bd4269336fe32b0f"
+        },
+        {
+          "path": "web/resources/saas-feedback/index.html",
+          "before_sha256": "ea9dc186c3615bd23d452b7d8db7e1a09bb5f273f35f785f96a0a8cdbbbd7831",
+          "after_sha256": "25d471ae5b25351600d464c56eb62796bf810d4fb74e97956bdb00a72a319dbf"
+        },
+        {
+          "path": "web/resources/self-hosted-feedback/index.html",
+          "before_sha256": "5bb95d9564382e06bbd9fbe24db15f33e96e6369d9b598207aed9c176f40d4a6",
+          "after_sha256": "31a90efd1a4dda93274fd65c7c1068ed66973058614a3b0dc3961948465d8f1b"
+        },
+        {
+          "path": "web/resources/sentiment-only-feedback/index.html",
+          "before_sha256": "b81df937a8f5cdb91d50d31ad142a266f5ab85d6be0d99e72f429089adc4cc2d",
+          "after_sha256": "1b1d84c17a0fbc0b934e28be61489a66ffdebad3a78f87ef6eb51fc7d3548f19"
+        },
+        {
+          "path": "web/resources/sentry-issue-triage/index.html",
+          "before_sha256": "4a3468361cb8165133b2685f0e888ec54a6b0db6d011ddacdb3bcbe9b8960a0e",
+          "after_sha256": "8e96fb8ebe2b0d5c2f67e5677e28ad514f837fa72427fa783fd86865abed173b"
+        },
+        {
+          "path": "web/resources/server-side-error-capture/index.html",
+          "before_sha256": "726b3d8bf5dd322fb2eb9636a8a52d78fa02d54a4a8d043a266eab07efd58c24",
+          "after_sha256": "ced4d5b43b31eeceba06b4cc13ea1ef912f0182f970661b1d9fad50a589078d7"
+        },
+        {
+          "path": "web/resources/subscriber-capture/index.html",
+          "before_sha256": "e057677e62adb86096f6928d10eef8559e8b2d831038f6a3fa647b840639d0d1",
+          "after_sha256": "068ed8f5991759fa626655619d65933774684456a374be64b938fa712fbd2d4d"
+        },
+        {
+          "path": "web/resources/subscriber-confirmation-flow/index.html",
+          "before_sha256": "ef7f5e89704dff8f3ee1c1aa8f6918c5efbbafa671c42e02697241efc8a3eaaa",
+          "after_sha256": "afaf3fd6547f75d2d35284a4e9d4f60789ef3e4a839e5864477e699c2e655f72"
+        },
+        {
+          "path": "web/resources/subscriber-csv-export/index.html",
+          "before_sha256": "5cb28ccc8556e5c73b3ca2a0b08cde3cd2b00494a5d7d50cc5ef4eb4f8733f45",
+          "after_sha256": "bd1f8ee3d0620e166bfc4bbbdff3ae6e7edc4998cd55de181fcd06e98e07dbd1"
+        },
+        {
+          "path": "web/resources/team-member-site-access/index.html",
+          "before_sha256": "fcdb84341d0502e0d58f8fb2c7d9e36e2a5b626883e32887ec83f9bb18303255",
+          "after_sha256": "5c678a0eb2b589de86387baa48233d1f08112b98e34f8357c9e9be99f893593b"
+        },
+        {
+          "path": "web/resources/top-pages-reporting/index.html",
+          "before_sha256": "622017fa7f1861a40a13d7e6fc2581e3d3e0eea721ff31c88c25665b13103f12",
+          "after_sha256": "9023fbad244d6c15c7130e6cd0d03e689dbc700ec62018da57814555ffe531d6"
+        },
+        {
+          "path": "web/resources/traffic-attribution-breakdown/index.html",
+          "before_sha256": "9d7a269d755f52f4a09e92005b79d5083f4492d0c603ca02421ebbbb54f05604",
+          "after_sha256": "6f7a594cb0e53c4c087d43b4641e7fff4b11b6a71e678462c43de94ab89aa6f9"
+        },
+        {
+          "path": "web/resources/traffic-csv-export/index.html",
+          "before_sha256": "959c29f87d579901586e8b0e9edd8cfb3fcd53ae3d26e68d370a3e8caff0c779",
+          "after_sha256": "36af5e25d47b78addacce1c1d36311997da9a14b85919d7185ee9e982d511f64"
+        },
+        {
+          "path": "web/resources/traffic-report-emails/index.html",
+          "before_sha256": "3d8276066b892705f68f6ff6b8181d1b6487a30f9205c7b74362c4e782a131f5",
+          "after_sha256": "db22b7b6fd49eef678b18673ec2aef8604852334134490747264d50111d1a4f8"
+        },
+        {
+          "path": "web/resources/uptime-monitoring/index.html",
+          "before_sha256": "59706b309d7f2b2bdd037c225f50a424ab60e367fe14c76fcbeed1bad6fdb495",
+          "after_sha256": "ca151fad157086efc144cb976f959c8e031d93d531b05c27eb231021b4fcfc72"
+        },
+        {
+          "path": "web/resources/visitor-device-breakdown/index.html",
+          "before_sha256": "20f75df8926258cd83f070b016858a14a1ce2681d6261b84cb5963d7ca7b2264",
+          "after_sha256": "c5969788cf97b090230668c849e5c5fb2669febbc275a0ad1e8c08b10214191f"
+        },
+        {
+          "path": "web/resources/visitor-location-signals/index.html",
+          "before_sha256": "2d85ea3be9e6062d33f0cf8c5abf2b36076ee62b22f1fae0c678ba5ee0ac2559",
+          "after_sha256": "2ca5524855154924cb65cc9b8e92f6478f89fa115a381e1b2665b5fe177eaef4"
+        },
+        {
+          "path": "web/resources/widget-appearance-controls/index.html",
+          "before_sha256": "0c1110d6859dac2efc584bc273c0ca0967bae2013f57c7f5622aa3ddc9f3a6eb",
+          "after_sha256": "99bbf987547a8dd7c7e5c68606564d98ada7ce49cfb7600a27fff0ce5cea5076"
+        },
+        {
+          "path": "web/subscriptions/confirm/index.html",
+          "before_sha256": "8bc1a4b2766209347c141655137197fee045061677abbdf0c3beec8e95df3959",
+          "after_sha256": "ffed0335c4bc9df325767b74ec49761571f143491b855b3b8282148a4ff368e5"
+        },
+        {
+          "path": "web/subscriptions/unsubscribe/index.html",
+          "before_sha256": "f54071c9cf83c6d581fcb0d71beee5deac8b0bf665ca56ad34c6eee1493a3071",
+          "after_sha256": "c7c501dbc61ea8c16ac551cf16874c5a91f681e59c49aed28254d8cfe99fe862"
+        },
+        {
+          "path": "web/terms/index.html",
+          "before_sha256": "748703fece124b6adb259159776416f4793c7726b70d8687295c1dc85a0676bb",
+          "after_sha256": "e2dcaf0cf566087ba89c88bf910305ac02b98cbe1bd14fa236055d390a1121b3"
+        }
+      ],
+      "patch": "patches/loopaware.patch",
+      "pending": [],
+      "validation_targets": [
+        "lint",
+        "lint-js",
+        "test",
+        "test-unit",
+        "test-live-favicons",
+        "test-integration-runner",
+        "test-integration",
+        "test-integration-api",
+        "test-integration-browser-security",
+        "test-integration-proxy-security",
+        "test-integration-all",
+        "test-race",
+        "ci"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation"
+    },
+    {
+      "repo": "WriterBlock",
+      "commit": "e5632fac3e578bce8ebf63c1fa5ea5dd3108f06f",
+      "branch": "master",
+      "configs": [
+        "config-ui.yaml"
+      ],
+      "affected_files": [
+        {
+          "path": "app/index.html",
+          "refs": [
+            "394fa27ff1fd7c2a3250b3c86c2e55b0be3c8cbe"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "config-ui.yaml",
+          "refs": [],
+          "flat": 2,
+          "authButton": 2,
+          "footers": 0
+        },
+        {
+          "path": "index.html",
+          "refs": [
+            "394fa27ff1fd7c2a3250b3c86c2e55b0be3c8cbe"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "js/core/mprUiLoader.js",
+          "refs": [],
+          "flat": 3,
+          "authButton": 9,
+          "footers": 0
+        },
+        {
+          "path": "scripts/check-go-live-coverage.js",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "tests/support/live-mpr-ui.js",
+          "refs": [],
+          "flat": 1,
+          "authButton": 9,
+          "footers": 0
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "app/index.html",
+          "before_sha256": "3368917c5cce09ede090449fca6b7b8ea7f6e12029a0b44b3de1602fd086266a",
+          "after_sha256": "27a7bdcc693872349e375fea625cd3c31428b076c4dee606784f4fb1c4644d33"
+        },
+        {
+          "path": "index.html",
+          "before_sha256": "c31fef8c0d1a0ee7054c4d86e108116bb4a4dc5e022b02e43bdc5ec4b43cbaa1",
+          "after_sha256": "dd9d958c814f0b703b7af973acd7ecbe5ee8097d38f5d5f9287f47c4cb8c72ef"
+        }
+      ],
+      "patch": "patches/WriterBlock.patch",
+      "pending": [
+        "config-ui.yaml: resolve the explicit sessionPath before conversion"
+      ],
+      "validation_targets": [
+        "test",
+        "test-lifecycle",
+        "test-e2e",
+        "test-headed",
+        "test-ui",
+        "test-backend",
+        "test-all",
+        "lint",
+        "lint-go",
+        "lint-js",
+        "lint-shell",
+        "ci"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation"
+    },
+    {
+      "repo": "gravity",
+      "commit": "5f5e8e4176c906b2b60acb5058e6e23b40a11bc7",
+      "branch": "master",
+      "configs": [
+        "frontend/config-ui.yaml"
+      ],
+      "affected_files": [
+        {
+          "path": "frontend/app.html",
+          "refs": [
+            "v3.9.5"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "frontend/config-ui.yaml",
+          "refs": [],
+          "flat": 1,
+          "authButton": 1,
+          "footers": 0
+        },
+        {
+          "path": "frontend/index.html",
+          "refs": [
+            "v3.9.5"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "frontend/tests/auth.landingLogin.puppeteer.test.js",
+          "refs": [],
+          "flat": 2,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "frontend/tests/auth.login.puppeteer.test.js",
+          "refs": [],
+          "flat": 1,
+          "authButton": 1,
+          "footers": 0
+        },
+        {
+          "path": "frontend/tests/classifier.client.test.js",
+          "refs": [],
+          "flat": 3,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "frontend/tests/config.runtime.test.js",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "frontend/tests/docker.packaging.test.js",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "frontend/tests/helpers/backendHarness.js",
+          "refs": [],
+          "flat": 9,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "frontend/tests/helpers/browserHarness.js",
+          "refs": [
+            "v3.9.5",
+            "v3\\.9\\.5\\"
+          ],
+          "flat": 20,
+          "authButton": 6,
+          "footers": 0
+        },
+        {
+          "path": "frontend/tests/helpers/syncTestUtils.js",
+          "refs": [
+            "v3.9.5"
+          ],
+          "flat": 4,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "frontend/tests/run-tests.js",
+          "refs": [],
+          "flat": 2,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "frontend/tests/runtimeConfig.initialize.test.js",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "frontend/tests/store.test.js",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "frontend/app.html",
+          "before_sha256": "a3514ee5f4dc80a40a959fa8b342c81b7668112cddecf996efbb20f1a224b38d",
+          "after_sha256": "02c022756cb9912eb497dd7fb8d68af73b618fa81c5d26760d7dcbc6474d6a25"
+        },
+        {
+          "path": "frontend/index.html",
+          "before_sha256": "d4dc5f7226a89b43868f06bee994e617997ac1abf8d740190faa1f133bb6e203",
+          "after_sha256": "283d956917895f94c70bcd462009e06e633f8e743909e355fe461d996ab84266"
+        }
+      ],
+      "patch": "patches/gravity.patch",
+      "pending": [
+        "frontend/config-ui.yaml: resolve the explicit sessionPath before conversion"
+      ],
+      "validation_targets": [
+        "test",
+        "test-backend",
+        "test-frontend",
+        "test-gateway-lifecycle",
+        "lint",
+        "ci"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation"
+    },
+    {
+      "repo": "LikeMe",
+      "commit": "3efe7c3786897ef15f21cd1807a276cd62ac2e8c",
+      "branch": "main",
+      "configs": [],
+      "affected_files": [
+        {
+          "path": "index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "index.html",
+          "before_sha256": "13c8f8361af0d3ae30efc4729baa69fb46d9b1c409420901448ccdbe43f67b11",
+          "after_sha256": "8658c62b879ef2a7e70d3a41016a7ca172238bad782ea952f35b7530ca1d44cf"
+        }
+      ],
+      "patch": "patches/LikeMe.patch",
+      "pending": [],
+      "validation_targets": [
+        "ci",
+        "pages-build",
+        "pages-artifact",
+        "pages-deploy"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation"
+    },
+    {
+      "repo": "ctx",
+      "commit": "0f7beb749860091637e417ec8d17146da489c9b5",
+      "branch": "tyemirov/loopaware-site-id",
+      "configs": [],
+      "affected_files": [
+        {
+          "path": "docs/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        }
+      ],
+      "pending": [],
+      "validation_targets": [],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation"
+    },
+    {
+      "repo": "gix",
+      "commit": "a33e01cf2924cf7cda32b77a8cb7a76e5f51a93f",
+      "branch": "master",
+      "configs": [],
+      "affected_files": [
+        {
+          "path": "docs/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "docs/index.html",
+          "before_sha256": "23bb31c3415b11862f484fa1e28aa6ca4a6d715c2445e8df774fcf23c591b178",
+          "after_sha256": "daf8cb471d43d289528fec2b23d6331bac4da4d0dcbf6863c2a3bb22514eeeea"
+        }
+      ],
+      "patch": "patches/gix.patch",
+      "pending": [],
+      "validation_targets": [
+        "lint",
+        "test-fast",
+        "test-licensing",
+        "test-slow",
+        "test-sync",
+        "test-unit",
+        "test-integration",
+        "test",
+        "pages-artifact",
+        "pages-deploy",
+        "ci"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation"
+    },
+    {
+      "repo": "marcopolo.github.io",
+      "commit": "2969a95a4f1f9d659a03e4a9779c8b5572c46f26",
+      "branch": "tyemirov/F005-investor-portal-interface",
+      "configs": [
+        "config-ui.yaml"
+      ],
+      "affected_files": [
+        {
+          "path": "index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "investors/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "investors/platform/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "investors/poodle-scanner/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "investors/portal/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "privacy/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "tos/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "index.html",
+          "before_sha256": "60ca1e4a9d015b1ec61d88ad58de5079d370ae80fc2cbcf62cd2b28e1254facf",
+          "after_sha256": "d86dc9f24f213c8b9488d5adb9b074cb3df34dde73545976eb8c594baac4949c"
+        },
+        {
+          "path": "investors/index.html",
+          "before_sha256": "2ee42197911ebbde2c6cfca15700b3086f61435da64e34624aa4a572ab2b5862",
+          "after_sha256": "7b6aa9f0ebb2f474be1395652c13dfd485e33221217a341e833b9fd962f32be5"
+        },
+        {
+          "path": "investors/platform/index.html",
+          "before_sha256": "c7ab58ad673b7617c1814d37f9d33468cfac097760e5b3970398bef3afd46eb5",
+          "after_sha256": "eb7ee8375b48f1b82fccb6cb4459ea6e319da0d63b3d502c0f9131c78714ad5c"
+        },
+        {
+          "path": "investors/poodle-scanner/index.html",
+          "before_sha256": "d39ffa1ac49f49a023c8951f7a0d1692d2f6df1a01e153c2576d86ea08c37375",
+          "after_sha256": "3a35a5f0071185bbd287003130d0e62b70a9376f016c97f8121ef513644b5ef0"
+        },
+        {
+          "path": "privacy/index.html",
+          "before_sha256": "29160b39a13a2757247939f3a92309278946cae701d90795dfbb8a183cfd70fc",
+          "after_sha256": "45732cf7b3538621f4ae96c21f93e2ed8f4f5f99a15bb4234fbeafa03e46688b"
+        },
+        {
+          "path": "tos/index.html",
+          "before_sha256": "5b8099c6ef72592edaa3f8301325d1b8c2d0a80bb7ff00a0839e8533a5bb3f29",
+          "after_sha256": "2ebd5f912cf979567e97b8c27b65f595626e63429c8496920ba10421f5b170b5"
+        }
+      ],
+      "patch": "patches/marcopolo.github.io.patch",
+      "pending": [],
+      "validation_targets": [
+        "lint",
+        "test",
+        "test-investor-contact",
+        "ci",
+        "pages-build",
+        "pages-artifact",
+        "pages-deploy",
+        "test-investor-api",
+        "lint-investor-api",
+        "test-investor-portal",
+        "test-investor-pages"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation"
+    },
+    {
+      "repo": "tyemirov.github.io",
+      "commit": "dbc89a1220abd3bd54a214f891c1238807be0078",
+      "branch": "feature/F001-private-hls",
+      "configs": [],
+      "affected_files": [
+        {
+          "path": "civilization/index.html",
+          "refs": [
+            "v3.6.7"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "decisioning/index.html",
+          "refs": [
+            "v3.6.7"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "freedom/index.html",
+          "refs": [
+            "v3.6.7"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "gallery/index.html",
+          "refs": [
+            "v3.6.7"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "index.html",
+          "refs": [
+            "v3.6.7"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "music/egyptian-nights/index.html",
+          "refs": [
+            "v3.6.7"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "music/february-get-ink-and-weep/index.html",
+          "refs": [
+            "v3.6.7"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "music/index.html",
+          "refs": [
+            "v3.6.7"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "music/pump-it/index.html",
+          "refs": [
+            "v3.6.7"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "music/singing-pasternak/index.html",
+          "refs": [
+            "v3.6.7"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "music/soliloquies-vol-i/index.html",
+          "refs": [
+            "v3.6.7"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "music/soliloquies-vol-ii/index.html",
+          "refs": [
+            "v3.6.7"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "music/songs-of-desire/index.html",
+          "refs": [
+            "v3.6.7"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        },
+        {
+          "path": "timeseries/index.html",
+          "refs": [
+            "v3.6.7"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 1
+        }
+      ],
+      "prepared_files": [
+        {
+          "path": "civilization/index.html",
+          "before_sha256": "78c17610d9056e990103b85126b9e91b73ef6851708c877f9e6519f5417312a1",
+          "after_sha256": "1883ca0bca5cda7c0454561ba2a44d07e0ececfc66bb2828b33e78bc2a38d77e"
+        },
+        {
+          "path": "decisioning/index.html",
+          "before_sha256": "ae4e8c471f707f958ba6921147f6833bdc53beb563439bbd5cd9a3247daa6394",
+          "after_sha256": "b78b740fb218ff00bc80e5bb3ca8a156b84ad243122d2f6b6efeefd65bf850db"
+        },
+        {
+          "path": "freedom/index.html",
+          "before_sha256": "bff7f335974e6151348b5a4f398c44798a8a2800f2868752b98d9245f826ca91",
+          "after_sha256": "32e913a9c17b349c11177547b2ad645441c1ec4abb388aeda185343cfd4fd102"
+        },
+        {
+          "path": "gallery/index.html",
+          "before_sha256": "3eeed2d299ba9e4a51af508f79a3cf4e5a92f0174b45553b5473b1f4260f3012",
+          "after_sha256": "166bdee54393bbbb74ab65bc4ecb2f30a55dad9e2fb00184f3311a3cc1cd27fe"
+        },
+        {
+          "path": "index.html",
+          "before_sha256": "027b31cc6fd69873a73cd8ef3502d607ce791dcbd7adb829850f417befe8788e",
+          "after_sha256": "bb1988e500d2fa95ff95ea78b5a24c97e87f2ae84ba11847e3e9d9c02e22e6f0"
+        },
+        {
+          "path": "music/egyptian-nights/index.html",
+          "before_sha256": "f4a644800921195edb69fc5b3935ecdb9d65ad61ba0cd4f91fabab1e9046bb1e",
+          "after_sha256": "4083feffb1d98832a7b7324237b153c4536b156fc6a635887fdd6fd3879fa042"
+        },
+        {
+          "path": "music/february-get-ink-and-weep/index.html",
+          "before_sha256": "f4a644800921195edb69fc5b3935ecdb9d65ad61ba0cd4f91fabab1e9046bb1e",
+          "after_sha256": "4083feffb1d98832a7b7324237b153c4536b156fc6a635887fdd6fd3879fa042"
+        },
+        {
+          "path": "music/index.html",
+          "before_sha256": "2fd2b71fb7aa2291855c1145c083d9cc6559c110e39fed15eccb41597af8fe16",
+          "after_sha256": "b1a158cbfb9fcaede2a19d67712eecb31dbe8bdb7df7270e8fc6d59634fa0146"
+        },
+        {
+          "path": "music/pump-it/index.html",
+          "before_sha256": "f4a644800921195edb69fc5b3935ecdb9d65ad61ba0cd4f91fabab1e9046bb1e",
+          "after_sha256": "4083feffb1d98832a7b7324237b153c4536b156fc6a635887fdd6fd3879fa042"
+        },
+        {
+          "path": "music/singing-pasternak/index.html",
+          "before_sha256": "f4a644800921195edb69fc5b3935ecdb9d65ad61ba0cd4f91fabab1e9046bb1e",
+          "after_sha256": "4083feffb1d98832a7b7324237b153c4536b156fc6a635887fdd6fd3879fa042"
+        },
+        {
+          "path": "music/soliloquies-vol-i/index.html",
+          "before_sha256": "f4a644800921195edb69fc5b3935ecdb9d65ad61ba0cd4f91fabab1e9046bb1e",
+          "after_sha256": "4083feffb1d98832a7b7324237b153c4536b156fc6a635887fdd6fd3879fa042"
+        },
+        {
+          "path": "music/soliloquies-vol-ii/index.html",
+          "before_sha256": "f4a644800921195edb69fc5b3935ecdb9d65ad61ba0cd4f91fabab1e9046bb1e",
+          "after_sha256": "4083feffb1d98832a7b7324237b153c4536b156fc6a635887fdd6fd3879fa042"
+        },
+        {
+          "path": "music/songs-of-desire/index.html",
+          "before_sha256": "f4a644800921195edb69fc5b3935ecdb9d65ad61ba0cd4f91fabab1e9046bb1e",
+          "after_sha256": "4083feffb1d98832a7b7324237b153c4536b156fc6a635887fdd6fd3879fa042"
+        },
+        {
+          "path": "timeseries/index.html",
+          "before_sha256": "7fed7c78ddbdd8f05d0575ffec9b7a095de20c62842642755efee0527a405c54",
+          "after_sha256": "e0dbd4159dea3294a98dabfc1209e66d2bf573002591c7f3c8fbfc968f664bdf"
+        }
+      ],
+      "patch": "patches/tyemirov.github.io.patch",
+      "pending": [],
+      "validation_targets": [
+        "ci",
+        "pages-build",
+        "pages-artifact",
+        "pages-deploy"
+      ],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation"
+    },
+    {
+      "repo": "Smith",
+      "commit": "68aedae8135fceb14d73d240d63b4ba9f1ad4a09",
+      "branch": "master",
+      "configs": [
+        "mpr-integration/assets/fixtures/tauth-site/config-ui.yaml"
+      ],
+      "affected_files": [
+        {
+          "path": "mpr-integration/assets/fixtures/tauth-site/config-ui.yaml",
+          "refs": [],
+          "flat": 1,
+          "authButton": 0,
+          "footers": 0
+        },
+        {
+          "path": "mpr-integration/assets/fixtures/tauth-site/index.html",
+          "refs": [
+            "latest"
+          ],
+          "flat": 0,
+          "authButton": 0,
+          "footers": 0
+        }
+      ],
+      "pending": [],
+      "validation_targets": [],
+      "qualification": "prepared-fragments-only; application acceptance pending",
+      "owner": "Application repository for implementation; user for production activation"
+    }
+  ]
+}

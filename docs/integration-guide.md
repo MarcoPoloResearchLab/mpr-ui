@@ -171,6 +171,9 @@ Render the shell declaratively:
 ></mpr-footer>
 ```
 
+Account menus stay inside the horizontal viewport edges. Open menus update their position after a viewport resize.
+Keyboard dismissal returns focus to the account trigger.
+
 Some public login pages need provider controls without a header-owned user menu. For these pages, make the slotted login button the config owner:
 
 ```html
@@ -313,6 +316,11 @@ For a branded page, set the documented custom properties on the component or an 
 | `--mpr-login-button-hover-background` | Control hover background. |
 
 Mounting does not initialize GIS or request a nonce. A session probe occurs only when a restore hint exists. Provider work begins when the user activates a rendered action.
+
+A successful user-menu logout clears its owning header controller before the redirect.
+This also applies to a same-page fragment such as `#signed-out`.
+The shared controller clears its profile and invalidates previous authentication work after that logout completes.
+Applications can update their workspace through the shared unauthenticated event.
 
 ## Protected request contract
 

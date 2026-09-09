@@ -149,7 +149,7 @@ mpr-header mpr-auth-provider-chooser {
   line-height: 1.2;
 }
 
-mpr-header .mpr-auth-actions__status:empty {
+.mpr-auth-actions__status:empty {
   display: none;
 }
 

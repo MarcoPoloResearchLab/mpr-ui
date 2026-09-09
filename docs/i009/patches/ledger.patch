@@ -1,0 +1,11 @@
+--- a/internal/controlplane/web/index.html
++++ b/internal/controlplane/web/index.html
+@@ -232,7 +232,7 @@
+ 
+     <mpr-footer
+       prefix-text="Ledger by Marco Polo Research Lab"
+-      links-collection='{"style":"drop-up","text":"Documentation","links":[{"label":"Ledger API","url":"https://github.com/tyemirov/ledger/blob/master/docs/api.md"},{"label":"Integration guide","url":"https://github.com/tyemirov/ledger/blob/master/docs/integration.md"}]}'
++      menu='{&quot;label&quot;:&quot;Documentation&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Documentation&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Ledger API&quot;,&quot;href&quot;:&quot;https://github.com/tyemirov/ledger/blob/master/docs/api.md&quot;},{&quot;label&quot;:&quot;Integration guide&quot;,&quot;href&quot;:&quot;https://github.com/tyemirov/ledger/blob/master/docs/integration.md&quot;}]}]}'
+       theme-switcher="square"
+       theme-config='{"attribute":"data-mpr-theme","targets":["document","body"],"initialMode":"default-dark","modes":[{"value":"default-light","attributeValue":"light","dataset":{"data-ledger-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","dataset":{"data-ledger-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","dataset":{"data-ledger-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","dataset":{"data-ledger-palette":"forest"}}]}'
+     ></mpr-footer>

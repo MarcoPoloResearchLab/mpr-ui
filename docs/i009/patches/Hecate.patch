@@ -1,0 +1,104 @@
+--- a/config-ui.yaml
++++ b/config-ui.yaml
+@@ -6,21 +6,35 @@
+       - "http://localhost:8000"
+     auth:
+       tauthUrl: ""
+-      googleClientId: "7962005714-9g4tnvhr0ciml0dt2i5e9pagpcdatpde.apps.googleusercontent.com"
+       tenantId: "hecate"
+-      loginPath: "/auth/google"
+       logoutPath: "/auth/logout"
+-      noncePath: "/auth/nonce"
+       sessionPath: "/me"
++      providers:
++        google:
++          enabled: true
++          clientId: "7962005714-9g4tnvhr0ciml0dt2i5e9pagpcdatpde.apps.googleusercontent.com"
++          loginPath: "/auth/google"
++          noncePath: "/auth/nonce"
++        apple:
++          enabled: false
++        password:
++          enabled: false
+ 
+   - description: "Production"
+     origins:
+       - "https://hecate.mprlab.com"
+     auth:
+       tauthUrl: "https://tauth-api.mprlab.com"
+-      googleClientId: "7962005714-9g4tnvhr0ciml0dt2i5e9pagpcdatpde.apps.googleusercontent.com"
+       tenantId: "hecate"
+-      loginPath: "/auth/google"
+       logoutPath: "/auth/logout"
+-      noncePath: "/auth/nonce"
+       sessionPath: "/me"
++      providers:
++        google:
++          enabled: true
++          clientId: "7962005714-9g4tnvhr0ciml0dt2i5e9pagpcdatpde.apps.googleusercontent.com"
++          loginPath: "/auth/google"
++          noncePath: "/auth/nonce"
++        apple:
++          enabled: false
++        password:
++          enabled: false
+--- a/index.html
++++ b/index.html
+@@ -587,16 +587,7 @@
+       { "label": "GitHub", "href": "https://github.com/MarcoPoloResearchLab/Hecate", "target": "_blank" }
+     ]
+   }'
+-  links-collection='{
+-    "style": "drop-up",
+-    "text": "Built by Marco Polo Research Lab LLC",
+-    "links": [
+-      { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-      { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-      { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-      { "label": "Hecate", "url": "https://hecate.mprlab.com" }
+-    ]
+-  }'
++  menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Hecate&quot;,&quot;href&quot;:&quot;https://hecate.mprlab.com&quot;}]}]}'
+   theme-switcher="toggle"
+ ></mpr-footer>
+ 
+--- a/privacy.html
++++ b/privacy.html
+@@ -349,16 +349,7 @@
+         { "label": "Support", "href": "mailto:support@mprlab.com" }
+       ]
+     }'
+-    links-collection='{
+-      "style": "drop-up",
+-      "text": "Built by Marco Polo Research Lab LLC",
+-      "links": [
+-        { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-        { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-        { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-        { "label": "Hecate", "url": "https://hecate.mprlab.com" }
+-      ]
+-    }'
++    menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Hecate&quot;,&quot;href&quot;:&quot;https://hecate.mprlab.com&quot;}]}]}'
+     theme-switcher="toggle"
+   ></mpr-footer>
+ </body>
+--- a/tos.html
++++ b/tos.html
+@@ -318,16 +318,7 @@
+         { "label": "Support", "href": "mailto:support@mprlab.com" }
+       ]
+     }'
+-    links-collection='{
+-      "style": "drop-up",
+-      "text": "Built by Marco Polo Research Lab LLC",
+-      "links": [
+-        { "label": "Marco Polo Research Lab LLC", "url": "https://mprlab.com" },
+-        { "label": "Gravity Notes", "url": "https://gravity.mprlab.com" },
+-        { "label": "LoopAware", "url": "https://loopaware.mprlab.com" },
+-        { "label": "Hecate", "url": "https://hecate.mprlab.com" }
+-      ]
+-    }'
++    menu='{&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;placement&quot;:&quot;top&quot;,&quot;sections&quot;:[{&quot;id&quot;:&quot;links&quot;,&quot;label&quot;:&quot;Built by Marco Polo Research Lab LLC&quot;,&quot;mode&quot;:&quot;static&quot;,&quot;links&quot;:[{&quot;label&quot;:&quot;Marco Polo Research Lab LLC&quot;,&quot;href&quot;:&quot;https://mprlab.com&quot;},{&quot;label&quot;:&quot;Gravity Notes&quot;,&quot;href&quot;:&quot;https://gravity.mprlab.com&quot;},{&quot;label&quot;:&quot;LoopAware&quot;,&quot;href&quot;:&quot;https://loopaware.mprlab.com&quot;},{&quot;label&quot;:&quot;Hecate&quot;,&quot;href&quot;:&quot;https://hecate.mprlab.com&quot;}]}]}'
+     theme-switcher="toggle"
+   ></mpr-footer>
+ </body>
