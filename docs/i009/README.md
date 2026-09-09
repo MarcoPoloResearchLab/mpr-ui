@@ -40,7 +40,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | MediaOps | Both config producers, shared transport, and ten footers implemented in I091 | Local CI and 45 Docker browser scenarios passed. Complete hosted CI, final candidate, maintenance, publication, and real Google gates. |
 | ledger | Nested producer, footer, recovery transition, and real browser checks prepared in B003 | Local CI and exact-commit hosted CI passed. Complete F002 Pages qualification, public TLS, and live acceptance. |
 | PoodleScanner | API producer, 37 pages, shared transport, and browser checks prepared in I087 | All 588 browser scenarios passed. Complete the existing 95.9 percent coverage gate, hosted CI, final candidate, publication, and public acceptance. |
-| loopaware | Config and 44 pages | Convert `pkg/footer/footer.go` and its callers to the current menu contract. Update auth fixtures and generated resource pages. |
+| loopaware | Both config environments, 41 static footers, Go renderer, and shared request transport prepared in I042 | Local CI passed. Hosted CI is in progress. Central I009 retains final candidate, publication, cache convergence, and real Google acceptance. |
 | WriterBlock | Config, two pages, auth bootstrap, and candidate tests implemented in I014 | Local CI passed. Complete hosted CI, shared publication, cache transition, and real Google acceptance. |
 | gravity | Config, generator, two pages, and candidate checks implemented in I002 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
 | LikeMe | Footer and exported-page checks implemented in I001 | Local and hosted CI passed. Complete shared publication, cache transition, and public acceptance. |
@@ -448,6 +448,38 @@ The website, application, release marker, API config, and three published shared
 The published shared asset digests differ from B069.
 I260 retains final-candidate qualification, coordinated publication, cache convergence, and real Google acceptance.
 
+### LoopAware
+
+I042 [PR #368](https://github.com/tyemirov/loopaware/pull/368) is ready for review at `3fe94be458df11636bae47c399fb11e354e118de`.
+The migration uses shared B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1`.
+The test helper verifies all three candidate digests before browser use.
+Production URLs retain literal `@latest`.
+
+Both config environments use the provider map with their existing identities and endpoints.
+The Go renderer and 41 static footers use the sectioned menu.
+The conversion preserves all project labels, destinations, utility links, and theme config.
+The asset audit checks 49 HTML entries and 44 shared asset declarations.
+Other external asset pins, integrity checks, and CSP checks remain active.
+
+Protected dashboard requests use `MPRUI.authenticatedFetch` with authorization before domain work.
+Startup waits for shared orchestration and authentication.
+The application clears its transition after session recovery.
+Seven focused browser checks passed against B069.
+Four scenarios cover both origin configurations at 390px and 1280px.
+Each verifies login, reload, read recovery, mutation recovery, one persisted site, and logout.
+The Go API and local database remain real while Google and TAuth protocol fixtures control external responses.
+
+Final local `make ci` passed, including all 472 integration scenarios, Go race checks, and mobile preparation checks.
+All 100 authentication, logout, and browser-security checks also passed as a focused suite.
+Hosted run `34327779046` is in progress at the exact PR commit.
+The unrelated Apple guide change remains in the application checkout.
+
+The [migration record](https://github.com/tyemirov/loopaware/blob/3fe94be458df11636bae47c399fb11e354e118de/docs/mpr-ui-migration.md) contains candidate digests and seven dated public HTTP observations.
+All seven requests returned HTTP 200 from one network location.
+The published shared asset digests differ from B069.
+I042 records completed and verified repository work.
+Central I009 retains final-candidate qualification, coordinated publication, cache convergence, and real Google acceptance.
+
 ### Final Candidate Qualification
 
 The first seven application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
@@ -457,7 +489,7 @@ MediaOps and Ledger use the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-PoodleScanner and llm-proxy use B069.
+PoodleScanner, llm-proxy, and LoopAware use B069.
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
