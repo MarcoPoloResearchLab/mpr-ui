@@ -47,7 +47,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | ctx | Footer and real-page checks implemented in I001 | Local and hosted browser CI passed. Complete Pages publication preparation, shared publication, cache transition, and public acceptance. |
 | gix | Footer and real-page checks implemented in I018 | Local and hosted CI passed. Complete maintenance preparation, shared publication, cache transition, and public acceptance. |
 | marcopolo.github.io | Six public footers implemented in F005 | Source migration and candidate tests passed. Complete published shared-asset qualification and F007 hosted acceptance. |
-| tyemirov.github.io | 14 pages | Verify older header and footer attributes against the complete current contract. Verify gallery and music page behavior. |
+| tyemirov.github.io | All 14 shared footers and the theme integration prepared in I001 | Native Linux CI and actual-image checks passed. Central I009 retains publication, cache convergence, and public acceptance. |
 | Smith | Fixture, profile, seed, and verifier implemented in I010 | Package CI passed. Complete shared publication and real-CDN fixture qualification. This development fixture has no production deployment. |
 
 Keep backend-owned Google configuration under its existing owner.
@@ -450,7 +450,7 @@ I260 retains final-candidate qualification, coordinated publication, cache conve
 
 ### LoopAware
 
-I042 [PR #368](https://github.com/tyemirov/loopaware/pull/368) is ready for review at `3fe94be458df11636bae47c399fb11e354e118de`.
+I042 [PR #368](https://github.com/tyemirov/loopaware/pull/368) is ready for review at `55bbe2c2007bb9006d665df157932b32a3432fce`.
 The migration uses shared B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 The test helper verifies all three candidate digests before browser use.
 Production URLs retain literal `@latest`.
@@ -471,14 +471,44 @@ The Go API and local database remain real while Google and TAuth protocol fixtur
 
 Final local `make ci` passed, including all 472 integration scenarios, Go race checks, and mobile preparation checks.
 All 100 authentication, logout, and browser-security checks also passed as a focused suite.
-Hosted run `34327779046` is in progress at the exact PR commit.
-The unrelated Apple guide change remains in the application checkout.
+The local CI result qualified application commit `3fe94be458df11636bae47c399fb11e354e118de`.
+A concurrent commit added only Apple-guide documentation and restarted hosted CI.
+Run `34327779046` was cancelled by the replacement run.
+Hosted run `34328909035` is in progress at `55bbe2c2007bb9006d665df157932b32a3432fce`.
+The application source and tests remain unchanged.
 
 The [migration record](https://github.com/tyemirov/loopaware/blob/3fe94be458df11636bae47c399fb11e354e118de/docs/mpr-ui-migration.md) contains candidate digests and seven dated public HTTP observations.
 All seven requests returned HTTP 200 from one network location.
 The published shared asset digests differ from B069.
 I042 records completed and verified repository work.
 Central I009 retains final-candidate qualification, coordinated publication, cache convergence, and real Google acceptance.
+
+### Personal Website
+
+I001 [PR #7](https://github.com/tyemirov/tyemirov.github.io/pull/7) is ready for review at `9c3822ae311112cd09bf12a9d2afc60799055b03`.
+The migration uses B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1`.
+The test helper verifies all three shared candidate digests.
+All public MPR UI inputs retain literal `@latest`.
+
+One module initializes the sectioned menu on all 14 page entry points.
+The project links come from `MPRUI.getFooterSiteCatalog()`.
+The homepage and music pages retain the contact link and use shared theme configuration.
+A common stylesheet removes duplicate attribution and corrects footer padding overflow on two phone layouts.
+The content catalog, article links, tracking pixel, gallery code, and music service retain their existing contracts.
+
+All 36 focused Chromium checks passed, including catalog behavior and delayed library initialization.
+Final `make music-ci-container` passed native Linux CI with 234 browser checks and 18 engine-specific skips.
+All 116 new footer and theme checks passed across four browser projects.
+The lifecycle, artifact, Go race, and media checks also passed.
+Both actual Pages and media image checks passed through `make music-container-test`.
+The 21 changed source and test files match the passing CI image byte for byte.
+The repository has no hosted CI workflow.
+
+The [migration record](https://github.com/tyemirov/tyemirov.github.io/blob/9c3822ae311112cd09bf12a9d2afc60799055b03/docs/mpr-ui-migration.md) contains candidate digests and seven public HTTP observations.
+All seven requests returned HTTP 200 from one network location.
+The published CSS and JavaScript digests differ from B069.
+Central I009 retains coordinated publication, cache convergence, and public acceptance.
+F001 retains its existing music production gates.
 
 ### Final Candidate Qualification
 
@@ -489,7 +519,7 @@ MediaOps and Ledger use the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-PoodleScanner, llm-proxy, and LoopAware use B069.
+PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
@@ -501,7 +531,8 @@ B068 passed 210 Node checks, 139 end-to-end checks, coverage, and Pages artifact
 B069 passed 210 Node checks, 141 end-to-end checks, coverage, and Pages artifact validation locally.
 The hosted workflow accepts PRs into `master` only, so these four stacked fixes retain that CI gate.
 
-After all application preparation, select one final immutable shared candidate.
+All 20 consumer repositories now have migration PRs.
+Use B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1` as the final qualification input.
 Update each application test input to that candidate and verify its digests.
 Run each application's required checks after the update.
 Record the final qualified identity for every application before publication.
