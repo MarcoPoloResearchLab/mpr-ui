@@ -283,7 +283,9 @@ I003 retains shared publication, cache transition, and real Google acceptance.
 Final B069 candidate qualification passed local CI in the primary checkout.
 The result includes the separate Apple commit `483bd5f` and its B009 correction.
 All 44 headless checks, ten browser checks, backend checks, and full mobile checks passed.
-Only candidate and evidence files enter I003; its committed mobile and hosted qualification gates remain open.
+Only candidate and evidence files enter I003. Its committed mobile qualification gate remains open.
+Hosted run `34342371955` passed browser, API, and container checks.
+Its mobile check rejected Expo `57.0.20`, which requires `~57.0.21` under B009.
 The primary checkout retains its Apple branch and original user edits.
 The log is `/tmp/social-i003-b069-ci.log`.
 
@@ -311,7 +313,7 @@ The local log is `/tmp/ctx-i001-b069-ci.log`.
 
 ### Gix
 
-I018 [PR #452](https://github.com/tyemirov/gix/pull/452) contains the migration at `90c81451c7c93154c90b4079fcced409b23eb92d`.
+I018 [PR #452](https://github.com/tyemirov/gix/pull/452) contains the migration at `5d4bfea6e6a4c16b44e23fea7d8954577e666bde`.
 The work started from clean source `a33e01cf2924cf7cda32b77a8cb7a76e5f51a93f`.
 The documentation footer uses the current menu and preserves all eleven product links and existing license content.
 The page retains literal `@latest` assets.
@@ -328,6 +330,10 @@ GitHub confirms `gix.mprlab.com` and the existing `gh-pages` publication branch.
 All four public observations returned HTTP 200, including the Pages release marker.
 The shared assets permit a seven-day browser cache and a twelve-hour shared cache.
 I018 retains maintenance preparation, shared publication, cache transition, and public acceptance.
+
+Final B069 candidate qualification passed native CI and both documentation browser scenarios.
+The log is `/tmp/gix-i018-b069-ci.log`.
+Hosted run `34342564849` passed at the final Gix commit.
 
 ### Smith
 
@@ -351,7 +357,7 @@ I010 retains shared publication and real-CDN fixture qualification.
 
 ### Prompt Bubbles
 
-I027 [PR #192](https://github.com/MarcoPoloResearchLab/prompts/pull/192) contains the migration and B078 correction at `2cc9f5195e6ef33a325866b051b1a0d50095c8a9`.
+I027 [PR #192](https://github.com/MarcoPoloResearchLab/prompts/pull/192) contains the migration and B078 correction at `3742b600c605aaaeb94a7d7449a5afcfff835f0d`.
 The work started from `master` revision `0acba011af42f97e10132f8cae0150ab8a969597` and preserved existing Apple and Governor edits.
 All three environments preserve their Google identifier, tenant, origin, and `/me` endpoint under the provider map.
 The shared loader owns auth configuration and bundle startup. Protected operations use the shared request transport.
@@ -376,6 +382,15 @@ It then failed at the existing B077 Expo dependency mismatch.
 The [public asset record](https://github.com/MarcoPoloResearchLab/prompts/blob/9d540573356d1aea65b65421a13d0da85f7b731a/docs/mpr-ui/public-assets-2026-09-09.json) contains seven successful responses.
 GitHub confirms the `gh-pages` publication branch and `prompts.mprlab.com` domain.
 I027 retains maintenance preparation, final candidate qualification, publication, and real Google acceptance.
+
+Final B069 candidate qualification passed native CI in the primary checkout.
+The result includes the retained Apple work and B077 Expo correction outside the migration PR.
+Candidate checks, layouts, 100% Go coverage, mobile checks, and real localhost flows passed.
+Hosted run `34342788883` passed candidate, layout, agent, Go coverage, and lifecycle checks.
+Its mobile step rejected Expo `57.0.20`, which requires `~57.0.21` under B077.
+The separate review workflow passed in run `34342789443`.
+The committed migration branch retains the mobile qualification gate.
+The log is `/tmp/prompts-i027-b069-ci.log`.
 
 ### SummerCan
 
@@ -599,13 +614,18 @@ F001 retains its existing music production gates.
 ### Final Candidate Qualification
 
 The first seven historical application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
-Gix uses revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
-Prompt Bubbles uses revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
+Gix and the earlier consumers first used revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
+Prompt Bubbles and other consumers previously used revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
 MediaOps and Ledger previously used the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-The investor portal, Hecate, NameSignal, LikeMe, Pinguin, WriterBlock, Gravity, Ledger, MediaOps, SummerCan, Download Your Data, Smith, CTX, Social Threader, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
+These consumers use B069:
+
+- Investor portal, Hecate, NameSignal, LikeMe, Pinguin, and WriterBlock.
+- Gravity, Ledger, MediaOps, SummerCan, Download Your Data, and Smith.
+- CTX, Gix, Social Threader, Prompt Bubbles, PoodleScanner, llm-proxy, LoopAware, and the personal website.
+
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
@@ -618,10 +638,11 @@ B069 passed 210 Node checks, 141 end-to-end checks, coverage, and Pages artifact
 The hosted workflow accepts PRs into `master` only, so these four stacked fixes retain that CI gate.
 
 All 20 consumer repositories now have migration PRs.
+All 18 open consumer PRs are ready for review. The llm-proxy and LoopAware PRs are merged.
 Use B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1` as the final qualification input.
-Update each application test input to that candidate and verify its digests.
-Run each application's required checks after the update.
-Record the final qualified identity for every application before publication.
+All 20 consumer PRs now record that candidate and verify its asset digests.
+The result sections record each final commit and its local validation scope.
+Complete the recorded committed-source and hosted CI gates before publication.
 Earlier candidate results retain their original validation scope.
 
 ## Patch Procedure

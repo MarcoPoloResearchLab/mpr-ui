@@ -347,6 +347,14 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   The plan now requires literal `@latest` inputs and a qualified coordinated interruption.
   Each application still requires its complete implementation, CI, and public acceptance.
 
+  Progress 2026-09-09:
+  The [application preparation record](../docs/i009/README.md) now covers 20 consumer migration PRs.
+  Every PR uses final test candidate `768f25936497c5aabd426197d21c2100b6e5d9a1` with verified asset digests.
+  The record identifies final commits, local results, hosted results, and remaining source gates.
+  PoodleScanner retains its coverage gate. Hecate, Ledger, Social Threader, and Prompt Bubbles retain separate source integration gates.
+  All 18 open consumer PRs are ready for review. The llm-proxy and LoopAware PRs are merged.
+  Shared publication, the coordinated cache transition, and public acceptance remain open.
+
 ## Maintenance
 
 ### Recurring
