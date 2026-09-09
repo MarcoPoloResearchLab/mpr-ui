@@ -171,6 +171,9 @@ Render the shell declaratively:
 ></mpr-footer>
 ```
 
+Account menus stay inside the horizontal viewport edges. Open menus update their position after a viewport resize.
+Keyboard dismissal returns focus to the account trigger.
+
 Some public login pages need provider controls without a header-owned user menu. For these pages, make the slotted login button the config owner:
 
 ```html
