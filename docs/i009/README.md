@@ -38,7 +38,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | SummerCan | Generated config, shared auth, and 49 public footers implemented in I099 | Native CI passed with 100% Go and JavaScript coverage. Complete final candidate, maintenance, publication, and real Google gates. |
 | download_your_data | Shared serializer, protected transport, and browser checks implemented in I017 | Native CI passed. Complete shared B068, final candidate qualification, maintenance preparation, publication, and real Google acceptance. |
 | MediaOps | Both config producers, shared transport, and ten footers implemented in I091 | Local CI and 45 Docker browser scenarios passed. Complete hosted CI, final candidate, maintenance, publication, and real Google gates. |
-| ledger | Footer | Verify the existing nested producer in `internal/controlplane/ui.go`. Resolve public TLS and complete B003 acceptance. |
+| ledger | Nested producer, footer, recovery transition, and real browser checks prepared in B003 | Local CI passed with retained F002 changes. Complete exact-commit hosted CI, F002 Pages qualification, public TLS, and live acceptance. |
 | PoodleScanner | 37 pages | Convert `internal/handlers/runtime_config.go`. Update producer tests and generated Pages checks. Preserve environment-owned provider identifiers. |
 | loopaware | Config and 44 pages | Convert `pkg/footer/footer.go` and its callers to the current menu contract. Update auth fixtures and generated resource pages. |
 | WriterBlock | Config, two pages, auth bootstrap, and candidate tests implemented in I014 | Local CI passed. Complete hosted CI, shared publication, cache transition, and real Google acceptance. |
@@ -363,6 +363,32 @@ The candidate is digest-verified revision `bbc21cc264d96b51195e0c1a264ad43f14a20
 The [public asset record](https://github.com/MarcoPoloResearchLab/MediaOps/blob/e0fc6859c5005cc749eb9c76c09e8b3c37a978fe/docs/mpr-ui/public-assets-2026-09-09.json) contains nine successful responses.
 Pages responses advertised a 600-second cache lifetime, and the public release marker returned HTTP 200.
 I091 retains final candidate qualification, maintenance preparation, publication, and real Google acceptance.
+
+### Ledger
+
+B003 [PR #95](https://github.com/tyemirov/ledger/pull/95) is ready for review at `4bf84be326d00260349e2284e730ac62f951484b`.
+Its tests use candidate `bbc21cc264d96b51195e0c1a264ad43f14a205ad` with verified asset SHA-256 values.
+The source uses the nested Go config producer and the current footer menu.
+The existing shared transport retains Ledger authorization before domain work.
+The workspace now releases its loading overlay after authentication recovery.
+
+Two real-browser scenarios run the Ledger CLI, SQLite, config producer, browser client, and protected API.
+Controlled Google and TAuth responses establish the signed test session through the login response.
+At 390 and 1280 pixels, the tests cover login, restoration, read recovery, mutation recovery, logout, and documentation links.
+The mutation test verifies one persisted tenant after one rejected request and its successful repeat.
+The initial run failed because the documentation menu was absent.
+A later run reproduced the loading overlay that blocked logout after request recovery.
+
+Final local `make ci` passed static analysis, the Go coverage gate, eight browser scenarios, lifecycle checks, and the Pages artifact check.
+The log is `/tmp/ledger-b003-ci-final.log`.
+This local result includes retained F002 working changes.
+The B003 PR reuses the existing nested producer and YAML script correction.
+Separate Pages, CORS, profile, deployment, and API changes remain outside B003.
+Hosted CI must qualify the exact B003 commit.
+
+The public website still fails certificate hostname validation.
+The API health request fails its TLS handshake.
+B003 remains open for shared publication, valid TLS, the complete F002 release unit, and live authentication acceptance.
 
 ### Final Candidate Qualification
 
