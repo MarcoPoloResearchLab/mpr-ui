@@ -29,7 +29,7 @@ Use each repository's current agent instructions and test-driven sequence.
 
 | Repository | Prepared patch | Remaining implementation and acceptance |
 | --- | --- | --- |
-| Hecate | Config, three pages, fixtures, and candidate tests implemented in I014 | Resolve the existing Expo audit failure and hosted CI gap. Complete cache transition and live acceptance. |
+| Hecate | Config, three pages, fixtures, and candidate tests implemented in I014 | Final B069 browser and backend checks passed. Complete committed mobile qualification, shared publication, and live acceptance. |
 | NameSignal | Config, shared layout, exported-page tests, and CI implemented in I094 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
 | llm-proxy | Both config producers, 52 generated footers, and shared request transport prepared in I260 | Local and exact-commit hosted CI passed. Complete final candidate, publication, cache convergence, and real Google acceptance. |
 | pinguin | Config, four footers, and complete candidate browser suite implemented in I004 | Local CI passed. GitHub Actions are disabled by contract. Complete shared publication, cache transition, and real Google acceptance. |
@@ -79,7 +79,7 @@ Protected requests now use shared authenticated transport.
 Repeated authentication for the same account preserves the pending operation and form values.
 Both viewport widths verify sign-in, reload, read recovery, one saved access request, and logout.
 Final `make ci` passed API checks, 106 browser tests, release checks, and the Pages boundary check.
-Hosted run `34331926755` is in progress at this commit.
+Hosted run `34331926755` passed at this commit.
 Use the F007 release branch as the final portal qualification record. Earlier F005 evidence retains its original scope.
 
 ### Hecate
@@ -103,6 +103,16 @@ The application pages and config declare a 600-second cache lifetime.
 All three shared assets declare `max-age=604800` and `s-maxage=43200`.
 These observations require browser cache qualification before publication. They do not establish a successful cache transition.
 I014 retains publication, interruption, and real provider acceptance as separate gates.
+
+Hecate final qualification is in I014 PR #198 at `4eac463352312c2a56d5e8c92dc47d77eb15861e`.
+The tests verify all three B069 digests before use.
+Protected puzzle, account, administration, and billing requests use one shared transport adapter.
+Two recovery scenarios first failed with raw fetch. All eight candidate scenarios now pass.
+Both widths verify read recovery and one generation with the original topic.
+Browser scenarios control Google, TAuth, and application API responses. Backend tests verify the real API separately.
+Final local CI passed 463 browser tests, 100% frontend and backend coverage, and mobile checks.
+The full local result includes concurrent mobile changes outside this browser commit.
+Complete committed mobile qualification before the release. The hosted CI gap remains.
 
 ### NameSignal
 
@@ -529,7 +539,7 @@ MediaOps and Ledger use the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-The investor portal, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
+The investor portal, Hecate, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
