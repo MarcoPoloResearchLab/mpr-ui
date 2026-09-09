@@ -31,7 +31,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | --- | --- | --- |
 | Hecate | Config, three pages, fixtures, and candidate tests implemented in I014 | Resolve the existing Expo audit failure and hosted CI gap. Complete cache transition and live acceptance. |
 | NameSignal | Config, shared layout, exported-page tests, and CI implemented in I094 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
-| llm-proxy | Both config producers, 52 generated footers, and shared request transport prepared in I260 | Native CI passed all 12 gates with 100 percent Go coverage. Complete hosted CI, final candidate, publication, and real Google acceptance. |
+| llm-proxy | Both config producers, 52 generated footers, and shared request transport prepared in I260 | Local and exact-commit hosted CI passed. Complete final candidate, publication, cache convergence, and real Google acceptance. |
 | pinguin | Config, four footers, and complete candidate browser suite implemented in I004 | Local CI passed. GitHub Actions are disabled by contract. Complete shared publication, cache transition, and real Google acceptance. |
 | social_threader | Both auth environments, lifecycle, and candidate checks implemented in I003 | Complete B009, hosted CI, shared publication, cache transition, and real Google acceptance. |
 | prompts | Config, auth bootstrap, request transport, footers, and browser checks implemented in I027 | Browser and backend checks passed. B077 records the Expo dependency mismatch. Complete shared publication, cache transition, and real Google acceptance. |
@@ -441,7 +441,7 @@ The Google fixture controls the external credential response. It does not establ
 
 Final native `make ci` passed all 12 gates in 345 seconds.
 The run passed 100 percent Go coverage, 114 application browser tests, six TAuth/MCP scenarios, Python checks, and the Pages artifact check.
-Hosted run `34323669933` started against the exact PR commit. Its result remains pending.
+Hosted run `34323669933` passed all three jobs against the exact PR commit.
 
 The [migration record](https://github.com/tyemirov/llm-proxy/blob/3575ef5f2a6673192d9658814faed4e92cb4a5ab/docs/mpr-ui-migration.md) contains exact candidate digests and seven public HTTP observations.
 The website, application, release marker, API config, and three published shared assets returned HTTP 200 from one network location.
