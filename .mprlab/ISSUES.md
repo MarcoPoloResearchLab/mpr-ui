@@ -12,6 +12,28 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [!] [B067] (P1) Clear header authentication after same-page logout
+  Goal: A successful user-menu logout leaves its owning header signed out.
+  Evidence:
+  Prompt Bubbles returns HTTP 204 from logout and navigates to `#top`.
+  The user menu clears its profile, but its owning header retains authenticated state.
+  The session watcher skips reconciliation while its controller reports authenticated state.
+  Requirements:
+  - Complete the owning controller logout after the user-menu operation succeeds.
+  - Clear its profile and invalidate previous authentication work.
+  - Preserve one logout request and the selected redirect.
+  Validation:
+  - Reproduce the defect with a real header and controlled Google and TAuth responses.
+  - Verify visible sign-in controls and a subsequent sign-in at both viewport widths.
+  - Run final native CI and record publication separately.
+  Results:
+  Both regressions failed before the controller change.
+  The focused account and protected-request suite passed 28 checks.
+  Final native CI passed Node checks, coverage, 136 end-to-end checks, and Pages artifact validation.
+  Blocked:
+  The stacked PR requires hosted CI after its base satisfies the workflow filter.
+  Shared publication and consumer qualification remain pending.
+
 - [!] [B066] (P1) Keep the account menu inside the viewport
   Goal: A user can select each account action at narrow viewport widths.
   Evidence:

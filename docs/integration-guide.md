@@ -317,6 +317,11 @@ For a branded page, set the documented custom properties on the component or an 
 
 Mounting does not initialize GIS or request a nonce. A session probe occurs only when a restore hint exists. Provider work begins when the user activates a rendered action.
 
+A successful user-menu logout clears its owning header controller before the redirect.
+This also applies to a same-page fragment such as `#signed-out`.
+The shared controller clears its profile and invalidates previous authentication work after that logout completes.
+Applications can update their workspace through the shared unauthenticated event.
+
 ## Protected request contract
 
 App code must wait for `mpr-ui:auth:authenticated`. App code must then use `MPRUI.authenticatedFetch()` for each protected request.

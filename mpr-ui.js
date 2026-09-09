@@ -6289,6 +6289,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       return Promise.resolve();
     }
 
+    function completeLogout() {
+      invalidateAuthLifecycle();
+      clearAuthRestoreHint(options);
+      pendingProfile = null;
+      markUnauthenticated();
+    }
+
     function signOut() {
       invalidateAuthLifecycle();
       return performLogout().then(function () {
@@ -6318,6 +6325,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       startGoogleLink: startGoogleLink,
       authenticatedFetch: authenticatedFetchWithController,
       signOut: signOut,
+      completeLogout: completeLogout,
       updateOptions: updateOptions,
       destroy: destroy,
       restartSessionWatcher: bootstrapSession,
@@ -8680,11 +8688,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       typeof elements.userMenu.addEventListener === "function"
     ) {
       elements.userMenu.addEventListener("mpr-user:logout", function (eventObject) {
-        if (
-          authController &&
-          typeof authController.restartSessionWatcher === "function"
-        ) {
-          authController.restartSessionWatcher();
+        if (authController) {
+          authController.completeLogout();
         }
         dispatchHeaderEvent("mpr-ui:header:signout-click", {
           source: "user-menu",
