@@ -142,7 +142,7 @@ They cover protected reads, one stored job after mutation retry, reload, logout,
 The native credentialed event stream reconnects after recovery.
 Final `make ci` passed Go checks, both configured 100 percent coverage gates, 64 frontend guardrails, and ten browser checks.
 The frontend coverage gate applies to `app.js`.
-Hosted run `34334565902` is in progress at this exact source revision.
+Hosted run `34334565902` passed at this exact source revision.
 
 ### LikeMe
 
@@ -184,6 +184,16 @@ The [public asset record](https://github.com/tyemirov/pinguin/blob/a0003f1025396
 The pages and configuration declare `max-age=600`. Shared assets declare `max-age=604800` and `s-maxage=43200`.
 I004 retains shared publication, cache qualification, and real Google acceptance as separate gates.
 F001 retains its separate managed tenant conversion requirements.
+
+Final B069 qualification is in I004 PR #200 at `ccb84f628a5dc11ea1a441194d66d2991c1d2c93`.
+B008 corrects protected request recovery through the shared authenticated transport.
+The API checks authentication before protected domain handlers, which permits the declared mutation retry contract.
+Both recovery scenarios first failed on the tenant read, then passed after the transport correction.
+Ten candidate checks passed at phone and desktop widths.
+They verify one tenant after a retried create request, unchanged payload and idempotency key, reload, and logout.
+The browser tests use the real application and shared runtime with controlled Google and local API test server responses.
+Final `make ci` passed all 65 browser checks and 100 percent Go coverage.
+Existing governance changes and I003 remain outside this commit.
 
 ### WriterBlock
 
@@ -555,7 +565,7 @@ MediaOps and Ledger use the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-The investor portal, Hecate, NameSignal, LikeMe, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
+The investor portal, Hecate, NameSignal, LikeMe, Pinguin, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
