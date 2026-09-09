@@ -36,8 +36,8 @@ Use each repository's current agent instructions and test-driven sequence.
 | social_threader | Both auth environments, lifecycle, and candidate checks implemented in I003 | Complete B009, hosted CI, shared publication, cache transition, and real Google acceptance. |
 | prompts | Config, auth bootstrap, request transport, footers, and browser checks implemented in I027 | Browser and backend checks passed. B077 records the Expo dependency mismatch. Complete shared publication, cache transition, and real Google acceptance. |
 | SummerCan | Generated config, shared auth, and 49 public footers implemented in I099 | Native CI passed with 100% Go and JavaScript coverage. Complete maintenance, publication, and real Google gates. |
-| download_your_data | Shared serializer, protected transport, and browser checks implemented in I017 | Native CI passed. Complete shared B068, final candidate qualification, maintenance preparation, publication, and real Google acceptance. |
-| MediaOps | Both config producers, shared transport, and ten footers implemented in I091 | Local CI and 45 Docker browser scenarios passed. Complete hosted CI, maintenance, publication, and real Google gates. |
+| download_your_data | Shared serializer, protected transport, and browser checks implemented in I017 | Native CI passed. Complete maintenance preparation, publication, and real Google acceptance. |
+| MediaOps | Both config producers, shared transport, and ten footers implemented in I091 | Local CI and 45 Docker browser scenarios passed. Complete maintenance, publication, and real Google gates. |
 | ledger | Nested producer, footer, recovery transition, and real browser checks prepared in B003 | Local CI and exact-commit hosted CI passed. Complete F002 Pages qualification, public TLS, and live acceptance. |
 | PoodleScanner | API producer, 37 pages, shared transport, and browser checks prepared in I087 | All 588 browser scenarios passed. Complete the existing 95.9 percent coverage gate, hosted CI, publication, and public acceptance. |
 | loopaware | Both config environments, 41 static footers, Go renderer, and shared request transport prepared in I042 | Local and hosted CI passed. Central I009 retains publication, cache convergence, and real Google acceptance. |
@@ -319,7 +319,7 @@ I018 retains maintenance preparation, shared publication, cache transition, and 
 
 ### Smith
 
-I010 [PR #105](https://github.com/MarcoPoloResearchLab/Smith/pull/105) contains the fixture migration at `1ddc99fd57928c2223fb8872fd59a62c9b5671a1`.
+I010 [PR #105](https://github.com/MarcoPoloResearchLab/Smith/pull/105) contains the fixture migration at `cd865074442bee627973b781938a863045f9ba42`.
 The work started from `68aedae8135fceb14d73d240d63b4ba9f1ad4a09` and preserved existing Governor and Apple work.
 The selected profile supplies the explicit `/auth/session` endpoint.
 The fixture declares the provider map and preserves its local origin, example Google client, tenant, and other endpoints.
@@ -328,7 +328,9 @@ The seeded hostname defect and public verifier use the same current contract.
 Eight verifier regressions and two real-browser checks failed before their corresponding fixes.
 Final `make -C mpr-integration ci` passed ten verifier tests, two browser tests, and the public fixture command.
 The verifier rejects obsolete fields, altered profile inputs, numeric provider flags, and duplicate YAML keys.
-Browser checks use digest-verified candidate `7c2f9e36453c6081db7641b7efae00c6e271fa39` at mobile and desktop widths.
+Browser checks use digest-verified B069 candidate `768f25936497c5aabd426197d21c2100b6e5d9a1` at mobile and desktop widths.
+Final package CI passed again. The log is `/tmp/smith-i010-b069-ci.log`.
+The primary checkout returned to its separate Apple branch after the migration PR update.
 They verify controlled Google exchange, session restoration, tenant headers, and logout.
 
 Smith provides a development fixture, with no production website or deployment artifact.
@@ -387,7 +389,7 @@ I099 retains maintenance preparation, publication, and real Google acceptance.
 
 ### Download Your Data
 
-I017 [PR #24](https://github.com/MarcoPoloResearchLab/download_your_data/pull/24) contains the migration at `d9621b0494ba49386bb2e7a265a8eec6c3edebe4`.
+I017 [PR #24](https://github.com/MarcoPoloResearchLab/download_your_data/pull/24) contains the migration at `f99c86e9c37bf47b7b07bc783fe59a5389158d04`.
 The work started from `master` revision `ea1f1f179a3e645a9785a5e36ba7e2b763159ab4` and preserved existing tracker edits.
 One serializer supplies the provider map to both API and Pages configuration.
 Protected requests use shared recovery and preserve the existing CSRF and authorization boundaries.
@@ -400,12 +402,13 @@ Both existing browser suites pass with controlled Google and nonce responses.
 Final native CI passed, including Go tests, static checks, lifecycle checks, production artifacts, and browser suites.
 The repository has no hosted workflow. Local CI supplies its required source validation.
 
-The candidate is digest-verified revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`.
+The final candidate is digest-verified B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1`.
+Native CI passed with that candidate. The log is `/tmp/dyd-i017-b069-ci.log`.
 The [public asset record](https://github.com/MarcoPoloResearchLab/download_your_data/blob/d9621b0494ba49386bb2e7a265a8eec6c3edebe4/docs/mpr-ui/public-assets-2026-09-09.json) contains eight successful responses.
 GitHub confirms `gh-pages` and `dyd.mprlab.com`. Pages and API configuration bytes matched with different cache headers.
 Preparation exposed header overflow after Google nonce failure beside application controls.
 [B068 PR #214](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/214) corrects shared status layout at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
-I017 retains that shared correction, final candidate qualification, maintenance preparation, publication, and real Google acceptance.
+B069 includes that correction. I017 retains maintenance preparation, publication, and real Google acceptance.
 
 ### MediaOps
 
@@ -425,7 +428,7 @@ Final native CI passed with the required JavaScript, Go, and Python coverage.
 The local Docker browser suite passed all 45 scenarios against the Go server and media services.
 Chrome uses the browser server network namespace so localhost supplies the required secure browser APIs.
 The previous hosted run `34313237266` passed at `e0fc6859c5005cc749eb9c76c09e8b3c37a978fe`.
-Hosted qualification for the final candidate commit remains open.
+Hosted run `34340846582` passed at the final candidate commit.
 
 The candidate is digest-verified B069 revision `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 The final update passed native CI and all 45 Docker browser scenarios.
@@ -584,13 +587,13 @@ F001 retains its existing music production gates.
 ### Final Candidate Qualification
 
 The first seven historical application results use shared revision `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
-Social Threader, CTX, Gix, and Smith use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
-Prompt Bubbles and Download Your Data use revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
+Social Threader, CTX, and Gix use revision `7c2f9e36453c6081db7641b7efae00c6e271fa39`, which adds B066.
+Prompt Bubbles uses revision `dd5bff9fdaf0e2c989624f9f6f75d3c55e460866`, which adds B067.
 MediaOps and Ledger previously used the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-The investor portal, Hecate, NameSignal, LikeMe, Pinguin, WriterBlock, Gravity, Ledger, MediaOps, SummerCan, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
+The investor portal, Hecate, NameSignal, LikeMe, Pinguin, WriterBlock, Gravity, Ledger, MediaOps, SummerCan, Download Your Data, Smith, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
