@@ -32,7 +32,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | Hecate | Config, three pages, fixtures, and candidate tests implemented in I014 | Resolve the existing Expo audit failure and hosted CI gap. Complete cache transition and live acceptance. |
 | NameSignal | Config, shared layout, exported-page tests, and CI implemented in I094 | Local and hosted CI passed. Complete shared publication, cache transition, and real Google acceptance. |
 | llm-proxy | 51 pages | Convert `RenderManagementConfigUI` and `site/config-ui.yaml`. Set its missing session endpoint. Update HTTP and browser expectations. |
-| pinguin | Config and four pages | Update config expectations. Verify each workspace page and session restoration. |
+| pinguin | Config, four footers, and complete candidate browser suite implemented in I004 | Local CI passed. GitHub Actions are disabled by contract. Complete shared publication, cache transition, and real Google acceptance. |
 | social_threader | Config | Update `internal/deployment/contract_test.go` and `tests/transformationPuppeteerSuite.js`. Verify the shared header lifecycle. |
 | prompts | Config and investor footer | Remove flat parsing and recovery paths in `web/js/app.js`. Update `web/js/types.d.js`. Verify authenticated resource requests. |
 | SummerCan | 49 pages | Convert YAML in `cmd/server/main.go`. Remove `authButton`. Replace direct TAuth and bundle loads in `web/static/js/bootstrap.js`. |
@@ -43,7 +43,7 @@ Use each repository's current agent instructions and test-driven sequence.
 | loopaware | Config and 44 pages | Convert `pkg/footer/footer.go` and its callers to the current menu contract. Update auth fixtures and generated resource pages. |
 | WriterBlock | Two pages | Set the explicit session endpoint. Convert config and remove `authButton`. Replace manual auth wiring in `js/core/mprUiLoader.js`. |
 | gravity | Two pages | Set the explicit session endpoint. Convert `frontend/config-ui.yaml`. Remove `authButton`. Update browser fixtures and config expectations. |
-| LikeMe | Footer and exported-page checks implemented in I001 | Local CI passed. Complete hosted CI, shared publication, cache transition, and public acceptance. |
+| LikeMe | Footer and exported-page checks implemented in I001 | Local and hosted CI passed. Complete shared publication, cache transition, and public acceptance. |
 | ctx | None | Inspect current component markup and public asset requests. Confirm the production origin from its application owner. |
 | gix | Footer | Verify documentation navigation and theme behavior. Confirm the production origin from its application owner. |
 | marcopolo.github.io | Six public footers implemented in F005 | Source migration and candidate tests passed. Complete published shared-asset qualification and F007 hosted acceptance. |
@@ -122,23 +122,44 @@ Baseline and final `make ci` passed.
 Both browser checks first reproduced the absent menu, then passed against digest-verified candidate `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
 They cover the exported Pages artifact at mobile and desktop widths, keyboard controls, navigation, four themes, images, and layout.
 The PR adds hosted CI with the same browser suite.
+Hosted CI run `34293974563` passed at this exact PR revision.
 
 The GitHub provider confirms that Pages serves `gh-pages`. The README now records that current setting.
 The [public asset record](https://github.com/Undeliverable-Mail-Office/LikeMe/blob/0bd45ce5971949e50a2811d47abf91dde7eb36fd/docs/mpr-ui/public-assets-2026-09-09.json) contains three HTTP observations from one network location.
 The page declares `max-age=600`. The shared assets declare `max-age=604800` and `s-maxage=43200`.
 I001 retains shared publication, cache qualification, and hosted acceptance as separate gates.
 
+### Pinguin
+
+I004 [PR #200](https://github.com/tyemirov/pinguin/pull/200) contains the migration at `a0003f1025396a3141eb5953bf2b63fd0960046b`.
+The work started from `master` revision `c6a12b85d9aee030ab3d3db3dd40b9721e3e2947` and preserved existing governance edits and I003.
+All four environments declare the provider map. All four footers use the current menu contract.
+Google identifiers, tenant identifiers, origins, and `/auth/session` retain their configured values.
+
+Baseline Go checks passed with 100% coverage. After Chromium installation, all 55 existing browser checks passed.
+Eight new candidate checks failed before migration because the shared loader rejected flat authentication keys.
+Final `make ci` passed with 100% Go statement coverage and 63 browser checks.
+The complete browser suite uses digest-verified candidate `ec9617b0c4e6c4038e8de8e1b8acda6cb517ddbf`.
+It covers authentication, session restoration, tenant operations, notification operations, SMTP operations, responsive pages, and themes.
+The reviewed landing snapshot changes height by one pixel.
+
+The repository contract explicitly disables GitHub Actions. Local CI provides the application validation result.
+The [public asset record](https://github.com/tyemirov/pinguin/blob/a0003f1025396a3141eb5953bf2b63fd0960046b/docs/mpr-ui/public-assets-2026-09-09.json) contains eight HTTP observations from one network location.
+The pages and configuration declare `max-age=600`. Shared assets declare `max-age=604800` and `s-maxage=43200`.
+I004 retains shared publication, cache qualification, and real Google acceptance as separate gates.
+F001 retains its separate managed tenant conversion requirements.
+
 ## Patch Procedure
 
 Set the application repository and its matching patch path from the inventory.
-The commands below use pinguin as an example with a prepared patch.
+The commands below use social_threader as an example with a prepared patch.
 For an application with an existing PR, inspect its result record before further patch work.
 
 ```bash
-cd /Users/tyemirov/Development/pinguin
+cd /Users/tyemirov/Development/social_threader
 git status --short
 git rev-parse HEAD
-git apply --check /Users/tyemirov/Development/mpr-ui/docs/i009/patches/pinguin.patch
+git apply --check /Users/tyemirov/Development/mpr-ui/docs/i009/patches/social_threader.patch
 ```
 
 1. Compare the current source identity and affected file hashes with `consumer-inventory.json`.
@@ -153,7 +174,7 @@ git apply --check /Users/tyemirov/Development/mpr-ui/docs/i009/patches/pinguin.p
 10. Open a ready-for-review application PR. Record its source identity and hosted CI result.
 
 ```bash
-git apply /Users/tyemirov/Development/mpr-ui/docs/i009/patches/pinguin.patch
+git apply /Users/tyemirov/Development/mpr-ui/docs/i009/patches/social_threader.patch
 make ci
 ```
 
