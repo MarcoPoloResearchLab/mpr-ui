@@ -217,6 +217,14 @@ The [public asset record](https://github.com/MarcoPoloResearchLab/WriterBlock/bl
 The pages and config declare `max-age=600`. All three `@latest` assets declare `max-age=604800` and `s-maxage=43200`.
 I014 retains shared publication, cache qualification, and real Google acceptance as separate gates.
 
+Final B069 qualification is in I014 PR #51 at `b6d731411ed8135f13f43c1543d71c5a0bc860a3`.
+The final candidate update changes no application code.
+The PRD AUTH-8 contract requires a redirect to sign-in after a protected API returns HTTP 401.
+WriterBlock retains this explicit contract.
+Final `make ci` passed 166 browser scenarios, eight WebKit checks, runtime inclusion, and 100 percent frontend and backend coverage.
+The local validation stack uses port 8189 and repository-relative source mounts for its runtime inclusion check.
+All three B069 asset digests are verified before browser use.
+
 ### Gravity
 
 I002 [PR #228](https://github.com/MarcoPoloResearchLab/gravity/pull/228) contains the migration at `b9ab15cb6f6934e2a6ace5b885811de755cfd08f`.
@@ -565,7 +573,7 @@ MediaOps and Ledger use the B068 candidate.
 B068 adds the header error-layout correction at `bbc21cc264d96b51195e0c1a264ad43f14a205ad`.
 Its JavaScript digest is `3e725dbe911470ca934cb46456369479b6ac232eee5ccba2582bf8d939259ae8`.
 The config loader and CSS digests stay unchanged through B068.
-The investor portal, Hecate, NameSignal, LikeMe, Pinguin, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
+The investor portal, Hecate, NameSignal, LikeMe, Pinguin, WriterBlock, PoodleScanner, llm-proxy, LoopAware, and the personal website use B069.
 B069 changes only the CSS digest at `768f25936497c5aabd426197d21c2100b6e5d9a1`.
 [B069 PR #215](https://github.com/MarcoPoloResearchLab/mpr-ui/pull/215) removes empty status space from standalone login controls.
 Visible authentication errors retain their layout.
