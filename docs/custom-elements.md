@@ -16,6 +16,7 @@ This document defines the supported `mpr-ui` custom elements and their integrati
 The header integrates configured Google, Apple, and password providers with TAuth and emits the shared auth lifecycle events.
 
 The header uses one compact square action for each provider. Each action keeps its full accessible name.
+Authentication status text wraps within the available header width beside application controls.
 
 ### Primary integration path
 
