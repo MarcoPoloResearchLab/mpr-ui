@@ -66,6 +66,142 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v3.11.12] - 2026-09-10
+
+- Merge pull request #215 from MarcoPoloResearchLab/tyemirov/B069-empty-login-status
+- Merge remote-tracking branch 'origin/tyemirov/B069-empty-login-status' into tyemirov/B069-empty-login-status
+- B069: hide empty standalone authentication status
+- B068 contain authentication errors beside header controls
+- B067 clear owning header state after user-menu logout
+- docs: record B066 consumer qualification and remaining gates
+- fix: keep account menus inside the viewport (B066)
+- I009 complete final candidate preparation across all consumers
+- I009 record CTX and Social Threader qualification
+- I009 record Download Your Data and Smith qualification
+- I009 record SummerCan final candidate qualification
+- I009 record MediaOps final candidate and Ledger CI
+- I009 record Ledger final candidate and Gravity CI
+- I009 record final Gravity qualification
+- I009 record final WriterBlock qualification
+- I009 record final Pinguin qualification
+- I009 record final NameSignal and LikeMe qualification
+- Record I009 Hecate final candidate qualification
+- Record I009 portal recovery qualification and LoopAware CI
+- I009 record all twenty consumer migration PRs
+- I009 record the LoopAware migration and local CI
+- I009: record exact-commit llm-proxy hosted CI
+- I009: record llm-proxy migration qualification
+- I009: record PoodleScanner hosted coverage gate
+- I009: record PoodleScanner migration and B069 qualification
+- B069: hide empty standalone authentication status
+- I009: record Ledger migration preparation
+- I009: record MediaOps migration qualification
+- I009 record Download Your Data and shared qualification results
+- B068 contain authentication errors beside header controls
+- I009 record qualified SummerCan migration PR
+- I009 record Prompt Bubbles migration and shared logout candidate
+- B067 clear owning header state after user-menu logout
+- I009 record Smith migration and Gix hosted results
+- docs: record Gix migration and Smith session prerequisite
+- docs: record CTX migration and hosted consumer results
+- docs: record Social Threader migration and B066 qualification
+- docs: record B066 consumer qualification and remaining gates
+- fix: keep account menus inside the viewport (B066)
+- I009: Record Gravity migration and CI evidence
+- I009: Record WriterBlock migration and acceptance evidence
+- I009: record Pinguin preparation and LikeMe hosted CI
+- I009: record LikeMe preparation and NameSignal hosted acceptance
+- I009: record NameSignal migration preparation
+- I009: record Hecate migration preparation and validation
+- Record I009 portal application migration evidence
+- Initialize the workbench nonce fixture before shared auth startup
+- Scope parser reference checks to executable sources and documentation
+- Preserve significant whitespace in I009 patch artifacts
+- Prepare I009 application migration package and coordinated cutover
+- docs: add hosted authentication readiness checklist
+- build: add Dockerfile.pages for static site deployment
+- test: enforce Pages artifact determinism and provider controls
+- feat(demo): add hosted TAuth demo environment to config-ui.yaml
+- docs: clarify demo acceptance and Pages artifact validation
+- ci: add test-demo and test-pages targets to Makefile
+- docs: record 2026-09-05 progress for hosted auth and Pages
+- Merge pull request #197 from MarcoPoloResearchLab/feature/F011-demo-lifecycle
+- Merge pull request #191 from MarcoPoloResearchLab/automation/license/mprlab-proprietary
+- Merge pull request #208 from MarcoPoloResearchLab/feature/F010-real-email-orchestration
+- test: enforce nonce-bound Google state and challenge token handling
+- fix(serve-demo): restrict file serving to compose frontend volumes
+- fix(auth): scope Google nonce to action state and retain challenge token
+- chore: add Pinguin bootstrap env vars to down.sh
+- docs: clarify token retention and private delivery owner bootstrap
+- chore: harden docker-compose delivery isolation and mounts
+- refactor(demo): isolate pinguin bootstrap to private delivery tenant
+- docs: document delivery owner isolation and test-delivery workflow
+- chore: add test-delivery target for demo delivery tests
+- docs: add F010 review notes for 2026-09-05
+- chore: add pinguin bootstrap vars to tauth example env
+- docs: clarify agent governance and testing guidance
+- docs: define deployment, testing, and documentation contracts
+- feat(demo): deliver auth challenges through local Pinguin SMTP
+- feat(auth): add account creation to owned email panel
+- fix: anchor the header email panel
+- fix(auth): keep provider actions available
+- fix(auth): contain header email form
+- fix(auth): remove Google One Tap controller API
+- fix(auth): use Google button for account linking
+- fix(demo): disable local frontend caching
+- fix(auth): render nonce-bound Google buttons
+- fix(demo): remove simulated Apple provider
+- feat(demo): add local Apple authentication provider
+- fix(demo): use four-point theme controls for four-mode footers
+- feat(demo): add Make targets for local HTTP runtime
+- fix(auth): unify header provider control borders
+- fix(auth): align compact header provider controls
+- test(demo): add visual contract coverage for public demos
+- feat(demo): refresh pages with unified dark visual design
+- feat(ui): refresh dark theme and compact responsive layouts
+- feat(demo): add component gallery and unify demo navigation
+- test(dropdown): cover sectioned menu and footer integration
+- feat: add configurable mpr-dropdown menu component
+- feat(footer): add sectioned dropdown menu
+- docs: document dropdown menu custom element
+- feat(demo): migrate footer site links to sectioned menus
+- feat: add sectioned dropdown menu component
+- feat: add accessible dropdown component and footer menu contract
+- feat(dropdown): add reusable sectioned menu custom element
+- docs: document dropdown menu terminology
+- test(auth): cover password flows and config loading
+- feat(auth): add password authentication and account management panels
+- feat(config): support password auth and account panel settings
+- docs: document password authentication and account management
+- feat(demo): add password and account management flows
+- feat(auth): add password and account management components
+- chore: archive completed TAuth authentication feature
+- chore: add password auth credentials to tauth env example
+- docs: correct license scope and rights
+- docs: identify licensed repository
+- chore: apply mprlab-proprietary license
+- test: cover Google and Apple auth-config flows
+- feat!: require provider-aware auth configuration
+- feat(auth): add Apple provider and shared auth action controls
+- feat(auth): add validated provider-based auth configuration
+- docs: document provider-based Google and Apple auth config
+- feat(auth): configure provider-specific Google and Apple sign-in
+- feat(auth): add provider-aware Google and Apple authentication
+- chore(issues): archive resolved Apple Sign In support
+- docs: archive resolved issues from tracker
+- Merge pull request #190 from MarcoPoloResearchLab/gix/upgrade-js-yaml-and-brace-expansion-security-fixes
+- test: discover and validate all YAML parser CDN references
+- test: add YAML parser version contract coverage
+- chore(deps): upgrade js-yaml to v5.4.1
+- test: add YAML parser compatibility contract coverage
+- fix(config): update default js-yaml parser CDN URL
+- fix: update js-yaml CDN to compatible browser bundle
+- docs: update js-yaml CDN references
+- fix(demo): update js-yaml CDN to v5.4.1
+- docs: update js-yaml CDN reference to v5.4.1
+- fix(deps): update js-yaml and brace-expansion versions
+- fix(deps): upgrade js-yaml and brace-expansion
+
 ## [v3.11.11] - 2026-08-29
 
 - Merge pull request #189 from MarcoPoloResearchLab/bugfix/B053-loopaware-site-identifiers
