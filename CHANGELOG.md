@@ -66,6 +66,10 @@
 - Documented the test-only Google Identity stub driver contract for integration suites.
 - Documented `sign-in-redirect-url` as the preferred shared post-login navigation contract.
 
+## [v4.0.0] - 2026-09-10
+
+- docs: recorded v4.0.0 provider-map and footer migration
+
 ## [v3.11.12] - 2026-09-10
 
 - Merge pull request #215 from MarcoPoloResearchLab/tyemirov/B069-empty-login-status
