@@ -14,6 +14,7 @@
 
 ### Improvements ⚙️
 - Moved release, publication, and deployment to the canonical sibling Gateway lifecycle.
+- Added jsDelivr alias purge and byte verification after Gateway publication.
 - Normalized historical issue and changelog prose to ASD-STE100 while preserving technical facts and identifiers.
 - Added `MPRUI.authenticatedFetch()` with one cross-tab TAuth session recovery and one permitted protected-request retry.
 - Centralized the Marco Polo Research Lab LLC legal profile, including company form, website, support/legal emails, and phone number.
