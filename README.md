@@ -311,6 +311,7 @@ make release && make publish && make deploy
 The sibling `mprlab-gateway` repository owns each lifecycle phase.
 The release phase seals the exact committed source and Pages artifact.
 The publish phase creates the immutable Pages commit.
+It then purges and verifies the jsDelivr `@latest` and major aliases.
 The deploy phase configures and verifies `https://ui.mprlab.com/`.
 Live provider acceptance remains separate from source CI and Pages activation.
 
