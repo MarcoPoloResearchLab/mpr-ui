@@ -2,7 +2,7 @@
 
 Tracking issue: I009.
 
-Status on 2026-09-08: the user authorized migration preparation within the investor portal task.
+Status on 2026-09-10: v4.0.0 published the provider-map and footer migration.
 The [application preparation package](i009/README.md) contains source identities, proposed patches, public observations, and qualification results.
 The new loader accepts only the current contract.
 The user owns production release, publication, and deployment.
@@ -36,20 +36,19 @@ Its `@latest` reference selects a release through SemVer resolution.
 Its alias cache can update without a repository deployment command.
 These behaviors are documented in the [jsDelivr source documentation](https://github.com/jsdelivr/jsdelivr/blob/master/README.md#github).
 
-The current `Makefile` uses repository-owned release scripts.
-`make release` runs CI and prepares a local release commit, tag, and manifest.
-`make publish` pushes the prepared branch and tag and creates the GitHub Release.
-`make deploy` purges and verifies the `latest` and selected major aliases for three assets.
-Those assets are `mpr-ui-config.js`, `mpr-ui.js`, and `mpr-ui.css`.
+The v4.0.0 publication used the previous repository release scripts.
+That publication exposed `mpr-ui-config.js`, `mpr-ui.js`, and `mpr-ui.css` through jsDelivr.
+The current `Makefile` delegates each production phase to the sibling Gateway.
+The publish target then purges and verifies the `@latest` and major aliases against the immutable tag.
+The current manifest declares the F010 Pages site and TAuth tenant.
 
 The protection gate applies before `make publish`.
 Delay of `make deploy` alone cannot protect an application that uses `@latest`.
 The three alias updates do not form one atomic browser operation.
 
-F010 describes a separate, incomplete transition to a hosted Pages demo and the gateway lifecycle.
-The current checkout has no `.mprlab/deploy/resources.yml`.
-The [hosted authentication checklist](hosted-auth-readiness.md) records that separate work.
-This plan follows the current release implementation and does not redesign it.
+F010 owns the hosted Pages demo and its Gateway lifecycle.
+The [hosted authentication checklist](hosted-auth-readiness.md) records its remaining external gates.
+This migration plan keeps jsDelivr publication evidence separate from the F010 Pages deployment.
 
 ## Config Transformation
 
@@ -201,17 +200,16 @@ Owner: user.
 7. Compare all three exact CDN assets with the released source bytes.
 8. Verify that every mutable alias supplies those same bytes.
 
-The current library commands are:
+The current production lifecycle command is:
 
 ```bash
 cd /Users/tyemirov/Development/mpr-ui
-make release RELEASE_ARGS="--bump major"
-make publish
-make deploy
+make release && make publish && make deploy
 ```
 
-These commands belong to the approved production window. They were not executed during preparation.
-`make publish` is the exposure boundary. Delay of `make deploy` alone does not protect existing consumers.
+The user ran the previous library publication command for v4.0.0.
+The current command operates the F010 Pages, tenant, and CDN release unit.
+The publish phase advances and verifies the mutable CDN aliases.
 
 Exit gate: the release, exact assets, and all selected aliases match the approved source.
 Failure action: keep affected applications in maintenance and repair the current contract forward.
@@ -302,10 +300,10 @@ Applications that have not passed acceptance remain in the qualified maintenance
 | Valid public TLS for Ledger | User and Gateway application owner | Ledger public acceptance |
 | Enforceable maintenance mechanism and measured browser cache transition | Application repository | Library publication |
 | Production interruption window and final application order | User | Maintenance activation |
-| Library release before F010 completion, or a combined release | User | Library release preparation |
+| F010 private values and DNS changes | User | F010 deployment |
 
-The proposed scope uses the current library lifecycle and tracks F010 separately.
-The current command supports `--bump major`. The final release version is selected during release preparation.
+The v4.0.0 release completed before F010.
+The current Gateway lifecycle selects the next release from committed source.
 
 ## Preparation Validation
 

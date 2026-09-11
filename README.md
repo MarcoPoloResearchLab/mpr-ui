@@ -289,6 +289,32 @@ make ci
 `make test-delivery` builds isolated TAuth and Pinguin containers and checks delivery administration through their HTTP APIs.
 This check requires Docker, `uv`, and both sibling repositories. It uses temporary data and sends no email.
 
+## Production lifecycle
+
+The production manifest is `.mprlab/deploy/resources.yml`.
+It declares the GitHub Pages site and the `mpr-ui-demo` TAuth tenant.
+The Pages artifact comes from `Dockerfile.pages` and contains only the selected public files.
+
+Put these assignments in the ignored `.mprlab/deploy/.env` file before deployment:
+
+- `MPR_UI_APPLE_PRIVATE_KEY`
+- `MPR_UI_EMAIL_DELIVERY_API_KEY`
+- `MPR_UI_GOOGLE_WEB_CLIENT_ID`
+- `MPR_UI_JWT_SIGNING_KEY`
+
+The user runs the complete production lifecycle from this repository:
+
+```bash
+make release && make publish && make deploy
+```
+
+The sibling `mprlab-gateway` repository owns each lifecycle phase.
+The release phase seals the exact committed source and Pages artifact.
+The publish phase creates the immutable Pages commit.
+It then purges and verifies the jsDelivr `@latest` and major aliases.
+The deploy phase configures and verifies `https://ui.mprlab.com/`.
+Live provider acceptance remains separate from source CI and Pages activation.
+
 ## Documentation
 
 - [`docs/custom-elements.md`](docs/custom-elements.md): complete declarative component reference.

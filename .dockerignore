@@ -1,0 +1,4 @@
+.git
+.mprlab/deploy/.env
+node_modules
+test-results

@@ -12,6 +12,26 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [!] [B070] (P1) Keep the lifecycle fixture output portable in hosted CI
+  Goal:
+  The lifecycle delegation fixture accepts the same public output on macOS Make and GNU Make.
+  Evidence:
+  Hosted CI run `34575628430` failed because GNU Make added directory entry and exit messages to the nested fixture output.
+  Requirements:
+  - Suppress Make directory messages at the fixture process boundary.
+  - Preserve the exact release and deployment delegation assertions.
+  - Keep production lifecycle commands unchanged.
+  Validation:
+  - Run the focused lifecycle contract test.
+  - Run final native CI.
+  - Verify hosted CI on the corrected commit.
+  Results:
+  - The focused lifecycle contract test passed.
+  - Native CI passed 210 Node checks, 141 browser coverage checks, 141 end-to-end checks, and Pages artifact validation.
+  - The production lifecycle recipes are unchanged.
+  Blocked:
+  Hosted CI requires the corrected source on the pull request branch.
+
 - [!] [B069] (P1) {B068} Remove empty status space from standalone login controls
   Goal: An empty authentication status adds no height to a standalone login control.
   Evidence:
@@ -664,7 +684,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Verify `<mpr-footer>` uses the shared element and has no second dropdown interaction path.
   - Run `make ci` after the final source and documentation changes.
 
-- [ ] [F010] (P1) Publish the public component demo site at `ui.mprlab.com`.
+- [!] [F010] (P1) Publish the public component demo site at `ui.mprlab.com`.
   Goal:
   A public site shows the current released library, its components, its authentication controls, and its integration documentation.
 
@@ -674,7 +694,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Make `release`, `publish`, and `deploy` delegate to the sibling `mprlab-gateway` repository.
   - Preserve `make up`, `make down`, `up.sh`, `down.sh`, `docker-compose.yml`, and `npm run demo:serve` as local contracts.
   - Declare one `github_pages` resource for `MarcoPoloResearchLab/mpr-ui` and the `gh-pages` branch.
-  - Set the Pages verification path to `/.mprlab/release.json`.
+  - Set the Pages verification path to `/.mprlab-release.json`.
   - Build a curated Pages artifact from the exact committed application source.
   - Use a container source to prevent duplicate library and demo files in the repository.
   - Copy only the public library assets, demo assets, documentation pages, and required static data.
@@ -753,6 +773,21 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   The Apple private key and production Pinguin configuration remain necessary inputs.
   The production manifest, lifecycle connection, hosted tenant, Pages activation, and DNS record remain incomplete.
   `docs/hosted-auth-readiness.md` records the verified provider values and remaining work.
+
+  Progress 2026-09-10:
+  The production manifest now declares the Pages site and the `mpr-ui-demo` TAuth tenant.
+  The production Make targets now delegate to the sibling Gateway lifecycle.
+  The Pages container remains deterministic and excludes repository-only files.
+  The previous repository release and jsDelivr deploy scripts are removed.
+  The publish target now purges and verifies each mutable jsDelivr alias.
+  The isolated lifecycle and production manifest checks pass.
+  Native CI passes 210 Node checks, 141 browser coverage checks, 141 end-to-end checks, and Pages artifact validation.
+
+  Blocked:
+  The private deployment input is absent.
+  GitHub Pages is not configured for this repository.
+  The `ui.mprlab.com` hostname does not resolve.
+  Real provider and idempotent deployment acceptance remain incomplete.
 
 ## Planning
 
