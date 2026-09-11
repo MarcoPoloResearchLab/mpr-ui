@@ -81,7 +81,7 @@ test('production lifecycle delegates to the sibling Gateway', () => {
 
     const lifecycleOutput = execFileSync(
       'make',
-      ['release', 'deploy'],
+      ['--no-print-directory', 'release', 'deploy'],
       { cwd: applicationRoot, encoding: 'utf8' },
     );
     const canonicalApplicationRoot = realpathSync(applicationRoot);
