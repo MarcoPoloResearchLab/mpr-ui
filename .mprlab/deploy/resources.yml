@@ -1,0 +1,73 @@
+---
+mprlab_resources:
+  owner: mpr-ui
+  release:
+    scheme: semver
+  resources:
+    - kind: private_values
+      id: private
+      bindings:
+        apple-private-key: MPR_UI_APPLE_PRIVATE_KEY
+        email-delivery-api-key: MPR_UI_EMAIL_DELIVERY_API_KEY
+        google-web-client-id: MPR_UI_GOOGLE_WEB_CLIENT_ID
+        jwt-signing-key: MPR_UI_JWT_SIGNING_KEY
+    - kind: github_pages
+      id: demo-site
+      repository: MarcoPoloResearchLab/mpr-ui
+      branch: gh-pages
+      domain: ui.mprlab.com
+      url: https://ui.mprlab.com/
+      source:
+        kind: container
+        context: .
+        dockerfile: Dockerfile.pages
+      verification:
+        path: /.mprlab-release.json
+    - kind: tauth_tenant
+      id: demo-authentication
+      capability: tauth.tenants
+      version: 1
+      tenant:
+        id: mpr-ui-demo
+        display_name: MPR UI Demo
+        origins:
+          - http://127.0.0.1:4443
+          - http://localhost:4443
+          - https://ui.mprlab.com
+        google_web_client_id:
+          resource: private
+          output: google-web-client-id
+        apple_oauth:
+          client_id: com.mprlab.ui
+          team_id: Z9ZW6HDGML
+          key_id: FSPJR9M37P
+          private_key:
+            resource: private
+            output: apple-private-key
+          redirect_uri: https://tauth-api.mprlab.com/auth/apple/callback
+        password_auth:
+          enabled: true
+        account_management:
+          enabled: true
+          password_signup:
+            enabled: true
+          return_challenge_tokens: false
+          email_verification_ttl: 30m
+          email_delivery:
+            server_address: pinguin:50051
+            api_key:
+              resource: private
+              output: email-delivery-api-key
+            email_verification_url: https://ui.mprlab.com/demo/tauth-demo.html?auth_action=verify-email
+            password_reset_url: https://ui.mprlab.com/demo/tauth-demo.html?auth_action=reset-complete
+            password_link_url: https://ui.mprlab.com/demo/tauth-demo.html?auth_action=password-link-verify
+            connection_timeout_seconds: 5
+            operation_timeout_seconds: 30
+          password_reset_ttl: 15m
+        jwt_signing_key:
+          resource: private
+          output: jwt-signing-key
+        cookie:
+          domain: .mprlab.com
+          session_name: mpr_ui_demo_session
+          refresh_name: mpr_ui_demo_refresh
