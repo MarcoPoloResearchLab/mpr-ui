@@ -6,12 +6,14 @@
 ## [Unreleased]
 
 ### Features ✨
+- Added the GitHub Pages production manifest and the dedicated `mpr-ui-demo` TAuth tenant.
 - Added sign-in and account-creation tabs to the email panel on each auth-owning surface.
 - Added `<mpr-dropdown>` with section headings, disclosure modes, top or bottom placement, strict menu validation, accessible focus behavior, and public events.
 - Added the shared sectioned `menu` contract to `<mpr-footer>`.
 - Added `MPRUI.getLegalProfile()`, `MPRUI.getLegalDocument()`, `MPRUI.renderLegalDocument()`, and `<mpr-legal-document>` for reusable MPR Lab Terms and Privacy pages.
 
 ### Improvements ⚙️
+- Moved release, publication, and deployment to the canonical sibling Gateway lifecycle.
 - Normalized historical issue and changelog prose to ASD-STE100 while preserving technical facts and identifiers.
 - Added `MPRUI.authenticatedFetch()` with one cross-tab TAuth session recovery and one permitted protected-request retry.
 - Centralized the Marco Polo Research Lab LLC legal profile, including company form, website, support/legal emails, and phone number.
