@@ -39,6 +39,7 @@ These behaviors are documented in the [jsDelivr source documentation](https://gi
 The v4.0.0 publication used the previous repository release scripts.
 That publication exposed `mpr-ui-config.js`, `mpr-ui.js`, and `mpr-ui.css` through jsDelivr.
 The current `Makefile` delegates each production phase to the sibling Gateway.
+The publish target then purges and verifies the `@latest` and major aliases against the immutable tag.
 The current manifest declares the F010 Pages site and TAuth tenant.
 
 The protection gate applies before `make publish`.
@@ -207,8 +208,8 @@ make release && make publish && make deploy
 ```
 
 The user ran the previous library publication command for v4.0.0.
-The current command operates the F010 Pages and tenant release unit.
-Pages publication does not replace the v4.0.0 jsDelivr identity.
+The current command operates the F010 Pages, tenant, and CDN release unit.
+The publish phase advances and verifies the mutable CDN aliases.
 
 Exit gate: the release, exact assets, and all selected aliases match the approved source.
 Failure action: keep affected applications in maintenance and repair the current contract forward.

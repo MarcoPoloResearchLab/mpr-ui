@@ -32,6 +32,7 @@ The local profile continues to use its local TAuth service.
 The tenant enables Google, Apple, password, account, and Pinguin email delivery.
 The manifest allows the public origin and the two required local origins.
 The `Makefile` delegates release, publication, and deployment to the sibling Gateway.
+The publish target purges and verifies the jsDelivr `@latest` and major aliases after Gateway publication.
 The previous repository release scripts and jsDelivr deploy script are removed.
 
 The published v4.0.0 commit does not contain this deployment source.
