@@ -7,11 +7,6 @@ E2E_ARGS ?=
 FULL_TIMEOUT ?= 350
 LINT_TIMEOUT ?= 30
 FORMAT_TIMEOUT ?= 30
-RELEASE_ARGS ?=
-RELEASE_HELPER := $(abspath $(CURDIR)/scripts/release/release_helper.py)
-PUBLISH_RELEASE_ARGS ?=
-DEPLOY_ARGS ?=
-RELEASE_TOOL_DIR := $(abspath $(CURDIR)/scripts/release)
 MPR_UI_DEMO_BASE_URL ?= http://localhost:4443
 
 .PHONY: test test-unit test-coverage test-e2e lint format ci
@@ -56,11 +51,13 @@ up:
 down:
 	@./down.sh
 
-release:
-	@RELEASE_HELPER="$(RELEASE_HELPER)" "$(RELEASE_TOOL_DIR)/prepare_release.sh" $(RELEASE_ARGS)
-
-publish:
-	@RELEASE_HELPER="$(RELEASE_HELPER)" "$(RELEASE_TOOL_DIR)/publish_release.sh" $(PUBLISH_RELEASE_ARGS)
-
-deploy:
-	@bash scripts/deploy-jsdelivr.sh $(DEPLOY_ARGS)
+release publish deploy:
+	@application_root="$$(git rev-parse --show-toplevel)"; \
+	gateway_root="$$(dirname "$${application_root}")/mprlab-gateway"; \
+	if [ ! -d "$${gateway_root}" ]; then \
+		printf "required sibling gateway is missing: %s; clone mprlab-gateway at exactly %s\n" \
+			"$${gateway_root}" "$${gateway_root}" >&2; \
+		exit 2; \
+	fi; \
+	$(MAKE) --no-print-directory -C "$${gateway_root}" "app-$@" \
+		MPRLAB_APP_ROOT="$${application_root}"
