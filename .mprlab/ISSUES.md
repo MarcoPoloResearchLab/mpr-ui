@@ -759,8 +759,9 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   The production Make targets now delegate to the sibling Gateway lifecycle.
   The Pages container remains deterministic and excludes repository-only files.
   The previous repository release and jsDelivr deploy scripts are removed.
+  The publish target now purges and verifies each mutable jsDelivr alias.
   The isolated lifecycle and production manifest checks pass.
-  Native CI passes 209 unit checks, 141 coverage checks, 141 browser checks, and the Pages artifact check.
+  Native CI passes 210 Node checks, 141 browser coverage checks, 141 end-to-end checks, and Pages artifact validation.
 
   Blocked:
   The private deployment input is absent.
