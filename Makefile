@@ -51,7 +51,7 @@ up:
 down:
 	@./down.sh
 
-release publish deploy:
+define RUN_GATEWAY_OPERATION
 	@application_root="$$(git rev-parse --show-toplevel)"; \
 	gateway_root="$$(dirname "$${application_root}")/mprlab-gateway"; \
 	if [ ! -d "$${gateway_root}" ]; then \
@@ -59,5 +59,16 @@ release publish deploy:
 			"$${gateway_root}" "$${gateway_root}" >&2; \
 		exit 2; \
 	fi; \
-	$(MAKE) --no-print-directory -C "$${gateway_root}" "app-$@" \
+	$(MAKE) --no-print-directory -C "$${gateway_root}" "app-$(1)" \
 		MPRLAB_APP_ROOT="$${application_root}"
+endef
+
+release:
+	$(call RUN_GATEWAY_OPERATION,release)
+
+publish:
+	$(call RUN_GATEWAY_OPERATION,publish)
+	@node scripts/activate-jsdelivr.mjs
+
+deploy:
+	$(call RUN_GATEWAY_OPERATION,deploy)
