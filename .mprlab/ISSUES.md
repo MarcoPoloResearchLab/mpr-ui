@@ -12,6 +12,15 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [x] [B071] (P1) Keep footer links visible at intermediate widths
+  Goal: Show every footer link without horizontal scrolling.
+  Evidence: NameSignal at 794 pixels clips its utility links inside a horizontal scrollbar.
+  Requirements: Let the shared footer wrap links and controls when space is insufficient. Keep links and dropdown controls accessible.
+  Deliverables: Update the standalone CSS and the styles inside the shared bundle. Cover both delivery paths through browser tests.
+  Validation: Baseline native CI passed. Verify 390, 794, and 1280 pixel widths before and after the change.
+  Validation: The new 794-pixel browser scenario failed before the change. All 11 focused browser scenarios passed after the change.
+  Validation: Final native CI passed, including 147 browser scenarios in each browser suite. Shared publication remains a separate step.
+
 - [!] [B070] (P1) Keep the lifecycle fixture output portable in hosted CI
   Goal:
   The lifecycle delegation fixture accepts the same public output on macOS Make and GNU Make.
