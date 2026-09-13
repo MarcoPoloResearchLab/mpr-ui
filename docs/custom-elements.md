@@ -322,6 +322,9 @@ The parser rejects unknown fields, duplicate section IDs, invalid values, and un
 
 The footer renders product links, privacy links, and an optional theme switch.
 
+The footer wraps utility links and controls when the available width is insufficient.
+Utility links remain visible without horizontal scrolling at narrow and intermediate widths.
+
 ### Common attributes used by LoopAware
 - `menu`: Sectioned dropdown JSON. It uses the `<mpr-dropdown>` schema and requires `placement: "top"` in a footer.
 - `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders an inline utility link list inside the same row as the other footer controls.
