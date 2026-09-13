@@ -60,9 +60,7 @@ test.describe('F010: horizontal links stay inside responsive chrome', () => {
       };
     });
     expect(footerStyle.display).toBe('flex');
-    expect(footerStyle.flexWrap).toBe('nowrap');
-    expect(footerStyle.overflowX).toBe('auto');
-    expect(footerStyle.scrollWidth).toBeGreaterThanOrEqual(footerStyle.clientWidth);
+    expect(footerStyle.scrollWidth).toBeLessThanOrEqual(footerStyle.clientWidth + 1);
 
     const footerInlineCheck = await footerHorizontalLinks.evaluate((element) =>
       Boolean(element.closest('[data-mpr-footer="layout"]')),
