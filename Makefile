@@ -51,24 +51,15 @@ up:
 down:
 	@./down.sh
 
-define RUN_GATEWAY_OPERATION
+MPRLAB_GATEWAY_EXECUTABLE ?= mprlab-gateway
+
+.PHONY: release publish deploy
+
+release publish deploy:
 	@application_root="$$(git rev-parse --show-toplevel)"; \
-	gateway_root="$$(dirname "$${application_root}")/mprlab-gateway"; \
-	if [ ! -d "$${gateway_root}" ]; then \
-		printf "required sibling gateway is missing: %s; clone mprlab-gateway at exactly %s\n" \
-			"$${gateway_root}" "$${gateway_root}" >&2; \
+	if ! command -v "$(MPRLAB_GATEWAY_EXECUTABLE)" >/dev/null 2>&1; then \
+		printf 'Gateway runtime is unavailable: %s. Install a released runtime and add its command directory to PATH.\n' \
+			"$(MPRLAB_GATEWAY_EXECUTABLE)" >&2; \
 		exit 2; \
 	fi; \
-	$(MAKE) --no-print-directory -C "$${gateway_root}" "app-$(1)" \
-		MPRLAB_APP_ROOT="$${application_root}"
-endef
-
-release:
-	$(call RUN_GATEWAY_OPERATION,release)
-
-publish:
-	$(call RUN_GATEWAY_OPERATION,publish)
-	@node scripts/activate-jsdelivr.mjs
-
-deploy:
-	$(call RUN_GATEWAY_OPERATION,deploy)
+	exec "$(MPRLAB_GATEWAY_EXECUTABLE)" "app-$@" --app-root "$${application_root}"
