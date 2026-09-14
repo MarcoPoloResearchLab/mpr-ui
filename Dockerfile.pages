@@ -1,5 +1,8 @@
 FROM scratch
 COPY index.html mpr-ui.js mpr-ui.css mpr-ui-config.js README.md ARCHITECTURE.md CHANGELOG.md /
+COPY product-catalog.mjs product-directory.css /
+COPY data/product-catalog.json /data/
+COPY docs/product-catalog.md docs/product-catalog-verification.json /docs/
 COPY demo/demo.js demo/demo.css demo/demo-user.svg demo/config-ui.yaml /demo/
 COPY demo/components.html demo/standalone.html demo/tauth-demo.html /demo/
 COPY demo/tauth-settings-modal.js demo/status-panel.js /demo/
