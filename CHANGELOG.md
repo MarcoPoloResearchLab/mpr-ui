@@ -13,6 +13,8 @@
 - Added `MPRUI.getLegalProfile()`, `MPRUI.getLegalDocument()`, `MPRUI.renderLegalDocument()`, and `<mpr-legal-document>` for reusable MPR Lab Terms and Privacy pages.
 
 ### Improvements ⚙️
+- Moved lifecycle commands to the installed Gateway runtime and declared CDN assets through its shared `jsdelivr` resource.
+- Removed the application CDN script and its duplicate provider tests.
 - Moved release, publication, and deployment to the canonical sibling Gateway lifecycle.
 - Added jsDelivr alias purge and byte verification after Gateway publication.
 - Normalized historical issue and changelog prose to ASD-STE100 while preserving technical facts and identifiers.
