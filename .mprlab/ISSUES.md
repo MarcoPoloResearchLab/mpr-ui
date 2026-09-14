@@ -12,6 +12,146 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [ ] [B072] (P1) Correct stale CDN assets during release activation.
+  Goal:
+  Activate every required CDN asset for the selected release and identify the exact provider failure when activation cannot complete.
+
+  On September 13, 2026, `make publish` failed for application commit `a53f949acd86f47520be423c201f61a769ffdac2` and release `v4.1.0`.
+  Gateway recorded publication receipt `sha256:d209e77dd43582e491ffa0a90c01eba668b3971c07272d0a7dd141bc14795126`.
+  The subsequent application script printed six purge requests, then reported `jsDelivr latest/mpr-ui.css did not activate v4.1.0`.
+  The overall command exited with status 1.
+  Expected: All three assets through both required aliases match the selected release.
+  Actual: The CSS through `@latest` remained stale after the activation attempt.
+
+  Read-only checks confirmed the remote release tag identifies the selected application commit.
+  All three immutable assets and all three `@4` assets matched the selected release bytes.
+  The config and JavaScript through `@latest` matched, but its CSS reported `X-Jsd-Version: 4.0.0`.
+  The expected CSS SHA-256 is `5af6a506dc3ca2134481a0b9ec0fdf72dc09baa4ce1cac9d56aa28058a9c528d`.
+  The observed CSS SHA-256 is `351bbf6c15054528a651571d8c8bd85536eea76c3e574f9335e6cd413878923f`.
+  Both plain URLs and the script's query variants returned that stale CSS during diagnosis.
+
+  The confirmed local defect is incomplete provider result handling in `scripts/activate-jsdelivr.mjs`.
+  The script prints its purge message before the request, checks HTTP success, and discards the response body.
+  It does not retain the provider request identity, completion status, throttling result, or individual provider results.
+  Its terminal error also omits the observed digest and CDN version.
+  The original response bodies are unavailable, so the precise provider-side cause remains unresolved.
+  A purge rejection, provider failure, or delayed completion must not be asserted without evidence.
+
+  Requirements:
+  - Reproduce the actual provider boundary failure before selecting the correction.
+  - Validate and retain provider request identities, completion results, throttling results, and individual provider outcomes.
+  - Verify immutable release bytes before the first mutable CDN operation.
+  - Report the failed URL, expected version, observed version, expected digest, observed digest, and native provider error.
+  - Require every declared asset and alias to match the selected release before reporting activation success.
+  - Verify the exact public URLs that consumers use. Canonical repository identity does not identify every CDN cache entry.
+  - Keep retries bounded and driven by verified provider outcomes.
+  - Do not treat an operator retry, increased delay, or new release version as the defect correction.
+  - Reuse existing Gateway provider behavior where it supplies the required contract.
+  - Name the exact missing generic behavior before introducing a separate application implementation.
+  - Keep B073 separate because successful activation handling does not prove rollback.
+
+  Deliverables:
+  - Record the provider-level root cause and implement the correction at its owning boundary.
+  - Preserve native failure evidence and add public integration coverage.
+  - Document the selected installed-runtime integration and any remaining provider limitation.
+
+  Validation:
+  - Exercise the real public command with controlled provider responses before implementation.
+  - Cover HTTP success with provider rejection, pending completion, throttling, stale CSS, and complete activation.
+  - Verify the reported diagnostics identify the actual failing boundary.
+  - Run the applicable repository checks after the final source change.
+  - Keep live CDN activation separate from fixture validation and subject to publication authorization.
+
+  Evidence: `Makefile`, `scripts/activate-jsdelivr.mjs`, and `tests/deployment-contract.test.js` own the current application flow.
+  The [provider purge UI](https://github.com/jsdelivr/www.jsdelivr.com/blob/master/src/views/pages/tools/purge.html) checks completion, throttling, and individual provider results.
+
+  Ownership correction:
+  Gateway B566 owns the shared provider diagnostics. Gateway B567 owns the missing restoration contract.
+  This repository owns adoption of F014 and removal of the duplicate application script.
+  The local implementation declares the CDN assets and uses the installed Gateway command for every lifecycle phase.
+  The application script and its duplicate provider tests are removed.
+  Public Makefile tests cover execution without a sibling checkout, provider command failure, and an unavailable installed command.
+  The initial tests failed because the wrapper required a sibling checkout and the manifest lacked the CDN resource.
+  The historical provider response remains unavailable, so the original stale CSS cause is not confirmed.
+  Keep this issue open until the required source validation and authorized live activation are verified.
+  Source validation passed: `make test-unit` and final `make ci`.
+  The final CI included browser coverage, 151 end-to-end scenarios, and the Pages artifact integration check.
+  The Governor check reports only the five pre-existing managed-document differences.
+  Publication and live activation have not run for these edits.
+
+  Investigation on September 14, 2026:
+  The [investigation report](../docs/b072-cdn-investigation.md) and [captured responses](../docs/b072-cdn-evidence.json) record read-only provider checks.
+  The original public CSS URL still returns the previous release from the Cloudflare cache.
+  The selected immutable CSS, lowercase repository URL, and separate provider hostnames return the correct bytes.
+  Query changes and identity, gzip, and Brotli requests still return the stale response through the original URL.
+  Response age places its estimated origin time approximately 27 seconds after GitHub release publication.
+  A provider-documented race between purge and version-list refresh is the leading explanation, not a confirmed historical purge result.
+  The original purge response bodies are unavailable.
+  The migration verifies lowercase URLs, while the README and integration guide advertise mixed-case URLs with different observed cache entries.
+  This acceptance gap must be corrected before migration can establish freshness of the public delivery URLs.
+  B566 improves diagnostics but does not resolve these activation defects.
+
+  Review correction on September 14, 2026:
+  The manifest now uses `MarcoPoloResearchLab/mpr-ui`, as used in the README and integration guide.
+  An application test compares the declared CDN repository and assets with these public URLs.
+  The initial test detected the lowercase repository mismatch.
+  A Gateway lifecycle test reproduced publication success while the declared CSS URL returned stale bytes.
+  Gateway now keeps the declared CDN repository letter case during normalization and request construction.
+  The source identity check still rejects a different repository.
+  The application requires a published and installed Gateway runtime with this correction.
+  Application source validation passed: `make test-unit` and `make ci`.
+  Gateway source validation passed: `make test-jsdelivr` and `make ci`.
+  The fixture checks stale CSS rejection, declared URL paths, release receipt preservation, and publication retries.
+  Live activation and restoration acceptance remain open.
+
+- [!] [B073] (P1) Restore the previous working release when CDN activation fails.
+  Goal:
+  Enforce the operator's all-or-nothing deployment contract independently of the activation defect in B072.
+  The operation must either complete successfully or fail and restore the complete previously accepted release.
+  Blocked: Gateway B567 must supply the generic activation and restoration contract.
+  The CDN provider cannot select a previous accepted release for its mutable aliases.
+
+  B072 records the observed activation failure for `v4.1.0` at application commit `a53f949acd86f47520be423c201f61a769ffdac2`.
+  After the failure, `@latest` exposed the new config and JavaScript together with CSS that reported `v4.0.0`.
+  Expected: Failure restores the previous working release and verifies its assets and behavior.
+  Actual: The command exited with status 1 and left mixed release assets exposed.
+  No rollback ran.
+
+  `Makefile` invokes the application CDN script after Gateway has sealed its publication receipt and returned success.
+  The script has no capture of the previous accepted release, rollback operation, or restored-state verification.
+  Its error handler only prints an error and sets the process exit status.
+  The successful inner publication receipt does not establish success of the complete operator command.
+  A later successful retry would not satisfy the missing rollback requirement for the failed operation.
+
+  Requirements:
+  - Capture the complete previously accepted release and its verification evidence before changing any public alias.
+  - Define the operation boundary to include all required public asset changes and their acceptance checks.
+  - On activation failure, restore all affected public aliases to the previously accepted release.
+  - Verify restored asset identities, bytes, and required browser behavior before declaring rollback complete.
+  - Preserve the original failure and record each rollback result separately.
+  - If rollback fails, report that failure and the exact remaining public state without claiming restoration.
+  - Keep the operator command failed after rollback because the requested release did not activate.
+  - Report complete success only after every required acceptance check passes.
+  - Preserve immutable release artifacts, historical receipts, and unrelated application state.
+  - Do not rewrite Git history or immutable tagged assets as a rollback mechanism.
+  - Identify any provider limitation that prevents restoration before claiming the all-or-nothing contract is implemented.
+  - Do not close this issue merely because B072 is fixed or the application adopts Gateway F014.
+
+  Deliverables:
+  - Implement rollback and durable operation evidence at the owning lifecycle boundary.
+  - Document the exact restored state and the behavior when restoration cannot complete.
+  - Preserve application asset policy while keeping shared lifecycle behavior generic.
+
+  Validation:
+  - Reproduce partial activation through the public command before changing production behavior.
+  - Inject a failure after each mutable provider boundary and during final verification.
+  - Verify restoration of the complete previous release after each failure.
+  - Cover interruption, rollback interruption, rollback failure, and a competing newer release.
+  - Prevent rollback from overwriting a newer accepted release owned by another operation.
+  - Verify consistent browser assets and working controls after restoration.
+  - Run the applicable repository checks after the final source change.
+  - Keep authorized live rollback qualification separate from local integration evidence.
+
 - [x] [B071] (P1) Keep footer links visible at intermediate widths
   Goal: Show every footer link without horizontal scrolling.
   Evidence: NameSignal at 794 pixels clips its utility links inside a horizontal scrollbar.

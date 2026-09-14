@@ -102,6 +102,7 @@ Add repository-specific technical nouns below this line.
 - `mutable alias`: An asset reference, such as `@latest`, that can select a different release without an application change.
 - `provider map`: The explicit Google, Apple, and password entries in `auth.providers`.
 - `release unit`: The application HTML, library assets, config output, and backend routes that must operate together.
+- `rollback`: Restoration of the complete previously accepted release after a failed activation, with verification of the restored behavior.
 - `Subresource Integrity`: A browser check that compares a downloaded asset with its declared content digest.
 
 ```text

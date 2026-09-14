@@ -1,7 +1,7 @@
 // @ts-check
 
 const assert = require('node:assert/strict');
-const { execFile, execFileSync } = require('node:child_process');
+const { execFileSync } = require('node:child_process');
 const {
   existsSync,
   mkdirSync,
@@ -11,11 +11,9 @@ const {
   rmSync,
   writeFileSync,
 } = require('node:fs');
-const { createServer } = require('node:http');
 const { tmpdir } = require('node:os');
 const { resolve } = require('node:path');
 const test = require('node:test');
-const { promisify } = require('node:util');
 const yaml = require('js-yaml');
 
 const REPOSITORY_ROOT = resolve(__dirname, '..');
@@ -25,204 +23,72 @@ const PRODUCTION_MANIFEST_PATH = resolve(
   'deploy',
   'resources.yml',
 );
-const JSDELIVR_ACTIVATION_PATH = resolve(
-  REPOSITORY_ROOT,
-  'scripts',
-  'activate-jsdelivr.mjs',
-);
-const JSDELIVR_ASSETS = Object.freeze([
-  'mpr-ui-config.js',
-  'mpr-ui.css',
-  'mpr-ui.js',
-]);
-const execFileAsync = promisify(execFile);
 const OBSOLETE_RELEASE_PATHS = Object.freeze([
+  'scripts/activate-jsdelivr.mjs',
   'scripts/deploy-jsdelivr.sh',
   'scripts/release/prepare_release.sh',
   'scripts/release/publish_release.sh',
   'scripts/release/release_helper.py',
 ]);
 
-test('production lifecycle delegates to the sibling Gateway', () => {
-  const makefile = readFileSync(resolve(REPOSITORY_ROOT, 'Makefile'), 'utf8');
-
-  assert.match(makefile, /release:\n/);
-  assert.match(makefile, /publish:\n/);
-  assert.match(makefile, /deploy:\n/);
-  assert.match(makefile, /application_root="\$\$\(git rev-parse --show-toplevel\)"/);
-  assert.match(makefile, /gateway_root="\$\$\(dirname "\$\$\{application_root\}"\)\/mprlab-gateway"/);
-  assert.match(makefile, /"app-\$\(1\)"/);
-  assert.match(makefile, /MPRLAB_APP_ROOT="\$\$\{application_root\}"/);
-  assert.match(makefile, /node scripts\/activate-jsdelivr\.mjs/);
-  assert.doesNotMatch(makefile, /prepare_release|publish_release|deploy-jsdelivr/);
-  assert.equal(existsSync(JSDELIVR_ACTIVATION_PATH), true);
-
-  for (const obsoleteReleasePath of OBSOLETE_RELEASE_PATHS) {
-    assert.equal(existsSync(resolve(REPOSITORY_ROOT, obsoleteReleasePath)), false);
-  }
-
+test('production lifecycle uses the installed Gateway without a sibling checkout', () => {
   const fixtureRoot = mkdtempSync(resolve(tmpdir(), 'mpr-ui-lifecycle-'));
-  const applicationRoot = resolve(fixtureRoot, 'mpr-ui');
-  const gatewayRoot = resolve(fixtureRoot, 'mprlab-gateway');
+  const applicationRoot = resolve(fixtureRoot, 'consumer with spaces');
+  const callsPath = resolve(fixtureRoot, 'calls.jsonl');
+  const preloadPath = resolve(fixtureRoot, 'gateway-fixture.cjs');
 
   try {
-    mkdirSync(applicationRoot);
-    mkdirSync(gatewayRoot);
-    writeFileSync(resolve(applicationRoot, 'Makefile'), makefile);
-    writeFileSync(
-      resolve(gatewayRoot, 'Makefile'),
-      [
-        'app-release app-publish app-deploy:',
-        '\t@printf "%s %s\\n" "$@" "$(MPRLAB_APP_ROOT)"',
-        '',
-      ].join('\n'),
-    );
-    execFileSync('git', ['init', '--quiet'], { cwd: applicationRoot });
-
-    const lifecycleOutput = execFileSync(
-      'make',
-      ['--no-print-directory', 'release', 'deploy'],
-      { cwd: applicationRoot, encoding: 'utf8' },
-    );
-    const canonicalApplicationRoot = realpathSync(applicationRoot);
-    assert.deepEqual(lifecycleOutput.trim().split('\n'), [
-      `app-release ${canonicalApplicationRoot}`,
-      `app-deploy ${canonicalApplicationRoot}`,
-    ]);
-  } finally {
-    rmSync(fixtureRoot, { recursive: true, force: true });
-  }
-});
-
-test('publication activates and verifies each mutable jsDelivr alias', async () => {
-  const fixtureRoot = mkdtempSync(resolve(tmpdir(), 'mpr-ui-jsdelivr-'));
-  const applicationRoot = resolve(fixtureRoot, 'mpr-ui');
-  const gatewayRoot = resolve(fixtureRoot, 'mprlab-gateway');
-  const originRoot = resolve(fixtureRoot, 'origin.git');
-  const activatedPaths = new Set();
-  const contentPaths = [];
-  const purgePaths = [];
-  let activationEnabled = true;
-  const currentAsset = Buffer.from('current asset\n');
-  const staleAsset = Buffer.from('stale asset\n');
-  const provider = createServer((request, response) => {
-    const requestPath = request.url ?? '';
-    const purgePrefix = '/purge/gh/MarcoPoloResearchLab/mpr-ui@';
-    const contentPrefix = '/cdn/gh/MarcoPoloResearchLab/mpr-ui@';
-    if (requestPath.startsWith(purgePrefix)) {
-      purgePaths.push(requestPath);
-      if (activationEnabled) {
-        activatedPaths.add(requestPath.slice('/purge'.length));
+    mkdirSync(resolve(applicationRoot, '.mprlab', 'deploy'), { recursive: true });
+    writeFileSync(resolve(applicationRoot, 'Makefile'), readFileSync(resolve(REPOSITORY_ROOT, 'Makefile')));
+    writeFileSync(resolve(applicationRoot, '.mprlab', 'deploy', 'resources.yml'), readFileSync(PRODUCTION_MANIFEST_PATH));
+    writeFileSync(preloadPath, `
+      const fs = require('node:fs');
+      const phase = require('node:path').basename(process.argv[1]);
+      fs.appendFileSync(process.env.GATEWAY_CALLS, JSON.stringify([phase, ...process.argv.slice(2)]) + '\\n');
+      if (process.env.GATEWAY_FAIL === phase) {
+        process.stderr.write('controlled Gateway activation failure\\n');
+        process.exit(23);
       }
-      response.writeHead(200, { 'content-type': 'application/json' });
-      response.end('{"status":"finished"}\n');
-      return;
-    }
-    if (requestPath.startsWith(contentPrefix)) {
-      const assetPath = requestPath.split('?')[0].slice('/cdn'.length);
-      contentPaths.push(assetPath);
-      const immutableVersion = assetPath.includes('@v4.0.1/');
-      response.writeHead(200, { 'content-type': 'application/octet-stream' });
-      response.end(immutableVersion || activatedPaths.has(assetPath) ? currentAsset : staleAsset);
-      return;
-    }
-    response.writeHead(404);
-    response.end();
-  });
-
-  try {
-    await new Promise((resolveListen, rejectListen) => {
-      provider.once('error', rejectListen);
-      provider.listen(0, '127.0.0.1', resolveListen);
-    });
-    const providerAddress = provider.address();
-    assert.equal(typeof providerAddress, 'object');
-    assert.notEqual(providerAddress, null);
-    const providerOrigin = `http://127.0.0.1:${providerAddress.port}`;
-
-    mkdirSync(resolve(applicationRoot, 'scripts'), { recursive: true });
-    mkdirSync(gatewayRoot);
-    writeFileSync(
-      resolve(applicationRoot, 'Makefile'),
-      readFileSync(resolve(REPOSITORY_ROOT, 'Makefile')),
-    );
-    writeFileSync(
-      resolve(applicationRoot, 'scripts', 'activate-jsdelivr.mjs'),
-      readFileSync(JSDELIVR_ACTIVATION_PATH),
-    );
-    for (const asset of JSDELIVR_ASSETS) {
-      writeFileSync(resolve(applicationRoot, asset), currentAsset);
-    }
-    writeFileSync(
-      resolve(gatewayRoot, 'Makefile'),
-      'app-publish:\n\t@printf "app-publish %s\\n" "$(MPRLAB_APP_ROOT)"\n',
-    );
+      process.exit(0);
+    `);
     execFileSync('git', ['init', '--quiet'], { cwd: applicationRoot });
-    execFileSync('git', ['config', 'user.email', 'fixture@example.invalid'], {
-      cwd: applicationRoot,
-    });
-    execFileSync('git', ['config', 'user.name', 'fixture'], {
-      cwd: applicationRoot,
-    });
-    execFileSync('git', ['add', '.'], { cwd: applicationRoot });
-    execFileSync('git', ['commit', '--quiet', '-m', 'fixture'], {
-      cwd: applicationRoot,
-    });
-    execFileSync('git', ['tag', 'v4.0.1'], { cwd: applicationRoot });
-    execFileSync('git', ['init', '--bare', '--quiet', originRoot]);
-    execFileSync('git', ['remote', 'add', 'origin', originRoot], {
-      cwd: applicationRoot,
-    });
-    execFileSync('git', ['push', '--quiet', 'origin', 'HEAD:master', 'v4.0.1'], {
-      cwd: applicationRoot,
-    });
-
     const environment = {
       ...process.env,
-      MPR_UI_JSDELIVR_ATTEMPTS: '2',
-      MPR_UI_JSDELIVR_CDN_ORIGIN: `${providerOrigin}/cdn`,
-      MPR_UI_JSDELIVR_PURGE_ORIGIN: `${providerOrigin}/purge`,
-      MPR_UI_JSDELIVR_RETRY_DELAY_MS: '1',
+      MPRLAB_GATEWAY_EXECUTABLE: process.execPath,
+      NODE_OPTIONS: `--require=${preloadPath}`,
+      GATEWAY_CALLS: callsPath,
     };
-    const publication = await execFileAsync('make', ['publish'], {
-      cwd: applicationRoot,
-      encoding: 'utf8',
-      env: environment,
+    const invoke = (targets, env = environment) => execFileSync('make', ['--no-print-directory', ...targets], {
+      cwd: applicationRoot, encoding: 'utf8', env, stdio: 'pipe',
     });
-    assert.match(publication.stdout, /app-publish .*\/mpr-ui/);
-    assert.match(publication.stdout, /Activated mpr-ui v4\.0\.1 on jsDelivr aliases latest and 4\./);
-    assert.deepEqual(
-      purgePaths.sort(),
-      ['latest', '4']
-        .flatMap((alias) => JSDELIVR_ASSETS.map(
-          (asset) => `/purge/gh/MarcoPoloResearchLab/mpr-ui@${alias}/${asset}`,
-        ))
-        .sort(),
-    );
-    assert.deepEqual(
-      [...new Set(contentPaths)].sort(),
-      ['v4.0.1', 'latest', '4']
-        .flatMap((alias) => JSDELIVR_ASSETS.map(
-          (asset) => `/gh/MarcoPoloResearchLab/mpr-ui@${alias}/${asset}`,
-        ))
-        .sort(),
-    );
+    const readCalls = () => readFileSync(callsPath, 'utf8').trim().split('\n').map((line) => JSON.parse(line));
+    invoke(['release', 'publish', 'deploy']);
+    const canonicalApplicationRoot = realpathSync(applicationRoot);
+    assert.deepEqual(readCalls(), ['release', 'publish', 'deploy'].map((phase) => [
+      `app-${phase}`, '--app-root', canonicalApplicationRoot,
+    ]));
 
-    activationEnabled = false;
-    activatedPaths.clear();
-    await assert.rejects(
-      execFileAsync('make', ['publish'], {
-        cwd: applicationRoot,
-        encoding: 'utf8',
-        env: environment,
-      }),
-      (error) => {
-        assert.match(error.stderr, /jsDelivr latest\/mpr-ui-config\.js did not activate v4\.0\.1/);
-        return true;
-      },
-    );
+    writeFileSync(callsPath, '');
+    assert.throws(() => invoke(['release', 'publish', 'deploy'], {
+      ...environment, GATEWAY_FAIL: 'app-publish',
+    }), (error) => {
+      assert.match(error.stderr, /controlled Gateway activation failure/);
+      return true;
+    });
+    assert.deepEqual(readCalls().map((call) => call[0]), ['app-release', 'app-publish']);
+
+    writeFileSync(callsPath, '');
+    assert.throws(() => invoke(['publish'], {
+      ...environment, MPRLAB_GATEWAY_EXECUTABLE: resolve(fixtureRoot, 'absent-gateway'),
+    }), (error) => {
+      assert.match(error.stderr, /Gateway runtime is unavailable/);
+      return true;
+    });
+    assert.equal(readFileSync(callsPath, 'utf8'), '');
+    for (const obsoletePath of OBSOLETE_RELEASE_PATHS) {
+      assert.equal(existsSync(resolve(REPOSITORY_ROOT, obsoletePath)), false);
+    }
   } finally {
-    await new Promise((resolveClose) => provider.close(resolveClose));
     rmSync(fixtureRoot, { recursive: true, force: true });
   }
 });
@@ -234,6 +100,13 @@ test('production manifest declares the public demo and its TAuth tenant', () => 
       owner: 'mpr-ui',
       release: { scheme: 'semver' },
       resources: [
+        {
+          kind: 'jsdelivr',
+          id: 'browser-assets',
+          repository: 'MarcoPoloResearchLab/mpr-ui',
+          assets: ['mpr-ui-config.js', 'mpr-ui.js', 'mpr-ui.css'],
+          aliases: ['latest', 'major'],
+        },
         {
           kind: 'private_values',
           id: 'private',
@@ -322,4 +195,19 @@ test('production manifest declares the public demo and its TAuth tenant', () => 
       ],
     },
   });
+});
+
+test('CDN declaration covers the exact URLs in consumer documentation', () => {
+  const manifest = yaml.load(readFileSync(PRODUCTION_MANIFEST_PATH, 'utf8'));
+  const resource = manifest.mprlab_resources.resources.find((entry) => entry.kind === 'jsdelivr');
+  for (const document of ['README.md', 'docs/integration-guide.md']) {
+    const content = readFileSync(resolve(REPOSITORY_ROOT, document), 'utf8');
+    const urls = [...content.matchAll(/https:\/\/cdn\.jsdelivr\.net\/gh\/([^@\s]+)@latest\/([^"\s<>]+)/g)];
+    assert.ok(urls.length > 0, `${document} has consumer CDN URLs`);
+    for (const [, repository, asset] of urls) {
+      assert.equal(resource.repository, repository, `${document} repository URL case`);
+      assert.ok(resource.assets.includes(asset), `${document} asset ${asset}`);
+    }
+    assert.ok(resource.aliases.includes('latest'));
+  }
 });
