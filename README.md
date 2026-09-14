@@ -308,12 +308,19 @@ The user runs the complete production lifecycle from this repository:
 make release && make publish && make deploy
 ```
 
-The sibling `mprlab-gateway` repository owns each lifecycle phase.
-The release phase seals the exact committed source and Pages artifact.
-The publish phase creates the immutable Pages commit.
-It then purges and verifies the jsDelivr `@latest` and major aliases.
+The installed `mprlab-gateway` runtime owns each lifecycle phase.
+Use a runtime that supplies the F014 `jsdelivr` resource, first released in Gateway `v4.1.0`.
+The runtime must also keep the declared repository letter case in CDN requests.
+The current manifest requires `MarcoPoloResearchLab/mpr-ui`, as used in the public asset URLs.
+A runtime that changes this spelling to lowercase does not satisfy this requirement.
+Set `MPRLAB_GATEWAY_EXECUTABLE` to select an installed command outside `PATH`.
+The release phase seals the exact committed source, Pages artifact, and declared CDN assets.
+The publish phase creates the immutable Pages commit and verifies the declared CDN assets and aliases.
+Gateway records publication success only after its required provider checks pass.
 The deploy phase configures and verifies `https://ui.mprlab.com/`.
 Live provider acceptance remains separate from source CI and Pages activation.
+The CDN provider does not supply restoration of a previous release through its mutable aliases.
+B073 tracks this unresolved delivery requirement. The installed-runtime migration does not resolve it.
 
 ## Documentation
 
