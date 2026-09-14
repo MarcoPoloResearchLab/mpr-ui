@@ -964,3 +964,10 @@ async function loadPlaylistVideos(playlistId, pageToken) {
 - Re-render `selection-count` from `MPRUI.createSelectionState()` after every video checkbox change.
 - Open the drawer for playlist metadata or one selected video. The drawer shell supports both cases.
 - If a playlist has no videos, set `empty` on `<mpr-entity-workspace>` and render your empty-state content through the `empty` slot.
+
+## Shared product directory
+
+Use `createProductMenu` from `product-catalog.mjs` with the shared catalog.
+Set the returned object as the `menu` attribute.
+Apply `mpr-product-directory` to the host and load `product-directory.css`.
+See the [catalog contract](product-catalog.md) for source and distribution requirements.
