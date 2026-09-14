@@ -4,6 +4,16 @@ mprlab_resources:
   release:
     scheme: semver
   resources:
+    - kind: jsdelivr
+      id: browser-assets
+      repository: MarcoPoloResearchLab/mpr-ui
+      assets:
+        - mpr-ui-config.js
+        - mpr-ui.js
+        - mpr-ui.css
+      aliases:
+        - latest
+        - major
     - kind: private_values
       id: private
       bindings:
