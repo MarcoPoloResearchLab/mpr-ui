@@ -1,6 +1,7 @@
 # Hosted Authentication Readiness
 
 Status on 2026-09-10: the production source is prepared, but deployment is not ready.
+This dated record describes the previous lifecycle. Use [the README](../README.md) for the current installed-runtime contract.
 
 ## Verified Provider Settings
 

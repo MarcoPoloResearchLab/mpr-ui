@@ -3,6 +3,7 @@
 Tracking issue: I009.
 
 Status on 2026-09-10: v4.0.0 published the provider-map and footer migration.
+Use [the README](../README.md) for the current installed-runtime contract. The lifecycle details below describe this dated migration.
 The [application preparation package](i009/README.md) contains source identities, proposed patches, public observations, and qualification results.
 The new loader accepts only the current contract.
 The user owns production release, publication, and deployment.

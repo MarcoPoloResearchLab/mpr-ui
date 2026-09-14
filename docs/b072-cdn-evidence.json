@@ -1,0 +1,614 @@
+{
+  "application_commit": "a53f949acd86f47520be423c201f61a769ffdac2",
+  "release": "v4.1.0",
+  "release_published_at": "2026-09-14T05:49:13Z",
+  "expected_css_sha256": "5af6a506dc3ca2134481a0b9ec0fdf72dc09baa4ce1cac9d56aa28058a9c528d",
+  "previous_css_sha256": "351bbf6c15054528a651571d8c8bd85536eea76c3e574f9335e6cd413878923f",
+  "observations": [
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+      "status": 200,
+      "headers": {
+        "age": "4089",
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "cf-cache-status": "HIT",
+        "cf-ray": "a3ad7feb2805db8a-LAX",
+        "content-encoding": "br",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 06:57:49 GMT",
+        "etag": "W/\"8254-CTnR2gMR6WzKhqLFlw0cLBd8qvI\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.0.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-eddf8230039-FRA, cache-bfi-krnt7300086-BFI"
+      },
+      "sha256": "351bbf6c15054528a651571d8c8bd85536eea76c3e574f9335e6cd413878923f",
+      "size": 33364,
+      "observed_at": "2026-09-14T06:57:51.637Z"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/marcopoloresearchlab/mpr-ui@latest/mpr-ui.css",
+      "status": 200,
+      "headers": {
+        "age": "0",
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "cf-cache-status": "MISS",
+        "cf-ray": "a3ad7feb2866db66-LAX",
+        "content-encoding": "br",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 06:57:51 GMT",
+        "etag": "W/\"8265-Zeaa09Etv0OhICKzE+QFrkMto6w\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.1.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-etou8220053-FRA, cache-den-kden1300087-DEN"
+      },
+      "sha256": "5af6a506dc3ca2134481a0b9ec0fdf72dc09baa4ce1cac9d56aa28058a9c528d",
+      "size": 33381,
+      "observed_at": "2026-09-14T06:57:51.637Z"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css?attempt=1&version=v4.1.0",
+      "status": 200,
+      "headers": {
+        "age": "4089",
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "cf-cache-status": "HIT",
+        "cf-ray": "a3ad7feb2cc2ae39-LAX",
+        "content-encoding": "br",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 06:57:49 GMT",
+        "etag": "W/\"8254-CTnR2gMR6WzKhqLFlw0cLBd8qvI\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.0.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-eddf8230039-FRA, cache-bfi-krnt7300086-BFI"
+      },
+      "sha256": "351bbf6c15054528a651571d8c8bd85536eea76c3e574f9335e6cd413878923f",
+      "size": 33364,
+      "observed_at": "2026-09-14T06:57:51.637Z"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@v4.1.0/mpr-ui.css",
+      "status": 200,
+      "headers": {
+        "age": "4091",
+        "cache-control": "public, max-age=31536000, s-maxage=31536000, immutable",
+        "cf-cache-status": "HIT",
+        "cf-ray": "a3ad7feb2928f3c5-LAX",
+        "content-encoding": "br",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 06:57:49 GMT",
+        "etag": "W/\"8265-Zeaa09Etv0OhICKzE+QFrkMto6w\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.1.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-eddf8230084-FRA, cache-dfw-kdfw8210141-DFW"
+      },
+      "sha256": "5af6a506dc3ca2134481a0b9ec0fdf72dc09baa4ce1cac9d56aa28058a9c528d",
+      "size": 33381,
+      "observed_at": "2026-09-14T06:57:51.637Z"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@4/mpr-ui.css",
+      "status": 200,
+      "headers": {
+        "age": "2869",
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "cf-cache-status": "HIT",
+        "cf-ray": "a3ad7feb2e66edb1-LAX",
+        "content-encoding": "br",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 06:57:49 GMT",
+        "etag": "W/\"8265-Zeaa09Etv0OhICKzE+QFrkMto6w\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.1.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-eddf8230190-FRA, cache-bfi-krnt7300052-BFI"
+      },
+      "sha256": "5af6a506dc3ca2134481a0b9ec0fdf72dc09baa4ce1cac9d56aa28058a9c528d",
+      "size": 33381,
+      "observed_at": "2026-09-14T06:57:51.637Z"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js",
+      "status": 200,
+      "headers": {
+        "age": "3968",
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "cf-cache-status": "HIT",
+        "cf-ray": "a3ad7fee388d19db-LAX",
+        "content-encoding": "br",
+        "content-type": "application/javascript; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 06:57:49 GMT",
+        "etag": "W/\"b0275-R1vxbQoByrxKLyg7MM3LW/xN968\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.1.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-etou8220057-FRA, cache-bfi-krnt7300113-BFI"
+      },
+      "sha256": "7374975ba30e20d03c03eff5f03c838de508e1cf6374780bfb50b03b57a8b780",
+      "size": 721525,
+      "observed_at": "2026-09-14T06:57:51.637Z"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js",
+      "status": 200,
+      "headers": {
+        "age": "4094",
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "cf-cache-status": "HIT",
+        "cf-ray": "a3ad7feb2fe92ed8-LAX",
+        "content-encoding": "br",
+        "content-type": "application/javascript; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 06:57:49 GMT",
+        "etag": "W/\"67b1-qKpPbGpGu8kpXActD5SD679pQxw\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.1.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-eddf8230022-FRA, cache-bur-kbur8200023-BUR"
+      },
+      "sha256": "3f56fbd212a516d2bd8b0b95f73ae7ad82952c10d8d5f4e6f8b44d3233f01304",
+      "size": 26545,
+      "observed_at": "2026-09-14T06:57:51.637Z"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+      "status": 200,
+      "version": "4.0.0",
+      "sha256": "351bbf6c15054528a651571d8c8bd85536eea76c3e574f9335e6cd413878923f",
+      "headers": {
+        "age": "4153",
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "cf-cache-status": "HIT",
+        "cf-ray": "a3ad81789ee350af-LAX",
+        "content-encoding": "br",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 06:58:52 GMT",
+        "etag": "W/\"8254-CTnR2gMR6WzKhqLFlw0cLBd8qvI\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.0.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-eddf8230039-FRA, cache-bfi-krnt7300086-BFI"
+      },
+      "observed_at": "2026-09-14T06:58:56.217Z"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/marcopoloresearchlab/mpr-ui@latest/mpr-ui.css",
+      "status": 200,
+      "version": "4.1.0",
+      "sha256": "5af6a506dc3ca2134481a0b9ec0fdf72dc09baa4ce1cac9d56aa28058a9c528d",
+      "headers": {
+        "age": "61",
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "cf-cache-status": "HIT",
+        "cf-ray": "a3ad81789bd3d7a4-LAX",
+        "content-encoding": "br",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 06:58:52 GMT",
+        "etag": "W/\"8265-Zeaa09Etv0OhICKzE+QFrkMto6w\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.1.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-etou8220053-FRA, cache-den-kden1300087-DEN"
+      },
+      "observed_at": "2026-09-14T06:58:56.217Z"
+    },
+    {
+      "url": "https://fastly.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+      "status": 200,
+      "version": "4.1.0",
+      "sha256": "5af6a506dc3ca2134481a0b9ec0fdf72dc09baa4ce1cac9d56aa28058a9c528d",
+      "headers": {
+        "age": "0",
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "content-encoding": "br",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 06:58:56 GMT",
+        "etag": "W/\"8265-Zeaa09Etv0OhICKzE+QFrkMto6w\"",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.1.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-eddf8230146-FRA, cache-bur-kbur8200146-BUR"
+      },
+      "observed_at": "2026-09-14T06:58:56.217Z"
+    },
+    {
+      "url": "https://fastly.jsdelivr.net/gh/marcopoloresearchlab/mpr-ui@latest/mpr-ui.css",
+      "status": 200,
+      "version": "4.1.0",
+      "sha256": "5af6a506dc3ca2134481a0b9ec0fdf72dc09baa4ce1cac9d56aa28058a9c528d",
+      "headers": {
+        "age": "0",
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "content-encoding": "br",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 06:58:56 GMT",
+        "etag": "W/\"8265-Zeaa09Etv0OhICKzE+QFrkMto6w\"",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.1.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-etou8220043-FRA, cache-bur-kbur8200133-BUR"
+      },
+      "observed_at": "2026-09-14T06:58:56.217Z"
+    },
+    {
+      "url": "https://testingcf.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+      "status": 200,
+      "version": "4.1.0",
+      "sha256": "5af6a506dc3ca2134481a0b9ec0fdf72dc09baa4ce1cac9d56aa28058a9c528d",
+      "headers": {
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "cf-cache-status": "MISS",
+        "cf-ray": "a3ad8178ccf62efb-LAX",
+        "content-encoding": "br",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 06:58:56 GMT",
+        "etag": "W/\"8265-Zeaa09Etv0OhICKzE+QFrkMto6w\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.1.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-etou8220024-FRA, cache-den-kden1300073-DEN"
+      },
+      "observed_at": "2026-09-14T06:58:56.217Z"
+    },
+    {
+      "url": "https://testingcf.jsdelivr.net/gh/marcopoloresearchlab/mpr-ui@latest/mpr-ui.css",
+      "status": 200,
+      "version": "4.1.0",
+      "sha256": "5af6a506dc3ca2134481a0b9ec0fdf72dc09baa4ce1cac9d56aa28058a9c528d",
+      "headers": {
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "cf-cache-status": "MISS",
+        "cf-ray": "a3ad8178bca8fbed-LAX",
+        "content-encoding": "br",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 06:58:53 GMT",
+        "etag": "W/\"8265-Zeaa09Etv0OhICKzE+QFrkMto6w\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.1.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-eddf8230140-FRA, cache-dfw-kdfw8210092-DFW"
+      },
+      "observed_at": "2026-09-14T06:58:56.217Z"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css?diagnosis=1789369311581",
+      "status": 200,
+      "headers": {
+        "age": "4332",
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "cf-cache-status": "HIT",
+        "cf-ray": "a3ad85d5fd45867d-LAX",
+        "content-encoding": "br",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 07:01:51 GMT",
+        "etag": "W/\"8254-CTnR2gMR6WzKhqLFlw0cLBd8qvI\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.0.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-eddf8230039-FRA, cache-bfi-krnt7300086-BFI"
+      },
+      "sha256": "351bbf6c15054528a651571d8c8bd85536eea76c3e574f9335e6cd413878923f",
+      "observed_at": "2026-09-14T07:01:52.977Z"
+    },
+    {
+      "url": "https://data.jsdelivr.com/v1/packages/gh/marcopoloresearchlab/mpr-ui",
+      "status": 500,
+      "headers": {
+        "age": "0",
+        "cache-control": "no-cache, no-store, must-revalidate",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 07:01:53 GMT",
+        "x-cache": "MISS",
+        "x-served-by": "cache-bur-kbur8200052-BUR"
+      },
+      "sha256": "0cb1303d8e08845598b8c90f2e9f9401a381beed841afa269f34bb3ea9feb488",
+      "body": {
+        "status": 502,
+        "message": "Couldn't fetch versions for marcopoloresearchlab/mpr-ui."
+      },
+      "observed_at": "2026-09-14T07:01:52.977Z"
+    },
+    {
+      "url": "https://data.jsdelivr.com/v1/packages/gh/marcopoloresearchlab/mpr-ui/resolved?specifier=latest",
+      "status": 500,
+      "headers": {
+        "age": "0",
+        "cache-control": "no-cache, no-store, must-revalidate",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 07:01:52 GMT",
+        "x-cache": "MISS",
+        "x-served-by": "cache-bur-kbur8200141-BUR"
+      },
+      "sha256": "0cb1303d8e08845598b8c90f2e9f9401a381beed841afa269f34bb3ea9feb488",
+      "body": {
+        "status": 502,
+        "message": "Couldn't fetch versions for marcopoloresearchlab/mpr-ui."
+      },
+      "observed_at": "2026-09-14T07:01:52.977Z"
+    },
+    {
+      "url": "https://data.jsdelivr.com/v1/packages/gh/MarcoPoloResearchLab/mpr-ui",
+      "status": 200,
+      "headers": {
+        "age": "0",
+        "cache-control": "public, max-age=10, stale-if-error=86400",
+        "content-encoding": "br",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 07:03:31 GMT",
+        "etag": "W/\"4a67-VNrJP3PTmet3ekEeSnduhDKno5Y\"",
+        "x-cache": "MISS",
+        "x-served-by": "cache-bur-kbur8200051-BUR"
+      },
+      "body": {
+        "type": "gh",
+        "name": "MarcoPoloResearchLab/mpr-ui",
+        "tags": {},
+        "links": {
+          "stats": "https://data.jsdelivr.com/v1/stats/packages/gh/MarcoPoloResearchLab/mpr-ui"
+        },
+        "first_three_versions": [
+          {
+            "version": "4.1.0",
+            "links": {
+              "self": "https://data.jsdelivr.com/v1/packages/gh/MarcoPoloResearchLab/mpr-ui@4.1.0",
+              "stats": "https://data.jsdelivr.com/v1/stats/packages/gh/MarcoPoloResearchLab/mpr-ui@4.1.0"
+            }
+          },
+          {
+            "version": "4.0.0",
+            "links": {
+              "self": "https://data.jsdelivr.com/v1/packages/gh/MarcoPoloResearchLab/mpr-ui@4.0.0",
+              "stats": "https://data.jsdelivr.com/v1/stats/packages/gh/MarcoPoloResearchLab/mpr-ui@4.0.0"
+            }
+          },
+          {
+            "version": "3.11.11",
+            "links": {
+              "self": "https://data.jsdelivr.com/v1/packages/gh/MarcoPoloResearchLab/mpr-ui@3.11.11",
+              "stats": "https://data.jsdelivr.com/v1/stats/packages/gh/MarcoPoloResearchLab/mpr-ui@3.11.11"
+            }
+          }
+        ]
+      },
+      "observed_at": "2026-09-14T07:03:32.800Z"
+    },
+    {
+      "url": "https://data.jsdelivr.com/v1/package/gh/marcopoloresearchlab/mpr-ui",
+      "status": 500,
+      "headers": {
+        "age": "0",
+        "cache-control": "no-cache, no-store, must-revalidate",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 07:03:32 GMT",
+        "x-cache": "MISS",
+        "x-served-by": "cache-bur-kbur8200081-BUR"
+      },
+      "body": {
+        "status": 502,
+        "message": "Couldn't fetch versions for marcopoloresearchlab/mpr-ui."
+      },
+      "observed_at": "2026-09-14T07:03:32.800Z"
+    },
+    {
+      "url": "https://data.jsdelivr.com/v1/packages/gh/lodash/lodash",
+      "status": 200,
+      "headers": {
+        "age": "0",
+        "cache-control": "public, max-age=10, stale-if-error=86400",
+        "content-encoding": "br",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 07:03:31 GMT",
+        "etag": "W/\"185b8-h5+TNBifdMGLkfwQPNZiLnENgtw\"",
+        "x-cache": "MISS",
+        "x-served-by": "cache-bur-kbur8200112-BUR"
+      },
+      "body": {
+        "type": "gh",
+        "name": "lodash/lodash",
+        "tags": {},
+        "links": {
+          "stats": "https://data.jsdelivr.com/v1/stats/packages/gh/lodash/lodash"
+        },
+        "first_three_versions": [
+          {
+            "version": "4.18.1",
+            "links": {
+              "self": "https://data.jsdelivr.com/v1/packages/gh/lodash/lodash@4.18.1",
+              "stats": "https://data.jsdelivr.com/v1/stats/packages/gh/lodash/lodash@4.18.1"
+            }
+          },
+          {
+            "version": "4.18.1-npm-packages",
+            "links": {
+              "self": "https://data.jsdelivr.com/v1/packages/gh/lodash/lodash@4.18.1-npm-packages",
+              "stats": "https://data.jsdelivr.com/v1/stats/packages/gh/lodash/lodash@4.18.1-npm-packages"
+            }
+          },
+          {
+            "version": "4.18.1-npm",
+            "links": {
+              "self": "https://data.jsdelivr.com/v1/packages/gh/lodash/lodash@4.18.1-npm",
+              "stats": "https://data.jsdelivr.com/v1/stats/packages/gh/lodash/lodash@4.18.1-npm"
+            }
+          }
+        ]
+      },
+      "observed_at": "2026-09-14T07:03:32.800Z"
+    },
+    {
+      "url": "https://data.jsdelivr.com/v1/packages/npm/lodash",
+      "status": 200,
+      "headers": {
+        "age": "0",
+        "cache-control": "public, max-age=10, stale-if-error=86400",
+        "content-encoding": "br",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 07:03:31 GMT",
+        "etag": "W/\"8495-TmDfVhH/iA5Hir+F2vA2e8SG4Vo\"",
+        "x-cache": "MISS",
+        "x-served-by": "cache-bur-kbur8200124-BUR"
+      },
+      "body": {
+        "type": "npm",
+        "name": "lodash",
+        "tags": {
+          "latest": "4.18.1"
+        },
+        "links": {
+          "stats": "https://data.jsdelivr.com/v1/stats/packages/npm/lodash"
+        },
+        "first_three_versions": [
+          {
+            "version": "4.18.1",
+            "links": {
+              "self": "https://data.jsdelivr.com/v1/packages/npm/lodash@4.18.1",
+              "entrypoints": "https://data.jsdelivr.com/v1/packages/npm/lodash@4.18.1/entrypoints",
+              "stats": "https://data.jsdelivr.com/v1/stats/packages/npm/lodash@4.18.1"
+            }
+          },
+          {
+            "version": "4.18.0",
+            "links": {
+              "self": "https://data.jsdelivr.com/v1/packages/npm/lodash@4.18.0",
+              "entrypoints": "https://data.jsdelivr.com/v1/packages/npm/lodash@4.18.0/entrypoints",
+              "stats": "https://data.jsdelivr.com/v1/stats/packages/npm/lodash@4.18.0"
+            }
+          },
+          {
+            "version": "4.17.23",
+            "links": {
+              "self": "https://data.jsdelivr.com/v1/packages/npm/lodash@4.17.23",
+              "entrypoints": "https://data.jsdelivr.com/v1/packages/npm/lodash@4.17.23/entrypoints",
+              "stats": "https://data.jsdelivr.com/v1/stats/packages/npm/lodash@4.17.23"
+            }
+          }
+        ]
+      },
+      "observed_at": "2026-09-14T07:03:32.800Z"
+    },
+    {
+      "url": "https://api.github.com/repos/MarcoPoloResearchLab/mpr-ui/tags?per_page=3",
+      "status": 200,
+      "headers": {
+        "cache-control": "public, max-age=60, s-maxage=60",
+        "content-encoding": "gzip",
+        "content-type": "application/json; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 07:03:31 GMT",
+        "etag": "W/\"b8be2eb49a0bbcedf487cc302e006b01159bf8ea3db3d2e351409274d36dd66c\"",
+        "server": "github.com"
+      },
+      "body": [
+        {
+          "name": "v4.1.0",
+          "zipball_url": "https://api.github.com/repos/MarcoPoloResearchLab/mpr-ui/zipball/refs/tags/v4.1.0",
+          "tarball_url": "https://api.github.com/repos/MarcoPoloResearchLab/mpr-ui/tarball/refs/tags/v4.1.0",
+          "commit": {
+            "sha": "a53f949acd86f47520be423c201f61a769ffdac2",
+            "url": "https://api.github.com/repos/MarcoPoloResearchLab/mpr-ui/commits/a53f949acd86f47520be423c201f61a769ffdac2"
+          },
+          "node_id": "REF_kwDOQFc2B7ByZWZzL3RhZ3MvdjQuMS4w"
+        },
+        {
+          "name": "v4.0.0",
+          "zipball_url": "https://api.github.com/repos/MarcoPoloResearchLab/mpr-ui/zipball/refs/tags/v4.0.0",
+          "tarball_url": "https://api.github.com/repos/MarcoPoloResearchLab/mpr-ui/tarball/refs/tags/v4.0.0",
+          "commit": {
+            "sha": "de7207bcee754980d5d9cd98555b5f6031eefc28",
+            "url": "https://api.github.com/repos/MarcoPoloResearchLab/mpr-ui/commits/de7207bcee754980d5d9cd98555b5f6031eefc28"
+          },
+          "node_id": "REF_kwDOQFc2B7ByZWZzL3RhZ3MvdjQuMC4w"
+        },
+        {
+          "name": "v3.11.11",
+          "zipball_url": "https://api.github.com/repos/MarcoPoloResearchLab/mpr-ui/zipball/refs/tags/v3.11.11",
+          "tarball_url": "https://api.github.com/repos/MarcoPoloResearchLab/mpr-ui/tarball/refs/tags/v3.11.11",
+          "commit": {
+            "sha": "da0dafcb1e941f0313e03163271f7ffb6239d133",
+            "url": "https://api.github.com/repos/MarcoPoloResearchLab/mpr-ui/commits/da0dafcb1e941f0313e03163271f7ffb6239d133"
+          },
+          "node_id": "REF_kwDOQFc2B7JyZWZzL3RhZ3MvdjMuMTEuMTE"
+        }
+      ],
+      "observed_at": "2026-09-14T07:03:32.800Z"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+      "encoding": "identity",
+      "status": 200,
+      "headers": {
+        "age": "4454",
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "cf-cache-status": "HIT",
+        "cf-ray": "a3ad88d15b3b991f-LAX",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 07:03:53 GMT",
+        "etag": "W/\"8254-CTnR2gMR6WzKhqLFlw0cLBd8qvI\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.0.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-eddf8230039-FRA, cache-bfi-krnt7300086-BFI"
+      },
+      "sha256": "351bbf6c15054528a651571d8c8bd85536eea76c3e574f9335e6cd413878923f",
+      "observed_at": "2026-09-14T07:03:53.808Z"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+      "encoding": "gzip",
+      "status": 200,
+      "headers": {
+        "age": "4454",
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "cf-cache-status": "HIT",
+        "cf-ray": "a3ad88d15860f7a5-LAX",
+        "content-encoding": "gzip",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 07:03:53 GMT",
+        "etag": "W/\"8254-CTnR2gMR6WzKhqLFlw0cLBd8qvI\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.0.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-eddf8230039-FRA, cache-bfi-krnt7300086-BFI"
+      },
+      "sha256": "351bbf6c15054528a651571d8c8bd85536eea76c3e574f9335e6cd413878923f",
+      "observed_at": "2026-09-14T07:03:53.808Z"
+    },
+    {
+      "url": "https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css",
+      "encoding": "br",
+      "status": 200,
+      "headers": {
+        "age": "4454",
+        "cache-control": "public, max-age=604800, s-maxage=43200",
+        "cf-cache-status": "HIT",
+        "cf-ray": "a3ad88d169b6583a-LAX",
+        "content-encoding": "br",
+        "content-type": "text/css; charset=utf-8",
+        "date": "Mon, 14 Sep 2026 07:03:53 GMT",
+        "etag": "W/\"8254-CTnR2gMR6WzKhqLFlw0cLBd8qvI\"",
+        "server": "cloudflare",
+        "x-cache": "MISS, MISS",
+        "x-jsd-version": "4.0.0",
+        "x-jsd-version-type": "version",
+        "x-served-by": "cache-fra-eddf8230039-FRA, cache-bfi-krnt7300086-BFI"
+      },
+      "sha256": "351bbf6c15054528a651571d8c8bd85536eea76c3e574f9335e6cd413878923f",
+      "observed_at": "2026-09-14T07:03:53.808Z"
+    }
+  ]
+}
