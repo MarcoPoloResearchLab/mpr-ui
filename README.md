@@ -330,3 +330,8 @@ Obey [`AGENTS.md`](AGENTS.md) and [`.mprlab/POLICY.md`](.mprlab/POLICY.md). Add 
 ## License
 
 The package metadata declares the MIT license.
+
+## Shared product catalog
+
+The [product catalog contract](docs/product-catalog.md) supplies one directory for web and native consumers.
+It defines the catalog, validator, stylesheet, public evidence, and snapshot update procedure.

@@ -649,6 +649,16 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## Features
 
+- [x] [F012] (P1) Share the MPR Lab product catalog with web and mobile
+  Goal: Supply one product directory contract for Social Threader F003.
+  Requirements: Use the current sectioned menu. Keep stable product identifiers, purposes, categories, and verified public destinations.
+  Deliverables: Add the catalog, validator, stylesheet, distribution contract, and public verification record.
+  Validation: The catalog test failed before implementation. Shared browser tests passed at 320, 390, 768, and 1280 pixels.
+  Validation: The Pages artifact test rejected the missing catalog module before the container change.
+  Validation: Final `make ci` passed with 151 browser scenarios in each suite and the packaged catalog files.
+  Evidence: Social Threader records the imported content hashes in `data/product-catalog-source.json`.
+  Evidence: Existing B071 changes remain intact. Source publication remains separate.
+
 - [x] [F009] (P1) Add a reusable custom element that puts menu links into sections.
   Goal:
   A reusable `<mpr-dropdown>` supplies link menu sections. `<mpr-footer>` uses this element as an upward menu for site links.

@@ -91,6 +91,10 @@ Give each term one meaning. Use the same term for the same concept in all docume
 
 ## Repository Technical Nouns
 
+- `product catalog`: Shared data with project identifiers, purposes, categories, and public destinations.
+- `product directory`: An interface that presents the product catalog as sections of links.
+- `snapshot`: A copy of source files with recorded content hashes.
+
 Add repository-specific technical nouns below this line.
 
 - `CDN`: A content delivery network that serves public library assets.
