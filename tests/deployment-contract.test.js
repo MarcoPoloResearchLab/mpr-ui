@@ -165,7 +165,7 @@ test('production manifest declares the public demo and its TAuth tenant', () => 
               return_challenge_tokens: false,
               email_verification_ttl: '30m',
               email_delivery: {
-                server_address: 'pinguin:50051',
+                server_address: 'pinguin-grpc:50051',
                 api_key: {
                   resource: 'private',
                   output: 'email-delivery-api-key',

@@ -12,6 +12,13 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [x] [B074] (P0) Use the deployed Pinguin gRPC service alias for hosted email.
+  The public password signup returned HTTP 502 with `email_challenge_delivery_failed`.
+  TAuth could not resolve `pinguin:50051`. The provider publishes `pinguin-grpc:50051` on the shared runtime network.
+  Correct the production manifest, its contract test, and the operator documentation.
+  Verify email delivery through the public signup flow after deployment.
+  Resolved: The manifest uses `pinguin-grpc:50051`. The contract test reproduced the mismatch, and complete CI passed after correction.
+
 - [ ] [B072] (P1) Correct stale CDN assets during release activation.
   Goal:
   Activate every required CDN asset for the selected release and identify the exact provider failure when activation cannot complete.

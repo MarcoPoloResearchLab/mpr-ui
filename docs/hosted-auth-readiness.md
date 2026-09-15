@@ -9,7 +9,10 @@ Update on 2026-09-15: Apple key `JF79PQM899` replaces the missing private key in
 The operator approved revocation of the older key `7H26QZ7XT2` to create this replacement.
 The new private key is saved in the ignored deployment input and the private operator directory.
 The `ui.mprlab.com` CNAME now resolves to `marcopoloresearchlab.github.io`.
-Pinguin configuration and production authentication checks remain incomplete.
+Production Google login passed in Firefox. The Pages deployment, HTTPS certificate, and public version marker passed.
+The dedicated sender is `mpr-ui@mprlab.com`. TAuth reaches Pinguin through `pinguin-grpc:50051` on the shared runtime network.
+Apple and email acceptance checks remain incomplete.
+Set `MPR_UI_APPLE_PRIVATE_KEY` to the single-line base64 encoding of the complete downloaded PEM file.
 
 | Setting | Value |
 | --- | --- |
@@ -61,7 +64,7 @@ The lifecycle must not write the values to Git, artifacts, receipts, state, or n
 
 1. Retrieve the saved Apple private key.
 2. Supply the authorized Pinguin credential.
-3. Confirm that the active runtime resolves `pinguin:50051` for TAuth.
+3. Confirm that the active runtime resolves `pinguin-grpc:50051` for TAuth.
 4. Verify the `mprlab.com` domain for the GitHub organization.
 5. Set the `ui` CNAME record to `marcopoloresearchlab.github.io`.
 6. Run the repository release, publish, and deploy phases.
