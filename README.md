@@ -1,0 +1,344 @@
+# Marco Polo Research Lab UI
+
+`mpr-ui` is a browser-ready web-component library for Marco Polo Research Lab products. It ships as one CSS file, one JavaScript bundle, and an optional YAML auth-config loader. Applications use the `<mpr-*>` custom-element DSL directly from HTML. No bundler or application framework is required.
+
+## Capabilities
+
+- Provider-aware authentication for Google, Apple, and email/password through one TAuth controller.
+- Password signup, verification, reset, and authenticated account-management forms.
+- A compact Google, Apple, and email provider-choice primitive.
+- Header, footer, user menu, theme controls, settings disclosure, site catalog, and legal-document components.
+- Reusable sectioned dropdown menus with static and collapsible sections.
+- Themed bands and project cards.
+- A generic collection/detail workspace kit with rails, tiles, cards, side navigation, selection state, and a detail drawer.
+- Shared protected-request recovery through `MPRUI.authenticatedFetch()`.
+
+## Quick start
+
+Load the library from jsDelivr. Load Google Identity Services only when Google sign-in is enabled.
+
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.css" />
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://cdn.jsdelivr.net/npm/js-yaml@5.4.1/dist/browser/js-yaml.umd.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui-config.js"></script>
+<script
+  id="mpr-ui-bundle"
+  type="application/json"
+  data-mpr-ui-bundle-src="https://cdn.jsdelivr.net/gh/MarcoPoloResearchLab/mpr-ui@latest/mpr-ui.js"
+></script>
+```
+
+Serve one `/config-ui.yaml` file for every auth-bearing page:
+
+```yaml
+environments:
+  - description: "Production"
+    origins:
+      - "https://myapp.example.com"
+    auth:
+      tauthUrl: ""
+      tenantId: "my-tenant"
+      logoutPath: "/auth/logout"
+      sessionPath: "/auth/session"
+      providers:
+        google:
+          enabled: true
+          clientId: "YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+          loginPath: "/auth/google"
+          noncePath: "/auth/nonce"
+        apple:
+          enabled: true
+          startPath: "/auth/apple/start"
+          returnTo: "current-origin"
+          label: "Sign in with Apple"
+        password:
+          enabled: true
+      password:
+        loginPath: "/auth/password/login"
+        signupPath: "/auth/password/signup"
+        verifyEmailPath: "/auth/password/verify-email"
+        resetStartPath: "/auth/password/reset/start"
+        resetCompletePath: "/auth/password/reset/complete"
+      account:
+        passwordChangePath: "/auth/account/password/change"
+        passwordLinkStartPath: "/auth/account/password/link/start"
+        passwordLinkVerifyPath: "/auth/account/password/link/verify"
+        googleLinkPath: "/auth/account/google/link"
+        unlinkPath: "/auth/account/unlink"
+        disablePath: "/auth/account/disable"
+```
+
+All three provider keys are required. A disabled provider contains only `enabled: false`. Enabled password auth requires all password paths. Account panels require all account paths. The loader matches exactly one environment to `window.location.origin`, validates the complete contract, applies one `auth-config` attribute, and then loads `mpr-ui.js`.
+
+Render the shell:
+
+```html
+<mpr-header
+  id="site-header"
+  data-config-url="/config-ui.yaml"
+  brand-label="My Application"
+  brand-href="/"
+  nav-links='[{ "label": "Docs", "href": "/docs" }]'
+  sign-in-redirect-url="/app"
+>
+  <mpr-user slot="aux" display-mode="avatar" logout-url="/" logout-label="Log out"></mpr-user>
+</mpr-header>
+
+<mpr-footer
+  prefix-text="Built by Marco Polo Research Lab"
+  privacy-link-href="/privacy"
+  menu='{
+    "label": "Explore",
+    "placement": "top",
+    "sections": [
+      { "id": "platform", "label": "Platform", "mode": "static", "links": [
+        { "label": "Docs", "href": "/docs" }
+      ] },
+      { "id": "products", "label": "Products", "mode": "expanded", "links": [
+        { "label": "LoopAware", "href": "https://loopaware.mprlab.com" }
+      ] },
+      { "id": "tools", "label": "Tools", "mode": "collapsed", "links": [
+        { "label": "Prompt Bubbles", "href": "https://prompts.mprlab.com" }
+      ] }
+    ]
+  }'
+  theme-switcher="toggle"
+></mpr-footer>
+```
+
+## Authentication
+
+`<mpr-header>` and `<mpr-login-button>` are the auth-owning surfaces. Each creates one controller and renders the enabled Google, Apple, and password actions from `/config-ui.yaml`.
+
+The header uses compact square provider actions with accessible names. The login button uses full provider text and its configured presentation.
+
+- Google requests a TAuth nonce before it renders the official Google button. It refreshes the nonce while the control remains connected.
+- Google returns the ID token to the JavaScript callback. The controller sends the token and nonce to the configured login path.
+- The Google popup flow does not use an OAuth redirect callback.
+- Apple builds a validated TAuth redirect action and navigates the top-level page. TAuth owns the Apple callback, credentials, session cookie, and server configuration.
+- Password opens one shared panel with sign-in and account-creation actions on the same controller.
+- Session return and refresh use the configured `sessionPath` and emit the same `mpr-ui:auth:*` events for every provider.
+
+Use the standalone authentication surface when a full header is not required:
+
+```html
+<mpr-login-button
+  id="login-surface"
+  data-config-url="/config-ui.yaml"
+  button-text="signin_with"
+  button-size="large"
+  button-theme="outline"
+  button-shape="pill"
+></mpr-login-button>
+```
+
+Use `<mpr-password-auth>` for public password flows:
+
+```html
+<mpr-password-auth mode="login" auth-target="#site-header"></mpr-password-auth>
+<mpr-password-auth mode="signup" auth-target="#site-header"></mpr-password-auth>
+<mpr-password-auth mode="verify-email" auth-target="#site-header"></mpr-password-auth>
+<mpr-password-auth mode="reset-start" auth-target="#site-header"></mpr-password-auth>
+<mpr-password-auth mode="reset-complete" auth-target="#site-header"></mpr-password-auth>
+```
+
+Use `<mpr-account-panel>` for authenticated account work:
+
+```html
+<mpr-account-panel action="password-change" auth-target="#site-header"></mpr-account-panel>
+<mpr-account-panel action="password-link-start" auth-target="#site-header"></mpr-account-panel>
+<mpr-account-panel action="password-link-verify" auth-target="#site-header"></mpr-account-panel>
+<mpr-account-panel action="google-link" auth-target="#site-header"></mpr-account-panel>
+<mpr-account-panel action="unlink" auth-target="#site-header" identities='[...]'></mpr-account-panel>
+<mpr-account-panel action="disable" auth-target="#site-header"></mpr-account-panel>
+```
+
+The `google-link` panel renders the official Google Identity Services popup
+button. It binds the button to a TAuth nonce and sends the returned ID token and
+nonce to the configured account link endpoint. It does not use One Tap or a
+redirect callback.
+
+`<mpr-auth-provider-chooser>` is a UI and event primitive. It displays an explicit ordered provider set, but it does not authenticate:
+
+```html
+<mpr-auth-provider-chooser providers='["apple","google","email"]' variant="icon-row"></mpr-auth-provider-chooser>
+```
+
+Authenticated application UI must wait for `mpr-ui:auth:authenticated`. Provider-choice events are intent only. Passwords, email values, challenge tokens, Apple credentials, and provider tokens do not appear in public auth events or diagnostics.
+
+## Protected requests
+
+Send protected requests through the mounted auth surface:
+
+```js
+var authHost = document.querySelector("mpr-header");
+var response = await window.MPRUI.authenticatedFetch(authHost, "/api/workspace");
+```
+
+After HTTP 401, the helper coordinates one session recovery across concurrent requests and browser tabs. It retries a replayable safe request one time after successful recovery. Mutation retry requires `{ mutationReplay: "authorization-before-domain-work" }` and a server that completes authorization before domain work.
+
+## Component catalog
+
+| Element | Purpose | Focused demo |
+| --- | --- | --- |
+| `<mpr-header>` | Brand, navigation, provider-aware auth, user menu, and auth transition | [`index.html`](index.html) |
+| `<mpr-footer>` | Sectioned drop-up, utility links, privacy action, and theme control | [`index.html`](index.html) |
+| `<mpr-dropdown>` | Top or bottom sectioned menu with static, expanded, and collapsed sections | [`demo/components.html`](demo/components.html) |
+| `<mpr-theme-toggle>` | Shared switch, button, or square theme control | [`demo/components.html`](demo/components.html) |
+| `<mpr-login-button>` | Provider-aware standalone authentication surface | [`demo/standalone.html`](demo/standalone.html) |
+| `<mpr-auth-provider-chooser>` | Google, Apple, and email provider-choice events | [`demo/auth-provider-chooser.html`](demo/auth-provider-chooser.html) |
+| `<mpr-password-auth>` | Login, signup, verification, and reset forms | [`demo/tauth-demo.html`](demo/tauth-demo.html) |
+| `<mpr-account-panel>` | Password, identity-link, unlink, and account-disable actions | [`demo/tauth-demo.html`](demo/tauth-demo.html) |
+| `<mpr-auth-diagnostics>` | Safe non-production auth status and profile view | [`demo/tauth-demo.html`](demo/tauth-demo.html) |
+| `<mpr-user>` | Authenticated avatar/name menu and logout | [`demo/standalone.html`](demo/standalone.html) |
+| `<mpr-settings>` | Host-owned settings disclosure | [`demo/components.html`](demo/components.html) |
+| `<mpr-sites>` | Built-in or supplied site catalog in list, grid, or menu form | [`demo/components.html`](demo/components.html) |
+| `<mpr-legal-document>` | Shared Terms and Privacy documents with product overrides | [`demo/components.html`](demo/components.html) |
+| `<mpr-band>` | Passive themed content container | [`demo/components.html`](demo/components.html) |
+| `<mpr-card>` | Project card with flip, CTA, and optional subscription content | [`demo/components.html`](demo/components.html) |
+| `<mpr-workspace-layout>` | Header/sidebar/content workspace shell | [`demo/entity-workspace.html`](demo/entity-workspace.html) |
+| `<mpr-sidebar-nav>` | Keyed navigation shell | [`demo/entity-workspace.html`](demo/entity-workspace.html) |
+| `<mpr-entity-rail>` | Scrollable collection rail | [`demo/entity-workspace.html`](demo/entity-workspace.html) |
+| `<mpr-entity-tile>` | Compact collection item | [`demo/entity-workspace.html`](demo/entity-workspace.html) |
+| `<mpr-entity-workspace>` | Detail list, filters, bulk actions, and load-more shell | [`demo/entity-workspace.html`](demo/entity-workspace.html) |
+| `<mpr-entity-card>` | Dense entity row/card | [`demo/entity-workspace.html`](demo/entity-workspace.html) |
+| `<mpr-detail-drawer>` | Side detail surface | [`demo/entity-workspace.html`](demo/entity-workspace.html) |
+
+The full attribute, slot, method, and event reference is in [`docs/custom-elements.md`](docs/custom-elements.md). The end-to-end auth checklist is in [`docs/integration-guide.md`](docs/integration-guide.md).
+
+## Namespace helpers
+
+- `MPRUI.createAuthHeader(host, options)`
+- `MPRUI.createAuthOptions(options)`
+- `MPRUI.renderAuthHeader(host, options)`
+- `MPRUI.authenticatedFetch(authTarget, input, init?, policy?)`
+- `MPRUI.configureTheme(config)`
+- `MPRUI.setThemeMode(mode)`
+- `MPRUI.getThemeMode()`
+- `MPRUI.onThemeChange(listener)`
+- `MPRUI.getFooterSiteCatalog()`
+- `MPRUI.getLegalProfile()`
+- `MPRUI.getLegalDocument(options)`
+- `MPRUI.renderLegalDocument(host, options)`
+- `MPRUI.getBandProjectCatalog()`
+- `MPRUI.createSelectionState()`
+- `MPRUI.resolveAuthProfileSnapshot(authTarget)`
+
+The controller from `MPRUI.createAuthHeader()` exposes
+`startAppleSignIn()` for the Apple redirect flow. Google starts only from an
+official rendered Google Identity Services button. The controller does not
+expose a programmatic Google or One Tap start method.
+
+`MPRUI.testing` contains test-only auth, redirect-provider, and Google Identity driver helpers. Application code must use the ordinary auth lifecycle.
+
+## Demos
+
+Run the local static server:
+
+```bash
+npm run demo:serve
+```
+
+Open `http://127.0.0.1:4177/`.
+
+| Page | What it proves | Backend requirement |
+| --- | --- | --- |
+| [`/index.html`](index.html) | Provider-aware header, Apple/Google/email actions, bands, cards, sectioned footer, theme switcher | Static preview. Auth completion needs TAuth |
+| [`/demo/components.html`](demo/components.html) | General component gallery, both dropdown placements, all section modes | None |
+| [`/demo/auth-provider-chooser.html`](demo/auth-provider-chooser.html) | Apple/Google/email chooser variants and safe event details | None. The chooser is intent-only |
+| [`/demo/tauth-demo.html`](demo/tauth-demo.html) | Google and email/password sign-in, all password modes, all account actions, auth diagnostics | `make up` |
+| [`/demo/standalone.html`](demo/standalone.html) | Login-only surface and authenticated user menu | `make up` |
+| [`/demo/entity-workspace.html`](demo/entity-workspace.html) | Full collection/detail workspace kit | `make up` |
+
+The static config displays Apple for action and presentation inspection. Live Apple completion requires TAuth Apple credentials. It requires an HTTPS callback on the TAuth domain. The public tenant must allow `https://ui.mprlab.com` and the documented localhost origins.
+
+To run the HTTP TAuth fixture, create the private TAuth file described by [`docs/demo-index-auth.md`](docs/demo-index-auth.md), then run:
+
+```bash
+make up
+```
+
+Open `http://localhost:4443/`. Stop the stack with `make down`.
+
+`make up` builds the current sibling TAuth and Pinguin sources. It creates or refreshes one managed Pinguin tenant from the private SMTP environment, starts the gHTTP frontend, and proxies the authentication routes. The frontend serves the current repository source with `Cache-Control: no-store`.
+The disposable local account uses `demo@mprlab.local` and `mpr-ui-demo`.
+The delivery owner uses a separate TAuth tenant, password, signing key, and session cookie.
+Pinguin accepts only the delivery session for administration. Its management port is internal to the Compose network.
+The frontend mounts only public files. Private environment files and repository metadata are outside its document root.
+Configure the three `PINGUIN_BOOTSTRAP_*` values in `demo/.env.tauth` before startup. See [local delivery setup](docs/demo-index-auth.md#private-delivery-owner).
+
+After startup, run `make test-demo` for live demo acceptance.
+Run `make test-pages` to validate the static Pages artifact. This check requires Docker and the installed Playwright browser.
+The Pages check uses isolated provider responses. It verifies artifact content and controls, but it does not prove live authentication.
+See [hosted authentication readiness](docs/hosted-auth-readiness.md) for the production inputs and current blockers.
+The browser tests require Google, Apple, and email controls on all four authentication pages.
+They also verify local assets, navigation, and password authentication.
+Set `MPR_UI_DEMO_BASE_URL` for another demo URL.
+The default `make ci` suite excludes these live tests.
+Source CI success does not establish live provider acceptance.
+
+## Development and validation
+
+```bash
+npm install
+make ci
+```
+
+`make ci` runs the Node suite, browser coverage gate, and Playwright acceptance suite. Use `npm run demo:serve` for static visual inspection.
+`make test-delivery` builds isolated TAuth and Pinguin containers and checks delivery administration through their HTTP APIs.
+This check requires Docker, `uv`, and both sibling repositories. It uses temporary data and sends no email.
+
+## Production lifecycle
+
+The production manifest is `.mprlab/deploy/resources.yml`.
+It declares the GitHub Pages site and the `mpr-ui-demo` TAuth tenant.
+The Pages artifact comes from `Dockerfile.pages` and contains only the selected public files.
+
+Put these assignments in the ignored `.mprlab/deploy/.env` file before deployment:
+
+- `MPR_UI_APPLE_PRIVATE_KEY`
+- `MPR_UI_EMAIL_DELIVERY_API_KEY`
+- `MPR_UI_GOOGLE_WEB_CLIENT_ID`
+- `MPR_UI_JWT_SIGNING_KEY`
+
+The user runs the complete production lifecycle from this repository:
+
+```bash
+make release && make publish && make deploy
+```
+
+The installed `mprlab-gateway` runtime owns each lifecycle phase.
+Use a runtime that supplies the F014 `jsdelivr` resource, first released in Gateway `v4.1.0`.
+The runtime must also keep the declared repository letter case in CDN requests.
+The current manifest requires `MarcoPoloResearchLab/mpr-ui`, as used in the public asset URLs.
+A runtime that changes this spelling to lowercase does not satisfy this requirement.
+Set `MPRLAB_GATEWAY_EXECUTABLE` to select an installed command outside `PATH`.
+The release phase seals the exact committed source, Pages artifact, and declared CDN assets.
+The publish phase creates the immutable Pages commit and verifies the declared CDN assets and aliases.
+Gateway records publication success only after its required provider checks pass.
+The deploy phase configures and verifies `https://ui.mprlab.com/`.
+Live provider acceptance remains separate from source CI and Pages activation.
+The CDN provider does not supply restoration of a previous release through its mutable aliases.
+B073 tracks this unresolved delivery requirement. The installed-runtime migration does not resolve it.
+
+## Documentation
+
+- [`docs/custom-elements.md`](docs/custom-elements.md): complete declarative component reference.
+- [`docs/integration-guide.md`](docs/integration-guide.md): auth, protected requests, events, and verification.
+- [`docs/demo-index-auth.md`](docs/demo-index-auth.md): static and TAuth demo operation.
+- [`ARCHITECTURE.md`](ARCHITECTURE.md): component ownership, browser boundaries, and namespace design.
+- [`CHANGELOG.md`](CHANGELOG.md): release history.
+
+## Contributing
+
+Obey [`AGENTS.md`](AGENTS.md) and [`.mprlab/POLICY.md`](.mprlab/POLICY.md). Add or update semantic browser coverage with every public component behavior change.
+
+## License
+
+The package metadata declares the MIT license.
+
+## Shared product catalog
+
+The [product catalog contract](docs/product-catalog.md) supplies one directory for web and native consumers.
+It defines the catalog, validator, stylesheet, public evidence, and snapshot update procedure.
