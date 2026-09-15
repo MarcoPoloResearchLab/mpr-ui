@@ -17,6 +17,9 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   TAuth could not resolve `pinguin:50051`. The provider publishes `pinguin-grpc:50051` on the shared runtime network.
   Correct the production manifest, its contract test, and the operator documentation.
   Verify email delivery through the public signup flow after deployment.
+  Results on 2026-09-15: v4.1.4 completed release, publication, and deployment.
+  The dedicated mailbox received the verification and password-reset messages.
+  Both public browser forms passed. The old password failed, and the new password restored the same account.
   Resolved: The manifest uses `pinguin-grpc:50051`. The contract test reproduced the mismatch, and complete CI passed after correction.
 
 - [ ] [B072] (P1) Correct stale CDN assets during release activation.
@@ -449,7 +452,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   The complete live suite then reported two passes and five missing-Apple failures.
   Real Google authentication on the hosted site remains necessary for acceptance.
 
-- [!] [B058] (P1) {F010} The local demo uses a simulated Apple provider.
+- [ ] [B058] (P1) {F010} The local demo uses a simulated Apple provider.
   Goal:
   The public and local demos use the real Apple provider through one hosted TAuth callback.
 
@@ -459,7 +462,10 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   Actual:
   The local Apple service accepts the action without an Apple request. The service then creates a fixture identity.
 
-  Blocked: The private deployment input has no Apple Service ID or private key for the MPR UI demo tenant.
+  Local demo acceptance still requires the hosted Apple flow for both allowed local origins.
+  Production progress on 2026-09-15: the private input contains the real Apple configuration and replacement key.
+  The public v4.1.4 demo completed Apple authentication in Firefox, including a second sign-in after logout.
+  Google sign-in, email verification, and password reset also passed on the public demo.
 
   Requirements:
   - Remove the simulated Apple service and its fixture key.

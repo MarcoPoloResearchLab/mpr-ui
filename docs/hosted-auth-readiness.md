@@ -1,7 +1,8 @@
 # Hosted Authentication Readiness
 
-Status on 2026-09-10: the production source is prepared, but deployment is not ready.
-This dated record describes the previous lifecycle. Use [the README](../README.md) for the current installed-runtime contract.
+Status on 2026-09-15: MPR UI v4.1.4 is deployed and its production authentication checks passed.
+The sections below retain the preparation record from September 10, 2026.
+Use [the README](../README.md) for the current installed-runtime contract.
 
 ## Verified Provider Settings
 
@@ -11,7 +12,10 @@ The new private key is saved in the ignored deployment input and the private ope
 The `ui.mprlab.com` CNAME now resolves to `marcopoloresearchlab.github.io`.
 Production Google login passed in Firefox. The Pages deployment, HTTPS certificate, and public version marker passed.
 The dedicated sender is `mpr-ui@mprlab.com`. TAuth reaches Pinguin through `pinguin-grpc:50051` on the shared runtime network.
-Apple and email acceptance checks remain incomplete.
+Apple sign-in passed in Firefox with TAuth v2.2.3. A second sign-in passed after logout.
+Email verification and password reset passed through the public forms and the dedicated mailbox.
+The old password returned HTTP 401. The new password returned HTTP 200 and preserved the account.
+A new Chromium context restored the authenticated email session.
 Set `MPR_UI_APPLE_PRIVATE_KEY` to the single-line base64 encoding of the complete downloaded PEM file.
 
 | Setting | Value |
