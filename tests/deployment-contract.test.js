@@ -151,7 +151,7 @@ test('production manifest declares the public demo and its TAuth tenant', () => 
             apple_oauth: {
               client_id: 'com.mprlab.ui',
               team_id: 'Z9ZW6HDGML',
-              key_id: 'FSPJR9M37P',
+              key_id: 'JF79PQM899',
               private_key: {
                 resource: 'private',
                 output: 'apple-private-key',

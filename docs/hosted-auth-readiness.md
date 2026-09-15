@@ -5,6 +5,12 @@ This dated record describes the previous lifecycle. Use [the README](../README.m
 
 ## Verified Provider Settings
 
+Update on 2026-09-15: Apple key `JF79PQM899` replaces the missing private key in the deployment input.
+The operator approved revocation of the older key `7H26QZ7XT2` to create this replacement.
+The new private key is saved in the ignored deployment input and the private operator directory.
+The `ui.mprlab.com` CNAME now resolves to `marcopoloresearchlab.github.io`.
+Pinguin configuration and production authentication checks remain incomplete.
+
 | Setting | Value |
 | --- | --- |
 | Google client ID | `991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com` |
@@ -12,7 +18,7 @@ This dated record describes the previous lifecycle. Use [the README](../README.m
 | Apple Service ID | `com.mprlab.ui` |
 | Apple primary App ID | `com.mprlab.ui.primary` |
 | Apple team ID | `Z9ZW6HDGML` |
-| Apple key ID | `FSPJR9M37P` |
+| Apple key ID | `JF79PQM899` |
 | Apple callback | `https://tauth-api.mprlab.com/auth/apple/callback` |
 | Apple domains | `ui.mprlab.com`, `tauth-api.mprlab.com` |
 
