@@ -149,6 +149,38 @@ mpr-header mpr-auth-provider-chooser {
   line-height: 1.2;
 }
 
+
+.mpr-auth-actions[data-mpr-auth-action-status="authenticating"] > .mpr-auth-actions__status {
+  position: absolute;
+  inline-size: 1px;
+  block-size: 1px;
+  min-block-size: 0;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+.mpr-auth-google-button[aria-busy="true"]:not(:empty) {
+  position: relative;
+  pointer-events: none;
+}
+
+.mpr-auth-google-button[aria-busy="true"]:not(:empty) > * {
+  opacity: 0.35;
+}
+
+.mpr-auth-google-button[aria-busy="true"]:not(:empty)::after {
+  position: absolute;
+  inline-size: 0.875rem;
+  block-size: 0.875rem;
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  border-radius: 50%;
+  content: "";
+  animation: mpr-header-auth-transition-spin 700ms linear infinite;
+}
+
 .mpr-auth-actions__status:empty {
   display: none;
 }
@@ -1070,7 +1102,7 @@ mpr-login-button[data-mpr-login-mounted="true"] {
   --mpr-login-button-theme-hover-background: #f8faff;
   --mpr-login-button-focus-color: rgba(66, 133, 244, 0.5);
   --mpr-login-button-radius: 0.5rem;
-  --mpr-login-button-height: 2.75rem;
+  --mpr-login-button-height: 32px;
   --mpr-login-button-padding-inline: 0.95rem;
   --mpr-login-button-font-size: 0.95rem;
 }
@@ -1164,13 +1196,13 @@ mpr-login-button[data-mpr-login-mounted="true"] {
 }
 
 .mpr-login-button[data-mpr-login-size="small"] {
-  --mpr-login-button-height: 2.25rem;
+  --mpr-login-button-height: 20px;
   --mpr-login-button-padding-inline: 0.7rem;
   --mpr-login-button-font-size: 0.84rem;
 }
 
 .mpr-login-button[data-mpr-login-size="large"] {
-  --mpr-login-button-height: 3rem;
+  --mpr-login-button-height: 40px;
   --mpr-login-button-padding-inline: 1.1rem;
   --mpr-login-button-font-size: 1rem;
 }

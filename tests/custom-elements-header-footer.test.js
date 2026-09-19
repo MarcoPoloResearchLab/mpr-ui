@@ -1629,14 +1629,14 @@ test('mpr-header rebinds auth endpoints when tauth-url changes after first rende
     'http://localhost:8080',
     'initAuthClient reboots with the updated base URL',
   );
-  assert.equal(initializeCalls.length, 2, 'each rendered config initializes GIS once');
+  assert.equal(initializeCalls.length, 1, 'unchanged Google config reuses its initialization');
   assert.equal(
-    initializeCalls[1].nonce,
+    initializeCalls[0].nonce,
     'updated-nonce-token',
     'updated button initializes GIS with the issued nonce',
   );
   buttonOptions.click_listener();
-  await initializeCalls[1].callback({ credential: 'updated-header-token', state: buttonOptions.state });
+  await initializeCalls[0].callback({ credential: 'updated-header-token', state: buttonOptions.state });
   assert.deepEqual(
     fetchCalls,
     [
@@ -4366,15 +4366,15 @@ test('mpr-login-button rebinds auth endpoints when tauth-url changes after first
     'http://localhost:8080',
     'login button restarts initAuthClient with the updated base URL',
   );
-  assert.equal(initializeCalls.length, 2, 'each rendered config initializes GIS once');
+  assert.equal(initializeCalls.length, 1, 'unchanged Google config reuses its initialization');
   assert.equal(
-    initializeCalls[1].nonce,
+    initializeCalls[0].nonce,
     'updated-login-nonce',
     'updated login button initializes GIS with the updated nonce',
   );
   const buttonOptions = renderCalls[renderCalls.length - 1].config;
   buttonOptions.click_listener();
-  await initializeCalls[1].callback({ credential: 'updated-login-token', state: buttonOptions.state });
+  await initializeCalls[0].callback({ credential: 'updated-login-token', state: buttonOptions.state });
   assert.deepEqual(
     fetchCalls,
     [

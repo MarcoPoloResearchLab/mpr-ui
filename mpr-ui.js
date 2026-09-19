@@ -4889,6 +4889,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   }
 
   var pendingGoogleInitializeQueue = [];
+  var activeGoogleInitializeConfig = null;
 
   function recordGoogleInitializeConfig(config) {
     if (!config || typeof config !== "object") {
@@ -4929,6 +4930,15 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       if (!config) {
         continue;
       }
+      if (
+        activeGoogleInitializeConfig &&
+        activeGoogleInitializeConfig.client === googleClient.accounts.id &&
+        activeGoogleInitializeConfig.clientId === config.clientId &&
+        activeGoogleInitializeConfig.nonce === config.nonce &&
+        activeGoogleInitializeConfig.callback === config.callback
+      ) {
+        continue;
+      }
       try {
         var initializeConfig = {
           client_id: config.clientId || undefined,
@@ -4942,6 +4952,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         }
         googleClient.accounts.id.initialize(initializeConfig);
         currentGoogleNonceToken = config.nonce;
+        activeGoogleInitializeConfig = {
+          client: googleClient.accounts.id,
+          clientId: config.clientId,
+          nonce: config.nonce,
+          callback: config.callback,
+        };
       } catch (error) {
         if (typeof config.onError === "function") {
           config.onError(error);
@@ -5240,18 +5256,17 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       enqueueGoogleInitialize({
         clientId: clientIdValue,
         nonce: nonceToken,
-        callback: function (payload) {
-          if (credentialHandler === dispatchGoogleProviderCredential) {
-            return dispatchGoogleProviderCredential(payload);
-          }
-          if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
-            return;
-          }
-          if (typeof credentialHandler === "function") {
-            return credentialHandler(payload, nonceToken);
-          }
-          return handleCredential(payload, nonceToken);
-        },
+        callback: credentialHandler === dispatchGoogleProviderCredential
+          ? dispatchGoogleProviderCredential
+          : function (payload) {
+              if (!isCurrentLifecycleVersion(currentLifecycleVersion)) {
+                return;
+              }
+              if (typeof credentialHandler === "function") {
+                return credentialHandler(payload, nonceToken);
+              }
+              return handleCredential(payload, nonceToken);
+            },
         onError: function handleGoogleInitializeError(error) {
           initializeError = error || new Error("google identity initialize failed");
         },
@@ -7123,7 +7138,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--google:hover{background:#202124}" +
     ".mpr-auth-actions__status{min-block-size:1.2em;margin:0;color:var(--mpr-color-text-muted,#cbd5f5);font-size:.78rem;line-height:1.2}" +
     "mpr-header .mpr-auth-actions__status{min-inline-size:0;white-space:normal;overflow-wrap:anywhere}" +
-    "mpr-header .mpr-auth-actions__status:empty{display:none}" +
+    ".mpr-auth-actions__status:empty{display:none}" +
+    ".mpr-auth-actions[data-mpr-auth-action-status='authenticating'] > .mpr-auth-actions__status {position: absolute;inline-size: 1px;block-size: 1px;min-block-size: 0;padding: 0;overflow: hidden;clip-path: inset(50%);white-space: nowrap;}.mpr-auth-google-button[aria-busy='true']:not(:empty) {position: relative;pointer-events: none;}.mpr-auth-google-button[aria-busy='true']:not(:empty) > * {opacity: 0.35;}.mpr-auth-google-button[aria-busy='true']:not(:empty)::after {position: absolute;inline-size: 0.875rem;block-size: 0.875rem;border: 2px solid currentColor;border-right-color: transparent;border-radius: 50%;content: '';animation: mpr-header-auth-transition-spin 700ms linear infinite;}" +
     "mpr-header .mpr-auth-actions{position:relative;--mpr-auth-provider-scale:var(--mpr-header-scale,1);max-inline-size:100%}" +
     "mpr-header .mpr-auth-actions__controls{overflow:visible}" +
     ".mpr-auth-actions__email-panel{display:grid;box-sizing:border-box;gap:.35rem;min-inline-size:0}" +
@@ -7171,7 +7187,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
   var LOGIN_BUTTON_STYLE_MARKUP =
     'mpr-login-button[data-mpr-login-mounted="true"]{display:contents}' +
-    ".mpr-login-button{display:inline-flex;flex-direction:column;gap:0.5rem;inline-size:var(--mpr-login-button-inline-size,auto);max-inline-size:100%;--mpr-login-button-theme-background:#fff;--mpr-login-button-theme-border-color:#dadce0;--mpr-login-button-theme-color:#1f1f1f;--mpr-login-button-theme-hover-background:#f8faff;--mpr-login-button-focus-color:rgba(66,133,244,0.5);--mpr-login-button-radius:0.5rem;--mpr-login-button-height:2.75rem;--mpr-login-button-padding-inline:0.95rem;--mpr-login-button-font-size:0.95rem}" +
+    ".mpr-login-button{display:inline-flex;flex-direction:column;gap:0.5rem;inline-size:var(--mpr-login-button-inline-size,auto);max-inline-size:100%;--mpr-login-button-theme-background:#fff;--mpr-login-button-theme-border-color:#dadce0;--mpr-login-button-theme-color:#1f1f1f;--mpr-login-button-theme-hover-background:#f8faff;--mpr-login-button-focus-color:rgba(66,133,244,0.5);--mpr-login-button-radius:0.5rem;--mpr-login-button-height:32px;--mpr-login-button-padding-inline:0.95rem;--mpr-login-button-font-size:0.95rem}" +
     ".mpr-login-button .mpr-auth-actions{inline-size:100%;padding:0}" +
     ".mpr-login-button .mpr-auth-actions__controls{inline-size:100%}" +
     ".mpr-login-button .mpr-auth-google-button{min-block-size:var(--mpr-login-button-height);max-inline-size:100%;border-radius:var(--mpr-login-button-radius)}" +
@@ -7189,9 +7205,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ".mpr-login-button" +
     '[data-mpr-login-theme="filled_black"]{--mpr-login-button-theme-background:#202124;--mpr-login-button-theme-border-color:#202124;--mpr-login-button-theme-color:#fff;--mpr-login-button-theme-hover-background:#000}' +
     ".mpr-login-button" +
-    '[data-mpr-login-size="small"]{--mpr-login-button-height:2.25rem;--mpr-login-button-padding-inline:0.7rem;--mpr-login-button-font-size:0.84rem}' +
+    '[data-mpr-login-size="small"]{--mpr-login-button-height:20px;--mpr-login-button-padding-inline:0.7rem;--mpr-login-button-font-size:0.84rem}' +
     ".mpr-login-button" +
-    '[data-mpr-login-size="large"]{--mpr-login-button-height:3rem;--mpr-login-button-padding-inline:1.1rem;--mpr-login-button-font-size:1rem}' +
+    '[data-mpr-login-size="large"]{--mpr-login-button-height:40px;--mpr-login-button-padding-inline:1.1rem;--mpr-login-button-font-size:1rem}' +
     ".mpr-login-button" +
     '[data-mpr-login-shape="pill"]{--mpr-login-button-radius:999px}' +
     "mpr-login-button[data-mpr-auth-providers='google'] .mpr-login-button" +

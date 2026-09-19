@@ -12,6 +12,24 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [x] [B075] (P1) Keep Google login geometry stable during credential exchange.
+  Evidence:
+  The control height changed from 48 to 66.97 pixels during credential exchange.
+  Five login controls initialized Google five times with the same configuration.
+  Requirements:
+  - Keep the status announcement accessible without a layout change.
+  - Show a spinner inside the control during credential exchange.
+  - Preserve visible nonce error messages.
+  - Match the native Google button dimensions.
+  - Reuse Google initialization when the client, nonce, and callback are unchanged.
+  Validation:
+  Six new browser cases failed before the correction.
+  All 13 focused browser cases passed after the correction.
+  The tests cover desktop, phone, nonce rotation, and credential callback routing.
+  Final `make ci` passed 211 Node checks, 157 browser checks, coverage gates, and Pages artifact validation.
+  Publication:
+  Source delivery and shared publication are separate operations.
+
 - [x] [B074] (P0) Use the deployed Pinguin gRPC service alias for hosted email.
   The public password signup returned HTTP 502 with `email_challenge_delivery_failed`.
   TAuth could not resolve `pinguin:50051`. The provider publishes `pinguin-grpc:50051` on the shared runtime network.
