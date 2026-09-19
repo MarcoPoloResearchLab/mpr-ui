@@ -36,3 +36,76 @@ for (const width of [390, 1280]) {
     expect((await actions.boundingBox()).height).toBe(initial.height);
   });
 }
+
+for (const width of [390, 1280]) {
+  test(`credential exchange preserves login layout at ${width}px`, async ({ page }) => {
+    await page.setViewportSize({ width, height: 900 });
+    await visitLoginButtonFixture(page);
+    const group = page.getByRole('group', { name: 'Google sign-in control' });
+    const button = group.getByRole('button', { name: 'Sign in with Google' });
+    const provider = group.locator('[data-mpr-auth-action="google"]');
+    const status = group.getByRole('status');
+    await expect(button).toBeVisible();
+    const before = await group.boundingBox();
+    await page.evaluate(() => { window.__loginButtonSubmitCredential = true; });
+    await button.click();
+    await expect(provider).toHaveAttribute('aria-busy', 'true');
+    await expect(status).not.toBeEmpty();
+    expect(await group.boundingBox()).toEqual(before);
+    await expect(status).toHaveCSS('position', 'absolute');
+    await expect(provider).toHaveCSS('animation-name', 'none');
+    expect(await provider.evaluate(el => getComputedStyle(el, '::after').animationName)).toContain('spin');
+    await page.evaluate(() => window.__resolveLoginButtonCredential());
+    await expect(provider).toHaveAttribute('aria-busy', 'false');
+    expect(await group.boundingBox()).toEqual(before);
+    await page.evaluate(() => {
+      window.__loginButtonNonceFailure = true;
+      document.querySelector('#fixture-login-button').setAttribute('button-theme', 'filled_blue');
+    });
+    await expect(status).toHaveText('Unable to start Google sign-in. Try again.');
+    await expect(status).toBeVisible();
+    await expect(status).not.toHaveCSS('position', 'absolute');
+    await expect(provider).toHaveAttribute('aria-busy', 'false');
+  });
+}
+
+for (const [size, height] of [['small', 20], ['medium', 32], ['large', 40]]) {
+  test(`native Google ${size} button fills its shared control`, async ({ page }) => {
+    await visitLoginButtonFixture(page);
+    const login = page.locator('#fixture-login-button');
+    await login.evaluate((el, size) => { el.setAttribute('button-size', size); el.setAttribute('button-shape', 'rectangular'); }, size);
+    const button = login.getByRole('button', { name: 'Sign in with Google' });
+    await expect(button).toBeVisible();
+    expect((await button.boundingBox()).height).toBe(height);
+    expect((await login.locator('[data-mpr-auth-actions="root"]').boundingBox()).height).toBe(height);
+  });
+}
+
+test('multiple login controls share the same Google initialization', async ({ page }) => {
+  await visitLoginButtonFixture(page);
+  await page.evaluate(() => {
+    const original = document.querySelector('#fixture-login-button');
+    for (let index = 0; index < 4; index += 1) {
+      const clone = original.cloneNode(false);
+      clone.id = `additional-login-${index}`;
+      original.parentElement.appendChild(clone);
+    }
+  });
+  await expect(page.getByRole('button', { name: 'Sign in with Google' })).toHaveCount(5);
+  expect(await page.evaluate(() => window.__loginButtonGoogleInitializeCalls.length)).toBe(1);
+  await page.evaluate(() => { window.__loginButtonSubmitCredential = true; });
+  const first = page.locator('#fixture-login-button');
+  await first.getByRole('button').click();
+  await expect(first.locator('[data-mpr-auth-action="google"]')).toHaveAttribute('aria-busy', 'true');
+  await expect(page.locator('#additional-login-3 [data-mpr-auth-action="google"]')).toHaveAttribute('aria-busy', 'false');
+  await page.evaluate(() => window.__resolveLoginButtonCredential());
+  await expect(first.locator('[data-mpr-auth-action="google"]')).toHaveAttribute('aria-busy', 'false');
+  await page.evaluate(() => {
+    window.requestNonce = () => Promise.resolve('rotated-login-nonce');
+    document.querySelector('#additional-login-3').setAttribute('button-theme', 'filled_blue');
+  });
+  await expect.poll(() => page.evaluate(() => window.__loginButtonGoogleInitializeCalls)).toEqual([
+    { clientId: 'fixture-google-client', nonce: 'fixture-login-nonce' },
+    { clientId: 'fixture-google-client', nonce: 'rotated-login-nonce' },
+  ]);
+});
