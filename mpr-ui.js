@@ -7126,12 +7126,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "." +
     AUTH_PROVIDER_CHOOSER_ROOT_CLASS +
     "__link-button:hover{color:var(--mpr-color-text-primary,#e2e8f0);text-decoration:underline}" +
+    "@keyframes mpr-auth-progress-spin{to{transform:rotate(360deg)}}" +
     ".mpr-auth-actions{display:grid;gap:.25rem;min-inline-size:0;max-inline-size:100%;--mpr-auth-action-block-size:1.875rem;--mpr-auth-action-inline-size:11.25rem}" +
     ".mpr-auth-actions__controls{display:flex;flex-wrap:nowrap;gap:.35rem;align-items:stretch;min-inline-size:0;max-inline-size:100%}" +
     ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action{inline-size:var(--mpr-auth-action-inline-size);min-inline-size:var(--mpr-auth-action-inline-size);block-size:var(--mpr-auth-action-block-size);min-block-size:var(--mpr-auth-action-block-size);padding:.1875rem .5rem}" +
     ".mpr-auth-google-button{display:inline-flex;align-items:center;justify-content:center;min-inline-size:var(--mpr-auth-action-block-size);min-block-size:var(--mpr-auth-action-block-size);overflow:hidden;box-sizing:border-box}" +
     ".mpr-auth-google-button>div{display:flex!important;align-items:center;justify-content:center}" +
-    '.mpr-auth-google-button[aria-busy="true"]:empty::before{inline-size:.75rem;block-size:.75rem;border:1px solid currentColor;border-right-color:transparent;border-radius:50%;content:"";animation:mpr-header-auth-transition-spin 700ms linear infinite}' +
+    '.mpr-auth-google-button[aria-busy="true"]:empty::before{inline-size:.75rem;block-size:.75rem;border:1px solid currentColor;border-right-color:transparent;border-radius:50%;content:"";animation:mpr-auth-progress-spin 700ms linear infinite}' +
     ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple{padding:.1875rem .5rem;border-color:#000;background:#000;color:#fff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:.8125rem}" +
     ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple:hover{background:#111}" +
     ".mpr-auth-actions__controls .mpr-auth-provider-chooser__action--google{border-color:#8e918f;background:#131314;color:#e3e3e3;font-family:'Google Sans',Roboto,Arial,sans-serif;font-size:.875rem;line-height:1.25rem}" +
@@ -7139,7 +7140,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     ".mpr-auth-actions__status{min-block-size:1.2em;margin:0;color:var(--mpr-color-text-muted,#cbd5f5);font-size:.78rem;line-height:1.2}" +
     "mpr-header .mpr-auth-actions__status{min-inline-size:0;white-space:normal;overflow-wrap:anywhere}" +
     ".mpr-auth-actions__status:empty{display:none}" +
-    ".mpr-auth-actions[data-mpr-auth-action-status='authenticating'] > .mpr-auth-actions__status {position: absolute;inline-size: 1px;block-size: 1px;min-block-size: 0;padding: 0;overflow: hidden;clip-path: inset(50%);white-space: nowrap;}.mpr-auth-google-button[aria-busy='true']:not(:empty) {position: relative;pointer-events: none;}.mpr-auth-google-button[aria-busy='true']:not(:empty) > * {opacity: 0.35;}.mpr-auth-google-button[aria-busy='true']:not(:empty)::after {position: absolute;inline-size: 0.875rem;block-size: 0.875rem;border: 2px solid currentColor;border-right-color: transparent;border-radius: 50%;content: '';animation: mpr-header-auth-transition-spin 700ms linear infinite;}" +
+    ".mpr-auth-actions[data-mpr-auth-action-status='authenticating'] > .mpr-auth-actions__status {position: absolute;inline-size: 1px;block-size: 1px;min-block-size: 0;padding: 0;overflow: hidden;clip-path: inset(50%);white-space: nowrap;}.mpr-auth-google-button[aria-busy='true']:not(:empty) {position: relative;pointer-events: none;}.mpr-auth-google-button[aria-busy='true']:not(:empty) > * {opacity: 0.35;}.mpr-auth-google-button[aria-busy='true']:not(:empty)::after {position: absolute;inline-size: 0.875rem;block-size: 0.875rem;border: 2px solid currentColor;border-right-color: transparent;border-radius: 50%;content: '';animation: mpr-auth-progress-spin 700ms linear infinite;}" +
     "mpr-header .mpr-auth-actions{position:relative;--mpr-auth-provider-scale:var(--mpr-header-scale,1);max-inline-size:100%}" +
     "mpr-header .mpr-auth-actions__controls{overflow:visible}" +
     ".mpr-auth-actions__email-panel{display:grid;box-sizing:border-box;gap:.35rem;min-inline-size:0}" +

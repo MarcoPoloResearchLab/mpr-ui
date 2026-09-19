@@ -12,6 +12,37 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [x] [B076] (P1) Keep sign-in progress inside the shared control.
+  Source: https://github.com/MarcoPoloResearchLab/mpr-ui/issues/227
+  Goal: Authentication progress adds no height to a header, footer, or standalone login control.
+  Context:
+  PoodleScanner reported a status label below the Google button while authentication succeeded.
+  B075 added an internal spinner and removed the pending status from normal layout flow in v4.1.5.
+  An existing Chrome tab retained older JavaScript after a normal reload. A hard refresh loaded the corrected styles.
+  The existing eight login tests passed but did not cover shared header geometry or standalone animation without the external stylesheet.
+  Expected: The standalone spinner animates inside the button with the injected component styles.
+  Actual: The standalone spinner remains static because its keyframes require header styles or the external stylesheet.
+  Requirements:
+  - Keep the progress indicator inside the existing button dimensions.
+  - Preserve an accessible status announcement without a visible text row.
+  - Keep header, footer, and surrounding content positions unchanged during credential exchange.
+  - Keep provider controls available when a Google popup returns no credential.
+  - Keep the correction in mpr-ui without application CSS overrides.
+  - Preserve the existing video load behavior in PoodleScanner.
+  Validation:
+  - Verify the initial click, delayed provider response, credential exchange, and recovery at narrow and wide viewport widths.
+  - Verify actual spinner animation with injected styles and the external stylesheet.
+  - Run final native CI and applicable document checks.
+  Results:
+  Four new browser cases failed before the correction because the standalone spinner had no active animation.
+  The shared auth styles now define their own animation in both delivery forms.
+  The new cases cover standalone controls in headers and footers, shared headers, canceled popup intent, and delayed credential exchange.
+  All 20 focused browser cases passed after the correction.
+  Final native CI passed 211 Node checks, 169 browser cases, coverage checks, and Pages artifact validation.
+  The changed prose passed the language checker and scoped review. The governance check reported existing template differences in six unchanged instruction files.
+  Publication:
+  Verify the deployed consumer with current shared assets after publication. Keep cache activation evidence separate from component validation.
+
 - [x] [B075] (P1) Keep Google login geometry stable during credential exchange.
   Evidence:
   The control height changed from 48 to 66.97 pixels during credential exchange.
