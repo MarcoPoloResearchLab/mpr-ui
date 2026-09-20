@@ -296,6 +296,8 @@ What your template still owns:
 
 A Google button click emits provider intent. Authentication starts only when the Google JavaScript callback returns a credential. Other provider controls stay available if the popup returns no credential.
 
+During credential exchange, the shared component shows a spinner inside the Google control. The accessible status announcement adds no visible text row. The control dimensions and surrounding page positions stay unchanged. Standalone controls include the animation in their injected styles without a dependency on a shared header.
+
 Configure the standard appearance through static element attributes. `/config-ui.yaml` is auth-only and rejects `authButton`:
 
 | Setting | Values | Default |

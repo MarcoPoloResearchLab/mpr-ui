@@ -63,6 +63,12 @@ mpr-header mpr-auth-provider-chooser {
   flex-direction: column;
 }
 
+@keyframes mpr-auth-progress-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .mpr-auth-actions {
   display: grid;
   gap: 0.25rem;
@@ -112,7 +118,7 @@ mpr-header mpr-auth-provider-chooser {
   border-right-color: transparent;
   border-radius: 50%;
   content: "";
-  animation: mpr-header-auth-transition-spin 700ms linear infinite;
+  animation: mpr-auth-progress-spin 700ms linear infinite;
 }
 
 .mpr-auth-actions__controls .mpr-auth-provider-chooser__action--apple {
@@ -178,7 +184,7 @@ mpr-header mpr-auth-provider-chooser {
   border-right-color: transparent;
   border-radius: 50%;
   content: "";
-  animation: mpr-header-auth-transition-spin 700ms linear infinite;
+  animation: mpr-auth-progress-spin 700ms linear infinite;
 }
 
 .mpr-auth-actions__status:empty {

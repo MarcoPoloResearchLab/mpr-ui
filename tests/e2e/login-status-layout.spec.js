@@ -3,6 +3,78 @@ const { test, expect } = require('./support/browserCoverage');
 const { visitLoginButtonFixture } = require('./support/fixturePage');
 
 for (const width of [390, 1280]) {
+  for (const surface of ['standalone-header', 'standalone-footer', 'shared-header']) {
+    for (const externalStyles of [true, false]) {
+      test(`B076: ${surface} progress preserves page layout at ${width}px with external styles ${externalStyles}`, async ({ page }) => {
+        await page.setViewportSize({ width, height: 900 });
+        await visitLoginButtonFixture(page);
+        await page.evaluate(({ surface, externalStyles }) => {
+          const original = document.querySelector('#fixture-login-button');
+          const authConfig = original.getAttribute('auth-config');
+          const login = original.cloneNode(false);
+          login.removeAttribute('class');
+          login.setAttribute('button-shape', 'rectangular');
+          if (!externalStyles) {
+            document.querySelector('link[rel="stylesheet"]').remove();
+          }
+          document.body.replaceChildren();
+          document.body.style.display = 'block';
+          const header = document.createElement('header');
+          header.id = 'progress-header';
+          const main = document.createElement('main');
+          main.id = 'progress-content';
+          main.textContent = 'Page content';
+          const footer = document.createElement('footer');
+          footer.id = 'progress-footer';
+          footer.textContent = 'Footer';
+          if (surface === 'shared-header') {
+            const sharedHeader = document.createElement('mpr-header');
+            sharedHeader.setAttribute('brand-label', 'Progress fixture');
+            sharedHeader.setAttribute('settings', 'false');
+            sharedHeader.setAttribute('auth-config', authConfig);
+            header.append(sharedHeader);
+          } else {
+            (surface === 'standalone-footer' ? footer : header).append(login);
+          }
+          document.body.append(header, main, footer);
+        }, { surface, externalStyles });
+
+        const button = page.getByRole('button', { name: 'Sign in with Google' });
+        const provider = page.locator('[data-mpr-auth-action="google"]');
+        const status = page.locator('[data-mpr-auth-actions="status"]');
+        const regions = page.locator('#progress-header, #progress-content, #progress-footer, [data-mpr-auth-actions="root"]');
+        const readBounds = () => regions.evaluateAll(elements => elements.map(element => element.getBoundingClientRect().toJSON()));
+        await expect(button).toBeVisible();
+        const before = await readBounds();
+
+        await button.click();
+        await expect(provider).toHaveAttribute('aria-busy', 'false');
+        await expect(status).toBeEmpty();
+        await expect(button).toBeEnabled();
+        expect(await readBounds()).toEqual(before);
+
+        await page.evaluate(() => { window.__loginButtonSubmitCredential = true; });
+        await button.click();
+        await expect(provider).toHaveAttribute('aria-busy', 'true');
+        await expect(status).toHaveText('Starting Google sign-in…');
+        await expect(status).toHaveAttribute('role', 'status');
+        await expect(status).toHaveAttribute('aria-live', 'polite');
+        await expect(status).toHaveCSS('clip-path', 'inset(50%)');
+        expect(await readBounds()).toEqual(before);
+        await expect.poll(() => provider.evaluate(element =>
+          element.getAnimations({ subtree: true }).some(animation => animation.playState === 'running'),
+        )).toBe(true);
+
+        await page.evaluate(() => window.__resolveLoginButtonCredential());
+        await expect(provider).toHaveAttribute('aria-busy', 'false');
+        await expect(status).toBeEmpty();
+        expect(await readBounds()).toEqual(before);
+      });
+    }
+  }
+}
+
+for (const width of [390, 1280]) {
   test(`B069: standalone login has no empty status space at ${width}px`, async ({ page }) => {
     await page.setViewportSize({ width, height: 900 });
     await visitLoginButtonFixture(page);

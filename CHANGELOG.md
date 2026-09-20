@@ -26,6 +26,8 @@
 - Updated Playwright to `1.61.1` and made the Node tooling module type explicit. Node 26 checks ran without loader warnings.
 
 ### Bug Fixes 🐛
+- Supplied the sign-in spinner animation through shared auth styles so standalone controls no longer required header styles.
+- Verified unchanged header, footer, and content positions during Google credential exchange with and without the external stylesheet.
 - Opened the header email form below the provider controls without a change to the header size or page position.
 - Kept the Apple and email controls available when a Google popup returned no credential.
 - Kept the header email form and its controls inside narrow browser viewports.
