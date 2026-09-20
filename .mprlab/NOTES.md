@@ -265,3 +265,13 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - Gateway B535 adds the TAuth email delivery schema and private output. Its focused integration checks passed.
 - The Apple private key and production Pinguin configuration remain necessary inputs. The hosted tenant and DNS are not active.
 - Gateway B535: full `make ci` passed after the final schema and output changes.
+
+### 2026-09-19: Compact header layout
+
+- Removed mobile width rules that put the login controls on a separate row.
+- The header now uses its container width to keep controls on one row when space is sufficient.
+- Six browser tests reproduced the defect before the source change. The vertical offsets were 36 and 63 pixels.
+- Added 11 browser tests for row alignment and changes to the container width.
+- Focused Chromium checks covered navigation, auxiliary controls, provider controls, email forms, and authentication status.
+- Final validation: `make ci` completed successfully with 211 Node tests, two runs of 180 browser tests, and the Pages artifact test.
+- Publication and live LoopAware verification were outside this change.
