@@ -12,6 +12,26 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [x] [B077] (P1) Keep the account menu available after logout failure.
+  Evidence:
+  The PoodleScanner shared-menu migration exposed an error path that hides the authenticated avatar after a rejected logout request.
+  Both synchronous and asynchronous failures reproduce this behavior in the shared browser fixture.
+  Requirements:
+  - Preserve the authenticated profile and control dimensions when logout fails.
+  - Emit the existing error event with the failure message.
+  - Keep the menu available for another logout attempt.
+  - Keep this behavior in mpr-ui without consumer CSS or session logic.
+  Validation:
+  - Verify failure, stable geometry, menu access, and a successful second attempt through the browser.
+  - Run final native CI and consumer integration checks.
+  Results:
+  Both browser cases failed before the correction because the avatar became hidden.
+  All eleven account-menu cases passed after the correction.
+  Final native CI passed 211 Node checks, 175 browser cases, coverage checks, and Pages artifact validation.
+  The consumer candidate passed 50 focused browser checks, including logout failure and a second menu access.
+  Publication:
+  Publish this shared correction before the PoodleScanner avatar-menu migration.
+
 - [x] [B076] (P1) Keep sign-in progress inside the shared control.
   Source: https://github.com/MarcoPoloResearchLab/mpr-ui/issues/227
   Goal: Authentication progress adds no height to a header, footer, or standalone login control.
@@ -850,6 +870,23 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   Last run 2026-09-01: Reworked README, architecture, component, integration, and demo references. Added one component gallery, current demo navigation, auth diagnostics, and explicit Apple versus TAuth-fixture acceptance boundaries. Removed two superseded planning and migration documents.
 
 ## Features
+
+- [x] [F013] (P1) Bind an external account menu to an explicit authentication owner.
+  Evidence:
+  A standalone PoodleScanner account menu makes three session requests instead of one during startup and menu configuration.
+  Requirements:
+  - Add an auth-target selector to the mpr-user DSL.
+  - Use the selected owner for the initial profile and subsequent authentication events.
+  - Reject invalid targets without a separate session request.
+  - Preserve the existing nested-menu contract.
+  Validation:
+  - Verify an external menu, invalid selectors, missing owners, and non-authentication targets through the browser.
+  - Verify one session request during PoodleScanner startup.
+  Results:
+  All four new browser cases failed before implementation and passed after implementation.
+  All fifteen focused account-menu cases passed.
+  The PoodleScanner candidate passed its original single-session-request regression and 33 related browser cases.
+  Final native CI passed 211 Node checks, 175 browser cases, coverage checks, and Pages artifact validation.
 
 - [x] [F012] (P1) Share the MPR Lab product catalog with web and mobile
   Goal: Supply one product directory contract for Social Threader F003.

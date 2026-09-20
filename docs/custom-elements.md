@@ -433,10 +433,15 @@ The element uses its default avatar when the authenticated provider profile has 
 
 Attributes:
 
+- `auth-target`: Selector for the owning `<mpr-header>` or `<mpr-login-button>` when the menu is outside that authentication surface.
 - `display-mode`: `avatar`, `avatar-name`, `avatar-full-name`, or `custom-avatar`.
 - `logout-url` and `logout-label`.
 - `avatar-url` and `avatar-label` for a presentation override.
 - `menu-items`: JSON array of links or action items. A link has `label` and `href`. An action has `label` and `action`.
+
+An explicit target supplies the initial profile and subsequent authentication events without an additional session request.
+An invalid target emits `mpr-user:error` and keeps the menu hidden.
+If logout fails, the menu remains available and emits `mpr-user:error`.
 
 Events:
 

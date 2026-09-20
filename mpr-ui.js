@@ -1659,6 +1659,7 @@
   var USER_MENU_LOGOUT_URL_ERROR_CODE = "mpr-ui.user.missing_logout_url";
   var USER_MENU_LOGOUT_LABEL_ERROR_CODE = "mpr-ui.user.missing_logout_label";
   var USER_MENU_CUSTOM_AVATAR_ERROR_CODE = "mpr-ui.user.missing_custom_avatar";
+  var USER_MENU_AUTH_TARGET_ERROR_CODE = "mpr-ui.user.invalid_auth_target";
   var USER_MENU_ITEMS_ERROR_CODE = "mpr-ui.user.invalid_menu_items";
   var USER_MENU_TAUTH_MISSING_ERROR_CODE = "mpr-ui.user.tauth_missing";
   var USER_MENU_PROFILE_ERROR_CODE = "mpr-ui.user.invalid_profile";
@@ -1895,6 +1896,7 @@
     AUTH_PROVIDER_CHOOSER_VARIANT_ATTRIBUTE,
   ]);
   var USER_MENU_ATTRIBUTE_NAMES = Object.freeze([
+    AUTH_COMPONENT_TARGET_ATTRIBUTE,
     "display-mode",
     "logout-url",
     "logout-label",
@@ -9490,6 +9492,26 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     if (!hostElement) {
       return null;
     }
+    var targetSelector = hostElement.getAttribute(AUTH_COMPONENT_TARGET_ATTRIBUTE);
+    if (targetSelector !== null) {
+      var documentObject = hostElement.ownerDocument;
+      var targetElement;
+      try {
+        targetElement = documentObject.querySelector(targetSelector);
+      } catch (_error) {
+        throw createUserMenuError(
+          USER_MENU_AUTH_TARGET_ERROR_CODE,
+          "User menu auth-target must be a valid selector",
+        );
+      }
+      if (!targetElement || !targetElement.matches("mpr-header,mpr-login-button")) {
+        throw createUserMenuError(
+          USER_MENU_AUTH_TARGET_ERROR_CODE,
+          "User menu auth-target must select an authentication surface",
+        );
+      }
+      return targetElement;
+    }
     return findClosestHostByTagName(hostElement, [
       "mpr-header",
       "mpr-login-button",
@@ -9517,7 +9539,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   }
 
   function resolveUserMenuEventTarget(hostElement) {
-    var scopedHost = resolveUserMenuScopedAuthHost(hostElement);
+    var scopedHost = hostElement.__userMenuConfig.authHost;
     if (scopedHost && typeof scopedHost.addEventListener === "function") {
       return scopedHost;
     }
@@ -17388,6 +17410,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           try {
             var rawOptions = buildUserMenuOptionsFromAttributes(this);
             config = normalizeUserMenuOptions(rawOptions);
+            config.authHost = resolveUserMenuScopedAuthHost(this);
           } catch (error) {
             this.__applyUserMenuError(error);
             return;
@@ -17531,7 +17554,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__authEventTarget = null;
         }
         __syncProfileFromAuthHost(source) {
-          var authHost = resolveUserMenuScopedAuthHost(this);
+          var authHost = this.__userMenuConfig.authHost;
           if (!authHost) {
             return false;
           }
@@ -17770,7 +17793,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           try {
             logoutResult = requestTauthLogout(config);
           } catch (error) {
-            reportUserMenuError(this, error);
+            this.__reportLogoutFailure(error);
             return;
           }
           var handleLogoutSuccess = function handleLogoutSuccess() {
@@ -17796,13 +17819,22 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
                   : "Logout failed",
               );
             }
-            reportUserMenuError(this, errorObject);
+            this.__reportLogoutFailure(errorObject);
           }.bind(this);
           if (logoutResult && typeof logoutResult.then === "function") {
             logoutResult.then(handleLogoutSuccess).catch(handleLogoutFailure);
             return;
           }
           handleLogoutSuccess();
+        }
+        __reportLogoutFailure(error) {
+          reportUserMenuError(this, error);
+          applyUserMenuProfile(
+            this,
+            this.__userMenuElements,
+            this.__userMenuConfig,
+            this.__profile,
+          );
         }
         __setMenuOpen(nextValue, source) {
           var nextState = Boolean(nextValue);
