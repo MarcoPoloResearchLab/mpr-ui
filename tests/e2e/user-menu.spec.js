@@ -274,3 +274,36 @@ for (const failure of ['throw', 'reject']) {
     await expect(page).toHaveURL(/#avatar-only$/);
   });
 }
+
+for (const target of ['#fixture-header', '#missing-owner', '[', 'body']) {
+  test(`F013: standalone user menu binds only to the declared auth target ${target}`, async ({ page }) => {
+    await visitHeaderUserMenuOverflowFixture(page);
+    await page.evaluate((authTarget) => {
+      window.__menuProfileRequests = 0;
+      window.getCurrentUser = () => {
+        window.__menuProfileRequests += 1;
+        return null;
+      };
+      const menu = document.createElement('mpr-user');
+      menu.id = 'standalone-user';
+      menu.setAttribute('auth-config', document.querySelector('#fixture-header').getAttribute('auth-config'));
+      menu.setAttribute('display-mode', 'avatar');
+      menu.setAttribute('logout-url', '#signed-out');
+      menu.setAttribute('logout-label', 'Log out');
+      menu.setAttribute('auth-target', authTarget);
+      document.body.append(menu);
+    }, target);
+    const menu = page.locator('#standalone-user');
+    if (target === '#fixture-header') {
+      await expect(menu).toHaveAttribute('data-mpr-user-status', 'authenticated');
+      await expect(menu.getByRole('button')).toHaveAttribute('aria-label', 'Ada Lovelace');
+      await menu.evaluate(element => element.setAttribute('menu-items', '[{"label":"Settings","action":"settings"}]'));
+      await menu.getByRole('button').click();
+      await expect(menu.getByRole('menuitem', { name: 'Settings' })).toBeVisible();
+    } else {
+      await expect(menu).toHaveAttribute('data-mpr-user-error', 'mpr-ui.user.invalid_auth_target');
+      await expect(menu).toBeHidden();
+    }
+    expect(await page.evaluate(() => window.__menuProfileRequests)).toBe(0);
+  });
+}

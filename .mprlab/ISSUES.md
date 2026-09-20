@@ -27,7 +27,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   Results:
   Both browser cases failed before the correction because the avatar became hidden.
   All eleven account-menu cases passed after the correction.
-  Final native CI passed 211 Node checks, 171 browser cases, coverage checks, and Pages artifact validation.
+  Final native CI passed 211 Node checks, 175 browser cases, coverage checks, and Pages artifact validation.
   The consumer candidate passed 50 focused browser checks, including logout failure and a second menu access.
   Publication:
   Publish this shared correction before the PoodleScanner avatar-menu migration.
@@ -870,6 +870,23 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   Last run 2026-09-01: Reworked README, architecture, component, integration, and demo references. Added one component gallery, current demo navigation, auth diagnostics, and explicit Apple versus TAuth-fixture acceptance boundaries. Removed two superseded planning and migration documents.
 
 ## Features
+
+- [x] [F013] (P1) Bind an external account menu to an explicit authentication owner.
+  Evidence:
+  A standalone PoodleScanner account menu makes three session requests instead of one during startup and menu configuration.
+  Requirements:
+  - Add an auth-target selector to the mpr-user DSL.
+  - Use the selected owner for the initial profile and subsequent authentication events.
+  - Reject invalid targets without a separate session request.
+  - Preserve the existing nested-menu contract.
+  Validation:
+  - Verify an external menu, invalid selectors, missing owners, and non-authentication targets through the browser.
+  - Verify one session request during PoodleScanner startup.
+  Results:
+  All four new browser cases failed before implementation and passed after implementation.
+  All fifteen focused account-menu cases passed.
+  The PoodleScanner candidate passed its original single-session-request regression and 33 related browser cases.
+  Final native CI passed 211 Node checks, 175 browser cases, coverage checks, and Pages artifact validation.
 
 - [x] [F012] (P1) Share the MPR Lab product catalog with web and mobile
   Goal: Supply one product directory contract for Social Threader F003.
