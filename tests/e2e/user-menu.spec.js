@@ -245,3 +245,32 @@ test.describe('User menu element', () => {
     }
   });
 });
+
+for (const failure of ['throw', 'reject']) {
+  test(`B077: ${failure} from logout keeps the avatar menu usable`, async ({ page }) => {
+    await visitUserMenuFixture(page);
+    await page.evaluate((failureMode) => {
+      window.logout = () => {
+        const error = new Error('Logout service unavailable');
+        if (failureMode === 'throw') throw error;
+        return Promise.reject(error);
+      };
+      document.addEventListener('mpr-user:error', event => {
+        window.__logoutError = event.detail.message;
+      });
+    }, failure);
+    const user = page.locator('#fixture-user-avatar');
+    const trigger = user.locator('[data-mpr-user="trigger"]');
+    const before = await trigger.boundingBox();
+    await trigger.click();
+    await user.getByRole('menuitem', { name: 'Log out' }).click();
+    await expect.poll(() => page.evaluate(() => window.__logoutError)).toBe('Logout service unavailable');
+    await expect(trigger).toBeVisible();
+    expect(await trigger.boundingBox()).toEqual(before);
+    await trigger.click();
+    await expect(user.getByRole('menuitem', { name: 'Log out' })).toBeVisible();
+    await page.evaluate(() => { window.logout = () => Promise.resolve(); });
+    await user.getByRole('menuitem', { name: 'Log out' }).click();
+    await expect(page).toHaveURL(/#avatar-only$/);
+  });
+}

@@ -12,6 +12,26 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [x] [B077] (P1) Keep the account menu available after logout failure.
+  Evidence:
+  The PoodleScanner shared-menu migration exposed an error path that hides the authenticated avatar after a rejected logout request.
+  Both synchronous and asynchronous failures reproduce this behavior in the shared browser fixture.
+  Requirements:
+  - Preserve the authenticated profile and control dimensions when logout fails.
+  - Emit the existing error event with the failure message.
+  - Keep the menu available for another logout attempt.
+  - Keep this behavior in mpr-ui without consumer CSS or session logic.
+  Validation:
+  - Verify failure, stable geometry, menu access, and a successful second attempt through the browser.
+  - Run final native CI and consumer integration checks.
+  Results:
+  Both browser cases failed before the correction because the avatar became hidden.
+  All eleven account-menu cases passed after the correction.
+  Final native CI passed 211 Node checks, 171 browser cases, coverage checks, and Pages artifact validation.
+  The consumer candidate passed 50 focused browser checks, including logout failure and a second menu access.
+  Publication:
+  Publish this shared correction before the PoodleScanner avatar-menu migration.
+
 - [x] [B076] (P1) Keep sign-in progress inside the shared control.
   Source: https://github.com/MarcoPoloResearchLab/mpr-ui/issues/227
   Goal: Authentication progress adds no height to a header, footer, or standalone login control.

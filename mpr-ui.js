@@ -17772,7 +17772,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           try {
             logoutResult = requestTauthLogout(config);
           } catch (error) {
-            reportUserMenuError(this, error);
+            this.__reportLogoutFailure(error);
             return;
           }
           var handleLogoutSuccess = function handleLogoutSuccess() {
@@ -17798,13 +17798,22 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
                   : "Logout failed",
               );
             }
-            reportUserMenuError(this, errorObject);
+            this.__reportLogoutFailure(errorObject);
           }.bind(this);
           if (logoutResult && typeof logoutResult.then === "function") {
             logoutResult.then(handleLogoutSuccess).catch(handleLogoutFailure);
             return;
           }
           handleLogoutSuccess();
+        }
+        __reportLogoutFailure(error) {
+          reportUserMenuError(this, error);
+          applyUserMenuProfile(
+            this,
+            this.__userMenuElements,
+            this.__userMenuConfig,
+            this.__profile,
+          );
         }
         __setMenuOpen(nextValue, source) {
           var nextState = Boolean(nextValue);
