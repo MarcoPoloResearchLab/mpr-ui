@@ -464,6 +464,33 @@ test.describe('Authentication provider control sizing', () => {
     await signInTab.click();
     await expect(passwordAuth).toHaveAttribute('mode', 'login');
     await expect(emailPanel.getByRole('heading', { name: 'Sign in with email' })).toBeVisible();
+
+    const resetRequests = [];
+    await page.route('https://auth.fixture.test/auth/password/reset/start', async (route) => {
+      resetRequests.push(route.request().postDataJSON());
+      await route.fulfill({ status: 202, json: { status: 'accepted', expires_unix: 1893456000 } });
+    });
+    await emailPanel.getByLabel('Email', { exact: true }).fill('reset@example.com');
+    await emailPanel.getByLabel('Password', { exact: true }).fill('discard-secret');
+    await emailPanel.getByRole('button', { name: 'Forgot password?' }).focus();
+    await page.keyboard.press('Enter');
+    await expect(passwordAuth).toHaveAttribute('mode', 'reset-start');
+    await expect(emailPanel.getByRole('tablist')).toBeHidden();
+    await expect(emailPanel.getByLabel('Email', { exact: true })).toHaveValue('reset@example.com');
+    await expect(emailPanel.getByLabel('Email', { exact: true })).toBeFocused();
+    await emailPanel.getByRole('button', { name: 'Back to sign in' }).click();
+    await expect(signInTab).toHaveAttribute('aria-selected', 'true');
+    await expect(emailPanel.getByLabel('Email', { exact: true })).toHaveValue('reset@example.com');
+    await expect(emailPanel.getByLabel('Password', { exact: true })).toHaveValue('');
+    await emailPanel.getByRole('button', { name: 'Forgot password?' }).click();
+    await emailPanel.getByRole('button', { name: 'Send reset instructions' }).click();
+    await expect(passwordAuth.getByRole('status')).toHaveText('Check your email. If this account supports email sign-in, you will receive a password reset link.');
+    expect(resetRequests).toEqual([{ email: 'reset@example.com' }]);
+    await expect(headerHost.locator('[data-mpr-auth-action="email"]')).toBeVisible();
+    const resetBounds = await passwordAuth.boundingBox();
+    expect(resetBounds.x).toBeGreaterThanOrEqual(0);
+    expect(resetBounds.x + resetBounds.width).toBeLessThanOrEqual(272);
+    expect(await passwordAuth.locator('form').evaluate(element => element.scrollWidth <= element.clientWidth)).toBe(true);
   });
 });
 
