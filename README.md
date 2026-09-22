@@ -117,7 +117,7 @@ The header uses compact square provider actions with accessible names. The login
 - Google returns the ID token to the JavaScript callback. The controller sends the token and nonce to the configured login path.
 - The Google popup flow does not use an OAuth redirect callback.
 - Apple builds a validated TAuth redirect action and navigates the top-level page. TAuth owns the Apple callback, credentials, session cookie, and server configuration.
-- Password opens one shared panel with sign-in and account-creation actions on the same controller.
+- Password opens one shared panel with sign-in, account creation, and password recovery on the same controller.
 - Session return and refresh use the configured `sessionPath` and emit the same `mpr-ui:auth:*` events for every provider.
 
 Use the standalone authentication surface when a full header is not required:
