@@ -273,6 +273,10 @@ function createWindowEventTargetStub() {
 }
 
 function resetEnvironment() {
+  global.ResizeObserver = class ResizeObserverStub {
+    observe() {}
+    disconnect() {}
+  };
   delete require.cache[bundlePath];
   delete global.MPRUI;
   delete global.window;

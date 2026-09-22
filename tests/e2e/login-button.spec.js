@@ -152,6 +152,30 @@ test.describe('Standalone login button presentation', () => {
     expect(await renderedGeometry(googleControl)).toEqual(initialControlGeometry);
   });
 
+  test('B078: resizes the Google control without refreshing its nonce', async ({ page }) => {
+    await visitLoginButtonFixture(page);
+    const googleControl = page.getByRole('button', { name: 'Sign in with Google' });
+    const controls = page.locator('[data-mpr-auth-actions="controls"]');
+    await expect(googleControl).toBeVisible();
+
+    for (const viewportWidth of [360, 480, 1280]) {
+      await page.setViewportSize({ width: viewportWidth, height: 720 });
+      const expectedWidth = await controls.evaluate((element) => Math.min(element.clientWidth, 400));
+      await expect(googleControl).toHaveCSS('width', `${expectedWidth}px`);
+      const buttonBounds = await googleControl.boundingBox();
+      const slotBounds = await controls.boundingBox();
+      expect(buttonBounds.x).toBeGreaterThanOrEqual(slotBounds.x);
+      expect(buttonBounds.x + buttonBounds.width).toBeLessThanOrEqual(slotBounds.x + slotBounds.width);
+    }
+
+    await expect.poll(() => page.evaluate(() => window.__loginButtonRequestPaths)).toEqual(['/auth/nonce']);
+    await expect.poll(() => page.evaluate(() => window.__loginButtonRenderCalls.length)).toBe(4);
+    await page.locator('mpr-login-button').evaluate((element) => element.remove());
+    await page.setViewportSize({ width: 360, height: 720 });
+    await page.evaluate(() => new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve))));
+    expect(await page.evaluate(() => window.__loginButtonRenderCalls.length)).toBe(4);
+  });
+
   test('B078: hidden login surfaces keep the provider default button width', async ({ page }) => {
     await visitLoginButtonFixture(page);
 
@@ -170,6 +194,10 @@ test.describe('Standalone login button presentation', () => {
     const hiddenRenderCall = await page.evaluate(() => window.__loginButtonRenderCalls[1]);
     expect(hiddenRenderCall.theme).toBe('filled_blue');
     expect(hiddenRenderCall.width).toBeUndefined();
+
+    await page.evaluate(() => document.querySelector('.login-panel').removeAttribute('style'));
+    const slotWidth = await page.locator('[data-mpr-auth-actions="controls"]').evaluate((element) => element.clientWidth);
+    await expect(page.getByRole('button', { name: 'Sign in with Google' })).toHaveCSS('width', `${Math.min(slotWidth, 400)}px`);
   });
 
   test('B059: refreshes the button nonce and removes its timer on disconnect', async ({ page }) => {
@@ -228,6 +256,8 @@ test.describe('Standalone login button presentation', () => {
       }, buttonVariant);
 
       await expect(googleControl).toBeVisible();
+
+      expect(await page.evaluate(() => window.__loginButtonRenderCalls.at(-1).width)).toBeUndefined();
 
       const controlBox = await googleControl.boundingBox();
       expect(controlBox).not.toBeNull();
