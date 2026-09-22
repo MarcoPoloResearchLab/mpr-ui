@@ -71,13 +71,15 @@
                   size: options.size,
                   text: options.text,
                   shape: options.shape,
+                  width: options.width,
                 });
                 element.innerHTML = '';
                 var buttonElement = document.createElement('button');
                 buttonElement.type = 'button';
                 buttonElement.setAttribute('aria-label', 'Sign in with Google');
                 buttonElement.textContent = 'Sign in with Google';
-                buttonElement.style.inlineSize = options.type === 'icon' ? '100%' : '220px';
+                buttonElement.style.inlineSize = options.type === 'icon' ? '100%' : (options.width || '220') + 'px';
+                buttonElement.style.minInlineSize = options.type === 'icon' ? '0' : (options.width || '220') + 'px';
                 buttonElement.style.blockSize = ({ small: '20px', medium: '32px', large: '40px' })[options.size];
                 buttonElement.addEventListener('click', function () {
                   options.click_listener();
