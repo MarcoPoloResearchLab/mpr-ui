@@ -117,6 +117,7 @@
     "mpr-ui.auth_diagnostics.target_invalid";
   var AUTH_COMPONENT_TARGET_ATTRIBUTE = "auth-target";
   var PASSWORD_AUTH_MODE_ATTRIBUTE = "mode";
+  var PASSWORD_AUTH_MODE_EVENT = "mpr-ui:password-auth:mode-change";
   var ACCOUNT_PANEL_ACTION_ATTRIBUTE = "action";
   var ACCOUNT_PANEL_IDENTITIES_ATTRIBUTE = "identities";
   var CHALLENGE_TOKEN_FRAGMENT_PARAMETER_ATTRIBUTE =
@@ -158,6 +159,11 @@
     verifyEmailSubmit: "Verify email",
     resetStartTitle: "Reset your password",
     resetStartSubmit: "Send reset instructions",
+    forgotPassword: "Forgot password?",
+    backToSignIn: "Back to sign in",
+    newResetLink: "Send a new reset link",
+    resetStartSuccess: "Check your email. If this account supports email sign-in, you will receive a password reset link.",
+    resetCompleteSuccess: "Your password has been reset.",
     resetCompleteTitle: "Choose a new password",
     resetCompleteSubmit: "Reset password",
     passwordChangeTitle: "Change password",
@@ -3028,6 +3034,7 @@
     var passwordPanelElement = null;
     var passwordAuthElement = null;
     var passwordModeButtons = [];
+    var passwordModeListElement = null;
     var passwordModeCleanupHandlers = [];
     var passwordPanelId = createAuthProviderEmailPanelId();
     var passwordAuthId = passwordPanelId + "-form";
@@ -3056,7 +3063,10 @@
     }
 
     function setPasswordMode(mode) {
-      passwordAuthElement.setAttribute("mode", mode);
+      if (passwordAuthElement.getAttribute(PASSWORD_AUTH_MODE_ATTRIBUTE) !== mode) {
+        passwordAuthElement.setAttribute(PASSWORD_AUTH_MODE_ATTRIBUTE, mode);
+      }
+      passwordModeListElement.style.display = mode === "reset-start" ? "none" : "";
       passwordPanelElement.setAttribute("data-mpr-auth-email-mode", mode);
       passwordModeButtons.forEach(function updatePasswordModeButton(buttonElement) {
         buttonElement.setAttribute(
@@ -3118,12 +3128,21 @@
     function createPasswordPanel() {
       var panelElement = createAuthProviderElement(hostElement, "div");
       var modeListElement = createAuthProviderElement(hostElement, "div");
+      passwordModeListElement = modeListElement;
       passwordAuthElement = createAuthProviderElement(
         hostElement,
         "mpr-password-auth",
       );
       passwordModeButtons = [];
       passwordModeCleanupHandlers = [];
+      function handlePasswordModeChange(event) {
+        setPasswordMode(event.detail.mode);
+      }
+      passwordAuthElement.addEventListener(PASSWORD_AUTH_MODE_EVENT, handlePasswordModeChange);
+      var ownedPasswordAuth = passwordAuthElement;
+      passwordModeCleanupHandlers.push(function cleanupPasswordModeChange() {
+        ownedPasswordAuth.removeEventListener(PASSWORD_AUTH_MODE_EVENT, handlePasswordModeChange);
+      });
       panelElement.id = passwordPanelId;
       panelElement.setAttribute("data-mpr-auth-email-panel", "");
       setAuthProviderElementClass(panelElement, "mpr-auth-actions__email-panel");
@@ -16205,8 +16224,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
   });
 
   var AUTH_FORM_STYLE_MARKUP =
+    ".mpr-auth-form__navigation{justify-self:start;border:0;padding:.25rem 0;background:transparent;color:var(--mpr-color-accent,#5d93ff);font:inherit;font-size:.85rem;text-decoration:underline;cursor:pointer}.mpr-auth-form__navigation:focus-visible{outline:2px solid currentColor;outline-offset:3px}" +
     "mpr-password-auth,mpr-account-panel{display:block;box-sizing:border-box;inline-size:100%;min-inline-size:0;max-inline-size:20rem}" +
-    ".mpr-auth-form{display:grid;box-sizing:border-box;inline-size:100%;min-inline-size:0;gap:.5rem;padding:.75rem;border:1px solid var(--mpr-color-border,#2c2f36);border-radius:var(--mpr-radius-control,6px);background:var(--mpr-color-surface-elevated,#1f2126);color:var(--mpr-color-text-primary,#e3e5ec);font-size:.78rem}" +
+    ".mpr-auth-form{display:grid;white-space:normal;overflow-wrap:anywhere;box-sizing:border-box;inline-size:100%;min-inline-size:0;gap:.5rem;padding:.75rem;border:1px solid var(--mpr-color-border,#2c2f36);border-radius:var(--mpr-radius-control,6px);background:var(--mpr-color-surface-elevated,#1f2126);color:var(--mpr-color-text-primary,#e3e5ec);font-size:.78rem}" +
     ".mpr-auth-form__title{margin:0;font-size:.86rem}" +
     ".mpr-auth-form__field{display:grid;gap:.25rem;font-weight:600}" +
     ".mpr-auth-form__input{box-sizing:border-box;inline-size:100%;min-inline-size:0;min-block-size:2.125rem;padding:.35rem .5rem;border:1px solid var(--mpr-color-border,#2c2f36);border-radius:var(--mpr-radius-control,6px);background:var(--mpr-color-surface-primary,#0f1114);color:var(--mpr-color-text-primary,#e3e5ec);font:inherit}" +
@@ -16611,6 +16631,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__passwordSubmitHandler = null;
           this.__passwordForm = null;
           this.__passwordAttempt = 0;
+          this.__passwordNavigationCleanup = null;
         }
         static get observedAttributes() {
           return [
@@ -16630,6 +16651,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         destroy() {
           this.__passwordAttempt += 1;
           challengeTokenForms.delete(this);
+          if (this.__passwordNavigationCleanup) {
+            this.__passwordNavigationCleanup();
+            this.__passwordNavigationCleanup = null;
+          }
           if (this.__passwordForm && this.__passwordSubmitHandler) {
             this.__passwordForm.removeEventListener(
               "submit",
@@ -16640,11 +16665,27 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__passwordSubmitHandler = null;
           clearNodeContents(this);
         }
+        __navigatePasswordAuth(mode) {
+          var emailInput = this.__passwordForm.elements.namedItem("email");
+          var email = emailInput ? emailInput.value : "";
+          if (this.hasAttribute(CHALLENGE_TOKEN_FRAGMENT_PARAMETER_ATTRIBUTE)) {
+            this.removeAttribute(CHALLENGE_TOKEN_FRAGMENT_PARAMETER_ATTRIBUTE);
+          }
+          this.setAttribute(PASSWORD_AUTH_MODE_ATTRIBUTE, mode);
+          var nextEmailInput = this.__passwordForm.elements.namedItem("email");
+          nextEmailInput.value = email;
+          nextEmailInput.focus();
+          dispatchEvent(this, PASSWORD_AUTH_MODE_EVENT, { mode: mode });
+        }
         __renderPasswordAuth() {
           if (!this.__mprConnected) {
             return;
           }
           this.__passwordAttempt += 1;
+          if (this.__passwordNavigationCleanup) {
+            this.__passwordNavigationCleanup();
+            this.__passwordNavigationCleanup = null;
+          }
           if (this.__passwordForm && this.__passwordSubmitHandler) {
             this.__passwordForm.removeEventListener(
               "submit",
@@ -16683,11 +16724,36 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             return;
           }
           var passwordElement = this;
+          var navigationDefinition = {
+            login: { mode: "reset-start", label: AUTH_FORM_LABELS.forgotPassword },
+            "reset-start": { mode: "login", label: AUTH_FORM_LABELS.backToSignIn },
+            "reset-complete": { mode: "reset-start", label: AUTH_FORM_LABELS.newResetLink },
+          }[mode];
+          var navigationButton = null;
+          if (navigationDefinition) {
+            navigationButton = documentObject.createElement("button");
+            navigationButton.type = "button";
+            navigationButton.className = "mpr-auth-form__navigation";
+            navigationButton.textContent = navigationDefinition.label;
+            navigationButton.disabled = hostDisabled;
+            navigationButton.hidden = mode === "reset-complete";
+            function handlePasswordNavigation() {
+              passwordElement.__navigatePasswordAuth(navigationDefinition.mode);
+            }
+            navigationButton.addEventListener("click", handlePasswordNavigation);
+            this.__passwordNavigationCleanup = function cleanupPasswordNavigation() {
+              navigationButton.removeEventListener("click", handlePasswordNavigation);
+            };
+            formElements.form.appendChild(navigationButton);
+          }
           var currentAttempt = this.__passwordAttempt;
           this.__passwordSubmitHandler = function handlePasswordSubmit(event) {
             event.preventDefault();
             if (hostDisabled) {
               return;
+            }
+            if (navigationButton) {
+              navigationButton.disabled = true;
             }
             var request = readAuthFormRequest(definition, formElements.inputs);
             clearAuthFormSecrets(definition, formElements.inputs);
@@ -16713,9 +16779,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
                 setAuthFormStatus(
                   formElements,
                   "success",
-                  AUTH_FORM_LABELS.success,
-                  hostDisabled,
+                  mode === "reset-start" ? AUTH_FORM_LABELS.resetStartSuccess :
+                    mode === "reset-complete" ? AUTH_FORM_LABELS.resetCompleteSuccess : AUTH_FORM_LABELS.success,
+                  hostDisabled || mode === "reset-start" || mode === "reset-complete",
                 );
+                if (navigationButton) {
+                  navigationButton.disabled = hostDisabled;
+                }
                 passwordElement.removeAttribute("data-mpr-password-auth-error");
                 passwordElement.setAttribute("data-mpr-password-auth-status", "success");
                 dispatchEvent(passwordElement, "mpr-ui:password-auth:status", {
@@ -16737,6 +16807,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
                   AUTH_FORM_LABELS.failure,
                   hostDisabled,
                 );
+                if (navigationButton) {
+                  navigationButton.disabled = hostDisabled;
+                  navigationButton.hidden = false;
+                }
                 passwordElement.setAttribute("data-mpr-password-auth-error", errorCode);
                 passwordElement.setAttribute("data-mpr-password-auth-status", "error");
                 dispatchEvent(passwordElement, "mpr-ui:password-auth:status", {
