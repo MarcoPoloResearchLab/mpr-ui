@@ -12,6 +12,23 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [x] [B078] (P1) Forward the allocated slot width to the Google button.
+  Evidence:
+  PoodleScanner landing controls render the personalized Google control inside a cross-origin iframe at the provider default width near 203 pixels while neighboring links fill the slot near 278 to 364 pixels.
+  The library never forwards a width to `google.accounts.id.renderButton`, so page styles cannot size the visible control.
+  Requirements:
+  - Measure the allocated provider slot at render time and forward it as the documented provider `width` minimum, capped at the documented 400 pixel maximum.
+  - Forward width only for standard controls with a measurable slot and keep the provider default for hidden surfaces and icon controls.
+  - Keep this behavior in mpr-ui without consumer scripts or session logic.
+  Validation:
+  - Verify the forwarded width and the hidden-surface default through the browser fixture.
+  - Run the login-button suite, neighboring auth suites, and the Node suite.
+  Results:
+  The updated render-call assertion failed before the correction because no width reached the provider.
+  All six login-button cases passed after the correction, with 36 neighboring auth cases and 211 Node checks passing.
+  Publication:
+  Publish this shared correction before the PoodleScanner personalized-geometry fix, which consumes `mpr-ui@latest`.
+
 - [x] [B077] (P1) Keep the account menu available after logout failure.
   Evidence:
   The PoodleScanner shared-menu migration exposed an error path that hides the authenticated avatar after a rejected logout request.

@@ -86,6 +86,9 @@ test.describe('Standalone login button presentation', () => {
     await expect.poll(() => page.evaluate(() => window.__loginButtonGoogleInitializeCalls)).toEqual([
       { clientId: 'fixture-google-client', nonce: 'fixture-login-nonce' },
     ]);
+    const slotWidth = await page
+      .locator('[data-mpr-auth-actions="controls"]')
+      .evaluate((element) => element.clientWidth);
     await expect.poll(() => page.evaluate(() => window.__loginButtonRenderCalls)).toEqual([
       {
         type: 'standard',
@@ -93,6 +96,7 @@ test.describe('Standalone login button presentation', () => {
         size: 'large',
         text: 'signin_with',
         shape: 'pill',
+        width: String(Math.min(slotWidth, 400)),
       },
     ]);
 
@@ -146,6 +150,26 @@ test.describe('Standalone login button presentation', () => {
 
     expect(await renderedGeometry(controlGroup)).toEqual(initialGroupGeometry);
     expect(await renderedGeometry(googleControl)).toEqual(initialControlGeometry);
+  });
+
+  test('B078: hidden login surfaces keep the provider default button width', async ({ page }) => {
+    await visitLoginButtonFixture(page);
+
+    const loginButton = page.locator('mpr-login-button#fixture-login-button');
+    await expect(page.getByRole('button', { name: 'Sign in with Google' })).toBeVisible();
+    await expect.poll(() => page.evaluate(() => window.__loginButtonRenderCalls.length)).toBe(1);
+
+    await page.evaluate(() => {
+      document.querySelector('.login-panel')?.setAttribute('style', 'display:none');
+    });
+    await loginButton.evaluate((element) => {
+      element.setAttribute('button-theme', 'filled_blue');
+    });
+
+    await expect.poll(() => page.evaluate(() => window.__loginButtonRenderCalls.length)).toBe(2);
+    const hiddenRenderCall = await page.evaluate(() => window.__loginButtonRenderCalls[1]);
+    expect(hiddenRenderCall.theme).toBe('filled_blue');
+    expect(hiddenRenderCall.width).toBeUndefined();
   });
 
   test('B059: refreshes the button nonce and removes its timer on disconnect', async ({ page }) => {

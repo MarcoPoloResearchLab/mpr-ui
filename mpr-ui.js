@@ -2750,6 +2750,23 @@
       : AUTH_ACTION_LABELS.googlePreparing;
   }
 
+  // Google renders its personalized control inside a cross-origin iframe,
+  // so page styles cannot size it. Forward the allocated slot width as the
+  // provider minimum width (documented maximum 400px) to keep the visible
+  // control aligned with its neighboring controls.
+  var GOOGLE_BUTTON_MAXIMUM_WIDTH_PX = 400;
+
+  function measureGoogleButtonSlotWidth(slotElement) {
+    if (!slotElement || typeof slotElement.clientWidth !== "number") {
+      return null;
+    }
+    var slotWidth = Math.floor(slotElement.clientWidth);
+    if (slotWidth <= 0) {
+      return null;
+    }
+    return String(Math.min(slotWidth, GOOGLE_BUTTON_MAXIMUM_WIDTH_PX));
+  }
+
   function buildGoogleButtonRenderOptions(displayOptions, handleClick) {
     var source =
       displayOptions &&
@@ -2909,6 +2926,12 @@
             handleGoogleButtonClick,
           );
           renderOptions.state = actionState;
+          if (renderOptions.type === "standard") {
+            var slotWidth = measureGoogleButtonSlotWidth(actionsElement);
+            if (slotWidth !== null) {
+              renderOptions.width = slotWidth;
+            }
+          }
           googleId.renderButton(googleButtonHost, renderOptions);
           googleButtonHost.setAttribute("data-mpr-google-ready", "true");
           googleButtonHost.setAttribute("aria-busy", "false");
