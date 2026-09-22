@@ -597,3 +597,37 @@ test.describe('Runtime configuration presentation ownership', () => {
     await expect(page).toHaveURL(/auth_action=verify-email$/);
   });
 });
+
+for (const errorCode of ['challenge_expired', 'challenge_invalid']) {
+  test(`password recovery replaces a ${errorCode} link within the shared form`, async ({ page }) => {
+    await visitConfigLoaderFixture(page);
+    const requests = [];
+    await page.route('https://auth.fixture.test/auth/password/**', async (route) => {
+      const path = new URL(route.request().url()).pathname;
+      requests.push({ path, body: route.request().postDataJSON() });
+      await route.fulfill(path.endsWith('/complete')
+        ? { status: 400, json: { error: errorCode } }
+        : { status: 202, json: { status: 'accepted', expires_unix: 1893456000 } });
+    });
+    await page.evaluate(() => { window.location.hash = 'token=expired-reset-token'; });
+    await mountF007Component(page, 'mpr-password-auth', 'mode', 'reset-complete', { 'token-fragment-parameter': 'token' });
+    const form = page.locator('[data-test="f007-component"]');
+    await expect(page).not.toHaveURL(/expired-reset-token/);
+    await form.getByLabel('New password').fill('new-password-secret');
+    await form.getByRole('button', { name: 'Reset password', exact: true }).click();
+    await expect(form).toHaveAttribute('data-mpr-password-auth-status', 'error');
+    await form.getByRole('button', { name: 'Send a new reset link' }).click();
+    await expect(form).toHaveAttribute('mode', 'reset-start');
+    await expect(form.getByLabel('Email', { exact: true })).toBeFocused();
+    await form.getByLabel('Email', { exact: true }).fill('reset@example.com');
+    await form.getByRole('button', { name: 'Send reset instructions' }).click();
+    await expect(form.getByRole('status')).toHaveText('Check your email. If this account supports email sign-in, you will receive a password reset link.');
+    expect(requests).toEqual([
+      { path: '/auth/password/reset/complete', body: { token: 'expired-reset-token', password: 'new-password-secret' } },
+      { path: '/auth/password/reset/start', body: { email: 'reset@example.com' } },
+    ]);
+    await form.getByRole('button', { name: 'Back to sign in' }).click();
+    await expect(form.getByLabel('Email', { exact: true })).toHaveValue('reset@example.com');
+    await expect(form.getByLabel('Password', { exact: true })).toHaveValue('');
+  });
+}
