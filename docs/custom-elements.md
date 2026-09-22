@@ -131,6 +131,16 @@ Optional `disabled` prevents input and submission. For `verify-email` and `reset
 
 The form uses border-box width. It stays inside its owning auth surface at narrow browser widths. In an owning auth surface, the email panel provides sign-in and account-creation tabs. The panel opens below the provider controls. It does not change the header size or page position.
 
+The sign-in form includes “Forgot password?”. This action opens `reset-start` in the same component and keeps the email address.
+The reset form includes “Back to sign in”. Navigation clears password fields and puts keyboard focus on the email field.
+The header hides its sign-in and account-creation tabs during password recovery.
+The component emits `mpr-ui:password-auth:mode-change` with only `{ mode }` after navigation.
+The owning panel uses this event to update its tabs.
+
+A successful reset request shows a neutral email confirmation. It does not authenticate the user.
+A failed reset completion shows “Send a new reset link”. This action opens `reset-start` and clears the challenge token.
+A successful reset completion shows a confirmation and disables the completed form.
+
 TAuth sends signup and reset links through Pinguin. The target page selects the matching form and sets `token-fragment-parameter="token"`. The token remains absent from attributes, events, diagnostics, profiles, server requests, and response bodies.
 
 Successful `login`, `verify-email`, and `reset-complete` actions update the owning controller and emit the ordinary `mpr-ui:auth:*` lifecycle. `signup` and `reset-start` emit `mpr-ui:account:challenge-issued` from the owning auth host with only the action, accepted status, and expiry time.
