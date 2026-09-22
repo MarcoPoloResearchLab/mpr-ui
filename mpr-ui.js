@@ -2815,6 +2815,9 @@
     var isActive = true;
     var renderSequence = 0;
     var refreshTimerId = null;
+    var resizeObserver = null;
+    var resizeFrameId = null;
+    var resizeGoogleButton = null;
     var actionState = "mpr-google-" + (++googleProviderActionSequence);
     var googleAction = { nonce: null, handleCredential: handleGoogleCredential };
     googleProviderActions.set(actionState, googleAction);
@@ -2901,6 +2904,7 @@
     function renderNonceBoundButton() {
       renderSequence += 1;
       var currentRenderSequence = renderSequence;
+      resizeGoogleButton = null;
       clearNodeContents(googleButtonHost);
       googleButtonHost.removeAttribute("data-mpr-google-ready");
       googleButtonHost.removeAttribute("data-mpr-google-error");
@@ -2933,6 +2937,31 @@
             }
           }
           googleId.renderButton(googleButtonHost, renderOptions);
+          if (renderOptions.type === "standard") {
+            resizeGoogleButton = function renderResizedGoogleButton() {
+              var slotWidth = measureGoogleButtonSlotWidth(actionsElement);
+              if (slotWidth === null || slotWidth === renderOptions.width) {
+                return;
+              }
+              renderOptions = Object.assign({}, renderOptions, { width: slotWidth });
+              clearNodeContents(googleButtonHost);
+              googleId.renderButton(googleButtonHost, renderOptions);
+            };
+            if (resizeObserver === null) {
+              resizeObserver = new global.ResizeObserver(function handleGoogleSlotResize() {
+                if (resizeFrameId !== null) {
+                  return;
+                }
+                resizeFrameId = global.requestAnimationFrame(function updateGoogleButtonWidth() {
+                  resizeFrameId = null;
+                  if (isActive && resizeGoogleButton !== null) {
+                    resizeGoogleButton();
+                  }
+                });
+              });
+              resizeObserver.observe(actionsElement);
+            }
+          }
           googleButtonHost.setAttribute("data-mpr-google-ready", "true");
           googleButtonHost.setAttribute("aria-busy", "false");
           setActionStatus("ready", AUTH_PROVIDER_IDS.GOOGLE);
@@ -2964,6 +2993,13 @@
         isActive = false;
         renderSequence += 1;
         clearRefreshTimer();
+        if (resizeObserver !== null) {
+          resizeObserver.disconnect();
+        }
+        if (resizeFrameId !== null) {
+          global.cancelAnimationFrame(resizeFrameId);
+        }
+        resizeGoogleButton = null;
         clearNodeContents(googleButtonHost);
       },
     };
