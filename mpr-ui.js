@@ -10125,7 +10125,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     'footer.mpr-footer[data-mpr-sticky="false"]{position:static;left:auto;right:auto;bottom:auto}' +
     'footer.mpr-footer [data-mpr-footer="inner"]{max-width:var(--mpr-content-width-expanded,1180px);margin:0 auto;padding:0 calc(.75rem * var(--mpr-footer-scale,1));display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:calc(.75rem * var(--mpr-footer-scale,1));overflow:visible}' +
     'footer.mpr-footer [data-mpr-footer="layout"]{display:flex;flex-wrap:wrap;align-items:center;gap:calc(.75rem * var(--mpr-footer-scale,1));width:100%;min-width:0;white-space:nowrap}' +
-    'footer.mpr-footer .mpr-footer__horizontal-links{display:flex;flex:1 1 24rem;min-width:0;flex-wrap:wrap;align-items:center;justify-content:center;gap:calc(.6rem * var(--mpr-footer-scale,1));font-size:max(.72rem,calc(.78rem * var(--mpr-footer-scale,1)));color:var(--mpr-color-text-muted,#c4c7d1);white-space:normal}' +
+    'footer.mpr-footer .mpr-footer__horizontal-links{display:flex;flex:1 1 auto;min-width:0;flex-wrap:wrap;align-items:center;justify-content:center;gap:calc(.6rem * var(--mpr-footer-scale,1));font-size:max(.72rem,calc(.78rem * var(--mpr-footer-scale,1)));color:var(--mpr-color-text-muted,#c4c7d1);white-space:normal}' +
     'footer.mpr-footer .mpr-footer__horizontal-links[data-mpr-align="left"]{justify-content:flex-start}' +
     'footer.mpr-footer .mpr-footer__horizontal-links[data-mpr-align="right"]{justify-content:flex-end}' +
     "footer.mpr-footer .mpr-footer__horizontal-links a{max-width:100%;overflow-wrap:anywhere;color:inherit;text-decoration:none;font-weight:500}" +
@@ -10141,8 +10141,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     '[data-mpr-footer="theme-toggle"][data-mpr-theme-toggle-variant="square"]{background:transparent;padding:0;border-radius:0;box-shadow:none;gap:calc(0.75rem * var(--mpr-footer-scale,1))}' +
     '.mpr-footer__theme-checkbox[data-variant="square"]{width:auto;height:auto;display:inline-flex;align-items:center;gap:calc(0.75rem * var(--mpr-footer-scale,1));border-radius:0;background:transparent;border:none;padding:0;box-shadow:none}' +
     "footer.mpr-footer [data-mpr-theme-toggle='control'][data-variant='square']{--mpr-theme-square-size:calc(28px * var(--mpr-footer-scale,1));--mpr-theme-square-dot-size:calc(6px * var(--mpr-footer-scale,1))}" +
-    "footer.mpr-footer.mpr-footer--small{--mpr-footer-scale:.82;--mpr-footer-toggle-scale:.82}" +
-    '@media(max-width:48rem){footer.mpr-footer [data-mpr-footer="inner"],footer.mpr-footer [data-mpr-footer="layout"]{flex-wrap:wrap}footer.mpr-footer .mpr-footer__horizontal-links{order:4;flex-basis:100%;justify-content:flex-start}footer.mpr-footer [data-mpr-footer="brand"]{margin-left:0}}';
+    "footer.mpr-footer.mpr-footer--small{--mpr-footer-scale:.82;--mpr-footer-toggle-scale:.82}";
 
   var FOOTER_LINK_CATALOG = Object.freeze([
     Object.freeze({ label: "Marco Polo Research Lab", url: "https://mprlab.com" }),
