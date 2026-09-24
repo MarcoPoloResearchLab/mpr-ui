@@ -879,6 +879,21 @@ footer.mpr-footer .mpr-footer__horizontal-links:empty {
   display: none;
 }
 
+footer.mpr-footer [data-mpr-footer="legal"] {
+  flex: 1 1 auto;
+  min-width: 0;
+  text-align: center;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  font-size: max(0.72rem, calc(0.78rem * var(--mpr-footer-scale, 1)));
+  color: var(--mpr-color-text-muted, #c4c7d1);
+}
+
+footer.mpr-footer [data-mpr-footer="legal"]:empty,
+footer.mpr-footer [data-mpr-footer="legal"]:not(:empty) ~ [data-mpr-footer="spacer"] {
+  display: none;
+}
+
 footer.mpr-footer [data-mpr-footer="brand"] {
   display: flex;
   flex-wrap: wrap;

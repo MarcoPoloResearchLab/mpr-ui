@@ -12,6 +12,13 @@ Format: `- [ ] [B042] (P1) {I007} Title`
 
 ## BugFixes
 
+- [x] [B079] (P1) Center footer slot content between the controls
+  Evidence: The legal slot appends shortcut text after the project menu.
+  Requirements: Center the slot between the privacy link and the theme and brand controls. Keep narrow layouts within the viewport.
+  Validation: Both stylesheet tests failed before the correction. All nineteen footer browser tests pass after the correction.
+  Resolution: The shared legal region centers text and wraps within narrow viewports.
+  Full `make ci` passed with 211 Node tests, two runs of 202 browser tests, and the Pages artifact check.
+
 - [x] [B078] (P1) Forward the allocated slot width to the Google button.
   Evidence:
   PoodleScanner landing controls render the personalized Google control inside a cross-origin iframe at the provider default width near 203 pixels while neighboring links fill the slot near 278 to 364 pixels.

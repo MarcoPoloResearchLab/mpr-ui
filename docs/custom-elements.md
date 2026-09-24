@@ -346,6 +346,11 @@ Utility links remain visible without horizontal scrolling at narrow and intermed
 - `sticky`: `true` or `false`.
 - `size`: Optional size preset used by some layouts.
 
+### Slots
+
+- `legal`: Text content centered between the privacy link and the theme and brand controls. The text wraps at narrow widths.
+- `menu-prefix`: Additional content inside the brand region.
+
 ### Theme event
 - `mpr-footer:theme-change` (detail includes `theme`).
 
