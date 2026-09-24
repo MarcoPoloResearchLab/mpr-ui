@@ -844,7 +844,7 @@ footer.mpr-footer [data-mpr-footer="layout"] {
 
 footer.mpr-footer .mpr-footer__horizontal-links {
   display: flex;
-  flex: 1 1 24rem;
+  flex: 1 1 auto;
   min-width: 0;
   flex-wrap: wrap;
   align-items: center;
@@ -903,23 +903,6 @@ footer.mpr-footer [data-mpr-footer="theme-toggle"] {
   cursor: pointer;
   box-shadow: none;
   border: none;
-}
-
-@media (max-width: 48rem) {
-  footer.mpr-footer [data-mpr-footer="inner"],
-  footer.mpr-footer [data-mpr-footer="layout"] {
-    flex-wrap: wrap;
-  }
-
-  footer.mpr-footer .mpr-footer__horizontal-links {
-    order: 4;
-    flex-basis: 100%;
-    justify-content: flex-start;
-  }
-
-  footer.mpr-footer [data-mpr-footer="brand"] {
-    margin-left: 0;
-  }
 }
 
 [data-mpr-modal="container"] {
