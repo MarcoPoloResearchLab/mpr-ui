@@ -707,7 +707,7 @@ function createFooterElementHarness() {
   };
   root.offsetHeight = 80;
   const inner = createStubNode({});
-  const layout = createStubNode({});
+  const legal = createStubNode({});
   const brandContainer = createStubNode({});
   const prefix = createStubNode({});
   const themeToggleHost = createStubNode({ attributes: true });
@@ -720,7 +720,7 @@ function createFooterElementHarness() {
   const selectorMap = new Map([
     ['footer[role="contentinfo"]', root],
     ['[data-mpr-footer="inner"]', inner],
-    ['[data-mpr-footer="layout"]', layout],
+    ['[data-mpr-footer="legal"]', legal],
     ['[data-mpr-footer="brand"]', brandContainer],
     ['[data-mpr-footer="horizontal-links"]', horizontalLinks],
     ['[data-mpr-footer="prefix"]', prefix],
@@ -739,7 +739,7 @@ function createFooterElementHarness() {
   return {
     element,
     root,
-    layout,
+    legal,
     brandContainer,
     prefix,
     privacyLink,
@@ -3563,8 +3563,8 @@ test('mpr-footer reflects attributes and slot content', () => {
     'menu-prefix slot appended to brand container',
   );
   assert.ok(
-    harness.layout.children.indexOf(legalSlot) !== -1,
-    'legal slot appended to layout container',
+    harness.legal.children.indexOf(legalSlot) !== -1,
+    'legal slot appended to center container',
   );
 });
 

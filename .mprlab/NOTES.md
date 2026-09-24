@@ -275,3 +275,14 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - Focused Chromium checks covered navigation, auxiliary controls, provider controls, email forms, and authentication status.
 - Final validation: `make ci` completed successfully with 211 Node tests, two runs of 180 browser tests, and the Pages artifact test.
 - Publication and live LoopAware verification were outside this change.
+
+### 2026-09-23: Center footer content
+
+- B079 places the legal slot between privacy and the right-hand controls.
+- The shared styles center the text and wrap it at narrow widths.
+- Both stylesheet tests reproduced the position defect before the correction.
+- Full `make ci` passed with 211 Node tests, two runs of 202 browser tests, and the Pages artifact check.
+- Publication remains a separate operation.
+
+- B079 review: Browser checks also verify the right edge and middle hint with the NameSignal copyright and company trigger.
+- Final review validation passed: shared `make ci`, application `make ci`, and seven application footer scenarios with the shared candidate.

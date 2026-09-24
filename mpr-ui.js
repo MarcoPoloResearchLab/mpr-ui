@@ -10131,6 +10131,9 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     "footer.mpr-footer .mpr-footer__horizontal-links a{max-width:100%;overflow-wrap:anywhere;color:inherit;text-decoration:none;font-weight:500}" +
     "footer.mpr-footer .mpr-footer__horizontal-links a:hover{text-decoration:underline}" +
     "footer.mpr-footer .mpr-footer__horizontal-links:empty{display:none}" +
+    'footer.mpr-footer [data-mpr-footer="legal"]{flex:1 1 auto;min-width:0;text-align:center;white-space:normal;overflow-wrap:anywhere;font-size:max(.72rem,calc(.78rem * var(--mpr-footer-scale,1)));color:var(--mpr-color-text-muted,#c4c7d1)}' +
+    'footer.mpr-footer [data-mpr-footer="legal"]:empty{display:none}' +
+    'footer.mpr-footer [data-mpr-footer="legal"]:not(:empty) ~ [data-mpr-footer="spacer"]{display:none}' +
     '.mpr-footer__spacer{display:block;flex:1 1 auto;min-width:1px}' +
     'footer.mpr-footer [data-mpr-footer="brand"]{display:flex;flex-wrap:wrap;min-width:0;max-width:100%;align-items:center;gap:calc(.6rem * var(--mpr-footer-scale,1));font-size:max(.72rem,calc(.78rem * var(--mpr-footer-scale,1)));margin-left:auto;white-space:normal}' +
     '.mpr-footer__prefix{font-weight:600;color:var(--mpr-color-accent,#38bdf8)}' +
@@ -14740,7 +14743,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     return {
       root: root,
       brand: footerQuery(root, '[data-mpr-footer="brand"]'),
-      layout: footerQuery(root, '[data-mpr-footer="layout"]'),
+      legal: footerQuery(root, '[data-mpr-footer="legal"]'),
     };
   }
 
@@ -14760,10 +14763,10 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         }
       });
     }
-    if (elements.layout && slotMap.legal && slotMap.legal.length) {
+    if (elements.legal && slotMap.legal && slotMap.legal.length) {
       slotMap.legal.forEach(function appendLegalSlot(node) {
-        if (node && typeof elements.layout.appendChild === "function") {
-          elements.layout.appendChild(node);
+        if (node && typeof elements.legal.appendChild === "function") {
+          elements.legal.appendChild(node);
         }
       });
     }
@@ -15002,6 +15005,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       '<div data-mpr-footer="layout">' +
       privacyLinkMarkup +
       horizontalLinksMarkup +
+      '<div data-mpr-footer="legal"></div>' +
       spacerMarkup +
       themeToggleMarkup +
       '<div data-mpr-footer="brand">' +

@@ -122,3 +122,46 @@ test('MU-372: base-class utilities reach the mpr-footer host in non-sticky flex 
   expect(layoutMetrics.gapAboveFooter).toBeGreaterThan(100);
   expect(Math.abs(layoutMetrics.gapBelowFooter)).toBeLessThan(4);
 });
+
+for (const stylesheet of ['external', 'embedded']) {
+  test(`B079: legal slot stays between footer controls with ${stylesheet} styles`, async ({ page }) => {
+    await page.setViewportSize({ width: 917, height: 456 });
+    await visitFooterFlexUtilityFixture(page);
+    await page.locator('mpr-footer').evaluate((footer, styleSource) => {
+      const replacement = document.createElement('mpr-footer');
+      replacement.setAttribute('privacy-link-label', 'Privacy • Terms');
+      replacement.setAttribute('theme-switcher', 'toggle');
+      replacement.setAttribute('prefix-text', '© 2026');
+      replacement.setAttribute('menu', JSON.stringify({ label: 'Marco Polo Research Lab LLC', placement: 'top', sections: [
+        { id: 'company', label: 'Company', mode: 'static', links: [{label:'MPR Lab',href:'https://mprlab.com'}] },
+      ] }));
+      replacement.innerHTML = '<span slot="legal">Press / to search • Enter to copy the focused card</span>';
+      footer.replaceWith(replacement);
+      if (styleSource === 'embedded') document.querySelectorAll('link[rel="stylesheet"]').forEach(link => link.remove());
+      else document.getElementById('mpr-ui-footer-styles').remove();
+    }, stylesheet);
+    const footer = page.locator('mpr-footer');
+    const hint = footer.getByText('Press / to search • Enter to copy the focused card', {exact:true});
+    await expect(hint).toBeVisible();
+    for (const width of [917, 1280, 390]) {
+      await page.setViewportSize({ width, height: 456 });
+      const hintBox = await hint.boundingBox();
+      const privacyBox = await footer.locator('[data-mpr-footer="privacy-link"]').boundingBox();
+      const toggleBox = await footer.getByRole('switch').boundingBox();
+      expect(hintBox.x).toBeGreaterThanOrEqual(0);
+      expect(hintBox.x + hintBox.width).toBeLessThanOrEqual(width);
+      if (width >= 917) {
+        const brandBox = await footer.locator('[data-mpr-footer="brand"]').boundingBox();
+        const innerBox = await footer.locator('[data-mpr-footer="inner"]').boundingBox();
+        expect(Math.abs(brandBox.x + brandBox.width - (innerBox.x + innerBox.width - 12))).toBeLessThan(2);
+        expect(Math.abs(hintBox.x + hintBox.width / 2 - width / 2)).toBeLessThan(width * 0.15);
+        expect(hintBox.x).toBeGreaterThan(privacyBox.x + privacyBox.width);
+        expect(hintBox.x + hintBox.width).toBeLessThan(toggleBox.x);
+        expect(Math.abs(hintBox.y + hintBox.height / 2 - toggleBox.y - toggleBox.height / 2)).toBeLessThan(2);
+      }
+    }
+    await footer.evaluate(element => element.setAttribute('size', 'small'));
+    await expect(hint).toHaveCount(1);
+    await expect(hint).toBeVisible();
+  });
+}
