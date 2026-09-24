@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
+    <title>Entity Workspace Demo</title>
+    <link rel="stylesheet" href="../mpr-ui.css" />
+    <link rel="stylesheet" href="./entity-workspace.css" />
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@5.4.1/dist/browser/js-yaml.umd.min.js"></script>
+    <!-- MPR UI orchestration via Web Components DSL -->
+    <script src="../mpr-ui-config.js" defer></script>
+    <script
+      id="entity-demo-mpr-ui-bundle"
+      type="application/json"
+      data-mpr-ui-bundle-src="../mpr-ui.js"
+    ></script>
+    <script defer src="./entity-workspace.js"></script>
+  </head>
+  <body class="theme-dark" data-demo-palette="default" data-mpr-theme="dark">
+    <!-- MPR UI orchestration via Web Components DSL -->
+    <mpr-header
+      id="demo-header"
+      brand-label="Marco Polo Research Lab"
+      brand-href="https://mprlab.com/"
+      horizontal-links='{
+        "alignment": "right",
+        "links": [
+          { "label": "Index demo", "href": "../index.html" },
+          { "label": "Components", "href": "./components.html" },
+          { "label": "TAuth demo", "href": "./tauth-demo.html" },
+          { "label": "Provider chooser", "href": "./auth-provider-chooser.html" },
+          { "label": "Entity workspace", "href": "./entity-workspace.html?entity-demo-docker=2" },
+          { "label": "Standalone demo", "href": "./standalone.html" }
+        ]
+      }'
+      data-config-url="./config-ui.yaml"
+      user-menu-display-mode="avatar"
+      logout-url="/"
+      sign-out-label="Log out"
+    >
+      <mpr-user
+        slot="aux"
+        display-mode="avatar"
+        logout-url="/"
+        logout-label="Log out"
+      ></mpr-user>
+    </mpr-header>
+
+    <main class="entity-demo">
+      <section class="entity-demo__hero">
+        <div class="entity-demo__hero-copy">
+          <p id="entity-demo-hero-eyebrow" class="entity-demo__eyebrow"></p>
+          <h1 id="entity-demo-hero-title" class="entity-demo__title"></h1>
+          <p id="entity-demo-hero-description" class="entity-demo__lede"></p>
+        </div>
+
+        <div class="entity-demo__hero-panel">
+          <p id="entity-demo-hero-details" class="entity-demo__hero-note"></p>
+
+          <div class="entity-demo__hero-links">
+            <a href="./entity-workspace.json">Open JSON</a>
+            <a href="../docs/custom-elements.md">Component docs</a>
+            <a href="./components.html">Component gallery</a>
+          </div>
+        </div>
+      </section>
+
+      <section
+        id="entity-demo-protocol-warning"
+        class="entity-demo__notice entity-demo__notice--warning"
+        hidden
+      >
+        This page fetches <code>./entity-workspace.json</code>. Serve the repository over HTTP before
+        opening <code>/demo/entity-workspace.html</code>.
+      </section>
+
+      <section id="entity-demo-error" class="entity-demo__notice entity-demo__notice--error" hidden></section>
+
+      <section id="entity-demo-loading" class="entity-demo__notice">
+        Loading example data from <code>./entity-workspace.json</code>...
+      </section>
+
+      <section class="entity-demo__workspace-shell">
+        <mpr-workspace-layout
+          id="entity-demo-layout"
+          sidebar-width="18rem"
+          stacked-breakpoint="62rem"
+        >
+          <div slot="header" class="entity-demo__workspace-header">
+            <div>
+              <p class="entity-demo__eyebrow">Shared chrome only</p>
+              <h2 class="entity-demo__section-title">Playlists above, videos below</h2>
+            </div>
+
+            <button id="entity-demo-sidebar-toggle" type="button" class="entity-demo__button">
+              Hide library
+            </button>
+          </div>
+
+          <mpr-sidebar-nav
+            id="entity-demo-sidebar"
+            slot="sidebar"
+            label="Workspace sections"
+            variant="surface"
+          >
+            <div id="entity-demo-sidebar-items" class="entity-demo__sidebar-items"></div>
+          </mpr-sidebar-nav>
+
+          <div slot="content" class="entity-demo__workspace-content">
+            <mpr-entity-rail id="entity-demo-rail" label="Playlists" nav-step="560">
+              <div slot="leading" id="entity-demo-rail-leading"></div>
+              <div id="entity-demo-rail-items" class="entity-demo__rail-items"></div>
+              <div slot="trailing" id="entity-demo-rail-trailing"></div>
+            </mpr-entity-rail>
+
+            <mpr-entity-workspace id="entity-demo-workspace" selection-count="0">
+              <div slot="heading" id="entity-demo-heading" class="entity-demo__heading">
+                <p id="entity-demo-section-label" class="entity-demo__eyebrow"></p>
+
+                <div class="entity-demo__heading-row">
+                  <div>
+                    <h2 id="entity-demo-playlist-title" class="entity-demo__playlist-title"></h2>
+                    <p id="entity-demo-playlist-summary" class="entity-demo__playlist-summary"></p>
+                  </div>
+
+                  <button
+                    id="entity-demo-open-playlist"
+                    type="button"
+                    class="entity-demo__button entity-demo__button--ghost"
+                  >
+                    Playlist details
+                  </button>
+                </div>
+              </div>
+
+              <div slot="toolbar" id="entity-demo-toolbar" class="entity-demo__toolbar">
+                <p id="entity-demo-toolbar-copy" class="entity-demo__toolbar-copy"></p>
+
+                <div class="entity-demo__toolbar-meta">
+                  <span id="entity-demo-pagination" class="entity-demo__pill"></span>
+                  <span id="entity-demo-selection-pill" class="entity-demo__pill"></span>
+                </div>
+              </div>
+
+              <div slot="filters" id="entity-demo-filters" class="entity-demo__filters">
+                <label class="entity-demo__search">
+                  <span>Search loaded videos</span>
+                  <input
+                    id="entity-demo-search-input"
+                    type="search"
+                    placeholder="Filter by title, summary, or tag"
+                    autocomplete="off"
+                  />
+                </label>
+              </div>
+
+              <div
+                slot="bulk-actions"
+                id="entity-demo-bulk-actions"
+                class="entity-demo__bulk-actions"
+              >
+                <button id="entity-demo-clear-selection" type="button" class="entity-demo__button">
+                  Clear selection
+                </button>
+                <button
+                  id="entity-demo-open-selected"
+                  type="button"
+                  class="entity-demo__button entity-demo__button--secondary"
+                >
+                  Open first selected
+                </button>
+              </div>
+
+              <div slot="list" id="entity-demo-video-list" class="entity-demo__video-list"></div>
+
+              <div slot="empty" id="entity-demo-empty" class="entity-demo__empty-state">
+                <p id="entity-demo-empty-title" class="entity-demo__empty-title"></p>
+                <p id="entity-demo-empty-copy" class="entity-demo__empty-copy"></p>
+              </div>
+            </mpr-entity-workspace>
+          </div>
+        </mpr-workspace-layout>
+      </section>
+    </main>
+
+    <mpr-detail-drawer id="entity-demo-drawer" heading="Details" subheading="JSON example">
+      <div slot="header-actions" id="entity-demo-drawer-actions"></div>
+      <div slot="body" id="entity-demo-drawer-body"></div>
+      <div slot="footer" id="entity-demo-drawer-footer" class="entity-demo__drawer-footer">
+        <button
+          id="entity-demo-close-drawer"
+          type="button"
+          class="entity-demo__button entity-demo__button--ghost"
+        >
+          Close
+        </button>
+      </div>
+    </mpr-detail-drawer>
+
+    <mpr-footer
+      id="page-footer"
+      sticky="false"
+      size="small"
+      privacy-link-label="Privacy &amp; Terms"
+      privacy-link-href="#privacy"
+      privacy-modal-content="
+        <h1>Privacy Policy — MPR UI</h1>
+        <p><strong>Effective Date:</strong> 2025-10-11</p>
+        <p>LoopAware uses configured identity providers to authenticate users. We receive the profile
+           information needed to sign you in. We do not sell or share your data,
+           and we only store your notes so the service functions.</p>
+        <p>To request deletion of your data, contact
+           <a href='mailto:support@mprlab.com'>support@mprlab.com</a>.</p>
+      "
+      horizontal-links='{
+        "alignment": "center",
+        "links": [
+          { "label": "Docs", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/README.md", "target": "_blank" },
+          { "label": "Changelog", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/CHANGELOG.md", "target": "_blank" },
+          { "label": "GitHub", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui", "target": "_blank" },
+          { "label": "Support", "href": "mailto:support@mprlab.com" }
+        ]
+      }'
+      menu='{
+        "label": "MPR Lab sites",
+        "placement": "top",
+        "sections": [
+          { "id": "platform", "label": "Platform", "mode": "static", "links": [
+            { "label": "Marco Polo Research Lab", "href": "https://mprlab.com", "target": "_blank" }
+          ] },
+          { "id": "products", "label": "Products", "mode": "expanded", "links": [
+            { "label": "Gravity Notes", "href": "https://gravity.mprlab.com", "target": "_blank" },
+            { "label": "LoopAware", "href": "https://loopaware.mprlab.com", "target": "_blank" },
+            { "label": "Allergy Wheel", "href": "https://allergy.mprlab.com", "target": "_blank" },
+            { "label": "Social Threader", "href": "https://threader.mprlab.com", "target": "_blank" },
+            { "label": "RSVP", "href": "https://rsvp.mprlab.com", "target": "_blank" }
+          ] },
+          { "id": "tools", "label": "Tools", "mode": "collapsed", "links": [
+            { "label": "Countdown Calendar", "href": "https://countdown.mprlab.com", "target": "_blank" },
+            { "label": "LLM Crossword", "href": "https://llm-crossword.mprlab.com", "target": "_blank" },
+            { "label": "Prompt Bubbles", "href": "https://prompts.mprlab.com", "target": "_blank" },
+            { "label": "Wallpapers", "href": "https://wallpapers.mprlab.com", "target": "_blank" }
+          ] }
+        ]
+      }'
+      theme-switcher="square"
+      theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-dark","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
+    ></mpr-footer>
+  </body>
+</html>
