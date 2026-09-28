@@ -65,6 +65,7 @@ The auth controller also reflects the current auth phase on the host as `data-mp
 - `mpr-ui:auth:authenticated` (detail includes `profile`).
 - `mpr-ui:auth:unauthenticated`.
 - `mpr-ui:auth:status-change` (detail includes `status`, `previousStatus`, and `profile`).
+- `mpr-ui:auth:options-change` (the controller emits this event after its configuration changes, with empty detail).
 - `mpr-ui:auth:error` (detail includes `code`, optional `message`).
 - `mpr-ui:header:error` (header or provider-action failures).
 - `mpr-ui:header:signin-click` (detail includes the selected provider).
@@ -421,6 +422,8 @@ The component emits the shared `mpr-ui:theme-change` event through the theme man
 `<mpr-login-button>` renders one action for each enabled Google, Apple, and password provider. Without `auth-target`, it owns an auth controller. Put `data-config-url="/config-ui.yaml"` on this standalone element so the config loader applies one `auth-config` contract before bundle startup.
 
 Set `auth-target` to the selector of an existing auth owner to use that owner's controller and provider configuration. The owner must be ready before the login button connects. The button does not change or destroy the owner's controller. An invalid target sets `data-mpr-auth-error` and emits `mpr-login:error`.
+
+After the owner configuration changes, the button automatically renders the current provider controls. The button removes its event listener when its target changes or it disconnects.
 
 Presentation attributes are static page data:
 
