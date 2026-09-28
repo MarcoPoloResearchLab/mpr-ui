@@ -191,6 +191,8 @@ Some public login pages need provider controls without a header-owned user menu.
 
 The loader applies only `/config-ui.yaml` auth attributes to the button before loading the bundle. The `button-*` attributes remain static page presentation.
 
+For login controls in a dialog, set `auth-target="#site-header"` on `<mpr-login-button>`. The header must own a ready auth controller before the button connects. The button uses the header's provider configuration and controller. It does not create a second session probe. Removing the button leaves the header's controller active. The application owns the dialog and uses the shared auth lifecycle to close it after sign-in.
+
 ### Config-driven provider actions
 
 The owning header or login button renders the provider set from `/config-ui.yaml`. Google, Apple, and password can be enabled independently or together. The surface uses one auth controller, and provider actions do not create duplicate session or profile probes.
@@ -292,7 +294,11 @@ What your template still owns:
 
 ## Login-only button presentation
 
-`<mpr-login-button>` owns the complete enabled provider action set. On initialization, it renders accessible provider controls with focus and status feedback. Google uses the official GIS popup button. The controller requests and refreshes the TAuth nonce before it renders that button. The GIS JavaScript callback receives the ID token. This flow does not use a Google redirect URI. Apple starts validated top-level TAuth navigation. Password opens one panel with sign-in and account-creation tabs on the same controller.
+`<mpr-login-button>` renders the complete enabled provider action set. Without `auth-target`, it owns the auth controller. With `auth-target`, it uses the specified owner's controller.
+
+On initialization, it renders accessible provider controls with focus and status feedback. Google uses the official GIS popup button. The controller requests and refreshes the TAuth nonce before it renders that button. The GIS JavaScript callback receives the ID token.
+
+This flow does not use a Google redirect URI. Apple starts validated top-level TAuth navigation. Password opens one panel with sign-in and account-creation tabs on the same controller.
 
 A Google button click emits provider intent. Authentication starts only when the Google JavaScript callback returns a credential. Other provider controls stay available if the popup returns no credential.
 
