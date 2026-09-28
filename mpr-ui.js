@@ -1892,6 +1892,7 @@
   ]);
   var LOGIN_BUTTON_ATTRIBUTE_NAMES = Object.freeze([
     AUTH_CONFIG_ATTRIBUTE,
+    AUTH_COMPONENT_TARGET_ATTRIBUTE,
     "button-text",
     "button-theme",
     "button-size",
@@ -17166,6 +17167,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         constructor() {
           super();
           this.__authController = null;
+          this.__ownsAuthController = false;
           this.__providerActionsCleanup = null;
           this.__providerActionsHost = null;
         }
@@ -17183,11 +17185,19 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             this.__providerActionsCleanup();
             this.__providerActionsCleanup = null;
           }
-          if (this.__authController && typeof this.__authController.destroy === "function") {
+          this.__releaseAuthController();
+          this.__providerActionsHost = null;
+        }
+        __releaseAuthController() {
+          if (
+            this.__ownsAuthController &&
+            this.__authController &&
+            typeof this.__authController.destroy === "function"
+          ) {
             this.__authController.destroy();
           }
           this.__authController = null;
-          this.__providerActionsHost = null;
+          this.__ownsAuthController = false;
         }
         __renderLoginButton() {
           if (!this.__mprConnected) {
@@ -17206,20 +17216,32 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
           this.__providerActionsHost = container;
           var authOptions;
+          var sharedController = null;
           try {
-            authOptions = buildLoginAuthOptionsFromAttributes(this);
+            if (this.hasAttribute(AUTH_COMPONENT_TARGET_ATTRIBUTE)) {
+              if (!this.getAttribute(AUTH_COMPONENT_TARGET_ATTRIBUTE).trim()) {
+                throw createAuthComponentError(
+                  "mpr-ui.auth_component.target_required",
+                  "auth-target must reference an auth owner",
+                );
+              }
+              sharedController = resolveAuthComponentController(this);
+              if (sharedController === this.__authController && this.__ownsAuthController) {
+                throw createAuthComponentError(
+                  "mpr-ui.auth_component.target_invalid",
+                  "auth-target must reference another auth owner",
+                );
+              }
+              authOptions = sharedController.state.options;
+            } else {
+              authOptions = buildLoginAuthOptionsFromAttributes(this);
+            }
           } catch (error) {
             if (this.__providerActionsCleanup) {
               this.__providerActionsCleanup();
               this.__providerActionsCleanup = null;
             }
-            if (
-              this.__authController &&
-              typeof this.__authController.destroy === "function"
-            ) {
-              this.__authController.destroy();
-            }
-            this.__authController = null;
+            this.__releaseAuthController();
             clearNodeContents(container);
             this.setAttribute(
               "data-mpr-auth-error",
@@ -17236,6 +17258,18 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             });
             return;
           }
+          if (this.__providerActionsCleanup) {
+            this.__providerActionsCleanup();
+            this.__providerActionsCleanup = null;
+          }
+          if (sharedController) {
+            if (this.__authController !== sharedController) {
+              this.__releaseAuthController();
+              this.__authController = sharedController;
+            }
+          } else if (!this.__ownsAuthController) {
+            this.__releaseAuthController();
+          }
           var tenantId = normalizeTenantId(authOptions.tenantId);
           var currentTenantId =
             this.__authController &&
@@ -17243,17 +17277,14 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             this.__authController.state.options
               ? normalizeTenantId(this.__authController.state.options.tenantId)
               : null;
-          if (currentTenantId && currentTenantId !== tenantId) {
+          if (this.__ownsAuthController && currentTenantId && currentTenantId !== tenantId) {
             throw createAuthTenantIdChangeError(currentTenantId, tenantId);
           }
-          if (this.__authController && typeof this.__authController.updateOptions === "function") {
+          if (this.__ownsAuthController && typeof this.__authController.updateOptions === "function") {
             this.__authController.updateOptions(authOptions);
           } else if (!this.__authController) {
             this.__authController = createAuthHeader(this, authOptions);
-          }
-          if (this.__providerActionsCleanup) {
-            this.__providerActionsCleanup();
-            this.__providerActionsCleanup = null;
+            this.__ownsAuthController = true;
           }
           var loginElement = this;
           var buttonOptions = buildLoginButtonDisplayOptions(loginElement);
