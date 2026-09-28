@@ -418,7 +418,9 @@ The component emits the shared `mpr-ui:theme-change` event through the theme man
 
 ## mpr-login-button
 
-`<mpr-login-button>` is a standalone auth owner. Put `data-config-url="/config-ui.yaml"` on the element so the config loader applies one `auth-config` contract before bundle startup. The component renders one action for each enabled Google, Apple, and password provider.
+`<mpr-login-button>` renders one action for each enabled Google, Apple, and password provider. Without `auth-target`, it owns an auth controller. Put `data-config-url="/config-ui.yaml"` on this standalone element so the config loader applies one `auth-config` contract before bundle startup.
+
+Set `auth-target` to the selector of an existing auth owner to use that owner's controller and provider configuration. The owner must be ready before the login button connects. The button does not change or destroy the owner's controller. An invalid target sets `data-mpr-auth-error` and emits `mpr-login:error`.
 
 Presentation attributes are static page data:
 
@@ -438,6 +440,19 @@ It emits the shared `mpr-ui:auth:*` lifecycle and `mpr-login:error`. Password se
   button-size="large"
   button-shape="pill"
 ></mpr-login-button>
+```
+
+For a dialog with an existing header, use the header as the auth owner:
+
+```html
+<dialog aria-labelledby="login-title">
+  <h2 id="login-title">Sign in</h2>
+  <mpr-login-button
+    auth-target="#site-header"
+    button-text="signin_with"
+    button-size="large"
+  ></mpr-login-button>
+</dialog>
 ```
 
 ## mpr-user
