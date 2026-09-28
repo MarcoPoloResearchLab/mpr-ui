@@ -116,6 +116,7 @@
   var AUTH_DIAGNOSTICS_TARGET_INVALID_ERROR_CODE =
     "mpr-ui.auth_diagnostics.target_invalid";
   var AUTH_COMPONENT_TARGET_ATTRIBUTE = "auth-target";
+  var AUTH_OPTIONS_CHANGE_EVENT = "mpr-ui:auth:options-change";
   var PASSWORD_AUTH_MODE_ATTRIBUTE = "mode";
   var PASSWORD_AUTH_MODE_EVENT = "mpr-ui:password-auth:mode-change";
   var ACCOUNT_PANEL_ACTION_ATTRIBUTE = "action";
@@ -6319,6 +6320,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       hasCompletedInitialBootstrap = false;
       markUnauthenticated({ emit: false });
       bootstrapSession();
+      dispatchEvent(rootElement, AUTH_OPTIONS_CHANGE_EVENT, {});
     }
 
     function destroy() {
@@ -17168,6 +17170,8 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           super();
           this.__authController = null;
           this.__ownsAuthController = false;
+          this.__authOptionsEventTarget = null;
+          this.__authOptionsEventHandler = this.__handleAuthOptionsChange.bind(this);
           this.__providerActionsCleanup = null;
           this.__providerActionsHost = null;
         }
@@ -17189,6 +17193,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           this.__providerActionsHost = null;
         }
         __releaseAuthController() {
+          if (this.__authOptionsEventTarget) {
+            this.__authOptionsEventTarget.removeEventListener(
+              AUTH_OPTIONS_CHANGE_EVENT,
+              this.__authOptionsEventHandler,
+            );
+            this.__authOptionsEventTarget = null;
+          }
           if (
             this.__ownsAuthController &&
             this.__authController &&
@@ -17198,6 +17209,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
           }
           this.__authController = null;
           this.__ownsAuthController = false;
+        }
+        __handleAuthOptionsChange(event) {
+          if (event.target === this.__authOptionsEventTarget) {
+            this.__renderLoginButton();
+          }
         }
         __renderLoginButton() {
           if (!this.__mprConnected) {
@@ -17266,6 +17282,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             if (this.__authController !== sharedController) {
               this.__releaseAuthController();
               this.__authController = sharedController;
+            }
+            if (!this.__authOptionsEventTarget) {
+              this.__authOptionsEventTarget = sharedController.host;
+              this.__authOptionsEventTarget.addEventListener(
+                AUTH_OPTIONS_CHANGE_EVENT,
+                this.__authOptionsEventHandler,
+              );
             }
           } else if (!this.__ownsAuthController) {
             this.__releaseAuthController();
