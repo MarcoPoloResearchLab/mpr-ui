@@ -286,3 +286,14 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 
 - B079 review: Browser checks also verify the right edge and middle hint with the NameSignal copyright and company trigger.
 - Final review validation passed: shared `make ci`, application `make ci`, and seven application footer scenarios with the shared candidate.
+
+### 2026-09-28: Shared login configuration changes
+
+- Added `mpr-ui:auth:options-change` after changes to the controller configuration.
+- The login button now renders the current provider controls after changes to its owner configuration.
+- The login button removes its event listener when its target changes or it disconnects.
+- Browser integration tests first confirmed missing provider controls after changes to the owner configuration.
+- Three new Chromium tests cover provider changes, label changes, unchanged configuration, target changes, and reconnection.
+- Focused browser validation passed all 16 tests.
+- Final `make ci` passed 211 Node tests, two runs of 211 Chromium tests, and the Pages artifact check.
+- Updated the component reference for the configuration event and automatic provider controls.
