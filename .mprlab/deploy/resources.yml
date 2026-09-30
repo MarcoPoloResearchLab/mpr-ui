@@ -4,25 +4,25 @@ mprlab_resources:
   release:
     scheme: semver
   resources:
-    - kind: jsdelivr
-      id: browser-assets
+    browser-assets:
+      kind: jsdelivr
       repository: MarcoPoloResearchLab/mpr-ui
       assets:
-        - mpr-ui-config.js
-        - mpr-ui.js
-        - mpr-ui.css
+      - mpr-ui-config.js
+      - mpr-ui.js
+      - mpr-ui.css
       aliases:
-        - latest
-        - major
-    - kind: private_values
-      id: private
+      - latest
+      - major
+    private:
+      kind: private_values
       bindings:
         apple-private-key: MPR_UI_APPLE_PRIVATE_KEY
         email-delivery-api-key: MPR_UI_EMAIL_DELIVERY_API_KEY
         google-web-client-id: MPR_UI_GOOGLE_WEB_CLIENT_ID
         jwt-signing-key: MPR_UI_JWT_SIGNING_KEY
-    - kind: github_pages
-      id: demo-site
+    demo-site:
+      kind: github_pages
       repository: MarcoPoloResearchLab/mpr-ui
       branch: gh-pages
       domain: ui.mprlab.com
@@ -33,17 +33,17 @@ mprlab_resources:
         dockerfile: Dockerfile.pages
       verification:
         path: /.mprlab-release.json
-    - kind: tauth_tenant
-      id: demo-authentication
+    demo-authentication:
+      kind: tauth_tenant
       capability: tauth.tenants
       version: 1
       tenant:
         id: mpr-ui-demo
         display_name: MPR UI Demo
         origins:
-          - http://127.0.0.1:4443
-          - http://localhost:4443
-          - https://ui.mprlab.com
+        - http://127.0.0.1:4443
+        - http://localhost:4443
+        - https://ui.mprlab.com
         google_web_client_id:
           resource: private
           output: google-web-client-id
