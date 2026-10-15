@@ -342,7 +342,7 @@ Utility links remain visible without horizontal scrolling at narrow and intermed
 - `privacy-link-href`: URL for the privacy page.
 - `privacy-link-label`: Label for the privacy link.
 - `theme-switcher`: `toggle` to enable the theme switch.
-- `theme-config`: JSON with `attribute`, `modes`, and `initialMode`.
+- `theme-config`: JSON with `attribute`, `modes`, `initialMode`, and `storageKey`.
 - `base-class`: Optional space-separated classes for the internal footer root. The component mirrors them to the host only when `sticky="false"`. Use them for host utilities such as `mt-auto` in in-flow layouts.
 - `sticky`: `true` or `false`.
 - `size`: Optional size preset used by some layouts.
@@ -397,9 +397,27 @@ Attributes:
 - `aria-label`: Accessible control name.
 - `show-label`: Shows the visible label when true.
 - `wrapper-class`, `control-class`, `icon-class`: Optional classes for the component-owned nodes.
-- `theme-config`: JSON with `attribute`, `targets`, `modes`, and `initialMode`.
+- `theme-config`: JSON with `attribute`, `targets`, `modes`, `initialMode`, and `storageKey`.
 
 The component emits the shared `mpr-ui:theme-change` event through the theme manager.
+
+### Local theme selection
+
+The theme manager keeps each selected mode in `localStorage` under `mpr-ui:theme`.
+The record contains `mode.value` for the selected light, dark, or quadrant color.
+The manager uses `initialMode` only when no valid recorded mode is available.
+The browser keeps records isolated by origin and browser profile.
+
+For apps on one origin, set a different `storageKey` in each app's `theme-config`.
+The header, footer, and standalone control use this same configuration field.
+The JavaScript API accepts `MPRUI.configureTheme({ storageKey: "my-app:theme" })`.
+Components without an explicit key use the manager's current key.
+`MPRUI.setThemeMode(value)` also keeps the selection in local storage.
+
+The manager removes a record whose mode is absent from an explicit `modes` list.
+The manager reports each invalid record through the error logger.
+Storage access errors include the operation and key.
+If a write fails, the selected theme does not change.
 
 ```html
 <mpr-theme-toggle
@@ -407,6 +425,7 @@ The component emits the shared `mpr-ui:theme-change` event through the theme man
   label="Change theme"
   show-label="true"
   theme-config='{
+    "storageKey": "my-app:theme",
     "targets": ["body"],
     "initialMode": "light",
     "modes": [
