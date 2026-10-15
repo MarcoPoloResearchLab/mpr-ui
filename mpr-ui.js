@@ -3935,9 +3935,9 @@
     var currentMode = currentConfig.modes[0].value;
     var resolvedTargets = resolveThemeTargets(currentConfig.targets);
 
-    function getModeIndex(modeValue) {
-      for (var index = 0; index < currentConfig.modes.length; index += 1) {
-        if (currentConfig.modes[index].value === modeValue) {
+    function getModeIndex(modes, modeValue) {
+      for (var index = 0; index < modes.length; index += 1) {
+        if (modes[index].value === modeValue) {
           return index;
         }
       }
@@ -3946,13 +3946,13 @@
 
     if (
       currentConfig.initialMode &&
-      getModeIndex(currentConfig.initialMode) !== -1
+      getModeIndex(currentConfig.modes, currentConfig.initialMode) !== -1
     ) {
       currentMode = currentConfig.initialMode;
     }
 
     function applyMode(modeValue) {
-      var modeIndex = getModeIndex(modeValue);
+      var modeIndex = getModeIndex(currentConfig.modes, modeValue);
       if (modeIndex === -1) {
         modeIndex = 0;
         modeValue = currentConfig.modes[0].value;
@@ -4012,20 +4012,19 @@
       }
     }
 
-    function restoreStoredMode(rejectUnknown) {
-      var storedMode = accessThemeStorage(THEME_STORAGE_OPERATIONS.READ, currentConfig.storageKey);
+    function readStoredMode(config, rejectUnknown) {
+      var storedMode = accessThemeStorage(THEME_STORAGE_OPERATIONS.READ, config.storageKey);
       if (storedMode === null) {
-        return false;
+        return null;
       }
-      if (getModeIndex(storedMode) !== -1) {
-        currentMode = storedMode;
-        return true;
+      if (getModeIndex(config.modes, storedMode) !== -1) {
+        return storedMode;
       }
       if (rejectUnknown) {
-        accessThemeStorage(THEME_STORAGE_OPERATIONS.REMOVE, currentConfig.storageKey);
-        logError(THEME_STORAGE_REJECTION, "Unknown mode for theme key " + currentConfig.storageKey);
+        accessThemeStorage(THEME_STORAGE_OPERATIONS.REMOVE, config.storageKey);
+        logError(THEME_STORAGE_REJECTION, "Unknown mode for theme key " + config.storageKey);
       }
-      return false;
+      return null;
     }
 
     function ensureInitialMode() {
@@ -4036,10 +4035,13 @@
       var initialValue = global.document.documentElement.getAttribute(
         currentConfig.attribute,
       );
-      if (initialValue && getModeIndex(initialValue) !== -1) {
+      if (initialValue && getModeIndex(currentConfig.modes, initialValue) !== -1) {
         currentMode = initialValue;
       }
-      restoreStoredMode(false);
+      var storedMode = readStoredMode(currentConfig, false);
+      if (storedMode !== null) {
+        currentMode = storedMode;
+      }
       applyMode(currentMode);
     }
 
@@ -4054,48 +4056,53 @@
       }
       var previousMode = currentMode;
       var previousModes = currentConfig.modes;
-      var previousStorageKey = currentConfig.storageKey;
+      var nextConfig = Object.assign({}, currentConfig);
+      var nextMode = currentMode;
       var normalized = normalizeThemeConfig(partialConfig);
       if (Object.prototype.hasOwnProperty.call(partialConfig, "attribute")) {
-        currentConfig.attribute = normalized.attribute;
+        nextConfig.attribute = normalized.attribute;
       }
       if (Object.prototype.hasOwnProperty.call(partialConfig, "targets")) {
         var mergedTargets = DEFAULT_THEME_TARGETS.concat(normalized.targets);
-        currentConfig.targets = dedupeTargets(mergedTargets);
-        resolvedTargets = resolveThemeTargets(currentConfig.targets);
-      }
-      if (!resolvedTargets || !resolvedTargets.length) {
-        resolvedTargets = resolveThemeTargets(currentConfig.targets);
+        nextConfig.targets = dedupeTargets(mergedTargets);
       }
       if (Object.prototype.hasOwnProperty.call(partialConfig, "modes")) {
-        currentConfig.modes = normalized.modes;
+        nextConfig.modes = normalized.modes;
       }
       if (
         Object.prototype.hasOwnProperty.call(partialConfig, "mode") ||
         Object.prototype.hasOwnProperty.call(partialConfig, "initialMode")
       ) {
-        currentConfig.initialMode = normalized.initialMode;
+        nextConfig.initialMode = normalized.initialMode;
         if (
           normalized.initialMode &&
-          getModeIndex(normalized.initialMode) !== -1
+          getModeIndex(nextConfig.modes, normalized.initialMode) !== -1
         ) {
-          currentMode = normalized.initialMode;
+          nextMode = normalized.initialMode;
         }
       }
       if (partialConfig.storageKey !== undefined) {
-        currentConfig.storageKey = normalized.storageKey;
+        nextConfig.storageKey = normalized.storageKey;
       }
-      var restored = restoreStoredMode(Object.prototype.hasOwnProperty.call(partialConfig, "modes"));
-      if (!restored && previousStorageKey !== currentConfig.storageKey) {
-        currentMode = currentConfig.initialMode && getModeIndex(currentConfig.initialMode) !== -1
-          ? currentConfig.initialMode
-          : currentConfig.modes[0].value;
+      var nextTargets = resolveThemeTargets(nextConfig.targets);
+      var storedMode = readStoredMode(nextConfig, Object.prototype.hasOwnProperty.call(partialConfig, "modes"));
+      if (storedMode !== null) {
+        nextMode = storedMode;
+      } else if (nextConfig.storageKey !== currentConfig.storageKey) {
+        nextMode = nextConfig.initialMode && getModeIndex(nextConfig.modes, nextConfig.initialMode) !== -1
+          ? nextConfig.initialMode
+          : nextConfig.modes[0].value;
       }
-      allModeClasses = collectThemeClassNames(currentConfig.modes);
-      allDatasetKeys = collectThemeDatasetKeys(currentConfig.modes);
-      if (getModeIndex(currentMode) === -1) {
-        currentMode = currentConfig.modes[0].value;
+      var nextModeClasses = collectThemeClassNames(nextConfig.modes);
+      var nextDatasetKeys = collectThemeDatasetKeys(nextConfig.modes);
+      if (getModeIndex(nextConfig.modes, nextMode) === -1) {
+        nextMode = nextConfig.modes[0].value;
       }
+      currentConfig = nextConfig;
+      currentMode = nextMode;
+      resolvedTargets = nextTargets;
+      allModeClasses = nextModeClasses;
+      allDatasetKeys = nextDatasetKeys;
       applyMode(currentMode);
       if (currentMode !== previousMode || currentConfig.modes !== previousModes) {
         notifyListeners("configure");
@@ -4116,7 +4123,7 @@
       if (!trimmed) {
         return currentMode;
       }
-      var modeIndex = getModeIndex(trimmed);
+      var modeIndex = getModeIndex(currentConfig.modes, trimmed);
       var resolvedMode =
         modeIndex === -1
           ? currentConfig.modes[0].value
