@@ -297,3 +297,16 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - Focused browser validation passed all 16 tests.
 - Final `make ci` passed 211 Node tests, two runs of 211 Chromium tests, and the Pages artifact check.
 - Updated the component reference for the configuration event and automatic provider controls.
+
+### 2026-10-15: Local theme selection
+
+- Added automatic local storage for selected light, dark, and quadrant modes.
+- Added `storageKey` to `theme-config` and `MPRUI.configureTheme` for apps on one origin.
+- Saved modes now control the initial theme and survive component updates.
+- Controls now use changes to the shared mode catalog.
+- If a storage write fails, the selected theme and checkbox state do not change.
+- Browser tests first confirmed the absent records, old control catalogs, and incorrect checkbox state.
+- Focused validation passed all 20 Chromium tests and all 211 Node tests.
+- The architect review had no remaining findings after the corrections.
+- Final `make ci` passed 211 Node tests, two runs of 231 Chromium tests, and the Pages artifact check.
+- The changed component reference and new journal entry had no language-check findings.
