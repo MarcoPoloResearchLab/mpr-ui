@@ -3572,6 +3572,45 @@
   }
 
   var DEFAULT_THEME_ATTRIBUTE = "data-mpr-theme";
+  var DEFAULT_THEME_STORAGE_KEY = "mpr-ui:theme";
+  var THEME_STORAGE_OPERATIONS = Object.freeze({ READ: "read", WRITE: "write", REMOVE: "remove" });
+  var THEME_STORAGE_ERROR = "mpr-ui.theme.storage_failed";
+  var THEME_STORAGE_REJECTION = "mpr-ui.theme.stored_mode_rejected";
+  var THEME_CONFIG_KEYS = Object.freeze([
+    "attribute", "targets", "modes", "mode", "initialMode", "storageKey",
+  ]);
+
+  /** Validates the app-specific local storage key at the configuration boundary. */
+  function normalizeThemeStorageKey(storageKey) {
+    if (typeof storageKey !== "string" || !storageKey.trim()) {
+      throw new Error("Theme storageKey must be a nonempty string");
+    }
+    return storageKey.trim();
+  }
+
+  /** Performs theme persistence I/O in the browser that owns the page. */
+  function accessThemeStorage(operation, storageKey, modeValue) {
+    if (!global.document || !global.document.defaultView) {
+      return null;
+    }
+    try {
+      var storage = global.document.defaultView.localStorage;
+      if (operation === THEME_STORAGE_OPERATIONS.READ) {
+        return storage.getItem(storageKey);
+      }
+      if (operation === THEME_STORAGE_OPERATIONS.REMOVE) {
+        storage.removeItem(storageKey);
+      } else {
+        storage.setItem(storageKey, modeValue);
+      }
+      return null;
+    } catch (error) {
+      throw new Error(
+        THEME_STORAGE_ERROR + ": " + operation + " theme key " + storageKey,
+        { cause: error },
+      );
+    }
+  }
   var DEFAULT_THEME_TARGETS = Object.freeze(["document", "body"]);
   var DEFAULT_THEME_MODES = Object.freeze([
     Object.freeze({
@@ -3782,6 +3821,7 @@
         targets: DEFAULT_THEME_TARGETS.slice(),
         modes: DEFAULT_THEME_MODES,
         initialMode: null,
+        storageKey: DEFAULT_THEME_STORAGE_KEY,
       },
       partialConfig || {},
     );
@@ -3789,6 +3829,7 @@
       typeof config.attribute === "string" && config.attribute.trim()
         ? config.attribute.trim()
         : DEFAULT_THEME_ATTRIBUTE;
+    config.storageKey = normalizeThemeStorageKey(config.storageKey);
     config.targets = normalizeThemeTargets(config.targets);
     config.modes = normalizeThemeModes(config.modes);
     var normalizedInitial = null;
@@ -3894,9 +3935,9 @@
     var currentMode = currentConfig.modes[0].value;
     var resolvedTargets = resolveThemeTargets(currentConfig.targets);
 
-    function getModeIndex(modeValue) {
-      for (var index = 0; index < currentConfig.modes.length; index += 1) {
-        if (currentConfig.modes[index].value === modeValue) {
+    function getModeIndex(modes, modeValue) {
+      for (var index = 0; index < modes.length; index += 1) {
+        if (modes[index].value === modeValue) {
           return index;
         }
       }
@@ -3905,13 +3946,13 @@
 
     if (
       currentConfig.initialMode &&
-      getModeIndex(currentConfig.initialMode) !== -1
+      getModeIndex(currentConfig.modes, currentConfig.initialMode) !== -1
     ) {
       currentMode = currentConfig.initialMode;
     }
 
     function applyMode(modeValue) {
-      var modeIndex = getModeIndex(modeValue);
+      var modeIndex = getModeIndex(currentConfig.modes, modeValue);
       if (modeIndex === -1) {
         modeIndex = 0;
         modeValue = currentConfig.modes[0].value;
@@ -3971,6 +4012,21 @@
       }
     }
 
+    function readStoredMode(config, rejectUnknown) {
+      var storedMode = accessThemeStorage(THEME_STORAGE_OPERATIONS.READ, config.storageKey);
+      if (storedMode === null) {
+        return null;
+      }
+      if (getModeIndex(config.modes, storedMode) !== -1) {
+        return storedMode;
+      }
+      if (rejectUnknown) {
+        accessThemeStorage(THEME_STORAGE_OPERATIONS.REMOVE, config.storageKey);
+        logError(THEME_STORAGE_REJECTION, "Unknown mode for theme key " + config.storageKey);
+      }
+      return null;
+    }
+
     function ensureInitialMode() {
       if (!global.document || !global.document.documentElement) {
         applyMode(currentMode);
@@ -3979,8 +4035,12 @@
       var initialValue = global.document.documentElement.getAttribute(
         currentConfig.attribute,
       );
-      if (initialValue && getModeIndex(initialValue) !== -1) {
+      if (initialValue && getModeIndex(currentConfig.modes, initialValue) !== -1) {
         currentMode = initialValue;
+      }
+      var storedMode = readStoredMode(currentConfig, false);
+      if (storedMode !== null) {
+        currentMode = storedMode;
       }
       applyMode(currentMode);
     }
@@ -3991,45 +4051,67 @@
           attribute: currentConfig.attribute,
           targets: currentConfig.targets.slice(),
           modes: currentConfig.modes.slice(),
+          storageKey: currentConfig.storageKey,
         };
       }
+      var previousMode = currentMode;
+      var previousModes = currentConfig.modes;
+      var nextConfig = Object.assign({}, currentConfig);
+      var nextMode = currentMode;
       var normalized = normalizeThemeConfig(partialConfig);
       if (Object.prototype.hasOwnProperty.call(partialConfig, "attribute")) {
-        currentConfig.attribute = normalized.attribute;
+        nextConfig.attribute = normalized.attribute;
       }
       if (Object.prototype.hasOwnProperty.call(partialConfig, "targets")) {
         var mergedTargets = DEFAULT_THEME_TARGETS.concat(normalized.targets);
-        currentConfig.targets = dedupeTargets(mergedTargets);
-        resolvedTargets = resolveThemeTargets(currentConfig.targets);
-      }
-      if (!resolvedTargets || !resolvedTargets.length) {
-        resolvedTargets = resolveThemeTargets(currentConfig.targets);
+        nextConfig.targets = dedupeTargets(mergedTargets);
       }
       if (Object.prototype.hasOwnProperty.call(partialConfig, "modes")) {
-        currentConfig.modes = normalized.modes;
+        nextConfig.modes = normalized.modes;
       }
       if (
         Object.prototype.hasOwnProperty.call(partialConfig, "mode") ||
         Object.prototype.hasOwnProperty.call(partialConfig, "initialMode")
       ) {
-        currentConfig.initialMode = normalized.initialMode;
+        nextConfig.initialMode = normalized.initialMode;
         if (
           normalized.initialMode &&
-          getModeIndex(normalized.initialMode) !== -1
+          getModeIndex(nextConfig.modes, normalized.initialMode) !== -1
         ) {
-          currentMode = normalized.initialMode;
+          nextMode = normalized.initialMode;
         }
       }
-      allModeClasses = collectThemeClassNames(currentConfig.modes);
-      allDatasetKeys = collectThemeDatasetKeys(currentConfig.modes);
-      if (getModeIndex(currentMode) === -1) {
-        currentMode = currentConfig.modes[0].value;
+      if (partialConfig.storageKey !== undefined) {
+        nextConfig.storageKey = normalized.storageKey;
       }
+      var nextTargets = resolveThemeTargets(nextConfig.targets);
+      var storedMode = readStoredMode(nextConfig, Object.prototype.hasOwnProperty.call(partialConfig, "modes"));
+      if (storedMode !== null) {
+        nextMode = storedMode;
+      } else if (nextConfig.storageKey !== currentConfig.storageKey) {
+        nextMode = nextConfig.initialMode && getModeIndex(nextConfig.modes, nextConfig.initialMode) !== -1
+          ? nextConfig.initialMode
+          : nextConfig.modes[0].value;
+      }
+      var nextModeClasses = collectThemeClassNames(nextConfig.modes);
+      var nextDatasetKeys = collectThemeDatasetKeys(nextConfig.modes);
+      if (getModeIndex(nextConfig.modes, nextMode) === -1) {
+        nextMode = nextConfig.modes[0].value;
+      }
+      currentConfig = nextConfig;
+      currentMode = nextMode;
+      resolvedTargets = nextTargets;
+      allModeClasses = nextModeClasses;
+      allDatasetKeys = nextDatasetKeys;
       applyMode(currentMode);
+      if (currentMode !== previousMode || currentConfig.modes !== previousModes) {
+        notifyListeners("configure");
+      }
       return {
         attribute: currentConfig.attribute,
         targets: currentConfig.targets.slice(),
         modes: currentConfig.modes.slice(),
+        storageKey: currentConfig.storageKey,
       };
     }
 
@@ -4041,11 +4123,12 @@
       if (!trimmed) {
         return currentMode;
       }
-      var modeIndex = getModeIndex(trimmed);
+      var modeIndex = getModeIndex(currentConfig.modes, trimmed);
       var resolvedMode =
         modeIndex === -1
           ? currentConfig.modes[0].value
           : currentConfig.modes[modeIndex].value;
+      accessThemeStorage(THEME_STORAGE_OPERATIONS.WRITE, currentConfig.storageKey, resolvedMode);
       if (resolvedMode === currentMode) {
         notifyListeners(source);
         return currentMode;
@@ -4100,7 +4183,9 @@
         ? baseline.attribute.trim()
         : DEFAULT_THEME_ATTRIBUTE;
     var targets = normalizeThemeTargets(baseline.targets);
-    var modes = normalizeThemeModes(baseline.modes);
+    var modes = baseline.modes === undefined
+      ? themeManager.configure(null).modes
+      : normalizeThemeModes(baseline.modes);
     var initialMode = null;
     if (typeof baseline.mode === "string" && baseline.mode.trim()) {
       initialMode = baseline.mode.trim();
@@ -4110,7 +4195,17 @@
     ) {
       initialMode = baseline.initialMode.trim();
     }
+    var managerConfig = {};
+    THEME_CONFIG_KEYS.forEach(function copyThemeConfigKey(key) {
+      if (Object.prototype.hasOwnProperty.call(rawConfig || {}, key)) {
+        managerConfig[key] = rawConfig[key];
+      }
+    });
+    if (managerConfig.storageKey !== undefined) {
+      managerConfig.storageKey = normalizeThemeStorageKey(managerConfig.storageKey);
+    }
     return {
+      managerConfig: managerConfig,
       enabled: enabled,
       ariaLabel: ariaLabel,
       attribute: attribute,
@@ -4449,22 +4544,28 @@
     var normalizedModes = Array.isArray(config.modes) && config.modes.length
       ? config.modes.slice()
       : DEFAULT_THEME_MODES.slice();
-    var currentModes = variant === "switch"
-      ? deriveBinaryThemeToggleModes(normalizedModes)
-      : normalizedModes;
-    var squareModeValues = variant === "square"
-      ? currentModes
-          .slice(0, THEME_TOGGLE_SQUARE_POSITIONS.length)
-          .map(function extractModeValue(mode) {
+    var currentModes = [];
+    var squareModeValues = [];
+
+    function updateModeCatalog(modes) {
+      normalizedModes = modes;
+      currentModes = variant === "switch"
+        ? deriveBinaryThemeToggleModes(modes)
+        : modes;
+      squareModeValues = variant === "square"
+        ? currentModes.slice(0, THEME_TOGGLE_SQUARE_POSITIONS.length).map(function extractModeValue(mode) {
             return mode.value;
           })
-      : [];
-    if (variant === "square") {
-      for (var index = 0; index < squareQuads.length; index += 1) {
-        var hasMode = squareModeValues[index] !== undefined;
-        squareQuads[index].setAttribute("data-quad-enabled", hasMode ? "true" : "false");
+        : [];
+      if (variant === "square") {
+        for (var index = 0; index < squareQuads.length; index += 1) {
+          var hasMode = squareModeValues[index] !== undefined;
+          squareQuads[index].setAttribute("data-quad-enabled", hasMode ? "true" : "false");
+        }
       }
     }
+
+    updateModeCatalog(normalizedModes);
 
     var travelTimeout = null;
     var rafId = null;
@@ -4600,9 +4701,10 @@
     }
 
     function syncToggleUi(modeValue) {
-      var modeIndex = getThemeToggleModeIndex(currentModes, modeValue);
-      var resolvedMode = modeIndex === -1 && currentModes.length ? currentModes[0].value : modeValue;
-      if (modeIndex === -1 && currentModes.length) {
+      var displayModes = variant === "switch" ? normalizedModes : currentModes;
+      var modeIndex = getThemeToggleModeIndex(displayModes, modeValue);
+      var resolvedMode = modeIndex === -1 && displayModes.length ? displayModes[0].value : modeValue;
+      if (modeIndex === -1 && displayModes.length) {
         modeIndex = 0;
       }
       hostElement.setAttribute("data-mpr-theme-mode", resolvedMode);
@@ -4627,7 +4729,13 @@
         syncSquareUi(resolvedMode);
         return;
       }
-      var checked = modeIndex > 0;
+      var polarity = resolveThemeModePolarity(displayModes[modeIndex]);
+      var binaryModeIndex = polarity
+        ? currentModes.findIndex(function matchPolarity(mode) {
+            return resolveThemeModePolarity(mode) === polarity;
+          })
+        : getThemeToggleModeIndex(currentModes, resolvedMode);
+      var checked = binaryModeIndex > 0;
       controlElement.checked = checked;
       controlElement.setAttribute("aria-checked", checked ? "true" : "false");
     }
@@ -4659,6 +4767,15 @@
       return resolveNextThemeToggleMode(currentModes, currentValue);
     }
 
+    function applySelectedMode(modeValue, source) {
+      try {
+        themeManager.setMode(modeValue, source);
+      } catch (error) {
+        syncToggleUi(themeManager.getMode());
+        logError(THEME_STORAGE_ERROR, error.message);
+      }
+    }
+
     function handleActivation(eventObject) {
       if (
         variant === "button" &&
@@ -4668,7 +4785,7 @@
         eventObject.preventDefault();
       }
       var nextMode = resolveNextSwitchMode(themeManager.getMode());
-      themeManager.setMode(nextMode, config.source || "theme-toggle");
+      applySelectedMode(nextMode, config.source || "theme-toggle");
     }
 
     function selectSquareMode(index, sourceSuffix) {
@@ -4690,7 +4807,7 @@
       if (sourceSuffix) {
         sourceLabel += sourceSuffix;
       }
-      themeManager.setMode(targetModeValue, sourceLabel);
+      applySelectedMode(targetModeValue, sourceLabel);
     }
 
     function resolveQuadrantIndex(eventObject) {
@@ -4800,6 +4917,9 @@
 
     syncToggleUi(themeManager.getMode());
     var unsubscribe = themeManager.on(function handleTheme(detail) {
+      if (detail.source === "configure") {
+        updateModeCatalog(themeManager.configure(null).modes);
+      }
       syncToggleUi(detail.mode);
     });
     return function cleanupThemeToggle() {
@@ -4852,30 +4972,16 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     };
   }
 
-  function mountThemeToggleComponent(hostElement, normalizedOptions, configureTheme, sourceLabel) {
+  function mountThemeToggleComponent(hostElement, normalizedOptions) {
     var toggleCleanup = null;
 
-    function applyOptions(nextNormalized, label) {
-      var effectiveLabel = label || "theme-toggle";
-      if (configureTheme && nextNormalized.theme) {
-        themeManager.configure({
-          attribute: nextNormalized.theme.attribute,
-          targets: nextNormalized.theme.targets,
-          modes: nextNormalized.theme.modes,
-        });
-        if (
-          nextNormalized.theme.initialMode &&
-          nextNormalized.theme.initialMode !== themeManager.getMode()
-        ) {
-          themeManager.setMode(
-            nextNormalized.theme.initialMode,
-            effectiveLabel + ":init",
-          );
-        }
+    function applyOptions(nextNormalized) {
+      if (nextNormalized.theme) {
+        themeManager.configure(nextNormalized.theme.managerConfig);
       }
       var displayOptions = deepMergeOptions({}, nextNormalized.component);
       if (nextNormalized.theme && nextNormalized.theme.modes) {
-        displayOptions.modes = nextNormalized.theme.modes;
+        displayOptions.modes = themeManager.configure(null).modes;
       }
       if (toggleCleanup) {
         toggleCleanup();
@@ -4883,11 +4989,11 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       toggleCleanup = initializeThemeToggle(hostElement, displayOptions);
     }
 
-    applyOptions(normalizedOptions, sourceLabel || "theme-toggle");
+    applyOptions(normalizedOptions);
 
     return {
-      update: function update(nextNormalized, label) {
-        applyOptions(nextNormalized, label || "theme-toggle");
+      update: function update(nextNormalized) {
+        applyOptions(nextNormalized);
       },
       destroy: function destroy() {
         if (toggleCleanup) {
@@ -7336,11 +7442,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       HEADER_DEFAULTS.settings,
       options.settings || {},
     );
-    var themeSource = deepMergeOptions(
-      {},
-      HEADER_DEFAULTS.themeToggle,
-      options.themeToggle || {},
-    );
 
     var stickyValue = HEADER_DEFAULTS.sticky;
     if (Object.prototype.hasOwnProperty.call(options, "sticky")) {
@@ -7399,12 +7500,13 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       enabled: true,
       ariaLabel: "Toggle theme",
     };
-    var themeNormalized = normalizeThemeToggleCore(themeSource, themeDefaults);
+    var themeNormalized = normalizeThemeToggleCore(options.themeToggle || {}, themeDefaults);
     if (
       typeof options.initialTheme === "string" &&
       !themeNormalized.initialMode
     ) {
       themeNormalized.initialMode = options.initialTheme.trim();
+      themeNormalized.managerConfig.initialMode = themeNormalized.initialMode;
     }
 
     var brandLabel =
@@ -7460,6 +7562,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
             : HEADER_DEFAULTS.settings.label,
       },
       themeToggle: {
+        managerConfig: themeNormalized.managerConfig,
         attribute: themeNormalized.attribute,
         targets: themeNormalized.targets,
         modes: themeNormalized.modes,
@@ -8505,11 +8608,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
 
     var headerThemeConfig = options.themeToggle;
 
-    themeManager.configure({
-      attribute: headerThemeConfig.attribute,
-      targets: headerThemeConfig.targets,
-      modes: headerThemeConfig.modes,
-    });
+    themeManager.configure(headerThemeConfig.managerConfig);
 
     function updateThemeHost(modeValue) {
       hostElement.setAttribute("data-mpr-theme-mode", modeValue);
@@ -8619,12 +8718,6 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
       elements.root.classList.add(HEADER_ROOT_CLASS + "--no-auth");
     }
 
-    if (
-      headerThemeConfig.initialMode &&
-      headerThemeConfig.initialMode !== themeManager.getMode()
-    ) {
-      themeManager.setMode(headerThemeConfig.initialMode, "header:init");
-    }
 
     mountProviderActions();
     updateThemeHost(themeManager.getMode());
@@ -8850,17 +8943,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         if (settingsModalController) {
           settingsModalController.updateLabel(options.settings.label);
         }
-        themeManager.configure({
-          attribute: headerThemeConfig.attribute,
-          targets: headerThemeConfig.targets,
-          modes: headerThemeConfig.modes,
-        });
-        if (
-          headerThemeConfig.initialMode &&
-          headerThemeConfig.initialMode !== themeManager.getMode()
-        ) {
-          themeManager.setMode(headerThemeConfig.initialMode, "header:update");
-        }
+        themeManager.configure(headerThemeConfig.managerConfig);
         if (options.auth && !authController) {
           authController = createAuthHeader(hostElement, options.auth);
         }
@@ -14612,6 +14695,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         ? mergedToggle.label.trim()
         : FOOTER_DEFAULTS.themeToggle.label;
     return {
+      managerConfig: core.managerConfig,
       enabled: core.enabled,
       label: labelValue,
       wrapperClass:
@@ -15532,17 +15616,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         this.cleanupHandlers = [];
 
         var footerTheme = this.config.themeToggle;
-        themeManager.configure({
-          attribute: footerTheme.attribute,
-          targets: footerTheme.targets,
-          modes: footerTheme.modes,
-        });
-        if (
-          footerTheme.initialMode &&
-          footerTheme.initialMode !== themeManager.getMode()
-        ) {
-          themeManager.setMode(footerTheme.initialMode, "footer:init");
-        }
+        themeManager.configure(footerTheme.managerConfig);
 
         if (!this.$el) {
           return;
@@ -15602,6 +15676,7 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
         var toggleHost = footerQuery(footerRoot, '[data-mpr-footer="theme-toggle"]');
         if (toggleHost) {
           var footerToggleConfig = buildFooterThemeToggleConfig(this.config);
+          footerToggleConfig.modes = themeManager.configure(null).modes;
           var themeCleanup = initializeThemeToggle(toggleHost, footerToggleConfig);
           if (typeof themeCleanup === "function") {
             this.cleanupHandlers.push(themeCleanup);
@@ -15672,14 +15747,12 @@ function normalizeStandaloneThemeToggleOptions(rawOptions) {
     var controller = mountThemeToggleComponent(
       host,
       normalized,
-      true,
-      "theme-toggle:init",
     );
     return {
       update: function update(nextOptions) {
         latestOptions = deepMergeOptions({}, latestOptions, nextOptions || {});
         var normalizedNext = normalizeStandaloneThemeToggleOptions(latestOptions);
-        controller.update(normalizedNext, "theme-toggle:update");
+        controller.update(normalizedNext);
       },
       destroy: function destroy() {
         controller.destroy();

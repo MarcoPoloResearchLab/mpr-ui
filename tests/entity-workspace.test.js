@@ -144,7 +144,13 @@ function detachStubNode(node) {
 
 function createWindowStub() {
   const listeners = {};
+  const storedValues = new Map();
   return {
+    localStorage: {
+      getItem(key) { return storedValues.has(key) ? storedValues.get(key) : null; },
+      setItem(key, value) { storedValues.set(key, String(value)); },
+      removeItem(key) { storedValues.delete(key); },
+    },
     innerWidth: 1280,
     addEventListener(type, handler) {
       const eventType = String(type);
