@@ -310,3 +310,15 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - The architect review had no remaining findings after the corrections.
 - Final `make ci` passed 211 Node tests, two runs of 231 Chromium tests, and the Pages artifact check.
 - The changed component reference and new journal entry had no language-check findings.
+
+### 2026-10-15: Theme configuration corrections
+
+- Resolved theme targets after `<body>` became available.
+- Kept the active configuration and controls unchanged when storage reads or removals failed.
+- Five Chromium tests reproduced both review findings before the corrections.
+- Focused validation passed 25 browser tests and six Node tests.
+- Independent Chromium review found no remaining issues.
+- The coverage run passed 211 Node tests and 236 Chromium tests.
+- The standard browser suite passed all 236 tests, and the Pages artifact check passed separately.
+- `make ci` exceeded the 120-second limit during coverage report generation.
+- Isolated coverage report generation also exceeded 90 seconds.
