@@ -418,6 +418,7 @@ The manager removes a record whose mode is absent from an explicit `modes` list.
 The manager reports each invalid record through the error logger.
 Storage access errors include the operation and key.
 If a write fails, the selected theme does not change.
+If configuration cannot read or remove a record, the active theme configuration does not change.
 
 ```html
 <mpr-theme-toggle
