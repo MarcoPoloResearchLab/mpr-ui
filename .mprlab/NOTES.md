@@ -322,3 +322,16 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - The standard browser suite passed all 236 tests, and the Pages artifact check passed separately.
 - `make ci` exceeded the 120-second limit during coverage report generation.
 - Isolated coverage report generation also exceeded 90 seconds.
+
+### 2026-10-15: Gateway manifest correction
+
+- Changed resource lists to maps with resource IDs as keys.
+- Added an explicit CI command with `CI=1`.
+- Added lifecycle timeouts and observation polling policies for Gateway `v6.0.4`.
+- The user authorized the selection of reasonable timeout defaults.
+- Manifest and execution-policy validation passed through the installed release planner.
+- The planner then required a clean `master` synchronized with `origin/master`.
+- Publication and deployment did not run.
+- Full `make ci` passed 211 Node tests, two runs of 236 Chromium tests, and the Pages artifact check.
+- The independent review found no remaining issues.
+- The Governor check reported eight existing differences in managed files outside this correction.
