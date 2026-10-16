@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
+    <title>TAuth + mpr-ui (Docker Compose)</title>
+    <link
+      rel="stylesheet"
+      href="../mpr-ui.css"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
+      type="module"
+    ></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@5.4.1/dist/browser/js-yaml.umd.min.js"></script>
+    <!-- Load config first; mpr-ui-config.js injects the bundle after config is applied -->
+    <script src="../mpr-ui-config.js" defer></script>
+    <script id="mpr-ui-bundle" type="application/json" data-mpr-ui-bundle-src="../mpr-ui.js"></script>
+    <style>
+      :root {
+        --card-background: rgba(255, 255, 255, 0.9);
+        --card-border: rgba(0, 0, 0, 0.1);
+      }
+      body.theme-dark {
+        --card-background: rgba(18, 21, 23, 0.8);
+        --card-border: rgba(255, 255, 255, 0.2);
+      }
+      main {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 2rem 1.5rem 3rem;
+      }
+      .demo-section {
+        margin-top: 2rem;
+      }
+      .auth-demo-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+        gap: 1rem;
+        align-items: start;
+      }
+      .session-card {
+        border: 1px solid var(--card-border);
+        border-radius: 0.75rem;
+        padding: 1.25rem;
+        background: var(--card-background);
+        box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+      }
+      .session-card__profile {
+        display: flex;
+        gap: 1rem;
+        align-items: center;
+      }
+      .session-card__profile ul {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+      .session-card__profile li + li {
+        margin-top: 0.25rem;
+      }
+      .session-card__avatar {
+        width: 56px;
+        height: 56px;
+        border-radius: 999px;
+        object-fit: cover;
+      }
+      .session-card__expires {
+        margin-top: 1rem;
+        font-size: 0.95rem;
+        color: var(--mpr-color-text-muted, #555);
+      }
+      .logout-button {
+        margin-top: 1rem;
+        border: 0;
+        border-radius: 999px;
+        padding: 0.75rem 1.5rem;
+        background: #0c67ff;
+        color: #fff;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      .logout-button:hover {
+        background: #0842a8;
+      }
+      .demo-modal {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 1.5rem;
+        z-index: 2000;
+      }
+      .demo-modal[hidden] {
+        display: none;
+      }
+      .demo-modal__backdrop {
+        position: absolute;
+        inset: 0;
+        background: rgba(15, 23, 42, 0.55);
+      }
+      .demo-modal__dialog {
+        position: relative;
+        width: min(90vw, 540px);
+        border-radius: 1rem;
+        border: 1px solid var(--mpr-color-border, rgba(148, 163, 184, 0.25));
+        background: var(--mpr-color-surface-elevated, rgba(15, 23, 42, 0.95));
+        color: var(--mpr-color-text-primary, #e2e8f0);
+        box-shadow: var(--mpr-shadow-flyout, 0 24px 48px rgba(15, 23, 42, 0.45));
+        padding: 1.5rem;
+      }
+      .demo-modal__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+      }
+      .demo-modal__title {
+        margin: 0;
+        font-size: 1.25rem;
+      }
+      .demo-modal__close {
+        border: 0;
+        border-radius: 999px;
+        padding: 0.4rem 0.85rem;
+        background: var(--mpr-chip-bg, rgba(148, 163, 184, 0.2));
+        color: inherit;
+        cursor: pointer;
+        font-weight: 600;
+      }
+      .demo-modal__close:hover {
+        background: var(--mpr-chip-hover-bg, rgba(148, 163, 184, 0.32));
+      }
+      .demo-modal__body {
+        margin-top: 1rem;
+        color: var(--mpr-color-text-muted, #cbd5f5);
+      }
+      ol {
+        padding-left: 1.25rem;
+      }
+      ol li + li {
+        margin-top: 0.5rem;
+      }
+    </style>
+    <link rel="stylesheet" href="./demo.css" />
+  </head>
+  <body class="theme-dark" data-demo-palette="default" data-mpr-theme="dark">
+    <!-- MPR UI orchestration via Web Components DSL -->
+    <mpr-header
+      id="demo-header"
+      brand-label="Marco Polo Research Lab"
+      brand-href="https://mprlab.com/"
+      horizontal-links='{
+        "alignment": "right",
+        "links": [
+          { "label": "Index demo", "href": "../index.html" },
+          { "label": "Components", "href": "./components.html" },
+          { "label": "TAuth demo", "href": "./tauth-demo.html" },
+          { "label": "Provider chooser", "href": "./auth-provider-chooser.html" },
+          { "label": "Entity workspace", "href": "./entity-workspace.html?entity-demo-docker=2" },
+          { "label": "Standalone demo", "href": "./standalone.html" }
+        ]
+      }'
+      auth-transition='{
+        "title": "Opening TAuth demo",
+        "message": "Loading your authenticated session snapshot.",
+        "completionEvent": "demo:tauth-ready"
+      }'
+      data-config-url="./config-ui.yaml"
+      logout-url="/"
+      sign-out-label="Log out"
+    >
+      <mpr-user
+        slot="aux"
+        display-mode="avatar"
+        logout-url="/"
+        logout-label="Log out"
+        menu-items='[{"label":"Settings","action":"open-settings"}]'
+      ></mpr-user>
+    </mpr-header>
+    <main>
+      <h1>TAuth demo</h1>
+      <p>
+        This page connects the <code>mpr-header</code> web component to a local
+        TAuth service running under Docker Compose. Use Google or the owned
+        email panel to sign in or create an account. Then observe the shared
+        profile state and manage the current account.
+      </p>
+
+      <section aria-labelledby="profile-status-title" class="demo-section">
+        <h2 id="profile-status-title">Current session</h2>
+        <p>
+          Provider, password, and account requests use the TAuth service
+          configured in <code>./config-ui.yaml</code>. <code>mpr-ui</code>
+          keeps every form on the shared auth controller and aligns the shell
+          state with the session cookie.
+        </p>
+        <div
+          class="session-card"
+          data-demo-auth-status
+          aria-live="polite"
+          aria-atomic="true"
+        >
+          <p>Awaiting connection to the TAuth service…</p>
+        </div>
+        <mpr-auth-diagnostics auth-target="#demo-header"></mpr-auth-diagnostics>
+      </section>
+
+      <section aria-labelledby="password-flows-title" class="demo-section">
+        <h2 id="password-flows-title">Email and password flows</h2>
+        <p>
+          These forms call the configured TAuth endpoints through the shared
+          header auth controller. TAuth sends challenge links through Pinguin.
+          A returned link opens its matching form and keeps the token inside the
+          shared component boundary. The page contains no app-owned request code.
+        </p>
+        <div class="auth-demo-grid">
+          <mpr-password-auth mode="login" auth-target="#demo-header"></mpr-password-auth>
+          <mpr-password-auth mode="signup" auth-target="#demo-header"></mpr-password-auth>
+          <mpr-password-auth mode="verify-email" auth-target="#demo-header"></mpr-password-auth>
+          <mpr-password-auth mode="reset-start" auth-target="#demo-header"></mpr-password-auth>
+          <mpr-password-auth mode="reset-complete" auth-target="#demo-header"></mpr-password-auth>
+        </div>
+      </section>
+
+      <section aria-labelledby="account-flows-title" class="demo-section">
+        <h2 id="account-flows-title">Account management</h2>
+        <p>
+          Sign in first. Each panel uses the same authenticated state and does
+          not probe TAuth independently. The unlink selector targets the seeded
+          password identity; link Google before removing that sign-in method.
+        </p>
+        <div class="auth-demo-grid">
+          <mpr-account-panel action="password-change" auth-target="#demo-header"></mpr-account-panel>
+          <mpr-account-panel action="password-link-start" auth-target="#demo-header"></mpr-account-panel>
+          <mpr-account-panel action="password-link-verify" auth-target="#demo-header"></mpr-account-panel>
+          <mpr-account-panel action="google-link" auth-target="#demo-header"></mpr-account-panel>
+          <mpr-account-panel
+            action="unlink"
+            auth-target="#demo-header"
+          ></mpr-account-panel>
+          <mpr-account-panel action="disable" auth-target="#demo-header"></mpr-account-panel>
+        </div>
+      </section>
+
+      <section aria-labelledby="instructions-title" class="demo-section">
+        <h2 id="instructions-title">How it works</h2>
+        <ol>
+          <li>
+            The frontend is served by gHTTP on port 4443 (HTTP), which proxies
+            the configured <code>/auth/*</code> routes to the local TAuth container.
+          </li>
+          <li>
+            Auth configuration is loaded from <code>./config-ui.yaml</code>
+            via the <code>mpr-ui-config.js</code> loader, which applies one
+            validated <code>auth-config</code> contract to the header, user,
+            password-auth, and account-panel elements.
+          </li>
+          <li>
+            The browser only needs the same-origin auth routes:
+            <code>/auth/nonce</code>, <code>/auth/google</code>,
+            <code>/auth/logout</code>, <code>/auth/session</code>, the configured
+            password endpoints, and the configured account endpoints.
+          </li>
+          <li>
+            The header requests <code>/auth/nonce</code> before it renders the
+            official Google popup button. It refreshes that nonce while the
+            control remains connected.
+          </li>
+          <li>
+            Google returns the ID token to the JavaScript callback. The header
+            sends the token and nonce to <code>/auth/google</code> without a
+            Google redirect URI.
+          </li>
+          <li>
+            The Google account panel uses the same official popup button and
+            nonce contract. It sends the returned proof to
+            <code>/auth/account/google/link</code>.
+          </li>
+          <li>
+            After a refresh, <code>mpr-ui</code> restores the profile through
+            <code>/auth/session</code> before it updates the shell state.
+          </li>
+          <li>
+            Clicking <strong>Log out</strong> in the menu invokes
+            <code>/auth/logout</code> and resets the profile snapshot below.
+          </li>
+        </ol>
+      </section>
+    </main>
+
+    <div
+      id="demo-settings-modal"
+      class="demo-modal"
+      hidden
+      aria-hidden="true"
+    >
+      <div class="demo-modal__backdrop" data-demo-settings-close></div>
+      <div
+        class="demo-modal__dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="demo-settings-title"
+      >
+        <div class="demo-modal__header">
+          <h2 class="demo-modal__title" id="demo-settings-title">Settings</h2>
+          <button
+            type="button"
+            class="demo-modal__close"
+            data-demo-settings-close
+          >
+            Close
+          </button>
+        </div>
+        <div class="demo-modal__body">
+          <p>
+            This modal opens from the user menu action item. Wire your own
+            settings panel here.
+          </p>
+        </div>
+      </div>
+    </div>
+
+    <mpr-footer
+      id="page-footer"
+      sticky="false"
+      size="small"
+      privacy-link-label="Privacy &amp; Terms"
+      privacy-link-href="#privacy"
+      privacy-modal-content="
+        <h1>Privacy Policy — MPR UI</h1>
+        <p><strong>Effective Date:</strong> 2025-10-11</p>
+        <p>LoopAware uses configured identity providers to authenticate users. We receive the profile
+           information needed to sign you in. We do not sell or share your data,
+           and we only store your notes so the service functions.</p>
+        <p>To request deletion of your data, contact
+           <a href='mailto:support@mprlab.com'>support@mprlab.com</a>.</p>
+      "
+      horizontal-links='{
+        "alignment": "center",
+        "links": [
+          { "label": "Docs", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/README.md", "target": "_blank" },
+          { "label": "Changelog", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/CHANGELOG.md", "target": "_blank" },
+          { "label": "GitHub", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui", "target": "_blank" },
+          { "label": "Support", "href": "mailto:support@mprlab.com" }
+        ]
+      }'
+      menu='{
+        "label": "MPR Lab sites",
+        "placement": "top",
+        "sections": [
+          { "id": "platform", "label": "Platform", "mode": "static", "links": [
+            { "label": "Marco Polo Research Lab", "href": "https://mprlab.com", "target": "_blank" }
+          ] },
+          { "id": "products", "label": "Products", "mode": "expanded", "links": [
+            { "label": "Gravity Notes", "href": "https://gravity.mprlab.com", "target": "_blank" },
+            { "label": "LoopAware", "href": "https://loopaware.mprlab.com", "target": "_blank" },
+            { "label": "Allergy Wheel", "href": "https://allergy.mprlab.com", "target": "_blank" },
+            { "label": "Social Threader", "href": "https://threader.mprlab.com", "target": "_blank" },
+            { "label": "RSVP", "href": "https://rsvp.mprlab.com", "target": "_blank" }
+          ] },
+          { "id": "tools", "label": "Tools", "mode": "collapsed", "links": [
+            { "label": "Countdown Calendar", "href": "https://countdown.mprlab.com", "target": "_blank" },
+            { "label": "LLM Crossword", "href": "https://llm-crossword.mprlab.com", "target": "_blank" },
+            { "label": "Prompt Bubbles", "href": "https://prompts.mprlab.com", "target": "_blank" },
+            { "label": "Wallpapers", "href": "https://wallpapers.mprlab.com", "target": "_blank" }
+          ] }
+        ]
+      }'
+      theme-switcher="square"
+      theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-dark","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
+    ></mpr-footer>
+    <script defer src="./tauth-settings-modal.js"></script>
+    <script defer src="./status-panel.js"></script>
+    <script>
+      (function() {
+        var READY_EVENT_NAME = 'demo:tauth-ready';
+        var CHALLENGE_TARGETS = Object.freeze({
+          'verify-email': 'mpr-password-auth[mode="verify-email"]',
+          'reset-complete': 'mpr-password-auth[mode="reset-complete"]',
+          'password-link-verify': 'mpr-account-panel[action="password-link-verify"]'
+        });
+
+        function applyChallengeReturn() {
+          if (!window.location || !window.location.hash) {
+            return;
+          }
+          var currentURL = new URL(window.location.href);
+          var authAction = currentURL.searchParams.get('auth_action');
+          var targetSelector = CHALLENGE_TARGETS[authAction];
+          if (!targetSelector) {
+            return;
+          }
+          var targetElement = document.querySelector(targetSelector);
+          if (!targetElement) {
+            return;
+          }
+          targetElement.setAttribute('token-fragment-parameter', 'token');
+          var cleanURL = new URL(window.location.href);
+          cleanURL.searchParams.delete('auth_action');
+          window.history.replaceState(window.history.state, '', cleanURL.href);
+          targetElement.scrollIntoView({ block: 'center' });
+        }
+
+        function resolveInitialProfile() {
+          if (
+            window.MprDemoAuth &&
+            typeof window.MprDemoAuth.resolveInitialProfileSnapshot === 'function'
+          ) {
+            return window.MprDemoAuth.resolveInitialProfileSnapshot();
+          }
+          return null;
+        }
+
+        function dispatchReadyEvent() {
+          document.dispatchEvent(new CustomEvent(READY_EVENT_NAME));
+        }
+
+        function dispatchReadyEventOnNextFrame() {
+          if (typeof window.requestAnimationFrame === 'function') {
+            window.requestAnimationFrame(dispatchReadyEvent);
+            return;
+          }
+          window.setTimeout(dispatchReadyEvent, 0);
+        }
+
+        function waitForAutoOrchestrationReady() {
+          if (
+            window.MPRUI &&
+            typeof window.MPRUI.whenAutoOrchestrationReady === 'function'
+          ) {
+            return window.MPRUI.whenAutoOrchestrationReady();
+          }
+          return Promise.resolve();
+        }
+
+        function dispatchReadyEventWhenSurfaceReady() {
+          waitForAutoOrchestrationReady()
+            .catch(function ignoreOrchestrationError() {
+              return null;
+            })
+            .then(dispatchReadyEventOnNextFrame);
+        }
+
+        function init() {
+          applyChallengeReturn();
+          if (resolveInitialProfile()) {
+            dispatchReadyEventWhenSurfaceReady();
+          }
+          document.addEventListener('mpr-ui:auth:authenticated', function() {
+            dispatchReadyEventWhenSurfaceReady();
+          });
+        }
+
+        if (document.readyState === 'loading') {
+          document.addEventListener('DOMContentLoaded', init);
+        } else {
+          init();
+        }
+      })();
+    </script>
+  </body>
+</html>

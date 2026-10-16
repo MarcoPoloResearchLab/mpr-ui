@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" href="data:," />
+    <title>mpr-ui Demo</title>
+    <link rel="stylesheet" href="./mpr-ui.css" />
+    <link rel="stylesheet" href="./demo/demo.css" />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.13.5/dist/module.esm.js"
+      type="module"
+    ></script>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <script src="https://cdn.jsdelivr.net/npm/js-yaml@5.4.1/dist/browser/js-yaml.umd.min.js"></script>
+    <!-- MPR UI orchestration via Web Components DSL -->
+    <script src="./mpr-ui-config.js" defer></script>
+    <script id="mpr-ui-bundle" type="application/json" data-mpr-ui-bundle-src="./mpr-ui.js"></script>
+  </head>
+  <body class="theme-dark" data-demo-palette="default" data-mpr-theme="dark">
+    <!-- MPR UI orchestration via Web Components DSL -->
+    <mpr-header
+      id="demo-header"
+      brand-label="Marco Polo Research Lab"
+      brand-href="https://mprlab.com/"
+      horizontal-links='{
+        "alignment": "right",
+        "links": [
+          { "label": "Index demo", "href": "./index.html" },
+          { "label": "Components", "href": "./demo/components.html" },
+          { "label": "TAuth demo", "href": "./demo/tauth-demo.html" },
+          { "label": "Provider chooser", "href": "./demo/auth-provider-chooser.html" },
+          { "label": "Entity workspace", "href": "./demo/entity-workspace.html?entity-demo-docker=2" },
+          { "label": "Standalone demo", "href": "./demo/standalone.html" }
+        ]
+      }'
+      data-config-url="./demo/config-ui.yaml"
+      user-menu-display-mode="avatar"
+      logout-url="/"
+      sign-out-label="Log out"
+    >
+      <mpr-user
+        slot="aux"
+        display-mode="avatar"
+        logout-url="/"
+        logout-label="Log out"
+      ></mpr-user>
+    </mpr-header>
+
+    <main class="demo-hub">
+      <section class="demo-hub__hero" data-layout-section="hero-title">
+        <p class="demo-eyebrow">MPR UI / live library</p>
+        <h1>Small components. Complete product flows.</h1>
+        <p class="demo-hub__lede">
+          Inspect the full component system in realistic states. The examples cover sectioned
+          drop-ups, Google and Apple controls, email and password flows, account controls, entity
+          workspaces, themes, legal documents, and reusable navigation chrome.
+        </p>
+      </section>
+
+      <section aria-labelledby="demo-capabilities-title">
+        <h2 id="demo-capabilities-title" class="demo-hub__section-title">Explore the demos</h2>
+        <div class="demo-hub__grid">
+          <a class="demo-hub__card" href="./demo/components.html">
+            <strong>Component gallery</strong>
+            <span>Every public custom element, including all three dropdown section modes.</span>
+            <em>Open gallery →</em>
+          </a>
+          <a class="demo-hub__card" href="./demo/tauth-demo.html">
+            <strong>Complete TAuth flow</strong>
+            <span>Email sign-in and account creation, account actions, diagnostics, and provider sign-in.</span>
+            <em>Open TAuth demo →</em>
+          </a>
+          <a class="demo-hub__card" href="./demo/auth-provider-chooser.html">
+            <strong>Provider chooser</strong>
+            <span>Google, Apple, and email together, plus the compact icon-row presentation.</span>
+            <em>Open chooser →</em>
+          </a>
+          <a class="demo-hub__card" href="./demo/entity-workspace.html?entity-demo-docker=2">
+            <strong>Entity workspace</strong>
+            <span>Sidebar, rail, selection, workspace cards, load-more state, and detail drawer.</span>
+            <em>Open workspace →</em>
+          </a>
+          <a class="demo-hub__card" href="./demo/standalone.html">
+            <strong>Standalone authentication</strong>
+            <span>Reusable sign-in and account-creation controls with a profile card outside the header.</span>
+            <em>Open standalone demo →</em>
+          </a>
+          <a class="demo-hub__card" href="./README.md">
+            <strong>Integration reference</strong>
+            <span>Canonical attributes, runtime configuration, events, security, and CDN usage.</span>
+            <em>Read the documentation →</em>
+          </a>
+        </div>
+      </section>
+
+      <mpr-band
+      id="band-observability"
+      category="research"
+      theme='{
+        "background": "var(--mpr-color-surface-primary, #0f1114)",
+        "panel": "var(--mpr-color-surface-elevated, #1f2126)",
+        "panelAlt": "var(--mpr-color-surface-elevated, #1f2126)",
+        "text": "var(--mpr-color-text-primary, #e3e5ec)",
+        "accent": "var(--mpr-color-accent, #5d93ff)",
+        "border": "var(--mpr-color-border, #2c2f36)",
+        "shadow": "none",
+        "lineTop": "var(--mpr-color-border, #2c2f36)",
+        "lineBottom": "var(--mpr-color-border, #2c2f36)"
+      }'
+    >
+      <div class="demo-band-grid" data-test="demo-grid">
+            <mpr-card
+              id="event-log-card"
+              data-test="band-event-log-card"
+              card='{
+                "id": "event-log-card",
+                "title": "Event Log",
+                "description": "Header actions, footer toggles, and band events stream into this log so you can verify integrations.",
+                "status": "beta"
+              }'
+            ></mpr-card>
+      </div>
+    </mpr-band>
+
+    <mpr-band
+      id="band-integration"
+      category="tools"
+      theme='{
+        "background": "var(--mpr-color-surface-primary, #0f1114)",
+        "panel": "var(--mpr-color-surface-elevated, #1f2126)",
+        "panelAlt": "var(--mpr-color-surface-elevated, #1f2126)",
+        "text": "var(--mpr-color-text-primary, #e3e5ec)",
+        "accent": "var(--mpr-color-accent-alt, #95c23d)",
+        "border": "var(--mpr-color-border, #2c2f36)",
+        "shadow": "none",
+        "lineTop": "var(--mpr-color-border, #2c2f36)",
+        "lineBottom": "var(--mpr-color-border, #2c2f36)"
+      }'
+    >
+      <div class="demo-band-grid" data-test="demo-grid-secondary">
+            <mpr-card
+              id="integration-reference-card"
+              data-test="band-integration-card"
+              card='{
+                "id": "integration-reference",
+                "title": "Integration Reference",
+                "description": "Step-by-step walkthrough for wiring GIS, TAuth, and the single config-driven integration path.",
+                "status": "production",
+                "url": "./docs/demo-index-auth.md"
+              }'
+            ></mpr-card>
+      </div>
+    </mpr-band>
+    </main>
+
+    <mpr-footer
+      id="page-footer"
+      sticky="false"
+      size="small"
+      privacy-link-label="Privacy &amp; Terms"
+      privacy-link-href="#privacy"
+      privacy-modal-content="
+        <h1>Privacy Policy — MPR UI</h1>
+        <p><strong>Effective Date:</strong> 2025-10-11</p>
+        <p>LoopAware uses configured identity providers to authenticate users. We receive the profile
+           information needed to sign you in. We do not sell or share your data,
+           and we only store your notes so the service functions.</p>
+        <p>To request deletion of your data, contact
+           <a href='mailto:support@mprlab.com'>support@mprlab.com</a>.</p>
+      "
+      horizontal-links='{
+        "alignment": "center",
+        "links": [
+          { "label": "Docs", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/README.md", "target": "_blank" },
+          { "label": "Changelog", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui/blob/master/CHANGELOG.md", "target": "_blank" },
+          { "label": "GitHub", "href": "https://github.com/MarcoPoloResearchLab/mpr-ui", "target": "_blank" },
+          { "label": "Support", "href": "mailto:support@mprlab.com" }
+        ]
+      }'
+      menu='{
+        "label": "MPR Lab sites",
+        "placement": "top",
+        "sections": [
+          { "id": "platform", "label": "Platform", "mode": "static", "links": [
+            { "label": "Marco Polo Research Lab", "href": "https://mprlab.com", "target": "_blank" }
+          ] },
+          { "id": "products", "label": "Products", "mode": "expanded", "links": [
+            { "label": "Gravity Notes", "href": "https://gravity.mprlab.com", "target": "_blank" },
+            { "label": "LoopAware", "href": "https://loopaware.mprlab.com", "target": "_blank" },
+            { "label": "Allergy Wheel", "href": "https://allergy.mprlab.com", "target": "_blank" },
+            { "label": "Social Threader", "href": "https://threader.mprlab.com", "target": "_blank" },
+            { "label": "RSVP", "href": "https://rsvp.mprlab.com", "target": "_blank" }
+          ] },
+          { "id": "tools", "label": "Tools", "mode": "collapsed", "links": [
+            { "label": "Countdown Calendar", "href": "https://countdown.mprlab.com", "target": "_blank" },
+            { "label": "LLM Crossword", "href": "https://llm-crossword.mprlab.com", "target": "_blank" },
+            { "label": "Prompt Bubbles", "href": "https://prompts.mprlab.com", "target": "_blank" },
+            { "label": "Wallpapers", "href": "https://wallpapers.mprlab.com", "target": "_blank" }
+          ] }
+        ]
+      }'
+      theme-switcher="square"
+      theme-config='{"attribute":"data-demo-theme","targets":["body"],"initialMode":"default-dark","modes":[{"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},{"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},{"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},{"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}]}'
+    >
+    </mpr-footer>
+    <script defer src="./demo/demo.js"></script>
+  </body>
+</html>
