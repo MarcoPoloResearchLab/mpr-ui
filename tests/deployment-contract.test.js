@@ -99,17 +99,26 @@ test('production manifest declares the public demo and its TAuth tenant', () => 
     mprlab_resources: {
       owner: 'mpr-ui',
       release: { scheme: 'semver' },
-      resources: [
-        {
+      defaults: {
+        timeouts: {
+          startup: '2m', completion: '30m', readiness: '5m', request: '30s', shutdown: '30s',
+        },
+      },
+      operations: Object.fromEntries([
+        'app_lifecycle.repository_read', 'app-release', 'app-publish', 'app-deploy',
+      ].map((operation) => [operation, {
+        polling: { initial: '2s', maximum: '15s', increment: '2s', multiplier: 2, attempt_limit: 60 },
+      }])),
+      ci: { enabled: true, command: { '0': 'env', '1': 'CI=1', '2': 'make', '3': 'ci' } },
+      resources: {
+        'browser-assets': {
           kind: 'jsdelivr',
-          id: 'browser-assets',
           repository: 'MarcoPoloResearchLab/mpr-ui',
           assets: ['mpr-ui-config.js', 'mpr-ui.js', 'mpr-ui.css'],
           aliases: ['latest', 'major'],
         },
-        {
+        'private': {
           kind: 'private_values',
-          id: 'private',
           bindings: {
             'apple-private-key': 'MPR_UI_APPLE_PRIVATE_KEY',
             'email-delivery-api-key': 'MPR_UI_EMAIL_DELIVERY_API_KEY',
@@ -117,9 +126,8 @@ test('production manifest declares the public demo and its TAuth tenant', () => 
             'jwt-signing-key': 'MPR_UI_JWT_SIGNING_KEY',
           },
         },
-        {
+        'demo-site': {
           kind: 'github_pages',
-          id: 'demo-site',
           repository: 'MarcoPoloResearchLab/mpr-ui',
           branch: 'gh-pages',
           domain: 'ui.mprlab.com',
@@ -131,9 +139,8 @@ test('production manifest declares the public demo and its TAuth tenant', () => 
           },
           verification: { path: '/.mprlab-release.json' },
         },
-        {
+        'demo-authentication': {
           kind: 'tauth_tenant',
-          id: 'demo-authentication',
           capability: 'tauth.tenants',
           version: 1,
           tenant: {
@@ -192,14 +199,14 @@ test('production manifest declares the public demo and its TAuth tenant', () => 
             },
           },
         },
-      ],
+      },
     },
   });
 });
 
 test('CDN declaration covers the exact URLs in consumer documentation', () => {
   const manifest = yaml.load(readFileSync(PRODUCTION_MANIFEST_PATH, 'utf8'));
-  const resource = manifest.mprlab_resources.resources.find((entry) => entry.kind === 'jsdelivr');
+  const resource = Object.values(manifest.mprlab_resources.resources).find((entry) => entry.kind === 'jsdelivr');
   for (const document of ['README.md', 'docs/integration-guide.md']) {
     const content = readFileSync(resolve(REPOSITORY_ROOT, document), 'utf8');
     const urls = [...content.matchAll(/https:\/\/cdn\.jsdelivr\.net\/gh\/([^@\s]+)@latest\/([^"\s<>]+)/g)];
