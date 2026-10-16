@@ -309,7 +309,11 @@ make release && make publish && make deploy
 ```
 
 The installed `mprlab-gateway` runtime owns each lifecycle phase.
-Use a runtime that supplies the F014 `jsdelivr` resource, first released in Gateway `v4.1.0`.
+The manifest uses the Gateway `v6.0.4` contract.
+Resource IDs are map keys.
+CI sets `CI=1` and runs `make ci`.
+The manifest declares all lifecycle timeouts and polling policies.
+
 The runtime must also keep the declared repository letter case in CDN requests.
 The current manifest requires `MarcoPoloResearchLab/mpr-ui`, as used in the public asset URLs.
 A runtime that changes this spelling to lowercase does not satisfy this requirement.
