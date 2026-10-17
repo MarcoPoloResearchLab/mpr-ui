@@ -2271,7 +2271,7 @@
     if (hasAttributeValue(hostElement, AUTH_CONFIG_ATTRIBUTE)) {
       externalOptions.auth = parseAuthConfigAttribute(hostElement);
     }
-    return deepMergeOptions({}, datasetOptions, externalOptions);
+    return deepMergeOptions({ themeToggle: {} }, datasetOptions, externalOptions);
   }
 
   function buildFooterOptionsFromAttributes(hostElement) {
@@ -3703,10 +3703,12 @@
       }
       return null;
     } catch (error) {
-      throw new Error(
+      var storageError = /** @type {MprUiError} */ (new Error(
         THEME_STORAGE_ERROR + ": " + operation + " theme key " + storageKey,
         { cause: error },
-      );
+      ));
+      storageError.code = THEME_STORAGE_ERROR;
+      throw storageError;
     }
   }
   var DEFAULT_THEME_TARGETS = Object.freeze(["document", "body"]);
@@ -8595,6 +8597,8 @@
     );
     var options = normalizeHeaderOptions(combinedOptions);
     var cleanupHandlers = [];
+    var controlOwner = {};
+    themeManager.configure(options.themeToggle.managerConfig, controlOwner, true);
     ensureHeaderStyles(global.document || (global.window && global.window.document));
 
     var elements = mountHeaderDom(hostElement, options, !userMenuElement);
@@ -8616,10 +8620,6 @@
     var signInRedirectPending = false;
     var signInRedirectTarget = "";
     var isDestroyed = false;
-
-    var headerThemeConfig = options.themeToggle;
-
-    themeManager.configure(headerThemeConfig.managerConfig);
 
     function updateThemeHost(modeValue) {
       hostElement.setAttribute("data-mpr-theme-mode", modeValue);
@@ -8922,31 +8922,36 @@
 
     return {
       update: function update(nextOptions) {
-        latestExternalOptions = deepMergeOptions(
+        var nextExternalOptions = deepMergeOptions(
           {},
           latestExternalOptions,
           nextOptions || {},
         );
+        if (Object.prototype.hasOwnProperty.call(nextOptions || {}, "themeToggle")) {
+          nextExternalOptions.themeToggle = deepMergeOptions({}, nextOptions.themeToggle);
+        }
         var updatedDatasetOptions = readHeaderOptionsFromDataset(hostElement);
         var updatedCombined = deepMergeOptions(
           {},
           updatedDatasetOptions,
-          latestExternalOptions,
+          nextExternalOptions,
         );
-        options = normalizeHeaderOptions(updatedCombined);
+        var nextNormalizedOptions = normalizeHeaderOptions(updatedCombined);
         if (
-          options.auth &&
+          nextNormalizedOptions.auth &&
           authController &&
           authController.state &&
           authController.state.options &&
-          authController.state.options.tenantId !== options.auth.tenantId
+          authController.state.options.tenantId !== nextNormalizedOptions.auth.tenantId
         ) {
           throw createAuthTenantIdChangeError(
             authController.state.options.tenantId,
-            options.auth.tenantId,
+            nextNormalizedOptions.auth.tenantId,
           );
         }
-        headerThemeConfig = options.themeToggle;
+        themeManager.configure(nextNormalizedOptions.themeToggle.managerConfig, controlOwner, true);
+        latestExternalOptions = nextExternalOptions;
+        options = nextNormalizedOptions;
         applyHeaderOptions(hostElement, elements, options);
         if (!options.settings.enabled && settingsModalController) {
           settingsModalController.close();
@@ -8954,7 +8959,6 @@
         if (settingsModalController) {
           settingsModalController.updateLabel(options.settings.label);
         }
-        themeManager.configure(headerThemeConfig.managerConfig);
         if (options.auth && !authController) {
           authController = createAuthHeader(hostElement, options.auth);
         }
@@ -8994,6 +8998,7 @@
       },
       destroy: function destroy() {
         isDestroyed = true;
+        themeManager.releaseControl(controlOwner);
         cleanupHandlers.forEach(function invoke(handler) {
           if (typeof handler === "function") {
             handler();
@@ -15966,13 +15971,21 @@
           }
           this.removeAttribute("data-mpr-auth-error");
           var userMenuElement = this.__headerUserMenuElement;
-          if (this.__headerController) {
-            this.__headerController.update(options);
-          } else {
-            this.__headerController = createSiteHeaderController(this, options, {
-              userMenuElement: userMenuElement,
-            });
+          try {
+            if (this.__headerController) {
+              this.__headerController.update(options);
+            } else {
+              this.__headerController = createSiteHeaderController(this, options, {
+                userMenuElement: userMenuElement,
+              });
+            }
+          } catch (error) {
+            if (error.code !== THEME_CONTROL_ERROR) { throw error; }
+            reportThemeControlError(this, error);
+            return;
           }
+          this.__mprThemeControlRejected = false;
+          this.removeAttribute("data-mpr-theme-control-error");
           if (this.__headerSlots) {
             var elements = resolveHeaderElements(this);
             applyHeaderSlotContent(this.__headerSlots, elements);
@@ -16038,9 +16051,11 @@
             if (errorCode === THEME_CONTROL_ERROR) {
               reportThemeControlError(this, error);
             } else {
-              if (this.__footerController) { this.__footerController.destroy(); }
-              this.__footerController = null;
-              this.innerHTML = "";
+              if (errorCode !== THEME_STORAGE_ERROR) {
+                if (this.__footerController) { this.__footerController.destroy(); }
+                this.__footerController = null;
+                this.innerHTML = "";
+              }
               logError(errorCode, error.message);
             }
             dispatchEvent(this, "mpr-footer:error", { code: errorCode, message: error.message });
