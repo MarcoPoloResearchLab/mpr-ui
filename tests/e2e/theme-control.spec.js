@@ -150,6 +150,70 @@ test('equivalent declarations ignore object key order and survive owner disconne
   expect(await page.evaluate(() => window.MPRUI.getThemeMode())).toBe('light');
 });
 
+for (const declarationTiming of ['mount', 'update']) {
+  test(`header conflicts at ${declarationTiming} preserve the application declaration`, async ({ page }) => {
+    await openFixture(page, '<mpr-theme-toggle></mpr-theme-toggle>', { control: SWITCH });
+    await page.evaluate(({ timing, control }) => {
+      window.headerControlErrors = [];
+      document.addEventListener('mpr-ui:theme-control-error', (event) => window.headerControlErrors.push(event.detail));
+      const header = document.createElement('mpr-header');
+      if (timing === 'update') {
+        header.setAttribute('theme-config', JSON.stringify({ control }));
+        document.body.append(header);
+      }
+      header.setAttribute('theme-config', JSON.stringify({ control: { kind: 'cycle', choices: ['light', 'dark'] } }));
+      if (timing === 'mount') document.body.append(header);
+    }, { timing: declarationTiming, control: SWITCH });
+    await expect(page.locator('mpr-header')).toHaveAttribute('data-mpr-theme-control-error', ERROR);
+    expect(await page.evaluate(() => window.MPRUI.configureTheme({}).control)).toEqual(SWITCH);
+    expect(await page.evaluate(() => window.headerControlErrors.length)).toBe(1);
+    await page.locator('mpr-theme-toggle input').click();
+    expect(await page.evaluate(() => window.MPRUI.getThemeMode())).toBe('light');
+    await page.evaluate((control) => document.querySelector('mpr-header').setAttribute('theme-config', JSON.stringify({ control })), SWITCH);
+    await expect(page.locator('mpr-header')).not.toHaveAttribute('data-mpr-theme-control-error', ERROR);
+  });
+}
+
+for (const removal of ['attribute', 'control', 'disconnect']) {
+  test(`header releases its declaration after ${removal} removal`, async ({ page }) => {
+    await openFixture(page, `<mpr-header theme-config='${JSON.stringify({ control: SWITCH })}'></mpr-header>
+      <mpr-theme-toggle></mpr-theme-toggle>`);
+    await expect(page.locator('mpr-theme-toggle input')).toHaveCount(1);
+    await page.evaluate((action) => {
+      const header = document.querySelector('mpr-header');
+      if (action === 'attribute') header.removeAttribute('theme-config');
+      else if (action === 'control') header.setAttribute('theme-config', JSON.stringify({ initialMode: 'dark' }));
+      else header.remove();
+      const footer = document.createElement('mpr-footer');
+      footer.setAttribute('theme-control', JSON.stringify({ kind: 'cycle', choices: ['light', 'dark'] }));
+      document.body.append(footer);
+    }, removal);
+    await expect(page.locator('mpr-footer [data-mpr-theme-control-kind="cycle"]')).toHaveCount(1);
+    await expect(page.locator('mpr-footer')).not.toHaveAttribute('data-mpr-theme-control-error', ERROR);
+    await page.locator('mpr-footer [data-mpr-theme-toggle="control"]').click();
+    expect(await page.evaluate(() => window.MPRUI.getThemeMode())).toBe('light');
+  });
+}
+
+test('application updates reject conflicts with a live header declaration', async ({ page }) => {
+  await openFixture(page, `<mpr-header theme-config='${JSON.stringify({ control: SWITCH })}'></mpr-header>
+    <mpr-theme-toggle></mpr-theme-toggle>`);
+  const result = await page.evaluate(() => {
+    const picker = document.querySelector('mpr-theme-toggle input');
+    let failure;
+    try { window.MPRUI.configureTheme({ control: { kind: 'cycle', choices: ['light', 'dark'] } }); }
+    catch (error) { failure = error.message; }
+    return { failure, samePicker: picker === document.querySelector('mpr-theme-toggle input') };
+  });
+  expect(result.failure).toContain(ERROR);
+  expect(result.samePicker).toBe(true);
+  await page.evaluate(() => {
+    document.querySelector('mpr-header').remove();
+    window.MPRUI.configureTheme({ control: { kind: 'cycle', choices: ['light', 'dark'] } });
+  });
+  await expect(page.locator('mpr-theme-toggle [data-mpr-theme-control-kind="cycle"]')).toHaveCount(1);
+});
+
 for (const controls of [[SWITCH, { kind: 'cycle', choices: ['light', 'dark'] }],
   [{ kind: 'cycle', choices: ['light', 'dark'] }, SWITCH]]) {
   test(`conflicting ${controls[0].kind} then ${controls[1].kind} declarations reject the later owner`, async ({ page }) => {
