@@ -6,6 +6,9 @@
 ## [Unreleased]
 
 ### Features ✨
+- Added the shared `theme-control` DSL for standalone and footer controls.
+- Required two named switch choices and four named quadrant choices.
+- Added explicit mode order for cycle controls.
 - Added the GitHub Pages production manifest and the dedicated `mpr-ui-demo` TAuth tenant.
 - Added sign-in and account-creation tabs to the email panel on each auth-owning surface.
 - Added `<mpr-dropdown>` with section headings, disclosure modes, top or bottom placement, strict menu validation, accessible focus behavior, and public events.
@@ -13,6 +16,7 @@
 - Added `MPRUI.getLegalProfile()`, `MPRUI.getLegalDocument()`, `MPRUI.renderLegalDocument()`, and `<mpr-legal-document>` for reusable MPR Lab Terms and Privacy pages.
 
 ### Improvements ⚙️
+- Removed the standalone theme `variant` selector and footer `theme-switcher` selector.
 - Moved lifecycle commands to the installed Gateway runtime and declared CDN assets through its shared `jsdelivr` resource.
 - Removed the application CDN script and its duplicate provider tests.
 - Moved release, publication, and deployment to the canonical sibling Gateway lifecycle.
