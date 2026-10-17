@@ -7,8 +7,8 @@ const { test, expect } = require('./support/browserCoverage');
 const FIXTURE_ORIGIN = 'https://theme-config.fixture.test';
 const BUNDLE = readFileSync(join(__dirname, '../../mpr-ui.js'), 'utf8');
 const COMPONENTS = Object.freeze({
-  standalone: '<mpr-theme-toggle></mpr-theme-toggle>',
-  footer: '<mpr-footer theme-switcher="toggle"></mpr-footer>',
+  standalone: `<mpr-theme-toggle theme-control='{"kind":"switch","choices":{"off":"light","on":"dark"}}'></mpr-theme-toggle>`,
+  footer: `<mpr-footer theme-control='{"kind":"switch","choices":{"off":"light","on":"dark"}}'></mpr-footer>`,
   header: '<mpr-header brand-label="Theme test"></mpr-header>',
 });
 
@@ -43,10 +43,55 @@ for (const component of Object.keys(COMPONENTS)) {
 }
 
 for (const failedOperation of ['read', 'remove']) {
+  test(`failed footer configuration ${failedOperation} preserves the mounted footer`, async ({ page }) => {
+    await page.goto(`${FIXTURE_ORIGIN}/?component=footer`);
+    const result = await page.evaluate((operation) => {
+      const footer = document.querySelector('mpr-footer');
+      window.MPRUI.setThemeMode('dark');
+      const previousConfig = window.MPRUI.configureTheme({});
+      const previousMarkup = footer.innerHTML;
+      const previousPicker = footer.querySelector('input');
+      const errors = [];
+      footer.addEventListener('mpr-footer:error', (event) => errors.push(event.detail));
+      localStorage.setItem('candidate:theme', 'removed-color');
+      const method = operation === 'read' ? 'getItem' : 'removeItem';
+      const originalMethod = Storage.prototype[method];
+      Storage.prototype[method] = () => { throw new Error('storage denied'); };
+      try {
+        footer.setAttribute('theme-config', JSON.stringify({ storageKey: 'candidate:theme', modes: previousConfig.modes }));
+      } finally {
+        Storage.prototype[method] = originalMethod;
+      }
+      return {
+        previousConfig, configAfterFailure: window.MPRUI.configureTheme({}), errors,
+        sameMarkup: footer.innerHTML === previousMarkup,
+        samePicker: footer.querySelector('input') === previousPicker,
+        saved: localStorage.getItem('mpr-ui:theme'), candidateSaved: localStorage.getItem('candidate:theme'),
+      };
+    }, failedOperation);
+    expect(result).toMatchObject({ sameMarkup: true, samePicker: true, saved: 'dark', candidateSaved: 'removed-color' });
+    expect(result.errors).toEqual([{
+      code: 'mpr-ui.theme.storage_failed',
+      message: `mpr-ui.theme.storage_failed: ${failedOperation} theme key candidate:theme`,
+    }]);
+    expect(result.configAfterFailure).toEqual(result.previousConfig);
+    const footer = page.locator('mpr-footer');
+    await expect(footer).toHaveAttribute('data-mpr-footer-error', 'mpr-ui.theme.storage_failed');
+    await footer.locator('input').click();
+    expect(await page.evaluate(() => window.MPRUI.getThemeMode())).toBe('light');
+    expect(await page.evaluate(() => localStorage.getItem('mpr-ui:theme'))).toBe('light');
+    await page.evaluate(() => document.querySelector('mpr-footer').setAttribute('theme-config', '{}'));
+    await expect(footer).not.toHaveAttribute('data-mpr-footer-error');
+    await footer.locator('input').click();
+    expect(await page.evaluate(() => window.MPRUI.getThemeMode())).toBe('dark');
+  });
+
   test(`failed configuration ${failedOperation} preserves active state and controls`, async ({ page }) => {
     await page.goto(FIXTURE_ORIGIN);
     const result = await page.evaluate((operation) => {
       window.MPRUI.setThemeMode('dark');
+      window.MPRUI.configureTheme({ control: { kind: 'switch', choices: { off: 'light', on: 'dark' } } });
+      document.querySelectorAll('[theme-control]').forEach(element => element.removeAttribute('theme-control'));
       const previousConfig = window.MPRUI.configureTheme({});
       const notifications = [];
       const unsubscribe = window.MPRUI.onThemeChange((detail) => notifications.push(detail));
@@ -65,6 +110,7 @@ for (const failedOperation of ['read', 'remove']) {
             { value: 'night', attributeValue: 'dark', dataset: { palette: 'night' } },
           ],
           initialMode: 'night',
+          control: { kind: 'switch', choices: { off: 'day', on: 'night' } },
         });
       } catch (error) {
         failure = error.message;

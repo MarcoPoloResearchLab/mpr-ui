@@ -119,6 +119,11 @@ Add repository-specific technical nouns below this line.
 - `Web Lock`: A browser lock that coordinates one operation between browser tabs on the same origin.
 ```
 
+- `theme control`: The shared definition that maps user choices to application theme modes.
+- `mode catalog`: The complete set of theme modes that an application can select.
+- `quadrant`: A theme control with four named choices in a square layout.
+- `cycle`: A theme control that selects the next mode from an explicit ordered list.
+
 ## MPR Lab Technical Verbs
 
 - `archive`: Move completed history from the active issue tracker to durable storage.

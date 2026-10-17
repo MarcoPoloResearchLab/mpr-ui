@@ -341,7 +341,7 @@ Utility links remain visible without horizontal scrolling at narrow and intermed
 - `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders an inline utility link list inside the same row as the other footer controls.
 - `privacy-link-href`: URL for the privacy page.
 - `privacy-link-label`: Label for the privacy link.
-- `theme-switcher`: `toggle` to enable the theme switch.
+- `theme-control`: JSON that defines the shared control kind and named mode values.
 - `theme-config`: JSON with `attribute`, `modes`, `initialMode`, and `storageKey`.
 - `base-class`: Optional space-separated classes for the internal footer root. The component mirrors them to the host only when `sticky="false"`. Use them for host utilities such as `mt-auto` in in-flow layouts.
 - `sticky`: `true` or `false`.
@@ -380,7 +380,7 @@ Utility links remain visible without horizontal scrolling at narrow and intermed
       }
     ]
   }'
-  theme-switcher="toggle"
+  theme-control='{"kind":"switch","choices":{"off":"light","on":"dark"}}'
   theme-config='{"attribute":"data-bs-theme","modes":["light","dark"],"initialMode":"dark"}'
   sticky="false"
 ></mpr-footer>
@@ -392,7 +392,7 @@ Utility links remain visible without horizontal scrolling at narrow and intermed
 
 Attributes:
 
-- `variant`: `switch`, `button`, or `square`.
+- `theme-control`: JSON with `kind` and `choices`.
 - `label`: Visible control copy.
 - `aria-label`: Accessible control name.
 - `show-label`: Shows the visible label when true.
@@ -400,6 +400,45 @@ Attributes:
 - `theme-config`: JSON with `attribute`, `targets`, `modes`, `initialMode`, and `storageKey`.
 
 The component emits the shared `mpr-ui:theme-change` event through the theme manager.
+
+### Explicit theme controls
+
+Each application uses one shared control definition and one mode catalog.
+Set `theme-control` on a footer or standalone control.
+For the JavaScript component API, set `themeControl` to the same object.
+Set the application default with `MPRUI.configureTheme({ control: definition })`.
+
+The control definition has exactly two fields: `kind` and `choices`.
+Each named choice refers to one `modes` entry by its `value`.
+The `choices` field must include every mode exactly once.
+
+- `switch` uses exactly two named fields: `off` and `on`. The fields must refer to different mode values.
+- `quadrant` uses exactly four named fields: `topLeft`, `topRight`, `bottomLeft`, and `bottomRight`. The fields must refer to different mode values.
+- `cycle` must have an ordered array of different mode values.
+
+```html
+<mpr-theme-toggle
+  theme-control='{"kind":"switch","choices":{"off":"light","on":"dark"}}'
+  theme-config='{"modes":["light","dark"]}'
+></mpr-theme-toggle>
+
+<mpr-footer
+  theme-control='{"kind":"quadrant","choices":{"topLeft":"default-light","topRight":"sunrise-light","bottomLeft":"default-dark","bottomRight":"forest-dark"}}'
+  theme-config='{"modes":["default-light","sunrise-light","default-dark","forest-dark"]}'
+></mpr-footer>
+```
+
+These examples belong to separate applications.
+All explicit definitions in one application must specify the same kind and mode values.
+A definition with different mode values fails with `mpr-ui.theme-control.invalid_config`.
+Unknown modes, repeated mode values, extra fields, and unknown kinds also fail with this error.
+The obsolete standalone `variant` and footer `theme-switcher` attributes fail with this error.
+
+A standalone control must have its own definition or an application definition.
+A footer without either definition has no theme control.
+Both components adopt an application definition that is set later.
+To change the kind and catalog together, use one `MPRUI.configureTheme({ control, modes })` call.
+Remove explicit component definitions before this application update.
 
 ### Local theme selection
 
@@ -422,7 +461,7 @@ If configuration cannot read or remove a record, the active theme configuration 
 
 ```html
 <mpr-theme-toggle
-  variant="button"
+  theme-control='{"kind":"cycle","choices":["light","dark"]}'
   label="Change theme"
   show-label="true"
   theme-config='{

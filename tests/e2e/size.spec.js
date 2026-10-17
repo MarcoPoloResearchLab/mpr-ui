@@ -88,7 +88,11 @@ test.describe('Size parameter support', () => {
     const footerHost = page.locator('mpr-footer#page-footer');
     await expect(footerHost).toBeVisible();
 
-    await footerHost.evaluate(el => el.setAttribute('theme-switcher', 'toggle'));
+    await footerHost.evaluate(el => {
+      el.removeAttribute('theme-control');
+      el.removeAttribute('theme-config');
+      window.MPRUI.configureTheme({ modes: ['light', 'dark'], initialMode: 'light', control: { kind: 'switch', choices: { off: 'light', on: 'dark' } } });
+    });
     await footerHost.evaluate(el => el.setAttribute('size', 'normal'));
 
     const toggleSelector = 'input[type="checkbox"][data-mpr-theme-toggle="control"]';
@@ -125,7 +129,7 @@ test.describe('Size parameter support', () => {
     const footerHost = page.locator('mpr-footer#page-footer');
     await expect(footerHost).toBeVisible();
 
-    await footerHost.evaluate(el => el.setAttribute('theme-switcher', 'square'));
+    await footerHost.evaluate(el => el.setAttribute('theme-control', JSON.stringify({ kind: 'quadrant', choices: { topLeft: 'default-light', topRight: 'sunrise-light', bottomLeft: 'default-dark', bottomRight: 'forest-dark' } })));
     await footerHost.evaluate(el => el.setAttribute('size', 'normal'));
 
     const toggle = footerHost.locator('button[data-mpr-theme-toggle="control"][data-variant="square"]');

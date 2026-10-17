@@ -54,12 +54,14 @@
       id="page-footer"
       prefix-text="Built by Test"
       privacy-link-label="Privacy"
-      theme-switcher="square"
+      theme-control='{"kind":"quadrant","choices":{"topLeft":"default-light","topRight":"sunrise-light","bottomLeft":"default-dark","bottomRight":"forest-dark"}}'
       theme-config='{
         "targets": ["body"],
         "modes": [
-            {"value": "light", "classList": ["theme-light"]},
-            {"value": "dark", "classList": ["theme-dark"]}
+            {"value": "default-light", "attributeValue": "light", "classList": ["theme-light"]},
+            {"value": "sunrise-light", "attributeValue": "light", "classList": ["theme-light"]},
+            {"value": "default-dark", "attributeValue": "dark", "classList": ["theme-dark"]},
+            {"value": "forest-dark", "attributeValue": "dark", "classList": ["theme-dark"]}
         ]
       }'
       menu='{

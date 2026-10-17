@@ -103,7 +103,7 @@ Render the shell:
       ] }
     ]
   }'
-  theme-switcher="toggle"
+  theme-control='{"kind":"switch","choices":{"off":"light","on":"dark"}}'
 ></mpr-footer>
 ```
 
@@ -185,7 +185,7 @@ After HTTP 401, the helper coordinates one session recovery across concurrent re
 | `<mpr-header>` | Brand, navigation, provider-aware auth, user menu, and auth transition | [`index.html`](index.html) |
 | `<mpr-footer>` | Sectioned drop-up, utility links, privacy action, and theme control | [`index.html`](index.html) |
 | `<mpr-dropdown>` | Top or bottom sectioned menu with static, expanded, and collapsed sections | [`demo/components.html`](demo/components.html) |
-| `<mpr-theme-toggle>` | Shared switch, button, or square theme control | [`demo/components.html`](demo/components.html) |
+| `<mpr-theme-toggle>` | Shared switch, cycle, or quadrant theme control | [`demo/components.html`](demo/components.html) |
 | `<mpr-login-button>` | Provider-aware standalone authentication surface | [`demo/standalone.html`](demo/standalone.html) |
 | `<mpr-auth-provider-chooser>` | Google, Apple, and email provider-choice events | [`demo/auth-provider-chooser.html`](demo/auth-provider-chooser.html) |
 | `<mpr-password-auth>` | Login, signup, verification, and reset forms | [`demo/tauth-demo.html`](demo/tauth-demo.html) |
@@ -213,7 +213,7 @@ The full attribute, slot, method, and event reference is in [`docs/custom-elemen
 - `MPRUI.createAuthOptions(options)`
 - `MPRUI.renderAuthHeader(host, options)`
 - `MPRUI.authenticatedFetch(authTarget, input, init?, policy?)`
-- `MPRUI.configureTheme(config)`
+- `MPRUI.configureTheme(config)` — Set the shared mode catalog and explicit `control` definition.
 - `MPRUI.setThemeMode(mode)`
 - `MPRUI.getThemeMode()`
 - `MPRUI.onThemeChange(listener)`

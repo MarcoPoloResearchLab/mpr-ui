@@ -234,7 +234,7 @@ test.describe('F010: horizontal links stay inside responsive chrome', () => {
         return;
       }
 
-      footer.removeAttribute('theme-switcher');
+      footer.removeAttribute('theme-control');
       footer.setAttribute(
         'menu',
         JSON.stringify({
