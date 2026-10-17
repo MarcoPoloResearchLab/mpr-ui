@@ -335,3 +335,15 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - Full `make ci` passed 211 Node tests, two runs of 236 Chromium tests, and the Pages artifact check.
 - The independent review found no remaining issues.
 - The Governor check reported eight existing differences in managed files outside this correction.
+
+### 2026-10-16: Theme declaration and footer corrections
+
+- Added a theme control declaration for each header.
+- Headers remove their declarations when `theme-config.control` is removed or the header disconnects.
+- Header and application declarations use shared validation.
+- Footer updates keep the active controls and contents after theme storage errors.
+- Storage errors include the `mpr-ui.theme.storage_failed` code.
+- Eight new Chromium tests showed the defects before the source code corrections.
+- Focused validation completed all 75 Chromium tests without errors.
+- Final `make ci` completed 212 Node tests and two runs of 282 Chromium tests without errors.
+- The coverage checks and Pages artifact check also completed without errors.
