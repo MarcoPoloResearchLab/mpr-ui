@@ -1071,6 +1071,22 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   The `ui.mprlab.com` hostname does not resolve.
   Real provider and idempotent deployment acceptance remain incomplete.
 
+- [x] [F014] (P1) Define explicit theme controls.
+  Goal: Keep theme control appearance and behavior consistent.
+  Requirements:
+  - Use the same `theme-control` schema for standalone and footer controls.
+  - Require two distinct switch choices and four distinct named quadrant choices.
+  - Validate every choice against the complete mode catalog.
+  - Reject conflicting declarations and obsolete selectors.
+  - Preserve valid state when an update fails.
+  - Keep keyboard selection, pointer selection, and local storage consistent.
+  Validation:
+  Baseline CI passed before edits.
+  Browser regression tests failed before the production code change.
+  The new browser cases pass with explicit mappings, inheritance, rejection, and recovery.
+  Final CI passed 212 unit tests, 274 browser tests, coverage checks, and the Pages artifact test.
+  Independent review found no remaining defects.
+
 ## Planning
 
 No active issues.
