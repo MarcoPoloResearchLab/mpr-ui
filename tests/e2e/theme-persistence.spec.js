@@ -28,18 +28,22 @@ async function routeThemePages(context) {
       modes: url.searchParams.get('binary') ? ['light', 'dark'] : MODES,
       ...(url.searchParams.has('key') ? { storageKey: url.searchParams.get('key') } : {}),
     };
-    const themeConfig = JSON.stringify(config);
+    const control = url.searchParams.get('binary')
+      ? { kind: 'switch', choices: { off: 'light', on: 'dark' } }
+      : { kind: 'quadrant', choices: { topLeft: 'default-light', topRight: 'sunrise-light', bottomLeft: 'default-dark', bottomRight: 'forest-dark' } };
+    const themeControl = JSON.stringify(control);
+    const themeConfig = JSON.stringify({ ...config, control });
     const implicitComponents = '<mpr-header></mpr-header><mpr-footer></mpr-footer>' +
-      '<mpr-theme-toggle id="implicit-picker" variant="square"></mpr-theme-toggle>';
+      '<mpr-theme-toggle id="implicit-picker"></mpr-theme-toggle>';
     await route.fulfill({
       contentType: 'text/html',
       body: `<!doctype html><html data-mpr-theme="light"><head>
         <script defer src="/mpr-ui.js"></script></head><body>
         ${url.searchParams.get('implicit') === 'only' ? implicitComponents : `
         <mpr-header brand-label="Theme test" theme-config='${themeConfig}'></mpr-header>
-        <mpr-theme-toggle variant="${url.searchParams.get('binary') ? 'switch' : 'square'}"
+        <mpr-theme-toggle theme-control='${themeControl}'
           theme-config='${themeConfig}'></mpr-theme-toggle>
-        <mpr-footer theme-switcher="${url.searchParams.get('binary') ? 'toggle' : 'square'}"
+        <mpr-footer theme-control='${themeControl}'
           theme-config='${themeConfig}'></mpr-footer>`}
         </body></html>`,
     });
@@ -139,7 +143,6 @@ for (const placement of ['before', 'after']) {
       for (const tagName of ['mpr-header', 'mpr-footer', 'mpr-theme-toggle']) {
         const element = document.createElement(tagName);
         element.setAttribute('id', `implicit-${tagName}`);
-        if (tagName === 'mpr-theme-toggle') element.setAttribute('variant', 'square');
         if (position === 'before') document.body.prepend(element);
         else document.body.append(element);
       }
@@ -150,7 +153,6 @@ for (const placement of ['before', 'after']) {
       for (const tagName of ['mpr-header', 'mpr-footer', 'mpr-theme-toggle']) {
         const element = document.createElement(tagName);
         element.setAttribute('id', `implicit-${tagName}`);
-        if (tagName === 'mpr-theme-toggle') element.setAttribute('variant', 'square');
         if (position === 'before') document.body.prepend(element);
         else document.body.append(element);
       }
@@ -219,7 +221,7 @@ test('controls mounted before a custom owner adopt its saved color catalog', asy
   await page.evaluate((themeConfig) => {
     localStorage.setItem('app:theme', 'forest-dark');
     const owner = document.createElement('mpr-footer');
-    owner.setAttribute('theme-switcher', 'square');
+    owner.setAttribute('theme-control', JSON.stringify({ kind: 'quadrant', choices: { topLeft: 'default-light', topRight: 'sunrise-light', bottomLeft: 'default-dark', bottomRight: 'forest-dark' } }));
     owner.setAttribute('theme-config', JSON.stringify(themeConfig));
     document.body.append(owner);
   }, config);
@@ -248,16 +250,16 @@ test('failed switch persistence restores the visible checkbox', async ({ page })
 
 test('failure to remove an invalid record reports the operation and key', async ({ page }) => {
   await page.goto(FIRST_ORIGIN);
-  const message = await page.evaluate(() => {
+  const message = await page.evaluate((modes) => {
     localStorage.setItem('invalid:theme', 'removed-color');
     Storage.prototype.removeItem = () => { throw new Error('storage denied'); };
     try {
-      window.MPRUI.configureTheme({ storageKey: 'invalid:theme', modes: ['light', 'dark'] });
+      window.MPRUI.configureTheme({ storageKey: 'invalid:theme', modes });
       return null;
     } catch (error) {
       return error.message;
     }
-  });
+  }, MODES);
   expect(message).toBe('mpr-ui.theme.storage_failed: remove theme key invalid:theme');
 });
 
@@ -268,7 +270,7 @@ test('explicit selection of the current mode saves it without saving initializat
   expect(await page.evaluate((key) => localStorage.getItem(key), DEFAULT_STORAGE_KEY)).toBe('default-light');
 });
 
-for (const savedMode of ['sunrise-light', 'forest-dark']) {
+for (const savedMode of ['light', 'dark']) {
   test(`a switch mounted before the owner recognizes ${savedMode}`, async ({ page }) => {
     await page.goto(FIRST_ORIGIN + '/?implicit=only');
     await page.evaluate(({ modes, selectedMode }) => {
@@ -277,16 +279,16 @@ for (const savedMode of ['sunrise-light', 'forest-dark']) {
       document.body.append(toggle);
       localStorage.setItem('app:theme', selectedMode);
       const owner = document.createElement('mpr-footer');
-      owner.setAttribute('theme-config', JSON.stringify({ storageKey: 'app:theme', modes }));
+      owner.setAttribute('theme-config', JSON.stringify({ storageKey: 'app:theme', modes, control: { kind: 'switch', choices: { off: 'light', on: 'dark' } } }));
       document.body.append(owner);
-    }, { modes: MODES, selectedMode: savedMode });
+    }, { modes: ['light', 'dark'], selectedMode: savedMode });
     const picker = page.locator('#implicit-switch input');
-    await expect(picker).toBeChecked({ checked: savedMode === 'forest-dark' });
+    await expect(picker).toBeChecked({ checked: savedMode === 'dark' });
     await expect(picker).toHaveAttribute('data-mpr-theme-mode', savedMode);
     await picker.click();
-    const targetMode = savedMode === 'forest-dark' ? 'light' : 'dark';
+    const targetMode = savedMode === 'dark' ? 'light' : 'dark';
     await expect(picker).toBeChecked({ checked: targetMode === 'dark' });
     await expect(page.locator('body')).toHaveAttribute('data-mpr-theme', targetMode);
-    expect(await page.evaluate(() => localStorage.getItem('app:theme'))).toBe(`default-${targetMode}`);
+    expect(await page.evaluate(() => localStorage.getItem('app:theme'))).toBe(targetMode);
   });
 }

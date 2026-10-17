@@ -7,8 +7,8 @@ const { test, expect } = require('./support/browserCoverage');
 const FIXTURE_ORIGIN = 'https://theme-config.fixture.test';
 const BUNDLE = readFileSync(join(__dirname, '../../mpr-ui.js'), 'utf8');
 const COMPONENTS = Object.freeze({
-  standalone: '<mpr-theme-toggle></mpr-theme-toggle>',
-  footer: '<mpr-footer theme-switcher="toggle"></mpr-footer>',
+  standalone: `<mpr-theme-toggle theme-control='{"kind":"switch","choices":{"off":"light","on":"dark"}}'></mpr-theme-toggle>`,
+  footer: `<mpr-footer theme-control='{"kind":"switch","choices":{"off":"light","on":"dark"}}'></mpr-footer>`,
   header: '<mpr-header brand-label="Theme test"></mpr-header>',
 });
 
@@ -47,6 +47,8 @@ for (const failedOperation of ['read', 'remove']) {
     await page.goto(FIXTURE_ORIGIN);
     const result = await page.evaluate((operation) => {
       window.MPRUI.setThemeMode('dark');
+      window.MPRUI.configureTheme({ control: { kind: 'switch', choices: { off: 'light', on: 'dark' } } });
+      document.querySelectorAll('[theme-control]').forEach(element => element.removeAttribute('theme-control'));
       const previousConfig = window.MPRUI.configureTheme({});
       const notifications = [];
       const unsubscribe = window.MPRUI.onThemeChange((detail) => notifications.push(detail));
@@ -65,6 +67,7 @@ for (const failedOperation of ['read', 'remove']) {
             { value: 'night', attributeValue: 'dark', dataset: { palette: 'night' } },
           ],
           initialMode: 'night',
+          control: { kind: 'switch', choices: { off: 'day', on: 'night' } },
         });
       } catch (error) {
         failure = error.message;

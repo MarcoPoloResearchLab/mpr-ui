@@ -21,10 +21,7 @@
   <body class="theme-light">
     <main style="padding: 2rem;">
       <h1>Footer Toggle Multi-mode Fixture</h1>
-      <p>
-        This fixture renders a footer wired with four theme modes but forces the toggle variant
-        through <code>theme-switcher="toggle"</code>.
-      </p>
+      <p>This fixture rejects a switch that does not cover its four-mode catalog.</p>
     </main>
 
     <mpr-footer
@@ -40,7 +37,7 @@
           ] }
         ]
       }'
-      theme-switcher="toggle"
+      theme-control='{"kind":"switch","choices":{"off":"default-light","on":"default-dark"}}'
       theme-config='{
         "attribute": "data-test-theme",
         "targets": ["body"],
