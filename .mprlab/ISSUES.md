@@ -771,6 +771,13 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Repeat the source scan and explain every remaining obsolete declaration.
   - Record release, publication, deployment, and public verification separately from implementation acceptance.
   Reference: https://github.com/MarcoPoloResearchLab/mpr-ui/issues/238
+  Progress:
+  The explicit controls and canonical storage keys are implemented.
+  The [acceptance record](../docs/i010/acceptance.md) covers all 238 inventory locations across 19 repositories.
+  The browser check passed for 237 source files and 21 configurations with no failures.
+  Independent source review found no unresolved issues.
+  LoopAware full CI remains in progress.
+  Prompts full CI awaits the approved TAuth test fixture tool in B002.
 
 ## Maintenance
 
