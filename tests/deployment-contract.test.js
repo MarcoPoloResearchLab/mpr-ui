@@ -206,7 +206,7 @@ test('production manifest declares the public demo and its TAuth tenant', () => 
 
 test('CDN declaration covers the exact URLs in consumer documentation', () => {
   const manifest = yaml.load(readFileSync(PRODUCTION_MANIFEST_PATH, 'utf8'));
-  const resource = Object.values(manifest.mprlab_resources.resources).find((entry) => entry.kind === 'jsdelivr');
+  const resource = manifest.mprlab_resources.resources['browser-assets'];
   for (const document of ['README.md', 'docs/integration-guide.md']) {
     const content = readFileSync(resolve(REPOSITORY_ROOT, document), 'utf8');
     const urls = [...content.matchAll(/https:\/\/cdn\.jsdelivr\.net\/gh\/([^@\s]+)@latest\/([^"\s<>]+)/g)];
