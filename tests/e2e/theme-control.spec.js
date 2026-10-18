@@ -77,6 +77,51 @@ for (const tagName of ['mpr-theme-toggle', 'mpr-footer']) {
   });
 }
 
+for (const tagName of ['mpr-theme-toggle', 'mpr-footer']) {
+  for (const [kind, control, modes] of [
+    ['switch', SWITCH, ['dark', 'light']],
+    ['quadrant', QUADRANT, MODES],
+    ['cycle', { kind: 'cycle', choices: ['dark', 'light'] }, ['dark', 'light']],
+  ]) {
+    test(`${tagName} ${kind} reports failed selection after restoring the control`, async ({ page }) => {
+      const initialMode = kind === 'quadrant' ? 'default-light' : 'dark';
+      await openFixture(page, `<${tagName} ${attribute(control)} theme-config='${JSON.stringify({ modes, initialMode })}'></${tagName}>`);
+      await page.evaluate((mode) => {
+        window.MPRUI.setThemeMode(mode);
+        window.selectionErrors = [];
+        window.selectionChanges = [];
+        document.addEventListener('mpr-ui:theme-storage-error', (event) => {
+          const picker = document.querySelector('[data-mpr-theme-toggle="control"]');
+          window.selectionErrors.push({ ...event.detail, mode: window.MPRUI.getThemeMode(),
+            checked: picker.checked, squareMode: picker.dataset.squareMode });
+        });
+        document.addEventListener('mpr-ui:theme-change', (event) => window.selectionChanges.push(event.detail));
+        window.originalThemeWrite = Storage.prototype.setItem;
+        Storage.prototype.setItem = () => { throw new Error('storage denied'); };
+      }, initialMode);
+      const picker = page.locator(`${tagName} [data-mpr-theme-toggle="control"]`);
+      for (const action of ['pointer', 'keyboard']) {
+        if (action === 'pointer') {
+          if (kind === 'quadrant') await picker.locator('[data-quad-index="3"]').click();
+          else await picker.click();
+        } else await picker.press(kind === 'quadrant' ? 'ArrowRight' : 'Space');
+        const events = await page.evaluate(() => window.selectionErrors);
+        expect(events).toHaveLength(action === 'pointer' ? 1 : 2);
+        expect(events.at(-1)).toMatchObject({ code: 'mpr-ui.theme.storage_failed',
+          message: 'mpr-ui.theme.storage_failed: write theme key mpr-ui:theme', mode: initialMode });
+        if (kind === 'switch') expect(events.at(-1).checked).toBe(false);
+        if (kind === 'quadrant') expect(events.at(-1).squareMode).toBe(initialMode);
+        expect(await page.evaluate(() => window.selectionChanges)).toEqual([]);
+        expect(await page.evaluate(() => localStorage.getItem('mpr-ui:theme'))).toBe(initialMode);
+      }
+      await page.evaluate(() => { Storage.prototype.setItem = window.originalThemeWrite; });
+      await picker.press(kind === 'quadrant' ? 'ArrowRight' : 'Space');
+      expect(await page.evaluate(() => window.selectionChanges.length)).toBe(1);
+      expect(await page.evaluate(() => localStorage.getItem('mpr-ui:theme'))).not.toBe(initialMode);
+    });
+  }
+}
+
 const INVALID_CONTROLS = [
   null, [], 'switch', { kind: 'button', choices: ['light', 'dark'] },
   { ...SWITCH, surprise: true }, { choices: SWITCH.choices },
