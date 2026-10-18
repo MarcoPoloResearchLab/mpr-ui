@@ -60,14 +60,39 @@ The Marco Polo investor portal has no theme definition and retains its footer wi
 ## Validation status
 
 The first consumer check reproduced rejected obsolete declarations before their migration.
-Final consumer validation and repository CI results remain in progress.
+The consumer check passed for 237 source files and 21 distinct configurations.
+The report covers all 238 snapshot locations, including the verified exclusions.
+Application CI remains in progress.
+
+| Repository | Native validation |
+| --- | --- |
+| TAuth | Passed full CI and the palette regression suite. |
+| LikeMe | Passed full CI. |
+| MediaOps | Passed full CI. |
+| SummerCan | Passed full CI. |
+| Pinguin | Passed full CI. |
+| Ledger | Passed full CI with its declared Go toolchain. |
+| Marco Polo website | Passed full CI and the Pages build. |
+| Hecate | Focused tests passed. Full CI remains open. |
+| PoodleScanner | Focused tests passed. Full CI is in progress. |
+| LLM Proxy | Layout correction and full CI remain open. |
+| LoopAware | The resource persistence regression passed. Full CI remains open. |
+| Prompts | Focused tests passed. Full CI remains open. |
+| Personal website | Full CI is in progress. |
+| Interview Room | Shipped asset tests and package tests passed. Full CI remains open. |
+| MPR UI | B080 CI passed. Final I010 CI remains open. |
+
+The source scan found no obsolete production declarations in current source files.
+The old `.pages-dist/` cache in the Marco Polo checkout has six obsolete declarations.
+The cache is ignored. The current Pages build uses the migrated source.
+Negative tests, historical issue text, and original inventory labels retain obsolete values as evidence.
 
 ## Operational status
 
 The explicit DSL is available in release `v4.3.5`, commit `d29f43b96991ff409db968f56e6b3fc57b6d20e0`.
 Consumer test fixtures select these exact released bytes.
-TAuth vendors this revision with the reviewed storage error event change.
-Its vendor document records the copied asset digests.
+TAuth and Interview Room vendor this revision with the reviewed storage error event change.
+Their vendor documents record the copied asset digests.
 
 This task does not run release, publication, deployment, or public verification operations.
 Those operations remain separate from implementation acceptance.
