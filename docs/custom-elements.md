@@ -457,6 +457,11 @@ The manager removes a record whose mode is absent from an explicit `modes` list.
 The manager reports each invalid record through the error logger.
 Storage access errors include the operation and key.
 If a write fails, the selected theme does not change.
+After a user selection fails, the control restores its previous state.
+The control then sends the `mpr-ui:theme-storage-error` event with `{ code, message }`.
+This event propagates to parent elements.
+The `code` is `mpr-ui.theme.storage_failed`.
+Direct API calls throw the storage error. These calls do not send this event.
 If configuration cannot read or remove a record, the active theme configuration does not change.
 
 ```html

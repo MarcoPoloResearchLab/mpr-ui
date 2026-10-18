@@ -37,6 +37,11 @@ test-demo:
 test-pages:
 	timeout -k $(E2E_TIMEOUT)s -s SIGKILL $(E2E_TIMEOUT)s node --test tests/integration/pages-artifact.test.js
 
+.PHONY: test-consumer-themes
+test-consumer-themes:
+	@test -n "$${MPR_UI_CONSUMER_ROOT}" || { echo 'MPR_UI_CONSUMER_ROOT must select the consumer checkout directory'; exit 2; }
+	node scripts/verify-consumer-themes.mjs
+
 lint:
 	timeout -k $(LINT_TIMEOUT)s -s SIGKILL $(LINT_TIMEOUT)s npm run lint --if-present
 
