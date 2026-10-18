@@ -9,29 +9,11 @@ const {
   captureToggleSnapshot,
 } = require('./support/fixturePage');
 
-test.describe('Footer theme switcher overrides', () => {
-  test('MU-368: toggle variant renders the switch even with four modes', async ({ page }) => {
+test.describe('Explicit footer theme controls', () => {
+  test('MU-368: a switch rejects a four-mode catalog', async ({ page }) => {
     await visitFooterMultimodeToggleFixture(page);
-
-    const toggleHost = page.locator('mpr-footer#fixture-footer [data-mpr-footer="theme-toggle"]');
-    await expect(toggleHost).toBeVisible();
-    await expect(toggleHost).toHaveAttribute('data-mpr-theme-toggle-variant', 'switch');
-
-    const toggleSelector =
-      'mpr-footer#fixture-footer input[type="checkbox"][data-mpr-theme-toggle="control"]';
-    const toggleControl = page.locator(toggleSelector);
-    await expect(toggleControl).toBeVisible();
-
-    const tagName = await toggleControl.evaluate(element => element.tagName);
-    expect(tagName).toBe('INPUT');
-    const snapshot = await captureToggleSnapshot(page, toggleSelector);
-    expect(snapshot.variant).toBe('switch');
-
-    const initialMode = await page.evaluate(() => document.body.getAttribute('data-test-theme'));
-    await toggleControl.click();
-    await page.waitForTimeout(200);
-    const afterMode = await page.evaluate(() => document.body.getAttribute('data-test-theme'));
-    expect(afterMode).not.toBe(initialMode);
+    await expect(page.locator('mpr-footer')).toHaveAttribute('data-mpr-theme-control-error', 'mpr-ui.theme-control.invalid_config');
+    await expect(page.locator('mpr-footer#fixture-footer input[type="checkbox"]')).toHaveCount(0);
   });
 
   test('MU-368: documented demo configuration renders the toggle switch', async ({ page }) => {
@@ -56,7 +38,7 @@ test.describe('Footer theme switcher overrides', () => {
     expect(snapshot.variant).toBe('switch');
   });
 
-  test('MU-368: switching from square to toggle re-renders the binary control', async ({ page }) => {
+  test('MU-368: an atomic application update changes quadrant to switch', async ({ page }) => {
     await visitFooterMultimodeSquareFixture(page);
 
     const footerHost = page.locator('mpr-footer#fixture-footer-square');
@@ -64,7 +46,9 @@ test.describe('Footer theme switcher overrides', () => {
     await expect(squareHost).toHaveAttribute('data-mpr-theme-toggle-variant', 'square');
 
     await footerHost.evaluate((element) => {
-      element.setAttribute('theme-switcher', 'toggle');
+      element.removeAttribute('theme-control');
+      element.removeAttribute('theme-config');
+      window.MPRUI.configureTheme({ modes: ['light', 'dark'], initialMode: 'light', control: { kind: 'switch', choices: { off: 'light', on: 'dark' } } });
     });
 
     const toggleHost = page.locator('mpr-footer#fixture-footer-square [data-mpr-footer="theme-toggle"]');
@@ -76,11 +60,8 @@ test.describe('Footer theme switcher overrides', () => {
     await expect(toggleControl).toBeVisible();
   });
 
-  test('MU-368: theme-switcher attribute overrides conflicting theme config', async ({ page }) => {
+  test('MU-368: conflicting explicit controls report an error', async ({ page }) => {
     await visitFooterMultimodeConflictFixture(page);
-
-    const toggleHost = page.locator('mpr-footer#fixture-footer-conflict [data-mpr-footer="theme-toggle"]');
-    await expect(toggleHost).toBeVisible();
-    await expect(toggleHost).toHaveAttribute('data-mpr-theme-toggle-variant', 'switch');
+    await expect(page.locator('mpr-footer')).toHaveAttribute('data-mpr-theme-control-error', 'mpr-ui.theme-control.invalid_config');
   });
 });

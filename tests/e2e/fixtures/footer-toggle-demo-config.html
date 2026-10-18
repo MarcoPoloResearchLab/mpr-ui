@@ -21,10 +21,7 @@
   <body>
     <main style="padding: 2rem;">
       <h1>Footer Toggle Demo Config</h1>
-      <p>
-        This fixture mirrors the documented footer snippet to ensure <code>theme-switcher="toggle"</code>
-        renders the pill variant even with four theme modes.
-      </p>
+      <p>This fixture uses an explicit switch with two named modes.</p>
     </main>
 
     <mpr-footer
@@ -42,16 +39,14 @@
           ] }
         ]
       }'
-      theme-switcher="toggle"
+      theme-control='{"kind":"switch","choices":{"off":"default-light","on":"default-dark"}}'
       theme-config='{
         "attribute":"data-demo-theme",
         "targets":["body"],
         "initialMode":"default-light",
         "modes":[
           {"value":"default-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"default"}},
-          {"value":"sunrise-light","attributeValue":"light","classList":["theme-light"],"dataset":{"data-demo-palette":"sunrise"}},
-          {"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}},
-          {"value":"forest-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"forest"}}
+          {"value":"default-dark","attributeValue":"dark","classList":["theme-dark"],"dataset":{"data-demo-palette":"default"}}
         ]
       }'
     ></mpr-footer>

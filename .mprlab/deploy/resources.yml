@@ -3,6 +3,49 @@ mprlab_resources:
   owner: mpr-ui
   release:
     scheme: semver
+  defaults:
+    timeouts:
+      startup: 2m
+      completion: 30m
+      readiness: 5m
+      request: 30s
+      shutdown: 30s
+  operations:
+    app_lifecycle.repository_read:
+      polling:
+        initial: 2s
+        maximum: 15s
+        increment: 2s
+        multiplier: 2
+        attempt_limit: 60
+    app-release:
+      polling:
+        initial: 2s
+        maximum: 15s
+        increment: 2s
+        multiplier: 2
+        attempt_limit: 60
+    app-publish:
+      polling:
+        initial: 2s
+        maximum: 15s
+        increment: 2s
+        multiplier: 2
+        attempt_limit: 60
+    app-deploy:
+      polling:
+        initial: 2s
+        maximum: 15s
+        increment: 2s
+        multiplier: 2
+        attempt_limit: 60
+  ci:
+    enabled: true
+    command:
+      '0': env
+      '1': CI=1
+      '2': make
+      '3': ci
   resources:
     browser-assets:
       kind: jsdelivr

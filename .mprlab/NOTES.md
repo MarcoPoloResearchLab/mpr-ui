@@ -297,3 +297,53 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - Focused browser validation passed all 16 tests.
 - Final `make ci` passed 211 Node tests, two runs of 211 Chromium tests, and the Pages artifact check.
 - Updated the component reference for the configuration event and automatic provider controls.
+
+### 2026-10-15: Local theme selection
+
+- Added automatic local storage for selected light, dark, and quadrant modes.
+- Added `storageKey` to `theme-config` and `MPRUI.configureTheme` for apps on one origin.
+- Saved modes now control the initial theme and survive component updates.
+- Controls now use changes to the shared mode catalog.
+- If a storage write fails, the selected theme and checkbox state do not change.
+- Browser tests first confirmed the absent records, old control catalogs, and incorrect checkbox state.
+- Focused validation passed all 20 Chromium tests and all 211 Node tests.
+- The architect review had no remaining findings after the corrections.
+- Final `make ci` passed 211 Node tests, two runs of 231 Chromium tests, and the Pages artifact check.
+- The changed component reference and new journal entry had no language-check findings.
+
+### 2026-10-15: Theme configuration corrections
+
+- Resolved theme targets after `<body>` became available.
+- Kept the active configuration and controls unchanged when storage reads or removals failed.
+- Five Chromium tests reproduced both review findings before the corrections.
+- Focused validation passed 25 browser tests and six Node tests.
+- Independent Chromium review found no remaining issues.
+- The coverage run passed 211 Node tests and 236 Chromium tests.
+- The standard browser suite passed all 236 tests, and the Pages artifact check passed separately.
+- `make ci` exceeded the 120-second limit during coverage report generation.
+- Isolated coverage report generation also exceeded 90 seconds.
+
+### 2026-10-15: Gateway manifest correction
+
+- Changed resource lists to maps with resource IDs as keys.
+- Added an explicit CI command with `CI=1`.
+- Added lifecycle timeouts and observation polling policies for Gateway `v6.0.4`.
+- The user authorized the selection of reasonable timeout defaults.
+- Manifest and execution-policy validation passed through the installed release planner.
+- The planner then required a clean `master` synchronized with `origin/master`.
+- Publication and deployment did not run.
+- Full `make ci` passed 211 Node tests, two runs of 236 Chromium tests, and the Pages artifact check.
+- The independent review found no remaining issues.
+- The Governor check reported eight existing differences in managed files outside this correction.
+
+### 2026-10-16: Theme declaration and footer corrections
+
+- Added a theme control declaration for each header.
+- Headers remove their declarations when `theme-config.control` is removed or the header disconnects.
+- Header and application declarations use shared validation.
+- Footer updates keep the active controls and contents after theme storage errors.
+- Storage errors include the `mpr-ui.theme.storage_failed` code.
+- Eight new Chromium tests showed the defects before the source code corrections.
+- Focused validation completed all 75 Chromium tests without errors.
+- Final `make ci` completed 212 Node tests and two runs of 282 Chromium tests without errors.
+- The coverage checks and Pages artifact check also completed without errors.

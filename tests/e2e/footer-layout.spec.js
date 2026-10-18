@@ -13,7 +13,7 @@ for (const width of [390, 794, 1280]) {
           document.querySelectorAll('link[rel="stylesheet"]').forEach(link => link.remove());
         }
         footer.setAttribute('prefix-text', 'NameSignal');
-        footer.setAttribute('theme-switcher', 'toggle');
+        footer.setAttribute('theme-control', JSON.stringify({ kind: 'switch', choices: { off: 'dark', on: 'light' } }));
         footer.setAttribute('horizontal-links', JSON.stringify({ alignment: 'center', links: [
           { label: '© 2026 Marco Polo Research Lab LLC', href: 'https://mprlab.com' },
           { label: 'Help', href: '/help' }, { label: 'Privacy', href: '/privacy' }, { label: 'Terms', href: '/tos' },
@@ -49,7 +49,7 @@ for (const width of [600, 752, 768, 794, 1280]) {
       await page.locator('mpr-footer').evaluate((footer, styleSource) => {
         footer.setAttribute('prefix-text', '© 2026');
         footer.setAttribute('privacy-link-hidden', 'true');
-        footer.setAttribute('theme-switcher', 'toggle');
+        footer.setAttribute('theme-control', JSON.stringify({ kind: 'switch', choices: { off: 'dark', on: 'light' } }));
         footer.setAttribute('horizontal-links', JSON.stringify({ alignment: 'left', links: [
           { label: 'Help', href: '/help' }, { label: 'Privacy', href: '/privacy' }, { label: 'Terms', href: '/tos' },
         ] }));
@@ -130,7 +130,7 @@ for (const stylesheet of ['external', 'embedded']) {
     await page.locator('mpr-footer').evaluate((footer, styleSource) => {
       const replacement = document.createElement('mpr-footer');
       replacement.setAttribute('privacy-link-label', 'Privacy • Terms');
-      replacement.setAttribute('theme-switcher', 'toggle');
+      replacement.setAttribute('theme-control', JSON.stringify({ kind: 'switch', choices: { off: 'dark', on: 'light' } }));
       replacement.setAttribute('prefix-text', '© 2026');
       replacement.setAttribute('menu', JSON.stringify({ label: 'Marco Polo Research Lab LLC', placement: 'top', sections: [
         { id: 'company', label: 'Company', mode: 'static', links: [{label:'MPR Lab',href:'https://mprlab.com'}] },

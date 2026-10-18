@@ -14,7 +14,7 @@ Do not introduce a second path through direct `tauth.js` loading or template-lev
 ## Principles
 
 - One path: `/config-ui.yaml` is the browser-facing config surface. The URL may be absolute when the config backend grants the page origin CORS access.
-- DSL first: use `<mpr-*>` attributes, slots, `horizontal-links`, `menu`, `theme-switcher`, and `theme-config`.
+- DSL first: use `<mpr-*>` attributes, slots, `horizontal-links`, `menu`, `theme-control`, and `theme-config`.
 - Backend owns config: your app serves `/config-ui.yaml`, browser-facing `/auth/*` routes, and protected domain routes.
 - `mpr-ui` owns auth lifecycle. It handles provider actions, password and account requests, shell state, and auth events.
 - `mpr-ui` owns protected requests: it coordinates TAuth session recovery and one permitted request retry.
@@ -167,9 +167,16 @@ Render the shell declaratively:
       { "label": "Docs", "href": "/docs" }
     ]
   }'
-  theme-switcher="toggle"
+  theme-control='{"kind":"switch","choices":{"off":"light","on":"dark"}}'
 ></mpr-footer>
 ```
+
+Use one explicit theme control definition for the application.
+Set `theme-control` on the component or set `control` through `MPRUI.configureTheme()`.
+Each switch must have two different named mode values that cover the full mode catalog.
+Each quadrant must have four different named mode values that cover the full mode catalog.
+All component definitions must agree with the shared definition.
+See [Explicit theme controls](custom-elements.md#explicit-theme-controls) for the schemas and validation rules.
 
 Account menus stay inside the horizontal viewport edges. Open menus update their position after a viewport resize.
 Keyboard dismissal returns focus to the account trigger.

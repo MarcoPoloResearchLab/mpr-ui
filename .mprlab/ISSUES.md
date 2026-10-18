@@ -634,6 +634,27 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Verify that attempting `gix sync <nonexistent-branch>` produces a clear error and leaves the repository state unchanged apart from any safe checks performed.
   - Confirm logs and CLI output no longer describe branch creation when an explicit existing target branch is provided.
 
+- [ ] [B080] (P1) Preserve the TAuth palette after a header update.
+  Goal: Keep the shared mode catalog, active mode, quadrant selection, and saved palette consistent.
+  Evidence:
+  An isolated browser used TAuth's vendored v4.3.2 assets and its actual palette initializer.
+  A `brand-label` update reset the four-mode catalog to `dark` and `light`.
+  The picker and saved palette retained `sunrise-light`.
+  After ArrowRight, the picker showed `default-light`, but the manager retained `dark`.
+  The scan found no application-authored header attribute update after mount.
+  Deployed-production impact remains unverified.
+  Requirements:
+  - Add a browser regression through the public header attribute and quadrant control.
+  - Verify the current library candidate before any further shared implementation change.
+  - Preserve the four-mode catalog after an unrelated header update.
+  - Keep the active mode, page palette, control selection, and saved choice consistent.
+  - Update TAuth's vendored assets and explicit control configuration together.
+  Validation:
+  - Verify pointer selection, keyboard selection, and restoration after reload for all four palette modes.
+  - Run the affected repositories' required CI checks after the final implementation changes.
+  - Use the reproduction and source references in GitHub issue #238.
+  Reference: https://github.com/MarcoPoloResearchLab/mpr-ui/issues/238
+
 ## Improvements
 
 - [ ] [I008] (P1) Define one runtime theme update contract for shell components.
@@ -713,6 +734,34 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   PoodleScanner retains its coverage gate. Hecate, Ledger, Social Threader, and Prompt Bubbles retain separate source integration gates.
   All 18 open consumer PRs are ready for review. The llm-proxy and LoopAware PRs are merged.
   Shared publication, the coordinated cache transition, and public acceptance remain open.
+
+- [ ] [I010] (P1) {F014,B080} Migrate consumers to explicit theme controls.
+  Goal: Use the current theme-control contract in every affected application.
+  Evidence:
+  The October 16, 2026 scan found 209 obsolete static declarations with `mpr-ui@latest` references across twelve repositories.
+  TAuth has one additional obsolete selector in its vendored integration.
+  Two JavaScript initializers use obsolete selectors. Interview Room relies on an implicit switch default.
+  These findings identify source locations, not broken deployed pages.
+  Requirements:
+  - Use GitHub issue #238 as the complete inventory and acceptance checklist.
+  - Replace obsolete selectors with explicit switch, quadrant, or cycle definitions.
+  - Require two distinct switch choices and four distinct named quadrant choices.
+  - Match every choice to the complete application mode catalog.
+  - Keep all explicit declarations in one application consistent.
+  - Preserve each application's intended palette, choice mapping, and labels.
+  - Update canonical templates and generators before generated output.
+  - Assess the twenty-five controls without selectors before any picker change.
+  - Record a change or verified exclusion for every inventory location.
+  - Coordinate consumer changes before mutable imports receive the new contract.
+  - Keep obsolete selectors rejected without aliases or compatibility paths.
+  Validation:
+  - Verify pointer and keyboard selection, reload restoration, and separate storage keys on a shared origin.
+  - Verify rejection of invalid choices and conflicting declarations without loss of valid state.
+  - Verify that every required footer and standalone control mounts without a configuration error.
+  - Run each affected repository's required CI checks after its final implementation change.
+  - Repeat the source scan and explain every remaining obsolete declaration.
+  - Record release, publication, deployment, and public verification separately from implementation acceptance.
+  Reference: https://github.com/MarcoPoloResearchLab/mpr-ui/issues/238
 
 ## Maintenance
 
@@ -1070,6 +1119,22 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   GitHub Pages is not configured for this repository.
   The `ui.mprlab.com` hostname does not resolve.
   Real provider and idempotent deployment acceptance remain incomplete.
+
+- [x] [F014] (P1) Define explicit theme controls.
+  Goal: Keep theme control appearance and behavior consistent.
+  Requirements:
+  - Use the same `theme-control` schema for standalone and footer controls.
+  - Require two distinct switch choices and four distinct named quadrant choices.
+  - Validate every choice against the complete mode catalog.
+  - Reject conflicting declarations and obsolete selectors.
+  - Preserve valid state when an update fails.
+  - Keep keyboard selection, pointer selection, and local storage consistent.
+  Validation:
+  Baseline CI passed before edits.
+  Browser regression tests failed before the production code change.
+  The new browser cases pass with explicit mappings, inheritance, rejection, and recovery.
+  Final CI passed 212 unit tests, 274 browser tests, coverage checks, and the Pages artifact test.
+  Independent review found no remaining defects.
 
 ## Planning
 

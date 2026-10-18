@@ -22,16 +22,16 @@
     <main style="padding: 2rem;">
       <h1>Footer Toggle Conflict Fixture</h1>
       <p>
-        The theme config below encodes a square switcher, but the host attribute requests the toggle variant.
+        The component control and application control specify different choices.
       </p>
     </main>
 
     <mpr-footer
       id="fixture-footer-conflict"
       prefix-text="Fixture Footer"
-      theme-switcher="toggle"
+      theme-control='{"kind":"quadrant","choices":{"topLeft":"sunrise-light","topRight":"default-light","bottomLeft":"default-dark","bottomRight":"forest-dark"}}'
       theme-config='{
-        "variant": "square",
+        "control": {"kind": "quadrant", "choices": {"topLeft": "default-light", "topRight": "sunrise-light", "bottomLeft": "default-dark", "bottomRight": "forest-dark"}},
         "attribute": "data-test-theme",
         "targets": ["body"],
         "initialMode": "default-light",

@@ -3745,29 +3745,6 @@ test('mpr-footer ignores legacy attributes', () => {
         assert.strictEqual(controllerConfig.menu, null, 'links should not set menu');
       },
     },
-    {
-      name: 'themeToggle.themeSwitcher',
-      applyAttributes: function applyAttributes(footerElement) {
-        footerElement.setAttribute(
-          'theme-config',
-          JSON.stringify({
-            themeSwitcher: 'toggle',
-          }),
-        );
-      },
-      assertOutcome: function assertOutcome(controllerConfig) {
-        assert.equal(
-          controllerConfig.themeToggle.enabled,
-          false,
-          'themeToggle.themeSwitcher should not enable the toggle',
-        );
-        assert.equal(
-          controllerConfig.themeToggle.variant,
-          '',
-          'themeToggle.themeSwitcher should not select a variant',
-        );
-      },
-    },
   ];
 
   for (const legacyCase of legacyCases) {
@@ -3789,7 +3766,6 @@ test('mpr-footer ignores legacy attributes', () => {
 
 test('mpr-footer logs legacy attributes and config keys', () => {
   const legacyAttributeErrorCode = 'mpr-ui.dsl.legacy_attribute';
-  const legacyConfigErrorCode = 'mpr-ui.dsl.legacy_config';
   const legacyCases = [
     {
       name: 'links',
@@ -3808,19 +3784,6 @@ test('mpr-footer logs legacy attributes and config keys', () => {
       expectedToken: 'theme-mode',
       applyAttributes: function applyAttributes(footerElement) {
         footerElement.setAttribute('theme-mode', 'light');
-      },
-    },
-    {
-      name: 'themeToggle.themeSwitcher',
-      expectedCode: legacyConfigErrorCode,
-      expectedToken: 'themeToggle.themeSwitcher',
-      applyAttributes: function applyAttributes(footerElement) {
-        footerElement.setAttribute(
-          'theme-config',
-          JSON.stringify({
-            themeSwitcher: 'toggle',
-          }),
-        );
       },
     },
   ];
@@ -3846,6 +3809,19 @@ test('mpr-footer logs legacy attributes and config keys', () => {
     } finally {
       capture.restore();
     }
+  }
+});
+
+test('mpr-footer rejects obsolete theme selector config', () => {
+  for (const selector of ['themeSwitcher', 'variant']) {
+    resetEnvironment();
+    loadLibrary();
+    const { element } = createFooterElementHarness();
+    element.setAttribute('theme-config', JSON.stringify({ [selector]: 'toggle' }));
+    element.connectedCallback();
+    assert.equal(element.getAttribute('data-mpr-theme-control-error'), 'mpr-ui.theme-control.invalid_config');
+    assert.equal(element.getAttribute('data-mpr-footer-error'), 'mpr-ui.theme-control.invalid_config');
+    assert.equal(element.__footerController, null);
   }
 });
 
@@ -3888,6 +3864,10 @@ test('mpr-theme-toggle custom element toggles theme mode', () => {
   resetEnvironment();
   const library = loadLibrary();
   const harness = createThemeToggleElementHarness();
+  harness.element.setAttribute(
+    'theme-control',
+    JSON.stringify({ kind: 'switch', choices: { off: 'light', on: 'dark' } }),
+  );
   harness.element.setAttribute(
     'theme-config',
     JSON.stringify({ initialMode: 'light' }),
