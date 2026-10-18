@@ -65,7 +65,7 @@ The first consumer check reproduced rejected obsolete declarations before their 
 The consumer check passed for 237 source files and 21 distinct configurations.
 The report covers all 238 snapshot locations, including the verified exclusions.
 [`acceptance.json`](acceptance.json) records each source result and its digest.
-LoopAware CI remains in progress.
+LoopAware CI passed all 474 browser and API scenarios.
 Prompts B002 records the local TAuth fixture prerequisite.
 The current service rejects tenant YAML and requires an enrolled owner, App, and scoped provisioning credential.
 The declared localhost profile has none of these ownership inputs.
@@ -83,7 +83,7 @@ The user approved a TAuth-owned test fixture tool for this isolated acceptance e
 | Hecate | Passed full CI with 100% frontend coverage and mobile build checks. |
 | PoodleScanner | Passed full CI with 97.0% frontend coverage and 100% Go coverage. |
 | LLM Proxy | Passed full CI with 100% Go coverage, 172 browser cases, and 11 black-box cases. |
-| LoopAware | The resource persistence regression passed. Full CI is in progress. |
+| LoopAware | Passed full CI with 474 browser/API scenarios and exact native preparation checks. |
 | Prompts | Theme and mobile checks passed. The approved TAuth test fixture tool is in progress. |
 | Personal website | Passed full CI in Chromium, Firefox, and WebKit. |
 | Interview Room | Passed full CI, including shipped assets, packaging, browser flows, and backend race tests. |
@@ -105,6 +105,10 @@ The explicit DSL is available in release `v4.3.5`, commit `d29f43b96991ff409db96
 Consumer test fixtures select these exact released bytes.
 TAuth and Interview Room vendor this revision with the reviewed storage error event change.
 Their vendor documents record the copied asset digests.
+
+Prompts local acceptance uses an explicit reviewed fixture binary through `TAUTH_TEST_FIXTURE_BIN`.
+Its hosted workflows acquire the canonical tool through `@latest` after publication.
+The fixture tool is not yet published.
 
 This task does not run release, publication, deployment, or public verification operations.
 Those operations remain separate from implementation acceptance.
