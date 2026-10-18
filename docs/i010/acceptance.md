@@ -9,6 +9,8 @@ B080 and TAuth B135 track the reproduced palette defect and its correction.
 The snapshot has 236 static controls and two JavaScript initializers.
 One source file contains two snapshot locations.
 The `scan_selector` column records the original declaration, not the current contract.
+LLM Proxy now generates 52 footer pages, including one page outside the 51-location snapshot.
+Its native tests cover all 52 generated pages.
 
 The consumer check reads current files from their primary checkouts.
 It uses one JavaScript candidate and its corresponding CSS.
@@ -62,30 +64,40 @@ The Marco Polo investor portal has no theme definition and retains its footer wi
 The first consumer check reproduced rejected obsolete declarations before their migration.
 The consumer check passed for 237 source files and 21 distinct configurations.
 The report covers all 238 snapshot locations, including the verified exclusions.
-Application CI remains in progress.
+[`acceptance.json`](acceptance.json) records each source result and its digest.
+LoopAware CI remains in progress.
+Prompts B002 records the local TAuth fixture prerequisite.
+The current service rejects tenant YAML and requires an enrolled owner, App, and scoped provisioning credential.
+The declared localhost profile has none of these ownership inputs.
+The user approved a TAuth-owned test fixture tool for this isolated acceptance environment.
 
 | Repository | Native validation |
 | --- | --- |
-| TAuth | Passed full CI and the palette regression suite. |
+| TAuth | Palette CI passed. The approved fixture tool requires final validation. |
 | LikeMe | Passed full CI. |
 | MediaOps | Passed full CI. |
 | SummerCan | Passed full CI. |
 | Pinguin | Passed full CI. |
 | Ledger | Passed full CI with its declared Go toolchain. |
 | Marco Polo website | Passed full CI and the Pages build. |
-| Hecate | Focused tests passed. Full CI remains open. |
-| PoodleScanner | Focused tests passed. Full CI is in progress. |
-| LLM Proxy | Layout correction and full CI remain open. |
-| LoopAware | The resource persistence regression passed. Full CI remains open. |
-| Prompts | Focused tests passed. Full CI remains open. |
-| Personal website | Full CI is in progress. |
-| Interview Room | Shipped asset tests and package tests passed. Full CI remains open. |
-| MPR UI | B080 CI passed. Final I010 CI remains open. |
+| Hecate | Passed full CI with 100% frontend coverage and mobile build checks. |
+| PoodleScanner | Passed full CI with 97.0% frontend coverage and 100% Go coverage. |
+| LLM Proxy | Passed full CI with 100% Go coverage, 172 browser cases, and 11 black-box cases. |
+| LoopAware | The resource persistence regression passed. Full CI is in progress. |
+| Prompts | Theme and mobile checks passed. The approved TAuth test fixture tool is in progress. |
+| Personal website | Passed full CI in Chromium, Firefox, and WebKit. |
+| Interview Room | Passed full CI, including shipped assets, packaging, browser flows, and backend race tests. |
+| MPR UI | Passed full CI, including 212 unit tests, 288 browser tests, coverage, and Pages. |
 
-The source scan found no obsolete production declarations in current source files.
+The source scan checked 921 current HTML and JavaScript files across all 19 repositories.
+It found no obsolete production declarations.
 The old `.pages-dist/` cache in the Marco Polo checkout has six obsolete declarations.
 The cache is ignored. The current Pages build uses the migrated source.
 Negative tests, historical issue text, and original inventory labels retain obsolete values as evidence.
+
+The Governor comparison reports shared-template differences in eight files unchanged from `HEAD`.
+These differences also existed before this migration.
+I010 does not normalize those governance files.
 
 ## Operational status
 
