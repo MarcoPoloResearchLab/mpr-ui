@@ -98,6 +98,8 @@ Give each term one meaning. Use the same term for the same concept in all docume
 - `product catalog`: Shared data with project identifiers, purposes, categories, and public destinations.
 - `product directory`: An interface that presents the product catalog as sections of links.
 - `snapshot`: A copy of source files with recorded content hashes.
+- `test fixture`: Controlled data and config for an integration test.
+- `test fixture tool`: A CLI that creates isolated data for an integration test.
 
 Add repository-specific technical nouns below this line.
 

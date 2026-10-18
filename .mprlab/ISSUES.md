@@ -775,8 +775,8 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   The explicit controls and canonical storage keys are implemented.
   The [acceptance record](../docs/i010/acceptance.md) covers all 238 inventory locations across 19 repositories.
   The browser check passed for 237 source files and 21 configurations with no failures.
-  Independent source review found no unresolved issues.
-  LoopAware full CI remains in progress.
+  Independent source review cleared the theme migration.
+  LoopAware full CI passed all 474 browser and API scenarios.
   Prompts full CI awaits the approved TAuth test fixture tool in B002.
 
 ## Maintenance
