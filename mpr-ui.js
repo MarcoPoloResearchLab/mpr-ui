@@ -3578,6 +3578,7 @@
   var DEFAULT_THEME_STORAGE_KEY = "mpr-ui:theme";
   var THEME_STORAGE_OPERATIONS = Object.freeze({ READ: "read", WRITE: "write", REMOVE: "remove" });
   var THEME_STORAGE_ERROR = "mpr-ui.theme.storage_failed";
+  var THEME_STORAGE_ERROR_EVENT = "mpr-ui:theme-storage-error";
   var THEME_STORAGE_REJECTION = "mpr-ui.theme.stored_mode_rejected";
   var THEME_CONFIG_KEYS = Object.freeze([
     "attribute", "targets", "modes", "mode", "initialMode", "storageKey", "control",
@@ -4786,8 +4787,15 @@
       try {
         themeManager.setMode(modeValue, source);
       } catch (error) {
+        if (error.code !== THEME_STORAGE_ERROR) {
+          throw error;
+        }
         syncToggleUi(themeManager.getMode());
         logError(THEME_STORAGE_ERROR, error.message);
+        dispatchEvent(hostElement, THEME_STORAGE_ERROR_EVENT, {
+          code: THEME_STORAGE_ERROR,
+          message: error.message,
+        });
       }
     }
 
