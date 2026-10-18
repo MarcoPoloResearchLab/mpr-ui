@@ -634,7 +634,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Verify that attempting `gix sync <nonexistent-branch>` produces a clear error and leaves the repository state unchanged apart from any safe checks performed.
   - Confirm logs and CLI output no longer describe branch creation when an explicit existing target branch is provided.
 
-- [ ] [B080] (P1) Preserve the TAuth palette after a header update.
+- [x] [B080] (P1) Preserve the TAuth palette after a header update.
   Goal: Keep the shared mode catalog, active mode, quadrant selection, and saved palette consistent.
   Evidence:
   An isolated browser used TAuth's vendored v4.3.2 assets and its actual palette initializer.
@@ -653,6 +653,15 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Verify pointer selection, keyboard selection, and restoration after reload for all four palette modes.
   - Run the affected repositories' required CI checks after the final implementation changes.
   - Use the reproduction and source references in GitHub issue #238.
+  Resolution:
+  The current candidate passed the reproduction with the actual TAuth initializer before the asset copy.
+  TAuth now uses the explicit quadrant control and its existing palette storage key.
+  Failed selections restore the control and send a public storage error event.
+  Browser tests verify all four modes, header updates, reload, synchronization, failure recovery, and cleanup.
+  Final CI passed in TAuth and MPR UI. Independent review found no remaining defects.
+  The coverage run retried one existing B048 browser failure. The separate browser suite passed all 288 tests.
+  TAuth B135 records the application change. Release, publication, deployment, and public verification remain pending.
+  Files: `mpr-ui.js`, `tests/e2e/theme-control.spec.js`, `docs/custom-elements.md`, and TAuth palette files.
   Reference: https://github.com/MarcoPoloResearchLab/mpr-ui/issues/238
 
 ## Improvements
@@ -735,7 +744,7 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   All 18 open consumer PRs are ready for review. The llm-proxy and LoopAware PRs are merged.
   Shared publication, the coordinated cache transition, and public acceptance remain open.
 
-- [ ] [I010] (P1) {F014,B080} Migrate consumers to explicit theme controls.
+- [-] [I010] (P1) {F014,B080} Migrate consumers to explicit theme controls.
   Goal: Use the current theme-control contract in every affected application.
   Evidence:
   The October 16, 2026 scan found 209 obsolete static declarations with `mpr-ui@latest` references across twelve repositories.
