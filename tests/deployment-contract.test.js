@@ -99,6 +99,17 @@ test('production manifest declares the public demo and its TAuth tenant', () => 
     mprlab_resources: {
       owner: 'mpr-ui',
       release: { scheme: 'semver' },
+      defaults: {
+        timeouts: {
+          startup: '2m', completion: '30m', readiness: '5m', request: '30s', shutdown: '30s',
+        },
+      },
+      operations: Object.fromEntries([
+        'app_lifecycle.repository_read', 'app-release', 'app-publish', 'app-deploy',
+      ].map((operation) => [operation, {
+        polling: { initial: '2s', maximum: '15s', increment: '2s', multiplier: 2, attempt_limit: 60 },
+      }])),
+      ci: { enabled: true, command: { '0': 'env', '1': 'CI=1', '2': 'make', '3': 'ci' } },
       resources: {
         'browser-assets': {
           kind: 'jsdelivr',

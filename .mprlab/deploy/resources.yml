@@ -51,12 +51,12 @@ mprlab_resources:
       kind: jsdelivr
       repository: MarcoPoloResearchLab/mpr-ui
       assets:
-      - mpr-ui-config.js
-      - mpr-ui.js
-      - mpr-ui.css
+        - mpr-ui-config.js
+        - mpr-ui.js
+        - mpr-ui.css
       aliases:
-      - latest
-      - major
+        - latest
+        - major
     private:
       kind: private_values
       bindings:
@@ -84,9 +84,9 @@ mprlab_resources:
         id: mpr-ui-demo
         display_name: MPR UI Demo
         origins:
-        - http://127.0.0.1:4443
-        - http://localhost:4443
-        - https://ui.mprlab.com
+          - http://127.0.0.1:4443
+          - http://localhost:4443
+          - https://ui.mprlab.com
         google_web_client_id:
           resource: private
           output: google-web-client-id
