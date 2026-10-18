@@ -1,5 +1,7 @@
 # I010 consumer acceptance
 
+Acceptance date: 2026-10-18.
+
 I010 tracks the consumer migration in GitHub issue #238.
 B080 and TAuth B135 track the reproduced palette defect and its correction.
 
@@ -73,7 +75,7 @@ The user approved a TAuth-owned test fixture tool for this isolated acceptance e
 
 | Repository | Native validation |
 | --- | --- |
-| TAuth | Palette CI passed. The approved fixture tool requires final validation. |
+| TAuth | Passed full CI, palette regressions, and F020 fixture acceptance. |
 | LikeMe | Passed full CI. |
 | MediaOps | Passed full CI. |
 | SummerCan | Passed full CI. |
@@ -84,12 +86,12 @@ The user approved a TAuth-owned test fixture tool for this isolated acceptance e
 | PoodleScanner | Passed full CI with 97.0% frontend coverage and 100% Go coverage. |
 | LLM Proxy | Passed full CI with 100% Go coverage, 172 browser cases, and 11 black-box cases. |
 | LoopAware | Passed full CI with 474 browser/API scenarios and exact native preparation checks. |
-| Prompts | Theme and mobile checks passed. The approved TAuth test fixture tool is in progress. |
+| Prompts | Actual latest-image nonce, restart, backend, browser, and native checks passed. Final full CI is in progress. |
 | Personal website | Passed full CI in Chromium, Firefox, and WebKit. |
 | Interview Room | Passed full CI, including shipped assets, packaging, browser flows, and backend race tests. |
 | MPR UI | Passed full CI, including 212 unit tests, 288 browser tests, coverage, and Pages. |
 
-The source scan checked 921 current HTML and JavaScript files across all 19 repositories.
+The source scan checked 922 current HTML and JavaScript files across all 19 repositories.
 It found no obsolete production declarations.
 The old `.pages-dist/` cache in the Marco Polo checkout has six obsolete declarations.
 The cache is ignored. The current Pages build uses the migrated source.
@@ -107,6 +109,9 @@ TAuth and Interview Room vendor this revision with the reviewed storage error ev
 Their vendor documents record the copied asset digests.
 
 Prompts local acceptance uses an explicit reviewed fixture binary through `TAUTH_TEST_FIXTURE_BIN`.
+The qualified binary SHA-256 is `b49b7ccba90cfecd40ae449b6fd522fadacbcfcc62467ae535bd1e2cb3d9ba4a`.
+The actual service image digest is `sha256:20614e9f19d6bc979dd7fef12475d55b8be1f03afc0d91845d0841ce3efc7a04`.
+The digests record the qualified artifacts.
 Its hosted workflows acquire the canonical tool through `@latest` after publication.
 The fixture tool is not yet published.
 
