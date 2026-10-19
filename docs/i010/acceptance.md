@@ -67,11 +67,12 @@ The first consumer check reproduced rejected obsolete declarations before their 
 The consumer check passed for 237 source files and 21 distinct configurations.
 The report covers all 238 snapshot locations, including the verified exclusions.
 [`acceptance.json`](acceptance.json) records each source result and its digest.
-LoopAware CI passed all 474 browser and API scenarios.
-Prompts B002 records the local TAuth fixture prerequisite.
-The current service rejects tenant YAML and requires an enrolled owner, App, and scoped provisioning credential.
-The declared localhost profile has none of these ownership inputs.
-The user approved a TAuth-owned test fixture tool for this isolated acceptance environment.
+All fourteen changed consumer repositories and the shared library passed native CI with their declared inputs.
+Independent review cleared the implementation and validation evidence.
+
+Prompts B002 separates service configuration from the backend validator export.
+TAuth F020 supplies isolated encrypted tenant fixtures for the localhost smoke test.
+The test verifies the actual application tenant before and after a service restart.
 
 | Repository | Native validation |
 | --- | --- |
@@ -86,7 +87,7 @@ The user approved a TAuth-owned test fixture tool for this isolated acceptance e
 | PoodleScanner | Passed full CI with 97.0% frontend coverage and 100% Go coverage. |
 | LLM Proxy | Passed full CI with 100% Go coverage, 172 browser cases, and 11 black-box cases. |
 | LoopAware | Passed full CI with 474 browser/API scenarios and exact native preparation checks. |
-| Prompts | Actual latest-image nonce, restart, backend, browser, and native checks passed. Final full CI is in progress. |
+| Prompts | Passed full CI, actual latest-image smoke, responsive checks, and all seven Android artifact scenarios. |
 | Personal website | Passed full CI in Chromium, Firefox, and WebKit. |
 | Interview Room | Passed full CI, including shipped assets, packaging, browser flows, and backend race tests. |
 | MPR UI | Passed full CI, including 212 unit tests, 288 browser tests, coverage, and Pages. |
@@ -96,6 +97,10 @@ It found no obsolete production declarations.
 The old `.pages-dist/` cache in the Marco Polo checkout has six obsolete declarations.
 The cache is ignored. The current Pages build uses the migrated source.
 Negative tests, historical issue text, and original inventory labels retain obsolete values as evidence.
+
+An intermediate Prompts responsive check timed out during bootstrap.
+The unchanged layout target and full CI passed in serial runs.
+The timeouts and layout thresholds stayed unchanged.
 
 The Governor comparison reports shared-template differences in eight files unchanged from `HEAD`.
 These differences also existed before this migration.
