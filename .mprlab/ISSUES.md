@@ -744,12 +744,12 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   All 18 open consumer PRs are ready for review. The llm-proxy and LoopAware PRs are merged.
   Shared publication, the coordinated cache transition, and public acceptance remain open.
 
-- [-] [I010] (P1) {F014,B080} Migrate consumers to explicit theme controls.
+- [x] [I010] (P1) {F014,B080} Migrate consumers to explicit theme controls.
   Goal: Use the current theme-control contract in every affected application.
   Evidence:
   The October 16, 2026 scan found 209 obsolete static declarations with `mpr-ui@latest` references across twelve repositories.
   TAuth has one additional obsolete selector in its vendored integration.
-  Two JavaScript initializers use obsolete selectors. Interview Room relies on an implicit switch default.
+  Two JavaScript initializers use obsolete selectors. Interview Room requires canonical theme storage.
   These findings identify source locations, not broken deployed pages.
   Requirements:
   - Use GitHub issue #238 as the complete inventory and acceptance checklist.
@@ -771,13 +771,18 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   - Repeat the source scan and explain every remaining obsolete declaration.
   - Record release, publication, deployment, and public verification separately from implementation acceptance.
   Reference: https://github.com/MarcoPoloResearchLab/mpr-ui/issues/238
-  Progress:
+  Results:
   The explicit controls and canonical storage keys are implemented.
   The [acceptance record](../docs/i010/acceptance.md) covers all 238 inventory locations across 19 repositories.
   The browser check passed for 237 source files and 21 configurations with no failures.
-  Independent source review cleared the theme migration.
-  LoopAware full CI passed all 474 browser and API scenarios.
-  Prompts full CI awaits the approved TAuth test fixture tool in B002.
+  All fourteen changed consumer repositories and the shared library passed native CI.
+  Independent review cleared the source changes and validation evidence.
+  TAuth F020 and Prompts B002 provide isolated fixtures for the current tenant contract.
+  Files: `mpr-ui.js`, `Makefile`, `tests/e2e/theme-control.spec.js`, `scripts/verify-consumer-themes.mjs`, and `docs/i010/`.
+  The inventory lists the consumer HTML and initializer files. Local issue notes record supporting files.
+  Operational status:
+  Hosted Prompts acquisition of the fixture tool awaits F020 publication.
+  Release, publication, deployment, and public verification remain separate from source acceptance.
 
 ## Maintenance
 
