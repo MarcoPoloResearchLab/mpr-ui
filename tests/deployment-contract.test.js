@@ -98,6 +98,19 @@ test('production manifest declares the public demo and its TAuth tenant', () => 
   assert.deepEqual(manifest, {
     mprlab_resources: {
       owner: 'mpr-ui',
+      environment_file: '.mprlab/deploy/.env',
+      inputs: {
+        MPRLAB_TAUTH_MANAGEMENT_URL: '${MPRLAB_TAUTH_MANAGEMENT_URL}',
+        MPRLAB_TAUTH_PROVISIONING_CREDENTIALS: '${MPRLAB_TAUTH_PROVISIONING_CREDENTIALS}',
+        MPR_UI_APPLE_PRIVATE_KEY: '${MPR_UI_APPLE_PRIVATE_KEY}',
+        MPR_UI_EMAIL_DELIVERY_API_KEY: '${MPR_UI_EMAIL_DELIVERY_API_KEY}',
+        MPR_UI_GOOGLE_WEB_CLIENT_ID: '${MPR_UI_GOOGLE_WEB_CLIENT_ID}',
+        MPR_UI_JWT_SIGNING_KEY: '${MPR_UI_JWT_SIGNING_KEY}',
+        DEPLOY_SUDO_PASSWORD_TUTOSH: '${DEPLOY_SUDO_PASSWORD_TUTOSH}',
+      },
+      hosts: {
+        tutosh: { ansible_become_password: 'DEPLOY_SUDO_PASSWORD_TUTOSH' },
+      },
       release: { scheme: 'semver' },
       defaults: {
         timeouts: {
