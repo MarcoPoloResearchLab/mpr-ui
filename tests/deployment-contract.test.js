@@ -100,6 +100,8 @@ test('production manifest declares the public demo and its TAuth tenant', () => 
       owner: 'mpr-ui',
       environment_file: '.mprlab/deploy/.env',
       inputs: {
+        MPRLAB_TAUTH_MANAGEMENT_URL: '${MPRLAB_TAUTH_MANAGEMENT_URL}',
+        MPRLAB_TAUTH_PROVISIONING_CREDENTIALS: '${MPRLAB_TAUTH_PROVISIONING_CREDENTIALS}',
         MPR_UI_APPLE_PRIVATE_KEY: '${MPR_UI_APPLE_PRIVATE_KEY}',
         MPR_UI_EMAIL_DELIVERY_API_KEY: '${MPR_UI_EMAIL_DELIVERY_API_KEY}',
         MPR_UI_GOOGLE_WEB_CLIENT_ID: '${MPR_UI_GOOGLE_WEB_CLIENT_ID}',
