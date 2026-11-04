@@ -93,141 +93,45 @@ test('production lifecycle uses the installed Gateway without a sibling checkout
   }
 });
 
-test('production manifest declares the public demo and its TAuth tenant', () => {
-  const manifest = yaml.load(readFileSync(PRODUCTION_MANIFEST_PATH, 'utf8'));
-  assert.deepEqual(manifest, {
-    mprlab_resources: {
-      owner: 'mpr-ui',
-      environment_file: '.mprlab/deploy/.env',
-      inputs: {
-        MPRLAB_TAUTH_MANAGEMENT_URL: '${MPRLAB_TAUTH_MANAGEMENT_URL}',
-        MPRLAB_TAUTH_PROVISIONING_CREDENTIALS: '${MPRLAB_TAUTH_PROVISIONING_CREDENTIALS}',
-        MPR_UI_APPLE_PRIVATE_KEY: '${MPR_UI_APPLE_PRIVATE_KEY}',
-        MPR_UI_EMAIL_DELIVERY_API_KEY: '${MPR_UI_EMAIL_DELIVERY_API_KEY}',
-        MPR_UI_GOOGLE_WEB_CLIENT_ID: '${MPR_UI_GOOGLE_WEB_CLIENT_ID}',
-        MPR_UI_JWT_SIGNING_KEY: '${MPR_UI_JWT_SIGNING_KEY}',
-        DEPLOY_SUDO_PASSWORD_TUTOSH: '${DEPLOY_SUDO_PASSWORD_TUTOSH}',
-      },
-      hosts: {
-        tutosh: { ansible_become_password: 'DEPLOY_SUDO_PASSWORD_TUTOSH' },
-      },
-      release: { scheme: 'semver' },
-      defaults: {
-        timeouts: {
-          startup: '2m', completion: '30m', readiness: '5m', request: '30s', shutdown: '30s',
-        },
-      },
-      operations: Object.fromEntries([
-        'app_lifecycle.repository_read', 'app-release', 'app-publish', 'app-deploy',
-      ].map((operation) => [operation, {
-        polling: { initial: '2s', maximum: '15s', increment: '2s', multiplier: 2, attempt_limit: 60 },
-      }])),
-      ci: { enabled: true, command: { '0': 'env', '1': 'CI=1', '2': 'make', '3': 'ci' } },
-      resources: {
-        'browser-assets': {
-          kind: 'jsdelivr',
-          repository: 'MarcoPoloResearchLab/mpr-ui',
-          assets: ['mpr-ui-config.js', 'mpr-ui.js', 'mpr-ui.css'],
-          aliases: ['latest', 'major'],
-        },
-        'private': {
-          kind: 'private_values',
-          bindings: {
-            'apple-private-key': 'MPR_UI_APPLE_PRIVATE_KEY',
-            'email-delivery-api-key': 'MPR_UI_EMAIL_DELIVERY_API_KEY',
-            'google-web-client-id': 'MPR_UI_GOOGLE_WEB_CLIENT_ID',
-            'jwt-signing-key': 'MPR_UI_JWT_SIGNING_KEY',
-          },
-        },
-        'demo-site': {
-          kind: 'github_pages',
-          repository: 'MarcoPoloResearchLab/mpr-ui',
-          branch: 'gh-pages',
-          domain: 'ui.mprlab.com',
-          url: 'https://ui.mprlab.com/',
-          source: {
-            kind: 'container',
-            context: '.',
-            dockerfile: 'Dockerfile.pages',
-          },
-          verification: { path: '/.mprlab-release.json' },
-        },
-        'demo-authentication': {
-          kind: 'tauth_tenant',
-          capability: 'tauth.tenants',
-          version: 1,
-          tenant: {
-            id: 'mpr-ui-demo',
-            display_name: 'MPR UI Demo',
-            origins: [
-              'http://127.0.0.1:4443',
-              'http://localhost:4443',
-              'https://ui.mprlab.com',
-            ],
-            google_web_client_id: {
-              resource: 'private',
-              output: 'google-web-client-id',
-            },
-            apple_oauth: {
-              client_id: 'com.mprlab.ui',
-              team_id: 'Z9ZW6HDGML',
-              key_id: 'JF79PQM899',
-              private_key: {
-                resource: 'private',
-                output: 'apple-private-key',
-              },
-              redirect_uri: 'https://tauth-api.mprlab.com/auth/apple/callback',
-            },
-            password_auth: { enabled: true },
-            account_management: {
-              enabled: true,
-              password_signup: { enabled: true },
-              return_challenge_tokens: false,
-              email_verification_ttl: '30m',
-              email_delivery: {
-                server_address: 'pinguin-grpc:50051',
-                api_key: {
-                  resource: 'private',
-                  output: 'email-delivery-api-key',
-                },
-                email_verification_url:
-                  'https://ui.mprlab.com/demo/tauth-demo.html?auth_action=verify-email',
-                password_reset_url:
-                  'https://ui.mprlab.com/demo/tauth-demo.html?auth_action=reset-complete',
-                password_link_url:
-                  'https://ui.mprlab.com/demo/tauth-demo.html?auth_action=password-link-verify',
-                connection_timeout_seconds: 5,
-                operation_timeout_seconds: 30,
-              },
-              password_reset_ttl: '15m',
-            },
-            jwt_signing_key: {
-              resource: 'private',
-              output: 'jwt-signing-key',
-            },
-            cookie: {
-              domain: '.mprlab.com',
-              session_name: 'mpr_ui_demo_session',
-              refresh_name: 'mpr_ui_demo_refresh',
-            },
-          },
-        },
-      },
-    },
-  });
+test('production manifest declares the public demo and native delivery bindings', () => {
+  const manifest = yaml.load(readFileSync(PRODUCTION_MANIFEST_PATH, 'utf8')).mprlab_resources;
+  assert.deepEqual(Object.keys(manifest).sort(), ['artifacts', 'environment', 'lifecycle', 'owner', 'publications', 'release', 'targets']);
+  assert.equal(manifest.owner, 'mpr-ui');
+  assert.deepEqual(manifest.release, { scheme: 'semver' });
+  assert.equal(manifest.environment.source, '.mprlab/deploy/.env');
+  assert.deepEqual(manifest.environment.private_inputs.map(({ variable }) => variable).sort(), [
+    'MPRLAB_TAUTH_MANAGEMENT_URL', 'MPRLAB_TAUTH_PROVISIONING_CREDENTIALS', 'MPR_UI_APPLE_PRIVATE_KEY',
+    'MPR_UI_EMAIL_DELIVERY_API_KEY', 'MPR_UI_GOOGLE_WEB_CLIENT_ID', 'MPR_UI_JWT_SIGNING_KEY', 'DEPLOY_SUDO_PASSWORD_TUTOSH',
+  ].sort());
+  assert.equal(new Set(manifest.environment.private_inputs.map(({ id }) => id)).size, 7);
+  assert.deepEqual(manifest.targets.access.hosts, [{ host: 'tutosh', elevation_password: { input: 'deploy-sudo-password-tutosh' } }]);
+  assert.deepEqual(manifest.lifecycle.defaults, { timeouts: { startup: '2m', completion: '30m', readiness: '5m', request: '30s', shutdown: '30s' } });
+  assert.deepEqual(manifest.lifecycle.operations.map(({ name, ...policy }) => ({ name, ...policy })).sort((left, right) => left.name.localeCompare(right.name)), [
+    'app_lifecycle.repository_read', 'app-release', 'app-publish', 'app-deploy',
+  ].map(name => ({ name, polling: { initial: '2s', maximum: '15s', increment: '2s', multiplier: 2, attempt_limit: 60 } })).sort((left, right) => left.name.localeCompare(right.name)));
+  assert.deepEqual(manifest.lifecycle.ci, { enabled: true, command: ['env', 'CI=1', 'make', 'ci'] });
+  assert.deepEqual(manifest.artifacts.asset_sets, [{ id: 'browser-assets', assets: ['mpr-ui-config.js', 'mpr-ui.js', 'mpr-ui.css'] }]);
+  assert.deepEqual(manifest.publications.git.assets, [{ id: 'browser-assets', artifact: 'browser-assets', repository: 'MarcoPoloResearchLab/mpr-ui' }]);
+  assert.deepEqual(manifest.targets.jsdelivr.distributions, [{ id: 'browser-assets', publication: 'browser-assets', aliases: ['latest', 'major'] }]);
+  assert.deepEqual(manifest.artifacts.web_bundles, [{ id: 'demo-site', format: 'directory', source: { kind: 'container', context: '.', dockerfile: 'Dockerfile.pages' } }]);
+  assert.deepEqual(manifest.publications.github_pages.sites, [{ id: 'demo-site', artifact: 'demo-site', repository: 'MarcoPoloResearchLab/mpr-ui', branch: 'gh-pages', domain: 'ui.mprlab.com', marker: { path: '/.mprlab-release.json' } }]);
+  assert.deepEqual(manifest.targets.github_pages.sites, [{ id: 'demo-site', publication: 'demo-site', url: 'https://ui.mprlab.com/' }]);
 });
 
 test('CDN declaration covers the exact URLs in consumer documentation', () => {
   const manifest = yaml.load(readFileSync(PRODUCTION_MANIFEST_PATH, 'utf8'));
-  const resource = manifest.mprlab_resources.resources['browser-assets'];
+  const selected = manifest.mprlab_resources;
+  const target = selected.targets.jsdelivr.distributions.find(({ id }) => id === 'browser-assets');
+  const publication = selected.publications.git.assets.find(({ id }) => id === target.publication);
+  const artifact = selected.artifacts.asset_sets.find(({ id }) => id === publication.artifact);
   for (const document of ['README.md', 'docs/integration-guide.md']) {
     const content = readFileSync(resolve(REPOSITORY_ROOT, document), 'utf8');
     const urls = [...content.matchAll(/https:\/\/cdn\.jsdelivr\.net\/gh\/([^@\s]+)@latest\/([^"\s<>]+)/g)];
     assert.ok(urls.length > 0, `${document} has consumer CDN URLs`);
     for (const [, repository, asset] of urls) {
-      assert.equal(resource.repository, repository, `${document} repository URL case`);
-      assert.ok(resource.assets.includes(asset), `${document} asset ${asset}`);
+      assert.equal(publication.repository, repository, `${document} repository URL case`);
+      assert.ok(artifact.assets.includes(asset), `${document} asset ${asset}`);
     }
-    assert.ok(resource.aliases.includes('latest'));
+    assert.ok(target.aliases.includes('latest'));
   }
 });
