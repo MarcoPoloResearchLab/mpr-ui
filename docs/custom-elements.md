@@ -867,9 +867,23 @@ Example:
 
 ### `<mpr-entity-card>`
 - Dense row/card shell for media, summary, metrics, and actions.
-- Attributes: `selected`, `interactive`, `disabled`, `busy`, `density`.
+- Attributes: `selected`, `interactive`, `disabled`, `busy`, `density`, `layout`.
 - Slots: `select`, `media`, `title`, `meta`, `summary`, `metric`, `actions`, `footer`.
 - Default light DOM content becomes the `summary` region.
+- `layout="row"` is the default. Use `layout="tile"` for a compact card.
+- The tile layout puts media on the left and actions at the top right.
+- The title can use more than one line. The summary uses the full width below the title and actions.
+- Empty optional regions do not use space. State updates keep action controls and keyboard focus.
+- Other `layout` values cause an error.
+
+```html
+<mpr-entity-card layout="tile">
+  <img slot="media" src="cover.jpg" alt="Book cover" width="40" />
+  <div slot="title">A title with multiple lines</div>
+  <button slot="actions" type="button">Open</button>
+  <div slot="summary">The summary uses the width below the title and actions.</div>
+</mpr-entity-card>
+```
 
 Use it as the row shell for one detailed entity such as a YouTube video.
 
