@@ -1988,6 +1988,7 @@
     "load-more",
   ]);
   var ENTITY_CARD_ATTRIBUTE_NAMES = Object.freeze([
+    "layout",
     "selected",
     "interactive",
     "disabled",
@@ -7352,7 +7353,7 @@
     ".mpr-auth-actions[data-mpr-auth-action-status='authenticating'] > .mpr-auth-actions__status {position: absolute;inline-size: 1px;block-size: 1px;min-block-size: 0;padding: 0;overflow: hidden;clip-path: inset(50%);white-space: nowrap;}.mpr-auth-google-button[aria-busy='true']:not(:empty) {position: relative;pointer-events: none;}.mpr-auth-google-button[aria-busy='true']:not(:empty) > * {opacity: 0.35;}.mpr-auth-google-button[aria-busy='true']:not(:empty)::after {position: absolute;inline-size: 0.875rem;block-size: 0.875rem;border: 2px solid currentColor;border-right-color: transparent;border-radius: 50%;content: '';animation: mpr-auth-progress-spin 700ms linear infinite;}" +
     "mpr-header .mpr-auth-actions{position:relative;--mpr-auth-provider-scale:var(--mpr-header-scale,1);max-inline-size:100%}" +
     "mpr-header .mpr-auth-actions__controls{overflow:visible}" +
-    ".mpr-auth-actions__email-panel{display:grid;box-sizing:border-box;gap:.35rem;min-inline-size:0}" +
+    ".mpr-auth-actions__email-panel{display:grid;box-sizing:border-box;gap:.35rem;min-inline-size:0;background:var(--mpr-color-surface-elevated,#1f2126);border-radius:var(--mpr-radius-control,6px)}" +
     ".mpr-auth-actions__email-modes{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.25rem}" +
     ".mpr-auth-actions__email-mode{min-block-size:1.75rem;padding:.25rem .45rem;border:1px solid var(--mpr-color-border,#2c2f36);border-radius:var(--mpr-radius-control,6px);background:var(--mpr-color-surface-elevated,#1f2126);color:var(--mpr-color-text-muted,#cbd5f5);font:inherit;font-size:.75rem;font-weight:700;cursor:pointer}" +
     ".mpr-auth-actions__email-mode[aria-selected='true']{border-color:var(--mpr-color-accent,#5d93ff);background:rgba(93,147,255,.14);color:var(--mpr-color-text-primary,#e3e5ec)}" +
@@ -12875,8 +12876,18 @@
     ".mpr-entity-card__meta,.mpr-entity-card__summary,.mpr-entity-card__footer{display:flex;flex-wrap:wrap;gap:0.35rem;color:var(--mpr-color-text-muted,#c4c7d1)}" +
     ".mpr-entity-card__busy{display:inline-flex;align-items:center;gap:0.35rem;padding:0.2rem 0.5rem;border-radius:999px;background:var(--mpr-chip-bg,rgba(148,163,184,0.18));color:var(--mpr-color-text-muted,#cbd5f5)}" +
     ".mpr-entity-card__busy[hidden]{display:none!important}" +
-    "@media (max-width: 48rem){.mpr-entity-card__surface{grid-template-columns:minmax(0,1fr)}.mpr-entity-card__metric,.mpr-entity-card__actions{justify-content:flex-start}}";
+    "@media (max-width: 48rem){.mpr-entity-card__surface{grid-template-columns:minmax(0,1fr)}.mpr-entity-card__metric,.mpr-entity-card__actions{justify-content:flex-start}}" +
+    "mpr-entity-card[data-mpr-entity-card-layout=tile] .mpr-entity-card__surface{display:flex;height:100%}" +
+    ".mpr-entity-card__leading{display:flex;align-items:flex-start;gap:0.5rem}" +
+    ".mpr-entity-card__body{display:grid;grid-template-columns:minmax(0,1fr) max-content;gap:0.4rem 0.5rem;flex:1;min-width:0}" +
+    ".mpr-entity-card__body:has(>.mpr-entity-card__actions[hidden]){grid-template-columns:minmax(0,1fr)}" +
+    ".mpr-entity-card__body>.mpr-entity-card__title{grid-column:1;grid-row:1;min-width:0;overflow-wrap:anywhere}" +
+    ".mpr-entity-card__body>.mpr-entity-card__actions{grid-column:2;grid-row:1;justify-content:flex-end;align-self:start}" +
+    ".mpr-entity-card__body>.mpr-entity-card__meta,.mpr-entity-card__body>.mpr-entity-card__summary,.mpr-entity-card__body>.mpr-entity-card__metric,.mpr-entity-card__body>.mpr-entity-card__footer{grid-column:1/-1;min-width:0;overflow-wrap:anywhere}" +
+    "mpr-entity-card[data-mpr-entity-card-layout=tile] [hidden]{display:none!important}";
+  var ENTITY_CARD_LAYOUTS = Object.freeze(["row", "tile"]);
   var ENTITY_CARD_DEFAULTS = Object.freeze({
+    layout: "row",
     selected: false,
     interactive: false,
     disabled: false,
@@ -12935,6 +12946,13 @@
     if (densityAttr) {
       options.density = densityAttr;
     }
+    var layoutAttr = hostElement.getAttribute("layout");
+    if (layoutAttr !== null) {
+      if (ENTITY_CARD_LAYOUTS.indexOf(layoutAttr) === -1) {
+        throw new Error("mpr-entity-card.layout.invalid: " + layoutAttr);
+      }
+      options.layout = layoutAttr;
+    }
     return options;
   }
 
@@ -12945,6 +12963,7 @@
         ? options.density.trim().toLowerCase()
         : ENTITY_CARD_DEFAULTS.density;
     return {
+      layout: options.layout || ENTITY_CARD_DEFAULTS.layout,
       selected: Boolean(options.selected),
       interactive: Boolean(options.interactive),
       disabled: Boolean(options.disabled),
@@ -12957,6 +12976,9 @@
   }
 
   function buildEntityCardMarkup(config) {
+    if (config.layout === "tile") {
+      return buildEntityCardTileMarkup(config);
+    }
     return (
       '<article class="' +
       ENTITY_CARD_ROOT_CLASS +
@@ -12997,6 +13019,22 @@
       '__actions" data-mpr-entity-card="actions"></div>' +
       "</article>"
     );
+  }
+
+  function buildEntityCardTileMarkup(config) {
+    function buildRegion(region) {
+      return '<div class="' + ENTITY_CARD_ROOT_CLASS + '__' + region +
+        '" data-mpr-entity-card="' + region + '"></div>';
+    }
+    return '<article class="mpr-entity-card__surface">' +
+      '<div class="mpr-entity-card__leading">' +
+      buildRegion("select") + buildRegion("media") + '</div>' +
+      '<div class="mpr-entity-card__body">' +
+      buildRegion("title") + buildRegion("actions") + buildRegion("meta") +
+      buildRegion("summary") + '<div class="mpr-entity-card__metric" data-mpr-entity-card="metric">' +
+      '<span class="mpr-entity-card__busy" data-mpr-entity-card="busy"' +
+      (config.busy ? "" : ' hidden="hidden"') + '>Busy</span></div>' +
+      buildRegion("footer") + '</div></article>';
   }
 
   function resolveEntityCardElements(hostElement) {
@@ -19481,13 +19519,32 @@
           var config = normalizeEntityCardOptions(
             buildEntityCardOptionsFromAttributes(this),
           );
-          this.innerHTML = buildEntityCardMarkup(config);
-          this.__entityCardElements = resolveEntityCardElements(this);
-          if (this.__entityCardSlots) {
-            applyEntityCardSlotContent(
-              this.__entityCardSlots,
-              this.__entityCardElements,
-            );
+          if (!this.__entityCardElements || this.__entityCardLayout !== config.layout || config.layout === "row") {
+            var focusedElement = documentObject.activeElement;
+            var restoreFocus = focusedElement && this.contains(focusedElement);
+            this.innerHTML = buildEntityCardMarkup(config);
+            this.__entityCardElements = resolveEntityCardElements(this);
+            this.__entityCardLayout = config.layout;
+            if (this.__entityCardSlots) {
+              applyEntityCardSlotContent(
+                this.__entityCardSlots,
+                this.__entityCardElements,
+              );
+            }
+            if (restoreFocus && this.contains(focusedElement)) {
+              focusedElement.focus();
+            }
+          }
+          this.setAttribute("data-mpr-entity-card-layout", config.layout);
+          if (config.layout === "tile") {
+            ENTITY_CARD_SLOT_NAMES.forEach(function updateRegionVisibility(region) {
+              var hasContent = this.__entityCardSlots[region].some(function hasVisibleContent(node) {
+                return node.nodeType === 1 || (node.nodeType === 3 && node.textContent.trim().length > 0);
+              });
+              setHiddenState(this.__entityCardElements[region], !hasContent && !(region === "metric" && config.busy));
+            }.bind(this));
+            setHiddenState(this.querySelector(".mpr-entity-card__leading"),
+              !this.__entityCardSlots.select.length && !this.__entityCardSlots.media.length);
           }
           this.setAttribute(
             "data-mpr-entity-card-selected",
