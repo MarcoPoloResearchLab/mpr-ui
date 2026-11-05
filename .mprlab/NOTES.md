@@ -347,3 +347,26 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - Focused validation completed all 75 Chromium tests without errors.
 - Final `make ci` completed 212 Node tests and two runs of 282 Chromium tests without errors.
 - The coverage checks and Pages artifact check also completed without errors.
+
+### 2026-10-29: Entity card tile layout
+
+- Added `layout="tile"` to `mpr-entity-card`. The default remains `layout="row"`.
+- Tile cards keep controls at the top right when titles use more than one line.
+- The summary uses the width below the title and controls.
+- Empty optional regions and whitespace-only content do not use space.
+- Tile surfaces fill equal grid rows. State updates keep control focus and event listeners.
+- Invalid layout values cause an error at the attribute boundary.
+- Browser tests failed before each source code correction.
+- Focused browser validation passed seven tests at desktop and mobile viewport widths.
+- Final `make ci` passed the Node tests, browser coverage checks, 292 browser tests, and Pages artifact check.
+- Independent review found no remaining issues.
+
+### 2026-11-05: Email panel background
+
+- Added a theme surface behind the email panel tabs and control gaps.
+- Changed the external light theme elevated surface to opaque white.
+- Four browser cases reproduced the transparent panel before the correction.
+- Eight Chromium cases passed across two themes, two viewport widths, and both style sources.
+- Sign-in, account creation, and password reset controls passed the browser checks.
+- Independent review found no defects in the selected changes.
+- Final `make ci` passed 212 Node tests, both runs of 300 browser tests, coverage checks, and the Pages artifact check.

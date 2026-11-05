@@ -664,6 +664,22 @@ Format: `- [ ] [B042] (P1) {I007} Title`
   Files: `mpr-ui.js`, `tests/e2e/theme-control.spec.js`, `docs/custom-elements.md`, and TAuth palette files.
   Reference: https://github.com/MarcoPoloResearchLab/mpr-ui/issues/238
 
+- [x] [B081] (P1) Give the complete email panel a background.
+  Goal: Keep page content below the email panel out of view.
+  Evidence: The header email panel has no background around its tabs and between its controls.
+  Requirements:
+  - Apply the theme surface color to the complete email panel.
+  - Use an opaque elevated surface in the light theme.
+  - Preserve sign-in, account creation, and password reset controls.
+  Validation:
+  - Verify dark and light themes at mobile and desktop widths.
+  - Verify external and embedded styles through browser tests.
+  - Run `make ci` after the source changes.
+  Resolution: The complete email panel uses the theme surface color and control radius.
+  Four browser cases failed before the correction. All eight new cases passed after the correction.
+  Final `make ci` passed 212 Node tests, both runs of 300 browser tests, coverage checks, and the Pages artifact check.
+  Independent review found no defects. Publication remains pending.
+
 ## Improvements
 
 - [ ] [I008] (P1) Define one runtime theme update contract for shell components.

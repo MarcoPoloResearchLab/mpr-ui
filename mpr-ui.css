@@ -18,7 +18,7 @@
 :root[data-mpr-theme='light'],
 body[data-mpr-theme='light'] {
   --mpr-color-surface-primary: rgba(248, 250, 252, 0.95);
-  --mpr-color-surface-elevated: rgba(255, 255, 255, 0.98);
+  --mpr-color-surface-elevated: #ffffff;
   --mpr-color-text-primary: #0f172a;
   --mpr-color-text-muted: #475569;
   --mpr-color-border: rgba(148, 163, 184, 0.35);
@@ -85,6 +85,11 @@ mpr-header mpr-auth-provider-chooser {
   align-items: stretch;
   min-inline-size: 0;
   max-inline-size: 100%;
+}
+
+.mpr-auth-actions__email-panel {
+  background: var(--mpr-color-surface-elevated, #1f2126);
+  border-radius: var(--mpr-radius-control, 6px);
 }
 
 .mpr-auth-actions__controls .mpr-auth-provider-chooser__action {
