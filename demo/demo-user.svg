@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-labelledby="title">
+  <title>MPR UI Demo User</title>
+  <rect width="64" height="64" rx="32" fill="#20242c" />
+  <path d="M17 43V21h5l10 13 10-13h5v22h-6V30L32 42 23 30v13z" fill="#f4f5f7" />
+  <circle cx="32" cy="32" r="29" fill="none" stroke="#5d93ff" stroke-width="2" />
+</svg>

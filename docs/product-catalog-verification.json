@@ -1,0 +1,849 @@
+{
+  "checkedAt": "2026-09-13",
+  "sources": [
+    "https://mprlab.com/data/projects.json",
+    "https://api.github.com/orgs/MarcoPoloResearchLab/repos?per_page=100",
+    "mpr-ui.js:FOOTER_LINK_CATALOG",
+    "https://api.github.com/users/tyemirov/repos?per_page=100"
+  ],
+  "selected": [
+    {
+      "id": "issues-md",
+      "name": "ISSUES.md",
+      "purpose": "Automate issue-to-code work",
+      "category": "developer",
+      "href": "https://mprlab.com/#projects"
+    },
+    {
+      "id": "dyd",
+      "name": "Download Your Data",
+      "purpose": "Export your account data",
+      "category": "learning",
+      "href": "https://github.com/MarcoPoloResearchLab/download_your_data"
+    },
+    {
+      "id": "photolab",
+      "name": "Photolab",
+      "purpose": "Search and classify a photo library",
+      "category": "writing",
+      "href": "https://mprlab.com/#projects"
+    },
+    {
+      "id": "ctx",
+      "name": "ctx",
+      "purpose": "Explore code from the terminal",
+      "category": "developer",
+      "href": "https://ctx.mprlab.com"
+    },
+    {
+      "id": "gix",
+      "name": "gix",
+      "purpose": "Maintain Git repositories",
+      "category": "developer",
+      "href": "https://gix.mprlab.com"
+    },
+    {
+      "id": "ghttp",
+      "name": "gHTTP",
+      "purpose": "Serve local files over HTTP",
+      "category": "developer",
+      "href": "https://github.com/tyemirov/ghttp"
+    },
+    {
+      "id": "loopaware",
+      "name": "LoopAware",
+      "purpose": "Collect feedback and site analytics",
+      "category": "business",
+      "href": "https://loopaware.mprlab.com"
+    },
+    {
+      "id": "pinguin",
+      "name": "Pinguin",
+      "purpose": "Send email and SMS notifications",
+      "category": "developer",
+      "href": "https://github.com/tyemirov/pinguin"
+    },
+    {
+      "id": "ets",
+      "name": "Ephemeral Token Service (ETS)",
+      "purpose": "Issue short-lived access tokens",
+      "category": "developer",
+      "href": "https://github.com/tyemirov/ETS"
+    },
+    {
+      "id": "tauth",
+      "name": "TAuth",
+      "purpose": "Manage application sign-in",
+      "category": "developer",
+      "href": "https://tauth.mprlab.com"
+    },
+    {
+      "id": "ledger",
+      "name": "Ledger Service",
+      "purpose": "Track virtual credits",
+      "category": "developer",
+      "href": "https://github.com/tyemirov/ledger"
+    },
+    {
+      "id": "llm-proxy",
+      "name": "llm-proxy",
+      "purpose": "Connect applications to AI providers",
+      "category": "developer",
+      "href": "https://github.com/tyemirov/llm-proxy"
+    },
+    {
+      "id": "product-scanner",
+      "name": "Poodle Scanner",
+      "purpose": "Review online store product pages",
+      "category": "business",
+      "href": "https://mprlab.com/#projects"
+    },
+    {
+      "id": "hecate",
+      "name": "Hecate",
+      "purpose": "Create and play word puzzles",
+      "category": "learning",
+      "href": "https://hecate.mprlab.com"
+    },
+    {
+      "id": "namesignal",
+      "name": "NameSignal",
+      "purpose": "Screen business name candidates",
+      "category": "business",
+      "href": "https://namesignal.mprlab.com"
+    },
+    {
+      "id": "writer-block",
+      "name": "Writer Block",
+      "purpose": "Write and edit text",
+      "category": "writing",
+      "href": "https://writer.mprlab.com"
+    },
+    {
+      "id": "summercan",
+      "name": "SummerCan",
+      "purpose": "Plan family summer camps",
+      "category": "learning",
+      "href": "https://summercan.mprlab.com"
+    },
+    {
+      "id": "mediaops",
+      "name": "MediaOps",
+      "purpose": "Create media and manage video publishing",
+      "category": "writing",
+      "href": "https://mediaops.mprlab.com"
+    },
+    {
+      "id": "gravity-notes",
+      "name": "Gravity Notes",
+      "purpose": "Keep and organize Markdown notes",
+      "category": "writing",
+      "href": "https://gravity.mprlab.com"
+    },
+    {
+      "id": "rsvp",
+      "name": "RSVP",
+      "purpose": "Create invitations and track responses",
+      "category": "business",
+      "href": "https://github.com/MarcoPoloResearchLab/RSVP"
+    },
+    {
+      "id": "prompt-bubbles",
+      "name": "Prompt Bubbles",
+      "purpose": "Browse and organize AI prompts",
+      "category": "writing",
+      "href": "https://prompts.mprlab.com"
+    },
+    {
+      "id": "social-threader",
+      "name": "Social Threader",
+      "purpose": "Split text into social media threads",
+      "category": "writing",
+      "href": "https://threader.mprlab.com"
+    },
+    {
+      "id": "allergy-wheel",
+      "name": "Allergy Wheel",
+      "purpose": "Learn about food allergens",
+      "category": "learning",
+      "href": "https://allergy.mprlab.com"
+    },
+    {
+      "id": "countdown",
+      "name": "Countdown Calendar",
+      "purpose": "Count the days to an event",
+      "category": "learning",
+      "href": "https://countdown.mprlab.com"
+    },
+    {
+      "id": "wallpapers",
+      "name": "Wallpapers",
+      "purpose": "Create patterned wallpapers",
+      "category": "writing",
+      "href": "https://wallpapers.mprlab.com"
+    },
+    {
+      "id": "gcal",
+      "name": "gcal",
+      "purpose": "Use Google Calendar from the command line",
+      "category": "developer",
+      "href": "https://github.com/MarcoPoloResearchLab/gcal"
+    },
+    {
+      "id": "nearest-city-finder",
+      "name": "Nearest City Finder",
+      "purpose": "Find nearby cities for a drive",
+      "category": "learning",
+      "href": "https://github.com/MarcoPoloResearchLab/NearestCityFinder"
+    },
+    {
+      "id": "seefood",
+      "name": "Seefood",
+      "purpose": "Identify hotdogs in images",
+      "category": "learning",
+      "href": "https://github.com/MarcoPoloResearchLab/seefood"
+    },
+    {
+      "id": "old-millionaire",
+      "name": "Old Millionaire",
+      "purpose": "Compare money across years",
+      "category": "learning",
+      "href": "https://github.com/MarcoPoloResearchLab/old_millionaire"
+    },
+    {
+      "id": "openai-extract",
+      "name": "OpenAI Extract",
+      "purpose": "Search exported conversation data",
+      "category": "developer",
+      "href": "https://github.com/MarcoPoloResearchLab/OpenaiExtract"
+    },
+    {
+      "id": "x-sync",
+      "name": "X-sync",
+      "purpose": "Compare Twitter followers",
+      "category": "business",
+      "href": "https://github.com/MarcoPoloResearchLab/X-sync"
+    },
+    {
+      "id": "skazka",
+      "name": "Skazka",
+      "purpose": "Read fairy tales",
+      "category": "learning",
+      "href": "https://github.com/MarcoPoloResearchLab/skazka"
+    },
+    {
+      "id": "camu",
+      "name": "Camu",
+      "purpose": "Browse a fairy-tale catalog",
+      "category": "learning",
+      "href": "https://github.com/MarcoPoloResearchLab/camu"
+    },
+    {
+      "id": "familyhome",
+      "name": "FamilyHome",
+      "purpose": "Use a child-friendly Portal home screen",
+      "category": "learning",
+      "href": "https://github.com/MarcoPoloResearchLab/FamilyHome"
+    },
+    {
+      "id": "mpr-ui",
+      "name": "MPR UI",
+      "purpose": "Add shared web components",
+      "category": "developer",
+      "href": "https://github.com/MarcoPoloResearchLab/mpr-ui"
+    },
+    {
+      "id": "swarm",
+      "name": "Swarm",
+      "purpose": "Explore the public project repository",
+      "category": "developer",
+      "href": "https://github.com/MarcoPoloResearchLab/swarm"
+    },
+    {
+      "id": "dictator",
+      "name": "Dictator",
+      "purpose": "Create speech and work with recorded voices",
+      "category": "writing",
+      "href": "https://github.com/tyemirov/dictator"
+    },
+    {
+      "id": "svg-tools",
+      "name": "SVG Tools",
+      "purpose": "Create and convert visual assets",
+      "category": "writing",
+      "href": "https://github.com/tyemirov/svg_tools"
+    },
+    {
+      "id": "utils",
+      "name": "Utils",
+      "purpose": "Use shared Go application libraries",
+      "category": "developer",
+      "href": "https://github.com/tyemirov/utils"
+    }
+  ],
+  "excluded": [
+    {
+      "id": "llm-crossword",
+      "name": "LLM Crossword",
+      "reason": "The advertised application URL failed TLS. No separate public destination was verified."
+    }
+  ],
+  "observations": [
+    {
+      "url": "https://allergy.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://allergy.mprlab.com",
+      "title": "Allergy Wheel – Learn Food Allergens Through Play",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://countdown.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://countdown.mprlab.com",
+      "title": "Countdown Calendar",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://ctx.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://ctx.mprlab.com",
+      "title": "ctx — Context for Your Codebase in One Command",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://ets.mprlab.com",
+      "error": "<urlopen error [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1082)>",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/FamilyHome",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/FamilyHome",
+      "title": "GitHub - MarcoPoloResearchLab/FamilyHome: A reversible, child-friendly home experience for Meta Portal devices. · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/NearestCityFinder",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/NearestCityFinder",
+      "title": "GitHub - MarcoPoloResearchLab/NearestCityFinder: Find the nearest city to drive do among all cities · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/OpenaiExtract",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/OpenaiExtract",
+      "title": "GitHub - MarcoPoloResearchLab/OpenaiExtract: A small utility to search though OpenAI data extract · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/RSVP",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/RSVP",
+      "title": "GitHub - MarcoPoloResearchLab/RSVP: A simple web application for QR RSVP tracking · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/X-sync",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/X-sync",
+      "title": "GitHub - MarcoPoloResearchLab/X-sync: Compare Twitter followers · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/allergy_wheel",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/allergy_wheel",
+      "title": "GitHub - MarcoPoloResearchLab/allergy_wheel: A spinning wheel testing for allergies · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/camu",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/camu",
+      "title": "GitHub - MarcoPoloResearchLab/camu: Static website for the Camu fairy-tale catalog · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/countdown",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/countdown",
+      "title": "GitHub - MarcoPoloResearchLab/countdown: Countdown calendar · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/download_your_data",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/download_your_data",
+      "title": "GitHub - MarcoPoloResearchLab/download_your_data: Instructions on how to get your data from the social media platforms · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/gcal",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/gcal",
+      "title": "GitHub - MarcoPoloResearchLab/gcal: A command line client for Google calendar · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/mpr-ui",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/mpr-ui",
+      "title": "GitHub - MarcoPoloResearchLab/mpr-ui: Reusable UI components for Marco Polo Research Lab projects. · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/old_millionaire",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/old_millionaire",
+      "title": "GitHub - MarcoPoloResearchLab/old_millionaire: A simple check of how much money you need today to be a millionaire when you were born · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/seefood",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/seefood",
+      "title": "GitHub - MarcoPoloResearchLab/seefood: Determines whether an image is a hotdog · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/skazka",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/skazka",
+      "title": "GitHub - MarcoPoloResearchLab/skazka: Web app for reading fairy tales · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/social_threader",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/social_threader",
+      "title": "GitHub - MarcoPoloResearchLab/social_threader: Breaks texts into smaller chunks for pasting into Twitter/X, Threads, Bluesky, Mastodon · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/swarm",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/swarm",
+      "title": "GitHub - MarcoPoloResearchLab/swarm · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/wallpapers",
+      "status": 200,
+      "finalUrl": "https://github.com/MarcoPoloResearchLab/wallpapers",
+      "title": "GitHub - MarcoPoloResearchLab/wallpapers: Procedural generation of wallpapers · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/temirov/ghttp",
+      "status": 200,
+      "finalUrl": "https://github.com/tyemirov/ghttp",
+      "title": "GitHub - tyemirov/ghttp: A simple http server written in Go with TLS support · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/temirov/pinguin",
+      "error": "HTTP Error 404: Not Found",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/tyemirov/ledger",
+      "status": 200,
+      "finalUrl": "https://github.com/tyemirov/ledger",
+      "title": "GitHub - tyemirov/ledger: A standalone gRPC-based virtual credits ledger written in Go. Provides core operations for granting, reserving, spending, capturing, and releasing virtual currency (e.g., promotional credits, in-app balances). · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/tyemirov/llm-proxy",
+      "status": 200,
+      "finalUrl": "https://github.com/tyemirov/llm-proxy",
+      "title": "GitHub - tyemirov/llm-proxy: A simple reverse proxy for major LLM providers · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://gix.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://gix.mprlab.com",
+      "title": "gix — Fleet-Oriented Git Automation",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://gravity.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://gravity.mprlab.com",
+      "title": "Gravity Notes",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://hecate.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://hecate.mprlab.com",
+      "title": "Hecate | Crossword, Word Search, Kriss Kross, and Codeword Puzzle Generator",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://llm-crossword.mprlab.com",
+      "error": "<urlopen error [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1082)>",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://loopaware.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://loopaware.mprlab.com",
+      "title": "LoopAware | Feedback, analytics, and LA Sentry monitoring",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://mediaops.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://mediaops.mprlab.com",
+      "title": "MediaOps · YouTube Workspace",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://mprlab.com",
+      "status": 200,
+      "finalUrl": "https://mprlab.com",
+      "title": "Marco Polo Research Lab | Software and Applied Research",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://mprlab.com/#projects",
+      "status": 200,
+      "finalUrl": "https://mprlab.com/#projects",
+      "title": "Marco Polo Research Lab | Software and Applied Research",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://namesignal.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://namesignal.mprlab.com",
+      "title": "NameSignal",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://prompts.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://prompts.mprlab.com",
+      "title": "Prompt Bubbles — Curated ChatGPT Prompts",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://ps.mprlab.com",
+      "error": "<urlopen error [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1082)>",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://rsvp.mprlab.com",
+      "error": "<urlopen error [SSL: TLSV1_ALERT_INTERNAL_ERROR] tlsv1 alert internal error (_ssl.c:1082)>",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://summercan.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://summercan.mprlab.com",
+      "title": "SummerCan - Family Summer Camp Planner",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://tauth.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://tauth.mprlab.com",
+      "title": "TAuth | Own your provider sign-in sessions",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://threader.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://threader.mprlab.com",
+      "title": "Social Threader – Perfectly Sized Social Media Threads",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://wallpapers.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://wallpapers.mprlab.com",
+      "title": "Grey & Pink & White Wallpaper Generator",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://writer.mprlab.com",
+      "status": 200,
+      "finalUrl": "https://writer.mprlab.com",
+      "title": "Writers Block",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/tyemirov/pinguin",
+      "status": 200,
+      "finalUrl": "https://github.com/tyemirov/pinguin",
+      "title": "GitHub - tyemirov/pinguin: A gRPC service to send SMS and Email messages · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/tyemirov/ETS",
+      "status": 200,
+      "finalUrl": "https://github.com/tyemirov/ETS",
+      "title": "GitHub - tyemirov/ETS · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/ProductScanner",
+      "error": "HTTP Error 404: Not Found",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/MarcoPoloResearchLab/issues.md",
+      "error": "HTTP Error 404: Not Found",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://mprlab.com/#project-photolab",
+      "status": 200,
+      "finalUrl": "https://mprlab.com/#project-photolab",
+      "title": "Marco Polo Research Lab | Software and Applied Research",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://mprlab.com/#project-product-scanner",
+      "status": 200,
+      "finalUrl": "https://mprlab.com/#project-product-scanner",
+      "title": "Marco Polo Research Lab | Software and Applied Research",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://raw.githubusercontent.com/MarcoPoloResearchLab/swarm/main/README.md",
+      "error": "HTTP Error 404: Not Found",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/tyemirov/dictator",
+      "status": 200,
+      "finalUrl": "https://github.com/tyemirov/dictator",
+      "title": "GitHub - tyemirov/dictator · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/tyemirov/svg_tools",
+      "status": 200,
+      "finalUrl": "https://github.com/tyemirov/svg_tools",
+      "title": "GitHub - tyemirov/svg_tools: A collection of tools that facilitates working with SVGs · GitHub",
+      "checkedAt": "2026-09-13"
+    },
+    {
+      "url": "https://github.com/tyemirov/utils",
+      "status": 200,
+      "finalUrl": "https://github.com/tyemirov/utils",
+      "title": "GitHub - tyemirov/utils: Go utilities · GitHub",
+      "checkedAt": "2026-09-13"
+    }
+  ],
+  "personalRepositoryReview": [
+    {
+      "name": "atlas-to-chrome-tab-groups",
+      "source": "https://raw.githubusercontent.com/tyemirov/atlas-to-chrome-tab-groups/main/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "AutoCoder",
+      "source": "https://raw.githubusercontent.com/tyemirov/AutoCoder/main/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "calendar",
+      "source": "https://raw.githubusercontent.com/tyemirov/calendar/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "ctx",
+      "source": "https://raw.githubusercontent.com/tyemirov/ctx/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "dice_game",
+      "source": "https://raw.githubusercontent.com/tyemirov/dice_game/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "dictator",
+      "source": "https://raw.githubusercontent.com/tyemirov/dictator/master/README.md",
+      "labReferenceFound": true
+    },
+    {
+      "name": "ETS",
+      "source": "https://raw.githubusercontent.com/tyemirov/ETS/master/README.md",
+      "labReferenceFound": true
+    },
+    {
+      "name": "feedback",
+      "source": "https://raw.githubusercontent.com/tyemirov/feedback/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "GAuss",
+      "source": "https://raw.githubusercontent.com/tyemirov/GAuss/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "gbt",
+      "source": "https://raw.githubusercontent.com/tyemirov/gbt/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "ghttp",
+      "source": "https://raw.githubusercontent.com/tyemirov/ghttp/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "git_retag",
+      "source": "https://raw.githubusercontent.com/tyemirov/git_retag/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "gix",
+      "source": "https://raw.githubusercontent.com/tyemirov/gix/master/README.md",
+      "labReferenceFound": true
+    },
+    {
+      "name": "gnome_shortcuts",
+      "source": "https://raw.githubusercontent.com/tyemirov/gnome_shortcuts/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "gripper",
+      "source": "https://raw.githubusercontent.com/tyemirov/gripper/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "icloud_recently_deleted",
+      "source": "https://raw.githubusercontent.com/tyemirov/icloud_recently_deleted/main/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "imdbs",
+      "source": "https://raw.githubusercontent.com/tyemirov/imdbs/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "jwt",
+      "source": "https://raw.githubusercontent.com/tyemirov/jwt/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "ledger",
+      "source": "https://raw.githubusercontent.com/tyemirov/ledger/master/README.md",
+      "labReferenceFound": true
+    },
+    {
+      "name": "llm-proxy",
+      "source": "https://raw.githubusercontent.com/tyemirov/llm-proxy/master/README.md",
+      "labReferenceFound": true
+    },
+    {
+      "name": "llm-tasks",
+      "source": "https://raw.githubusercontent.com/tyemirov/llm-tasks/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "Lo",
+      "source": "https://raw.githubusercontent.com/tyemirov/Lo/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "logger",
+      "source": "https://raw.githubusercontent.com/tyemirov/logger/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "loopaware",
+      "source": "https://raw.githubusercontent.com/tyemirov/loopaware/master/README.md",
+      "labReferenceFound": true
+    },
+    {
+      "name": "maze",
+      "source": "https://raw.githubusercontent.com/tyemirov/maze/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "mosaic",
+      "source": "https://raw.githubusercontent.com/tyemirov/mosaic/main/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "moving_map",
+      "source": "https://raw.githubusercontent.com/tyemirov/moving_map/main/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "Obsidian-santizer",
+      "source": "https://raw.githubusercontent.com/tyemirov/Obsidian-santizer/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "personal_rag",
+      "source": "https://raw.githubusercontent.com/tyemirov/personal_rag/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "pinguin",
+      "source": "https://raw.githubusercontent.com/tyemirov/pinguin/master/README.md",
+      "labReferenceFound": true
+    },
+    {
+      "name": "pipeline",
+      "source": "https://raw.githubusercontent.com/tyemirov/pipeline/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "QwenOC",
+      "source": "https://raw.githubusercontent.com/tyemirov/QwenOC/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "scheduler",
+      "source": "https://raw.githubusercontent.com/tyemirov/scheduler/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "sdxl",
+      "source": "https://raw.githubusercontent.com/tyemirov/sdxl/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "Smith",
+      "source": "https://raw.githubusercontent.com/tyemirov/Smith/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "svg_tools",
+      "source": "https://raw.githubusercontent.com/tyemirov/svg_tools/master/README.md",
+      "labReferenceFound": true
+    },
+    {
+      "name": "TAuth",
+      "source": "https://raw.githubusercontent.com/tyemirov/TAuth/master/README.md",
+      "labReferenceFound": true
+    },
+    {
+      "name": "temirov.github.io",
+      "source": "https://raw.githubusercontent.com/tyemirov/temirov.github.io/master/README.md",
+      "labReferenceFound": false
+    },
+    {
+      "name": "tyemirov.github.io",
+      "source": "https://raw.githubusercontent.com/tyemirov/tyemirov.github.io/master/README.md",
+      "labReferenceFound": true
+    },
+    {
+      "name": "utils",
+      "source": "https://raw.githubusercontent.com/tyemirov/utils/master/README.md",
+      "labReferenceFound": true
+    },
+    {
+      "name": "zync",
+      "source": "https://raw.githubusercontent.com/tyemirov/zync/master/README.md",
+      "labReferenceFound": false
+    }
+  ],
+  "personalRepositoryScope": "Include lab-attributed tools. Personal sites, forks, and repositories without a lab reference are outside the product directory."
+}
