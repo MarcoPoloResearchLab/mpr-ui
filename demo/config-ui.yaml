@@ -1,0 +1,134 @@
+# mpr-ui client configuration
+# This file is loaded by mpr-ui-config.js and applies the canonical auth provider map.
+# Each environment is matched by window.location.origin; exactly one must match at runtime.
+
+environments:
+  - description: "Hosted TAuth demo"
+    origins:
+      - "https://ui.mprlab.com"
+    auth:
+      tauthUrl: "https://tauth-api.mprlab.com"
+      tenantId: "mpr-ui-demo"
+      logoutPath: "/auth/logout"
+      sessionPath: "/auth/session"
+      providers:
+        google:
+          enabled: true
+          clientId: "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+          loginPath: "/auth/google"
+          noncePath: "/auth/nonce"
+        apple:
+          enabled: true
+          startPath: "/auth/apple/start"
+          returnTo: "current-origin"
+          label: "Sign in with Apple"
+        password:
+          enabled: true
+      password:
+        loginPath: "/auth/password/login"
+        signupPath: "/auth/password/signup"
+        verifyEmailPath: "/auth/password/verify-email"
+        resetStartPath: "/auth/password/reset/start"
+        resetCompletePath: "/auth/password/reset/complete"
+      account:
+        passwordChangePath: "/auth/account/password/change"
+        passwordLinkStartPath: "/auth/account/password/link/start"
+        passwordLinkVerifyPath: "/auth/account/password/link/verify"
+        googleLinkPath: "/auth/account/google/link"
+        unlinkPath: "/auth/account/unlink"
+        disablePath: "/auth/account/disable"
+
+  # Local development with gHTTP serving the repository root over HTTP.
+  - description: "Local TAuth demo"
+    origins:
+      - "http://localhost:4443"
+      - "http://127.0.0.1:4443"
+      - "http://computercat.tyemirov.net:4443"
+    auth:
+      # Empty string means the auth endpoints are same-origin via gHTTP proxy.
+      tauthUrl: ""
+      tenantId: "mpr-sites"
+      logoutPath: "/auth/logout"
+      sessionPath: "/auth/session"
+      providers:
+        google:
+          enabled: true
+          clientId: "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+          loginPath: "/auth/google"
+          noncePath: "/auth/nonce"
+        apple:
+          enabled: false
+        password:
+          enabled: true
+      password:
+        loginPath: "/auth/password/login"
+        signupPath: "/auth/password/signup"
+        verifyEmailPath: "/auth/password/verify-email"
+        resetStartPath: "/auth/password/reset/start"
+        resetCompletePath: "/auth/password/reset/complete"
+      account:
+        passwordChangePath: "/auth/account/password/change"
+        passwordLinkStartPath: "/auth/account/password/link/start"
+        passwordLinkVerifyPath: "/auth/account/password/link/verify"
+        googleLinkPath: "/auth/account/google/link"
+        unlinkPath: "/auth/account/unlink"
+        disablePath: "/auth/account/disable"
+
+  # Lightweight no-store static preview served with `npm run demo:serve`.
+  # This origin renders the demo chrome and components; authenticated sign-in still requires `make up`.
+  - description: "Static HTTP preview"
+    origins:
+      - "http://127.0.0.1:4177"
+      - "http://localhost:4177"
+    auth:
+      tauthUrl: ""
+      tenantId: "mpr-sites"
+      logoutPath: "/auth/logout"
+      sessionPath: "/auth/session"
+      providers:
+        google:
+          enabled: true
+          clientId: "991677581607-r0dj8q6irjagipali0jpca7nfp8sfj9r.apps.googleusercontent.com"
+          loginPath: "/auth/google"
+          noncePath: "/auth/nonce"
+        apple:
+          enabled: true
+          startPath: "/auth/apple/start"
+          returnTo: "current-origin"
+          label: "Sign in with Apple"
+        password:
+          enabled: true
+      password:
+        loginPath: "/auth/password/login"
+        signupPath: "/auth/password/signup"
+        verifyEmailPath: "/auth/password/verify-email"
+        resetStartPath: "/auth/password/reset/start"
+        resetCompletePath: "/auth/password/reset/complete"
+      account:
+        passwordChangePath: "/auth/account/password/change"
+        passwordLinkStartPath: "/auth/account/password/link/start"
+        passwordLinkVerifyPath: "/auth/account/password/link/verify"
+        googleLinkPath: "/auth/account/google/link"
+        unlinkPath: "/auth/account/unlink"
+        disablePath: "/auth/account/disable"
+
+  # Contract-only local origin for an Apple-only tenant profile.
+  - description: "Apple-only local profile"
+    origins:
+      - "http://127.0.0.1:4178"
+      - "http://localhost:4178"
+    auth:
+      tauthUrl: ""
+      tenantId: "mpr-sites"
+      logoutPath: "/auth/logout"
+      sessionPath: "/auth/session"
+      providers:
+        google:
+          enabled: false
+        apple:
+          enabled: true
+          startPath: "/auth/apple/start"
+          returnTo: "current-origin"
+          label: "Sign in with Apple"
+        password:
+          enabled: false
