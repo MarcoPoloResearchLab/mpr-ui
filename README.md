@@ -292,7 +292,7 @@ This check requires Docker, `uv`, and both sibling repositories. It uses tempora
 ## Production lifecycle
 
 The production manifest is `.mprlab/deploy/resources.yml`.
-It declares the GitHub Pages site and the `mpr-ui-demo` TAuth tenant.
+It declares the Pages artifact, Git asset publication, GitHub Pages site, and jsDelivr distribution.
 The Pages artifact comes from `Dockerfile.pages` and contains only the selected public files.
 
 Put these assignments in the ignored `.mprlab/deploy/.env` file before deployment:
@@ -308,21 +308,29 @@ The user runs the complete production lifecycle from this repository:
 make release && make publish && make deploy
 ```
 
-The installed `mprlab-gateway` runtime owns each lifecycle phase.
-The manifest uses the Gateway `v6.0.4` contract.
-Resource IDs are map keys.
+The production lifecycle requires `mprlab-gateway` `v8.1.4` or later.
+The installed runtime owns each lifecycle phase and uses lifecycle contract `4` with publication envelope schema `4`.
+The versionless manifest uses explicit identity lists for artifacts, publications, and targets.
 CI sets `CI=1` and runs `make ci`.
 The manifest declares all lifecycle timeouts and polling policies.
+
+For the schema `4` cutover, publish a new application version from a new source commit.
+The release phase selects the next version after that source change.
+Publication records the producer Gateway version and platform in `mprlab-publication.json`.
+An existing schema `3` completion record remains part of its original immutable publication.
 
 The runtime must also keep the declared repository letter case in CDN requests.
 The current manifest requires `MarcoPoloResearchLab/mpr-ui`, as used in the public asset URLs.
 A runtime that changes this spelling to lowercase does not satisfy this requirement.
+
 Set `MPRLAB_GATEWAY_EXECUTABLE` to select an installed command outside `PATH`.
+
 The release phase seals the exact committed source, Pages artifact, and declared CDN assets.
-The publish phase creates the immutable Pages commit and verifies the declared CDN assets and aliases.
+The publish phase creates the immutable Pages version tag and verifies the declared Git assets.
 Gateway records publication success only after its required provider checks pass.
-The deploy phase configures and verifies `https://ui.mprlab.com/`.
+The deploy phase activates the Pages site and CDN aliases, then verifies `https://ui.mprlab.com/` and the declared public assets.
 Live provider acceptance remains separate from source CI and Pages activation.
+
 The CDN provider does not supply restoration of a previous release through its mutable aliases.
 B073 tracks this unresolved delivery requirement. The installed-runtime migration does not resolve it.
 

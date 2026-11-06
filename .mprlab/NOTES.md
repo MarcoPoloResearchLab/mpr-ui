@@ -370,3 +370,11 @@ The deliverables are code changes. Sequentially open PRs use `gh` utility after 
 - Sign-in, account creation, and password reset controls passed the browser checks.
 - Independent review found no defects in the selected changes.
 - Final `make ci` passed 212 Node tests, both runs of 300 browser tests, coverage checks, and the Pages artifact check.
+
+### 2026-11-06: Gateway publication requirement
+
+- Required Gateway `v8.1.4` or later for the production lifecycle.
+- Documented lifecycle contract `4`, publication envelope schema `4`, and the new application version required for the cutover.
+- Corrected the manifest description and the publication and deployment responsibilities.
+- All 212 Node tests passed after the documentation change.
+- The Governor check reported an unchanged `make up` recipe inspection error and existing managed-file differences.
