@@ -9,3 +9,5 @@ COPY demo/tauth-settings-modal.js demo/status-panel.js /demo/
 COPY demo/auth-provider-chooser.html demo/auth-provider-chooser.js /demo/
 COPY demo/entity-workspace.html demo/entity-workspace.js demo/entity-workspace.css demo/entity-workspace.json /demo/
 COPY docs/alpine.js.md docs/custom-elements.md docs/demo-index-auth.md docs/integration-guide.md docs/hosted-auth-readiness.md /docs/
+COPY docs/maintainer-guide.md docs/auth-form-locales.md /docs/
+COPY LICENSE COMMERCIAL_LICENSE.md CONTRIBUTOR_LICENSE.md /
