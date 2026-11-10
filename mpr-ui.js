@@ -145,6 +145,7 @@
     "password",
   ]);
   var AUTH_FORM_LABELS = Object.freeze({
+    emailProvider: "Continue with email",
     email: "Email",
     password: "Password",
     token: "Challenge token",
@@ -184,6 +185,93 @@
     success: "Completed.",
     failure: "Unable to complete the request.",
   });
+  var AUTH_FORM_LOCALE_ATTRIBUTE = "locale";
+  var AUTH_FORM_COPY = Object.freeze({
+    en: AUTH_FORM_LABELS,
+    ru: Object.freeze({
+      "email": "Электронная почта",
+      "password": "Пароль",
+      "token": "Код подтверждения",
+      "currentPassword": "Текущий пароль",
+      "newPassword": "Новый пароль",
+      "identity": "Способ входа",
+      "emailAuthModes": "Вход по электронной почте",
+      "loginTitle": "Войти по электронной почте",
+      "loginSubmit": "Войти",
+      "signupTitle": "Создать аккаунт",
+      "signupSubmit": "Создать аккаунт",
+      "verifyEmailTitle": "Подтвердить электронную почту",
+      "verifyEmailSubmit": "Подтвердить почту",
+      "resetStartTitle": "Сбросить пароль",
+      "resetStartSubmit": "Отправить инструкции",
+      "forgotPassword": "Забыли пароль?",
+      "backToSignIn": "Вернуться ко входу",
+      "newResetLink": "Отправить новую ссылку",
+      "resetStartSuccess": "Проверьте почту. Если для аккаунта доступен вход по почте, вы получите ссылку для сброса пароля.",
+      "resetCompleteSuccess": "Ваш пароль изменён.",
+      "resetCompleteTitle": "Задать новый пароль",
+      "resetCompleteSubmit": "Сбросить пароль",
+      "passwordChangeTitle": "Изменить пароль",
+      "passwordChangeSubmit": "Изменить пароль",
+      "passwordLinkStartTitle": "Добавить почту и пароль",
+      "passwordLinkStartSubmit": "Отправить подтверждение",
+      "passwordLinkVerifyTitle": "Подтвердить вход по почте",
+      "passwordLinkVerifySubmit": "Привязать пароль",
+      "googleLinkTitle": "Добавить вход через Google",
+      "unlinkTitle": "Удалить способ входа",
+      "unlinkSubmit": "Удалить способ входа",
+      "disableTitle": "Отключить аккаунт",
+      "disableSubmit": "Отключить аккаунт",
+      "unauthenticated": "Войдите, чтобы управлять аккаунтом.",
+      "ready": "",
+      "loading": "Пожалуйста, подождите…",
+      "success": "Готово.",
+      "failure": "Не удалось выполнить запрос.",
+      "emailProvider": "Продолжить с электронной почтой"
+    }),
+    bg: Object.freeze({
+      "email": "Имейл",
+      "password": "Парола",
+      "token": "Код за потвърждение",
+      "currentPassword": "Текуща парола",
+      "newPassword": "Нова парола",
+      "identity": "Начин на вход",
+      "emailAuthModes": "Вход с имейл",
+      "loginTitle": "Вход с имейл",
+      "loginSubmit": "Вход",
+      "signupTitle": "Създаване на акаунт",
+      "signupSubmit": "Създаване на акаунт",
+      "verifyEmailTitle": "Потвърждаване на имейла",
+      "verifyEmailSubmit": "Потвърждаване на имейла",
+      "resetStartTitle": "Възстановяване на паролата",
+      "resetStartSubmit": "Изпращане на инструкции",
+      "forgotPassword": "Забравена парола?",
+      "backToSignIn": "Обратно към входа",
+      "newResetLink": "Изпращане на нова връзка",
+      "resetStartSuccess": "Проверете имейла си. Ако акаунтът поддържа вход с имейл, ще получите връзка за възстановяване на паролата.",
+      "resetCompleteSuccess": "Паролата е променена.",
+      "resetCompleteTitle": "Задаване на нова парола",
+      "resetCompleteSubmit": "Възстановяване на паролата",
+      "passwordChangeTitle": "Промяна на паролата",
+      "passwordChangeSubmit": "Промяна на паролата",
+      "passwordLinkStartTitle": "Добавяне на имейл и парола",
+      "passwordLinkStartSubmit": "Изпращане на потвърждение",
+      "passwordLinkVerifyTitle": "Потвърждаване на входа с имейл",
+      "passwordLinkVerifySubmit": "Свързване на парола",
+      "googleLinkTitle": "Добавяне на вход с Google",
+      "unlinkTitle": "Премахване на начин на вход",
+      "unlinkSubmit": "Премахване на начина на вход",
+      "disableTitle": "Деактивиране на акаунта",
+      "disableSubmit": "Деактивиране на акаунта",
+      "unauthenticated": "Влезте, за да управлявате акаунта.",
+      "ready": "",
+      "loading": "Моля, изчакайте…",
+      "success": "Готово.",
+      "failure": "Заявката не може да бъде изпълнена.",
+      "emailProvider": "Продължаване с имейл"
+    }),
+  });
+
   var normalizedAuthOptions = new WeakSet();
   var REQUESTED_WITH_HEADER = "XMLHttpRequest";
   var TAUTH_RUNTIME_SESSION_PATH = "/auth/session";
@@ -1847,7 +1935,7 @@
   });
 
   var HEADER_ATTRIBUTE_OBSERVERS = Object.freeze(
-    Object.keys(HEADER_ATTRIBUTE_DATASET_MAP).concat([AUTH_CONFIG_ATTRIBUTE]),
+    Object.keys(HEADER_ATTRIBUTE_DATASET_MAP).concat([AUTH_CONFIG_ATTRIBUTE, AUTH_FORM_LOCALE_ATTRIBUTE]),
   );
 
   var FOOTER_ATTRIBUTE_DATASET_MAP = Object.freeze({
@@ -1892,6 +1980,7 @@
     "theme-config",
   ]);
   var LOGIN_BUTTON_ATTRIBUTE_NAMES = Object.freeze([
+    AUTH_FORM_LOCALE_ATTRIBUTE,
     AUTH_CONFIG_ATTRIBUTE,
     AUTH_COMPONENT_TARGET_ATTRIBUTE,
     "button-text",
@@ -2732,12 +2821,12 @@
     return providerIds;
   }
 
-  function authProviderActionLabel(authOptions, providerId, displayOptions) {
+  function authProviderActionLabel(authOptions, providerId, displayOptions, formLabels) {
     if (providerId === AUTH_PROVIDER_IDS.APPLE) {
       return authOptions.providers.apple.label;
     }
     if (providerId === AUTH_PROVIDER_IDS.EMAIL) {
-      return AUTH_PROVIDER_CHOOSER_LABELS.email;
+      return formLabels.emailProvider;
     }
     var configuredGoogleLabel =
       displayOptions && typeof displayOptions.googleLabel === "string"
@@ -3024,6 +3113,7 @@
     authController,
     displayOptions,
   ) {
+    var formLabels = resolveAuthFormLabels(hostElement);
     clearNodeContents(containerElement);
     var documentObject =
       hostElement.ownerDocument ||
@@ -3153,19 +3243,20 @@
       panelElement.setAttribute("data-mpr-auth-email-panel", "");
       setAuthProviderElementClass(panelElement, "mpr-auth-actions__email-panel");
       modeListElement.setAttribute("role", "tablist");
-      modeListElement.setAttribute("aria-label", AUTH_FORM_LABELS.emailAuthModes);
+      modeListElement.setAttribute("aria-label", formLabels.emailAuthModes);
       setAuthProviderElementClass(
         modeListElement,
         "mpr-auth-actions__email-modes",
       );
       appendAuthProviderElement(
         modeListElement,
-        createPasswordModeButton("login", AUTH_FORM_LABELS.loginSubmit),
+        createPasswordModeButton("login", formLabels.loginSubmit),
       );
       appendAuthProviderElement(
         modeListElement,
-        createPasswordModeButton("signup", AUTH_FORM_LABELS.signupSubmit),
+        createPasswordModeButton("signup", formLabels.signupSubmit),
       );
+      passwordAuthElement.setAttribute(AUTH_FORM_LOCALE_ATTRIBUTE, resolveAuthFormLocale(hostElement));
       passwordAuthElement.id = passwordAuthId;
       passwordAuthElement.setAttribute(
         AUTH_CONFIG_ATTRIBUTE,
@@ -3199,6 +3290,7 @@
         authOptions,
         providerId,
         displayOptions,
+        formLabels,
       );
       function handleProviderAction(event) {
         if (event && typeof event.preventDefault === "function") {
@@ -16157,88 +16249,114 @@
     });
   }
 
-  var PASSWORD_AUTH_FORM_DEFINITIONS = Object.freeze({
-    login: Object.freeze({
-      title: AUTH_FORM_LABELS.loginTitle,
-      submit: AUTH_FORM_LABELS.loginSubmit,
-      fields: Object.freeze([
-        Object.freeze({ key: "email", label: AUTH_FORM_LABELS.email, type: "email", autocomplete: "email" }),
-        Object.freeze({ key: "password", label: AUTH_FORM_LABELS.password, type: "password", autocomplete: "current-password", secret: true }),
-      ]),
-    }),
-    signup: Object.freeze({
-      title: AUTH_FORM_LABELS.signupTitle,
-      submit: AUTH_FORM_LABELS.signupSubmit,
-      fields: Object.freeze([
-        Object.freeze({ key: "email", label: AUTH_FORM_LABELS.email, type: "email", autocomplete: "email" }),
-        Object.freeze({ key: "password", label: AUTH_FORM_LABELS.password, type: "password", autocomplete: "new-password", secret: true }),
-      ]),
-    }),
-    "verify-email": Object.freeze({
-      title: AUTH_FORM_LABELS.verifyEmailTitle,
-      submit: AUTH_FORM_LABELS.verifyEmailSubmit,
-      fields: Object.freeze([
-        Object.freeze({ key: "token", label: AUTH_FORM_LABELS.token, type: "text", autocomplete: "one-time-code", secret: true }),
-      ]),
-    }),
-    "reset-start": Object.freeze({
-      title: AUTH_FORM_LABELS.resetStartTitle,
-      submit: AUTH_FORM_LABELS.resetStartSubmit,
-      fields: Object.freeze([
-        Object.freeze({ key: "email", label: AUTH_FORM_LABELS.email, type: "email", autocomplete: "email" }),
-      ]),
-    }),
-    "reset-complete": Object.freeze({
-      title: AUTH_FORM_LABELS.resetCompleteTitle,
-      submit: AUTH_FORM_LABELS.resetCompleteSubmit,
-      fields: Object.freeze([
-        Object.freeze({ key: "token", label: AUTH_FORM_LABELS.token, type: "text", autocomplete: "one-time-code", secret: true }),
-        Object.freeze({ key: "password", label: AUTH_FORM_LABELS.newPassword, type: "password", autocomplete: "new-password", secret: true }),
-      ]),
-    }),
-  });
+  function createAuthFormDefinitions(labels) {
+    var password = Object.freeze({
+      login: Object.freeze({
+        title: labels.loginTitle,
+        submit: labels.loginSubmit,
+        fields: Object.freeze([
+          Object.freeze({ key: "email", label: labels.email, type: "email", autocomplete: "email" }),
+          Object.freeze({ key: "password", label: labels.password, type: "password", autocomplete: "current-password", secret: true }),
+        ]),
+      }),
+      signup: Object.freeze({
+        title: labels.signupTitle,
+        submit: labels.signupSubmit,
+        fields: Object.freeze([
+          Object.freeze({ key: "email", label: labels.email, type: "email", autocomplete: "email" }),
+          Object.freeze({ key: "password", label: labels.password, type: "password", autocomplete: "new-password", secret: true }),
+        ]),
+      }),
+      "verify-email": Object.freeze({
+        title: labels.verifyEmailTitle,
+        submit: labels.verifyEmailSubmit,
+        fields: Object.freeze([
+          Object.freeze({ key: "token", label: labels.token, type: "text", autocomplete: "one-time-code", secret: true }),
+        ]),
+      }),
+      "reset-start": Object.freeze({
+        title: labels.resetStartTitle,
+        submit: labels.resetStartSubmit,
+        fields: Object.freeze([
+          Object.freeze({ key: "email", label: labels.email, type: "email", autocomplete: "email" }),
+        ]),
+      }),
+      "reset-complete": Object.freeze({
+        title: labels.resetCompleteTitle,
+        submit: labels.resetCompleteSubmit,
+        fields: Object.freeze([
+          Object.freeze({ key: "token", label: labels.token, type: "text", autocomplete: "one-time-code", secret: true }),
+          Object.freeze({ key: "password", label: labels.newPassword, type: "password", autocomplete: "new-password", secret: true }),
+        ]),
+      }),
+    });
 
-  var ACCOUNT_PANEL_FORM_DEFINITIONS = Object.freeze({
-    "password-change": Object.freeze({
-      title: AUTH_FORM_LABELS.passwordChangeTitle,
-      submit: AUTH_FORM_LABELS.passwordChangeSubmit,
-      fields: Object.freeze([
-        Object.freeze({ key: "currentPassword", label: AUTH_FORM_LABELS.currentPassword, type: "password", autocomplete: "current-password", secret: true }),
-        Object.freeze({ key: "newPassword", label: AUTH_FORM_LABELS.newPassword, type: "password", autocomplete: "new-password", secret: true }),
-      ]),
+    var account = Object.freeze({
+      "password-change": Object.freeze({
+        title: labels.passwordChangeTitle,
+        submit: labels.passwordChangeSubmit,
+        fields: Object.freeze([
+          Object.freeze({ key: "currentPassword", label: labels.currentPassword, type: "password", autocomplete: "current-password", secret: true }),
+          Object.freeze({ key: "newPassword", label: labels.newPassword, type: "password", autocomplete: "new-password", secret: true }),
+        ]),
+      }),
+      "password-link-start": Object.freeze({
+        title: labels.passwordLinkStartTitle,
+        submit: labels.passwordLinkStartSubmit,
+        fields: Object.freeze([
+          Object.freeze({ key: "email", label: labels.email, type: "email", autocomplete: "email" }),
+          Object.freeze({ key: "password", label: labels.password, type: "password", autocomplete: "new-password", secret: true }),
+        ]),
+      }),
+      "password-link-verify": Object.freeze({
+        title: labels.passwordLinkVerifyTitle,
+        submit: labels.passwordLinkVerifySubmit,
+        fields: Object.freeze([
+          Object.freeze({ key: "token", label: labels.token, type: "text", autocomplete: "one-time-code", secret: true }),
+        ]),
+      }),
+      "google-link": Object.freeze({
+        title: labels.googleLinkTitle,
+        fields: Object.freeze([]),
+      }),
+      unlink: Object.freeze({
+        title: labels.unlinkTitle,
+        submit: labels.unlinkSubmit,
+        fields: Object.freeze([
+          Object.freeze({ key: "identity", label: labels.identity, type: "select", autocomplete: "off", options: Object.freeze([]) }),
+        ]),
+      }),
+      disable: Object.freeze({
+        title: labels.disableTitle,
+        submit: labels.disableSubmit,
+        fields: Object.freeze([]),
+      }),
+    });
+
+    return Object.freeze({ password: password, account: account });
+  }
+  var AUTH_FORM_DEFINITIONS = Object.freeze(Object.fromEntries(
+    Object.keys(AUTH_FORM_COPY).map(function createLocaleDefinitions(locale) {
+      return [locale, createAuthFormDefinitions(AUTH_FORM_COPY[locale])];
     }),
-    "password-link-start": Object.freeze({
-      title: AUTH_FORM_LABELS.passwordLinkStartTitle,
-      submit: AUTH_FORM_LABELS.passwordLinkStartSubmit,
-      fields: Object.freeze([
-        Object.freeze({ key: "email", label: AUTH_FORM_LABELS.email, type: "email", autocomplete: "email" }),
-        Object.freeze({ key: "password", label: AUTH_FORM_LABELS.password, type: "password", autocomplete: "new-password", secret: true }),
-      ]),
-    }),
-    "password-link-verify": Object.freeze({
-      title: AUTH_FORM_LABELS.passwordLinkVerifyTitle,
-      submit: AUTH_FORM_LABELS.passwordLinkVerifySubmit,
-      fields: Object.freeze([
-        Object.freeze({ key: "token", label: AUTH_FORM_LABELS.token, type: "text", autocomplete: "one-time-code", secret: true }),
-      ]),
-    }),
-    "google-link": Object.freeze({
-      title: AUTH_FORM_LABELS.googleLinkTitle,
-      fields: Object.freeze([]),
-    }),
-    unlink: Object.freeze({
-      title: AUTH_FORM_LABELS.unlinkTitle,
-      submit: AUTH_FORM_LABELS.unlinkSubmit,
-      fields: Object.freeze([
-        Object.freeze({ key: "identity", label: AUTH_FORM_LABELS.identity, type: "select", autocomplete: "off", options: Object.freeze([]) }),
-      ]),
-    }),
-    disable: Object.freeze({
-      title: AUTH_FORM_LABELS.disableTitle,
-      submit: AUTH_FORM_LABELS.disableSubmit,
-      fields: Object.freeze([]),
-    }),
-  });
+  ));
+  function resolveAuthFormLocale(hostElement) {
+    var owner = hostElement;
+    while (owner && typeof owner.getAttribute === "function") {
+      var locale = owner.getAttribute(AUTH_FORM_LOCALE_ATTRIBUTE);
+      if (typeof locale === "string") {
+        if (!Object.prototype.hasOwnProperty.call(AUTH_FORM_COPY, locale)) {
+          throw createAuthComponentError("mpr-ui.auth_component.locale_invalid", "locale must be en, ru, or bg");
+        }
+        return locale;
+      }
+      owner = owner.parentNode;
+    }
+    return "en";
+  }
+  function resolveAuthFormLabels(hostElement) {
+    return AUTH_FORM_COPY[resolveAuthFormLocale(hostElement)];
+  }
 
   var AUTH_FORM_STYLE_MARKUP =
     ".mpr-auth-form__navigation{justify-self:start;border:0;padding:.25rem 0;background:transparent;color:var(--mpr-color-accent,#5d93ff);font:inherit;font-size:.85rem;text-decoration:underline;cursor:pointer}.mpr-auth-form__navigation:focus-visible{outline:2px solid currentColor;outline-offset:3px}" +
@@ -16352,8 +16470,8 @@
     );
   }
 
-  function accountPanelFormDefinition(action, identityOptions) {
-    var definition = ACCOUNT_PANEL_FORM_DEFINITIONS[action];
+  function accountPanelFormDefinition(action, identityOptions, authContext) {
+    var definition = authContext.definitions.account[action];
     if (action !== "unlink") {
       return definition;
     }
@@ -16363,7 +16481,7 @@
       fields: Object.freeze([
         Object.freeze({
           key: "identity",
-          label: AUTH_FORM_LABELS.identity,
+          label: authContext.labels.identity,
           type: "select",
           autocomplete: "off",
           options: Object.freeze(
@@ -16478,7 +16596,8 @@
         "The component auth configuration must match its owning controller",
       );
     }
-    return { options: componentOptions, controller: authController };
+    var locale = resolveAuthFormLocale(hostElement);
+    return { options: componentOptions, controller: authController, locale: locale, labels: AUTH_FORM_COPY[locale], definitions: AUTH_FORM_DEFINITIONS[locale] };
   }
 
   function createAuthFormField(documentObject, fieldDefinition, disabled) {
@@ -16558,6 +16677,7 @@
       hostElement.getAttribute(ACCOUNT_PANEL_ACTION_ATTRIBUTE),
       hostElement.getAttribute(AUTH_COMPONENT_TARGET_ATTRIBUTE),
       hostElement.getAttribute(AUTH_CONFIG_ATTRIBUTE),
+      hostElement.getAttribute(AUTH_FORM_LOCALE_ATTRIBUTE),
       parameterName,
     ]);
     var previousForm = challengeTokenForms.get(hostElement);
@@ -16652,6 +16772,7 @@
         }
         static get observedAttributes() {
           return [
+            AUTH_FORM_LOCALE_ATTRIBUTE,
             AUTH_CONFIG_ATTRIBUTE,
             PASSWORD_AUTH_MODE_ATTRIBUTE,
             AUTH_COMPONENT_TARGET_ATTRIBUTE,
@@ -16731,9 +16852,10 @@
           }
           var documentObject = this.ownerDocument || global.document;
           ensureAuthFormStyles(documentObject);
-          var definition = PASSWORD_AUTH_FORM_DEFINITIONS[mode];
+          var definition = authContext.definitions.password[mode];
           var hostDisabled = this.hasAttribute("disabled");
           var formElements = createAuthForm(documentObject, definition, hostDisabled);
+          formElements.form.lang = authContext.locale;
           try {
             applyChallengeTokenFragment(this, formElements.inputs);
           } catch (error) {
@@ -16742,9 +16864,9 @@
           }
           var passwordElement = this;
           var navigationDefinition = {
-            login: { mode: "reset-start", label: AUTH_FORM_LABELS.forgotPassword },
-            "reset-start": { mode: "login", label: AUTH_FORM_LABELS.backToSignIn },
-            "reset-complete": { mode: "reset-start", label: AUTH_FORM_LABELS.newResetLink },
+            login: { mode: "reset-start", label: authContext.labels.forgotPassword },
+            "reset-start": { mode: "login", label: authContext.labels.backToSignIn },
+            "reset-complete": { mode: "reset-start", label: authContext.labels.newResetLink },
           }[mode];
           var navigationButton = null;
           if (navigationDefinition) {
@@ -16777,7 +16899,7 @@
             setAuthFormStatus(
               formElements,
               "loading",
-              AUTH_FORM_LABELS.loading,
+              authContext.labels.loading,
               true,
             );
             passwordElement.setAttribute("data-mpr-password-auth-status", "loading");
@@ -16796,8 +16918,8 @@
                 setAuthFormStatus(
                   formElements,
                   "success",
-                  mode === "reset-start" ? AUTH_FORM_LABELS.resetStartSuccess :
-                    mode === "reset-complete" ? AUTH_FORM_LABELS.resetCompleteSuccess : AUTH_FORM_LABELS.success,
+                  mode === "reset-start" ? authContext.labels.resetStartSuccess :
+                    mode === "reset-complete" ? authContext.labels.resetCompleteSuccess : authContext.labels.success,
                   hostDisabled || mode === "reset-start" || mode === "reset-complete",
                 );
                 if (navigationButton) {
@@ -16821,7 +16943,7 @@
                 setAuthFormStatus(
                   formElements,
                   "error",
-                  AUTH_FORM_LABELS.failure,
+                  authContext.labels.failure,
                   hostDisabled,
                 );
                 if (navigationButton) {
@@ -16862,6 +16984,7 @@
         }
         static get observedAttributes() {
           return [
+            AUTH_FORM_LOCALE_ATTRIBUTE,
             AUTH_CONFIG_ATTRIBUTE,
             ACCOUNT_PANEL_ACTION_ATTRIBUTE,
             AUTH_COMPONENT_TARGET_ATTRIBUTE,
@@ -16965,7 +17088,7 @@
           ) {
             var unauthenticatedElement = documentObject.createElement("p");
             unauthenticatedElement.className = "mpr-auth-form__unauthenticated";
-            unauthenticatedElement.textContent = AUTH_FORM_LABELS.unauthenticated;
+            unauthenticatedElement.textContent = authContext.labels.unauthenticated;
             this.setAttribute("data-mpr-account-panel-status", "unauthenticated");
             this.appendChild(unauthenticatedElement);
             return;
@@ -16978,7 +17101,7 @@
               return;
             }
           }
-          var definition = accountPanelFormDefinition(action, identityOptions);
+          var definition = accountPanelFormDefinition(action, identityOptions, authContext);
           var hostDisabled = this.hasAttribute("disabled");
           var formElements = createAuthForm(
             documentObject,
@@ -16986,6 +17109,7 @@
             hostDisabled,
             action !== "google-link",
           );
+          formElements.form.lang = authContext.locale;
           try {
             applyChallengeTokenFragment(this, formElements.inputs);
           } catch (error) {
@@ -17001,7 +17125,7 @@
             setAuthFormStatus(
               formElements,
               "success",
-              AUTH_FORM_LABELS.success,
+              authContext.labels.success,
               hostDisabled,
             );
             accountElement.removeAttribute("data-mpr-account-panel-error");
@@ -17023,7 +17147,7 @@
             setAuthFormStatus(
               formElements,
               "error",
-              AUTH_FORM_LABELS.failure,
+              authContext.labels.failure,
               hostDisabled,
             );
             accountElement.setAttribute("data-mpr-account-panel-error", errorCode);
@@ -17078,7 +17202,7 @@
                   setAuthFormStatus(
                     formElements,
                     "loading",
-                    AUTH_FORM_LABELS.loading,
+                    authContext.labels.loading,
                     true,
                   );
                   accountElement.setAttribute(
@@ -17134,7 +17258,7 @@
               setAuthFormStatus(
                 formElements,
                 "error",
-                AUTH_FORM_LABELS.failure,
+                authContext.labels.failure,
                 hostDisabled,
               );
               accountElement.setAttribute(
@@ -17153,7 +17277,7 @@
             setAuthFormStatus(
               formElements,
               "loading",
-              AUTH_FORM_LABELS.loading,
+              authContext.labels.loading,
               true,
             );
             accountElement.setAttribute("data-mpr-account-panel-status", "loading");
