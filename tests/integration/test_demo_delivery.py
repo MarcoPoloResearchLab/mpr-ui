@@ -6,6 +6,7 @@ import base64
 import json
 import os
 from pathlib import Path
+import re
 import subprocess
 import uuid
 
@@ -74,6 +75,8 @@ def test_delivery_administration_rejects_demo_sessions(tmp_path: Path) -> None:
         }, **service.get("environment", {})}
         if "build" in service:
             service["build"]["context"] = str((REPOSITORY_ROOT / service["build"]["context"]).resolve())
+            for name, context in service["build"].get("additional_contexts", {}).items():
+                service["build"]["additional_contexts"][name] = str((REPOSITORY_ROOT / context).resolve())
         service["volumes"] = [
             str(unsafe_webroot if mount.split(":")[0] == "./" else
                 (REPOSITORY_ROOT / mount.split(":")[0]).resolve()) + ":" + ":".join(mount.split(":")[1:])
@@ -128,4 +131,85 @@ print('Private owner accepted; public and renamed demo cookies rejected')
         assert probe.returncode == 0, probe.stderr
     finally:
         stopped = run("down", "--volumes", "--remove-orphans")
+        assert stopped.returncode == 0, stopped.stderr
+
+
+def test_current_tauth_sender_delivers_through_pingwin(tmp_path: Path) -> None:
+    """Use the real consumer sender, current server, and isolated SMTP boundary."""
+    subprocess.run([
+        "openssl", "req", "-x509", "-newkey", "rsa:2048", "-nodes", "-days", "1",
+        "-subj", "/CN=smtp-fixture", "-keyout", str(tmp_path / "key.pem"),
+        "-out", str(tmp_path / "certificate.pem"),
+    ], capture_output=True, text=True, check=True)
+    source = json.loads(subprocess.check_output(
+        ["node", "-e", "process.stdout.write(JSON.stringify(require('js-yaml').load(require('fs').readFileSync('docker-compose.yml','utf8'))))"],
+        cwd=REPOSITORY_ROOT, text=True,
+    ))
+    signing_key = base64.urlsafe_b64encode(os.urandom(32)).decode()
+    service_configuration = (REPOSITORY_ROOT / "../Pinguin/configs/config.pingwin.yml").read_text(encoding="utf-8")
+    environment = {name: "" for name in re.findall(r"\$\{([A-Z0-9_]+)\}", service_configuration)}
+    environment.update({
+        "DATABASE_PATH": "/app/data/contract.db", "LOG_LEVEL": "error",
+        "MAX_RETRIES": "1", "RETRY_INTERVAL_SEC": "1",
+        "MASTER_ENCRYPTION_KEY": os.urandom(32).hex(),
+        "CONNECTION_TIMEOUT_SEC": "5", "OPERATION_TIMEOUT_SEC": "10",
+        "TAUTH_SIGNING_KEY": signing_key, "TAUTH_COOKIE_NAME": "contract_session",
+        "HTTP_LISTEN_ADDR": ":8081", "HTTP_ALLOWED_ORIGIN1": "http://localhost:4443",
+        "SMTP_SUBMISSION_ENABLED": "false", "SMTP_FORWARDING_ENABLED": "false",
+    })
+    pinguin = source["services"]["pinguin"]
+    pinguin.pop("env_file")
+    pinguin.pop("ports", None)
+    pinguin["environment"] = environment
+    pinguin["depends_on"] = {"smtp-fixture": {"condition": "service_healthy"}}
+    pinguin["build"]["context"] = str((REPOSITORY_ROOT / pinguin["build"]["context"]).resolve())
+    pinguin["volumes"] = [
+        str((REPOSITORY_ROOT / mount.split(":")[0]).resolve()) + ":" + ":".join(mount.split(":")[1:])
+        if mount.startswith(".") else mount for mount in pinguin["volumes"]
+    ]
+    build = source["services"]["tauth"]["build"]
+    build["context"] = str((REPOSITORY_ROOT / build["context"]).resolve())
+    build["additional_contexts"] = {
+        name: str((REPOSITORY_ROOT / context).resolve()) for name, context in build["additional_contexts"].items()
+    }
+    build["target"] = "delivery-check"
+    compose = {
+        "services": {
+            "pinguin": pinguin,
+            "smtp-fixture": {
+                "image": "python:3.13-alpine",
+                "volumes": [str(REPOSITORY_ROOT / "tests/integration/fixtures/smtp_mailbox.py") + ":/app/mailbox.py:ro",
+                            str(tmp_path) + ":/tls:ro"],
+                "command": ["python", "/app/mailbox.py"],
+                "healthcheck": {
+                    "test": ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8025/healthz', timeout=2)"],
+                    "interval": "1s", "timeout": "3s", "retries": 30,
+                },
+            },
+            "delivery-check": {
+                "build": build,
+                "environment": {"CONTRACT_SIGNING_KEY": signing_key},
+                "depends_on": {"pinguin": {"condition": "service_healthy"}, "smtp-fixture": {"condition": "service_healthy"}},
+            },
+        },
+        "volumes": {"pinguin_data": {}},
+    }
+    compose_path = tmp_path / "delivery-contract.json"
+    compose_path.write_text(json.dumps(compose), encoding="utf-8")
+    project = "mpr-ui-delivery-contract-" + uuid.uuid4().hex[:12]
+    command = ["docker", "compose", "-p", project, "-f", str(compose_path)]
+
+    def run(*arguments: str) -> subprocess.CompletedProcess[str]:
+        return subprocess.run(command + list(arguments), text=True, capture_output=True, timeout=240, check=False)
+
+    try:
+        built = run("build", "delivery-check", "pinguin")
+        assert built.returncode == 0, built.stderr
+        started = run("up", "-d", "--wait", "pinguin")
+        assert started.returncode == 0, started.stderr
+        delivered = run("run", "--rm", "--no-deps", "-T", "delivery-check")
+        assert delivered.returncode == 0, delivered.stderr + run("logs", "--tail", "30", "pinguin", "smtp-fixture").stdout
+        assert "TAuth sender delivered the verification message" in delivered.stdout
+    finally:
+        stopped = run("down", "--volumes", "--remove-orphans", "--rmi", "local")
         assert stopped.returncode == 0, stopped.stderr
