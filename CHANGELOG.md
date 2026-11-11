@@ -30,6 +30,7 @@
 - Updated Playwright to `1.61.1` and made the Node tooling module type explicit. Node 26 checks ran without loader warnings.
 
 ### Bug Fixes 🐛
+- Updated lifecycle wrappers to use the public Gateway commands.
 - Rejected invalid `locale` values through the auth owner error events.
 - Updated forms after an ancestor `locale` change and removed their previous secrets.
 - Built the two local TAuth binaries for the target image platform.

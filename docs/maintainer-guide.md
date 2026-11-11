@@ -58,15 +58,18 @@ Its September preparation gates are historical records.
 
 ## Release, publication, and deployment
 
-The repository requires the installed `mprlab-gateway` runtime, version `v8.1.4` or later.
-The `Makefile` invokes `app-release`, `app-publish`, and `app-deploy` with the current application root.
+The repository requires the installed `mprlab-gateway` runtime with `release`, `publish`, and `deploy` commands.
+The `Makefile` passes the current application root through `--app-root`.
 Set `MPRLAB_GATEWAY_EXECUTABLE` to select an installed command outside `PATH`.
 
 Run the complete lifecycle only with explicit release, publication, and deployment authorization:
 
 ```bash
-make release && make publish && make deploy
+make deploy
 ```
+
+Use `make release` to stop after preparation.
+Use `make publish` to stop after publication.
 
 The phases have these separate results:
 
