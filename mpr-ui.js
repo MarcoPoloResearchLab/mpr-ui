@@ -186,6 +186,7 @@
     failure: "Unable to complete the request.",
   });
   var AUTH_FORM_LOCALE_ATTRIBUTE = "locale";
+  var AUTH_FORM_LOCALE_ERROR = "mpr-ui.auth_component.locale_invalid";
   var AUTH_FORM_COPY = Object.freeze({
     en: AUTH_FORM_LABELS,
     ru: Object.freeze({
@@ -3111,9 +3112,10 @@
     containerElement,
     authOptions,
     authController,
+    formLocale,
     displayOptions,
   ) {
-    var formLabels = resolveAuthFormLabels(hostElement);
+    var formLabels = AUTH_FORM_COPY[formLocale];
     clearNodeContents(containerElement);
     var documentObject =
       hostElement.ownerDocument ||
@@ -3256,7 +3258,7 @@
         modeListElement,
         createPasswordModeButton("signup", formLabels.signupSubmit),
       );
-      passwordAuthElement.setAttribute(AUTH_FORM_LOCALE_ATTRIBUTE, resolveAuthFormLocale(hostElement));
+      passwordAuthElement.setAttribute(AUTH_FORM_LOCALE_ATTRIBUTE, formLocale);
       passwordAuthElement.id = passwordAuthId;
       passwordAuthElement.setAttribute(
         AUTH_CONFIG_ATTRIBUTE,
@@ -8681,6 +8683,7 @@
     if (!hostElement || typeof hostElement !== "object") {
       throw new Error("createSiteHeaderController requires a host element");
     }
+    var formLocale = resolveAuthFormLocale(hostElement);
     var userMenuElement =
       slotConfig && slotConfig.userMenuElement
         ? slotConfig.userMenuElement
@@ -8786,6 +8789,7 @@
         elements.authActions,
         options.auth,
         authController,
+        formLocale,
           {
             googleLabel: AUTH_ACTION_LABELS.google,
             googleButtonOptions: {
@@ -9023,6 +9027,7 @@
 
     return {
       update: function update(nextOptions) {
+        var nextFormLocale = resolveAuthFormLocale(hostElement);
         var nextExternalOptions = deepMergeOptions(
           {},
           latestExternalOptions,
@@ -9053,6 +9058,7 @@
         themeManager.configure(nextNormalizedOptions.themeToggle.managerConfig, controlOwner, true);
         latestExternalOptions = nextExternalOptions;
         options = nextNormalizedOptions;
+        formLocale = nextFormLocale;
         applyHeaderOptions(hostElement, elements, options);
         if (!options.settings.enabled && settingsModalController) {
           settingsModalController.close();
@@ -16057,6 +16063,7 @@
           this.__renderHeader();
         }
         destroy() {
+          disconnectAuthFormLocaleObserver(this);
           if (this.__headerController && typeof this.__headerController.destroy === "function") {
             this.__headerController.destroy();
           }
@@ -16079,35 +16086,14 @@
           if (!this.__mprConnected) {
             return;
           }
+          observeAuthFormLocale(this);
           var options;
           try {
             options = buildHeaderOptionsFromAttributes(this);
           } catch (error) {
-            if (
-              this.__headerController &&
-              typeof this.__headerController.destroy === "function"
-            ) {
-              this.__headerController.destroy();
-            }
-            this.__headerController = null;
-            this.setAttribute(
-              "data-mpr-auth-error",
-              error && error.code
-                ? error.code
-                : "mpr-ui.auth.config_invalid",
-            );
-            this.setAttribute("data-mpr-auth-status", "error");
-            this.innerHTML = "";
-            dispatchEvent(this, "mpr-ui:header:error", {
-              code:
-                error && error.code
-                  ? error.code
-                  : "mpr-ui.auth.config_invalid",
-              message: error && error.message ? error.message : String(error),
-            });
+            this.__reportHeaderConfigError(error);
             return;
           }
-          this.removeAttribute("data-mpr-auth-error");
           var userMenuElement = this.__headerUserMenuElement;
           try {
             if (this.__headerController) {
@@ -16118,16 +16104,35 @@
               });
             }
           } catch (error) {
+            if (error.code === AUTH_FORM_LOCALE_ERROR) {
+              this.__reportHeaderConfigError(error);
+              return;
+            }
             if (error.code !== THEME_CONTROL_ERROR) { throw error; }
             reportThemeControlError(this, error);
             return;
           }
+          this.removeAttribute("data-mpr-auth-error");
           this.__mprThemeControlRejected = false;
           this.removeAttribute("data-mpr-theme-control-error");
           if (this.__headerSlots) {
             var elements = resolveHeaderElements(this);
             applyHeaderSlotContent(this.__headerSlots, elements);
           }
+        }
+        __reportHeaderConfigError(error) {
+          if (this.__headerController) {
+            this.__headerController.destroy();
+          }
+          this.__headerController = null;
+          var errorCode = error && error.code ? error.code : "mpr-ui.auth.config_invalid";
+          this.setAttribute("data-mpr-auth-error", errorCode);
+          this.setAttribute("data-mpr-auth-status", "error");
+          this.innerHTML = "";
+          dispatchEvent(this, "mpr-ui:header:error", {
+            code: errorCode,
+            message: error && error.message ? error.message : String(error),
+          });
         }
       };
     });
@@ -16340,22 +16345,50 @@
       return [locale, createAuthFormDefinitions(AUTH_FORM_COPY[locale])];
     }),
   ));
-  function resolveAuthFormLocale(hostElement) {
+  function readAuthFormLocale(hostElement) {
     var owner = hostElement;
     while (owner && typeof owner.getAttribute === "function") {
       var locale = owner.getAttribute(AUTH_FORM_LOCALE_ATTRIBUTE);
       if (typeof locale === "string") {
-        if (!Object.prototype.hasOwnProperty.call(AUTH_FORM_COPY, locale)) {
-          throw createAuthComponentError("mpr-ui.auth_component.locale_invalid", "locale must be en, ru, or bg");
-        }
         return locale;
       }
       owner = owner.parentNode;
     }
     return "en";
   }
-  function resolveAuthFormLabels(hostElement) {
-    return AUTH_FORM_COPY[resolveAuthFormLocale(hostElement)];
+  function resolveAuthFormLocale(hostElement) {
+    var locale = readAuthFormLocale(hostElement);
+    if (!Object.prototype.hasOwnProperty.call(AUTH_FORM_COPY, locale)) {
+      throw createAuthComponentError(AUTH_FORM_LOCALE_ERROR, "locale must be en, ru, or bg");
+    }
+    return locale;
+  }
+
+  var authFormLocaleObservers = new WeakMap();
+
+  function disconnectAuthFormLocaleObserver(hostElement) {
+    var observer = authFormLocaleObservers.get(hostElement);
+    if (observer) {
+      observer.disconnect();
+      authFormLocaleObservers.delete(hostElement);
+    }
+  }
+
+  function observeAuthFormLocale(hostElement) {
+    disconnectAuthFormLocaleObserver(hostElement);
+    var locale = readAuthFormLocale(hostElement);
+    var observer = new global.MutationObserver(function handleInheritedAuthFormLocaleChange() {
+      var nextLocale = readAuthFormLocale(hostElement);
+      if (nextLocale !== locale) {
+        hostElement.update(AUTH_FORM_LOCALE_ATTRIBUTE, locale, nextLocale);
+      }
+    });
+    var ancestor = hostElement.parentNode;
+    while (ancestor && typeof ancestor.getAttribute === "function") {
+      observer.observe(ancestor, { attributes: true, attributeFilter: [AUTH_FORM_LOCALE_ATTRIBUTE] });
+      ancestor = ancestor.parentNode;
+    }
+    authFormLocaleObservers.set(hostElement, observer);
   }
 
   var AUTH_FORM_STYLE_MARKUP =
@@ -16668,7 +16701,7 @@
 
   var challengeTokenForms = new WeakMap();
 
-  function applyChallengeTokenFragment(hostElement, inputs) {
+  function applyChallengeTokenFragment(hostElement, inputs, formLocale) {
     var parameterName = hostElement.getAttribute(
       CHALLENGE_TOKEN_FRAGMENT_PARAMETER_ATTRIBUTE,
     );
@@ -16677,7 +16710,7 @@
       hostElement.getAttribute(ACCOUNT_PANEL_ACTION_ATTRIBUTE),
       hostElement.getAttribute(AUTH_COMPONENT_TARGET_ATTRIBUTE),
       hostElement.getAttribute(AUTH_CONFIG_ATTRIBUTE),
-      hostElement.getAttribute(AUTH_FORM_LOCALE_ATTRIBUTE),
+      formLocale,
       parameterName,
     ]);
     var previousForm = challengeTokenForms.get(hostElement);
@@ -16787,6 +16820,7 @@
           this.__renderPasswordAuth();
         }
         destroy() {
+          disconnectAuthFormLocaleObserver(this);
           this.__passwordAttempt += 1;
           challengeTokenForms.delete(this);
           if (this.__passwordNavigationCleanup) {
@@ -16819,6 +16853,7 @@
           if (!this.__mprConnected) {
             return;
           }
+          observeAuthFormLocale(this);
           this.__passwordAttempt += 1;
           if (this.__passwordNavigationCleanup) {
             this.__passwordNavigationCleanup();
@@ -16857,7 +16892,7 @@
           var formElements = createAuthForm(documentObject, definition, hostDisabled);
           formElements.form.lang = authContext.locale;
           try {
-            applyChallengeTokenFragment(this, formElements.inputs);
+            applyChallengeTokenFragment(this, formElements.inputs, authContext.locale);
           } catch (error) {
             renderAuthComponentError(this, "data-mpr-password-auth-error", error);
             return;
@@ -17000,6 +17035,7 @@
           this.__renderAccountPanel();
         }
         destroy() {
+          disconnectAuthFormLocaleObserver(this);
           this.__accountAttempt += 1;
           challengeTokenForms.delete(this);
           this.__detachAccountAuthEvents();
@@ -17048,6 +17084,7 @@
           if (!this.__mprConnected) {
             return;
           }
+          observeAuthFormLocale(this);
           this.__accountAttempt += 1;
           if (this.__accountForm && this.__accountSubmitHandler) {
             this.__accountForm.removeEventListener("submit", this.__accountSubmitHandler);
@@ -17111,7 +17148,7 @@
           );
           formElements.form.lang = authContext.locale;
           try {
-            applyChallengeTokenFragment(this, formElements.inputs);
+            applyChallengeTokenFragment(this, formElements.inputs, authContext.locale);
           } catch (error) {
             renderAuthComponentError(this, "data-mpr-account-panel-error", error);
             return;
@@ -17320,6 +17357,7 @@
           this.__renderLoginButton();
         }
         destroy() {
+          disconnectAuthFormLocaleObserver(this);
           if (this.__providerActionsCleanup) {
             this.__providerActionsCleanup();
             this.__providerActionsCleanup = null;
@@ -17354,6 +17392,7 @@
           if (!this.__mprConnected) {
             return;
           }
+          observeAuthFormLocale(this);
           prepareLoginButtonHost(this);
           var documentObject =
             this.ownerDocument ||
@@ -17367,8 +17406,10 @@
           }
           this.__providerActionsHost = container;
           var authOptions;
+          var formLocale;
           var sharedController = null;
           try {
+            formLocale = resolveAuthFormLocale(this);
             if (this.hasAttribute(AUTH_COMPONENT_TARGET_ATTRIBUTE)) {
               if (!this.getAttribute(AUTH_COMPONENT_TARGET_ATTRIBUTE).trim()) {
                 throw createAuthComponentError(
@@ -17456,6 +17497,7 @@
             container,
             authOptions,
             this.__authController,
+            formLocale,
             {
               googleLabel: buttonLabel,
               googleButtonOptions: buttonOptions,

@@ -89,3 +89,127 @@ test('changing a form locale clears secrets and rejects unsupported locales', as
   await form.evaluate(element => element.setAttribute('locale', 'invalid'));
   await expect(form).toHaveAttribute('data-mpr-password-auth-error', 'mpr-ui.auth_component.locale_invalid');
 });
+
+for (const tagName of ['mpr-login-button', 'mpr-header']) {
+  for (const phase of ['mount', 'update']) {
+    test(`${tagName} reports an invalid locale during ${phase} and recovers`, async ({ page }) => {
+      const pageErrors = [];
+      page.on('pageerror', error => pageErrors.push(error.message));
+      await visitConfigLoaderFixture(page);
+      await page.evaluate(({ tagName, phase }) => {
+        const owner = document.createElement(tagName);
+        owner.id = 'invalid-locale-owner';
+        owner.setAttribute('auth-config', document.querySelector('#fixture-config-login-button').getAttribute('auth-config'));
+        const eventName = tagName === 'mpr-header' ? 'mpr-ui:header:error' : 'mpr-login:error';
+        let errorCount = 0;
+        owner.addEventListener(eventName, event => {
+          owner.setAttribute('data-fixture-error-code', event.detail.code);
+          owner.setAttribute('data-fixture-error-count', String(++errorCount));
+        });
+        if (phase === 'mount') owner.setAttribute('locale', 'invalid');
+        document.body.append(owner);
+      }, { tagName, phase });
+      const owner = page.locator('#invalid-locale-owner');
+      if (phase === 'update') {
+        await expect(owner.locator('[data-mpr-auth-action="email"]')).toBeVisible();
+        await owner.evaluate(element => element.setAttribute('locale', 'invalid'));
+      }
+      await expect(owner).toHaveAttribute('data-mpr-auth-error', 'mpr-ui.auth_component.locale_invalid');
+      await expect(owner).toHaveAttribute('data-fixture-error-code', 'mpr-ui.auth_component.locale_invalid');
+      await expect(owner).toHaveAttribute('data-fixture-error-count', '1');
+      await expect(owner.locator('[data-mpr-auth-action]')).toHaveCount(0);
+      await owner.evaluate(element => element.setAttribute('locale', 'ru'));
+      await expect(owner).not.toHaveAttribute('data-mpr-auth-error');
+      await owner.locator('[data-mpr-auth-action="email"]').click();
+      await expect(owner.getByRole('tab', { name: 'Войти', exact: true })).toBeVisible();
+      await expect(owner.locator('form')).toHaveAttribute('lang', 'ru');
+      expect(pageErrors).toEqual([]);
+    });
+  }
+}
+
+for (const tagName of ['mpr-password-auth', 'mpr-account-panel', 'mpr-login-button', 'mpr-header']) {
+  test(`${tagName} follows inherited locale changes and respects local overrides`, async ({ page }) => {
+    await visitConfigLoaderFixture(page);
+    await page.evaluate(tagName => {
+      const authOwner = document.querySelector('#fixture-config-login-button');
+      window.MPRUI.testing.authenticate(authOwner, { user_id: 'locale-reader', user_email: 'reader@example.test', display: 'Reader' });
+      const wrapper = document.createElement('section');
+      wrapper.id = 'locale-wrapper';
+      wrapper.setAttribute('locale', 'ru');
+      const inner = document.createElement('div');
+      inner.id = 'locale-inner';
+      const control = document.createElement(tagName);
+      control.id = 'inherited-locale';
+      control.setAttribute('auth-config', authOwner.getAttribute('auth-config'));
+      if (tagName === 'mpr-password-auth' || tagName === 'mpr-account-panel') {
+        control.setAttribute('auth-target', '#fixture-config-login-button');
+      }
+      if (tagName === 'mpr-password-auth') control.setAttribute('mode', 'login');
+      if (tagName === 'mpr-account-panel') control.setAttribute('action', 'password-change');
+      inner.append(control);
+      wrapper.append(inner);
+      document.body.append(wrapper);
+    }, tagName);
+    const control = page.locator('#inherited-locale');
+    const isOwner = tagName === 'mpr-login-button' || tagName === 'mpr-header';
+    if (isOwner) await control.locator('[data-mpr-auth-action="email"]').click();
+    await expect(control.locator('form')).toHaveAttribute('lang', 'ru');
+    await control.locator('input[type="password"]').first().fill('inherited-locale-secret');
+    await page.locator('#locale-wrapper').evaluate(element => element.setAttribute('locale', 'bg'));
+    if (isOwner) await control.locator('[data-mpr-auth-action="email"]').click();
+    await expect(control.locator('form')).toHaveAttribute('lang', 'bg');
+    await expect(control.getByLabel(tagName === 'mpr-account-panel' ? 'Текуща парола' : 'Парола', { exact: true })).toHaveValue('');
+    await control.evaluate(element => element.setAttribute('locale', 'en'));
+    if (isOwner) await control.locator('[data-mpr-auth-action="email"]').click();
+    await control.locator('input[type="password"]').first().fill('local-override-secret');
+    await page.locator('#locale-wrapper').evaluate(element => element.setAttribute('locale', 'invalid'));
+    await expect(control.locator('form')).toHaveAttribute('lang', 'en');
+    await expect(control.locator('input[type="password"]').first()).toHaveValue('local-override-secret');
+    await control.evaluate(element => element.removeAttribute('locale'));
+    await expect(control).toHaveAttribute(
+      tagName === 'mpr-password-auth' ? 'data-mpr-password-auth-error' : tagName === 'mpr-account-panel' ? 'data-mpr-account-panel-error' : 'data-mpr-auth-error',
+      'mpr-ui.auth_component.locale_invalid',
+    );
+    await page.locator('#locale-inner').evaluate(element => element.setAttribute('locale', 'bg'));
+    if (isOwner) await control.locator('[data-mpr-auth-action="email"]').click();
+    await expect(control.locator('form')).toHaveAttribute('lang', 'bg');
+    await page.locator('#locale-wrapper').evaluate(element => element.removeAttribute('locale'));
+    await page.locator('#locale-inner').evaluate(element => element.removeAttribute('locale'));
+    if (isOwner) await control.locator('[data-mpr-auth-action="email"]').click();
+    await expect(control.locator('form')).toHaveAttribute('lang', 'en');
+    await control.evaluate(element => {
+      element.remove();
+      document.querySelector('#locale-inner').setAttribute('locale', 'ru');
+      document.querySelector('#locale-inner').append(element);
+    });
+    if (isOwner) await control.locator('[data-mpr-auth-action="email"]').click();
+    await expect(control.locator('form')).toHaveAttribute('lang', 'ru');
+    await page.locator('#locale-inner').evaluate(element => element.setAttribute('locale', 'bg'));
+    if (isOwner) await control.locator('[data-mpr-auth-action="email"]').click();
+    await expect(control.locator('form')).toHaveAttribute('lang', 'bg');
+  });
+}
+
+test('inherited locale changes clear a challenge token without restoring its consumed fragment', async ({ page }) => {
+  await visitConfigLoaderFixture(page);
+  await page.evaluate(() => {
+    const wrapper = document.createElement('section');
+    wrapper.id = 'token-locale-wrapper';
+    wrapper.setAttribute('locale', 'ru');
+    const form = document.createElement('mpr-password-auth');
+    form.id = 'inherited-token';
+    form.setAttribute('mode', 'verify-email');
+    form.setAttribute('auth-target', '#fixture-config-login-button');
+    form.setAttribute('auth-config', document.querySelector('#fixture-config-login-button').getAttribute('auth-config'));
+    form.setAttribute('token-fragment-parameter', 'token');
+    history.replaceState(null, '', '#token=inherited-challenge-secret');
+    wrapper.append(form);
+    document.body.append(wrapper);
+  });
+  const form = page.locator('#inherited-token');
+  await expect(form.locator('input[name="token"]')).toHaveValue('inherited-challenge-secret');
+  await page.locator('#token-locale-wrapper').evaluate(element => element.setAttribute('locale', 'bg'));
+  await expect(form.locator('form')).toHaveAttribute('lang', 'bg');
+  await expect(form.locator('input[name="token"]')).toHaveValue('');
+});

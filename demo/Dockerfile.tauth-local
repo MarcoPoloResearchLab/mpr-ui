@@ -1,6 +1,8 @@
 # syntax=docker/dockerfile:1.7
 
 FROM --platform=$BUILDPLATFORM golang:1.26.5 AS source
+ARG TARGETOS
+ARG TARGETARCH
 WORKDIR /workspace/tauth
 COPY --from=tauth_source go.mod go.sum ./
 COPY --from=tauth_source cmd/ ./cmd/
@@ -12,12 +14,12 @@ RUN go work init . /workspace/pingwin
 
 FROM source AS server-build
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=0 go build -o /out/tauth ./cmd/server
+    CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /out/tauth ./cmd/server
 
 FROM source AS delivery-build
 COPY tests/integration/fixtures/tauth_delivery.go ./cmd/mpr-ui-delivery/main.go
 RUN --mount=type=cache,target=/go/pkg/mod --mount=type=cache,target=/root/.cache/go-build \
-    CGO_ENABLED=0 go build -o /out/tauth-delivery ./cmd/mpr-ui-delivery
+    CGO_ENABLED=0 GOOS=$TARGETOS GOARCH=$TARGETARCH go build -o /out/tauth-delivery ./cmd/mpr-ui-delivery
 
 FROM alpine:3.20 AS runtime
 RUN apk add --no-cache ca-certificates
