@@ -1,0 +1,667 @@
+{
+  "defaults": {
+    "sectionKey": "releases",
+    "playlistId": "launch-queue"
+  },
+  "hero": {
+    "eyebrow": "JSON-backed entity workspace",
+    "title": "YouTube playlists -> videos",
+    "description": "A runnable example that loads collections from disk, then wires the workspace layout, sidebar nav, entity rail, entity workspace, entity cards, detail drawer, and selection helper together in host code.",
+    "details": "No API calls are hidden inside mpr-ui. This page fetches a local JSON file, picks a playlist, filters loaded videos, tracks selection, and swaps drawer content from plain browser code."
+  },
+  "sections": [
+    {
+      "key": "releases",
+      "label": "Releases",
+      "description": "Near-term playlists with active review and launch work."
+    },
+    {
+      "key": "research",
+      "label": "Research",
+      "description": "Field notes, experiments, and reference cuts."
+    },
+    {
+      "key": "archive",
+      "label": "Archive",
+      "description": "Evergreen back catalog and short-form clips."
+    }
+  ],
+  "playlists": [
+    {
+      "id": "launch-queue",
+      "sectionKey": "releases",
+      "title": "Launch Queue",
+      "meta": "6 videos · updated today",
+      "badge": "Priority",
+      "summary": "Release candidates with caption timing and thumbnail QA already complete.",
+      "description": "This playlist shows the default operational shape: concise rail tile, dense workspace rows, and a side drawer for the richer context that does not belong in the list itself.",
+      "owner": "Studio desk",
+      "visibility": "Private",
+      "updatedLabel": "Updated today",
+      "runtimeLabel": "18 min total",
+      "videoCount": 6,
+      "accent": "#fb7185",
+      "accentAlt": "#f97316",
+      "swatchLabel": "Ship",
+      "tags": ["release", "review", "captions"],
+      "stats": [
+        { "label": "Videos", "value": "6" },
+        { "label": "Ready", "value": "4" },
+        { "label": "Pending", "value": "2" }
+      ]
+    },
+    {
+      "id": "live-cuts",
+      "sectionKey": "releases",
+      "title": "Live Cuts",
+      "meta": "5 videos · sponsor-ready",
+      "badge": "Revenue",
+      "summary": "Edited episodes with brand-safe callouts and sponsor reads.",
+      "description": "A second release-oriented playlist keeps the rail horizontally scrollable and shows how the same shell can summarize a very different production flow.",
+      "owner": "Partnerships",
+      "visibility": "Shared",
+      "updatedLabel": "Updated 2 hours ago",
+      "runtimeLabel": "23 min total",
+      "videoCount": 5,
+      "accent": "#38bdf8",
+      "accentAlt": "#22c55e",
+      "swatchLabel": "Live",
+      "tags": ["sponsor", "episode", "brand-safe"],
+      "stats": [
+        { "label": "Videos", "value": "5" },
+        { "label": "Signed off", "value": "3" },
+        { "label": "Hold", "value": "2" }
+      ]
+    },
+    {
+      "id": "community-highlights",
+      "sectionKey": "releases",
+      "title": "Community Highlights",
+      "meta": "4 videos · comments curated",
+      "badge": "Audience",
+      "summary": "Fast-turn community clips that pull comments and reactions into the edit.",
+      "description": "The rail tile stays intentionally compact while the playlist drawer carries the narrative and the metric blocks.",
+      "owner": "Community desk",
+      "visibility": "Shared",
+      "updatedLabel": "Updated yesterday",
+      "runtimeLabel": "14 min total",
+      "videoCount": 4,
+      "accent": "#f59e0b",
+      "accentAlt": "#ef4444",
+      "swatchLabel": "Buzz",
+      "tags": ["community", "comments", "short turnaround"],
+      "stats": [
+        { "label": "Videos", "value": "4" },
+        { "label": "Pinned comments", "value": "12" },
+        { "label": "Moderated", "value": "4" }
+      ]
+    },
+    {
+      "id": "sponsor-reads",
+      "sectionKey": "releases",
+      "title": "Sponsor Reads",
+      "meta": "3 videos · copy approved",
+      "badge": "Client",
+      "summary": "Short sponsor segments with locked copy and legal review metadata.",
+      "description": "A smaller tile still uses the same generic slots: title, meta, badge, and an action region that can carry app-owned meaning.",
+      "owner": "Client services",
+      "visibility": "Private",
+      "updatedLabel": "Updated 3 days ago",
+      "runtimeLabel": "8 min total",
+      "videoCount": 3,
+      "accent": "#a78bfa",
+      "accentAlt": "#38bdf8",
+      "swatchLabel": "Ad",
+      "tags": ["client", "legal", "copy"],
+      "stats": [
+        { "label": "Videos", "value": "3" },
+        { "label": "Approved", "value": "3" },
+        { "label": "Variants", "value": "6" }
+      ]
+    },
+    {
+      "id": "field-notes",
+      "sectionKey": "research",
+      "title": "Field Notes",
+      "meta": "4 videos · reference-only",
+      "badge": "Research",
+      "summary": "Reference cuts, interview fragments, and raw observations for future stories.",
+      "description": "This playlist is intentionally calmer than the release flows. It demonstrates that the same workspace chrome works for exploratory collections as well.",
+      "owner": "Editorial research",
+      "visibility": "Shared",
+      "updatedLabel": "Updated today",
+      "runtimeLabel": "16 min total",
+      "videoCount": 4,
+      "accent": "#14b8a6",
+      "accentAlt": "#0f766e",
+      "swatchLabel": "Field",
+      "tags": ["research", "reference", "interviews"],
+      "stats": [
+        { "label": "Videos", "value": "4" },
+        { "label": "Themes", "value": "3" },
+        { "label": "Quotes", "value": "11" }
+      ]
+    },
+    {
+      "id": "archive-shorts",
+      "sectionKey": "archive",
+      "title": "Archive Shorts",
+      "meta": "3 videos · evergreen",
+      "badge": "Archive",
+      "summary": "Back-catalog short-form pieces that still perform well after resurfacing.",
+      "description": "The archive lane proves the shell is still useful when the host data is quieter and the card actions are minimal.",
+      "owner": "Archive desk",
+      "visibility": "Public",
+      "updatedLabel": "Updated last week",
+      "runtimeLabel": "7 min total",
+      "videoCount": 3,
+      "accent": "#22c55e",
+      "accentAlt": "#06b6d4",
+      "swatchLabel": "Loop",
+      "tags": ["archive", "evergreen", "shorts"],
+      "stats": [
+        { "label": "Videos", "value": "3" },
+        { "label": "Evergreen", "value": "3" },
+        { "label": "Resurfaced", "value": "2" }
+      ]
+    }
+  ],
+  "videosByPlaylistId": {
+    "launch-queue": [
+      {
+        "pageToken": "",
+        "nextPageToken": "launch-queue-page-2",
+        "items": [
+          {
+            "id": "launch-briefing",
+            "title": "Studio briefing: what ships this week",
+            "meta": "Published Mar 8, 2026 · 7m 21s",
+            "summary": "A fast slate review with caption timing and thumbnail callouts.",
+            "metric": "28.4K views",
+            "footer": "Queued for Wednesday release",
+            "status": "Ready",
+            "watchScore": "92 / 100",
+            "owner": "Andrea",
+            "accent": "#fb7185",
+            "accentAlt": "#f97316",
+            "thumbnailLabel": "Briefing",
+            "tags": ["briefing", "release", "qa"],
+            "details": [
+              "Thumbnail swap approved in round two.",
+              "Chapters already synced with captions."
+            ]
+          },
+          {
+            "id": "launch-walkthrough",
+            "title": "Caption walkthrough for the release slate",
+            "meta": "Published Mar 7, 2026 · 4m 08s",
+            "summary": "Editor-facing review of timing, lower thirds, and CTA pacing.",
+            "metric": "11.2K views",
+            "footer": "Awaiting one final proof pass",
+            "status": "Pending",
+            "watchScore": "84 / 100",
+            "owner": "Maya",
+            "accent": "#fb7185",
+            "accentAlt": "#0f172a",
+            "thumbnailLabel": "Captions",
+            "tags": ["captions", "review", "cta"],
+            "details": [
+              "Lower-third lockup still needs the final sponsor slug.",
+              "Description copy is already staged for publish."
+            ]
+          },
+          {
+            "id": "launch-thumbnail-review",
+            "title": "Thumbnail review with title treatment options",
+            "meta": "Published Mar 6, 2026 · 6m 42s",
+            "summary": "Side-by-side variants showing how the same story can pivot toward urgency or clarity.",
+            "metric": "17.8K views",
+            "footer": "Two variants kept for A/B testing",
+            "status": "Ready",
+            "watchScore": "88 / 100",
+            "owner": "Nico",
+            "accent": "#f97316",
+            "accentAlt": "#facc15",
+            "thumbnailLabel": "Thumbs",
+            "tags": ["thumbnail", "variants", "a-b"],
+            "details": [
+              "Both approved variants live in the publishing queue.",
+              "No content edits required before scheduling."
+            ]
+          }
+        ]
+      },
+      {
+        "pageToken": "launch-queue-page-2",
+        "nextPageToken": "",
+        "items": [
+          {
+            "id": "launch-trailer-cut",
+            "title": "Trailer cut with revised opening hook",
+            "meta": "Published Mar 5, 2026 · 2m 54s",
+            "summary": "Short opener tuned for faster retention in the first twelve seconds.",
+            "metric": "9.7K views",
+            "footer": "Hook revision approved by editorial",
+            "status": "Ready",
+            "watchScore": "86 / 100",
+            "owner": "Rosa",
+            "accent": "#fb7185",
+            "accentAlt": "#38bdf8",
+            "thumbnailLabel": "Hook",
+            "tags": ["trailer", "retention", "opening"],
+            "details": [
+              "Retention curve recovered after the first cut adjustment.",
+              "Description and chapter markers still match the edit."
+            ]
+          },
+          {
+            "id": "launch-social-cutdown",
+            "title": "Social cutdown for the same release",
+            "meta": "Published Mar 4, 2026 · 1m 28s",
+            "summary": "Companion cut built for faster distribution on short-form surfaces.",
+            "metric": "31.1K plays",
+            "footer": "Linked to the long-form premiere",
+            "status": "Pending",
+            "watchScore": "80 / 100",
+            "owner": "Elena",
+            "accent": "#f97316",
+            "accentAlt": "#22c55e",
+            "thumbnailLabel": "Short",
+            "tags": ["social", "cutdown", "premiere"],
+            "details": [
+              "Waiting on final caption export for vertical framing.",
+              "Campaign UTM tags already generated."
+            ]
+          },
+          {
+            "id": "launch-postmortem",
+            "title": "Postmortem note pack for the previous launch",
+            "meta": "Published Mar 3, 2026 · 3m 19s",
+            "summary": "Short retrospective with wins, misses, and the next experiment to run.",
+            "metric": "8.4K views",
+            "footer": "Shared with the planning channel",
+            "status": "Ready",
+            "watchScore": "78 / 100",
+            "owner": "Andrea",
+            "accent": "#fb7185",
+            "accentAlt": "#14b8a6",
+            "thumbnailLabel": "Notes",
+            "tags": ["postmortem", "planning", "analysis"],
+            "details": [
+              "Included here to show a more analytical row in the same workspace.",
+              "The drawer carries the longer context instead of the list."
+            ]
+          }
+        ]
+      }
+    ],
+    "live-cuts": [
+      {
+        "pageToken": "",
+        "nextPageToken": "live-cuts-page-2",
+        "items": [
+          {
+            "id": "live-opener",
+            "title": "Live episode opener with sponsor lockup",
+            "meta": "Published Mar 8, 2026 · 5m 11s",
+            "summary": "Quick brand-safe lead-in with revised lower-third pacing.",
+            "metric": "24.6K views",
+            "footer": "Sponsor copy locked",
+            "status": "Ready",
+            "watchScore": "90 / 100",
+            "owner": "Jin",
+            "accent": "#38bdf8",
+            "accentAlt": "#22c55e",
+            "thumbnailLabel": "Opener",
+            "tags": ["live", "sponsor", "brand-safe"],
+            "details": ["Legal notes already attached.", "Two shorter cutdowns will follow."]
+          },
+          {
+            "id": "live-midroll",
+            "title": "Midroll transition with product demo",
+            "meta": "Published Mar 7, 2026 · 3m 33s",
+            "summary": "Shorter sponsor passage that keeps the demo visible without losing tempo.",
+            "metric": "14.8K views",
+            "footer": "Needs final caption export",
+            "status": "Pending",
+            "watchScore": "82 / 100",
+            "owner": "Jin",
+            "accent": "#22c55e",
+            "accentAlt": "#0f172a",
+            "thumbnailLabel": "Midroll",
+            "tags": ["midroll", "demo", "captions"],
+            "details": ["Brand-safe framing confirmed.", "Caption styling still in review."]
+          }
+        ]
+      },
+      {
+        "pageToken": "live-cuts-page-2",
+        "nextPageToken": "",
+        "items": [
+          {
+            "id": "live-cutdown",
+            "title": "Thirty-second cutdown for partner channels",
+            "meta": "Published Mar 6, 2026 · 0m 30s",
+            "summary": "A rapid excerpt designed for partner embeds and previews.",
+            "metric": "42.2K plays",
+            "footer": "Partner delivery package exported",
+            "status": "Ready",
+            "watchScore": "87 / 100",
+            "owner": "Maya",
+            "accent": "#38bdf8",
+            "accentAlt": "#facc15",
+            "thumbnailLabel": "Partner",
+            "tags": ["partner", "cutdown", "delivery"],
+            "details": ["Timed with the partner embargo.", "Short-form CTA removed for cleaner reuse."]
+          },
+          {
+            "id": "live-credits",
+            "title": "Credits version with revised title card",
+            "meta": "Published Mar 5, 2026 · 2m 05s",
+            "summary": "Title-card correction and credits update for the same episode package.",
+            "metric": "6.1K views",
+            "footer": "Final metadata sweep completed",
+            "status": "Ready",
+            "watchScore": "75 / 100",
+            "owner": "Elena",
+            "accent": "#22c55e",
+            "accentAlt": "#38bdf8",
+            "thumbnailLabel": "Credits",
+            "tags": ["credits", "title-card", "metadata"],
+            "details": ["Useful as a low-drama row in the same shell.", "No content notes remain."]
+          },
+          {
+            "id": "live-recap",
+            "title": "Recap sequence with community responses",
+            "meta": "Published Mar 4, 2026 · 4m 10s",
+            "summary": "Reaction montage that bridges the live episode into the next release.",
+            "metric": "19.3K views",
+            "footer": "Hold until moderation clears one quote",
+            "status": "Pending",
+            "watchScore": "79 / 100",
+            "owner": "Nico",
+            "accent": "#38bdf8",
+            "accentAlt": "#fb7185",
+            "thumbnailLabel": "Recap",
+            "tags": ["recap", "community", "moderation"],
+            "details": ["One quote is still under moderation.", "All footage rights are already cleared."]
+          }
+        ]
+      }
+    ],
+    "community-highlights": [
+      {
+        "pageToken": "",
+        "nextPageToken": "",
+        "items": [
+          {
+            "id": "community-roundup",
+            "title": "Comment roundup with pinned reactions",
+            "meta": "Published Mar 7, 2026 · 3m 12s",
+            "summary": "A quick pass through the strongest audience responses and follow-ups.",
+            "metric": "22.1K views",
+            "footer": "Pinned in the community tab",
+            "status": "Ready",
+            "watchScore": "81 / 100",
+            "owner": "Yara",
+            "accent": "#f59e0b",
+            "accentAlt": "#ef4444",
+            "thumbnailLabel": "Roundup",
+            "tags": ["comments", "audience", "roundup"],
+            "details": ["Comment permissions already confirmed.", "No outstanding moderation tasks."]
+          },
+          {
+            "id": "community-answers",
+            "title": "Quick answers to recurring viewer questions",
+            "meta": "Published Mar 6, 2026 · 2m 46s",
+            "summary": "Short Q and A sequence built from recurring comments and forum notes.",
+            "metric": "16.7K views",
+            "footer": "Evergreen enough to resurface later",
+            "status": "Ready",
+            "watchScore": "76 / 100",
+            "owner": "Yara",
+            "accent": "#f59e0b",
+            "accentAlt": "#0f172a",
+            "thumbnailLabel": "Answers",
+            "tags": ["q-and-a", "comments", "evergreen"],
+            "details": ["This row shows a quieter card without losing structure.", "Best reused in the archive lane later."]
+          },
+          {
+            "id": "community-teaser",
+            "title": "Teaser stitched from top community moments",
+            "meta": "Published Mar 5, 2026 · 0m 48s",
+            "summary": "Condensed highlight reel for quick social distribution.",
+            "metric": "38.5K plays",
+            "footer": "Ready for short-form reposting",
+            "status": "Ready",
+            "watchScore": "83 / 100",
+            "owner": "Maya",
+            "accent": "#ef4444",
+            "accentAlt": "#f59e0b",
+            "thumbnailLabel": "Teaser",
+            "tags": ["teaser", "social", "highlights"],
+            "details": ["No playlist pagination here because one page is enough.", "The shell still behaves the same."]
+          },
+          {
+            "id": "community-followup",
+            "title": "Follow-up clip with the most-requested callback",
+            "meta": "Published Mar 4, 2026 · 1m 57s",
+            "summary": "Adds context after the audience pushed for a deeper explanation.",
+            "metric": "12.9K views",
+            "footer": "Can move to archive after next week",
+            "status": "Pending",
+            "watchScore": "71 / 100",
+            "owner": "Yara",
+            "accent": "#f59e0b",
+            "accentAlt": "#22c55e",
+            "thumbnailLabel": "Follow",
+            "tags": ["follow-up", "callback", "archive"],
+            "details": ["Awaiting one more editorial pass.", "Good example of mixed status rows."]
+          }
+        ]
+      }
+    ],
+    "sponsor-reads": [
+      {
+        "pageToken": "",
+        "nextPageToken": "",
+        "items": [
+          {
+            "id": "sponsor-soft-open",
+            "title": "Soft-open sponsor read with revised pacing",
+            "meta": "Published Mar 8, 2026 · 1m 41s",
+            "summary": "A calmer read that keeps the product visible without dominating the segment.",
+            "metric": "13.6K views",
+            "footer": "Client approved the current copy",
+            "status": "Ready",
+            "watchScore": "85 / 100",
+            "owner": "Client services",
+            "accent": "#a78bfa",
+            "accentAlt": "#38bdf8",
+            "thumbnailLabel": "Read",
+            "tags": ["sponsor", "copy", "approved"],
+            "details": ["Useful proof that generic cards can still carry commercial content.", "All legal notes are clear."]
+          },
+          {
+            "id": "sponsor-demo",
+            "title": "Hands-on product demo insert",
+            "meta": "Published Mar 7, 2026 · 2m 02s",
+            "summary": "Feature callout segment with a simpler CTA and cleaner end frame.",
+            "metric": "15.4K views",
+            "footer": "Packaging still needs the final thumbnail",
+            "status": "Pending",
+            "watchScore": "77 / 100",
+            "owner": "Client services",
+            "accent": "#38bdf8",
+            "accentAlt": "#a78bfa",
+            "thumbnailLabel": "Demo",
+            "tags": ["product", "cta", "thumbnail"],
+            "details": ["The only remaining issue is packaging.", "The card shell does not need to know that meaning."]
+          },
+          {
+            "id": "sponsor-cutdown",
+            "title": "Short sponsor cutdown for partner embed",
+            "meta": "Published Mar 6, 2026 · 0m 27s",
+            "summary": "Tiny excerpt prepared for partner pages and campaign newsletters.",
+            "metric": "26.4K plays",
+            "footer": "Export bundle delivered",
+            "status": "Ready",
+            "watchScore": "80 / 100",
+            "owner": "Jin",
+            "accent": "#a78bfa",
+            "accentAlt": "#22c55e",
+            "thumbnailLabel": "Embed",
+            "tags": ["partner", "cutdown", "delivery"],
+            "details": ["A compact row that still benefits from the drawer.", "Partner metadata lives outside the shell."]
+          }
+        ]
+      }
+    ],
+    "field-notes": [
+      {
+        "pageToken": "",
+        "nextPageToken": "field-notes-page-2",
+        "items": [
+          {
+            "id": "field-notes-01",
+            "title": "Interview fragment: why the second draft landed",
+            "meta": "Captured Mar 8, 2026 · 5m 14s",
+            "summary": "Reference-only clip used to shape the narrative spine for a future long-form story.",
+            "metric": "Research only",
+            "footer": "Pinned to the story wall",
+            "status": "Reference",
+            "watchScore": "Theme: clarity",
+            "owner": "Editorial research",
+            "accent": "#14b8a6",
+            "accentAlt": "#0f766e",
+            "thumbnailLabel": "Draft",
+            "tags": ["interview", "story", "clarity"],
+            "details": [
+              "This clip demonstrates that the workspace can be calmer and less operational.",
+              "The shell remains the same even when the semantics shift."
+            ]
+          },
+          {
+            "id": "field-notes-02",
+            "title": "Reference cut: process shots from the studio floor",
+            "meta": "Captured Mar 7, 2026 · 3m 09s",
+            "summary": "Visual texture and room tone for the middle section of the next documentary edit.",
+            "metric": "Reference only",
+            "footer": "Marked for b-roll pull",
+            "status": "Reference",
+            "watchScore": "Theme: process",
+            "owner": "Editorial research",
+            "accent": "#14b8a6",
+            "accentAlt": "#38bdf8",
+            "thumbnailLabel": "Studio",
+            "tags": ["process", "b-roll", "texture"],
+            "details": [
+              "The drawer opens on the same shared component used for playlist detail.",
+              "Only the host-owned copy and metadata changed."
+            ]
+          }
+        ]
+      },
+      {
+        "pageToken": "field-notes-page-2",
+        "nextPageToken": "",
+        "items": [
+          {
+            "id": "field-notes-03",
+            "title": "Voice memo: the line that reframed the ending",
+            "meta": "Captured Mar 6, 2026 · 1m 52s",
+            "summary": "Short memo preserved because it unlocks the final beat of the story.",
+            "metric": "Reference only",
+            "footer": "Flagged for script work",
+            "status": "Reference",
+            "watchScore": "Theme: ending",
+            "owner": "Andrea",
+            "accent": "#0f766e",
+            "accentAlt": "#14b8a6",
+            "thumbnailLabel": "Memo",
+            "tags": ["memo", "script", "ending"],
+            "details": [
+              "Load more stays host-owned even though the button is in the shared shell.",
+              "This second page comes from the same JSON file."
+            ]
+          },
+          {
+            "id": "field-notes-04",
+            "title": "Observation reel from the late-night edit",
+            "meta": "Captured Mar 5, 2026 · 4m 41s",
+            "summary": "Longer visual note pack with ambient sound and rough commentary.",
+            "metric": "Reference only",
+            "footer": "Shared with the documentary editor",
+            "status": "Reference",
+            "watchScore": "Theme: atmosphere",
+            "owner": "Nico",
+            "accent": "#14b8a6",
+            "accentAlt": "#facc15",
+            "thumbnailLabel": "Night",
+            "tags": ["ambient", "atmosphere", "edit"],
+            "details": [
+              "The card content stays domain-specific while the shell remains generic.",
+              "That is the core point of the extracted kit."
+            ]
+          }
+        ]
+      }
+    ],
+    "archive-shorts": [
+      {
+        "pageToken": "",
+        "nextPageToken": "",
+        "items": [
+          {
+            "id": "archive-short-01",
+            "title": "Evergreen short: the five-second hook",
+            "meta": "Published Feb 20, 2026 · 0m 22s",
+            "summary": "One of the strongest evergreen short-form clips from the back catalog.",
+            "metric": "54.7K plays",
+            "footer": "Resurfaced for next week",
+            "status": "Evergreen",
+            "watchScore": "83 / 100",
+            "owner": "Archive desk",
+            "accent": "#22c55e",
+            "accentAlt": "#06b6d4",
+            "thumbnailLabel": "Hook",
+            "tags": ["archive", "short", "evergreen"],
+            "details": ["Still performs well without changes.", "Useful archive proof point."]
+          },
+          {
+            "id": "archive-short-02",
+            "title": "Evergreen short: process in one sentence",
+            "meta": "Published Feb 12, 2026 · 0m 31s",
+            "summary": "Minimal explanation clip kept alive by simple framing and quick pacing.",
+            "metric": "39.2K plays",
+            "footer": "Queued for repost",
+            "status": "Evergreen",
+            "watchScore": "79 / 100",
+            "owner": "Archive desk",
+            "accent": "#06b6d4",
+            "accentAlt": "#22c55e",
+            "thumbnailLabel": "Line",
+            "tags": ["archive", "process", "repost"],
+            "details": ["Small rows still gain from the same workspace structure.", "No extra chrome is required."]
+          },
+          {
+            "id": "archive-short-03",
+            "title": "Evergreen short: callback clip from season one",
+            "meta": "Published Jan 29, 2026 · 0m 27s",
+            "summary": "A callback moment that audiences still recognize and share.",
+            "metric": "46.1K plays",
+            "footer": "Available for campaign reuse",
+            "status": "Evergreen",
+            "watchScore": "81 / 100",
+            "owner": "Archive desk",
+            "accent": "#22c55e",
+            "accentAlt": "#facc15",
+            "thumbnailLabel": "Back",
+            "tags": ["callback", "shareable", "campaign"],
+            "details": ["Even archive flows can use the drawer for context.", "The shell still does not know business meaning."]
+          }
+        ]
+      }
+    ]
+  }
+}
