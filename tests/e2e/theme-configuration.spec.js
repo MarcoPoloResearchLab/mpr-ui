@@ -16,7 +16,7 @@ test.beforeEach(async ({ page }) => {
   await page.route(FIXTURE_ORIGIN + '/**', async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname === '/mpr-ui.js') {
-      await route.fulfill({ contentType: 'application/javascript', body: BUNDLE });
+      await route.fulfill({ contentType: 'application/javascript; charset=utf-8', body: BUNDLE });
       return;
     }
     const components = url.searchParams.has('component')
@@ -29,6 +29,12 @@ test.beforeEach(async ({ page }) => {
         </head><body><section id="candidate-target"></section>${components}</body></html>`,
     });
   });
+});
+
+test('fixture bundle preserves UTF-8 footer text', async ({ page }) => {
+  await page.goto(`${FIXTURE_ORIGIN}/?component=footer`);
+  await expect(page.locator('mpr-footer [data-mpr-footer="privacy-link"]'))
+    .toHaveText('Privacy • Terms');
 });
 
 for (const component of Object.keys(COMPONENTS)) {
