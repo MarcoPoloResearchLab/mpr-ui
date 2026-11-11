@@ -21,7 +21,7 @@ const MODES = ['forest-dark', 'default-dark', 'sunrise-light', 'default-light'].
 async function openFixture(page, markup, config = null) {
   await page.route(`${ORIGIN}/**`, async (route) => {
     if (new URL(route.request().url()).pathname === '/mpr-ui.js') {
-      await route.fulfill({ contentType: 'application/javascript', body: BUNDLE });
+      await route.fulfill({ contentType: 'application/javascript; charset=utf-8', body: BUNDLE });
       return;
     }
     if (new URL(route.request().url()).pathname === '/mpr-ui.css') {

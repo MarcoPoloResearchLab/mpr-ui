@@ -65,17 +65,17 @@ test('production lifecycle uses the installed Gateway without a sibling checkout
     invoke(['release', 'publish', 'deploy']);
     const canonicalApplicationRoot = realpathSync(applicationRoot);
     assert.deepEqual(readCalls(), ['release', 'publish', 'deploy'].map((phase) => [
-      `app-${phase}`, '--app-root', canonicalApplicationRoot,
+      phase, '--app-root', canonicalApplicationRoot,
     ]));
 
     writeFileSync(callsPath, '');
     assert.throws(() => invoke(['release', 'publish', 'deploy'], {
-      ...environment, GATEWAY_FAIL: 'app-publish',
+      ...environment, GATEWAY_FAIL: 'publish',
     }), (error) => {
       assert.match(error.stderr, /controlled Gateway activation failure/);
       return true;
     });
-    assert.deepEqual(readCalls().map((call) => call[0]), ['app-release', 'app-publish']);
+    assert.deepEqual(readCalls().map((call) => call[0]), ['release', 'publish']);
 
     writeFileSync(callsPath, '');
     assert.throws(() => invoke(['publish'], {

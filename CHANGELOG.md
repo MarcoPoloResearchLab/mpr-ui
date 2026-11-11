@@ -30,6 +30,10 @@
 - Updated Playwright to `1.61.1` and made the Node tooling module type explicit. Node 26 checks ran without loader warnings.
 
 ### Bug Fixes 🐛
+- Updated lifecycle wrappers to use the public Gateway commands.
+- Rejected invalid `locale` values through the auth owner error events.
+- Updated forms after an ancestor `locale` change and removed their previous secrets.
+- Built the two local TAuth binaries for the target image platform.
 - Supplied the sign-in spinner animation through shared auth styles so standalone controls no longer required header styles.
 - Verified unchanged header, footer, and content positions during Google credential exchange with and without the external stylesheet.
 - Opened the header email form below the provider controls without a change to the header size or page position.

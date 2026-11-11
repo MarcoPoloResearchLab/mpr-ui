@@ -273,6 +273,10 @@ function createWindowEventTargetStub() {
 }
 
 function resetEnvironment() {
+  global.MutationObserver = class MutationObserverStub {
+    observe() {}
+    disconnect() {}
+  };
   global.ResizeObserver = class ResizeObserverStub {
     observe() {}
     disconnect() {}

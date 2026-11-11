@@ -43,8 +43,12 @@ services:
 
   tauth:
     build:
-      context: ../tauth
-      dockerfile: Dockerfile
+      context: .
+      dockerfile: demo/Dockerfile.tauth-local
+      target: tauth
+      additional_contexts:
+        tauth_source: ../tauth
+        pingwin_source: ../Pinguin
     env_file:
       - ./demo/.env.tauth
     environment:
@@ -72,13 +76,13 @@ services:
       context: ../Pinguin
       dockerfile: Dockerfile
     env_file:
-      - ../Pinguin/configs/.env.pinguin
+      - ../Pinguin/configs/.env.pingwin
     environment:
       TAUTH_SIGNING_KEY: "${PINGUIN_BOOTSTRAP_SIGNING_KEY:?Set a separate private delivery signing key}"
       TAUTH_COOKIE_NAME: "mpr_ui_delivery_session"
     volumes:
       - pinguin_data:/app/data
-      - ../Pinguin/configs/config.pinguin.yml:/config/config.yml:ro
+      - ../Pinguin/configs/config.pingwin.yml:/config/config.yml:ro
     healthcheck:
       test: ["CMD", "wget", "--quiet", "--output-document=-", "http://localhost:8081/healthz"]
       interval: 2s
@@ -94,7 +98,7 @@ services:
       pinguin:
         condition: service_healthy
     env_file:
-      - ../Pinguin/configs/.env.pinguin
+      - ../Pinguin/configs/.env.pingwin
     environment:
       PINGUIN_DEMO_CREDENTIAL_ID: "${PINGUIN_DEMO_CREDENTIAL_ID}"
       PINGUIN_DEMO_CREDENTIAL_DIGEST: "${PINGUIN_DEMO_CREDENTIAL_DIGEST}"

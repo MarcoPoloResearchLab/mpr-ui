@@ -57,10 +57,10 @@ test('Pages container exports a deterministic public artifact with all auth cont
     assert.deepEqual(artifactInventory, contentInventory(resolve(temporaryRoot, 'second')));
     const artifactPaths = Object.keys(artifactInventory);
     for (const artifactPath of artifactPaths) {
-      assert.match(artifactPath, /^(?:index\.html|mpr-ui(?:-config)?\.js|mpr-ui\.css|product-catalog\.mjs|product-directory\.css|data\/product-catalog\.json|README\.md|ARCHITECTURE\.md|CHANGELOG\.md|(?:demo|docs)\/[^/]+\.(?:html|js|css|svg|json|yaml|md))$/);
+      assert.match(artifactPath, /^(?:index\.html|mpr-ui(?:-config)?\.js|mpr-ui\.css|product-catalog\.mjs|product-directory\.css|data\/product-catalog\.json|README\.md|ARCHITECTURE\.md|CHANGELOG\.md|LICENSE|COMMERCIAL_LICENSE\.md|CONTRIBUTOR_LICENSE\.md|(?:demo|docs)\/[^/]+\.(?:html|js|css|svg|json|yaml|md))$/);
       assert.doesNotMatch(artifactPath, /(?:tauth-config|bootstrap|\.env|test|release_helper)/);
     }
-    for (const requiredPath of ['index.html', 'mpr-ui.js', 'demo/config-ui.yaml', 'docs/custom-elements.md', 'product-catalog.mjs', 'product-directory.css', 'data/product-catalog.json', 'docs/product-catalog.md']) {
+    for (const requiredPath of ['index.html', 'mpr-ui.js', 'demo/config-ui.yaml', 'docs/custom-elements.md', 'product-catalog.mjs', 'product-directory.css', 'data/product-catalog.json', 'docs/product-catalog.md', 'docs/maintainer-guide.md', 'docs/auth-form-locales.md', 'LICENSE', 'COMMERCIAL_LICENSE.md', 'CONTRIBUTOR_LICENSE.md']) {
       assert.ok(artifactInventory[requiredPath], requiredPath);
     }
     for (const asset of ['product-catalog.mjs', 'product-directory.css', 'data/product-catalog.json']) {

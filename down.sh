@@ -7,5 +7,5 @@ PINGUIN_BOOTSTRAP_PASSWORD_HASH=down \
 PINGUIN_BOOTSTRAP_SIGNING_KEY=down \
 docker compose \
   --env-file demo/.env.tauth \
-  --env-file ../Pinguin/configs/.env.pinguin \
+  --env-file ../Pinguin/configs/.env.pingwin \
   down

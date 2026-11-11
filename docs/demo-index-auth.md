@@ -37,9 +37,15 @@ install -m 0600 /dev/null demo/.env.tauth
 
 Configure the Google client ID, TAuth signing key, tenant, and origins. Keep `demo/config-ui.yaml` and `demo/tauth-config.yaml` tenant and origin values aligned.
 
-The stack also reads `../Pinguin/configs/.env.pinguin`. Configure its managed local SMTP values and master encryption key before startup. The script never writes the generated Pinguin API key to disk.
+The stack also reads `../Pinguin/configs/.env.pingwin`. Configure its managed local SMTP values and master encryption key before startup. The script never writes the generated Pingwin API key to disk.
 
-Start the stack:
+Compose mounts `../Pinguin/configs/config.pingwin.yml` at `/config/config.yml`.
+The helper scripts select the current Pingwin file names.
+Controlled shell tests verify file selection and Compose arguments.
+The local TAuth image uses a Go workspace with both sibling sources.
+The production dependency files stay in their source repositories.
+
+After the documented configuration error is resolved, start the stack:
 
 ```bash
 make up
@@ -51,13 +57,19 @@ Open `http://localhost:4443/`. Stop it with:
 make down
 ```
 
-`make up` builds the current sibling TAuth and Pinguin sources. It creates or refreshes the managed Pinguin demo tenant, starts one shared stack, and sends password-account challenge email through the configured real SMTP relay. The header, standalone, password/account, and entity-workspace pages are navigation targets inside that stack.
+`make up` builds the current sibling TAuth and Pingwin sources.
+It creates or refreshes one managed Pingwin tenant from the private SMTP environment.
+The gHTTP frontend proxies authentication routes and serves current repository files with `Cache-Control: no-store`.
+
+Full demo startup currently stops because TAuth rejects the root `tenants` list in `demo/tauth-config.yaml`.
+This existing configuration gap also prevents signup acceptance through this stack.
+The header, standalone, password/account, and entity-workspace pages are navigation targets inside the intended stack.
 The disposable local account uses `demo@mprlab.local` and `mpr-ui-demo`.
 
 ### Private delivery owner
 
 The delivery owner uses the `mpr-ui-delivery-admin` TAuth tenant and the `mpr_ui_delivery_session` cookie.
-The browser demo account has no delivery administration access. Pinguin has no published management port.
+The browser demo account has no delivery administration access. Pingwin has no published management port.
 The frontend uses an explicit list of public files. Requests for private environment files, backend configuration, and Git metadata return `404`.
 The static preview uses the same public-file list from `docker-compose.yml`.
 
@@ -70,12 +82,23 @@ Before `make up`, configure these values in `demo/.env.tauth`:
 5. Set `PINGUIN_BOOTSTRAP_SIGNING_KEY` to that output. This key must differ from `TAUTH_JWT_SIGNING_KEY`.
 
 The bootstrap uses `delivery-owner@mprlab.local` and the private password. TAuth disables account management for this tenant.
-On the next startup, Pinguin rejects all demo-session cookies, including cookies from the previous configuration.
+On the next startup, Pingwin rejects all demo-session cookies, including cookies from the previous configuration.
 The bootstrap creates a new private tenant. The previous tenant and notification records remain in the database.
 
-Run `make test-delivery` to verify bootstrap, repeated startup, and session separation with isolated containers.
-The test sends no email. It removes only its temporary containers and volumes.
-It also verifies public pages, the authentication proxy, and rejection of private file requests.
+Run `PYTEST_ADDOPTS='-k current_tauth_sender' make test-delivery` to verify the TAuth sender through current Pingwin and an isolated SMTP mailbox.
+This test uses the same source workspace as the local TAuth image.
+It checks the recipient, subject, and verification link.
+It uses a synthetic owner session to create its tenant through the Pingwin API.
+It removes only its temporary containers, images, and volumes.
+This test covers the sender protocol, not signup or full demo startup.
+
+The separate administration test in `make test-delivery` requires the demo tenant configuration repair described above.
+
+On 2026-11-07, the focused sender test passed with the workspace client.
+The released client first failed with `Unimplemented: unknown service pinguin.NotificationService` against the current server.
+The local TAuth image build and `make ci` also passed.
+The mailbox used implicit TLS and AUTH PLAIN.
+This test does not qualify certificate verification or external SMTP providers.
 
 ## Canonical browser contract
 
@@ -177,7 +200,7 @@ It also shows all six `<mpr-account-panel>` actions:
 - `unlink`
 - `disable`
 
-Every form uses `auth-target="#demo-header"`. The page contains no duplicate auth controller and no app-owned credential request. TAuth keeps challenge values out of response bodies. Pinguin sends links whose fragments are read and cleared by the matching form. Public events and diagnostics remain token-free.
+Every form uses `auth-target="#demo-header"`. The page contains no duplicate auth controller and no app-owned credential request. TAuth keeps challenge values out of response bodies. Pingwin sends links whose fragments are read and cleared by the matching form. Public events and diagnostics remain token-free.
 
 The header and standalone auth owner also show sign-in and account-creation tabs in the owned email panel. The tabs use the configured password endpoints on the same controller.
 
@@ -193,7 +216,22 @@ proof to the account link endpoint. The panel does not use One Tap.
 4. Start `make up` and confirm `/config-ui.yaml` loads before `mpr-ui.js` on an auth-bearing page.
 5. Confirm the page loads no direct TAuth browser client.
 6. Complete Google or password sign-in and confirm `mpr-ui:auth:authenticated` updates the user menu and diagnostics.
-7. Complete password verification and reset from the links delivered through Pinguin.
+7. Complete password verification and reset from the links delivered through Pingwin.
 8. Sign in, exercise account actions, and confirm they use the same profile state.
 9. Log out and confirm `/auth/logout` clears the shell state.
 10. Verify real Apple authentication from both demo origins after the hosted TAuth tenant exists.
+
+## Demo acceptance commands
+
+After successful startup, run `make test-demo` for live demo acceptance.
+Set `MPR_UI_DEMO_BASE_URL` to select another demo URL.
+The default URL is `http://localhost:4443/`.
+The browser tests require Google, Apple, and email controls on all four authentication pages.
+They also verify local assets, navigation, and password authentication.
+The default `make ci` suite excludes the optional live demo tests.
+
+Run `make test-pages` to validate the static Pages artifact.
+This check requires Docker and an installed Playwright browser.
+It uses isolated provider responses to verify artifact content and controls.
+It does not establish live authentication.
+See the [maintainer guide](maintainer-guide.md) for all repository checks and the production lifecycle.

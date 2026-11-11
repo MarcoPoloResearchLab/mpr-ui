@@ -1,9 +1,12 @@
+// @ts-check
 'use strict';
 
 const { test } = require('node:test');
 const assert = require('node:assert/strict');
-const { existsSync, readFileSync } = require('node:fs');
-const { join } = require('node:path');
+const { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } = require('node:fs');
+const { tmpdir } = require('node:os');
+const { join, resolve } = require('node:path');
+const { spawnSync } = require('node:child_process');
 
 const fixtureRoot = join(__dirname, 'fixtures', 'tauth-config');
 const envExamplePath = join(fixtureRoot, '.env.tauth.example');
@@ -121,7 +124,14 @@ test('F007: demo TAuth config enables password and account policies explicitly',
 });
 
 test('F010: local runtime builds current TAuth and Pinguin sources with managed delivery', () => {
-  assert.match(repositoryComposeContents, /tauth:[\s\S]*?build:[\s\S]*?context:\s+\.\.\/tauth/);
+  const { load } = require('js-yaml');
+  const tauthBuild = load(repositoryComposeContents).services.tauth.build;
+  assert.equal(tauthBuild.context, '.');
+  assert.equal(tauthBuild.dockerfile, 'demo/Dockerfile.tauth-local');
+  assert.equal(tauthBuild.target, 'tauth');
+  assert.deepEqual(tauthBuild.additional_contexts, {
+    tauth_source: '../tauth', pingwin_source: '../Pinguin',
+  });
   assert.match(repositoryComposeContents, /pinguin:[\s\S]*?build:[\s\S]*?context:\s+\.\.\/Pinguin/);
   assert.match(repositoryComposeContents, /pinguin-bootstrap:/);
   assert.match(repositoryComposeContents, /condition:\s+service_completed_successfully/);
@@ -158,4 +168,78 @@ test('review: delivery administration uses a private signer and internal managem
   assert.equal(owner.jwt_signing_key, '${PINGUIN_BOOTSTRAP_SIGNING_KEY}');
   assert.equal(owner.password_auth.users[0].password_hash, '${PINGUIN_BOOTSTRAP_PASSWORD_HASH}');
   assert.doesNotMatch(pinguinBootstrapContents, /demo@mprlab\.local|mpr-ui-demo/);
+});
+
+/** @param {import('node:test').TestContext} testContext */
+function createLocalConfigurationFixture(testContext) {
+  const directory = mkdtempSync(join(tmpdir(), 'mpr-ui-pingwin-paths-'));
+  testContext.after(() => rmSync(directory, { recursive: true, force: true }));
+  const applicationRoot = join(directory, 'mpr-ui');
+  const serviceConfigRoot = join(directory, 'Pinguin', 'configs');
+  mkdirSync(join(applicationRoot, 'demo'), { recursive: true });
+  mkdirSync(serviceConfigRoot, { recursive: true });
+  writeFileSync(join(applicationRoot, 'demo', '.env.tauth'), 'FIXTURE_ONLY=1\n');
+  writeFileSync(join(applicationRoot, 'demo', 'config-ui.yaml'), 'origins:\n  - "http://localhost:4443"\n');
+  writeFileSync(join(serviceConfigRoot, '.env.pingwin'), 'FIXTURE_ONLY=1\n');
+  writeFileSync(join(serviceConfigRoot, 'config.pingwin.yml'), 'fixture: true\n');
+  for (const scriptName of ['up.sh', 'down.sh']) {
+    writeFileSync(join(applicationRoot, scriptName), readFileSync(join(repositoryRoot, scriptName)));
+  }
+  const dockerArgumentsPath = join(directory, 'docker-arguments.txt');
+  const processBoundaryPath = join(directory, 'process-boundary.sh');
+  writeFileSync(processBoundaryPath, `
+docker() {
+  local previous_argument=""
+  local argument
+  for argument in "$@"; do
+    if [ "$previous_argument" = "--env-file" ] && [ ! -f "$argument" ]; then
+      printf 'missing fixture environment: %s\\n' "$argument" >&2
+      return 67
+    fi
+    previous_argument="$argument"
+  done
+  printf '%s\\n' "$@" > "$MPR_UI_TEST_DOCKER_ARGUMENTS"
+}
+chmod() { :; }
+`);
+  return { applicationRoot, dockerArgumentsPath, processBoundaryPath };
+}
+
+for (const scriptName of ['up.sh', 'down.sh']) {
+  test(`local ${scriptName} selects current Pingwin configuration files`, (testContext) => {
+    const fixture = createLocalConfigurationFixture(testContext);
+    const result = spawnSync('bash', [join(fixture.applicationRoot, scriptName)], {
+      cwd: fixture.applicationRoot,
+      env: {
+        ...process.env,
+        BASH_ENV: fixture.processBoundaryPath,
+        MPR_UI_TEST_DOCKER_ARGUMENTS: fixture.dockerArgumentsPath,
+      },
+      encoding: 'utf8',
+    });
+    assert.equal(result.status, 0, `${scriptName} must accept the current service configuration files`);
+    const expectedOperation = scriptName === 'up.sh'
+      ? ['up', '--build', '--remove-orphans', '--force-recreate']
+      : ['down'];
+    assert.deepEqual(readFileSync(fixture.dockerArgumentsPath, 'utf8').trim().split('\n'), [
+      'compose', '--env-file', 'demo/.env.tauth',
+      '--env-file', '../Pinguin/configs/.env.pingwin', ...expectedOperation,
+    ]);
+  });
+}
+
+test('local Compose mounts current Pingwin configuration files', (testContext) => {
+  const fixture = createLocalConfigurationFixture(testContext);
+  const { load } = require('js-yaml');
+  const services = load(repositoryComposeContents).services;
+  for (const serviceName of ['pinguin', 'pinguin-bootstrap']) {
+    for (const environmentFile of services[serviceName].env_file) {
+      assert.equal(existsSync(resolve(fixture.applicationRoot, environmentFile)), true,
+        `${serviceName} environment file must exist in the current service fixture`);
+    }
+  }
+  const configurationMount = services.pinguin.volumes.find((mount) => mount.includes(':/config/config.yml:'));
+  assert.ok(configurationMount, 'the service must mount its current configuration');
+  assert.equal(existsSync(resolve(fixture.applicationRoot, configurationMount.split(':')[0])), true,
+    'the service configuration must exist in the current service fixture');
 });

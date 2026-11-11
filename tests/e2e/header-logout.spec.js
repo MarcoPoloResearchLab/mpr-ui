@@ -15,7 +15,7 @@ for (const width of [390,1280]) {
     let logoutRequests=0;
     let authenticated=false;
     await page.route(`${ORIGIN}/`,route=>route.fulfill({status:200,contentType:'text/html',body:HTML}));
-    for(const [url,name,contentType] of [[BUNDLE_URL,'mpr-ui.js','application/javascript'],[STYLE_URL,'mpr-ui.css','text/css']]) {
+    for(const [url,name,contentType] of [[BUNDLE_URL,'mpr-ui.js','application/javascript; charset=utf-8'],[STYLE_URL,'mpr-ui.css','text/css']]) {
       await page.route(url,route=>route.fulfill({status:200,contentType,body:readFileSync(join(__dirname,'../..',name))}));
     }
     await page.route('https://accounts.google.com/gsi/client',route=>route.fulfill({status:200,contentType:'application/javascript',body:GOOGLE}));

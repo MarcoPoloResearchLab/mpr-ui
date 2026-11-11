@@ -15,7 +15,7 @@ require_private_environment() {
 }
 
 require_private_environment demo/.env.tauth
-require_private_environment ../Pinguin/configs/.env.pinguin
+require_private_environment ../Pinguin/configs/.env.pingwin
 
 for required_command in docker python3; do
   if ! command -v "${required_command}" >/dev/null 2>&1; then
@@ -43,5 +43,5 @@ echo ""
 
 docker compose \
   --env-file demo/.env.tauth \
-  --env-file ../Pinguin/configs/.env.pinguin \
+  --env-file ../Pinguin/configs/.env.pingwin \
   up --build --remove-orphans --force-recreate

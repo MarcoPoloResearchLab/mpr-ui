@@ -14,6 +14,7 @@ MPR_UI_DEMO_BASE_URL ?= http://localhost:4443
 .PHONY: test-delivery
 .PHONY: test-demo
 .PHONY: test-pages
+.PHONY: test-tauth-platform
 .PHONY: release publish deploy
 
 test:
@@ -36,6 +37,9 @@ test-demo:
 
 test-pages:
 	timeout -k $(E2E_TIMEOUT)s -s SIGKILL $(E2E_TIMEOUT)s node --test tests/integration/pages-artifact.test.js
+
+test-tauth-platform:
+	timeout -k $(FULL_TIMEOUT)s -s SIGKILL $(FULL_TIMEOUT)s node --test tests/integration/tauth-platform.test.js
 
 .PHONY: test-consumer-themes
 test-consumer-themes:
@@ -67,4 +71,4 @@ release publish deploy:
 			"$(MPRLAB_GATEWAY_EXECUTABLE)" >&2; \
 		exit 2; \
 	fi; \
-	exec "$(MPRLAB_GATEWAY_EXECUTABLE)" "app-$@" --app-root "$${application_root}"
+	exec "$(MPRLAB_GATEWAY_EXECUTABLE)" "$@" --app-root "$${application_root}"

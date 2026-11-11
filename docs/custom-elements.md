@@ -1,6 +1,6 @@
 # mpr-ui custom elements
 
-This document defines the supported `mpr-ui` custom elements and their integration patterns. The runnable coverage map is in [`../README.md`](../README.md#component-catalog), and the general visual components are collected in [`../demo/components.html`](../demo/components.html).
+This document defines the supported `mpr-ui` custom elements and their integration patterns. The runnable coverage map is in [demo guide](demo-index-auth.md#demo-suite), and the general visual components are collected in [`../demo/components.html`](../demo/components.html).
 
 ## Component index
 
@@ -142,7 +142,7 @@ A successful reset request shows a neutral email confirmation. It does not authe
 A failed reset completion shows “Send a new reset link”. This action opens `reset-start` and clears the challenge token.
 A successful reset completion shows a confirmation and disables the completed form.
 
-TAuth sends signup and reset links through Pinguin. The target page selects the matching form and sets `token-fragment-parameter="token"`. The token remains absent from attributes, events, diagnostics, profiles, server requests, and response bodies.
+TAuth sends signup and reset links through Pingwin. The target page selects the matching form and sets `token-fragment-parameter="token"`. The token remains absent from attributes, events, diagnostics, profiles, server requests, and response bodies.
 
 Successful `login`, `verify-email`, and `reset-complete` actions update the owning controller and emit the ordinary `mpr-ui:auth:*` lifecycle. `signup` and `reset-start` emit `mpr-ui:account:challenge-issued` from the owning auth host with only the action, accepted status, and expiry time.
 
@@ -189,7 +189,7 @@ Google sign-in and account linking start only from their rendered buttons.
 ></mpr-account-panel>
 ```
 
-For `password-link-verify`, `token-fragment-parameter="token"` reads and removes the Pinguin-delivered fragment token under the same rules as `<mpr-password-auth>`.
+For `password-link-verify`, `token-fragment-parameter="token"` reads and removes the Pingwin-delivered fragment token under the same rules as `<mpr-password-auth>`.
 
 The component keeps the token when attributes change on the same form, including when `disabled` is removed.
 Submission, a different form context, or component removal clears the token. Password values are not kept through these changes.
@@ -337,6 +337,7 @@ The footer wraps utility links and controls when the available width is insuffic
 Utility links remain visible without horizontal scrolling at narrow and intermediate widths.
 
 ### Common attributes used by LoopAware
+- `prefix-text`: Text in the footer brand region.
 - `menu`: Sectioned dropdown JSON. It uses the `<mpr-dropdown>` schema and requires `placement: "top"` in a footer.
 - `horizontal-links`: JSON string `{ alignment: "left"|"center"|"right", links: [{ label, href/url, target?, rel? }] }` that renders an inline utility link list inside the same row as the other footer controls.
 - `privacy-link-href`: URL for the privacy page.

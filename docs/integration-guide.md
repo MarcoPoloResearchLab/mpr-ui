@@ -133,6 +133,7 @@ Render the shell declaratively:
 
 ```html
 <mpr-header
+  id="site-header"
   data-config-url="/config-ui.yaml"
   brand-label="My Application"
   brand-href="/"
@@ -246,7 +247,7 @@ provider subjects.
 
 Every password or account POST uses `credentials: "include"`, `X-Requested-With: XMLHttpRequest`, and `X-TAuth-Tenant`. Successful login, verification, and reset completion produce the same profile state and `mpr-ui:auth:*` events as Google login. Account disable clears that state.
 
-Password and token values remain local to the immediate request. Do not copy them into attributes, events, storage, logs, diagnostics, or profiles. TAuth sends challenge links through Pinguin and puts each token in the URL fragment. Set `token-fragment-parameter="token"` only on the matching verification form. The component takes the token, removes the fragment from browser history, and keeps the value out of public events and profiles.
+Password and token values remain local to the immediate request. Do not copy them into attributes, events, storage, logs, diagnostics, or profiles. TAuth sends challenge links through Pingwin and puts each token in the URL fragment. Set `token-fragment-parameter="token"` only on the matching verification form. The component takes the token, removes the fragment from browser history, and keeps the value out of public events and profiles.
 
 TAuth owns password policy, challenge lifecycle, cookie issuance, identity rules, and account state. `mpr-ui` owns controls, browser validation, request wiring, status UI, and auth events. Host apps own route protection, app-specific profile data, and bespoke account-policy decisions.
 
@@ -330,7 +331,9 @@ For a branded page, set the documented custom properties on the component or an 
 | `--mpr-login-button-color` | Control label color. |
 | `--mpr-login-button-hover-background` | Control hover background. |
 
-Mounting does not initialize GIS or request a nonce. A session probe occurs only when a restore hint exists. Provider work begins when the user activates a rendered action.
+With Google enabled, the controller prepares GIS and requests a nonce before it renders the official button.
+A session probe occurs only when a restore hint exists.
+Google credential exchange starts after the popup returns a credential.
 
 A successful user-menu logout clears its owning header controller before the redirect.
 This also applies to a same-page fragment such as `#signed-out`.
@@ -447,6 +450,19 @@ If sign-in must open an authenticated route, set `sign-in-redirect-url` on `<mpr
 - Treat only `mpr-ui:auth:*` events as authentication state.
 - Keep credentials, callback values, codes, tokens, state, and secrets out of attributes, storage, logs, diagnostics, and redispatched events.
 
+## Controller and namespace APIs
+
+The [architecture reference](../ARCHITECTURE.md#namespace) lists the public JavaScript namespace, including theme, catalog, legal-document, and selection APIs.
+The controller from `MPRUI.createAuthHeader()` exposes `startAppleSignIn()` for an explicit Apple redirect.
+Google starts through the official Google Identity Services button.
+The controller has no programmatic Google or One Tap start method.
+
+`MPRUI.testing` contains test-only auth, redirect-provider, and Google Identity driver helpers.
+Application code must use the ordinary auth lifecycle.
+
+The development source also supports [auth-form locales](auth-form-locales.md).
+The README records their publication status.
+
 ## Verification
 
 1. Open the page and confirm `/config-ui.yaml` loads before the bundle.
@@ -463,7 +479,7 @@ If sign-in must open an authenticated route, set `sign-in-redirect-url` on `<mpr
 12. Confirm that authenticated UI waits for `mpr-ui:auth:authenticated`.
 13. With the chooser email form, confirm that credential values do not appear in events, attributes, storage, logs, or diagnostics.
 14. With `<mpr-login-button>`, confirm that one visible native sign-in control exists.
-15. Confirm that no auth request or GIS initialization occurs before activation.
+15. If Google is enabled, confirm that GIS initialization and the nonce request occur before the official button renders.
 16. If Apple is enabled, inspect the start URL and confirm the configured TAuth origin and start path.
 17. Confirm `return_to` stays on the app origin.
 18. After the Apple return, confirm one session restore produces the ordinary authenticated profile event.

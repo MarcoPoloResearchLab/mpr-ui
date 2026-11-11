@@ -20,7 +20,7 @@ async function routeThemePages(context) {
   await context.route('https://*.fixture.test/**', async (route) => {
     const url = new URL(route.request().url());
     if (url.pathname === '/mpr-ui.js') {
-      await route.fulfill({ contentType: 'application/javascript', body: BUNDLE });
+      await route.fulfill({ contentType: 'application/javascript; charset=utf-8', body: BUNDLE });
       return;
     }
     const config = {
